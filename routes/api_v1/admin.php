@@ -1,0 +1,19 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+/**
+ * Admin API Routes (v1)
+ * Base: /api/v1/admin
+ * 
+ * Admin dashboard, reports, system management
+ */
+
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::get('/dashboard', [\Modules\Admin\Controllers\Api\AdminController::class, 'dashboard']);
+    Route::get('/stats', [\Modules\Admin\Controllers\Api\AdminController::class, 'stats']);
+    Route::get('/revenue', [\Modules\Admin\Controllers\Api\AdminController::class, 'revenueReport']);
+    Route::get('/users', [\Modules\Admin\Controllers\Api\AdminController::class, 'users']);
+    Route::post('/users/{id}/toggle-status', [\Modules\Admin\Controllers\Api\AdminController::class, 'toggleUserStatus']);
+    Route::get('/activity-log', [\Modules\Admin\Controllers\Api\AdminController::class, 'activityLog']);
+});
