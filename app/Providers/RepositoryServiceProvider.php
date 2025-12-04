@@ -20,7 +20,7 @@ class RepositoryServiceProvider extends ServiceProvider
         // \Modules\Auth\Repositories\Contracts\AuthRepositoryInterface::class => \Modules\Auth\Repositories\AuthRepository::class,
 
         // Users Module
-        // \Modules\Users\Repositories\Contracts\UserRepositoryInterface::class => \Modules\Users\Repositories\UserRepository::class,
+        \Modules\Users\Repositories\Contracts\UserRepositoryInterface::class => \Modules\Users\Repositories\UserRepository::class,
 
         // Hoardings Module
         // \Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface::class => \Modules\Hoardings\Repositories\HoardingRepository::class,

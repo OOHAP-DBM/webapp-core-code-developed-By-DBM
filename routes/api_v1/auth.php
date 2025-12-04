@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Auth\Controllers\Api\AuthController;
 
 /**
  * Auth API Routes (v1)
@@ -10,14 +11,20 @@ use Illuminate\Support\Facades\Route;
  */
 
 // Public routes
-Route::post('/register', [\Modules\Auth\Controllers\Api\AuthController::class, 'register']);
-Route::post('/login', [\Modules\Auth\Controllers\Api\AuthController::class, 'login']);
-Route::post('/forgot-password', [\Modules\Auth\Controllers\Api\AuthController::class, 'forgotPassword']);
-Route::post('/reset-password', [\Modules\Auth\Controllers\Api\AuthController::class, 'resetPassword']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+// OTP Authentication
+Route::post('/otp/send', [AuthController::class, 'sendOTP']);
+Route::post('/otp/verify', [AuthController::class, 'verifyOTP']);
+
+// Password reset (to be implemented)
+// Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+// Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [\Modules\Auth\Controllers\Api\AuthController::class, 'logout']);
-    Route::get('/me', [\Modules\Auth\Controllers\Api\AuthController::class, 'me']);
-    Route::post('/refresh', [\Modules\Auth\Controllers\Api\AuthController::class, 'refresh']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/refresh', [AuthController::class, 'refresh']);
 });

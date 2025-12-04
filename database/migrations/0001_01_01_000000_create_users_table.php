@@ -16,9 +16,25 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('phone', 15)->unique()->nullable();
+            $table->timestamp('phone_verified_at')->nullable();
+            $table->string('password')->nullable(); // Nullable for OTP-only accounts
+            $table->string('otp', 6)->nullable();
+            $table->timestamp('otp_expires_at')->nullable();
+            $table->enum('status', ['active', 'inactive', 'suspended', 'pending_verification'])->default('pending_verification');
+            $table->timestamp('last_login_at')->nullable();
+            $table->string('avatar')->nullable();
+            $table->text('address')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('country')->default('India');
+            $table->string('pincode', 10)->nullable();
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
+            
+            $table->index(['email', 'status']);
+            $table->index(['phone', 'status']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
