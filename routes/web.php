@@ -166,6 +166,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Settings
     Route::get('/settings', [\App\Http\Controllers\Web\Admin\SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [\App\Http\Controllers\Web\Admin\SettingController::class, 'update'])->name('settings.update');
+    Route::post('/settings/reset', [\App\Http\Controllers\Web\Admin\SettingController::class, 'reset'])->name('settings.reset');
+    Route::post('/settings/clear-cache', [\App\Http\Controllers\Web\Admin\SettingController::class, 'clearCache'])->name('settings.clear-cache');
     
     // Reports
     Route::get('/reports', [\App\Http\Controllers\Web\Admin\ReportController::class, 'index'])->name('reports.index');
