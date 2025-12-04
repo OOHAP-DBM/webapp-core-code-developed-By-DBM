@@ -3,9 +3,11 @@
 namespace Modules\Hoardings\Repositories;
 
 use App\Models\Hoarding;
+use App\Models\HoardingGeo;
 use Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface;
 use Modules\Shared\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class HoardingRepository extends BaseRepository implements HoardingRepositoryInterface
 {
@@ -200,5 +202,105 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
         }
 
         return $hoarding->update(['status' => $status]);
+    }
+
+    /**
+     * Get hoardings within a bounding box.
+     *
+     * @param float $minLat
+     * @param float $maxLat
+     * @param float $minLng
+     * @param float $maxLng
+     * @return Collection
+     */
+    public function getByBoundingBox(float $minLat, float $maxLat, float $minLng, float $maxLng): Collection
+    {
+        return $this->model->whereBetween('lat', [$minLat, $maxLat])
+            ->whereBetween('lng', [$minLng, $maxLng])
+            ->active()
+            ->with(['vendor', 'geo'])
+            ->get();
+    }
+
+    /**
+     * Get hoardings within radius with precise Haversine calculation.
+     *
+     * @param float $lat
+     * @param float $lng
+     * @param float $radiusKm
+     * @return Collection
+     */
+    public function getNearbyWithRadius(float $lat, float $lng, float $radiusKm = 10): Collection
+    {
+        // First, get candidates using bounding box (fast)
+        $candidates = $this->model->nearLocation($lat, $lng, $radiusKm)
+            ->active()
+            ->with(['vendor', 'geo'])
+            ->get();
+
+        // Then filter with precise Haversine distance
+        return $candidates->filter(function ($hoarding) use ($lat, $lng, $radiusKm) {
+            return $hoarding->haversineDistance($lat, $lng) <= $radiusKm;
+        });
+    }
+
+    /**
+     * Get compact map pins (minimal data for map markers).
+     *
+     * @param array $filters
+     * @return Collection
+     */
+    public function getMapPins(array $filters = []): Collection
+    {
+        $query = $this->model->active();
+
+        // Apply location filters
+        if (!empty($filters['bbox'])) {
+            $bbox = explode(',', $filters['bbox']);
+            if (count($bbox) === 4) {
+                $query->whereBetween('lat', [$bbox[0], $bbox[2]])
+                    ->whereBetween('lng', [$bbox[1], $bbox[3]]);
+            }
+        }
+
+        if (!empty($filters['near'])) {
+            $near = explode(',', $filters['near']);
+            if (count($near) === 2) {
+                $radiusKm = $filters['radius'] ?? 10;
+                $query->nearLocation($near[0], $near[1], $radiusKm);
+            }
+        }
+
+        // Apply other filters
+        if (!empty($filters['type'])) {
+            $query->byType($filters['type']);
+        }
+
+        if (!empty($filters['vendor_id'])) {
+            $query->byVendor($filters['vendor_id']);
+        }
+
+        return $query->select([
+                'id',
+                'title',
+                'lat',
+                'lng',
+                'type',
+                'monthly_price',
+                'weekly_price',
+                'enable_weekly_booking',
+            ])
+            ->get()
+            ->map(function ($hoarding) {
+                return [
+                    'id' => $hoarding->id,
+                    'title' => $hoarding->title,
+                    'lat' => (float) $hoarding->lat,
+                    'lng' => (float) $hoarding->lng,
+                    'type' => $hoarding->type,
+                    'price' => $hoarding->monthly_price,
+                    'weekly_price' => $hoarding->weekly_price,
+                ];
+            });
     }
 }

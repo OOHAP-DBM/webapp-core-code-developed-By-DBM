@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes - Browse hoardings
 Route::get('/', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'index']);
+Route::get('/map-pins', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'mapPins']);
 Route::get('/{id}', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'show']);
 Route::get('/search', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'search']);
 Route::get('/availability/{id}', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'checkAvailability']);

@@ -4,6 +4,7 @@ namespace Modules\Hoardings\Repositories\Contracts;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
 
 interface HoardingRepositoryInterface
 {
@@ -94,4 +95,33 @@ interface HoardingRepositoryInterface
      * @return bool
      */
     public function updateStatus(int $id, string $status): bool;
+
+    /**
+     * Get hoardings within a bounding box.
+     *
+     * @param float $minLat
+     * @param float $maxLat
+     * @param float $minLng
+     * @param float $maxLng
+     * @return SupportCollection
+     */
+    public function getByBoundingBox(float $minLat, float $maxLat, float $minLng, float $maxLng): SupportCollection;
+
+    /**
+     * Get hoardings within radius with precise Haversine calculation.
+     *
+     * @param float $lat
+     * @param float $lng
+     * @param float $radiusKm
+     * @return SupportCollection
+     */
+    public function getNearbyWithRadius(float $lat, float $lng, float $radiusKm = 10): SupportCollection;
+
+    /**
+     * Get compact map pins (minimal data for map markers).
+     *
+     * @param array $filters
+     * @return SupportCollection
+     */
+    public function getMapPins(array $filters = []): SupportCollection;
 }

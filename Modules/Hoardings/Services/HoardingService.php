@@ -3,9 +3,11 @@
 namespace Modules\Hoardings\Services;
 
 use App\Models\Hoarding;
+use App\Models\HoardingGeo;
 use Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Collection;
 
 class HoardingService
 {
@@ -264,5 +266,111 @@ class HoardingService
     public function clearVendorStatistics(int $vendorId): void
     {
         Cache::forget("vendor_hoarding_stats_{$vendorId}");
+    }
+
+    /**
+     * Attach or update geo fence for a hoarding.
+     *
+     * @param int $hoardingId
+     * @param array $geojson
+     * @return HoardingGeo
+     */
+    public function attachGeoFence(int $hoardingId, array $geojson): HoardingGeo
+    {
+        $hoarding = $this->getById($hoardingId);
+        
+        if (!$hoarding) {
+            throw new \InvalidArgumentException('Hoarding not found.');
+        }
+
+        // Create or update geo fence
+        $geo = HoardingGeo::updateOrCreate(
+            ['hoarding_id' => $hoardingId],
+            ['geojson' => $geojson]
+        );
+
+        // Calculate and save bounding box
+        $geo->updateBoundingBox();
+
+        return $geo;
+    }
+
+    /**
+     * Update geo fence for a hoarding.
+     *
+     * @param int $hoardingId
+     * @param array $geojson
+     * @return HoardingGeo|null
+     */
+    public function updateGeoFence(int $hoardingId, array $geojson): ?HoardingGeo
+    {
+        return $this->attachGeoFence($hoardingId, $geojson);
+    }
+
+    /**
+     * Search hoardings with geo filtering.
+     * Combines polygon check and Haversine fallback.
+     *
+     * @param array $filters
+     * @return Collection
+     */
+    public function searchWithGeo(array $filters = []): Collection
+    {
+        // If bounding box is provided
+        if (!empty($filters['bbox'])) {
+            $bbox = explode(',', $filters['bbox']);
+            if (count($bbox) === 4) {
+                return $this->hoardingRepository->getByBoundingBox(
+                    (float) $bbox[0],
+                    (float) $bbox[2],
+                    (float) $bbox[1],
+                    (float) $bbox[3]
+                );
+            }
+        }
+
+        // If near point with radius is provided
+        if (!empty($filters['near'])) {
+            $near = explode(',', $filters['near']);
+            if (count($near) === 2) {
+                $radiusKm = $filters['radius'] ?? 10;
+                
+                // Get hoardings within radius
+                $hoardings = $this->hoardingRepository->getNearbyWithRadius(
+                    (float) $near[0],
+                    (float) $near[1],
+                    (float) $radiusKm
+                );
+
+                // Filter by geo fence if exists
+                $lat = (float) $near[0];
+                $lng = (float) $near[1];
+
+                return $hoardings->filter(function ($hoarding) use ($lat, $lng, $radiusKm) {
+                    // Check if hoarding has geo fence
+                    if ($hoarding->geo && $hoarding->geo->geojson) {
+                        // Use polygon check
+                        return $hoarding->geo->isPointInPolygon($lat, $lng);
+                    }
+                    
+                    // Fallback to Haversine distance
+                    return $hoarding->haversineDistance($lat, $lng) <= $radiusKm;
+                });
+            }
+        }
+
+        // Default: return all active hoardings
+        return $this->hoardingRepository->getActive()->getCollection();
+    }
+
+    /**
+     * Get map pins with optional filters.
+     *
+     * @param array $filters
+     * @return Collection
+     */
+    public function getMapPins(array $filters = []): Collection
+    {
+        return $this->hoardingRepository->getMapPins($filters);
     }
 }

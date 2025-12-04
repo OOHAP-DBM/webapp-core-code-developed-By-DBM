@@ -35,4 +35,12 @@ class HoardingController extends Controller
 
         return view('hoardings.show', compact('hoarding'));
     }
+
+    /**
+     * Display map view with all hoardings.
+     */
+    public function map()
+    {
+        return view('hoardings.map');
+    }
 }

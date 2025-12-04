@@ -42,6 +42,8 @@ class HoardingController extends Controller
             'lat' => $request->input('lat'),
             'lng' => $request->input('lng'),
             'radius' => $request->input('radius', 10),
+            'bbox' => $request->input('bbox'), // Format: minLat,minLng,maxLat,maxLng
+            'near' => $request->input('near'), // Format: lat,lng
             'sort_by' => $request->input('sort_by', 'created_at'),
             'sort_order' => $request->input('sort_order', 'desc'),
         ];
@@ -60,6 +62,31 @@ class HoardingController extends Controller
                 'to' => $hoardings->lastItem(),
                 'total' => $hoardings->total(),
             ],
+        ]);
+    }
+
+    /**
+     * Get map pins (compact data for map markers).
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function mapPins(Request $request): JsonResponse
+    {
+        $filters = [
+            'bbox' => $request->input('bbox'), // Format: minLat,minLng,maxLat,maxLng
+            'near' => $request->input('near'), // Format: lat,lng
+            'radius' => $request->input('radius', 10),
+            'type' => $request->input('type'),
+            'vendor_id' => $request->input('vendor_id'),
+        ];
+
+        $pins = $this->hoardingService->getMapPins($filters);
+
+        return response()->json([
+            'success' => true,
+            'data' => $pins,
+            'total' => $pins->count(),
         ]);
     }
 

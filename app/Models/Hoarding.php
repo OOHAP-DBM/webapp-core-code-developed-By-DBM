@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Hoarding extends Model
 {
@@ -71,6 +72,14 @@ class Hoarding extends Model
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'vendor_id');
+    }
+
+    /**
+     * Get the geo fence for this hoarding.
+     */
+    public function geo(): HasOne
+    {
+        return $this->hasOne(HoardingGeo::class);
     }
 
     /**
@@ -189,5 +198,28 @@ class Hoarding extends Model
     public function supportsWeeklyBooking(): bool
     {
         return $this->enable_weekly_booking && $this->weekly_price !== null;
+    }
+
+    /**
+     * Calculate Haversine distance to a point (in kilometers)
+     */
+    public function haversineDistance(float $lat, float $lng): float
+    {
+        $earthRadius = 6371; // Earth's radius in kilometers
+
+        $latFrom = deg2rad($this->lat);
+        $lngFrom = deg2rad($this->lng);
+        $latTo = deg2rad($lat);
+        $lngTo = deg2rad($lng);
+
+        $latDelta = $latTo - $latFrom;
+        $lngDelta = $lngTo - $lngFrom;
+
+        $angle = 2 * asin(sqrt(
+            pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lngDelta / 2), 2)
+        ));
+
+        return $angle * $earthRadius;
     }
 }
