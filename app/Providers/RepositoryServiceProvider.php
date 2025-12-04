@@ -26,7 +26,7 @@ class RepositoryServiceProvider extends ServiceProvider
         \Modules\Settings\Repositories\Contracts\SettingRepositoryInterface::class => \Modules\Settings\Repositories\SettingRepository::class,
 
         // Hoardings Module
-        // \Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface::class => \Modules\Hoardings\Repositories\HoardingRepository::class,
+        \Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface::class => \Modules\Hoardings\Repositories\HoardingRepository::class,
 
         // DOOH Module
         // \Modules\DOOH\Repositories\Contracts\DOOHRepositoryInterface::class => \Modules\DOOH\Repositories\DOOHRepository::class,

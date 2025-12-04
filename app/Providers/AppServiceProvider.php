@@ -7,6 +7,7 @@ use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Settings\Services\SettingsService;
+use Modules\Hoardings\Services\HoardingService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,13 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(SettingsService::class, function ($app) {
             return new SettingsService(
                 $app->make(\Modules\Settings\Repositories\Contracts\SettingRepositoryInterface::class)
+            );
+        });
+
+        // Register HoardingService as singleton
+        $this->app->singleton(HoardingService::class, function ($app) {
+            return new HoardingService(
+                $app->make(\Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface::class)
             );
         });
     }

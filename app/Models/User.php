@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -146,5 +147,13 @@ class User extends Authenticatable implements MustVerifyEmail
             'staff' => 'staff.dashboard',
             default => 'customer.dashboard',
         };
+    }
+
+    /**
+     * Get the hoardings owned by the vendor.
+     */
+    public function hoardings(): HasMany
+    {
+        return $this->hasMany(Hoarding::class, 'vendor_id');
     }
 }
