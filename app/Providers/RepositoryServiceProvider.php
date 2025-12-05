@@ -31,14 +31,11 @@ class RepositoryServiceProvider extends ServiceProvider
         // Enquiries Module
         \Modules\Enquiries\Repositories\Contracts\EnquiryRepositoryInterface::class => \Modules\Enquiries\Repositories\EnquiryRepository::class,
 
+        // Offers Module
+        \Modules\Offers\Repositories\Contracts\OfferRepositoryInterface::class => \Modules\Offers\Repositories\OfferRepository::class,
+
         // DOOH Module
         // \Modules\DOOH\Repositories\Contracts\DOOHRepositoryInterface::class => \Modules\DOOH\Repositories\DOOHRepository::class,
-
-        // Enquiry Module (old comment - remove later)
-        // \Modules\Enquiry\Repositories\Contracts\EnquiryRepositoryInterface::class => \Modules\Enquiry\Repositories\EnquiryRepository::class,
-
-        // Offer Module
-        // \Modules\Offer\Repositories\Contracts\OfferRepositoryInterface::class => \Modules\Offer\Repositories\OfferRepository::class,
 
         // Quotation Module
         // \Modules\Quotation\Repositories\Contracts\QuotationRepositoryInterface::class => \Modules\Quotation\Repositories\QuotationRepository::class,

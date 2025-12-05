@@ -12,6 +12,9 @@ use Modules\Hoardings\Services\HoardingService;
 use Modules\Enquiries\Services\EnquiryService;
 use Modules\Enquiries\Events\EnquiryCreated;
 use Modules\Enquiries\Listeners\NotifyVendor;
+use Modules\Offers\Services\OfferService;
+use Modules\Offers\Events\OfferSent;
+use Modules\Offers\Listeners\NotifyCustomer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -40,6 +43,13 @@ class AppServiceProvider extends ServiceProvider
                 $app->make(\Modules\Enquiries\Repositories\Contracts\EnquiryRepositoryInterface::class)
             );
         });
+
+        // Register OfferService as singleton
+        $this->app->singleton(OfferService::class, function ($app) {
+            return new OfferService(
+                $app->make(\Modules\Offers\Repositories\Contracts\OfferRepositoryInterface::class)
+            );
+        });
     }
 
     /**
@@ -54,6 +64,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             EnquiryCreated::class,
             NotifyVendor::class
+        );
+
+        Event::listen(
+            OfferSent::class,
+            NotifyCustomer::class
         );
     }
 }
