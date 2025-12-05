@@ -395,4 +395,86 @@ class RazorpayPayoutService
             default => 'proprietorship',
         };
     }
+
+    /**
+     * Create transfer to vendor sub-account via Razorpay Route API
+     * https://razorpay.com/docs/api/route/transfers/
+     * 
+     * @param string $paymentId Razorpay payment ID
+     * @param string $accountId Razorpay sub-account ID
+     * @param float $amount Transfer amount in INR
+     * @param string $currency
+     * @param array $notes
+     * @return array Transfer response
+     * @throws Exception
+     */
+    public function createTransfer(
+        string $paymentId,
+        string $accountId,
+        float $amount,
+        string $currency = 'INR',
+        array $notes = []
+    ): array {
+        try {
+            // Convert amount to paise (Razorpay uses smallest currency unit)
+            $amountInPaise = (int) ($amount * 100);
+
+            $payload = [
+                'account' => $accountId,
+                'amount' => $amountInPaise,
+                'currency' => $currency,
+                'notes' => $notes,
+            ];
+
+            Log::info('Creating Razorpay transfer', [
+                'payment_id' => $paymentId,
+                'account_id' => $accountId,
+                'amount_inr' => $amount,
+                'amount_paise' => $amountInPaise,
+            ]);
+
+            // POST /v1/payments/{payment_id}/transfers
+            $response = Http::withBasicAuth($this->keyId, $this->keySecret)
+                ->post("{$this->baseUrl}/payments/{$paymentId}/transfers", $payload);
+
+            $responseData = $response->json();
+
+            Log::info('Razorpay transfer API response', [
+                'payment_id' => $paymentId,
+                'status_code' => $response->status(),
+                'response' => $responseData,
+            ]);
+
+            if ($response->failed()) {
+                $errorMessage = $responseData['error']['description'] ?? 'Failed to create transfer';
+                
+                Log::error('Razorpay transfer creation failed', [
+                    'payment_id' => $paymentId,
+                    'error' => $errorMessage,
+                    'error_details' => $responseData,
+                ]);
+
+                throw new Exception($errorMessage);
+            }
+
+            Log::info('Razorpay transfer created successfully', [
+                'payment_id' => $paymentId,
+                'transfer_id' => $responseData['id'] ?? null,
+                'amount' => $amount,
+            ]);
+
+            return $responseData;
+
+        } catch (Exception $e) {
+            Log::error('Exception in createTransfer', [
+                'payment_id' => $paymentId,
+                'account_id' => $accountId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            throw $e;
+        }
+    }
 }
+

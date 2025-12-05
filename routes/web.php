@@ -170,6 +170,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     // Finance & Commission Management
     Route::get('/finance/bookings-payments', [\App\Http\Controllers\Admin\FinanceController::class, 'bookingsPaymentsLedger'])->name('finance.bookings-payments');
+    Route::get('/finance/pending-manual-payouts', [\App\Http\Controllers\Admin\FinanceController::class, 'pendingManualPayouts'])->name('finance.pending-manual-payouts');
     
     // Settings
     Route::get('/settings', [\App\Http\Controllers\Web\Admin\SettingController::class, 'index'])->name('settings.index');

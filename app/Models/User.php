@@ -156,4 +156,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Hoarding::class, 'vendor_id');
     }
+
+    /**
+     * Get the vendor's KYC record
+     */
+    public function vendorKYC()
+    {
+        return $this->hasOne(VendorKYC::class, 'vendor_id');
+    }
 }

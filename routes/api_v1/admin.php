@@ -28,6 +28,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/booking-payments/{id}', [FinanceController::class, 'getPaymentDetails']);
     Route::post('/booking-payments/{id}/mark-paid', [FinanceController::class, 'markPayoutPaid']);
     Route::post('/booking-payments/{id}/hold', [FinanceController::class, 'holdPayout']);
+    Route::post('/booking-payments/{id}/process-manual-payout', [FinanceController::class, 'processManualPayout']);
     Route::get('/commission-stats', [FinanceController::class, 'getCommissionStats']);
     Route::get('/pending-payouts', [FinanceController::class, 'getPendingPayouts']);
     Route::get('/vendors/{vendorId}/payout-summary', [FinanceController::class, 'getVendorPayoutSummary']);

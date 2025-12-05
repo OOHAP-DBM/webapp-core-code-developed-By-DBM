@@ -270,4 +270,116 @@ class FinanceController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Display pending manual payouts
+     * GET /admin/finance/pending-manual-payouts
+     */
+    public function pendingManualPayouts(Request $request): View
+    {
+        $query = BookingPayment::with(['booking.vendor.vendorKYC', 'booking.customer', 'commissionLog'])
+            ->where('vendor_payout_status', 'pending_manual_payout')
+            ->orderBy('created_at', 'desc');
+
+        // Search by vendor or booking
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('booking', function($q) use ($search) {
+                $q->where('booking_reference', 'like', "%{$search}%")
+                  ->orWhereHas('vendor', function($vendorQ) use ($search) {
+                      $vendorQ->where('name', 'like', "%{$search}%")
+                              ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $manualPayouts = $query->paginate(30)->withQueryString();
+
+        // Statistics
+        $stats = [
+            'total_pending' => BookingPayment::where('vendor_payout_status', 'pending_manual_payout')->count(),
+            'total_amount' => BookingPayment::where('vendor_payout_status', 'pending_manual_payout')
+                ->sum('vendor_payout_amount'),
+            'auto_paid_count' => BookingPayment::where('vendor_payout_status', 'auto_paid')->count(),
+            'auto_paid_amount' => BookingPayment::where('vendor_payout_status', 'auto_paid')
+                ->sum('vendor_payout_amount'),
+        ];
+
+        return view('admin.finance.pending_manual_payouts', compact('manualPayouts', 'stats'));
+    }
+
+    /**
+     * Process manual payout (API)
+     * POST /api/v1/admin/booking-payments/{id}/process-manual-payout
+     */
+    public function processManualPayout(Request $request, int $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'payout_mode' => 'required|in:bank_transfer,razorpay_transfer,upi,cheque,manual',
+            'payout_reference' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $bookingPayment = BookingPayment::findOrFail($id);
+
+            if ($bookingPayment->vendor_payout_status !== 'pending_manual_payout') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This payout is not pending manual processing',
+                ], 400);
+            }
+
+            DB::beginTransaction();
+
+            $bookingPayment->update([
+                'vendor_payout_status' => 'completed',
+                'payout_mode' => $request->payout_mode,
+                'payout_reference' => $request->payout_reference,
+                'paid_at' => now(),
+                'metadata' => array_merge($bookingPayment->metadata ?? [], [
+                    'manual_payout_processed_by' => auth()->user()->name,
+                    'manual_payout_processed_at' => now()->toIso8601String(),
+                    'manual_payout_notes' => $request->notes,
+                ]),
+            ]);
+
+            DB::commit();
+
+            Log::info('Manual payout processed', [
+                'booking_payment_id' => $id,
+                'payout_mode' => $request->payout_mode,
+                'payout_reference' => $request->payout_reference,
+                'processed_by' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Manual payout processed successfully',
+                'data' => $bookingPayment,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to process manual payout', [
+                'booking_payment_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to process manual payout',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
 }
+
