@@ -24,6 +24,9 @@ Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
     // Confirm booking after payment
     Route::patch('/{id}/confirm', [BookingController::class, 'confirm']);
     
+    // Cancel booking during payment hold
+    Route::post('/{id}/cancel-during-hold', [BookingController::class, 'cancelDuringHold']);
+    
     // Cancel booking
     Route::patch('/{id}/cancel', [BookingController::class, 'cancel']);
     

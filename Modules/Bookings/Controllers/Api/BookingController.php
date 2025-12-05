@@ -383,6 +383,69 @@ class BookingController extends Controller
     }
 
     /**
+     * Cancel booking during payment hold (customer cancellation)
+     * POST /api/v1/bookings/{id}/cancel-during-hold
+     */
+    public function cancelDuringHold(Request $request, int $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $booking = $this->service->find($id);
+
+            if (!$booking) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking not found',
+                ], 404);
+            }
+
+            // Check authorization
+            if ($booking->customer_id !== Auth::id() && !Auth::user()->hasRole('admin')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized',
+                ], 403);
+            }
+
+            // Cancel booking
+            $cancelledBooking = $this->service->cancelDuringHold(
+                $id,
+                Auth::id(),
+                $validator->validated()['reason'] ?? null
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking cancelled successfully. Payment authorization has been voided.',
+                'data' => $cancelledBooking,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Cancel during hold failed', [
+                'booking_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel booking',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
      * Release expired holds (cron endpoint)
      * POST /api/v1/bookings/release-expired-holds
      */
@@ -405,3 +468,4 @@ class BookingController extends Controller
         }
     }
 }
+

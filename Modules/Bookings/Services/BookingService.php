@@ -357,9 +357,11 @@ class BookingService
 
             // Log status change
             $this->logStatusChange(
-                booking: $booking,
-                newStatus: 'payment_hold',
-                notes: "Payment authorized via webhook. Payment ID: {$paymentId}. Hold expires in {$holdMinutes} minutes."
+                $booking,
+                null,
+                'payment_hold',
+                null,
+                "Payment authorized via webhook. Payment ID: {$paymentId}. Hold expires in {$holdMinutes} minutes."
             );
 
             return $booking->fresh();
@@ -380,9 +382,11 @@ class BookingService
 
             // Log status change
             $this->logStatusChange(
-                booking: $booking,
-                newStatus: 'confirmed',
-                notes: "Payment captured successfully via webhook. Payment ID: {$paymentId}."
+                $booking,
+                null,
+                'confirmed',
+                null,
+                "Payment captured successfully via webhook. Payment ID: {$paymentId}."
             );
 
             // Fire event
@@ -412,9 +416,11 @@ class BookingService
 
             // Log status change
             $this->logStatusChange(
-                booking: $booking,
-                newStatus: 'cancelled',
-                notes: "Payment failed via webhook. Error: {$errorCode} - {$errorDescription}. Payment ID: {$paymentId}."
+                $booking,
+                null,
+                'cancelled',
+                null,
+                "Payment failed via webhook. Error: {$errorCode} - {$errorDescription}. Payment ID: {$paymentId}."
             );
 
             // Fire event
@@ -423,5 +429,70 @@ class BookingService
             return $booking->fresh();
         });
     }
+
+    /**
+     * Cancel booking during payment hold (customer cancellation)
+     */
+    public function cancelDuringHold(int $bookingId, int $userId, string $reason = null): Booking
+    {
+        return DB::transaction(function () use ($bookingId, $userId, $reason) {
+            $booking = $this->repository->find($bookingId);
+
+            if (!$booking) {
+                throw new \Exception('Booking not found');
+            }
+
+            // Validate booking is in payment hold
+            if ($booking->status !== Booking::STATUS_PAYMENT_HOLD) {
+                throw new \Exception('Only bookings in payment hold can be cancelled. Current status: ' . $booking->status);
+            }
+
+            // Validate hold hasn't expired
+            if ($booking->hold_expiry_at && now()->isAfter($booking->hold_expiry_at)) {
+                throw new \Exception('Payment hold has already expired');
+            }
+
+            // Validate payment is in authorized state
+            if ($booking->payment_status !== 'authorized') {
+                throw new \Exception('Payment is not in authorized state. Current payment status: ' . ($booking->payment_status ?? 'null'));
+            }
+
+            // Void the payment (verify it's still authorized)
+            if ($booking->razorpay_payment_id) {
+                $razorpayService = app(\App\Services\RazorpayService::class);
+                $paymentDetails = $razorpayService->voidPayment($booking->razorpay_payment_id);
+
+                // Fire event
+                event(new \App\Events\BookingPaymentVoided(
+                    $booking->id,
+                    $booking->razorpay_payment_id,
+                    $paymentDetails
+                ));
+            }
+
+            // Update booking
+            $oldStatus = $booking->status;
+            $booking->status = Booking::STATUS_CANCELLED;
+            $booking->payment_status = 'voided';
+            $booking->hold_expiry_at = null;
+            $booking->cancelled_at = now();
+            $booking->save();
+
+            // Log status change
+            $this->logStatusChange(
+                $booking,
+                $oldStatus,
+                Booking::STATUS_CANCELLED,
+                $userId,
+                'Customer cancelled during payment hold: ' . ($reason ?? 'No reason provided')
+            );
+
+            // Fire status changed event
+            event(new BookingStatusChanged($booking, $oldStatus, Booking::STATUS_CANCELLED));
+
+            return $booking->fresh();
+        });
+    }
 }
+
 

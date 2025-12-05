@@ -142,6 +142,51 @@ class RazorpayService
     }
 
     /**
+     * Void/Cancel an authorized payment (before capture)
+     * Note: Razorpay doesn't have explicit void API, authorized payments auto-expire
+     *
+     * @param string $paymentId Razorpay payment ID
+     * @return array Payment details
+     * @throws \Exception
+     */
+    public function voidPayment(string $paymentId): array
+    {
+        try {
+            // Fetch payment details
+            $response = Http::withBasicAuth($this->keyId, $this->keySecret)
+                ->get("{$this->baseUrl}/payments/{$paymentId}");
+
+            if (!$response->successful()) {
+                throw new \Exception("Failed to fetch payment details: " . $response->body());
+            }
+
+            $payment = $response->json();
+
+            // Log the void request
+            $this->logRequest('void_payment', [
+                'payment_id' => $paymentId,
+                'status' => $payment['status'] ?? null,
+            ], $payment, true);
+
+            // Verify payment is in authorized state
+            if (!isset($payment['status']) || $payment['status'] !== 'authorized') {
+                throw new \Exception("Payment cannot be voided. Current status: " . ($payment['status'] ?? 'unknown'));
+            }
+
+            return $payment;
+        } catch (\Exception $e) {
+            $this->logRequest('void_payment', [
+                'payment_id' => $paymentId,
+            ], [
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+            ], false);
+
+            throw $e;
+        }
+    }
+
+    /**
      * Verify payment signature
      *
      * @param string $orderId Razorpay order ID
