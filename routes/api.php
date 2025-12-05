@@ -29,6 +29,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('offers')->group(base_path('routes/api_v1/offers.php'));
     Route::prefix('quotations')->group(base_path('routes/api_v1/quotations.php'));
     Route::prefix('bookings')->group(base_path('routes/api_v1/bookings.php'));
+    Route::prefix('bookings-v2')->group(base_path('routes/api_v1/bookings_v2.php')); // New Bookings Module
     Route::prefix('payments')->group(base_path('routes/api_v1/payments.php'));
     Route::prefix('vendors')->group(base_path('routes/api_v1/vendors.php'));
     Route::prefix('kyc')->group(base_path('routes/api_v1/kyc.php'));

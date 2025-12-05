@@ -19,6 +19,7 @@ use Modules\Quotations\Services\QuotationService;
 use Modules\Quotations\Events\QuotationApproved;
 use Modules\Bookings\Services\BookingService;
 use Modules\Bookings\Events\BookingCreated;
+use App\Services\RazorpayService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -67,6 +68,11 @@ class AppServiceProvider extends ServiceProvider
             return new BookingService(
                 $app->make(\Modules\Bookings\Repositories\Contracts\BookingRepositoryInterface::class)
             );
+        });
+
+        // Register RazorpayService as singleton
+        $this->app->singleton(RazorpayService::class, function ($app) {
+            return new RazorpayService();
         });
     }
 

@@ -4,18 +4,22 @@ namespace Modules\Bookings\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Modules\Bookings\Services\BookingService;
+use App\Services\RazorpayService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
     protected BookingService $service;
+    protected RazorpayService $razorpayService;
 
-    public function __construct(BookingService $service)
+    public function __construct(BookingService $service, RazorpayService $razorpayService)
     {
         $this->service = $service;
+        $this->razorpayService = $razorpayService;
     }
 
     /**
@@ -52,6 +56,113 @@ class BookingController extends Controller
                 'message' => 'Failed to create booking',
                 'error' => $e->getMessage(),
             ], 400);
+        }
+    }
+
+    /**
+     * Create Razorpay order for booking
+     * POST /api/v1/bookings/{id}/create-order
+     */
+    public function createOrder(int $id): JsonResponse
+    {
+        try {
+            $booking = $this->service->find($id);
+
+            if (!$booking) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking not found',
+                ], 404);
+            }
+
+            // Check authorization
+            if ($booking->customer_id !== Auth::id() && !Auth::user()->hasRole('admin')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized',
+                ], 403);
+            }
+
+            // Check if booking is in valid state
+            if (!in_array($booking->status, ['pending', 'payment_hold'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Cannot create order for booking with status: {$booking->status}",
+                ], 400);
+            }
+
+            // Check if order already exists
+            if ($booking->razorpay_order_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Razorpay order already exists for this booking',
+                    'existing_order_id' => $booking->razorpay_order_id,
+                ], 400);
+            }
+
+            // Check if hold is expired
+            if ($booking->hold_expiry_at && $booking->hold_expiry_at->isPast()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking hold has expired',
+                ], 400);
+            }
+
+            // Create Razorpay order with manual capture
+            $receipt = "BOOKING_{$booking->id}_" . time();
+            $orderData = $this->razorpayService->createOrder(
+                amount: $booking->total_amount,
+                currency: 'INR',
+                receipt: $receipt,
+                captureMethod: 'manual'
+            );
+
+            // Update booking with Razorpay order ID
+            $booking->razorpay_order_id = $orderData['id'];
+            $booking->save();
+
+            // Move to payment hold if not already there
+            if ($booking->status === 'pending') {
+                $this->service->moveToPaymentHold($booking->id, $orderData['id']);
+                $booking->refresh();
+            }
+
+            Log::info('Razorpay order created successfully', [
+                'booking_id' => $booking->id,
+                'order_id' => $orderData['id'],
+                'amount' => $booking->total_amount,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Razorpay order created successfully',
+                'data' => [
+                    'booking_id' => $booking->id,
+                    'order_id' => $orderData['id'],
+                    'amount' => $orderData['amount'], // Amount in paise
+                    'amount_inr' => $booking->total_amount,
+                    'currency' => $orderData['currency'],
+                    'receipt' => $orderData['receipt'],
+                    'status' => $orderData['status'],
+                    'created_at' => $orderData['created_at'],
+                    'hold_expiry_at' => $booking->hold_expiry_at?->toIso8601String(),
+                    'hold_minutes_remaining' => $booking->getHoldMinutesRemaining(),
+                ],
+                'razorpay_key' => config('services.razorpay.key_id'),
+            ], 201);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to create Razorpay order', [
+                'booking_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create Razorpay order',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
