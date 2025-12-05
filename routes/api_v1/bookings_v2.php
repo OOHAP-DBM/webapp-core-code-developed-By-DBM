@@ -35,6 +35,9 @@ Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
     
     // Show booking details
     Route::get('/{id}', [BookingController::class, 'show']);
+    
+    // Get price snapshot
+    Route::get('/{id}/price-snapshot', [BookingController::class, 'getPriceSnapshot']);
 });
 
 // Vendor routes
@@ -44,12 +47,18 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
     
     // Cancel booking
     Route::patch('/{id}/cancel', [BookingController::class, 'cancel']);
+    
+    // Get price snapshot
+    Route::get('/{id}/price-snapshot', [BookingController::class, 'getPriceSnapshot']);
 });
 
 // Admin routes
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // List all bookings
     Route::get('/admin', [BookingController::class, 'index']);
+    
+    // Get price snapshot
+    Route::get('/{id}/price-snapshot', [BookingController::class, 'getPriceSnapshot']);
     
     // Release expired holds (cron endpoint)
     Route::post('/release-expired-holds', [BookingController::class, 'releaseExpiredHolds']);

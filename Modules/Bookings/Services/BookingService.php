@@ -110,13 +110,24 @@ class BookingService
                 'customer_notes' => $customerInput['notes'] ?? null,
             ]);
 
+            // Create immutable price snapshot
+            \App\Models\BookingPriceSnapshot::create([
+                'booking_id' => $booking->id,
+                'quotation_snapshot' => $snapshot,
+                'services_price' => (float) $quotation->total_amount,
+                'discounts' => (float) $quotation->discount,
+                'taxes' => (float) $quotation->tax,
+                'total_amount' => (float) $quotation->grand_total,
+                'currency' => 'INR',
+            ]);
+
             // Log initial status
             $this->logStatusChange($booking, null, Booking::STATUS_PENDING_PAYMENT_HOLD, Auth::id(), 'Booking created from quotation');
 
             // Dispatch event
             event(new BookingCreated($booking));
 
-            return $booking->fresh();
+            return $booking->fresh(['priceSnapshot']);
         });
     }
 

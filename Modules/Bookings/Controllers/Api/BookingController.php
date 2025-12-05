@@ -446,6 +446,77 @@ class BookingController extends Controller
     }
 
     /**
+     * Get booking price snapshot
+     * GET /api/v1/bookings/{id}/price-snapshot
+     */
+    public function getPriceSnapshot(int $id): JsonResponse
+    {
+        try {
+            $booking = $this->service->find($id);
+
+            if (!$booking) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking not found',
+                ], 404);
+            }
+
+            // Check authorization
+            if ($booking->customer_id !== Auth::id() 
+                && $booking->vendor_id !== Auth::id() 
+                && !Auth::user()->hasRole('admin')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized',
+                ], 403);
+            }
+
+            // Load price snapshot
+            $priceSnapshot = $booking->priceSnapshot;
+
+            if (!$priceSnapshot) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Price snapshot not found for this booking',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'booking_id' => $booking->id,
+                    'price_breakdown' => [
+                        'services_price' => (float) $priceSnapshot->services_price,
+                        'discounts' => (float) $priceSnapshot->discounts,
+                        'taxes' => (float) $priceSnapshot->taxes,
+                        'total_amount' => (float) $priceSnapshot->total_amount,
+                        'currency' => $priceSnapshot->currency,
+                    ],
+                    'calculated_fields' => [
+                        'effective_price' => $priceSnapshot->effective_price,
+                        'discount_percentage' => $priceSnapshot->discount_percentage,
+                        'tax_percentage' => $priceSnapshot->tax_percentage,
+                    ],
+                    'line_items' => $priceSnapshot->line_items,
+                    'quotation_metadata' => $priceSnapshot->quotation_metadata,
+                    'created_at' => $priceSnapshot->created_at->toIso8601String(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch price snapshot', [
+                'booking_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch price snapshot',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Release expired holds (cron endpoint)
      * POST /api/v1/bookings/release-expired-holds
      */
@@ -468,4 +539,5 @@ class BookingController extends Controller
         }
     }
 }
+
 

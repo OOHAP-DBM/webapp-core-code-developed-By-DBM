@@ -90,6 +90,11 @@ class Booking extends Model
         return $this->hasMany(BookingStatusLog::class)->orderBy('created_at', 'desc');
     }
 
+    public function priceSnapshot(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(BookingPriceSnapshot::class);
+    }
+
     /**
      * Scopes
      */

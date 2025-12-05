@@ -24,6 +24,22 @@ class BookingHoldController extends Controller
     }
 
     /**
+     * Display booking price snapshot
+     * GET /admin/bookings/{id}/price-snapshot
+     */
+    public function showPriceSnapshot(int $id): View
+    {
+        $booking = Booking::with(['priceSnapshot', 'customer', 'vendor', 'hoarding'])->findOrFail($id);
+        $priceSnapshot = $booking->priceSnapshot;
+
+        if (!$priceSnapshot) {
+            abort(404, 'Price snapshot not found for this booking');
+        }
+
+        return view('admin.bookings.price_snapshot', compact('booking', 'priceSnapshot'));
+    }
+
+    /**
      * Display payment holds management page
      * GET /admin/bookings/holds
      */
