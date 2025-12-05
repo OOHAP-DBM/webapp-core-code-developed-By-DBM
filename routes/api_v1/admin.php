@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\BookingHoldController;
 
 /**
  * Admin API Routes (v1)
@@ -16,4 +17,8 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/users', [\Modules\Admin\Controllers\Api\AdminController::class, 'users']);
     Route::post('/users/{id}/toggle-status', [\Modules\Admin\Controllers\Api\AdminController::class, 'toggleUserStatus']);
     Route::get('/activity-log', [\Modules\Admin\Controllers\Api\AdminController::class, 'activityLog']);
+    
+    // Payment holds management
+    Route::post('/bookings/{id}/manual-capture', [BookingHoldController::class, 'manualCapture']);
+    Route::post('/bookings/run-capture-job', [BookingHoldController::class, 'runCaptureJob']);
 });
