@@ -40,6 +40,7 @@ class VendorKYC extends Model implements HasMedia
         'bank_name',
         'account_type',
         'verification_status',
+        'payout_status',
         'verification_details',
         'submitted_at',
         'verified_at',

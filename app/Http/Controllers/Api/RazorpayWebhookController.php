@@ -7,6 +7,7 @@ use App\Events\PaymentAuthorized;
 use App\Events\PaymentCaptured;
 use App\Events\PaymentFailed;
 use App\Models\RazorpayLog;
+use App\Services\RazorpayPayoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -56,6 +57,8 @@ class RazorpayWebhookController extends Controller
                 'payment.captured' => $this->handlePaymentCaptured($payload),
                 'payment.failed' => $this->handlePaymentFailed($payload),
                 'order.paid' => $this->handleOrderPaid($payload),
+                'account.activated' => $this->handleAccountActivated($payload),
+                'account.suspended' => $this->handleAccountSuspended($payload),
                 default => $this->handleUnknownEvent($event, $payload)
             };
 
@@ -230,6 +233,58 @@ class RazorpayWebhookController extends Controller
         $this->logWebhook("unknown_event:{$event}", $payload, null, 200);
 
         return true;
+    }
+
+    /**
+     * Handle account.activated event (Razorpay Route)
+     */
+    protected function handleAccountActivated(array $payload): bool
+    {
+        try {
+            Log::info('Processing account.activated webhook', [
+                'payload' => $payload
+            ]);
+
+            $payoutService = new RazorpayPayoutService();
+            $payoutService->handleAccountVerified($payload);
+
+            $this->logWebhook('account.activated', $payload, null, 200);
+
+            return true;
+
+        } catch (\Exception $e) {
+            Log::error('Failed to handle account.activated webhook', [
+                'error' => $e->getMessage(),
+                'payload' => $payload
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Handle account.suspended event (Razorpay Route)
+     */
+    protected function handleAccountSuspended(array $payload): bool
+    {
+        try {
+            Log::info('Processing account.suspended webhook', [
+                'payload' => $payload
+            ]);
+
+            $payoutService = new RazorpayPayoutService();
+            $payoutService->handleAccountRejected($payload);
+
+            $this->logWebhook('account.suspended', $payload, null, 200);
+
+            return true;
+
+        } catch (\Exception $e) {
+            Log::error('Failed to handle account.suspended webhook', [
+                'error' => $e->getMessage(),
+                'payload' => $payload
+            ]);
+            return false;
+        }
     }
 
     /**

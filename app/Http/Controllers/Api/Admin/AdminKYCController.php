@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\CreateRazorpaySubAccountJob;
 use App\Models\VendorKYC;
 use App\Models\User;
+use App\Services\RazorpayPayoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -371,5 +373,187 @@ class AdminKYCController extends Controller
             'success' => true,
             'data' => $stats,
         ]);
+    }
+
+    /**
+     * Sync Razorpay sub-account status
+     * POST /api/v1/admin/kyc/{id}/sync-razorpay
+     */
+    public function syncRazorpayStatus(int $id): JsonResponse
+    {
+        try {
+            $kyc = VendorKYC::findOrFail($id);
+
+            if (!$kyc->razorpay_subaccount_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No Razorpay sub-account ID found',
+                ], 400);
+            }
+
+            $payoutService = new RazorpayPayoutService();
+            $accountData = $payoutService->fetchSubAccount($kyc->razorpay_subaccount_id);
+
+            // Update KYC with latest Razorpay status
+            $accountStatus = $accountData['status'] ?? null;
+            
+            $updates = [
+                'verification_details' => array_merge($kyc->verification_details ?? [], [
+                    'razorpay_account_status' => $accountStatus,
+                    'razorpay_last_synced_at' => now()->toIso8601String(),
+                    'razorpay_sync_response' => $accountData,
+                ]),
+            ];
+
+            // Update payout status based on Razorpay status
+            if ($accountStatus === 'activated') {
+                $updates['payout_status'] = 'verified';
+            } elseif ($accountStatus === 'suspended') {
+                $updates['payout_status'] = 'rejected';
+            }
+
+            $kyc->update($updates);
+
+            Log::info('Razorpay status synced', [
+                'kyc_id' => $id,
+                'account_status' => $accountStatus,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Razorpay status synced successfully',
+                'data' => [
+                    'payout_status' => $kyc->payout_status,
+                    'razorpay_status' => $accountStatus,
+                ],
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to sync Razorpay status', [
+                'kyc_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to sync Razorpay status',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+    /**
+     * Manual override of payout status
+     * POST /api/v1/admin/kyc/{id}/manual-override
+     */
+    public function manualOverride(Request $request, int $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'payout_status' => 'required|in:verified,rejected,pending_verification',
+            'reason' => 'required|string|min:10|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $kyc = VendorKYC::findOrFail($id);
+            $admin = $request->user();
+
+            DB::beginTransaction();
+
+            $oldStatus = $kyc->payout_status;
+
+            // Update payout status
+            $kyc->update([
+                'payout_status' => $request->payout_status,
+                'verification_details' => array_merge($kyc->verification_details ?? [], [
+                    'manual_override' => [
+                        'payout_status' => $request->payout_status,
+                        'old_status' => $oldStatus,
+                        'reason' => $request->reason,
+                        'overridden_by' => $admin->name,
+                        'overridden_at' => now()->toIso8601String(),
+                    ],
+                ]),
+            ]);
+
+            // Update vendor status if verified
+            if ($request->payout_status === 'verified' && $kyc->isApproved()) {
+                $kyc->vendor->update(['status' => 'kyc_verified']);
+            }
+
+            DB::commit();
+
+            Log::info('Manual payout override applied', [
+                'kyc_id' => $id,
+                'old_status' => $oldStatus,
+                'new_status' => $request->payout_status,
+                'admin_id' => $admin->id,
+                'reason' => $request->reason,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Manual override applied successfully',
+                'data' => [
+                    'kyc_id' => $kyc->id,
+                    'payout_status' => $kyc->payout_status,
+                ],
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to apply manual override', [
+                'kyc_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to apply manual override',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+    /**
+     * Retry Razorpay sub-account creation
+     * POST /api/v1/admin/kyc/{id}/retry-razorpay
+     */
+    public function retryRazorpay(int $id): JsonResponse
+    {
+        try {
+            $kyc = VendorKYC::findOrFail($id);
+
+            // Dispatch job to create Razorpay sub-account
+            CreateRazorpaySubAccountJob::dispatch($kyc);
+
+            Log::info('Razorpay sub-account creation retried', [
+                'kyc_id' => $id,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Razorpay sub-account creation job dispatched',
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to retry Razorpay creation', [
+                'kyc_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to dispatch job',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 }

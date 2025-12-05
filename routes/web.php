@@ -147,6 +147,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/kyc', [\App\Http\Controllers\Web\Admin\AdminKYCWebController::class, 'index'])->name('kyc.index');
     Route::get('/kyc/{id}', [\App\Http\Controllers\Web\Admin\AdminKYCWebController::class, 'show'])->name('kyc.show');
     
+    // KYC Reviews & Manual Override
+    Route::get('/vendor/kyc-reviews', [\App\Http\Controllers\Web\Admin\AdminKYCReviewController::class, 'index'])->name('kyc-reviews.index');
+    Route::get('/vendor/kyc-reviews/{id}', [\App\Http\Controllers\Web\Admin\AdminKYCReviewController::class, 'show'])->name('kyc-reviews.show');
+    
     // Hoardings Management
     Route::get('/hoardings', [\App\Http\Controllers\Web\Admin\HoardingController::class, 'index'])->name('hoardings.index');
     Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\Admin\HoardingController::class, 'show'])->name('hoardings.show');

@@ -39,4 +39,9 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::post('/kyc/{id}/approve', [AdminKYCController::class, 'approve']);
     Route::post('/kyc/{id}/reject', [AdminKYCController::class, 'reject']);
     Route::post('/kyc/{id}/request-resubmission', [AdminKYCController::class, 'requestResubmission']);
+    
+    // KYC Manual Override & Razorpay Management
+    Route::post('/kyc/{id}/sync-razorpay', [AdminKYCController::class, 'syncRazorpayStatus']);
+    Route::post('/kyc/{id}/manual-override', [AdminKYCController::class, 'manualOverride']);
+    Route::post('/kyc/{id}/retry-razorpay', [AdminKYCController::class, 'retryRazorpay']);
 });
