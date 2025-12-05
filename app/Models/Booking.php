@@ -95,6 +95,16 @@ class Booking extends Model
         return $this->hasOne(BookingPriceSnapshot::class);
     }
 
+    public function bookingPayment(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(BookingPayment::class);
+    }
+
+    public function commissionLog(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(CommissionLog::class);
+    }
+
     /**
      * Scopes
      */

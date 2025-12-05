@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\BookingHoldController;
+use App\Http\Controllers\Admin\FinanceController;
 
 /**
  * Admin API Routes (v1)
@@ -21,4 +22,12 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // Payment holds management
     Route::post('/bookings/{id}/manual-capture', [BookingHoldController::class, 'manualCapture']);
     Route::post('/bookings/run-capture-job', [BookingHoldController::class, 'runCaptureJob']);
+    
+    // Financial management - Commission & Payouts
+    Route::get('/booking-payments/{id}', [FinanceController::class, 'getPaymentDetails']);
+    Route::post('/booking-payments/{id}/mark-paid', [FinanceController::class, 'markPayoutPaid']);
+    Route::post('/booking-payments/{id}/hold', [FinanceController::class, 'holdPayout']);
+    Route::get('/commission-stats', [FinanceController::class, 'getCommissionStats']);
+    Route::get('/pending-payouts', [FinanceController::class, 'getPendingPayouts']);
+    Route::get('/vendors/{vendorId}/payout-summary', [FinanceController::class, 'getVendorPayoutSummary']);
 });

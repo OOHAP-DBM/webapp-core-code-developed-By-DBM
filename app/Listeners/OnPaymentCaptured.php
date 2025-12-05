@@ -4,19 +4,22 @@ namespace App\Listeners;
 
 use App\Events\PaymentCaptured;
 use App\Jobs\ScheduleBookingConfirmJob;
+use App\Services\CommissionService;
 use Modules\Bookings\Services\BookingService;
 use Illuminate\Support\Facades\Log;
 
 class OnPaymentCaptured
 {
     protected BookingService $bookingService;
+    protected CommissionService $commissionService;
 
     /**
      * Create the event listener.
      */
-    public function __construct(BookingService $bookingService)
+    public function __construct(BookingService $bookingService, CommissionService $commissionService)
     {
         $this->bookingService = $bookingService;
+        $this->commissionService = $commissionService;
     }
 
     /**
@@ -40,6 +43,20 @@ class OnPaymentCaptured
                 ]);
                 return;
             }
+
+            // Calculate and record commission
+            [$bookingPayment, $commissionLog] = $this->commissionService->calculateAndRecord(
+                $booking,
+                $event->paymentId,
+                $event->orderId
+            );
+
+            Log::info('OnPaymentCaptured: Commission recorded', [
+                'booking_id' => $booking->id,
+                'booking_payment_id' => $bookingPayment->id,
+                'commission_log_id' => $commissionLog->id,
+                'vendor_payout_amount' => $bookingPayment->vendor_payout_amount,
+            ]);
 
             // Dispatch job to confirm booking
             ScheduleBookingConfirmJob::dispatch($booking->id, $event->paymentId)

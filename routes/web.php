@@ -166,6 +166,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/payments/{id}', [\App\Http\Controllers\Web\Admin\PaymentController::class, 'show'])->name('payments.show');
     Route::post('/payments/process-payouts', [\App\Http\Controllers\Web\Admin\PaymentController::class, 'processPayouts'])->name('payments.process-payouts');
     
+    // Finance & Commission Management
+    Route::get('/finance/bookings-payments', [\App\Http\Controllers\Admin\FinanceController::class, 'bookingsPaymentsLedger'])->name('finance.bookings-payments');
+    
     // Settings
     Route::get('/settings', [\App\Http\Controllers\Web\Admin\SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [\App\Http\Controllers\Web\Admin\SettingController::class, 'update'])->name('settings.update');
