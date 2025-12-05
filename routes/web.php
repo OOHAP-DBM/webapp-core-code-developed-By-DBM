@@ -116,8 +116,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::resource('staff', \App\Http\Controllers\Web\Vendor\StaffController::class);
     
     // KYC
-    Route::get('/kyc', [\App\Http\Controllers\Web\Vendor\KYCController::class, 'index'])->name('kyc.index');
-    Route::post('/kyc/submit', [\App\Http\Controllers\Web\Vendor\KYCController::class, 'submit'])->name('kyc.submit');
+    Route::get('/kyc', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.index');
+    Route::get('/kyc/submit', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.submit');
     
     // Reports
     Route::get('/reports', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'index'])->name('reports.index');

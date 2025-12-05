@@ -259,4 +259,76 @@ class RazorpayService
             ]);
         }
     }
+
+    /**
+     * Create a Razorpay Route sub-account for vendor
+     *
+     * @param array $data Sub-account data
+     * @return array Sub-account response from Razorpay
+     * @throws Exception
+     */
+    public function createSubAccount(array $data): array
+    {
+        try {
+            $this->logRequest('create_subaccount', $data);
+
+            $response = Http::withBasicAuth($this->keyId, $this->keySecret)
+                ->post("{$this->baseUrl}/accounts", $data);
+
+            $responseData = $response->json();
+            $this->logResponse('create_subaccount', $responseData, $response->status());
+
+            if ($response->failed()) {
+                throw new Exception(
+                    $responseData['error']['description'] ?? 'Failed to create Razorpay sub-account'
+                );
+            }
+
+            Log::info('Razorpay sub-account created', [
+                'account_id' => $responseData['id'] ?? null,
+            ]);
+
+            return $responseData;
+
+        } catch (Exception $e) {
+            Log::error('Razorpay sub-account creation failed', [
+                'error' => $e->getMessage(),
+                'data' => $data,
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Fetch sub-account details
+     *
+     * @param string $accountId Sub-account ID
+     * @return array
+     * @throws Exception
+     */
+    public function fetchSubAccount(string $accountId): array
+    {
+        try {
+            $response = Http::withBasicAuth($this->keyId, $this->keySecret)
+                ->get("{$this->baseUrl}/accounts/{$accountId}");
+
+            $responseData = $response->json();
+
+            if ($response->failed()) {
+                throw new Exception(
+                    $responseData['error']['description'] ?? 'Failed to fetch sub-account'
+                );
+            }
+
+            return $responseData;
+
+        } catch (Exception $e) {
+            Log::error('Razorpay sub-account fetch failed', [
+                'account_id' => $accountId,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
+    }
 }
+

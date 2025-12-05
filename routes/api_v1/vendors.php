@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Vendor\VendorKYCController;
 
 /**
  * Vendor API Routes (v1)
@@ -19,6 +20,11 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
     Route::put('/profile', [\Modules\Vendor\Controllers\Api\VendorController::class, 'updateProfile']);
     Route::get('/earnings', [\Modules\Vendor\Controllers\Api\VendorController::class, 'earnings']);
     Route::get('/analytics', [\Modules\Vendor\Controllers\Api\VendorController::class, 'analytics']);
+    
+    // KYC Routes
+    Route::post('/kyc', [VendorKYCController::class, 'submit']);
+    Route::get('/kyc', [VendorKYCController::class, 'getDetails']);
+    Route::get('/kyc/status', [VendorKYCController::class, 'getStatus']);
 });
 
 // Admin routes
