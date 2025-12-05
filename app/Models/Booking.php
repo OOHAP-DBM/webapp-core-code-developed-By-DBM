@@ -29,6 +29,7 @@ class Booking extends Model
         'payment_captured_at',
         'payment_failed_at',
         'capture_attempted_at',
+        'pod_approved_at',
         'booking_snapshot',
         'customer_notes',
         'cancellation_reason',
@@ -45,6 +46,7 @@ class Booking extends Model
         'payment_captured_at' => 'datetime',
         'payment_failed_at' => 'datetime',
         'capture_attempted_at' => 'datetime',
+        'pod_approved_at' => 'datetime',
         'booking_snapshot' => 'array',
         'confirmed_at' => 'datetime',
         'cancelled_at' => 'datetime',
@@ -255,5 +257,21 @@ class Booking extends Model
             self::STATUS_REFUNDED => 'Refunded',
             default => ucfirst(str_replace('_', ' ', $this->status)),
         };
+    }
+
+    /**
+     * Get booking proofs (POD)
+     */
+    public function bookingProofs(): HasMany
+    {
+        return $this->hasMany(BookingProof::class);
+    }
+
+    /**
+     * Get approved booking proof
+     */
+    public function approvedProof()
+    {
+        return $this->hasOne(BookingProof::class)->where('status', 'approved');
     }
 }
