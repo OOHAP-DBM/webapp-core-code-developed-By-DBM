@@ -332,4 +332,96 @@ class BookingService
 
         return false;
     }
+
+    /**
+     * Find booking by Razorpay order ID
+     */
+    public function findByRazorpayOrderId(string $orderId): ?Booking
+    {
+        return Booking::where('razorpay_order_id', $orderId)->first();
+    }
+
+    /**
+     * Update booking when payment is authorized (webhook)
+     */
+    public function updatePaymentAuthorized(Booking $booking, string $paymentId, int $holdMinutes): Booking
+    {
+        return DB::transaction(function () use ($booking, $paymentId, $holdMinutes) {
+            // Update booking
+            $booking->razorpay_payment_id = $paymentId;
+            $booking->payment_status = 'authorized';
+            $booking->payment_authorized_at = now();
+            $booking->status = 'payment_hold';
+            $booking->hold_expiry_at = now()->addMinutes($holdMinutes);
+            $booking->save();
+
+            // Log status change
+            $this->logStatusChange(
+                booking: $booking,
+                newStatus: 'payment_hold',
+                notes: "Payment authorized via webhook. Payment ID: {$paymentId}. Hold expires in {$holdMinutes} minutes."
+            );
+
+            return $booking->fresh();
+        });
+    }
+
+    /**
+     * Confirm booking after payment capture (webhook)
+     */
+    public function confirmBookingAfterCapture(Booking $booking, string $paymentId): Booking
+    {
+        return DB::transaction(function () use ($booking, $paymentId) {
+            // Update payment status
+            $booking->payment_status = 'captured';
+            $booking->payment_captured_at = now();
+            $booking->status = 'confirmed';
+            $booking->save();
+
+            // Log status change
+            $this->logStatusChange(
+                booking: $booking,
+                newStatus: 'confirmed',
+                notes: "Payment captured successfully via webhook. Payment ID: {$paymentId}."
+            );
+
+            // Fire event
+            event(new BookingStatusChanged($booking, 'payment_hold', 'confirmed'));
+
+            return $booking->fresh();
+        });
+    }
+
+    /**
+     * Mark payment as failed and release hold (webhook)
+     */
+    public function markPaymentFailed(
+        Booking $booking,
+        string $paymentId,
+        string $errorCode,
+        string $errorDescription
+    ): Booking {
+        return DB::transaction(function () use ($booking, $paymentId, $errorCode, $errorDescription) {
+            // Update payment status
+            $booking->payment_status = 'failed';
+            $booking->payment_failed_at = now();
+            $booking->payment_error_code = $errorCode;
+            $booking->payment_error_description = $errorDescription;
+            $booking->status = 'cancelled';
+            $booking->save();
+
+            // Log status change
+            $this->logStatusChange(
+                booking: $booking,
+                newStatus: 'cancelled',
+                notes: "Payment failed via webhook. Error: {$errorCode} - {$errorDescription}. Payment ID: {$paymentId}."
+            );
+
+            // Fire event
+            event(new BookingStatusChanged($booking, 'payment_hold', 'cancelled'));
+
+            return $booking->fresh();
+        });
+    }
 }
+

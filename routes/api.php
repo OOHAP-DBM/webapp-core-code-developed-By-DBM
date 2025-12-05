@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\RazorpayWebhookController;
 
 /**
  * OOHAPP API v1 Routes
@@ -9,6 +10,9 @@ use Illuminate\Support\Facades\Route;
  * All API v1 endpoints are prefixed with /api/v1
  * Module-specific routes are loaded from routes/api_v1/ directory
  */
+
+// Razorpay Webhook (No auth middleware - verified via signature)
+Route::post('/webhooks/razorpay', [RazorpayWebhookController::class, 'handle']);
 
 Route::prefix('v1')->group(function () {
     

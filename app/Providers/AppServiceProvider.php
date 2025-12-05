@@ -20,6 +20,12 @@ use Modules\Quotations\Events\QuotationApproved;
 use Modules\Bookings\Services\BookingService;
 use Modules\Bookings\Events\BookingCreated;
 use App\Services\RazorpayService;
+use App\Events\PaymentAuthorized;
+use App\Events\PaymentCaptured;
+use App\Events\PaymentFailed;
+use App\Listeners\UpdateBookingOnPaymentAuthorized;
+use App\Listeners\OnPaymentCaptured;
+use App\Listeners\OnPaymentFailed;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -98,6 +104,22 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             QuotationApproved::class,
             \Modules\Quotations\Listeners\NotifyVendorOnApproval::class
+        );
+
+        // Register Razorpay webhook event listeners
+        Event::listen(
+            PaymentAuthorized::class,
+            UpdateBookingOnPaymentAuthorized::class
+        );
+
+        Event::listen(
+            PaymentCaptured::class,
+            OnPaymentCaptured::class
+        );
+
+        Event::listen(
+            PaymentFailed::class,
+            OnPaymentFailed::class
         );
     }
 }
