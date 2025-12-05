@@ -144,10 +144,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/vendors/{id}/suspend', [\App\Http\Controllers\Web\Admin\VendorController::class, 'suspend'])->name('vendors.suspend');
     
     // KYC Verification
-    Route::get('/kyc/pending', [\App\Http\Controllers\Web\Admin\KYCController::class, 'pending'])->name('kyc.pending');
-    Route::get('/kyc/{id}', [\App\Http\Controllers\Web\Admin\KYCController::class, 'show'])->name('kyc.show');
-    Route::post('/kyc/{id}/approve', [\App\Http\Controllers\Web\Admin\KYCController::class, 'approve'])->name('kyc.approve');
-    Route::post('/kyc/{id}/reject', [\App\Http\Controllers\Web\Admin\KYCController::class, 'reject'])->name('kyc.reject');
+    Route::get('/kyc', [\App\Http\Controllers\Web\Admin\AdminKYCWebController::class, 'index'])->name('kyc.index');
+    Route::get('/kyc/{id}', [\App\Http\Controllers\Web\Admin\AdminKYCWebController::class, 'show'])->name('kyc.show');
     
     // Hoardings Management
     Route::get('/hoardings', [\App\Http\Controllers\Web\Admin\HoardingController::class, 'index'])->name('hoardings.index');

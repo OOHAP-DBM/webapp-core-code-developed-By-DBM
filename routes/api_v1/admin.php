@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\BookingHoldController;
 use App\Http\Controllers\Admin\FinanceController;
+use App\Http\Controllers\Api\Admin\AdminKYCController;
 
 /**
  * Admin API Routes (v1)
@@ -30,4 +31,12 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/commission-stats', [FinanceController::class, 'getCommissionStats']);
     Route::get('/pending-payouts', [FinanceController::class, 'getPendingPayouts']);
     Route::get('/vendors/{vendorId}/payout-summary', [FinanceController::class, 'getVendorPayoutSummary']);
+    
+    // KYC Verification Management
+    Route::get('/kyc', [AdminKYCController::class, 'index']);
+    Route::get('/kyc/stats', [AdminKYCController::class, 'stats']);
+    Route::get('/kyc/{id}', [AdminKYCController::class, 'show']);
+    Route::post('/kyc/{id}/approve', [AdminKYCController::class, 'approve']);
+    Route::post('/kyc/{id}/reject', [AdminKYCController::class, 'reject']);
+    Route::post('/kyc/{id}/request-resubmission', [AdminKYCController::class, 'requestResubmission']);
 });
