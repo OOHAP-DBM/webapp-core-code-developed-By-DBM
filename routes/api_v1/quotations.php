@@ -1,25 +1,35 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Quotations\Controllers\Api\QuotationController;
 
 /**
  * Quotation API Routes (v1)
- * Base: /api/v1/quotations
+ * Base: /api/v1
  * 
- * Finalized quotations (snapshot pricing)
+ * Versioned quotations from offers with immutable snapshots on approval
  */
 
-// Customer routes
-Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
-    Route::get('/', [\Modules\Quotation\Controllers\Api\QuotationController::class, 'index']);
-    Route::get('/{id}', [\Modules\Quotation\Controllers\Api\QuotationController::class, 'show']);
-    Route::post('/{id}/accept', [\Modules\Quotation\Controllers\Api\QuotationController::class, 'accept']);
-    Route::post('/{id}/reject', [\Modules\Quotation\Controllers\Api\QuotationController::class, 'reject']);
-    Route::get('/{id}/download', [\Modules\Quotation\Controllers\Api\QuotationController::class, 'downloadPDF']);
-});
+Route::middleware(['auth:sanctum'])->group(function () {
+    
+    // Vendor routes - Create and manage quotations
+    Route::middleware(['role:vendor'])->group(function () {
+        Route::post('/offers/{offerId}/quotations', [QuotationController::class, 'createForOffer']);
+        Route::post('/offers/{offerId}/quotations/auto', [QuotationController::class, 'createFromOffer']);
+        Route::patch('/quotations/{id}/send', [QuotationController::class, 'send']);
+        Route::post('/quotations/{id}/revise', [QuotationController::class, 'revise']);
+    });
 
-// Vendor routes
-Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
-    Route::post('/', [\Modules\Quotation\Controllers\Api\QuotationController::class, 'store']);
-    Route::get('/vendor/quotations', [\Modules\Quotation\Controllers\Api\QuotationController::class, 'vendorQuotations']);
+    // Customer routes - Approve and reject quotations
+    Route::middleware(['role:customer'])->group(function () {
+        Route::patch('/quotations/{id}/approve', [QuotationController::class, 'approve']);
+        Route::patch('/quotations/{id}/reject', [QuotationController::class, 'reject']);
+    });
+
+    // Shared routes - View quotations
+    Route::middleware(['role:vendor,customer,admin'])->group(function () {
+        Route::get('/quotations', [QuotationController::class, 'index']);
+        Route::get('/quotations/{id}', [QuotationController::class, 'show']);
+        Route::get('/offers/{offerId}/quotations', [QuotationController::class, 'getByOffer']);
+    });
 });

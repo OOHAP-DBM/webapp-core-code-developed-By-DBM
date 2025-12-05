@@ -15,6 +15,8 @@ use Modules\Enquiries\Listeners\NotifyVendor;
 use Modules\Offers\Services\OfferService;
 use Modules\Offers\Events\OfferSent;
 use Modules\Offers\Listeners\NotifyCustomer;
+use Modules\Quotations\Services\QuotationService;
+use Modules\Quotations\Events\QuotationApproved;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -50,6 +52,13 @@ class AppServiceProvider extends ServiceProvider
                 $app->make(\Modules\Offers\Repositories\Contracts\OfferRepositoryInterface::class)
             );
         });
+
+        // Register QuotationService as singleton
+        $this->app->singleton(QuotationService::class, function ($app) {
+            return new QuotationService(
+                $app->make(\Modules\Quotations\Repositories\Contracts\QuotationRepositoryInterface::class)
+            );
+        });
     }
 
     /**
@@ -69,6 +78,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             OfferSent::class,
             NotifyCustomer::class
+        );
+
+        Event::listen(
+            QuotationApproved::class,
+            \Modules\Quotations\Listeners\NotifyVendorOnApproval::class
         );
     }
 }

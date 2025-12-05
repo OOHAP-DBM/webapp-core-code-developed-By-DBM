@@ -34,6 +34,9 @@ class RepositoryServiceProvider extends ServiceProvider
         // Offers Module
         \Modules\Offers\Repositories\Contracts\OfferRepositoryInterface::class => \Modules\Offers\Repositories\OfferRepository::class,
 
+        // Quotations Module
+        \Modules\Quotations\Repositories\Contracts\QuotationRepositoryInterface::class => \Modules\Quotations\Repositories\QuotationRepository::class,
+
         // DOOH Module
         // \Modules\DOOH\Repositories\Contracts\DOOHRepositoryInterface::class => \Modules\DOOH\Repositories\DOOHRepository::class,
 
