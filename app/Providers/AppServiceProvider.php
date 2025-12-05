@@ -17,6 +17,8 @@ use Modules\Offers\Events\OfferSent;
 use Modules\Offers\Listeners\NotifyCustomer;
 use Modules\Quotations\Services\QuotationService;
 use Modules\Quotations\Events\QuotationApproved;
+use Modules\Bookings\Services\BookingService;
+use Modules\Bookings\Events\BookingCreated;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -57,6 +59,13 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(QuotationService::class, function ($app) {
             return new QuotationService(
                 $app->make(\Modules\Quotations\Repositories\Contracts\QuotationRepositoryInterface::class)
+            );
+        });
+
+        // Register BookingService as singleton
+        $this->app->singleton(BookingService::class, function ($app) {
+            return new BookingService(
+                $app->make(\Modules\Bookings\Repositories\Contracts\BookingRepositoryInterface::class)
             );
         });
     }

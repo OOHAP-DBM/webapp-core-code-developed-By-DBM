@@ -37,6 +37,9 @@ class RepositoryServiceProvider extends ServiceProvider
         // Quotations Module
         \Modules\Quotations\Repositories\Contracts\QuotationRepositoryInterface::class => \Modules\Quotations\Repositories\QuotationRepository::class,
 
+        // Bookings Module
+        \Modules\Bookings\Repositories\Contracts\BookingRepositoryInterface::class => \Modules\Bookings\Repositories\BookingRepository::class,
+
         // DOOH Module
         // \Modules\DOOH\Repositories\Contracts\DOOHRepositoryInterface::class => \Modules\DOOH\Repositories\DOOHRepository::class,
 
