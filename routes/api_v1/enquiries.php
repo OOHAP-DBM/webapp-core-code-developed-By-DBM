@@ -3,22 +3,25 @@
 use Illuminate\Support\Facades\Route;
 
 /**
- * Enquiry API Routes (v1)
+ * Enquiries API Routes (v1)
  * Base: /api/v1/enquiries
  * 
- * Customer enquiries for hoardings/DOOH
+ * Customer enquiry submission and management
  */
 
-// Customer routes
-Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
-    Route::post('/', [\Modules\Enquiry\Controllers\Api\EnquiryController::class, 'store']);
-    Route::get('/', [\Modules\Enquiry\Controllers\Api\EnquiryController::class, 'index']);
-    Route::get('/{id}', [\Modules\Enquiry\Controllers\Api\EnquiryController::class, 'show']);
-    Route::post('/{id}/cancel', [\Modules\Enquiry\Controllers\Api\EnquiryController::class, 'cancel']);
-});
-
-// Vendor routes
-Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
-    Route::get('/vendor/enquiries', [\Modules\Enquiry\Controllers\Api\EnquiryController::class, 'vendorEnquiries']);
-    Route::post('/{id}/respond', [\Modules\Enquiry\Controllers\Api\EnquiryController::class, 'respond']);
+// Authenticated routes
+Route::middleware('auth:sanctum')->group(function () {
+    // List enquiries (customer sees theirs, vendor sees their hoarding's, admin sees all)
+    Route::get('/', [\Modules\Enquiries\Controllers\Api\EnquiryController::class, 'index']);
+    
+    // Create enquiry (customer only)
+    Route::post('/', [\Modules\Enquiries\Controllers\Api\EnquiryController::class, 'store'])
+        ->middleware('role:customer');
+    
+    // View single enquiry
+    Route::get('/{id}', [\Modules\Enquiries\Controllers\Api\EnquiryController::class, 'show']);
+    
+    // Update enquiry status (vendor/admin only)
+    Route::patch('/{id}/status', [\Modules\Enquiries\Controllers\Api\EnquiryController::class, 'updateStatus'])
+        ->middleware('role:vendor,admin');
 });

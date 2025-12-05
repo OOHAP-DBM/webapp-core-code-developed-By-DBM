@@ -28,10 +28,13 @@ class RepositoryServiceProvider extends ServiceProvider
         // Hoardings Module
         \Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface::class => \Modules\Hoardings\Repositories\HoardingRepository::class,
 
+        // Enquiries Module
+        \Modules\Enquiries\Repositories\Contracts\EnquiryRepositoryInterface::class => \Modules\Enquiries\Repositories\EnquiryRepository::class,
+
         // DOOH Module
         // \Modules\DOOH\Repositories\Contracts\DOOHRepositoryInterface::class => \Modules\DOOH\Repositories\DOOHRepository::class,
 
-        // Enquiry Module
+        // Enquiry Module (old comment - remove later)
         // \Modules\Enquiry\Repositories\Contracts\EnquiryRepositoryInterface::class => \Modules\Enquiry\Repositories\EnquiryRepository::class,
 
         // Offer Module
