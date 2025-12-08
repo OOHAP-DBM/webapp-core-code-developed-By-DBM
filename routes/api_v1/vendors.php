@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Vendor\VendorKYCController;
+use Modules\KYC\Controllers\Api\VendorKYCController;
 
 /**
  * Vendor API Routes (v1)

@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\BookingHoldController;
-use App\Http\Controllers\Admin\FinanceController;
-use App\Http\Controllers\Api\Admin\AdminKYCController;
+use Modules\Payment\Controllers\Api\BookingHoldController;
+use Modules\Payment\Controllers\Api\FinanceController;
+use Modules\KYC\Controllers\Api\AdminKYCController;
 
 /**
  * Admin API Routes (v1)

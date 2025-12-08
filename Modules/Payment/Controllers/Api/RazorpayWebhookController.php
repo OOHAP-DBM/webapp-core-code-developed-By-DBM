@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace Modules\Payment\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Events\PaymentAuthorized;
-use App\Events\PaymentCaptured;
-use App\Events\PaymentFailed;
+use Modules\Payment\Events\PaymentAuthorized;
+use Modules\Payment\Events\PaymentCaptured;
+use Modules\Payment\Events\PaymentFailed;
 use Modules\Payment\Models\RazorpayLog;
-use App\Services\RazorpayPayoutService;
+use Modules\Payment\Services\RazorpayPayoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

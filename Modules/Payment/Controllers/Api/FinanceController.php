@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace Modules\Payment\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Modules\Payment\Models\BookingPayment;
-use App\Services\CommissionService;
+use Modules\Payment\Services\CommissionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

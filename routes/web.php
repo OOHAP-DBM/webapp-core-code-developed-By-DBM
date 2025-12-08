@@ -20,8 +20,9 @@ Route::get('/search', [\App\Http\Controllers\Web\SearchController::class, 'index
 Route::get('/hoardings', [\Modules\Hoardings\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
 Route::get('/hoardings/map', [\Modules\Hoardings\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
 Route::get('/hoardings/{id}', [\Modules\Hoardings\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
-Route::get('/dooh', [\App\Http\Controllers\Web\DOOHController::class, 'index'])->name('dooh.index');
-Route::get('/dooh/{id}', [\App\Http\Controllers\Web\DOOHController::class, 'show'])->name('dooh.show');
+// TODO: DOOH feature coming soon
+// Route::get('/dooh', [\App\Http\Controllers\Web\DOOHController::class, 'index'])->name('dooh.index');
+// Route::get('/dooh/{id}', [\App\Http\Controllers\Web\DOOHController::class, 'show'])->name('dooh.show');
 
 // ============================================
 // AUTH ROUTES (Guest users)
@@ -87,8 +88,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     // Hoardings Management
     Route::resource('hoardings', \Modules\Vendor\Controllers\Web\HoardingController::class);
     
-    // DOOH Management
-    Route::resource('dooh', \App\Http\Controllers\Web\Vendor\DOOHController::class);
+    // DOOH Management (Coming soon)
+    // Route::resource('dooh', \App\Http\Controllers\Web\Vendor\DOOHController::class);
     
     // Enquiries (received)
     Route::get('/enquiries', [\App\Http\Controllers\Web\Vendor\EnquiryController::class, 'index'])->name('enquiries.index');

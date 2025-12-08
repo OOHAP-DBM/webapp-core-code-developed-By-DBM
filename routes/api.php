@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\RazorpayWebhookController;
+use Modules\Payment\Controllers\Api\RazorpayWebhookController;
 
 /**
  * OOHAPP API v1 Routes
@@ -28,7 +28,7 @@ Route::prefix('v1')->group(function () {
     // Load module-specific API routes
     Route::prefix('auth')->group(base_path('routes/api_v1/auth.php'));
     Route::prefix('hoardings')->group(base_path('routes/api_v1/hoardings.php'));
-    Route::prefix('dooh')->group(base_path('routes/api_v1/dooh.php'));
+    // Route::prefix('dooh')->group(base_path('routes/api_v1/dooh.php')); // Coming soon
     Route::prefix('enquiries')->group(base_path('routes/api_v1/enquiries.php'));
     Route::prefix('offers')->group(base_path('routes/api_v1/offers.php'));
     Route::prefix('quotations')->group(base_path('routes/api_v1/quotations.php'));

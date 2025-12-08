@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace Modules\Payment\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Modules\Bookings\Models\Booking;
-use App\Services\RazorpayService;
+use Modules\Payment\Services\RazorpayService;
 use Modules\Bookings\Services\BookingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
