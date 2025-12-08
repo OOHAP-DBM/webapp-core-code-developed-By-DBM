@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\BookingHoldController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Api\Admin\AdminKYCController;
+use App\Http\Controllers\Api\Admin\BookingRulesController;
 
 /**
  * Admin API Routes (v1)
@@ -45,4 +46,8 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::post('/kyc/{id}/sync-razorpay', [AdminKYCController::class, 'syncRazorpayStatus']);
     Route::post('/kyc/{id}/manual-override', [AdminKYCController::class, 'manualOverride']);
     Route::post('/kyc/{id}/retry-razorpay', [AdminKYCController::class, 'retryRazorpay']);
+    
+    // Booking Rules Configuration
+    Route::get('/booking-rules', [BookingRulesController::class, 'index']);
+    Route::put('/booking-rules', [BookingRulesController::class, 'update']);
 });

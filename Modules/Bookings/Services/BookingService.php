@@ -11,14 +11,19 @@ use Illuminate\Support\Facades\DB;
 use Modules\Bookings\Repositories\Contracts\BookingRepositoryInterface;
 use Modules\Bookings\Events\BookingCreated;
 use Modules\Bookings\Events\BookingStatusChanged;
+use Modules\Settings\Services\SettingsService;
 
 class BookingService
 {
     protected BookingRepositoryInterface $repository;
+    protected SettingsService $settingsService;
 
-    public function __construct(BookingRepositoryInterface $repository)
-    {
+    public function __construct(
+        BookingRepositoryInterface $repository,
+        SettingsService $settingsService
+    ) {
         $this->repository = $repository;
+        $this->settingsService = $settingsService;
     }
 
     /**
@@ -93,7 +98,7 @@ class BookingService
                 'created_at' => now()->toIso8601String(),
             ];
 
-            // Create booking with 30-minute hold
+            // Create booking with payment hold
             $booking = $this->repository->create([
                 'quotation_id' => $quotation->id,
                 'customer_id' => $quotation->customer_id,
@@ -105,7 +110,7 @@ class BookingService
                 'duration_days' => $durationDays,
                 'total_amount' => $quotation->grand_total,
                 'status' => Booking::STATUS_PENDING_PAYMENT_HOLD,
-                'hold_expiry_at' => now()->addMinutes(30),
+                'hold_expiry_at' => now()->addMinutes($this->getBookingHoldMinutes()),
                 'booking_snapshot' => $snapshot,
                 'customer_notes' => $customerInput['notes'] ?? null,
             ]);
@@ -358,12 +363,15 @@ class BookingService
     public function updatePaymentAuthorized(Booking $booking, string $paymentId, int $holdMinutes): Booking
     {
         return DB::transaction(function () use ($booking, $paymentId, $holdMinutes) {
+            // Use settings-based hold time if holdMinutes not provided
+            $holdTime = $holdMinutes > 0 ? $holdMinutes : $this->getBookingHoldMinutes();
+            
             // Update booking
             $booking->razorpay_payment_id = $paymentId;
             $booking->payment_status = 'authorized';
             $booking->payment_authorized_at = now();
             $booking->status = 'payment_hold';
-            $booking->hold_expiry_at = now()->addMinutes($holdMinutes);
+            $booking->hold_expiry_at = now()->addMinutes($holdTime);
             $booking->save();
 
             // Log status change
@@ -372,7 +380,7 @@ class BookingService
                 null,
                 'payment_hold',
                 null,
-                "Payment authorized via webhook. Payment ID: {$paymentId}. Hold expires in {$holdMinutes} minutes."
+                "Payment authorized via webhook. Payment ID: {$paymentId}. Hold expires in {$holdTime} minutes."
             );
 
             return $booking->fresh();
@@ -504,6 +512,68 @@ class BookingService
             return $booking->fresh();
         });
     }
+
+    /**
+     * Get booking hold minutes from settings
+     *
+     * @return int
+     */
+    protected function getBookingHoldMinutes(): int
+    {
+        return (int) $this->settingsService->get('booking_hold_minutes', 30);
+    }
+
+    /**
+     * Get grace period minutes from settings
+     *
+     * @return int
+     */
+    public function getGracePeriodMinutes(): int
+    {
+        return (int) $this->settingsService->get('grace_period_minutes', 15);
+    }
+
+    /**
+     * Get max future booking start months from settings
+     *
+     * @return int
+     */
+    public function getMaxFutureBookingStartMonths(): int
+    {
+        return (int) $this->settingsService->get('max_future_booking_start_months', 12);
+    }
+
+    /**
+     * Get booking min duration days from settings
+     *
+     * @return int
+     */
+    public function getBookingMinDurationDays(): int
+    {
+        return (int) $this->settingsService->get('booking_min_duration_days', 7);
+    }
+
+    /**
+     * Get booking max duration months from settings
+     *
+     * @return int
+     */
+    public function getBookingMaxDurationMonths(): int
+    {
+        return (int) $this->settingsService->get('booking_max_duration_months', 12);
+    }
+
+    /**
+     * Check if weekly booking is allowed from settings
+     *
+     * @return bool
+     */
+    public function isWeeklyBookingAllowed(): bool
+    {
+        return (bool) $this->settingsService->get('allow_weekly_booking', false);
+    }
 }
+
+
 
 

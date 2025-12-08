@@ -178,6 +178,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/settings/reset', [\App\Http\Controllers\Web\Admin\SettingController::class, 'reset'])->name('settings.reset');
     Route::post('/settings/clear-cache', [\App\Http\Controllers\Web\Admin\SettingController::class, 'clearCache'])->name('settings.clear-cache');
     
+    // Booking Rules
+    Route::get('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'index'])->name('booking-rules.index');
+    Route::put('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'update'])->name('booking-rules.update');
+    
     // Reports
     Route::get('/reports', [\App\Http\Controllers\Web\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/revenue', [\App\Http\Controllers\Web\Admin\ReportController::class, 'revenue'])->name('reports.revenue');
