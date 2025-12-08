@@ -1,0 +1,20 @@
+<?php
+
+namespace Modules\Quotations\Events;
+
+use Modules\Quotations\Models\Quotation;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\InteractsWithSockets;
+
+class QuotationSent
+{
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    public Quotation $quotation;
+
+    public function __construct(Quotation $quotation)
+    {
+        $this->quotation = $quotation;
+    }
+}
