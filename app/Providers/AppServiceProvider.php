@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Models\User;
-use App\Policies\UserPolicy;
+use Modules\Users\Models\User;
+use Modules\Users\Policies\UserPolicy;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -19,13 +19,13 @@ use Modules\Quotations\Services\QuotationService;
 use Modules\Quotations\Events\QuotationApproved;
 use Modules\Bookings\Services\BookingService;
 use Modules\Bookings\Events\BookingCreated;
-use App\Services\RazorpayService;
-use App\Events\PaymentAuthorized;
-use App\Events\PaymentCaptured;
-use App\Events\PaymentFailed;
-use App\Listeners\UpdateBookingOnPaymentAuthorized;
-use App\Listeners\OnPaymentCaptured;
-use App\Listeners\OnPaymentFailed;
+use Modules\Payment\Services\RazorpayService;
+use Modules\Payment\Events\PaymentAuthorized;
+use Modules\Payment\Events\PaymentCaptured;
+use Modules\Payment\Events\PaymentFailed;
+use Modules\Payment\Listeners\UpdateBookingOnPaymentAuthorized;
+use Modules\Payment\Listeners\OnPaymentCaptured;
+use Modules\Payment\Listeners\OnPaymentFailed;
 
 class AppServiceProvider extends ServiceProvider
 {
