@@ -45,4 +45,10 @@ Route::prefix('v1')->group(function () {
     Route::prefix('media')->group(base_path('routes/api_v1/media.php'));
     Route::prefix('search')->group(base_path('routes/api_v1/search.php'));
     Route::prefix('vendor/pos')->group(base_path('routes/api_v1/pos.php')); // POS Module
+    
+    // Direct Booking Module (Customer direct bookings without quotation)
+    require base_path('routes/api_v1/direct-bookings.php');
+    
+    // Enquiry Workflow Module (Enquiry → Offer → Quotation with Thread Communication)
+    require base_path('routes/api_v1/enquiry-workflow.php');
 });

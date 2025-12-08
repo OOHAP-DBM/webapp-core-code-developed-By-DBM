@@ -35,12 +35,18 @@ class Booking extends Model
         'cancellation_reason',
         'confirmed_at',
         'cancelled_at',
+        'refund_id',
+        'refund_amount',
+        'refunded_at',
+        'refund_error',
+        'campaign_started_at',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
         'total_amount' => 'decimal:2',
+        'refund_amount' => 'decimal:2',
         'hold_expiry_at' => 'datetime',
         'payment_authorized_at' => 'datetime',
         'payment_captured_at' => 'datetime',
@@ -50,6 +56,8 @@ class Booking extends Model
         'booking_snapshot' => 'array',
         'confirmed_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'refunded_at' => 'datetime',
+        'campaign_started_at' => 'datetime',
     ];
 
     // Status constants
@@ -105,6 +113,11 @@ class Booking extends Model
     public function commissionLog(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(CommissionLog::class);
+    }
+
+    public function podSubmissions(): HasMany
+    {
+        return $this->hasMany(\Modules\POD\Models\PODSubmission::class)->orderBy('submission_date', 'desc');
     }
 
     /**

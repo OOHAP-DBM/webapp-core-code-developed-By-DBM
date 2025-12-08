@@ -187,6 +187,71 @@ class RazorpayService
     }
 
     /**
+     * Create a refund for a captured payment
+     *
+     * @param string $paymentId Razorpay payment ID
+     * @param float $amount Amount to refund in INR
+     * @param string $notes Refund notes/reason
+     * @param bool $instantRefund Use instant refund mode
+     * @return array Refund response
+     * @throws Exception
+     */
+    public function createRefund(
+        string $paymentId,
+        float $amount,
+        string $notes = '',
+        bool $instantRefund = true
+    ): array {
+        $amountInPaise = (int) ($amount * 100);
+
+        $payload = [
+            'amount' => $amountInPaise,
+            'speed' => $instantRefund ? 'optimum' : 'normal',
+            'notes' => [
+                'reason' => $notes,
+                'refund_type' => 'auto',
+            ],
+        ];
+
+        $this->logRequest('create_refund', $payload, ['payment_id' => $paymentId]);
+
+        try {
+            $response = Http::withBasicAuth($this->keyId, $this->keySecret)
+                ->post("{$this->baseUrl}/payments/{$paymentId}/refund", $payload);
+
+            $responseData = $response->json();
+
+            $this->logResponse('create_refund', $payload, $responseData, $response->status(), ['payment_id' => $paymentId]);
+
+            if ($response->successful()) {
+                Log::info('Razorpay refund created', [
+                    'payment_id' => $paymentId,
+                    'refund_id' => $responseData['id'] ?? null,
+                    'amount' => $amount,
+                ]);
+                
+                return $responseData;
+            }
+
+            $errorMessage = $responseData['error']['description'] ?? 'Unknown error occurred';
+            throw new Exception("Razorpay refund failed: {$errorMessage}");
+
+        } catch (Exception $e) {
+            $this->logResponse('create_refund', $payload, [
+                'error' => $e->getMessage()
+            ], 500, ['payment_id' => $paymentId]);
+
+            Log::error('Razorpay refund failed', [
+                'payment_id' => $paymentId,
+                'amount' => $amount,
+                'error' => $e->getMessage()
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
      * Verify payment signature
      *
      * @param string $orderId Razorpay order ID
