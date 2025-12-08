@@ -42,4 +42,9 @@ return [
         'base_url' => env('RAZORPAY_BASE_URL', 'https://api.razorpay.com/v1'),
     ],
 
+    'dooh_api' => [
+        'base_url' => env('DOOH_API_URL'),
+        'key' => env('DOOH_API_KEY'),
+    ],
+
 ];
