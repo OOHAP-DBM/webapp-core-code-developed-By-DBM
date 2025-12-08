@@ -15,8 +15,9 @@ use Illuminate\Support\Facades\Route;
 // ============================================
 // PUBLIC ROUTES (Customer-facing)
 // ============================================
-Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
-Route::get('/search', [\App\Http\Controllers\Web\SearchController::class, 'index'])->name('search');
+// TODO: HomeController and SearchController not implemented yet
+// Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
+// Route::get('/search', [\App\Http\Controllers\Web\SearchController::class, 'index'])->name('search');
 Route::get('/hoardings', [\Modules\Hoardings\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
 Route::get('/hoardings/map', [\Modules\Hoardings\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
 Route::get('/hoardings/{id}', [\Modules\Hoardings\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
@@ -52,6 +53,8 @@ Route::post('/logout', [\Modules\Auth\Controllers\Web\LoginController::class, 'l
 // ============================================
 // CUSTOMER PANEL (Authenticated)
 // ============================================
+// TODO: Customer web controllers not implemented yet
+/*
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Web\Customer\DashboardController::class, 'index'])->name('dashboard');
     
@@ -82,11 +85,21 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 // ============================================
 // VENDOR PANEL (Authenticated)
 // ============================================
+// Hoardings Management (WORKING)
+Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
+    Route::resource('hoardings', \Modules\Vendor\Controllers\Web\HoardingController::class);
+});
+
+// KYC (WORKING)
+Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
+    Route::get('/kyc', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.index');
+    Route::get('/kyc/submit', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.submit');
+});
+
+// TODO: Vendor web controllers not implemented yet (Dashboard, Enquiry, Offer, Quotation, Booking, Staff, Report, Profile)
+/*
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Web\Vendor\DashboardController::class, 'index'])->name('dashboard');
-    
-    // Hoardings Management
-    Route::resource('hoardings', \Modules\Vendor\Controllers\Web\HoardingController::class);
     
     // DOOH Management (Coming soon)
     // Route::resource('dooh', \App\Http\Controllers\Web\Vendor\DOOHController::class);
@@ -116,10 +129,6 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     // Staff Management
     Route::resource('staff', \App\Http\Controllers\Web\Vendor\StaffController::class);
     
-    // KYC
-    Route::get('/kyc', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.index');
-    Route::get('/kyc/submit', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.submit');
-    
     // Reports
     Route::get('/reports', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/revenue', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'revenue'])->name('reports.revenue');
@@ -128,10 +137,27 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/profile', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'update'])->name('profile.update');
 });
+*/
 
 // ============================================
 // ADMIN PANEL (Authenticated)
 // ============================================
+// Finance & Commission Management (WORKING)
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/finance/bookings-payments', [\Modules\Payment\Controllers\Api\FinanceController::class, 'bookingsPaymentsLedger'])->name('finance.bookings-payments');
+    Route::get('/finance/pending-manual-payouts', [\Modules\Payment\Controllers\Api\FinanceController::class, 'pendingManualPayouts'])->name('finance.pending-manual-payouts');
+});
+
+// Settings (WORKING)
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/settings', [\Modules\Admin\Controllers\Web\SettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [\Modules\Admin\Controllers\Web\SettingController::class, 'update'])->name('settings.update');
+    Route::post('/settings/reset', [\Modules\Admin\Controllers\Web\SettingController::class, 'reset'])->name('settings.reset');
+    Route::post('/settings/clear-cache', [\Modules\Admin\Controllers\Web\SettingController::class, 'clearCache'])->name('settings.clear-cache');
+});
+
+// TODO: Admin web controllers not implemented yet (Dashboard, Users, Vendors, KYC, Hoardings, Bookings, Payments, Reports, ActivityLog)
+/*
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Web\Admin\DashboardController::class, 'index'])->name('dashboard');
     
@@ -169,16 +195,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/payments/{id}', [\App\Http\Controllers\Web\Admin\PaymentController::class, 'show'])->name('payments.show');
     Route::post('/payments/process-payouts', [\App\Http\Controllers\Web\Admin\PaymentController::class, 'processPayouts'])->name('payments.process-payouts');
     
-    // Finance & Commission Management
-    Route::get('/finance/bookings-payments', [\App\Http\Controllers\Admin\FinanceController::class, 'bookingsPaymentsLedger'])->name('finance.bookings-payments');
-    Route::get('/finance/pending-manual-payouts', [\App\Http\Controllers\Admin\FinanceController::class, 'pendingManualPayouts'])->name('finance.pending-manual-payouts');
-    
-    // Settings
-    Route::get('/settings', [\Modules\Admin\Controllers\Web\SettingController::class, 'index'])->name('settings.index');
-    Route::put('/settings', [\Modules\Admin\Controllers\Web\SettingController::class, 'update'])->name('settings.update');
-    Route::post('/settings/reset', [\Modules\Admin\Controllers\Web\SettingController::class, 'reset'])->name('settings.reset');
-    Route::post('/settings/clear-cache', [\Modules\Admin\Controllers\Web\SettingController::class, 'clearCache'])->name('settings.clear-cache');
-    
     // Reports
     Route::get('/reports', [\App\Http\Controllers\Web\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/revenue', [\App\Http\Controllers\Web\Admin\ReportController::class, 'revenue'])->name('reports.revenue');
@@ -187,10 +203,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Activity Log
     Route::get('/activity-log', [\App\Http\Controllers\Web\Admin\ActivityLogController::class, 'index'])->name('activity-log.index');
 });
+*/
 
 // ============================================
 // STAFF PANEL (Designer, Printer, Mounter, Surveyor)
 // ============================================
+// TODO: Staff web controllers not implemented yet (Dashboard, Assignment, Profile)
+/*
 Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Web\Staff\DashboardController::class, 'index'])->name('dashboard');
     
@@ -205,5 +224,7 @@ Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->grou
     Route::get('/profile', [\App\Http\Controllers\Web\Staff\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Web\Staff\ProfileController::class, 'update'])->name('profile.update');
 });
+*/
+
 
 

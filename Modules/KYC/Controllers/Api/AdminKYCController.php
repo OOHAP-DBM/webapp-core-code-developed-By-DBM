@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Api\Admin;
+namespace Modules\KYC\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateRazorpaySubAccountJob;
 use Modules\KYC\Models\VendorKYC;
 use Modules\Users\Models\User;
-use App\Services\RazorpayPayoutService;
+use Modules\Payment\Services\RazorpayPayoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

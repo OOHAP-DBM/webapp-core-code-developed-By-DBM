@@ -13,12 +13,13 @@ use Modules\KYC\Controllers\Api\AdminKYCController;
  */
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-    Route::get('/dashboard', [\Modules\Admin\Controllers\Api\AdminController::class, 'dashboard']);
-    Route::get('/stats', [\Modules\Admin\Controllers\Api\AdminController::class, 'stats']);
-    Route::get('/revenue', [\Modules\Admin\Controllers\Api\AdminController::class, 'revenueReport']);
-    Route::get('/users', [\Modules\Admin\Controllers\Api\AdminController::class, 'users']);
-    Route::post('/users/{id}/toggle-status', [\Modules\Admin\Controllers\Api\AdminController::class, 'toggleUserStatus']);
-    Route::get('/activity-log', [\Modules\Admin\Controllers\Api\AdminController::class, 'activityLog']);
+    // TODO: AdminController not implemented yet
+    // Route::get('/dashboard', [\Modules\Admin\Controllers\Api\AdminController::class, 'dashboard']);
+    // Route::get('/stats', [\Modules\Admin\Controllers\Api\AdminController::class, 'stats']);
+    // Route::get('/revenue', [\Modules\Admin\Controllers\Api\AdminController::class, 'revenueReport']);
+    // Route::get('/users', [\Modules\Admin\Controllers\Api\AdminController::class, 'users']);
+    // Route::post('/users/{id}/toggle-status', [\Modules\Admin\Controllers\Api\AdminController::class, 'toggleUserStatus']);
+    // Route::get('/activity-log', [\Modules\Admin\Controllers\Api\AdminController::class, 'activityLog']);
     
     // Payment holds management
     Route::post('/bookings/{id}/manual-capture', [BookingHoldController::class, 'manualCapture']);

@@ -37,3 +37,4 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::post('/{id}/force-capture', [\Modules\Bookings\Controllers\Api\BookingController::class, 'forceCapture']);
 });
 
+
