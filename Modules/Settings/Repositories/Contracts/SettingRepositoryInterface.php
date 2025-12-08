@@ -63,3 +63,4 @@ interface SettingRepositoryInterface
      */
     public function bulkUpdate(array $settings, ?int $tenantId = null);
 }
+

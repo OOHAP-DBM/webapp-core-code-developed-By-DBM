@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Web\Vendor;
 
 use App\Http\Controllers\Controller;
-use App\Models\VendorKYC;
+use Modules\KYC\Models\VendorKYC;
 use Illuminate\View\View;
 
 class VendorKYCWebController extends Controller
@@ -20,3 +20,4 @@ class VendorKYCWebController extends Controller
         return view('vendor.kyc.submit', compact('kyc'));
     }
 }
+

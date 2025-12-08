@@ -2,7 +2,7 @@
 
 namespace Modules\Bookings\Events;
 
-use App\Models\Booking;
+use Modules\Bookings\Models\Booking;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -34,4 +34,5 @@ class BookingActivated
         ];
     }
 }
+
 

@@ -17,9 +17,9 @@ use Illuminate\Support\Facades\Route;
 // ============================================
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [\App\Http\Controllers\Web\SearchController::class, 'index'])->name('search');
-Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
-Route::get('/hoardings/map', [\App\Http\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
-Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
+Route::get('/hoardings', [\Modules\Hoardings\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
+Route::get('/hoardings/map', [\Modules\Hoardings\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
+Route::get('/hoardings/{id}', [\Modules\Hoardings\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
 Route::get('/dooh', [\App\Http\Controllers\Web\DOOHController::class, 'index'])->name('dooh.index');
 Route::get('/dooh/{id}', [\App\Http\Controllers\Web\DOOHController::class, 'show'])->name('dooh.show');
 
@@ -27,26 +27,26 @@ Route::get('/dooh/{id}', [\App\Http\Controllers\Web\DOOHController::class, 'show
 // AUTH ROUTES (Guest users)
 // ============================================
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [\App\Http\Controllers\Web\Auth\LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Web\Auth\LoginController::class, 'login']);
+    Route::get('/login', [\Modules\Auth\Controllers\Web\LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [\Modules\Auth\Controllers\Web\LoginController::class, 'login']);
     
-    Route::get('/register', [\App\Http\Controllers\Web\Auth\RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [\App\Http\Controllers\Web\Auth\RegisterController::class, 'register']);
+    Route::get('/register', [\Modules\Auth\Controllers\Web\RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [\Modules\Auth\Controllers\Web\RegisterController::class, 'register']);
     
     // OTP Login
-    Route::get('/login/otp', [\App\Http\Controllers\Web\Auth\OTPController::class, 'showOTPForm'])->name('login.otp');
-    Route::post('/login/otp/send', [\App\Http\Controllers\Web\Auth\OTPController::class, 'sendOTP'])->name('otp.send');
-    Route::post('/login/otp/verify', [\App\Http\Controllers\Web\Auth\OTPController::class, 'verifyOTP'])->name('otp.verify');
-    Route::post('/login/otp/resend', [\App\Http\Controllers\Web\Auth\OTPController::class, 'resendOTP'])->name('otp.resend');
+    Route::get('/login/otp', [\Modules\Auth\Controllers\Web\OTPController::class, 'showOTPForm'])->name('login.otp');
+    Route::post('/login/otp/send', [\Modules\Auth\Controllers\Web\OTPController::class, 'sendOTP'])->name('otp.send');
+    Route::post('/login/otp/verify', [\Modules\Auth\Controllers\Web\OTPController::class, 'verifyOTP'])->name('otp.verify');
+    Route::post('/login/otp/resend', [\Modules\Auth\Controllers\Web\OTPController::class, 'resendOTP'])->name('otp.resend');
     
     // Password Reset (to be implemented)
-    // Route::get('/forgot-password', [\App\Http\Controllers\Web\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-    // Route::post('/forgot-password', [\App\Http\Controllers\Web\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-    // Route::get('/reset-password/{token}', [\App\Http\Controllers\Web\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-    // Route::post('/reset-password', [\App\Http\Controllers\Web\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
+    // Route::get('/forgot-password', [\Modules\Auth\Controllers\Web\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    // Route::post('/forgot-password', [\Modules\Auth\Controllers\Web\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+    // Route::get('/reset-password/{token}', [\Modules\Auth\Controllers\Web\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+    // Route::post('/reset-password', [\Modules\Auth\Controllers\Web\ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-Route::post('/logout', [\App\Http\Controllers\Web\Auth\LoginController::class, 'logout'])->name('logout')->middleware('auth');
+Route::post('/logout', [\Modules\Auth\Controllers\Web\LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 // ============================================
 // CUSTOMER PANEL (Authenticated)
@@ -85,7 +85,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/dashboard', [\App\Http\Controllers\Web\Vendor\DashboardController::class, 'index'])->name('dashboard');
     
     // Hoardings Management
-    Route::resource('hoardings', \App\Http\Controllers\Web\Vendor\HoardingController::class);
+    Route::resource('hoardings', \Modules\Vendor\Controllers\Web\HoardingController::class);
     
     // DOOH Management
     Route::resource('dooh', \App\Http\Controllers\Web\Vendor\DOOHController::class);
@@ -173,10 +173,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/finance/pending-manual-payouts', [\App\Http\Controllers\Admin\FinanceController::class, 'pendingManualPayouts'])->name('finance.pending-manual-payouts');
     
     // Settings
-    Route::get('/settings', [\App\Http\Controllers\Web\Admin\SettingController::class, 'index'])->name('settings.index');
-    Route::put('/settings', [\App\Http\Controllers\Web\Admin\SettingController::class, 'update'])->name('settings.update');
-    Route::post('/settings/reset', [\App\Http\Controllers\Web\Admin\SettingController::class, 'reset'])->name('settings.reset');
-    Route::post('/settings/clear-cache', [\App\Http\Controllers\Web\Admin\SettingController::class, 'clearCache'])->name('settings.clear-cache');
+    Route::get('/settings', [\Modules\Admin\Controllers\Web\SettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [\Modules\Admin\Controllers\Web\SettingController::class, 'update'])->name('settings.update');
+    Route::post('/settings/reset', [\Modules\Admin\Controllers\Web\SettingController::class, 'reset'])->name('settings.reset');
+    Route::post('/settings/clear-cache', [\Modules\Admin\Controllers\Web\SettingController::class, 'clearCache'])->name('settings.clear-cache');
     
     // Reports
     Route::get('/reports', [\App\Http\Controllers\Web\Admin\ReportController::class, 'index'])->name('reports.index');
@@ -204,4 +204,5 @@ Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->grou
     Route::get('/profile', [\App\Http\Controllers\Web\Staff\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Web\Staff\ProfileController::class, 'update'])->name('profile.update');
 });
+
 

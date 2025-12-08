@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\VendorKYC;
+use Modules\KYC\Models\VendorKYC;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -477,4 +477,5 @@ class RazorpayPayoutService
         }
     }
 }
+
 

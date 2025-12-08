@@ -2,7 +2,7 @@
 
 namespace Modules\Auth\Services;
 
-use App\Models\User;
+use Modules\Users\Models\User;
 use Modules\Users\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
@@ -143,3 +143,4 @@ class OTPService
         return $this->generateAndSendOTP($identifier);
     }
 }
+

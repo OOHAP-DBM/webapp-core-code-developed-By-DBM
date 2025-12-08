@@ -28,3 +28,4 @@ class BookingPaymentVoided
         $this->paymentDetails = $paymentDetails;
     }
 }
+

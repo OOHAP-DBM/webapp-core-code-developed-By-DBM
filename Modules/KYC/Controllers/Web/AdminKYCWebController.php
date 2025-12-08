@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\VendorKYC;
+use Modules\KYC\Models\VendorKYC;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -68,3 +68,4 @@ class AdminKYCWebController extends Controller
         return view('admin.kyc.show', compact('kyc'));
     }
 }
+

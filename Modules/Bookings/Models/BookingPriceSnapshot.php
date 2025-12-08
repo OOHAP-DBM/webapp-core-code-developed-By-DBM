@@ -121,3 +121,4 @@ class BookingPriceSnapshot extends Model
         return round(($this->taxes / $effectivePrice) * 100, 2);
     }
 }
+

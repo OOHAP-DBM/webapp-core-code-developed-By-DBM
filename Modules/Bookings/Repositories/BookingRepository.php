@@ -2,7 +2,7 @@
 
 namespace Modules\Bookings\Repositories;
 
-use App\Models\Booking;
+use Modules\Bookings\Models\Booking;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Bookings\Repositories\Contracts\BookingRepositoryInterface;
 
@@ -129,3 +129,4 @@ class BookingRepository implements BookingRepositoryInterface
         return $query->orderBy('created_at', 'desc')->get();
     }
 }
+

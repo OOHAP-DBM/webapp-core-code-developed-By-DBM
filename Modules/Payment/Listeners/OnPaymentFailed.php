@@ -2,7 +2,7 @@
 
 namespace Modules\Payment\Listeners;
 
-use App\Events\PaymentFailed;
+use Modules\Payment\Events\PaymentFailed;
 use Modules\Bookings\Services\BookingService;
 use Illuminate\Support\Facades\Log;
 
@@ -64,3 +64,4 @@ class OnPaymentFailed
         }
     }
 }
+

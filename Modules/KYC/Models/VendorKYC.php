@@ -314,3 +314,4 @@ class VendorKYC extends Model implements HasMedia
         };
     }
 }
+

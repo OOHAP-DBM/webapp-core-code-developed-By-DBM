@@ -2,8 +2,8 @@
 
 namespace Modules\Hoardings\Repositories;
 
-use App\Models\Hoarding;
-use App\Models\HoardingGeo;
+use Modules\Hoardings\Models\Hoarding;
+use Modules\Hoardings\Models\HoardingGeo;
 use Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface;
 use Modules\Shared\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -304,3 +304,4 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
             });
     }
 }
+

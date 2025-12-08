@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace Modules\Hoardings\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Modules\Hoardings\Services\HoardingService;

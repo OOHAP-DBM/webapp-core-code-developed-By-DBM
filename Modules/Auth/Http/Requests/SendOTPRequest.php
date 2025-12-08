@@ -25,3 +25,4 @@ class SendOTPRequest extends FormRequest
         ];
     }
 }
+

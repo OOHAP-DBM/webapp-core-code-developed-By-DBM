@@ -2,9 +2,9 @@
 
 namespace Modules\Payment\Services;
 
-use App\Models\Booking;
-use App\Models\BookingPayment;
-use App\Models\CommissionLog;
+use Modules\Bookings\Models\Booking;
+use Modules\Payment\Models\BookingPayment;
+use Modules\Payment\Models\CommissionLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Settings\Services\SettingsService;
@@ -222,3 +222,4 @@ class CommissionService
         ];
     }
 }
+

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Events\PaymentAuthorized;
 use App\Events\PaymentCaptured;
 use App\Events\PaymentFailed;
-use App\Models\RazorpayLog;
+use Modules\Payment\Models\RazorpayLog;
 use App\Services\RazorpayPayoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -336,3 +336,4 @@ class RazorpayWebhookController extends Controller
         }
     }
 }
+

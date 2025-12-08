@@ -2,7 +2,7 @@
 
 namespace Modules\Payment\Listeners;
 
-use App\Events\PaymentAuthorized;
+use Modules\Payment\Events\PaymentAuthorized;
 use Modules\Bookings\Services\BookingService;
 use Modules\Settings\Services\SettingsService;
 use Illuminate\Support\Facades\Log;
@@ -69,3 +69,4 @@ class UpdateBookingOnPaymentAuthorized
         }
     }
 }
+

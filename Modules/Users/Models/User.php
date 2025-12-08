@@ -165,3 +165,4 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(VendorKYC::class, 'vendor_id');
     }
 }
+

@@ -122,3 +122,4 @@ class RazorpayLog extends Model
         return json_encode($this->response_payload, JSON_PRETTY_PRINT);
     }
 }
+

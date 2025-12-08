@@ -2,7 +2,7 @@
 
 namespace Modules\Users\Services;
 
-use App\Models\User;
+use Modules\Users\Models\User;
 use Modules\Users\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -102,3 +102,4 @@ class UserService
         ]);
     }
 }
+

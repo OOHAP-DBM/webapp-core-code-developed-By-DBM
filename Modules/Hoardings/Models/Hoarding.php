@@ -223,3 +223,4 @@ class Hoarding extends Model
         return $angle * $earthRadius;
     }
 }
+

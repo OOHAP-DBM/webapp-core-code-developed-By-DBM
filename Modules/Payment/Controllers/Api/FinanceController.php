@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\BookingPayment;
+use Modules\Payment\Models\BookingPayment;
 use App\Services\CommissionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -382,4 +382,5 @@ class FinanceController extends Controller
         }
     }
 }
+
 

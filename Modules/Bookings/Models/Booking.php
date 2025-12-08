@@ -275,3 +275,4 @@ class Booking extends Model
         return $this->hasOne(BookingProof::class)->where('status', 'approved');
     }
 }
+

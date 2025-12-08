@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Staff;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
+use Modules\Bookings\Models\Booking;
 use App\Services\PODService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -145,3 +145,4 @@ class PODController extends Controller
         }
     }
 }
+

@@ -52,3 +52,4 @@ class BookingStatusLog extends Model
         return "{$from} → {$to}";
     }
 }
+

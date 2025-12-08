@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
+use Modules\Bookings\Models\Booking;
 use App\Services\RazorpayService;
 use Modules\Bookings\Services\BookingService;
 use Illuminate\Http\JsonResponse;
@@ -231,3 +231,4 @@ class BookingHoldController extends Controller
         }
     }
 }
+

@@ -2,7 +2,7 @@
 
 namespace Modules\Offers\Events;
 
-use App\Models\Offer;
+use Modules\Offers\Models\Offer;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -21,3 +21,4 @@ class OfferSent
         $this->offer = $offer;
     }
 }
+

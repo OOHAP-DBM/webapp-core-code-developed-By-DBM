@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Web\Vendor;
+namespace Modules\Vendor\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Hoarding;
+use Modules\Hoardings\Models\Hoarding;
 use Illuminate\Http\Request;
 use Modules\Hoardings\Services\HoardingService;
 

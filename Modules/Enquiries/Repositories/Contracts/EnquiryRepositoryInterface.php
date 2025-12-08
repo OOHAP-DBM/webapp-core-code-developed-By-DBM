@@ -2,7 +2,7 @@
 
 namespace Modules\Enquiries\Repositories\Contracts;
 
-use App\Models\Enquiry;
+use Modules\Enquiries\Models\Enquiry;
 use Illuminate\Support\Collection;
 
 interface EnquiryRepositoryInterface
@@ -42,3 +42,4 @@ interface EnquiryRepositoryInterface
      */
     public function getAll(array $filters = []): Collection;
 }
+

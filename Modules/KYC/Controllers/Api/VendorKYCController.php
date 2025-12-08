@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\Vendor;
 
 use App\Http\Controllers\Controller;
-use App\Models\VendorKYC;
-use App\Models\User;
+use Modules\KYC\Models\VendorKYC;
+use Modules\Users\Models\User;
 use App\Jobs\CreateRazorpaySubAccountJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -240,3 +240,4 @@ class VendorKYCController extends Controller
         ]);
     }
 }
+

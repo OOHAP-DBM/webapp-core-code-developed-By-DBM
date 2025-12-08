@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Vendor;
 
 use App\Http\Controllers\Controller;
-use App\Models\BookingProof;
+use Modules\Bookings\Models\BookingProof;
 use App\Services\PODService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -268,3 +268,4 @@ class VendorPODController extends Controller
         }
     }
 }
+

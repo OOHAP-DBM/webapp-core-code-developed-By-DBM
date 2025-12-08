@@ -2,7 +2,7 @@
 
 namespace Modules\Bookings\Repositories\Contracts;
 
-use App\Models\Booking;
+use Modules\Bookings\Models\Booking;
 use Illuminate\Database\Eloquent\Collection;
 
 interface BookingRepositoryInterface
@@ -25,3 +25,4 @@ interface BookingRepositoryInterface
     
     public function getAll(array $filters = []): Collection;
 }
+

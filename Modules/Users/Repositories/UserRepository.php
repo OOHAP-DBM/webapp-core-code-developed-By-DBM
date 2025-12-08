@@ -2,7 +2,7 @@
 
 namespace Modules\Users\Repositories;
 
-use App\Models\User;
+use Modules\Users\Models\User;
 use App\Repositories\BaseRepository;
 use Modules\Users\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
@@ -68,3 +68,4 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         ]);
     }
 }
+

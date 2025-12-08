@@ -201,3 +201,4 @@ class Offer extends Model
         return max(0, now()->diffInDays($this->valid_until, false));
     }
 }
+

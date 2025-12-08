@@ -167,3 +167,4 @@ class CaptureExpiredHoldsJob implements ShouldQueue
         ]);
     }
 }
+

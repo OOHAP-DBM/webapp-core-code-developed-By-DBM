@@ -2,7 +2,7 @@
 
 namespace Modules\Settings\Repositories;
 
-use App\Models\Setting;
+use Modules\Settings\Models\Setting;
 use App\Repositories\BaseRepository;
 use Modules\Settings\Repositories\Contracts\SettingRepositoryInterface;
 
@@ -154,3 +154,4 @@ class SettingRepository extends BaseRepository implements SettingRepositoryInter
         }
     }
 }
+

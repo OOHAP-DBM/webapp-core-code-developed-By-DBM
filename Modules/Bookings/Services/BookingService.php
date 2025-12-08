@@ -2,9 +2,9 @@
 
 namespace Modules\Bookings\Services;
 
-use App\Models\Booking;
-use App\Models\BookingStatusLog;
-use App\Models\Quotation;
+use Modules\Bookings\Models\Booking;
+use Modules\Bookings\Models\BookingStatusLog;
+use Modules\Quotations\Models\Quotation;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -505,5 +505,6 @@ class BookingService
         });
     }
 }
+
 
 

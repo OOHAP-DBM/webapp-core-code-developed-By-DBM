@@ -2,7 +2,7 @@
 
 namespace Modules\Quotations\Repositories;
 
-use App\Models\Quotation;
+use Modules\Quotations\Models\Quotation;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Quotations\Repositories\Contracts\QuotationRepositoryInterface;
 
@@ -94,3 +94,4 @@ class QuotationRepository implements QuotationRepositoryInterface
         return $query->orderBy('created_at', 'desc')->get();
     }
 }
+

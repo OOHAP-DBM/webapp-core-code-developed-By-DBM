@@ -2,8 +2,8 @@
 
 namespace Modules\Quotations\Services;
 
-use App\Models\Quotation;
-use App\Models\Offer;
+use Modules\Quotations\Models\Quotation;
+use Modules\Offers\Models\Offer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -296,3 +296,4 @@ class QuotationService
             && $quotation->isDraft();
     }
 }
+

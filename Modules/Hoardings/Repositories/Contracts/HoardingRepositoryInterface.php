@@ -125,3 +125,4 @@ interface HoardingRepositoryInterface
      */
     public function getMapPins(array $filters = []): SupportCollection;
 }
+

@@ -2,7 +2,7 @@
 
 namespace Modules\Quotations\Events;
 
-use App\Models\Quotation;
+use Modules\Quotations\Models\Quotation;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -18,3 +18,4 @@ class QuotationApproved
         $this->quotation = $quotation;
     }
 }
+

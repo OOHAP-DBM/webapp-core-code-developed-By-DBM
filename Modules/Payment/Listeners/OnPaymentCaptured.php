@@ -2,10 +2,10 @@
 
 namespace Modules\Payment\Listeners;
 
-use App\Events\PaymentCaptured;
-use App\Jobs\ScheduleBookingConfirmJob;
-use App\Services\CommissionService;
-use App\Services\RazorpayPayoutService;
+use Modules\Payment\Events\PaymentCaptured;
+use Modules\Bookings\Jobs\ScheduleBookingConfirmJob;
+use Modules\Payment\Services\CommissionService;
+use Modules\Payment\Services\RazorpayPayoutService;
 use Modules\Bookings\Services\BookingService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
@@ -220,3 +220,4 @@ class OnPaymentCaptured
         }
     }
 }
+

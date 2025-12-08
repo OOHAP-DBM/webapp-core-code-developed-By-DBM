@@ -2,8 +2,8 @@
 
 namespace Modules\Enquiries\Repositories;
 
-use App\Models\Enquiry;
-use App\Models\Hoarding;
+use Modules\Enquiries\Models\Enquiry;
+use Modules\Hoardings\Models\Hoarding;
 use Modules\Enquiries\Repositories\Contracts\EnquiryRepositoryInterface;
 use Illuminate\Support\Collection;
 
@@ -110,3 +110,4 @@ class EnquiryRepository implements EnquiryRepositoryInterface
         return $query->orderBy('created_at', 'desc')->get();
     }
 }
+

@@ -2,8 +2,8 @@
 
 namespace Modules\Offers\Services;
 
-use App\Models\Offer;
-use App\Models\Enquiry;
+use Modules\Offers\Models\Offer;
+use Modules\Enquiries\Models\Enquiry;
 use Modules\Offers\Repositories\Contracts\OfferRepositoryInterface;
 use Modules\Offers\Events\OfferSent;
 use Illuminate\Support\Collection;
@@ -246,3 +246,4 @@ class OfferService
         return $offer->vendor_id === $user->id && $offer->isDraft();
     }
 }
+

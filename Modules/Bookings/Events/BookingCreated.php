@@ -2,7 +2,7 @@
 
 namespace Modules\Bookings\Events;
 
-use App\Models\Booking;
+use Modules\Bookings\Models\Booking;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -18,3 +18,4 @@ class BookingCreated
         $this->booking = $booking;
     }
 }
+

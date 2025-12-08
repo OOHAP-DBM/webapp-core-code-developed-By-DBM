@@ -3,7 +3,7 @@
 namespace Modules\Users\Repositories\Contracts;
 
 use App\Repositories\Contracts\BaseRepositoryInterface;
-use App\Models\User;
+use Modules\Users\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
 interface UserRepositoryInterface extends BaseRepositoryInterface
@@ -53,3 +53,4 @@ interface UserRepositoryInterface extends BaseRepositoryInterface
      */
     public function verifyPhone(int $userId): bool;
 }
+

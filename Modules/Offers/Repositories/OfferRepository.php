@@ -2,7 +2,7 @@
 
 namespace Modules\Offers\Repositories;
 
-use App\Models\Offer;
+use Modules\Offers\Models\Offer;
 use Modules\Offers\Repositories\Contracts\OfferRepositoryInterface;
 use Illuminate\Support\Collection;
 
@@ -133,3 +133,4 @@ class OfferRepository implements OfferRepositoryInterface
             ->update(['status' => Offer::STATUS_EXPIRED]);
     }
 }
+

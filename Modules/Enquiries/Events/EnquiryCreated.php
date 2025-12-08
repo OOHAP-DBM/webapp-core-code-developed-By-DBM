@@ -2,7 +2,7 @@
 
 namespace Modules\Enquiries\Events;
 
-use App\Models\Enquiry;
+use Modules\Enquiries\Models\Enquiry;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -21,3 +21,4 @@ class EnquiryCreated
         $this->enquiry = $enquiry;
     }
 }
+

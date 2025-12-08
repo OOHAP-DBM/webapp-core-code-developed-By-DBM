@@ -257,3 +257,4 @@ class HoardingController extends Controller
         ]);
     }
 }
+

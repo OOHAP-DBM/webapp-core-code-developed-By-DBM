@@ -250,3 +250,4 @@ class OfferController extends Controller
         ]);
     }
 }
+

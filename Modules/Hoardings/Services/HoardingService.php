@@ -2,8 +2,8 @@
 
 namespace Modules\Hoardings\Services;
 
-use App\Models\Hoarding;
-use App\Models\HoardingGeo;
+use Modules\Hoardings\Models\Hoarding;
+use Modules\Hoardings\Models\HoardingGeo;
 use Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
@@ -374,3 +374,4 @@ class HoardingService
         return $this->hoardingRepository->getMapPins($filters);
     }
 }
+

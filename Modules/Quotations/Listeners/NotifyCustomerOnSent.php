@@ -32,3 +32,4 @@ class NotifyCustomerOnSent
         // Notification::send($quotation->customer, new QuotationSentNotification($quotation));
     }
 }
+

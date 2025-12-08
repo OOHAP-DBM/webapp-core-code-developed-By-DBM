@@ -186,3 +186,4 @@ class Quotation extends Model
         }, 0);
     }
 }
+

@@ -114,3 +114,4 @@ class Enquiry extends Model
         return $this->snapshot[$key] ?? $default;
     }
 }
+

@@ -254,3 +254,4 @@ class SettingsService
         return $this->repository->findByKey($key, $tenantId) !== null;
     }
 }
+

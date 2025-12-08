@@ -2,7 +2,7 @@
 
 namespace Modules\Offers\Repositories\Contracts;
 
-use App\Models\Offer;
+use Modules\Offers\Models\Offer;
 use Illuminate\Support\Collection;
 
 interface OfferRepositoryInterface
@@ -52,3 +52,4 @@ interface OfferRepositoryInterface
      */
     public function markExpired(): int;
 }
+

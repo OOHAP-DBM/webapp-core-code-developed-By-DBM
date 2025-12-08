@@ -2,8 +2,8 @@
 
 namespace Modules\Enquiries\Services;
 
-use App\Models\Enquiry;
-use App\Models\Hoarding;
+use Modules\Enquiries\Models\Enquiry;
+use Modules\Hoardings\Models\Hoarding;
 use Modules\Enquiries\Repositories\Contracts\EnquiryRepositoryInterface;
 use Modules\Enquiries\Events\EnquiryCreated;
 use Illuminate\Support\Collection;
@@ -176,3 +176,4 @@ class EnquiryService
         return false;
     }
 }
+

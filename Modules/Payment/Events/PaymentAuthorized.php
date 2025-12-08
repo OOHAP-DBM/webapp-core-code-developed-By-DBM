@@ -23,3 +23,4 @@ class PaymentAuthorized
         $this->webhookPayload = $webhookPayload;
     }
 }
+

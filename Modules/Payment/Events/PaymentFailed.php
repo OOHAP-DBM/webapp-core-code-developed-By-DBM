@@ -32,3 +32,4 @@ class PaymentFailed
         $this->webhookPayload = $webhookPayload;
     }
 }
+

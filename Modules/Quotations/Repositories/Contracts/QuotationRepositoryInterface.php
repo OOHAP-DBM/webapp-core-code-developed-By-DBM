@@ -2,7 +2,7 @@
 
 namespace Modules\Quotations\Repositories\Contracts;
 
-use App\Models\Quotation;
+use Modules\Quotations\Models\Quotation;
 use Illuminate\Database\Eloquent\Collection;
 
 interface QuotationRepositoryInterface
@@ -25,3 +25,4 @@ interface QuotationRepositoryInterface
     
     public function getAll(array $filters = []): Collection;
 }
+
