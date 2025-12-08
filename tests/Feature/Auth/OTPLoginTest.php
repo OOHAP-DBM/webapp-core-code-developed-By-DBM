@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\User;
+use Modules\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -253,3 +253,4 @@ class OTPLoginTest extends TestCase
         $this->assertNotNull($user->last_login_at);
     }
 }
+

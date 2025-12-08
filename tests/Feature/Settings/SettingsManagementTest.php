@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Settings;
 
-use App\Models\Setting;
-use App\Models\User;
+use Modules\Settings\Models\Setting;
+use Modules\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -284,3 +284,4 @@ class SettingsManagementTest extends TestCase
         $this->assertDatabaseMissing('settings', ['key' => 'temp_setting']);
     }
 }
+

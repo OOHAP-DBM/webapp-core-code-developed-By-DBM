@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\User;
+use Modules\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -209,3 +209,4 @@ class RegistrationTest extends TestCase
         $this->assertTrue($user->hasRole('customer'));
     }
 }
+

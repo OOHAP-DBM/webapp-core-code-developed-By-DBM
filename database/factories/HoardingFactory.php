@@ -2,12 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Models\Hoarding;
-use App\Models\User;
+use Modules\Hoardings\Models\Hoarding;
+use Modules\Users\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Hoarding>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Hoardings\Models\Hoarding>
  */
 class HoardingFactory extends Factory
 {

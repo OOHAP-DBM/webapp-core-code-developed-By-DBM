@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Hoardings;
 
-use App\Models\User;
+use Modules\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -248,3 +248,4 @@ class HoardingCreateTest extends TestCase
         $response->assertStatus(403);
     }
 }
+

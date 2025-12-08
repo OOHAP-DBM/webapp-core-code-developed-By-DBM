@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use App\Models\Hoarding;
-use App\Models\User;
+use Modules\Hoardings\Models\Hoarding;
+use Modules\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface;
@@ -195,3 +195,4 @@ class HoardingServiceTest extends TestCase
         $this->assertEquals('Times Square Billboard', $results->first()->title);
     }
 }
+

@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\Hoardings;
 
-use App\Models\Hoarding;
-use App\Models\HoardingGeo;
-use App\Models\User;
+use Modules\Hoardings\Models\Hoarding;
+use Modules\Hoardings\Models\HoardingGeo;
+use Modules\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -364,3 +364,4 @@ class HoardingGeoTest extends TestCase
         $this->assertEmpty($response->json('data'));
     }
 }
+
