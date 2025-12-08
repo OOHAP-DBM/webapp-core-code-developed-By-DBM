@@ -119,6 +119,22 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/kyc', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.index');
     Route::get('/kyc/submit', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.submit');
     
+    // POS Booking Module
+    Route::prefix('pos')->name('pos.')->group(function () {
+        Route::get('/dashboard', function () {
+            return view('vendor.pos.dashboard');
+        })->name('dashboard');
+        Route::get('/create', function () {
+            return view('vendor.pos.create');
+        })->name('create');
+        Route::get('/list', function () {
+            return view('vendor.pos.list');
+        })->name('list');
+        Route::get('/bookings/{id}', function ($id) {
+            return view('vendor.pos.show', compact('id'));
+        })->name('show');
+    });
+    
     // Reports
     Route::get('/reports', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/revenue', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'revenue'])->name('reports.revenue');

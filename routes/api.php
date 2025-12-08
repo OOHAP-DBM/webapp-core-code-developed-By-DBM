@@ -44,4 +44,5 @@ Route::prefix('v1')->group(function () {
     Route::prefix('reports')->group(base_path('routes/api_v1/reports.php'));
     Route::prefix('media')->group(base_path('routes/api_v1/media.php'));
     Route::prefix('search')->group(base_path('routes/api_v1/search.php'));
+    Route::prefix('vendor/pos')->group(base_path('routes/api_v1/pos.php')); // POS Module
 });
