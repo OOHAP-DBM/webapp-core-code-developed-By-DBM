@@ -286,17 +286,19 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 });
 
 // ============================================
-// STAFF PANEL (Designer, Printer, Mounter, Surveyor)
+// STAFF PANEL (Graphics, Printer, Mounter, Surveyor) - PROMPT 27
 // ============================================
 Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\Web\Staff\DashboardController::class, 'index'])->name('dashboard');
+    // Dashboard
+    Route::get('/dashboard', [\App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
     
-    // Assignments
-    Route::get('/assignments', [\App\Http\Controllers\Web\Staff\AssignmentController::class, 'index'])->name('assignments.index');
-    Route::get('/assignments/{id}', [\App\Http\Controllers\Web\Staff\AssignmentController::class, 'show'])->name('assignments.show');
-    Route::post('/assignments/{id}/accept', [\App\Http\Controllers\Web\Staff\AssignmentController::class, 'accept'])->name('assignments.accept');
-    Route::post('/assignments/{id}/complete', [\App\Http\Controllers\Web\Staff\AssignmentController::class, 'complete'])->name('assignments.complete');
-    Route::post('/assignments/{id}/upload-proof', [\App\Http\Controllers\Web\Staff\AssignmentController::class, 'uploadProof'])->name('assignments.upload-proof');
+    // Assignments Management
+    Route::get('/assignments', [\App\Http\Controllers\Staff\AssignmentController::class, 'index'])->name('assignments.index');
+    Route::get('/assignments/{id}', [\App\Http\Controllers\Staff\AssignmentController::class, 'show'])->name('assignments.show');
+    Route::post('/assignments/{id}/accept', [\App\Http\Controllers\Staff\AssignmentController::class, 'accept'])->name('assignments.accept');
+    Route::post('/assignments/{id}/complete', [\App\Http\Controllers\Staff\AssignmentController::class, 'complete'])->name('assignments.complete');
+    Route::post('/assignments/{id}/upload-proof', [\App\Http\Controllers\Staff\AssignmentController::class, 'uploadProof'])->name('assignments.upload-proof');
+    Route::post('/assignments/{id}/send-update', [\App\Http\Controllers\Staff\AssignmentController::class, 'sendUpdate'])->name('assignments.send-update');
     
     // Profile
     Route::get('/profile', [\App\Http\Controllers\Web\Staff\ProfileController::class, 'edit'])->name('profile.edit');

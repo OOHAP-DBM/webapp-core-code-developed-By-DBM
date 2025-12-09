@@ -1,22 +1,48 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Staff\DashboardController;
+use App\Http\Controllers\Staff\AssignmentController;
 
 /**
- * Staff API Routes (v1)
+ * Staff API Routes (v1) - PROMPT 27
  * Base: /api/v1/staff
  * 
- * Staff management: Designer, Printer, Mounter, Surveyor
+ * For Graphics Designer, Printer, Mounter, Surveyor Mobile Apps
  */
 
-// Staff routes
+// Staff routes (Mobile App Authentication)
 Route::middleware(['auth:sanctum', 'role:staff'])->group(function () {
-    Route::get('/dashboard', [\Modules\Staff\Controllers\Api\StaffController::class, 'dashboard']);
-    Route::get('/assignments', [\Modules\Staff\Controllers\Api\StaffController::class, 'assignments']);
-    Route::get('/assignments/{id}', [\Modules\Staff\Controllers\Api\StaffController::class, 'assignmentDetails']);
-    Route::post('/assignments/{id}/accept', [\Modules\Staff\Controllers\Api\StaffController::class, 'acceptAssignment']);
-    Route::post('/assignments/{id}/complete', [\Modules\Staff\Controllers\Api\StaffController::class, 'completeAssignment']);
-    Route::post('/assignments/{id}/upload-proof', [\Modules\Staff\Controllers\Api\StaffController::class, 'uploadProof']);
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+    
+    // Assignments
+    Route::get('/assignments', [AssignmentController::class, 'index']);
+    Route::get('/assignments/{id}', [AssignmentController::class, 'show']);
+    Route::post('/assignments/{id}/accept', [AssignmentController::class, 'accept']);
+    Route::post('/assignments/{id}/complete', [AssignmentController::class, 'complete']);
+    Route::post('/assignments/{id}/upload-proof', [AssignmentController::class, 'uploadProof']);
+    Route::post('/assignments/{id}/send-update', [AssignmentController::class, 'sendUpdate']);
+    
+    // Profile
+    Route::get('/profile', function(\Illuminate\Http\Request $request) {
+        return response()->json([
+            'success' => true,
+            'data' => $request->user()
+        ]);
+    });
+    
+    // Stats
+    Route::get('/stats', function(\Illuminate\Http\Request $request) {
+        $user = $request->user();
+        $stats = [
+            'total_assignments' => $user->assignments()->count(),
+            'pending' => $user->assignments()->where('status', 'pending')->count(),
+            'in_progress' => $user->assignments()->where('status', 'in_progress')->count(),
+            'completed' => $user->assignments()->where('status', 'completed')->count(),
+        ];
+        return response()->json(['success' => true, 'data' => $stats]);
+    });
 });
 
 // Vendor routes - Manage staff
