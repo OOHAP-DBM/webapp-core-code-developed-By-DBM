@@ -277,6 +277,18 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/clear-cache', [\App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('settings.clear-cache');
     
+    // Price Update Engine (PROMPT 30)
+    Route::prefix('price-updates')->name('price-updates.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\PriceUpdateController::class, 'index'])->name('index');
+        Route::get('/single/{hoarding_id?}', [\App\Http\Controllers\Admin\PriceUpdateController::class, 'singleUpdate'])->name('single');
+        Route::post('/single', [\App\Http\Controllers\Admin\PriceUpdateController::class, 'storeSingleUpdate'])->name('single.store');
+        Route::get('/bulk', [\App\Http\Controllers\Admin\PriceUpdateController::class, 'bulkUpdate'])->name('bulk');
+        Route::post('/bulk/preview', [\App\Http\Controllers\Admin\PriceUpdateController::class, 'previewBulkUpdate'])->name('bulk.preview');
+        Route::post('/bulk', [\App\Http\Controllers\Admin\PriceUpdateController::class, 'storeBulkUpdate'])->name('bulk.store');
+        Route::get('/logs', [\App\Http\Controllers\Admin\PriceUpdateController::class, 'logs'])->name('logs');
+        Route::get('/logs/{id}', [\App\Http\Controllers\Admin\PriceUpdateController::class, 'showLog'])->name('logs.show');
+    });
+    
     // Booking Rules
     Route::get('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'index'])->name('booking-rules.index');
     Route::put('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'update'])->name('booking-rules.update');
