@@ -381,6 +381,19 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         });
     });
     
+    // Snapshot Engine (PROMPT 36)
+    Route::prefix('snapshots')->name('snapshots.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\SnapshotController::class, 'index'])->name('index');
+        Route::get('/statistics', [\App\Http\Controllers\Admin\SnapshotController::class, 'statistics'])->name('statistics');
+        Route::get('/recent', [\App\Http\Controllers\Admin\SnapshotController::class, 'recent'])->name('recent');
+        Route::get('/type/{type}', [\App\Http\Controllers\Admin\SnapshotController::class, 'byType'])->name('by-type');
+        Route::get('/event/{event}', [\App\Http\Controllers\Admin\SnapshotController::class, 'byEvent'])->name('by-event');
+        Route::get('/for-model', [\App\Http\Controllers\Admin\SnapshotController::class, 'forModel'])->name('for-model');
+        Route::post('/compare', [\App\Http\Controllers\Admin\SnapshotController::class, 'compare'])->name('compare');
+        Route::get('/{snapshot}', [\App\Http\Controllers\Admin\SnapshotController::class, 'show'])->name('show');
+        Route::post('/{snapshot}/restore', [\App\Http\Controllers\Admin\SnapshotController::class, 'restore'])->name('restore');
+    });
+    
     // Booking Rules
     Route::get('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'index'])->name('booking-rules.index');
     Route::put('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'update'])->name('booking-rules.update');

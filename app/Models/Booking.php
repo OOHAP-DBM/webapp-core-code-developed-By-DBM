@@ -2,12 +2,19 @@
 
 namespace App\Models;
 
+use App\Traits\HasSnapshots;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
 {
+    use HasSnapshots;
+    
+    protected $snapshotType = 'booking';
+    protected $snapshotOnCreate = true;
+    protected $snapshotOnUpdate = true;
+    
     protected $fillable = [
         'quotation_id',
         'customer_id',

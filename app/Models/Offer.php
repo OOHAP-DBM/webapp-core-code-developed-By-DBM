@@ -2,13 +2,18 @@
 
 namespace App\Models;
 
+use App\Traits\HasSnapshots;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Offer extends Model
 {
-    use HasFactory;
+    use HasFactory, HasSnapshots;
+    
+    protected $snapshotType = 'offer';
+    protected $snapshotOnCreate = true;
+    protected $snapshotOnUpdate = true;
 
     protected $fillable = [
         'enquiry_id',
