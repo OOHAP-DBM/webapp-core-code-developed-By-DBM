@@ -70,6 +70,7 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/enquiries/create', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'create'])->name('enquiries.create');
     Route::post('/enquiries', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'store'])->name('enquiries.store');
     Route::get('/enquiries/{id}', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'show'])->name('enquiries.show');
+    Route::post('/enquiries/{id}/cancel', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'cancel'])->name('enquiries.cancel');
     
     // Quotations
     Route::get('/quotations', [\App\Http\Controllers\Web\Customer\QuotationController::class, 'index'])->name('quotations.index');
@@ -91,11 +92,26 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/profile/edit', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'index'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/change-password', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'changePassword'])->name('profile.change-password');
+    Route::get('/profile/kyc', function() { return view('customer.profile.kyc'); })->name('profile.kyc');
+    Route::post('/kyc/submit', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'submitKyc'])->name('kyc.submit');
     
     // Notifications
     Route::get('/notifications', [\App\Http\Controllers\Web\Customer\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Customer\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Customer\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    
+    // Threads (to be implemented)
+    Route::get('/threads', function() { return view('customer.threads.index', ['threads' => [], 'selectedThread' => null]); })->name('threads.index');
+    Route::get('/threads/{id}', function($id) { return view('customer.threads.show', ['thread' => null]); })->name('threads.show');
+    Route::post('/threads', function() { return redirect()->back(); })->name('threads.store');
+    Route::post('/threads/{id}/send-message', function($id) { return response()->json(['success' => false]); })->name('threads.send-message');
+    
+    // Bookings Create
+    Route::get('/bookings/create', function() { 
+        $hoarding = \App\Models\Hoarding::first();
+        return view('customer.bookings.create', ['hoarding' => $hoarding, 'quotation' => null]); 
+    })->name('bookings.create');
+    Route::post('/bookings', function() { return redirect()->route('customer.orders.index'); })->name('bookings.store');
     
     // Threads (to be implemented)
     // Route::get('/threads', [\App\Http\Controllers\Web\Customer\ThreadController::class, 'index'])->name('threads.index');
