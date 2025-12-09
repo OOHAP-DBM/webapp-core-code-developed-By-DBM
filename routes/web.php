@@ -335,6 +335,30 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/ledgers/vendor/{vendor}/adjustment', [\App\Http\Controllers\Admin\SettlementController::class, 'createAdjustment'])->name('adjustment');
     });
     
+    // Notification Templates (PROMPT 34)
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        // Templates
+        Route::prefix('templates')->name('templates.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'store'])->name('store');
+            Route::get('/{template}', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'show'])->name('show');
+            Route::get('/{template}/edit', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'edit'])->name('edit');
+            Route::put('/{template}', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'update'])->name('update');
+            Route::delete('/{template}', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'destroy'])->name('destroy');
+            Route::post('/{template}/duplicate', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'duplicate'])->name('duplicate');
+            Route::post('/{template}/toggle', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'toggleStatus'])->name('toggle');
+            Route::post('/{template}/test', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'testSend'])->name('test');
+        });
+        
+        // Logs
+        Route::prefix('logs')->name('logs.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'logs'])->name('index');
+            Route::get('/{log}', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'logShow'])->name('show');
+            Route::post('/{log}/retry', [\App\Http\Controllers\Admin\NotificationTemplateController::class, 'retryLog'])->name('retry');
+        });
+    });
+    
     // Booking Rules
     Route::get('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'index'])->name('booking-rules.index');
     Route::put('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'update'])->name('booking-rules.update');
