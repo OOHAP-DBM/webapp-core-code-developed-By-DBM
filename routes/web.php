@@ -407,6 +407,19 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/{auditLog}', [\App\Http\Controllers\Admin\AuditLogController::class, 'show'])->name('show');
     });
     
+    // Booking Timeline (PROMPT 38)
+    Route::prefix('bookings/{booking}/timeline')->name('bookings.timeline.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'index'])->name('index');
+        Route::get('/api', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'getTimeline'])->name('api');
+        Route::post('/start-stage', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'startStage'])->name('start-stage');
+        Route::post('/complete-stage', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'completeStage'])->name('complete-stage');
+        Route::post('/add-event', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'addEvent'])->name('add-event');
+        Route::post('/rebuild', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'rebuild'])->name('rebuild');
+        Route::get('/progress', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'progress'])->name('progress');
+        Route::get('/current-stage', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'currentStage'])->name('current-stage');
+    });
+    Route::put('/timeline/events/{event}', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'updateEvent'])->name('timeline.events.update');
+    
     // Booking Rules
     Route::get('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'index'])->name('booking-rules.index');
     Route::put('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'update'])->name('booking-rules.update');

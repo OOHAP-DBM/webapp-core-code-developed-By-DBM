@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Traits\HasSnapshots;
 use App\Traits\Auditable;
+use App\Traits\HasTimeline;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
 {
-    use HasSnapshots, Auditable;
+    use HasSnapshots, Auditable, HasTimeline;
     
     protected $snapshotType = 'booking';
     protected $snapshotOnCreate = true;
