@@ -164,4 +164,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(VendorKYC::class, 'vendor_id');
     }
+
+    /**
+     * Get the vendor's ledger entries
+     */
+    public function ledgerEntries()
+    {
+        return $this->hasMany(VendorLedger::class, 'vendor_id');
+    }
 }

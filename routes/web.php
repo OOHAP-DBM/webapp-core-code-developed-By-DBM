@@ -318,6 +318,23 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/', [\App\Http\Controllers\Admin\RefundController::class, 'storePolicy'])->name('store');
     });
     
+    // Payment Settlement Engine (PROMPT 33)
+    Route::prefix('settlements')->name('settlements.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\SettlementController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\SettlementController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\SettlementController::class, 'store'])->name('store');
+        Route::get('/{batch}', [\App\Http\Controllers\Admin\SettlementController::class, 'show'])->name('show');
+        Route::post('/{batch}/submit', [\App\Http\Controllers\Admin\SettlementController::class, 'submitForApproval'])->name('submit');
+        Route::post('/{batch}/approve', [\App\Http\Controllers\Admin\SettlementController::class, 'approve'])->name('approve');
+        Route::post('/{batch}/process', [\App\Http\Controllers\Admin\SettlementController::class, 'process'])->name('process');
+        
+        // Vendor Ledgers
+        Route::get('/ledgers/all', [\App\Http\Controllers\Admin\SettlementController::class, 'ledgers'])->name('ledgers');
+        Route::get('/ledgers/vendor/{vendor}', [\App\Http\Controllers\Admin\SettlementController::class, 'vendorLedger'])->name('vendor-ledger');
+        Route::post('/ledgers/vendor/{vendor}/release-hold', [\App\Http\Controllers\Admin\SettlementController::class, 'releaseHeldAmounts'])->name('release-hold');
+        Route::post('/ledgers/vendor/{vendor}/adjustment', [\App\Http\Controllers\Admin\SettlementController::class, 'createAdjustment'])->name('adjustment');
+    });
+    
     // Booking Rules
     Route::get('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'index'])->name('booking-rules.index');
     Route::put('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'update'])->name('booking-rules.update');

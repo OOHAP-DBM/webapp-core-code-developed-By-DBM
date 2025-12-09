@@ -6,6 +6,7 @@ use App\Events\PaymentCaptured;
 use App\Jobs\ScheduleBookingConfirmJob;
 use App\Services\CommissionService;
 use App\Services\RazorpayPayoutService;
+use App\Services\PaymentSettlementService;
 use Modules\Bookings\Services\BookingService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
@@ -16,6 +17,7 @@ class OnPaymentCaptured
     protected BookingService $bookingService;
     protected CommissionService $commissionService;
     protected RazorpayPayoutService $razorpayPayoutService;
+    protected PaymentSettlementService $settlementService;
 
     /**
      * Create the event listener.
@@ -23,11 +25,13 @@ class OnPaymentCaptured
     public function __construct(
         BookingService $bookingService, 
         CommissionService $commissionService,
-        RazorpayPayoutService $razorpayPayoutService
+        RazorpayPayoutService $razorpayPayoutService,
+        PaymentSettlementService $settlementService
     ) {
         $this->bookingService = $bookingService;
         $this->commissionService = $commissionService;
         $this->razorpayPayoutService = $razorpayPayoutService;
+        $this->settlementService = $settlementService;
     }
 
     /**
@@ -64,6 +68,16 @@ class OnPaymentCaptured
                 'booking_payment_id' => $bookingPayment->id,
                 'commission_log_id' => $commissionLog->id,
                 'vendor_payout_amount' => $bookingPayment->vendor_payout_amount,
+            ]);
+
+            // ====== RECORD IN VENDOR LEDGER ======
+            // RULE: Admin commission first, then vendor earning
+            [$commissionEntry, $earningEntry] = $this->settlementService->recordPaymentInLedger($bookingPayment);
+
+            Log::info('OnPaymentCaptured: Recorded in vendor ledger', [
+                'commission_entry_id' => $commissionEntry->id,
+                'earning_entry_id' => $earningEntry->id,
+                'is_on_hold' => $earningEntry->is_on_hold,
             ]);
 
             // ====== FUND SPLIT LOGIC: Check Vendor KYC Status ======
