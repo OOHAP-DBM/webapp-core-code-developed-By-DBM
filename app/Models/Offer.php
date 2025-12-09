@@ -46,6 +46,46 @@ class Offer extends Model
     const PRICE_DAILY = 'daily';
 
     /**
+     * Boot method to handle events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Post system message when offer is sent
+        static::updated(function ($offer) {
+            if ($offer->isDirty('status') && $offer->status === self::STATUS_SENT) {
+                $thread = Thread::where('enquiry_id', $offer->enquiry_id)->first();
+                if ($thread) {
+                    ThreadMessage::create([
+                        'thread_id' => $thread->id,
+                        'sender_id' => $offer->vendor_id,
+                        'sender_type' => 'vendor',
+                        'message_type' => 'offer',
+                        'message' => "Vendor sent an offer: ₹" . number_format($offer->price, 2) . " ({$offer->price_type})",
+                        'offer_id' => $offer->id,
+                    ]);
+                }
+            }
+            
+            // Post message when offer is accepted
+            if ($offer->isDirty('status') && $offer->status === self::STATUS_ACCEPTED) {
+                $thread = Thread::where('enquiry_id', $offer->enquiry_id)->first();
+                if ($thread) {
+                    ThreadMessage::create([
+                        'thread_id' => $thread->id,
+                        'sender_id' => $offer->enquiry->customer_id,
+                        'sender_type' => 'customer',
+                        'message_type' => 'system',
+                        'message' => "Offer #" . $offer->id . " accepted by customer",
+                        'offer_id' => $offer->id,
+                    ]);
+                }
+            }
+        });
+    }
+
+    /**
      * Get the enquiry for this offer
      */
     public function enquiry(): BelongsTo

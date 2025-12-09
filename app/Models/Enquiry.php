@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Enquiry extends Model
 {
@@ -43,6 +44,39 @@ class Enquiry extends Model
     const DURATION_MONTHS = 'months';
 
     /**
+     * Boot method to handle events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Create thread automatically when enquiry is created
+        static::created(function ($enquiry) {
+            if ($enquiry->hoarding && $enquiry->hoarding->vendor_id) {
+                Thread::create([
+                    'enquiry_id' => $enquiry->id,
+                    'customer_id' => $enquiry->customer_id,
+                    'vendor_id' => $enquiry->hoarding->vendor_id,
+                    'status' => 'active',
+                    'last_message_at' => now(),
+                ]);
+
+                // Create initial system message
+                $thread = Thread::where('enquiry_id', $enquiry->id)->first();
+                if ($thread) {
+                    ThreadMessage::create([
+                        'thread_id' => $thread->id,
+                        'sender_id' => $enquiry->customer_id,
+                        'sender_type' => 'system',
+                        'message_type' => 'system',
+                        'message' => "Enquiry created for {$enquiry->hoarding->title}. Duration: {$enquiry->getDurationInDays()} days.",
+                    ]);
+                }
+            }
+        });
+    }
+
+    /**
      * Get the customer who made the enquiry
      */
     public function customer(): BelongsTo
@@ -56,6 +90,14 @@ class Enquiry extends Model
     public function hoarding(): BelongsTo
     {
         return $this->belongsTo(Hoarding::class);
+    }
+
+    /**
+     * Get the thread associated with this enquiry
+     */
+    public function thread(): HasOne
+    {
+        return $this->hasOne(Thread::class);
     }
 
     /**

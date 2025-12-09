@@ -46,6 +46,9 @@ Route::prefix('v1')->group(function () {
     Route::prefix('search')->group(base_path('routes/api_v1/search.php'));
     Route::prefix('vendor/pos')->group(base_path('routes/api_v1/pos.php')); // POS Module
     
+    // Thread Communication System (PROMPT 28)
+    require base_path('routes/api_v1/threads.php');
+    
     // Direct Booking Module (Customer direct bookings without quotation)
     require base_path('routes/api_v1/direct-bookings.php');
     

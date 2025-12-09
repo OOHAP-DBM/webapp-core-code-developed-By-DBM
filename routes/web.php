@@ -100,11 +100,13 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Customer\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Customer\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     
-    // Threads (to be implemented)
-    Route::get('/threads', function() { return view('customer.threads.index', ['threads' => [], 'selectedThread' => null]); })->name('threads.index');
-    Route::get('/threads/{id}', function($id) { return view('customer.threads.show', ['thread' => null]); })->name('threads.show');
-    Route::post('/threads', function() { return redirect()->back(); })->name('threads.store');
-    Route::post('/threads/{id}/send-message', function($id) { return response()->json(['success' => false]); })->name('threads.send-message');
+    // Threads
+    Route::get('/threads', [\App\Http\Controllers\Customer\ThreadController::class, 'index'])->name('threads.index');
+    Route::get('/threads/{id}', [\App\Http\Controllers\Customer\ThreadController::class, 'show'])->name('threads.show');
+    Route::post('/threads/{id}/send-message', [\App\Http\Controllers\Customer\ThreadController::class, 'sendMessage'])->name('threads.send-message');
+    Route::post('/threads/{id}/mark-read', [\App\Http\Controllers\Customer\ThreadController::class, 'markAsRead'])->name('threads.mark-read');
+    Route::post('/threads/{id}/archive', [\App\Http\Controllers\Customer\ThreadController::class, 'archive'])->name('threads.archive');
+    Route::get('/threads/unread-count', [\App\Http\Controllers\Customer\ThreadController::class, 'unreadCount'])->name('threads.unread-count');
     
     // Bookings Create
     Route::get('/bookings/create', function() { 
@@ -112,10 +114,6 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
         return view('customer.bookings.create', ['hoarding' => $hoarding, 'quotation' => null]); 
     })->name('bookings.create');
     Route::post('/bookings', function() { return redirect()->route('customer.orders.index'); })->name('bookings.store');
-    
-    // Threads (to be implemented)
-    // Route::get('/threads', [\App\Http\Controllers\Web\Customer\ThreadController::class, 'index'])->name('threads.index');
-    // Route::get('/threads/{id}', [\App\Http\Controllers\Web\Customer\ThreadController::class, 'show'])->name('threads.show');
 });
 
 // ============================================
@@ -147,6 +145,14 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/quotations/create', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'create'])->name('quotations.create');
     Route::post('/quotations', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'store'])->name('quotations.store');
     Route::get('/quotations/{id}', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'show'])->name('quotations.show');
+    
+    // Threads
+    Route::get('/threads', [\App\Http\Controllers\Vendor\ThreadController::class, 'index'])->name('threads.index');
+    Route::get('/threads/{id}', [\App\Http\Controllers\Vendor\ThreadController::class, 'show'])->name('threads.show');
+    Route::post('/threads/{id}/send-message', [\App\Http\Controllers\Vendor\ThreadController::class, 'sendMessage'])->name('threads.send-message');
+    Route::post('/threads/{id}/mark-read', [\App\Http\Controllers\Vendor\ThreadController::class, 'markAsRead'])->name('threads.mark-read');
+    Route::post('/threads/{id}/archive', [\App\Http\Controllers\Vendor\ThreadController::class, 'archive'])->name('threads.archive');
+    Route::get('/threads/unread-count', [\App\Http\Controllers\Vendor\ThreadController::class, 'unreadCount'])->name('threads.unread-count');
     
     // Listings Management (PROMPT 26)
     Route::get('/listings', [\App\Http\Controllers\Vendor\ListingController::class, 'index'])->name('listings.index');
