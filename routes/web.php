@@ -420,6 +420,35 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     });
     Route::put('/timeline/events/{event}', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'updateEvent'])->name('timeline.events.update');
     
+    // DOOH Slot Management (PROMPT 39)
+    Route::prefix('hoardings/{hoarding}/dooh-slots')->name('hoarding.dooh-slots.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'store'])->name('store');
+        Route::get('/booking', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'bookingView'])->name('booking');
+        Route::post('/setup-defaults', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'setupDefaults'])->name('setup-defaults');
+        Route::get('/availability', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'checkAvailability'])->name('availability');
+    });
+    
+    Route::prefix('dooh-slots')->name('dooh-slots.')->group(function () {
+        Route::get('/{slot}', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'show'])->name('show');
+        Route::get('/{slot}/edit', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'edit'])->name('edit');
+        Route::put('/{slot}', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'update'])->name('update');
+        Route::delete('/{slot}', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'destroy'])->name('destroy');
+        Route::post('/{slot}/release', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'release'])->name('release');
+        Route::post('/{slot}/block', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'block'])->name('block');
+        Route::post('/{slot}/maintenance', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'maintenance'])->name('maintenance');
+        Route::get('/{slot}/schedule', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'getDailySchedule'])->name('schedule');
+        Route::get('/{slot}/metrics', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'getMetrics'])->name('metrics');
+    });
+    
+    // DOOH Booking & Calculation APIs
+    Route::post('/dooh/calculate-cost', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'calculateCost'])->name('dooh.calculate-cost');
+    Route::post('/dooh/book-slots', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'book'])->name('dooh.book-slots');
+    Route::post('/dooh/calculate-frequency', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'calculateFrequency'])->name('dooh.calculate-frequency');
+    Route::post('/dooh/optimize-budget', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'optimizeForBudget'])->name('dooh.optimize-budget');
+    Route::get('/dooh/roi-calculator', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'roiCalculator'])->name('dooh.roi-calculator');
+    
     // Booking Rules
     Route::get('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'index'])->name('booking-rules.index');
     Route::put('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'update'])->name('booking-rules.update');

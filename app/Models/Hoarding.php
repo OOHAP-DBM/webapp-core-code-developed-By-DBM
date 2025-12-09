@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\HasSnapshots;
 use App\Traits\Auditable;
+use App\Traits\HasDOOHSlots;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Hoarding extends Model
 {
-    use HasFactory, SoftDeletes, HasSnapshots, Auditable;
+    use HasFactory, SoftDeletes, HasSnapshots, Auditable, HasDOOHSlots;
     
     protected $snapshotType = 'price_update';
     protected $snapshotOnCreate = false; // Don't snapshot on create
