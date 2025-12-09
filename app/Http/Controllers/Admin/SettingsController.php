@@ -20,8 +20,13 @@ class SettingsController extends Controller
         $activeGroup = $request->get('group', Setting::GROUP_GENERAL);
         $groups = Setting::getAvailableGroups();
 
+        // Validate the group exists
+        if (!isset($groups[$activeGroup])) {
+            $activeGroup = Setting::GROUP_GENERAL;
+        }
+
         // Get settings for the active group
-        $settings = Setting::global()->group($activeGroup)->get();
+        $settings = Setting::global()->group($activeGroup)->orderBy('key')->get();
 
         return view('admin.settings.index', compact('settings', 'activeGroup', 'groups'));
     }

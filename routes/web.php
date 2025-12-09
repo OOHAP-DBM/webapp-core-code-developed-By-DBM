@@ -272,11 +272,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/finance/bookings-payments', [\App\Http\Controllers\Admin\FinanceController::class, 'bookingsPaymentsLedger'])->name('finance.bookings-payments');
     Route::get('/finance/pending-manual-payouts', [\App\Http\Controllers\Admin\FinanceController::class, 'pendingManualPayouts'])->name('finance.pending-manual-payouts');
     
-    // Settings
-    Route::get('/settings', [\App\Http\Controllers\Web\Admin\SettingController::class, 'index'])->name('settings.index');
-    Route::put('/settings', [\App\Http\Controllers\Web\Admin\SettingController::class, 'update'])->name('settings.update');
-    Route::post('/settings/reset', [\App\Http\Controllers\Web\Admin\SettingController::class, 'reset'])->name('settings.reset');
-    Route::post('/settings/clear-cache', [\App\Http\Controllers\Web\Admin\SettingController::class, 'clearCache'])->name('settings.clear-cache');
+    // Settings (New Enhanced Settings System - PROMPT 29)
+    Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
+    Route::post('/settings/clear-cache', [\App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('settings.clear-cache');
     
     // Booking Rules
     Route::get('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'index'])->name('booking-rules.index');
