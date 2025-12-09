@@ -303,6 +303,21 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/preview', [\App\Http\Controllers\Admin\CommissionRuleController::class, 'preview'])->name('preview');
     });
     
+    // Refunds & Cancellation Policies (PROMPT 32)
+    Route::prefix('refunds')->name('refunds.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\RefundController::class, 'index'])->name('index');
+        Route::get('/{refund}', [\App\Http\Controllers\Admin\RefundController::class, 'show'])->name('show');
+        Route::post('/{refund}/approve', [\App\Http\Controllers\Admin\RefundController::class, 'approve'])->name('approve');
+        Route::post('/{refund}/process-manual', [\App\Http\Controllers\Admin\RefundController::class, 'processManual'])->name('process-manual');
+        Route::get('/export', [\App\Http\Controllers\Admin\RefundController::class, 'export'])->name('export');
+    });
+    
+    Route::prefix('cancellation-policies')->name('cancellation-policies.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\RefundController::class, 'policies'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\RefundController::class, 'createPolicy'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\RefundController::class, 'storePolicy'])->name('store');
+    });
+    
     // Booking Rules
     Route::get('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'index'])->name('booking-rules.index');
     Route::put('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'update'])->name('booking-rules.update');
