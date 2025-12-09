@@ -289,6 +289,20 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/logs/{id}', [\App\Http\Controllers\Admin\PriceUpdateController::class, 'showLog'])->name('logs.show');
     });
     
+    // Commission Rules (PROMPT 31)
+    Route::prefix('commission-rules')->name('commission-rules.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\CommissionRuleController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\CommissionRuleController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\CommissionRuleController::class, 'store'])->name('store');
+        Route::get('/{commissionRule}', [\App\Http\Controllers\Admin\CommissionRuleController::class, 'show'])->name('show');
+        Route::get('/{commissionRule}/edit', [\App\Http\Controllers\Admin\CommissionRuleController::class, 'edit'])->name('edit');
+        Route::put('/{commissionRule}', [\App\Http\Controllers\Admin\CommissionRuleController::class, 'update'])->name('update');
+        Route::delete('/{commissionRule}', [\App\Http\Controllers\Admin\CommissionRuleController::class, 'destroy'])->name('destroy');
+        Route::post('/{commissionRule}/toggle', [\App\Http\Controllers\Admin\CommissionRuleController::class, 'toggleStatus'])->name('toggle');
+        Route::post('/{commissionRule}/duplicate', [\App\Http\Controllers\Admin\CommissionRuleController::class, 'duplicate'])->name('duplicate');
+        Route::post('/preview', [\App\Http\Controllers\Admin\CommissionRuleController::class, 'preview'])->name('preview');
+    });
+    
     // Booking Rules
     Route::get('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'index'])->name('booking-rules.index');
     Route::put('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'update'])->name('booking-rules.update');
