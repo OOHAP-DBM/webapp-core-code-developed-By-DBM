@@ -122,7 +122,8 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 // VENDOR PANEL (Authenticated)
 // ============================================
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\Web\Vendor\DashboardController::class, 'index'])->name('dashboard');
+    // Dashboard (PROMPT 26)
+    Route::get('/dashboard', [\App\Http\Controllers\Vendor\DashboardController::class, 'index'])->name('dashboard');
     
     // Hoardings Management
     Route::resource('hoardings', \App\Http\Controllers\Web\Vendor\HoardingController::class);
@@ -147,10 +148,38 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::post('/quotations', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'store'])->name('quotations.store');
     Route::get('/quotations/{id}', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'show'])->name('quotations.show');
     
-    // Bookings
-    Route::get('/bookings', [\App\Http\Controllers\Web\Vendor\BookingController::class, 'index'])->name('bookings.index');
-    Route::get('/bookings/{id}', [\App\Http\Controllers\Web\Vendor\BookingController::class, 'show'])->name('bookings.show');
+    // Listings Management (PROMPT 26)
+    Route::get('/listings', [\App\Http\Controllers\Vendor\ListingController::class, 'index'])->name('listings.index');
+    Route::get('/listings/create', [\App\Http\Controllers\Vendor\ListingController::class, 'create'])->name('listings.create');
+    Route::post('/listings', [\App\Http\Controllers\Vendor\ListingController::class, 'store'])->name('listings.store');
+    Route::get('/listings/{id}/edit', [\App\Http\Controllers\Vendor\ListingController::class, 'edit'])->name('listings.edit');
+    Route::put('/listings/{id}', [\App\Http\Controllers\Vendor\ListingController::class, 'update'])->name('listings.update');
+    Route::delete('/listings/{id}', [\App\Http\Controllers\Vendor\ListingController::class, 'destroy'])->name('listings.destroy');
+    Route::get('/listings/bulk-update', [\App\Http\Controllers\Vendor\ListingController::class, 'bulkUpdate'])->name('listings.bulk-update');
+    Route::post('/listings/bulk-update-submit', [\App\Http\Controllers\Vendor\ListingController::class, 'bulkUpdateSubmit'])->name('listings.bulk-update-submit');
+    
+    // Bookings Management (PROMPT 26)
+    Route::get('/bookings', [\App\Http\Controllers\Vendor\BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/{id}', [\App\Http\Controllers\Vendor\BookingController::class, 'show'])->name('bookings.show');
+    Route::post('/bookings/{id}/confirm', [\App\Http\Controllers\Vendor\BookingController::class, 'confirm'])->name('bookings.confirm');
+    Route::post('/bookings/{id}/cancel', [\App\Http\Controllers\Vendor\BookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::post('/bookings/{id}/update-status', [\App\Http\Controllers\Vendor\BookingController::class, 'updateStatus'])->name('bookings.update-status');
     Route::post('/bookings/{id}/approve-pod', [\App\Http\Controllers\Web\Vendor\BookingController::class, 'approvePOD'])->name('bookings.approve-pod');
+    
+    // Task Management (PROMPT 26)
+    Route::get('/tasks', [\App\Http\Controllers\Vendor\TaskController::class, 'index'])->name('tasks.index');
+    Route::post('/tasks', [\App\Http\Controllers\Vendor\TaskController::class, 'store'])->name('tasks.store');
+    Route::get('/tasks/{id}', [\App\Http\Controllers\Vendor\TaskController::class, 'show'])->name('tasks.show');
+    Route::post('/tasks/{id}/start', [\App\Http\Controllers\Vendor\TaskController::class, 'start'])->name('tasks.start');
+    Route::post('/tasks/{id}/complete', [\App\Http\Controllers\Vendor\TaskController::class, 'complete'])->name('tasks.complete');
+    Route::post('/tasks/{id}/update-progress', [\App\Http\Controllers\Vendor\TaskController::class, 'updateProgress'])->name('tasks.update-progress');
+    Route::delete('/tasks/{id}', [\App\Http\Controllers\Vendor\TaskController::class, 'destroy'])->name('tasks.destroy');
+    
+    // Payouts (PROMPT 26)
+    Route::get('/payouts', [\App\Http\Controllers\Vendor\PayoutController::class, 'index'])->name('payouts.index');
+    Route::post('/payouts/request', [\App\Http\Controllers\Vendor\PayoutController::class, 'request'])->name('payouts.request');
+    Route::get('/payouts/{id}', [\App\Http\Controllers\Vendor\PayoutController::class, 'show'])->name('payouts.show');
+    Route::post('/payouts/update-bank', [\App\Http\Controllers\Vendor\PayoutController::class, 'updateBank'])->name('payouts.update-bank');
     
     // Staff Management
     Route::resource('staff', \App\Http\Controllers\Web\Vendor\StaffController::class);
@@ -159,8 +188,17 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/kyc', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.index');
     Route::get('/kyc/submit', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.submit');
     
-    // POS Booking Module
+    // POS/Billing (PROMPT 26)
     Route::prefix('pos')->name('pos.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Vendor\POSController::class, 'index'])->name('index');
+        Route::post('/store', [\App\Http\Controllers\Vendor\POSController::class, 'store'])->name('store');
+        Route::get('/history', [\App\Http\Controllers\Vendor\POSController::class, 'history'])->name('history');
+        Route::get('/{id}', [\App\Http\Controllers\Vendor\POSController::class, 'show'])->name('show');
+        Route::get('/{id}/preview', [\App\Http\Controllers\Vendor\POSController::class, 'preview'])->name('preview');
+        Route::get('/{id}/download', [\App\Http\Controllers\Vendor\POSController::class, 'download'])->name('download');
+        Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\POSController::class, 'updateStatus'])->name('update-status');
+        
+        // Legacy routes
         Route::get('/dashboard', function () {
             return view('vendor.pos.dashboard');
         })->name('dashboard');
@@ -172,7 +210,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         })->name('list');
         Route::get('/bookings/{id}', function ($id) {
             return view('vendor.pos.show', compact('id'));
-        })->name('show');
+        })->name('bookings.show');
     });
     
     // Reports
