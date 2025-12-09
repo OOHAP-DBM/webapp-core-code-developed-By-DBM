@@ -54,4 +54,7 @@ Route::prefix('v1')->group(function () {
     
     // Enquiry Workflow Module (Enquiry → Offer → Quotation with Thread Communication)
     require base_path('routes/api_v1/enquiry-workflow.php');
+    
+    // Hoarding-First Booking Flow (PROMPT 43 - Customer direct booking from hoarding)
+    require base_path('routes/api_v1/booking-flow.php');
 });
