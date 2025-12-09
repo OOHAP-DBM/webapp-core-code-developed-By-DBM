@@ -127,6 +127,41 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
         return view('customer.bookings.create', ['hoarding' => $hoarding, 'quotation' => null]); 
     })->name('bookings.create');
     Route::post('/bookings', function() { return redirect()->route('customer.orders.index'); })->name('bookings.store');
+    
+    // ============================================
+    // CUSTOMER DASHBOARD + REPORTS (PROMPT 40)
+    // ============================================
+    Route::prefix('my')->name('my.')->group(function () {
+        // Main Dashboard
+        Route::get('/dashboard', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'index'])->name('dashboard');
+        
+        // My Bookings
+        Route::get('/bookings', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myBookings'])->name('bookings');
+        Route::get('/bookings/export/{format}', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'exportBookings'])->name('bookings.export');
+        
+        // My Payments
+        Route::get('/payments', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myPayments'])->name('payments');
+        Route::get('/payments/export/{format}', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'exportPayments'])->name('payments.export');
+        
+        // My Enquiries
+        Route::get('/enquiries', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myEnquiries'])->name('enquiries');
+        
+        // My Offers
+        Route::get('/offers', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myOffers'])->name('offers');
+        
+        // My Quotations
+        Route::get('/quotations', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myQuotations'])->name('quotations');
+        
+        // My Invoices
+        Route::get('/invoices', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myInvoices'])->name('invoices');
+        Route::get('/invoices/export/{format}', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'exportInvoices'])->name('invoices.export');
+        
+        // My Threads
+        Route::get('/threads', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myThreads'])->name('threads');
+        
+        // Refresh Stats
+        Route::post('/refresh-stats', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'refreshStats'])->name('refresh-stats');
+    });
 });
 
 // ============================================
