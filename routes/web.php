@@ -23,6 +23,13 @@ Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::cla
 Route::get('/dooh', [\App\Http\Controllers\Web\DOOHController::class, 'index'])->name('dooh.index');
 Route::get('/dooh/{id}', [\App\Http\Controllers\Web\DOOHController::class, 'show'])->name('dooh.show');
 
+// Map Search Routes
+Route::get('/map-search', [\App\Http\Controllers\MapSearchController::class, 'index'])->name('map-search.index');
+Route::post('/api/map/search', [\App\Http\Controllers\MapSearchController::class, 'search'])->name('api.map.search');
+Route::post('/api/map/search/geojson', [\App\Http\Controllers\MapSearchController::class, 'searchGeoJSON'])->name('api.map.search.geojson');
+Route::get('/api/map/nearby', [\App\Http\Controllers\MapSearchController::class, 'nearby'])->name('api.map.nearby');
+Route::get('/api/map/autocomplete', [\App\Http\Controllers\MapSearchController::class, 'autocomplete'])->name('api.map.autocomplete');
+
 // ============================================
 // AUTH ROUTES (Guest users)
 // ============================================
@@ -58,6 +65,12 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     
     // Search
     Route::get('/search', [\App\Http\Controllers\Web\Customer\SearchController::class, 'index'])->name('search');
+    
+    // Saved Searches
+    Route::post('/saved-searches', [\App\Http\Controllers\MapSearchController::class, 'saveSearch'])->name('saved-searches.store');
+    Route::get('/saved-searches', [\App\Http\Controllers\MapSearchController::class, 'getSavedSearches'])->name('saved-searches.index');
+    Route::post('/saved-searches/{savedSearch}/execute', [\App\Http\Controllers\MapSearchController::class, 'executeSavedSearch'])->name('saved-searches.execute');
+    Route::delete('/saved-searches/{savedSearch}', [\App\Http\Controllers\MapSearchController::class, 'deleteSavedSearch'])->name('saved-searches.destroy');
     
     // Shortlist/Wishlist
     Route::get('/shortlist', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'index'])->name('shortlist');
@@ -333,6 +346,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/ledgers/vendor/{vendor}', [\App\Http\Controllers\Admin\SettlementController::class, 'vendorLedger'])->name('vendor-ledger');
         Route::post('/ledgers/vendor/{vendor}/release-hold', [\App\Http\Controllers\Admin\SettlementController::class, 'releaseHeldAmounts'])->name('release-hold');
         Route::post('/ledgers/vendor/{vendor}/adjustment', [\App\Http\Controllers\Admin\SettlementController::class, 'createAdjustment'])->name('adjustment');
+    });
+    
+    // Search Ranking Settings (PROMPT 35)
+    Route::prefix('search-settings')->name('search-settings.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\SearchSettingsController::class, 'index'])->name('index');
+        Route::get('/show', [\App\Http\Controllers\Admin\SearchSettingsController::class, 'show'])->name('show');
+        Route::put('/', [\App\Http\Controllers\Admin\SearchSettingsController::class, 'update'])->name('update');
+        Route::post('/reset', [\App\Http\Controllers\Admin\SearchSettingsController::class, 'reset'])->name('reset');
+        Route::post('/preview-score', [\App\Http\Controllers\Admin\SearchSettingsController::class, 'previewScore'])->name('preview-score');
     });
     
     // Notification Templates (PROMPT 34)
