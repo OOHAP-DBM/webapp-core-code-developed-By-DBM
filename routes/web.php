@@ -52,7 +52,18 @@ Route::post('/logout', [\App\Http\Controllers\Web\Auth\LoginController::class, '
 // CUSTOMER PANEL (Authenticated)
 // ============================================
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\Web\Customer\DashboardController::class, 'index'])->name('dashboard');
+    // Home/Dashboard
+    Route::get('/dashboard', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('dashboard');
+    Route::get('/home', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('home');
+    
+    // Search
+    Route::get('/search', [\App\Http\Controllers\Web\Customer\SearchController::class, 'index'])->name('search');
+    
+    // Shortlist/Wishlist
+    Route::get('/shortlist', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'index'])->name('shortlist');
+    Route::post('/shortlist/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'store'])->name('shortlist.store');
+    Route::delete('/shortlist/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'destroy'])->name('shortlist.destroy');
+    Route::post('/shortlist/clear', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'clear'])->name('shortlist.clear');
     
     // Enquiries
     Route::get('/enquiries', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'index'])->name('enquiries.index');
@@ -65,17 +76,30 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/quotations/{id}', [\App\Http\Controllers\Web\Customer\QuotationController::class, 'show'])->name('quotations.show');
     Route::post('/quotations/{id}/accept', [\App\Http\Controllers\Web\Customer\QuotationController::class, 'accept'])->name('quotations.accept');
     
-    // Bookings
-    Route::get('/bookings', [\App\Http\Controllers\Web\Customer\BookingController::class, 'index'])->name('bookings.index');
-    Route::get('/bookings/{id}', [\App\Http\Controllers\Web\Customer\BookingController::class, 'show'])->name('bookings.show');
+    // Orders/Bookings
+    Route::get('/orders', [\App\Http\Controllers\Web\Customer\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{id}', [\App\Http\Controllers\Web\Customer\OrderController::class, 'show'])->name('orders.show');
+    Route::get('/bookings', [\App\Http\Controllers\Web\Customer\OrderController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/{id}', [\App\Http\Controllers\Web\Customer\OrderController::class, 'show'])->name('bookings.show');
     
     // Payments
     Route::get('/payments', [\App\Http\Controllers\Web\Customer\PaymentController::class, 'index'])->name('payments.index');
     Route::get('/payments/{id}', [\App\Http\Controllers\Web\Customer\PaymentController::class, 'show'])->name('payments.show');
     
     // Profile
-    Route::get('/profile', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/edit', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'index'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/change-password', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'changePassword'])->name('profile.change-password');
+    
+    // Notifications
+    Route::get('/notifications', [\App\Http\Controllers\Web\Customer\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Customer\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Customer\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    
+    // Threads (to be implemented)
+    // Route::get('/threads', [\App\Http\Controllers\Web\Customer\ThreadController::class, 'index'])->name('threads.index');
+    // Route::get('/threads/{id}', [\App\Http\Controllers\Web\Customer\ThreadController::class, 'show'])->name('threads.show');
 });
 
 // ============================================
