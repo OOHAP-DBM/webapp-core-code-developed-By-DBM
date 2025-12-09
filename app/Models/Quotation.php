@@ -3,16 +3,20 @@
 namespace App\Models;
 
 use App\Traits\HasSnapshots;
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Quotation extends Model
 {
-    use HasSnapshots;
+    use HasSnapshots, Auditable;
     
     protected $snapshotType = 'quotation';
     protected $snapshotOnCreate = true;
     protected $snapshotOnUpdate = true;
+    
+    protected $auditModule = 'quotation';
+    protected $priceFields = ['total_amount'];
     
     protected $fillable = [
         'offer_id',

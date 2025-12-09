@@ -3,17 +3,21 @@
 namespace App\Models;
 
 use App\Traits\HasSnapshots;
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
 {
-    use HasSnapshots;
+    use HasSnapshots, Auditable;
     
     protected $snapshotType = 'booking';
     protected $snapshotOnCreate = true;
     protected $snapshotOnUpdate = true;
+    
+    protected $auditModule = 'booking';
+    protected $priceFields = ['total_amount'];
     
     protected $fillable = [
         'quotation_id',

@@ -3,17 +3,21 @@
 namespace App\Models;
 
 use App\Traits\HasSnapshots;
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Offer extends Model
 {
-    use HasFactory, HasSnapshots;
+    use HasFactory, HasSnapshots, Auditable;
     
     protected $snapshotType = 'offer';
     protected $snapshotOnCreate = true;
     protected $snapshotOnUpdate = true;
+    
+    protected $auditModule = 'offer';
+    protected $priceFields = ['total_price'];
 
     protected $fillable = [
         'enquiry_id',

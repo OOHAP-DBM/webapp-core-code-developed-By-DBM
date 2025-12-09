@@ -394,6 +394,19 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/{snapshot}/restore', [\App\Http\Controllers\Admin\SnapshotController::class, 'restore'])->name('restore');
     });
     
+    // Audit Trail + Logs (PROMPT 37)
+    Route::prefix('audit-logs')->name('audit-logs.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('index');
+        Route::get('/statistics', [\App\Http\Controllers\Admin\AuditLogController::class, 'statistics'])->name('statistics');
+        Route::get('/recent', [\App\Http\Controllers\Admin\AuditLogController::class, 'recent'])->name('recent');
+        Route::get('/user/{userId}/activity', [\App\Http\Controllers\Admin\AuditLogController::class, 'userActivity'])->name('user-activity');
+        Route::get('/for-model', [\App\Http\Controllers\Admin\AuditLogController::class, 'forModel'])->name('for-model');
+        Route::get('/timeline', [\App\Http\Controllers\Admin\AuditLogController::class, 'timeline'])->name('timeline');
+        Route::post('/search', [\App\Http\Controllers\Admin\AuditLogController::class, 'search'])->name('search');
+        Route::get('/export', [\App\Http\Controllers\Admin\AuditLogController::class, 'export'])->name('export');
+        Route::get('/{auditLog}', [\App\Http\Controllers\Admin\AuditLogController::class, 'show'])->name('show');
+    });
+    
     // Booking Rules
     Route::get('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'index'])->name('booking-rules.index');
     Route::put('/booking-rules', [\App\Http\Controllers\Web\Admin\BookingRuleController::class, 'update'])->name('booking-rules.update');

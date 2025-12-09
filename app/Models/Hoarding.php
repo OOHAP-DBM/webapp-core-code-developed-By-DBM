@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\HasSnapshots;
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,11 +12,14 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Hoarding extends Model
 {
-    use HasFactory, SoftDeletes, HasSnapshots;
+    use HasFactory, SoftDeletes, HasSnapshots, Auditable;
     
     protected $snapshotType = 'price_update';
     protected $snapshotOnCreate = false; // Don't snapshot on create
     protected $snapshotOnUpdate = true;  // Only snapshot on update (for price changes)
+    
+    protected $auditModule = 'hoarding';
+    protected $priceFields = ['weekly_price', 'monthly_price'];
 
     /**
      * The attributes that are mass assignable.
