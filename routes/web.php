@@ -180,6 +180,21 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     // Hoardings Management
     Route::resource('hoardings', \App\Http\Controllers\Web\Vendor\HoardingController::class);
     
+    // Hoarding Media Management (PROMPT 59)
+    Route::prefix('hoardings/{hoarding}/media')->name('hoardings.media.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'index'])->name('index');
+        Route::post('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadHero'])->name('upload-hero');
+        Route::post('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadNight'])->name('upload-night');
+        Route::post('/gallery', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadGallery'])->name('upload-gallery');
+        Route::post('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadSizeOverlay'])->name('upload-size-overlay');
+        Route::delete('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteHero'])->name('delete-hero');
+        Route::delete('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteNight'])->name('delete-night');
+        Route::delete('/gallery/{mediaId}', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteGalleryImage'])->name('delete-gallery');
+        Route::delete('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteSizeOverlay'])->name('delete-size-overlay');
+        Route::post('/gallery/reorder', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'reorderGallery'])->name('reorder-gallery');
+        Route::get('/stats', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'stats'])->name('stats');
+    });
+    
     // DOOH Management
     Route::resource('dooh', \App\Http\Controllers\Web\Vendor\DOOHController::class);
     

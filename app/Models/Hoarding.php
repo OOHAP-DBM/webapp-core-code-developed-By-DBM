@@ -10,10 +10,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Hoarding extends Model
+class Hoarding extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, HasSnapshots, Auditable, HasDOOHSlots;
+    use HasFactory, SoftDeletes, HasSnapshots, Auditable, HasDOOHSlots, InteractsWithMedia;
     
     protected $snapshotType = 'price_update';
     protected $snapshotOnCreate = false; // Don't snapshot on create
@@ -224,6 +226,130 @@ class Hoarding extends Model
     public function supportsWeeklyBooking(): bool
     {
         return $this->enable_weekly_booking && $this->weekly_price !== null;
+    }
+
+    /**
+     * Register media collections for hoarding images.
+     */
+    public function registerMediaCollections(): void
+    {
+        // Hero/Primary Image - Single file, auto-compress
+        $this->addMediaCollection('hero_image')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+            ->maxFilesize(10 * 1024 * 1024) // 10MB
+            ->registerMediaConversions(function () {
+                $this->addMediaConversion('thumb')
+                    ->width(300)
+                    ->height(200)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('preview')
+                    ->width(800)
+                    ->height(600)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('large')
+                    ->width(1920)
+                    ->height(1080)
+                    ->sharpen(10)
+                    ->nonQueued();
+            });
+
+        // Night View Image - Single file
+        $this->addMediaCollection('night_image')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+            ->maxFilesize(10 * 1024 * 1024)
+            ->registerMediaConversions(function () {
+                $this->addMediaConversion('thumb')
+                    ->width(300)
+                    ->height(200)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('preview')
+                    ->width(800)
+                    ->height(600)
+                    ->sharpen(10)
+                    ->nonQueued();
+            });
+
+        // Gallery/Angle Photos - Multiple files
+        $this->addMediaCollection('gallery')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+            ->maxFilesize(10 * 1024 * 1024)
+            ->registerMediaConversions(function () {
+                $this->addMediaConversion('thumb')
+                    ->width(300)
+                    ->height(200)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('preview')
+                    ->width(800)
+                    ->height(600)
+                    ->sharpen(10)
+                    ->nonQueued();
+            });
+
+        // Size/Dimension Overlay Image - Single file
+        $this->addMediaCollection('size_overlay')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/svg+xml'])
+            ->maxFilesize(5 * 1024 * 1024)
+            ->registerMediaConversions(function () {
+                $this->addMediaConversion('thumb')
+                    ->width(300)
+                    ->height(200)
+                    ->nonQueued();
+            });
+    }
+
+    /**
+     * Get hero image URL (with fallback to primary_image column if exists).
+     */
+    public function getHeroImageUrlAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('hero_image');
+        return $media ? $media->getUrl() : null;
+    }
+
+    /**
+     * Get hero image thumbnail URL.
+     */
+    public function getHeroImageThumbAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('hero_image');
+        return $media ? $media->getUrl('thumb') : null;
+    }
+
+    /**
+     * Get night image URL.
+     */
+    public function getNightImageUrlAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('night_image');
+        return $media ? $media->getUrl() : null;
+    }
+
+    /**
+     * Get all gallery images.
+     */
+    public function getGalleryImagesAttribute()
+    {
+        return $this->getMedia('gallery');
+    }
+
+    /**
+     * Get size overlay image URL.
+     */
+    public function getSizeOverlayUrlAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('size_overlay');
+        return $media ? $media->getUrl() : null;
     }
 
     /**
