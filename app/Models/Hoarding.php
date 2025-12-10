@@ -93,6 +93,22 @@ class Hoarding extends Model
     }
 
     /**
+     * Get all bookings for this hoarding.
+     */
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    /**
+     * Get all enquiries for this hoarding.
+     */
+    public function enquiries()
+    {
+        return $this->hasMany(Enquiry::class);
+    }
+
+    /**
      * Scope a query to only include active hoardings.
      */
     public function scopeActive($query)

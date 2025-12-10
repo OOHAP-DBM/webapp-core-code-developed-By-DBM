@@ -226,6 +226,11 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     });
     Route::post('/bookings/{id}/approve-pod', [\App\Http\Controllers\Web\Vendor\BookingController::class, 'approvePOD'])->name('bookings.approve-pod');
     
+    // Hoarding Availability Calendar (PROMPT 49)
+    Route::get('/hoarding/{id}/calendar', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'show'])->name('hoarding.calendar');
+    Route::get('/hoarding/{id}/calendar/data', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'getCalendarData'])->name('hoarding.calendar.data');
+    Route::get('/hoarding/{id}/calendar/stats', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'getStats'])->name('hoarding.calendar.stats');
+    
     // Task Management (PROMPT 26)
     Route::get('/tasks', [\App\Http\Controllers\Vendor\TaskController::class, 'index'])->name('tasks.index');
     Route::post('/tasks', [\App\Http\Controllers\Vendor\TaskController::class, 'store'])->name('tasks.store');

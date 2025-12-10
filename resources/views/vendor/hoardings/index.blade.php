@@ -148,10 +148,15 @@
                                 @endif
                             </div>
                             
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 mb-2">
                                 <a href="{{ route('vendor.hoardings.edit', $hoarding->id) }}" class="btn btn-sm btn-outline-primary flex-fill">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
+                                <a href="{{ route('vendor.hoarding.calendar', $hoarding->id) }}" class="btn btn-sm btn-outline-success flex-fill" title="View Availability Calendar">
+                                    <i class="bi bi-calendar3"></i> Calendar
+                                </a>
+                            </div>
+                            <div class="d-flex gap-2">
                                 <form action="{{ route('vendor.hoardings.destroy', $hoarding->id) }}" method="POST" class="flex-fill" onsubmit="return confirm('Are you sure you want to delete this hoarding?');">
                                     @csrf
                                     @method('DELETE')
