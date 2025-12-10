@@ -77,6 +77,10 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('/shortlist/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'store'])->name('shortlist.store');
     Route::delete('/shortlist/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'destroy'])->name('shortlist.destroy');
     Route::post('/shortlist/clear', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'clear'])->name('shortlist.clear');
+    // PROMPT 50: New routes for toggle, check, and count
+    Route::post('/shortlist/toggle/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'toggle'])->name('shortlist.toggle');
+    Route::get('/shortlist/check/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'check'])->name('shortlist.check');
+    Route::get('/shortlist/count', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'count'])->name('shortlist.count');
     
     // Enquiries
     Route::get('/enquiries', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'index'])->name('enquiries.index');

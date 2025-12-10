@@ -9,11 +9,15 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
 <body class="antialiased bg-gray-50">
+    <!-- Toast Container (PROMPT 50) -->
+    <div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
     <div id="app" class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
         @include('layouts.partials.customer.sidebar')
@@ -37,6 +41,10 @@
     </div>
 
     @stack('modals')
+    
+    <!-- Shortlist JavaScript (PROMPT 50) -->
+    <script src="{{ asset('js/shortlist.js') }}"></script>
+    
     @stack('scripts')
 </body>
 </html>

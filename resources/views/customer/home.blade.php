@@ -204,8 +204,45 @@
         <div class="row g-4">
             @foreach($featuredHoardings as $hoarding)
             <div class="col-12 col-md-6 col-lg-4">
-                <x-hoarding-card :hoarding="$hoarding" :showActions="true" :isWishlisted="auth()->user()->hasWishlisted($hoarding->id)" />
+                <x-hoarding-card 
+                    :hoarding="$hoarding" 
+                    :showActions="true" 
+                    :isWishlisted="auth()->user()->hasWishlisted($hoarding->id)" 
+                />
             </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- My Shortlist Section (PROMPT 50) -->
+    @if(auth()->user()->wishlistCount() > 0)
+    <div class="mb-5">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-heart-fill text-danger"></i> My Shortlist
+            </h2>
+            <a href="{{ route('customer.shortlist') }}" class="btn btn-outline-primary">View All ({{ auth()->user()->wishlistCount() }})</a>
+        </div>
+        <div class="row g-4">
+            @php
+            $shortlistItems = auth()->user()->wishlist()
+                ->with('hoarding')
+                ->latest()
+                ->limit(3)
+                ->get();
+            @endphp
+            
+            @foreach($shortlistItems as $item)
+            @if($item->hoarding)
+            <div class="col-12 col-md-6 col-lg-4">
+                <x-hoarding-card 
+                    :hoarding="$item->hoarding" 
+                    :showActions="true" 
+                    :isWishlisted="true" 
+                />
+            </div>
+            @endif
             @endforeach
         </div>
     </div>
@@ -223,7 +260,11 @@
         <div class="row g-4">
             @foreach($nearbyHoardings as $hoarding)
             <div class="col-12 col-md-6 col-lg-4">
-                <x-hoarding-card :hoarding="$hoarding" :showActions="true" :isWishlisted="auth()->user()->hasWishlisted($hoarding->id)" />
+                <x-hoarding-card 
+                    :hoarding="$hoarding" 
+                    :showActions="true" 
+                    :isWishlisted="auth()->user()->hasWishlisted($hoarding->id)" 
+                />
             </div>
             @endforeach
         </div>

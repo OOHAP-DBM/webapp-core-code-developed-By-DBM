@@ -196,4 +196,28 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(VendorLedger::class, 'vendor_id');
     }
+
+    /**
+     * Get the user's wishlist/shortlist items (PROMPT 50)
+     */
+    public function wishlist(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
+     * Check if user has wishlisted a hoarding (PROMPT 50)
+     */
+    public function hasWishlisted(int $hoardingId): bool
+    {
+        return $this->wishlist()->where('hoarding_id', $hoardingId)->exists();
+    }
+
+    /**
+     * Get wishlist count (PROMPT 50)
+     */
+    public function wishlistCount(): int
+    {
+        return $this->wishlist()->count();
+    }
 }
