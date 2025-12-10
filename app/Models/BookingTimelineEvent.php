@@ -4,7 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Observers\BookingTimelineEventObserver;
 
+#[ObservedBy([BookingTimelineEventObserver::class])]
 class BookingTimelineEvent extends Model
 {
     protected $fillable = [
@@ -29,6 +32,7 @@ class BookingTimelineEvent extends Model
         'color',
         'notify_customer',
         'notify_vendor',
+        'notify_admin',
         'notified_at',
     ];
 
@@ -40,19 +44,23 @@ class BookingTimelineEvent extends Model
         'notified_at' => 'datetime',
         'notify_customer' => 'boolean',
         'notify_vendor' => 'boolean',
+        'notify_admin' => 'boolean',
     ];
 
     // Event type constants
     const TYPE_ENQUIRY = 'enquiry';
     const TYPE_OFFER = 'offer';
     const TYPE_QUOTATION = 'quotation';
+    const TYPE_PO = 'purchase_order';               // PROMPT 47: Purchase Order
     const TYPE_PAYMENT_HOLD = 'payment_hold';
     const TYPE_PAYMENT_SETTLED = 'payment_settled';
+    const TYPE_DESIGNING = 'designing';             // PROMPT 47: Designing stage
     const TYPE_GRAPHICS = 'graphics';
     const TYPE_PRINTING = 'printing';
     const TYPE_MOUNTING = 'mounting';
-    const TYPE_PROOF = 'proof';
     const TYPE_CAMPAIGN_START = 'campaign_start';
+    const TYPE_SURVEY = 'survey';                   // PROMPT 47: Survey (optional)
+    const TYPE_PROOF = 'proof';
     const TYPE_CAMPAIGN_RUNNING = 'campaign_running';
     const TYPE_CAMPAIGN_COMPLETED = 'campaign_completed';
 
@@ -233,13 +241,16 @@ class BookingTimelineEvent extends Model
             self::TYPE_ENQUIRY => 'fa-question-circle',
             self::TYPE_OFFER => 'fa-file-alt',
             self::TYPE_QUOTATION => 'fa-file-invoice',
+            self::TYPE_PO => 'fa-file-contract',              // Purchase Order
             self::TYPE_PAYMENT_HOLD => 'fa-lock',
             self::TYPE_PAYMENT_SETTLED => 'fa-check-circle',
+            self::TYPE_DESIGNING => 'fa-pencil-ruler',        // Designing
             self::TYPE_GRAPHICS => 'fa-paint-brush',
             self::TYPE_PRINTING => 'fa-print',
             self::TYPE_MOUNTING => 'fa-hammer',
-            self::TYPE_PROOF => 'fa-camera',
             self::TYPE_CAMPAIGN_START => 'fa-play-circle',
+            self::TYPE_SURVEY => 'fa-clipboard-check',        // Survey
+            self::TYPE_PROOF => 'fa-camera',
             self::TYPE_CAMPAIGN_RUNNING => 'fa-broadcast-tower',
             self::TYPE_CAMPAIGN_COMPLETED => 'fa-flag-checkered',
             default => 'fa-circle',

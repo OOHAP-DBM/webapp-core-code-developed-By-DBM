@@ -158,6 +158,30 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get bookings where user is the vendor (PROMPT 48)
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'vendor_id');
+    }
+
+    /**
+     * Get bookings where user is the customer (PROMPT 48)
+     */
+    public function customerBookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'customer_id');
+    }
+
+    /**
+     * Get tasks assigned to vendor (PROMPT 48)
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'vendor_id');
+    }
+
+    /**
      * Get the vendor's KYC record
      */
     public function vendorKYC()

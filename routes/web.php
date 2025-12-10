@@ -212,12 +212,18 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/listings/bulk-update', [\App\Http\Controllers\Vendor\ListingController::class, 'bulkUpdate'])->name('listings.bulk-update');
     Route::post('/listings/bulk-update-submit', [\App\Http\Controllers\Vendor\ListingController::class, 'bulkUpdateSubmit'])->name('listings.bulk-update-submit');
     
-    // Bookings Management (PROMPT 26)
-    Route::get('/bookings', [\App\Http\Controllers\Vendor\BookingController::class, 'index'])->name('bookings.index');
-    Route::get('/bookings/{id}', [\App\Http\Controllers\Vendor\BookingController::class, 'show'])->name('bookings.show');
-    Route::post('/bookings/{id}/confirm', [\App\Http\Controllers\Vendor\BookingController::class, 'confirm'])->name('bookings.confirm');
-    Route::post('/bookings/{id}/cancel', [\App\Http\Controllers\Vendor\BookingController::class, 'cancel'])->name('bookings.cancel');
-    Route::post('/bookings/{id}/update-status', [\App\Http\Controllers\Vendor\BookingController::class, 'updateStatus'])->name('bookings.update-status');
+    // Bookings Management (PROMPT 48 - Enhanced)
+    Route::prefix('bookings')->name('bookings.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Vendor\BookingController::class, 'index'])->name('index');
+        Route::get('/new', [\App\Http\Controllers\Vendor\BookingController::class, 'newBookings'])->name('new');
+        Route::get('/ongoing', [\App\Http\Controllers\Vendor\BookingController::class, 'ongoingBookings'])->name('ongoing');
+        Route::get('/completed', [\App\Http\Controllers\Vendor\BookingController::class, 'completedBookings'])->name('completed');
+        Route::get('/cancelled', [\App\Http\Controllers\Vendor\BookingController::class, 'cancelledBookings'])->name('cancelled');
+        Route::get('/{id}', [\App\Http\Controllers\Vendor\BookingController::class, 'show'])->name('show');
+        Route::post('/{id}/confirm', [\App\Http\Controllers\Vendor\BookingController::class, 'confirm'])->name('confirm');
+        Route::post('/{id}/cancel', [\App\Http\Controllers\Vendor\BookingController::class, 'cancel'])->name('cancel');
+        Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\BookingController::class, 'updateStatus'])->name('update-status');
+    });
     Route::post('/bookings/{id}/approve-pod', [\App\Http\Controllers\Web\Vendor\BookingController::class, 'approvePOD'])->name('bookings.approve-pod');
     
     // Task Management (PROMPT 26)
@@ -452,6 +458,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/rebuild', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'rebuild'])->name('rebuild');
         Route::get('/progress', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'progress'])->name('progress');
         Route::get('/current-stage', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'currentStage'])->name('current-stage');
+        
+        // Enhanced Timeline with Notes (PROMPT 47)
+        Route::post('/start-stage-with-note', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'startStageWithNote'])->name('start-stage-with-note');
+        Route::post('/complete-stage-with-note', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'completeStageWithNote'])->name('complete-stage-with-note');
+        Route::post('/events/{event}/add-note', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'addNote'])->name('events.add-note');
     });
     Route::put('/timeline/events/{event}', [\App\Http\Controllers\Admin\BookingTimelineController::class, 'updateEvent'])->name('timeline.events.update');
     

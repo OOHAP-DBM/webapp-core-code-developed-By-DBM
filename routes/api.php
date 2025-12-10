@@ -57,4 +57,7 @@ Route::prefix('v1')->group(function () {
     
     // Hoarding-First Booking Flow (PROMPT 43 - Customer direct booking from hoarding)
     require base_path('routes/api_v1/booking-flow.php');
+    
+    // Vendor Quote & RFP System (PROMPT 44 & 45 - Quote generation and RFP workflow)
+    require base_path('routes/api_v1/vendor-quotes.php');
 });

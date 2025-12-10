@@ -175,6 +175,50 @@ class Booking extends Model
     }
 
     /**
+     * Vendor Panel Scopes (PROMPT 48)
+     */
+    public function scopeNew($query)
+    {
+        // New bookings: pending payment hold or payment hold (not yet confirmed)
+        return $query->whereIn('status', [
+            self::STATUS_PENDING_PAYMENT_HOLD,
+            self::STATUS_PAYMENT_HOLD
+        ])->where(function($q) {
+            $q->whereNull('start_date')
+              ->orWhere('start_date', '>', now()->toDateString());
+        });
+    }
+
+    public function scopeOngoing($query)
+    {
+        // Ongoing: confirmed status AND today between start_date and end_date
+        return $query->where('status', self::STATUS_CONFIRMED)
+            ->whereDate('start_date', '<=', now())
+            ->whereDate('end_date', '>=', now());
+    }
+
+    public function scopeCompleted($query)
+    {
+        // Completed: confirmed status AND end_date < today
+        return $query->where('status', self::STATUS_CONFIRMED)
+            ->whereDate('end_date', '<', now());
+    }
+
+    public function scopeCancelledBookings($query)
+    {
+        // Cancelled bookings
+        return $query->whereIn('status', [
+            self::STATUS_CANCELLED,
+            self::STATUS_REFUNDED
+        ]);
+    }
+
+    public function scopeByVendor($query, int $vendorId)
+    {
+        return $query->where('vendor_id', $vendorId);
+    }
+
+    /**
      * Status checks
      */
     public function isPendingPaymentHold(): bool

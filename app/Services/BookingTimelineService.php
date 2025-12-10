@@ -94,10 +94,25 @@ class BookingTimelineService
                 'completed_at' => $quotation->created_at,
                 'order' => $order++,
                 'category' => BookingTimelineEvent::CATEGORY_BOOKING,
+                'notify_customer' => true,
+                'notify_vendor' => true,
             ]);
         }
 
-        // 4. Payment Hold
+        // 4. Purchase Order (PO) - PROMPT 47
+        $this->createEvent($booking, BookingTimelineEvent::TYPE_PO, 'Purchase Order', [
+            'description' => "PO generated for booking #{$booking->id}",
+            'status' => $booking->confirmed_at ? 'completed' : 'pending',
+            'completed_at' => $booking->confirmed_at,
+            'scheduled_at' => $booking->created_at,
+            'order' => $order++,
+            'category' => BookingTimelineEvent::CATEGORY_BOOKING,
+            'notify_customer' => true,
+            'notify_vendor' => true,
+            'notify_admin' => true,
+        ]);
+
+        // 5. Payment Hold
         if ($booking->payment_status === 'held' || $booking->payment_status === 'captured') {
             $this->createEvent($booking, BookingTimelineEvent::TYPE_PAYMENT_HOLD, 'Payment Hold', [
                 'description' => "Payment of ₹{$booking->total_amount} held",
@@ -105,10 +120,12 @@ class BookingTimelineService
                 'completed_at' => $booking->hold_expiry_at ? now() : null,
                 'order' => $order++,
                 'category' => BookingTimelineEvent::CATEGORY_PAYMENT,
+                'notify_customer' => true,
+                'notify_admin' => true,
             ]);
         }
 
-        // 5. Payment Settled
+        // 6. Payment Settled
         if ($booking->payment_status === 'captured') {
             $this->createEvent($booking, BookingTimelineEvent::TYPE_PAYMENT_SETTLED, 'Payment Settled', [
                 'description' => "Payment of ₹{$booking->total_amount} captured",
@@ -116,47 +133,54 @@ class BookingTimelineService
                 'completed_at' => now(),
                 'order' => $order++,
                 'category' => BookingTimelineEvent::CATEGORY_PAYMENT,
+                'notify_customer' => true,
+                'notify_vendor' => true,
+                'notify_admin' => true,
             ]);
         }
 
-        // 6. Graphics Design
+        // 7. Designing - PROMPT 47
+        $this->createEvent($booking, BookingTimelineEvent::TYPE_DESIGNING, 'Designing', [
+            'description' => 'Creative concept and design work',
+            'status' => $this->getProductionStatus($booking, 'designing'),
+            'scheduled_at' => $booking->start_date->copy()->subDays(12),
+            'order' => $order++,
+            'category' => BookingTimelineEvent::CATEGORY_PRODUCTION,
+            'notify_vendor' => true,
+        ]);
+
+        // 8. Graphics Design
         $this->createEvent($booking, BookingTimelineEvent::TYPE_GRAPHICS, 'Graphics Design', [
-            'description' => 'Creative design and artwork preparation',
+            'description' => 'Final graphics and artwork preparation',
             'status' => $this->getProductionStatus($booking, 'graphics'),
             'scheduled_at' => $booking->start_date->copy()->subDays(10),
             'order' => $order++,
             'category' => BookingTimelineEvent::CATEGORY_PRODUCTION,
+            'notify_vendor' => true,
         ]);
 
-        // 7. Printing
+        // 9. Printing
         $this->createEvent($booking, BookingTimelineEvent::TYPE_PRINTING, 'Printing', [
             'description' => 'Print production of campaign materials',
             'status' => $this->getProductionStatus($booking, 'printing'),
             'scheduled_at' => $booking->start_date->copy()->subDays(7),
             'order' => $order++,
             'category' => BookingTimelineEvent::CATEGORY_PRODUCTION,
+            'notify_vendor' => true,
         ]);
 
-        // 8. Mounting
+        // 10. Mounting
         $this->createEvent($booking, BookingTimelineEvent::TYPE_MOUNTING, 'Mounting', [
             'description' => 'Installation of campaign on hoarding',
             'status' => $this->getProductionStatus($booking, 'mounting'),
             'scheduled_at' => $booking->start_date->copy()->subDays(2),
             'order' => $order++,
             'category' => BookingTimelineEvent::CATEGORY_PRODUCTION,
+            'notify_vendor' => true,
+            'notify_customer' => true,
         ]);
 
-        // 9. Proof of Display
-        $this->createEvent($booking, BookingTimelineEvent::TYPE_PROOF, 'Proof of Display', [
-            'description' => 'Photo verification of campaign display',
-            'status' => $booking->pod_approved_at ? 'completed' : 'pending',
-            'completed_at' => $booking->pod_approved_at,
-            'scheduled_at' => $booking->start_date->copy()->addDay(),
-            'order' => $order++,
-            'category' => BookingTimelineEvent::CATEGORY_PRODUCTION,
-        ]);
-
-        // 10. Campaign Start
+        // 11. Campaign Start
         $this->createEvent($booking, BookingTimelineEvent::TYPE_CAMPAIGN_START, 'Campaign Started', [
             'description' => "Campaign goes live on {$booking->start_date->format('M d, Y')}",
             'status' => now()->gte($booking->start_date) ? 'completed' : 'pending',
@@ -164,9 +188,35 @@ class BookingTimelineService
             'scheduled_at' => $booking->start_date,
             'order' => $order++,
             'category' => BookingTimelineEvent::CATEGORY_CAMPAIGN,
+            'notify_customer' => true,
+            'notify_vendor' => true,
+            'notify_admin' => true,
         ]);
 
-        // 11. Campaign Running
+        // 12. Survey (Optional) - PROMPT 47
+        $this->createEvent($booking, BookingTimelineEvent::TYPE_SURVEY, 'Survey', [
+            'description' => 'Optional campaign survey (if requested)',
+            'status' => 'pending',
+            'scheduled_at' => $booking->start_date->copy()->addDays(ceil($booking->duration_days / 2)),
+            'order' => $order++,
+            'category' => BookingTimelineEvent::CATEGORY_PRODUCTION,
+            'metadata' => ['optional' => true],
+            'notify_vendor' => true,
+        ]);
+
+        // 13. Proof of Display
+        $this->createEvent($booking, BookingTimelineEvent::TYPE_PROOF, 'Proof of Display', [
+            'description' => 'Photo verification of campaign display',
+            'status' => $booking->pod_approved_at ? 'completed' : 'pending',
+            'completed_at' => $booking->pod_approved_at,
+            'scheduled_at' => $booking->start_date->copy()->addDay(),
+            'order' => $order++,
+            'category' => BookingTimelineEvent::CATEGORY_PRODUCTION,
+            'notify_customer' => true,
+            'notify_admin' => true,
+        ]);
+
+        // 14. Campaign Running
         if (now()->gte($booking->start_date) && now()->lte($booking->end_date)) {
             $this->createEvent($booking, BookingTimelineEvent::TYPE_CAMPAIGN_RUNNING, 'Campaign Running', [
                 'description' => "Campaign is currently live ({$booking->duration_days} days)",
@@ -174,10 +224,11 @@ class BookingTimelineService
                 'started_at' => $booking->start_date,
                 'order' => $order++,
                 'category' => BookingTimelineEvent::CATEGORY_CAMPAIGN,
+                'notify_admin' => true,
             ]);
         }
 
-        // 12. Campaign Completed
+        // 15. Campaign Completed
         $this->createEvent($booking, BookingTimelineEvent::TYPE_CAMPAIGN_COMPLETED, 'Campaign Completed', [
             'description' => "Campaign ends on {$booking->end_date->format('M d, Y')}",
             'status' => now()->gte($booking->end_date) ? 'completed' : 'pending',
@@ -185,6 +236,9 @@ class BookingTimelineService
             'scheduled_at' => $booking->end_date,
             'order' => $order++,
             'category' => BookingTimelineEvent::CATEGORY_CAMPAIGN,
+            'notify_customer' => true,
+            'notify_vendor' => true,
+            'notify_admin' => true,
         ]);
     }
 
@@ -358,14 +412,17 @@ class BookingTimelineService
         return match($eventType) {
             BookingTimelineEvent::TYPE_ENQUIRY,
             BookingTimelineEvent::TYPE_OFFER,
-            BookingTimelineEvent::TYPE_QUOTATION => BookingTimelineEvent::CATEGORY_BOOKING,
+            BookingTimelineEvent::TYPE_QUOTATION,
+            BookingTimelineEvent::TYPE_PO => BookingTimelineEvent::CATEGORY_BOOKING,
             
             BookingTimelineEvent::TYPE_PAYMENT_HOLD,
             BookingTimelineEvent::TYPE_PAYMENT_SETTLED => BookingTimelineEvent::CATEGORY_PAYMENT,
             
+            BookingTimelineEvent::TYPE_DESIGNING,
             BookingTimelineEvent::TYPE_GRAPHICS,
             BookingTimelineEvent::TYPE_PRINTING,
             BookingTimelineEvent::TYPE_MOUNTING,
+            BookingTimelineEvent::TYPE_SURVEY,
             BookingTimelineEvent::TYPE_PROOF => BookingTimelineEvent::CATEGORY_PRODUCTION,
             
             BookingTimelineEvent::TYPE_CAMPAIGN_START,
@@ -395,11 +452,86 @@ class BookingTimelineService
         $startDate = $booking->start_date;
 
         return match($stage) {
+            'designing' => $now->gte($startDate->copy()->subDays(12)) ? 'in_progress' : 'pending',
             'graphics' => $now->gte($startDate->copy()->subDays(10)) ? 'in_progress' : 'pending',
             'printing' => $now->gte($startDate->copy()->subDays(7)) ? 'in_progress' : 'pending',
             'mounting' => $now->gte($startDate->copy()->subDays(2)) ? 'in_progress' : 'pending',
             default => 'pending',
         };
+    }
+
+    /**
+     * Update event with user and note (PROMPT 47)
+     */
+    public function updateEventWithNote(BookingTimelineEvent $event, string $note, $user = null): BookingTimelineEvent
+    {
+        $user = $user ?? auth()->user();
+        
+        $metadata = $event->metadata ?? [];
+        $metadata['notes'] = $metadata['notes'] ?? [];
+        $metadata['notes'][] = [
+            'note' => $note,
+            'user_id' => $user?->id,
+            'user_name' => $user?->name ?? 'System',
+            'user_role' => $user?->role ?? 'system',
+            'timestamp' => now()->toIso8601String(),
+        ];
+
+        $event->update([
+            'metadata' => $metadata,
+            'user_id' => $user?->id,
+            'user_name' => $user?->name ?? 'System',
+        ]);
+
+        return $event;
+    }
+
+    /**
+     * Complete stage with user and note (PROMPT 47)
+     */
+    public function completeStageWithNote(
+        Booking $booking, 
+        string $eventType, 
+        string $note = null, 
+        $user = null
+    ): BookingTimelineEvent {
+        $event = $booking->timelineEvents()->ofType($eventType)->first();
+        
+        if (!$event) {
+            throw new \Exception("Timeline event '{$eventType}' not found for booking #{$booking->id}");
+        }
+
+        $event->markAsCompleted();
+        
+        if ($note) {
+            $this->updateEventWithNote($event, $note, $user);
+        }
+
+        return $event;
+    }
+
+    /**
+     * Start stage with user and note (PROMPT 47)
+     */
+    public function startStageWithNote(
+        Booking $booking, 
+        string $eventType, 
+        string $note = null, 
+        $user = null
+    ): BookingTimelineEvent {
+        $event = $booking->timelineEvents()->ofType($eventType)->first();
+        
+        if (!$event) {
+            throw new \Exception("Timeline event '{$eventType}' not found for booking #{$booking->id}");
+        }
+
+        $event->markAsStarted();
+        
+        if ($note) {
+            $this->updateEventWithNote($event, $note, $user);
+        }
+
+        return $event;
     }
 
     /**

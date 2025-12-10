@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\BookingTimelineEvent;
 use App\Services\BookingTimelineService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BookingTimelineController extends Controller
 {
@@ -53,10 +54,21 @@ class BookingTimelineController extends Controller
     public function startStage(Request $request, Booking $booking)
     {
         $request->validate([
-            'stage' => 'required|string|in:graphics,printing,mounting,proof',
+            'stage' => 'required|string|in:graphics,printing,mounting,proof,designing,survey,purchase_order',
+            'note' => 'nullable|string|max:1000',
         ]);
 
-        $event = $this->timelineService->startProductionEvent($booking, $request->stage);
+        // Use new method if note provided
+        if ($request->filled('note')) {
+            $event = $this->timelineService->startStageWithNote(
+                $booking,
+                $request->stage,
+                $request->note,
+                auth()->user()
+            );
+        } else {
+            $event = $this->timelineService->startProductionEvent($booking, $request->stage);
+        }
 
         return response()->json([
             'success' => true,
@@ -71,10 +83,21 @@ class BookingTimelineController extends Controller
     public function completeStage(Request $request, Booking $booking)
     {
         $request->validate([
-            'stage' => 'required|string|in:graphics,printing,mounting,proof',
+            'stage' => 'required|string|in:graphics,printing,mounting,proof,designing,survey,purchase_order',
+            'note' => 'nullable|string|max:1000',
         ]);
 
-        $event = $this->timelineService->completeProductionEvent($booking, $request->stage);
+        // Use new method if note provided
+        if ($request->filled('note')) {
+            $event = $this->timelineService->completeStageWithNote(
+                $booking,
+                $request->stage,
+                $request->note,
+                auth()->user()
+            );
+        } else {
+            $event = $this->timelineService->completeProductionEvent($booking, $request->stage);
+        }
 
         return response()->json([
             'success' => true,
@@ -174,6 +197,90 @@ class BookingTimelineController extends Controller
         return response()->json([
             'success' => true,
             'current_stage' => $currentStage,
+        ]);
+    }
+
+    /**
+     * Complete stage with note (PROMPT 47)
+     */
+    public function completeStageWithNote(Request $request, Booking $booking)
+    {
+        $request->validate([
+            'event_type' => 'required|string',
+            'note' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            $event = $this->timelineService->completeStageWithNote(
+                $booking,
+                $request->event_type,
+                $request->note,
+                auth()->user()
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stage completed successfully',
+                'event' => $event->fresh(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Start stage with note (PROMPT 47)
+     */
+    public function startStageWithNote(Request $request, Booking $booking)
+    {
+        $request->validate([
+            'event_type' => 'required|string',
+            'note' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            $event = $this->timelineService->startStageWithNote(
+                $booking,
+                $request->event_type,
+                $request->note,
+                auth()->user()
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stage started successfully',
+                'event' => $event->fresh(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Add note to timeline event (PROMPT 47)
+     */
+    public function addNote(Request $request, Booking $booking, BookingTimelineEvent $event)
+    {
+        $request->validate([
+            'note' => 'required|string|max:1000',
+        ]);
+
+        $event = $this->timelineService->updateEventWithNote(
+            $event,
+            $request->note,
+            auth()->user()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Note added successfully',
+            'event' => $event->fresh(),
         ]);
     }
 }
