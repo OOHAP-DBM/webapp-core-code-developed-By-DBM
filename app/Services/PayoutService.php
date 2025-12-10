@@ -14,6 +14,12 @@ use Exception;
  */
 class PayoutService
 {
+    protected TaxService $taxService;
+
+    public function __construct(TaxService $taxService)
+    {
+        $this->taxService = $taxService;
+    }
     /**
      * Create a payout request for a vendor
      *
@@ -66,12 +72,23 @@ class PayoutService
             // Calculate net before GST
             $netBeforeGst = $bookingRevenue - $commissionAmount - $pgFees + $adjustmentAmount;
 
-            // Calculate GST (default 18% on commission if not specified)
-            $gstPercentage = $options['gst_percentage'] ?? 0;
-            $gstAmount = $gstPercentage > 0 ? ($netBeforeGst * ($gstPercentage / 100)) : 0;
+            // Calculate GST and TDS using TaxService
+            $gstResult = $this->taxService->calculateGST($netBeforeGst, [
+                'applies_to' => 'payout',
+                'vendor_id' => $vendor->id,
+            ]);
+            $gstAmount = $gstResult['gst_amount'];
+            $gstPercentage = $gstResult['gst_rate'];
+
+            // Calculate TDS if applicable
+            $tdsResult = $this->taxService->calculateTDS($netBeforeGst, [
+                'applies_to' => 'payout',
+                'vendor_type' => 'professional',
+            ]);
+            $tdsAmount = $tdsResult['applies'] ? $tdsResult['tds_amount'] : 0;
 
             // Final payout amount
-            $finalPayoutAmount = $netBeforeGst - $gstAmount;
+            $finalPayoutAmount = $netBeforeGst + $gstAmount - $tdsAmount;
 
             // Get vendor's bank details
             $vendorKyc = $vendor->vendorKYC;

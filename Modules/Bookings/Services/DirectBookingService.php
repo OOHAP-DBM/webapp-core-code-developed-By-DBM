@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\User;
 use Modules\Hoardings\Models\Hoarding;
 use Modules\Settings\Services\SettingsService;
+use App\Services\TaxService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -19,13 +20,16 @@ class DirectBookingService
 {
     protected SettingsService $settingsService;
     protected BookingService $bookingService;
+    protected TaxService $taxService;
 
     public function __construct(
         SettingsService $settingsService,
-        BookingService $bookingService
+        BookingService $bookingService,
+        TaxService $taxService
     ) {
         $this->settingsService = $settingsService;
         $this->bookingService = $bookingService;
+        $this->taxService = $taxService;
     }
 
     /**
@@ -259,9 +263,12 @@ class DirectBookingService
         // Subtotal
         $subtotal = $pricePerDay * $durationDays;
         
-        // Tax (GST - default 18%)
-        $taxRate = (float) $this->settingsService->get('booking_tax_rate', 18.00);
-        $taxAmount = round($subtotal * ($taxRate / 100), 2);
+        // Tax (GST) using TaxService
+        $taxResult = $this->taxService->calculateGST($subtotal, [
+            'applies_to' => 'booking',
+        ]);
+        $taxAmount = $taxResult['gst_amount'];
+        $taxRate = $taxResult['gst_rate'];
         
         // Total amount
         $total = round($subtotal + $taxAmount, 2);

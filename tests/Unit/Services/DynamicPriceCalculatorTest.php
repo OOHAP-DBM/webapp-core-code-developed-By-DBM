@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\DynamicPriceCalculator;
+use App\Services\TaxService;
 use App\Models\Hoarding;
 use App\Models\User;
 use Modules\DOOH\Models\DOOHPackage;
@@ -21,6 +22,7 @@ class DynamicPriceCalculatorTest extends TestCase
     protected User $vendor;
     protected Hoarding $hoarding;
     protected SettingsService $settingsService;
+    protected TaxService $taxService;
 
     protected function setUp(): void
     {
@@ -30,7 +32,8 @@ class DynamicPriceCalculatorTest extends TestCase
         Role::firstOrCreate(['name' => 'vendor', 'guard_name' => 'web']);
 
         $this->settingsService = app(SettingsService::class);
-        $this->calculator = new DynamicPriceCalculator($this->settingsService);
+        $this->taxService = app(TaxService::class);
+        $this->calculator = new DynamicPriceCalculator($this->settingsService, $this->taxService);
 
         // Create vendor
         $this->vendor = User::factory()->create([

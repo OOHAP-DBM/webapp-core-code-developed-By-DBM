@@ -21,10 +21,12 @@ use Exception;
 class DynamicPriceCalculator
 {
     protected SettingsService $settingsService;
+    protected TaxService $taxService;
 
-    public function __construct(SettingsService $settingsService)
+    public function __construct(SettingsService $settingsService, TaxService $taxService)
     {
         $this->settingsService = $settingsService;
+        $this->taxService = $taxService;
     }
 
     /**
@@ -344,25 +346,28 @@ class DynamicPriceCalculator
     }
 
     /**
-     * Get GST rate from settings
+     * Get GST rate from settings (backwards compatible)
      *
      * @return float
      */
     protected function getGSTRate(): float
     {
-        return (float) $this->settingsService->get('booking_tax_rate', 18.00);
+        return $this->taxService->getDefaultTaxRate('booking');
     }
 
     /**
-     * Calculate GST amount
+     * Calculate GST amount using TaxService
      *
      * @param float $amount
-     * @param float $gstRate
+     * @param float $gstRate (deprecated, kept for compatibility)
      * @return float
      */
-    protected function calculateGST(float $amount, float $gstRate): float
+    protected function calculateGST(float $amount, float $gstRate = null): float
     {
-        return ($amount * $gstRate) / 100;
+        $gstResult = $this->taxService->calculateGST($amount, [
+            'applies_to' => 'booking',
+        ]);
+        return $gstResult['gst_amount'];
     }
 
     /**

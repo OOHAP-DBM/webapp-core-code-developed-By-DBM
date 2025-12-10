@@ -13,11 +13,16 @@ class CommissionService
 {
     protected SettingsService $settingsService;
     protected CommissionRuleService $ruleService;
+    protected TaxService $taxService;
 
-    public function __construct(SettingsService $settingsService, CommissionRuleService $ruleService)
-    {
+    public function __construct(
+        SettingsService $settingsService, 
+        CommissionRuleService $ruleService,
+        TaxService $taxService
+    ) {
         $this->settingsService = $settingsService;
         $this->ruleService = $ruleService;
+        $this->taxService = $taxService;
     }
 
     /**
@@ -50,9 +55,18 @@ class CommissionService
             // Calculate vendor payout (gross - commission - PG fees)
             $vendorPayout = round($grossAmount - $adminCommission - $pgFee, 2);
 
-            // Tax on commission (if applicable - default 0)
-            $taxRate = (float) $this->settingsService->get('commission_tax_rate', 0.00);
-            $tax = round($adminCommission * ($taxRate / 100), 2);
+            // Tax on commission using dynamic TaxService
+            $taxResult = $this->taxService->applyTax(
+                $booking,
+                $adminCommission,
+                'commission',
+                [
+                    'calculated_by' => 'CommissionService',
+                    'booking_id' => $booking->id,
+                ]
+            );
+            $tax = $taxResult['tax_amount'];
+            $taxRate = $taxResult['calculations'][0]->tax_rate ?? 0.00;
 
             // Adjust vendor payout if tax is deducted from vendor
             // For now, tax is absorbed by admin, not deducted from vendor

@@ -5,6 +5,7 @@ namespace Modules\POS\Services;
 use Modules\POS\Models\POSBooking;
 use Modules\Hoardings\Models\Hoarding;
 use Modules\Settings\Services\SettingsService;
+use App\Services\TaxService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -12,10 +13,12 @@ use Carbon\Carbon;
 class POSBookingService
 {
     protected SettingsService $settingsService;
+    protected TaxService $taxService;
 
-    public function __construct(SettingsService $settingsService)
+    public function __construct(SettingsService $settingsService, TaxService $taxService)
     {
         $this->settingsService = $settingsService;
+        $this->taxService = $taxService;
     }
 
     /**
@@ -338,11 +341,11 @@ class POSBookingService
     }
 
     /**
-     * Get GST rate
+     * Get GST rate (backwards compatible)
      */
     public function getGSTRate(): float
     {
-        return (float) $this->settingsService->get('pos_gst_rate', 18);
+        return $this->taxService->getDefaultTaxRate('booking');
     }
 
     /**

@@ -7,6 +7,7 @@ use Modules\DOOH\Models\DOOHPackage;
 use Modules\DOOH\Models\DOOHBooking;
 use Modules\Settings\Services\SettingsService;
 use App\Services\RazorpayService;
+use App\Services\TaxService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -21,13 +22,16 @@ class DOOHPackageBookingService
 {
     protected SettingsService $settingsService;
     protected RazorpayService $razorpayService;
+    protected TaxService $taxService;
 
     public function __construct(
         SettingsService $settingsService,
-        RazorpayService $razorpayService
+        RazorpayService $razorpayService,
+        TaxService $taxService
     ) {
         $this->settingsService = $settingsService;
         $this->razorpayService = $razorpayService;
+        $this->taxService = $taxService;
     }
 
     /**
@@ -182,10 +186,13 @@ class DOOHPackageBookingService
             $discountAmount = ($totalAmount * $package->discount_percent) / 100;
         }
 
-        // Calculate tax
-        $taxRate = $this->settingsService->get('booking_tax_rate', 18);
+        // Calculate tax using TaxService
         $taxableAmount = $totalAmount - $discountAmount;
-        $taxAmount = ($taxableAmount * $taxRate) / 100;
+        $taxResult = $this->taxService->calculateGST($taxableAmount, [
+            'applies_to' => 'booking',
+        ]);
+        $taxAmount = $taxResult['gst_amount'];
+        $taxRate = $taxResult['gst_rate'];
 
         // Grand total
         $grandTotal = $taxableAmount + $taxAmount;
