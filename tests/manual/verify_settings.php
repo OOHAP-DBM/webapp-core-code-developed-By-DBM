@@ -55,7 +55,7 @@ echo "Testing SettingsService integration:" . PHP_EOL;
 echo str_repeat('-', 60) . PHP_EOL;
 
 try {
-    $settingsService = app('App\Services\SettingsService');
+    $settingsService = app('Modules\Settings\Services\SettingsService');
     
     foreach (array_keys($requiredSettings) as $key) {
         try {
