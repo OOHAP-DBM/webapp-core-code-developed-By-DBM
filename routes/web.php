@@ -63,8 +63,10 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/dashboard', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('dashboard');
     Route::get('/home', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('home');
     
-    // Search
+    // Search (PROMPT 54: Smart Search Algorithm)
     Route::get('/search', [\App\Http\Controllers\Web\Customer\SearchController::class, 'index'])->name('search');
+    Route::post('/api/search', [\App\Http\Controllers\Web\Customer\SearchController::class, 'apiSearch'])->name('api.search');
+    Route::get('/api/search/filters', [\App\Http\Controllers\Web\Customer\SearchController::class, 'getFilterOptions'])->name('api.search.filters');
     
     // Saved Searches
     Route::post('/saved-searches', [\App\Http\Controllers\MapSearchController::class, 'saveSearch'])->name('saved-searches.store');
