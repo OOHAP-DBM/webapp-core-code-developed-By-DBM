@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('vendor_ledgers', function (Blueprint $table) {
             $table->id();
             
-            // Vendor Reference
-            $table->foreignId('vendor_id')->constrained()->cascadeOnDelete()->comment('Vendor user ID');
+            // Vendor Reference (references users table)
+            $table->foreignId('vendor_id')->constrained('users')->cascadeOnDelete()->comment('Vendor user ID');
             
             // Transaction Reference
             $table->string('transaction_reference', 50)->unique()->comment('e.g., TXN-XXXXXXXXXXXX');
