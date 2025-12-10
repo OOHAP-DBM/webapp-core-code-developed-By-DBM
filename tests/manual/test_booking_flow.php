@@ -145,7 +145,7 @@ try {
 }
 
 try {
-    $settings = app('App\Services\SettingsService');
+    $settings = app('Modules\Settings\Services\SettingsService');
     echo "✓ SettingsService: YES" . PHP_EOL;
 } catch (Exception $e) {
     echo "✗ SettingsService: NO - " . $e->getMessage() . PHP_EOL;

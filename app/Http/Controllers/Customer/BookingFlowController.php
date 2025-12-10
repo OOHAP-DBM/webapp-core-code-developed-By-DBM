@@ -22,8 +22,6 @@ class BookingFlowController extends Controller
         HoardingBookingService $bookingService,
         RazorpayService $razorpayService
     ) {
-        $this->middleware('auth');
-        $this->middleware('role:customer');
         $this->bookingService = $bookingService;
         $this->razorpayService = $razorpayService;
     }
