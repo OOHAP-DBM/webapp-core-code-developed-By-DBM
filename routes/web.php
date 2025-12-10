@@ -246,11 +246,23 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::post('/tasks/{id}/update-progress', [\App\Http\Controllers\Vendor\TaskController::class, 'updateProgress'])->name('tasks.update-progress');
     Route::delete('/tasks/{id}', [\App\Http\Controllers\Vendor\TaskController::class, 'destroy'])->name('tasks.destroy');
     
-    // Payouts (PROMPT 26)
-    Route::get('/payouts', [\App\Http\Controllers\Vendor\PayoutController::class, 'index'])->name('payouts.index');
-    Route::post('/payouts/request', [\App\Http\Controllers\Vendor\PayoutController::class, 'request'])->name('payouts.request');
-    Route::get('/payouts/{id}', [\App\Http\Controllers\Vendor\PayoutController::class, 'show'])->name('payouts.show');
+    // Payouts (PROMPT 26 - Basic)
+    Route::get('/payouts-old', [\App\Http\Controllers\Vendor\PayoutController::class, 'index'])->name('payouts-old.index');
+    Route::post('/payouts/request', [\App\Http\Controllers\Vendor\PayoutController::class, 'request'])->name('payouts-old.request');
+    Route::get('/payouts-old/{id}', [\App\Http\Controllers\Vendor\PayoutController::class, 'show'])->name('payouts-old.show');
     Route::post('/payouts/update-bank', [\App\Http\Controllers\Vendor\PayoutController::class, 'updateBank'])->name('payouts.update-bank');
+    
+    // Payout Request System (PROMPT 58 - Advanced)
+    Route::prefix('payouts')->name('payouts.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'create'])->name('create');
+        Route::post('/preview', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'preview'])->name('preview');
+        Route::post('/', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'store'])->name('store');
+        Route::get('/{payoutRequest}', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'show'])->name('show');
+        Route::post('/{payoutRequest}/submit', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'submit'])->name('submit');
+        Route::post('/{payoutRequest}/cancel', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'cancel'])->name('cancel');
+        Route::get('/{payoutRequest}/download-receipt', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'downloadReceipt'])->name('download-receipt');
+    });
     
     // Staff Management
     Route::resource('staff', \App\Http\Controllers\Web\Vendor\StaffController::class);
@@ -407,6 +419,20 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::put('/', [\App\Http\Controllers\Admin\SearchSettingsController::class, 'update'])->name('update');
         Route::post('/reset', [\App\Http\Controllers\Admin\SearchSettingsController::class, 'reset'])->name('reset');
         Route::post('/preview-score', [\App\Http\Controllers\Admin\SearchSettingsController::class, 'previewScore'])->name('preview-score');
+    });
+    
+    // Payout Approval System (PROMPT 58)
+    Route::prefix('payouts')->name('payouts.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'index'])->name('index');
+        Route::get('/all', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'allRequests'])->name('all');
+        Route::get('/{payoutRequest}', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'show'])->name('show');
+        Route::post('/{payoutRequest}/approve', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'approve'])->name('approve');
+        Route::post('/{payoutRequest}/reject', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'reject'])->name('reject');
+        Route::post('/{payoutRequest}/process-settlement', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'processSettlement'])->name('process-settlement');
+        Route::post('/{payoutRequest}/generate-receipt', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'generateReceipt'])->name('generate-receipt');
+        Route::get('/{payoutRequest}/download-receipt', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'downloadReceipt'])->name('download-receipt');
+        Route::post('/{payoutRequest}/regenerate-receipt', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'regenerateReceipt'])->name('regenerate-receipt');
+        Route::post('/bulk-approve', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'bulkApprove'])->name('bulk-approve');
     });
     
     // Notification Templates (PROMPT 34)
