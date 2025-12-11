@@ -49,6 +49,20 @@ Schedule::command('sla:monitor')
     ->withoutOverlapping(10)
     ->onOneServer();
 
+// Check milestone due dates daily (PROMPT 70 Phase 2)
+Schedule::command('milestones:check-due')
+    ->dailyAt('09:00') // Run at 9 AM daily
+    ->name('check-milestones-due')
+    ->withoutOverlapping(15)
+    ->onOneServer();
+
+// Send upcoming milestone reminders (3 days before)
+Schedule::command('milestones:check-due --days-ahead=3')
+    ->dailyAt('10:00') // Run at 10 AM daily
+    ->name('milestone-reminders')
+    ->withoutOverlapping(15)
+    ->onOneServer();
+
 // Process daily vendor reliability score recovery (PROMPT 68)
 Schedule::call(function () {
     app(SLATrackingService::class)->processDailyRecovery();
@@ -64,8 +78,31 @@ Schedule::call(function () {
     app(SLATrackingService::class)->resetMonthlyViolationCounts();
 })
     ->monthlyOn(1, '00:00')
-    ->name('reset-monthly-violations')
-    ->withoutOverlapping(5)
+    ->name('reset-vendor-violations')
+    ->withoutOverlapping(10)
+    ->onOneServer();
+
+// Monitor fraud activity every hour (PROMPT 73)
+Schedule::command('fraud:monitor')
+    ->hourly()
+    ->name('fraud-monitoring')
+    ->withoutOverlapping(15)
+    ->onOneServer();
+
+// Daily fraud monitoring with notifications at 8 AM
+Schedule::command('fraud:monitor --notify')
+    ->dailyAt('08:00')
+    ->name('fraud-daily-notify')
+    ->withoutOverlapping(15)
+    ->onOneServer();
+
+// Weekly cleanup of old fraud alerts (Sunday at midnight)
+Schedule::command('fraud:monitor --cleanup')
+    ->weekly()
+    ->sundays()
+    ->at('00:00')
+    ->name('fraud-cleanup')
+    ->withoutOverlapping(15)
     ->onOneServer();
 
 // ============================================

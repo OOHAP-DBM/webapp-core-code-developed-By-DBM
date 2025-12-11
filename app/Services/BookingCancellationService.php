@@ -37,18 +37,24 @@ class BookingCancellationService
             // Calculate hours before start
             $hoursBeforeStart = $this->calculateHoursBeforeStart($booking);
             
-            // Find applicable policy
+            // Check if campaign has started
+            $campaignStarted = $this->hasCampaignStarted($booking);
+            
+            // Get vendor ID from booking
+            $vendorId = $booking->vendor_id ?? null;
+            
+            // Find applicable policy (vendor-specific first, then global)
             $policy = $policyId 
                 ? CancellationPolicy::findOrFail($policyId)
-                : $this->findApplicablePolicy($bookingType, $cancelledByRole, $booking->total_amount, $hoursBeforeStart);
+                : $this->findApplicablePolicy($bookingType, $cancelledByRole, $booking->total_amount, $hoursBeforeStart, $vendorId);
 
             if (!$policy && !$adminOverride) {
                 throw new \Exception('No applicable cancellation policy found');
             }
 
-            // Calculate refund
+            // Calculate refund with campaign start enforcement
             $calculation = $policy 
-                ? $policy->calculateRefund($booking->total_amount, $hoursBeforeStart, $cancelledByRole)
+                ? $policy->calculateRefundWithCampaignCheck($booking->total_amount, $hoursBeforeStart, $campaignStarted, $cancelledByRole)
                 : ['refund_amount' => $booking->total_amount, 'customer_fee' => 0, 'vendor_penalty' => 0];
 
             // Create refund record
@@ -68,8 +74,8 @@ class BookingCancellationService
                 'cancelled_by' => $cancelledBy,
                 'cancellation_reason' => $reason,
                 'hours_before_start' => $hoursBeforeStart,
-                'policy_snapshot' => $policy ? $policy->toArray() : null,
-                'calculation_details' => $calculation,
+                'policy_snapshot' => $policy ? array_merge($policy->toArray(), ['campaign_started' => $campaignStarted]) : null,
+                'calculation_details' => array_merge($calculation, ['campaign_started' => $campaignStarted]),
                 'admin_override' => $adminOverride,
                 'status' => $adminOverride ? 'approved' : 'pending',
             ]);
@@ -82,7 +88,7 @@ class BookingCancellationService
             ]);
 
             // Process auto-refund if enabled
-            if ($refund->refund_method === 'auto' && $refund->status === 'approved' && $bookingType !== 'pos') {
+            if ($refund->refund_method === 'auto' && $refund->status === 'approved' && $bookingType !== 'pos' && $refund->refund_amount > 0) {
                 $this->processAutoRefund($refund);
             }
 
@@ -90,6 +96,8 @@ class BookingCancellationService
                 'booking_id' => $booking->id,
                 'refund_id' => $refund->id,
                 'refund_amount' => $refund->refund_amount,
+                'campaign_started' => $campaignStarted,
+                'policy_type' => $policy ? ($policy->isVendorPolicy() ? 'vendor' : 'global') : 'none',
             ]);
 
             return $refund;
@@ -151,14 +159,37 @@ class BookingCancellationService
 
     /**
      * Find applicable cancellation policy
+     * Priority: Vendor-specific -> Global for role -> Global default
      */
     protected function findApplicablePolicy(
         string $bookingType,
         string $role,
         float $amount,
-        int $hoursBeforeStart
+        int $hoursBeforeStart,
+        ?int $vendorId = null
     ): ?CancellationPolicy {
+        // First try vendor-specific policy
+        if ($vendorId) {
+            $vendorPolicy = CancellationPolicy::active()
+                ->forVendor($vendorId)
+                ->forRole($role)
+                ->forBookingType($bookingType)
+                ->get()
+                ->first(function ($policy) use ($amount, $hoursBeforeStart) {
+                    return $policy->appliesTo([
+                        'amount' => $amount,
+                        'hours_before_start' => $hoursBeforeStart,
+                    ]);
+                });
+
+            if ($vendorPolicy) {
+                return $vendorPolicy;
+            }
+        }
+
+        // Fallback to global policy
         return CancellationPolicy::active()
+            ->global()
             ->forRole($role)
             ->forBookingType($bookingType)
             ->get()
@@ -168,6 +199,30 @@ class BookingCancellationService
                     'hours_before_start' => $hoursBeforeStart,
                 ]);
             });
+    }
+
+    /**
+     * Check if campaign has started
+     */
+    protected function hasCampaignStarted($booking): bool
+    {
+        // Check for campaign_started_at field (DOOH bookings)
+        if (isset($booking->campaign_started_at) && $booking->campaign_started_at) {
+            return Carbon::parse($booking->campaign_started_at)->isPast();
+        }
+
+        // Check for active status (implies campaign started)
+        if (isset($booking->status) && $booking->status === 'active') {
+            return true;
+        }
+
+        // Check if start date has passed
+        $startDate = $booking->start_date ?? $booking->campaign_start_date ?? null;
+        if ($startDate) {
+            return Carbon::parse($startDate)->isPast();
+        }
+
+        return false;
     }
 
     /**

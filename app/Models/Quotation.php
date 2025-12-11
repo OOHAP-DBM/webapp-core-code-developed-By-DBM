@@ -6,6 +6,7 @@ use App\Traits\HasSnapshots;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Quotation extends Model
 {
@@ -28,6 +29,10 @@ class Quotation extends Model
         'tax',
         'discount',
         'grand_total',
+        'has_milestones',
+        'payment_mode',
+        'milestone_count',
+        'milestone_summary',
         'approved_snapshot',
         'status',
         'notes',
@@ -40,6 +45,8 @@ class Quotation extends Model
         'tax' => 'decimal:2',
         'discount' => 'decimal:2',
         'grand_total' => 'decimal:2',
+        'has_milestones' => 'boolean',
+        'milestone_summary' => 'array',
         'approved_snapshot' => 'array',
         'approved_at' => 'datetime',
     ];
@@ -67,6 +74,14 @@ class Quotation extends Model
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'vendor_id');
+    }
+
+    /**
+     * PROMPT 70: Milestone relationship
+     */
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(QuotationMilestone::class)->orderBy('sequence_no');
     }
 
     /**
@@ -195,5 +210,73 @@ class Quotation extends Model
         return array_reduce($this->items, function ($carry, $item) {
             return $carry + (float) ($item['quantity'] ?? 0);
         }, 0);
+    }
+
+    /**
+     * PROMPT 70: Milestone helper methods
+     */
+    
+    /**
+     * Check if quotation has milestone payment mode
+     */
+    public function hasMilestones(): bool
+    {
+        return $this->has_milestones === true && $this->payment_mode === 'milestone';
+    }
+
+    /**
+     * Check if quotation uses full payment mode
+     */
+    public function isFullPayment(): bool
+    {
+        return $this->payment_mode === 'full' || !$this->has_milestones;
+    }
+
+    /**
+     * Get milestone payment summary
+     */
+    public function getMilestoneSummary(): array
+    {
+        if (!$this->hasMilestones()) {
+            return [];
+        }
+
+        return $this->milestone_summary ?? [];
+    }
+
+    /**
+     * Recalculate milestone summary
+     */
+    public function recalculateMilestoneSummary(): void
+    {
+        if (!$this->hasMilestones()) {
+            $this->update([
+                'milestone_summary' => null,
+                'milestone_count' => 0,
+            ]);
+            return;
+        }
+
+        $milestones = $this->milestones;
+        $totalPercentage = 0;
+        $totalAmount = 0;
+
+        foreach ($milestones as $milestone) {
+            if ($milestone->amount_type === 'percentage') {
+                $totalPercentage += $milestone->amount;
+            }
+            $totalAmount += $milestone->calculated_amount ?? 0;
+        }
+
+        $this->update([
+            'milestone_count' => $milestones->count(),
+            'milestone_summary' => [
+                'total_milestones' => $milestones->count(),
+                'total_percentage' => $totalPercentage,
+                'total_amount' => $totalAmount,
+                'paid_milestones' => $milestones->where('status', 'paid')->count(),
+                'pending_milestones' => $milestones->whereIn('status', ['pending', 'due', 'overdue'])->count(),
+            ],
+        ]);
     }
 }

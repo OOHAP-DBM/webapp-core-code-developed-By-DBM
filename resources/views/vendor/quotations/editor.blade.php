@@ -147,6 +147,109 @@
                             </div>
                         </div>
 
+                        <!-- Payment Mode & Milestones (PROMPT 70 Phase 2) -->
+                        <div class="mb-4">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="bi bi-credit-card"></i> Payment Configuration</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Payment Mode</label>
+                                        <select class="form-select" id="paymentMode" name="payment_mode">
+                                            <option value="full" {{ (!isset($quotation) || $quotation->payment_mode === 'full') ? 'selected' : '' }}>
+                                                Full Payment (Customer pays complete amount)
+                                            </option>
+                                            <option value="milestone" {{ (isset($quotation) && $quotation->payment_mode === 'milestone') ? 'selected' : '' }}>
+                                                Milestone Payments (Split into multiple payments)
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Milestone Configuration -->
+                                    <div id="milestoneSection" class="mt-3" style="display: {{ (isset($quotation) && $quotation->payment_mode === 'milestone') ? 'block' : 'none' }};">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0">Milestone Configuration</h6>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" id="addMilestoneBtn">
+                                                <i class="bi bi-plus-circle"></i> Add Milestone
+                                            </button>
+                                        </div>
+
+                                        <div class="alert alert-info small mb-3">
+                                            <i class="bi bi-info-circle"></i> Create payment milestones to split the total amount. 
+                                            Total must equal 100% or match grand total.
+                                        </div>
+
+                                        <div id="milestonesContainer">
+                                            @if(isset($quotation) && $quotation->milestones && $quotation->milestones->count() > 0)
+                                                @foreach($quotation->milestones as $index => $milestone)
+                                                <div class="milestone-row card mb-3 p-3" data-index="{{ $index }}">
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <h6 class="mb-0">Milestone #<span class="milestone-number">{{ $index + 1 }}</span></h6>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger remove-milestone">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="row g-2">
+                                                        <div class="col-md-5">
+                                                            <label class="form-label small">Title <span class="text-danger">*</span></label>
+                                                            <input type="text" class="form-control form-control-sm milestone-title" 
+                                                                   value="{{ $milestone->title }}" 
+                                                                   placeholder="e.g., Advance Payment" required>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <label class="form-label small">Amount Type <span class="text-danger">*</span></label>
+                                                            <select class="form-select form-select-sm milestone-amount-type">
+                                                                <option value="percentage" {{ $milestone->amount_type === 'percentage' ? 'selected' : '' }}>Percentage (%)</option>
+                                                                <option value="fixed" {{ $milestone->amount_type === 'fixed' ? 'selected' : '' }}>Fixed (₹)</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="form-label small">Amount <span class="text-danger">*</span></label>
+                                                            <input type="number" class="form-control form-control-sm milestone-amount" 
+                                                                   value="{{ $milestone->amount }}" 
+                                                                   min="0" step="0.01" required>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="form-label small">Calculated</label>
+                                                            <input type="text" class="form-control form-control-sm milestone-calculated" 
+                                                                   value="₹{{ number_format($milestone->calculated_amount, 2) }}" 
+                                                                   readonly>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label small">Due Date</label>
+                                                            <input type="date" class="form-control form-control-sm milestone-due-date" 
+                                                                   value="{{ $milestone->due_date ? $milestone->due_date->format('Y-m-d') : '' }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label small">Description</label>
+                                                            <input type="text" class="form-control form-control-sm milestone-description" 
+                                                                   value="{{ $milestone->description ?? '' }}" 
+                                                                   placeholder="Optional description">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                @endforeach
+                                            @endif
+                                        </div>
+
+                                        <div class="alert alert-secondary mt-3 mb-0">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <strong>Total Percentage:</strong> 
+                                                    <span id="totalPercentage" class="badge bg-info">0%</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <strong>Total Amount:</strong> 
+                                                    <span id="totalMilestoneAmount" class="badge bg-success">₹0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Notes -->
                         <div class="mb-4">
                             <label class="form-label">Notes <small class="text-muted">(Optional)</small></label>
@@ -203,6 +306,168 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     let itemIndex = document.querySelectorAll('.item-row').length;
+    let milestoneIndex = document.querySelectorAll('.milestone-row').length;
+
+    // Payment mode toggle
+    document.getElementById('paymentMode').addEventListener('change', function() {
+        const milestoneSection = document.getElementById('milestoneSection');
+        if (this.value === 'milestone') {
+            milestoneSection.style.display = 'block';
+            if (document.querySelectorAll('.milestone-row').length === 0) {
+                // Add default milestones
+                addMilestone('Advance Payment', 'percentage', 50);
+                addMilestone('Final Payment', 'percentage', 50);
+            }
+        } else {
+            milestoneSection.style.display = 'none';
+        }
+    });
+
+    // Add milestone
+    document.getElementById('addMilestoneBtn').addEventListener('click', function() {
+        addMilestone();
+    });
+
+    function addMilestone(title = '', amountType = 'percentage', amount = 0) {
+        milestoneIndex++;
+        const template = `
+            <div class="milestone-row card mb-3 p-3" data-index="${milestoneIndex}">
+                <div class="d-flex justify-content-between mb-2">
+                    <h6 class="mb-0">Milestone #<span class="milestone-number">${milestoneIndex}</span></h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-milestone">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <label class="form-label small">Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-sm milestone-title" 
+                               value="${title}" 
+                               placeholder="e.g., Advance Payment" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">Amount Type <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-sm milestone-amount-type">
+                            <option value="percentage" ${amountType === 'percentage' ? 'selected' : ''}>Percentage (%)</option>
+                            <option value="fixed" ${amountType === 'fixed' ? 'selected' : ''}>Fixed (₹)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Amount <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control form-control-sm milestone-amount" 
+                               value="${amount}" 
+                               min="0" step="0.01" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Calculated</label>
+                        <input type="text" class="form-control form-control-sm milestone-calculated" 
+                               value="₹0.00" 
+                               readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Due Date</label>
+                        <input type="date" class="form-control form-control-sm milestone-due-date">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Description</label>
+                        <input type="text" class="form-control form-control-sm milestone-description" 
+                               placeholder="Optional description">
+                    </div>
+                </div>
+            </div>`;
+        
+        document.getElementById('milestonesContainer').insertAdjacentHTML('beforeend', template);
+        updateMilestoneNumbers();
+        calculateMilestoneTotals();
+    }
+
+    // Remove milestone
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-milestone')) {
+            if (document.querySelectorAll('.milestone-row').length > 1) {
+                e.target.closest('.milestone-row').remove();
+                updateMilestoneNumbers();
+                calculateMilestoneTotals();
+            } else {
+                alert('At least one milestone is required for milestone payment mode.');
+            }
+        }
+    });
+
+    // Update milestone numbers
+    function updateMilestoneNumbers() {
+        document.querySelectorAll('.milestone-row').forEach((row, index) => {
+            row.querySelector('.milestone-number').textContent = index + 1;
+        });
+    }
+
+    // Calculate milestone totals
+    function calculateMilestoneTotals() {
+        const grandTotal = parseFloat(document.getElementById('grandTotal').value) || 0;
+        let totalPercentage = 0;
+        let totalAmount = 0;
+
+        document.querySelectorAll('.milestone-row').forEach(row => {
+            const amountType = row.querySelector('.milestone-amount-type').value;
+            const amount = parseFloat(row.querySelector('.milestone-amount').value) || 0;
+            
+            let calculated = 0;
+            if (amountType === 'percentage') {
+                calculated = (grandTotal * amount) / 100;
+                totalPercentage += amount;
+            } else {
+                calculated = amount;
+                if (grandTotal > 0) {
+                    totalPercentage += (amount / grandTotal) * 100;
+                }
+            }
+            
+            totalAmount += calculated;
+            row.querySelector('.milestone-calculated').value = `₹${calculated.toFixed(2)}`;
+        });
+
+        document.getElementById('totalPercentage').textContent = `${totalPercentage.toFixed(1)}%`;
+        document.getElementById('totalMilestoneAmount').textContent = `₹${totalAmount.toFixed(2)}`;
+
+        // Validation warning
+        const percentageBadge = document.getElementById('totalPercentage');
+        const amountBadge = document.getElementById('totalMilestoneAmount');
+        
+        if (Math.abs(totalPercentage - 100) > 0.1) {
+            percentageBadge.className = 'badge bg-warning';
+        } else {
+            percentageBadge.className = 'badge bg-success';
+        }
+
+        if (Math.abs(totalAmount - grandTotal) > 0.01) {
+            amountBadge.className = 'badge bg-warning';
+        } else {
+            amountBadge.className = 'badge bg-success';
+        }
+    }
+
+    // Listen for milestone changes
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('milestone-amount') || 
+            e.target.classList.contains('milestone-amount-type')) {
+            calculateMilestoneTotals();
+        }
+    });
+
+    // Collect milestones data
+    function collectMilestones() {
+        const milestones = [];
+        document.querySelectorAll('.milestone-row').forEach((row, index) => {
+            milestones.push({
+                title: row.querySelector('.milestone-title').value,
+                description: row.querySelector('.milestone-description').value || null,
+                amount_type: row.querySelector('.milestone-amount-type').value,
+                amount: parseFloat(row.querySelector('.milestone-amount').value),
+                due_date: row.querySelector('.milestone-due-date').value || null,
+            });
+        });
+        return milestones;
+    }
 
     // Add item
     document.getElementById('addItemBtn').addEventListener('click', function() {
@@ -281,6 +546,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('totalAmount').value = subtotal.toFixed(2);
         document.getElementById('grandTotalDisplay').textContent = `₹${grandTotal.toFixed(2)}`;
         document.getElementById('grandTotal').value = grandTotal.toFixed(2);
+        
+        // Recalculate milestones when total changes
+        calculateMilestoneTotals();
     }
 
     function collectItems() {
@@ -300,6 +568,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function saveQuotation(shouldSend = false) {
         const offerId = document.querySelector('[name="offer_id"]').value;
         const quotationId = document.getElementById('quotationId').value;
+        const paymentMode = document.getElementById('paymentMode').value;
         
         const data = {
             offer_id: parseInt(offerId),
@@ -308,8 +577,33 @@ document.addEventListener('DOMContentLoaded', function() {
             tax: parseFloat(document.getElementById('tax').value) || 0,
             discount: parseFloat(document.getElementById('discount').value) || 0,
             grand_total: parseFloat(document.getElementById('grandTotal').value),
+            payment_mode: paymentMode,
             notes: document.getElementById('notes').value,
         };
+
+        // Add milestones if milestone payment mode
+        if (paymentMode === 'milestone') {
+            data.milestones = collectMilestones();
+            
+            // Validate milestones
+            if (data.milestones.length === 0) {
+                document.getElementById('alertContainer').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Please add at least one milestone for milestone payment mode.
+                    </div>`;
+                return;
+            }
+
+            // Validate total
+            const totalPercentage = parseFloat(document.getElementById('totalPercentage').textContent);
+            const totalAmount = parseFloat(document.getElementById('totalMilestoneAmount').textContent.replace('₹', '').replace(',', ''));
+            
+            if (Math.abs(totalPercentage - 100) > 0.1 || Math.abs(totalAmount - data.grand_total) > 0.01) {
+                if (!confirm('Milestone totals do not match quotation total. Do you want to continue?')) {
+                    return;
+                }
+            }
+        }
 
         document.getElementById('spinner').classList.remove('d-none');
         document.getElementById('alertContainer').innerHTML = '';

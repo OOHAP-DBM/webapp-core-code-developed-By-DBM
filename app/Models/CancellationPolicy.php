@@ -13,6 +13,7 @@ class CancellationPolicy extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'vendor_id',
         'name',
         'description',
         'is_active',
@@ -29,6 +30,8 @@ class CancellationPolicy extends Model
         'vendor_min_penalty',
         'vendor_max_penalty',
         'auto_refund_enabled',
+        'enforce_campaign_start',
+        'allow_partial_refund',
         'refund_processing_days',
         'refund_method',
         'pos_auto_refund_disabled',
@@ -55,6 +58,8 @@ class CancellationPolicy extends Model
         'vendor_max_penalty' => 'decimal:2',
         'refund_processing_days' => 'integer',
         'auto_refund_enabled' => 'boolean',
+        'enforce_campaign_start' => 'boolean',
+        'allow_partial_refund' => 'boolean',
         'pos_auto_refund_disabled' => 'boolean',
         'allow_admin_override' => 'boolean',
         'min_hours_before_start' => 'integer',
@@ -66,6 +71,11 @@ class CancellationPolicy extends Model
     /**
      * Relationships
      */
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'vendor_id');
+    }
+
     public function refunds(): HasMany
     {
         return $this->hasMany(BookingRefund::class);
@@ -92,6 +102,16 @@ class CancellationPolicy extends Model
     public function scopeDefault($query)
     {
         return $query->where('is_default', true);
+    }
+
+    public function scopeGlobal($query)
+    {
+        return $query->whereNull('vendor_id');
+    }
+
+    public function scopeForVendor($query, ?int $vendorId)
+    {
+        return $query->where('vendor_id', $vendorId);
     }
 
     public function scopeForRole($query, string $role)
@@ -263,4 +283,70 @@ class CancellationPolicy extends Model
 
         return $this->auto_refund_enabled;
     }
+
+    /**
+     * Check if policy is vendor-specific
+     */
+    public function isVendorPolicy(): bool
+    {
+        return $this->vendor_id !== null;
+    }
+
+    /**
+     * Check if policy is global (admin-created)
+     */
+    public function isGlobalPolicy(): bool
+    {
+        return $this->vendor_id === null;
+    }
+
+    /**
+     * Check if refund is allowed after campaign starts
+     */
+    public function allowsRefundAfterCampaignStart(): bool
+    {
+        return !$this->enforce_campaign_start;
+    }
+
+    /**
+     * Calculate refund with campaign start enforcement
+     */
+    public function calculateRefundWithCampaignCheck(
+        float $bookingAmount,
+        int $hoursBeforeStart,
+        bool $campaignStarted,
+        string $cancelledByRole = 'customer'
+    ): array {
+        // If campaign has started and policy enforces campaign start, no refund
+        if ($campaignStarted && $this->enforce_campaign_start) {
+            return [
+                'refundable_amount' => 0,
+                'refund_percent' => 0,
+                'customer_fee' => $bookingAmount,
+                'vendor_penalty' => 0,
+                'refund_amount' => 0,
+                'time_window' => null,
+                'campaign_started' => true,
+                'message' => 'No refund allowed after campaign has started',
+            ];
+        }
+
+        // If hoursBeforeStart is negative (after start), no refund
+        if ($hoursBeforeStart < 0 && $this->enforce_campaign_start) {
+            return [
+                'refundable_amount' => 0,
+                'refund_percent' => 0,
+                'customer_fee' => $bookingAmount,
+                'vendor_penalty' => 0,
+                'refund_amount' => 0,
+                'time_window' => null,
+                'campaign_started' => true,
+                'message' => 'Booking start date has passed',
+            ];
+        }
+
+        // Otherwise, use normal calculation
+        return $this->calculateRefund($bookingAmount, $hoursBeforeStart, $cancelledByRole);
+    }
 }
+

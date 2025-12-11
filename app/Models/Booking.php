@@ -32,6 +32,13 @@ class Booking extends Model
         'total_amount',
         'status',
         'payment_status',
+        'payment_mode',
+        'milestone_total',
+        'milestone_paid',
+        'milestone_amount_paid',
+        'milestone_amount_remaining',
+        'current_milestone_id',
+        'all_milestones_paid_at',
         'hold_expiry_at',
         'razorpay_order_id',
         'razorpay_payment_id',
@@ -58,6 +65,8 @@ class Booking extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'total_amount' => 'decimal:2',
+        'milestone_amount_paid' => 'decimal:2',
+        'milestone_amount_remaining' => 'decimal:2',
         'refund_amount' => 'decimal:2',
         'hold_expiry_at' => 'datetime',
         'payment_authorized_at' => 'datetime',
@@ -65,6 +74,7 @@ class Booking extends Model
         'payment_failed_at' => 'datetime',
         'capture_attempted_at' => 'datetime',
         'pod_approved_at' => 'datetime',
+        'all_milestones_paid_at' => 'datetime',
         'booking_snapshot' => 'array',
         'confirmed_at' => 'datetime',
         'cancelled_at' => 'datetime',
@@ -105,6 +115,14 @@ class Booking extends Model
     public function hoarding(): BelongsTo
     {
         return $this->belongsTo(Hoarding::class);
+    }
+
+    /**
+     * PROMPT 70: Milestone relationship
+     */
+    public function currentMilestone(): BelongsTo
+    {
+        return $this->belongsTo(QuotationMilestone::class, 'current_milestone_id');
     }
 
     public function statusLogs(): HasMany
@@ -353,4 +371,110 @@ class Booking extends Model
     {
         return $this->hasOne(BookingProof::class)->where('status', 'approved');
     }
+
+    /**
+     * PROMPT 70: Milestone payment helper methods
+     */
+    
+    /**
+     * Check if booking uses milestone payment mode
+     */
+    public function hasMilestones(): bool
+    {
+        return $this->payment_mode === 'milestone' && $this->milestone_total > 0;
+    }
+
+    /**
+     * Check if booking uses full payment mode
+     */
+    public function isFullPayment(): bool
+    {
+        return $this->payment_mode === 'full' || !$this->hasMilestones();
+    }
+
+    /**
+     * Get all milestones for this booking's quotation
+     */
+    public function getMilestones()
+    {
+        if (!$this->quotation_id || !$this->hasMilestones()) {
+            return collect();
+        }
+
+        return QuotationMilestone::where('quotation_id', $this->quotation_id)
+            ->orderBy('sequence_no')
+            ->get();
+    }
+
+    /**
+     * Get next unpaid milestone
+     */
+    public function getNextMilestone(): ?QuotationMilestone
+    {
+        if (!$this->hasMilestones()) {
+            return null;
+        }
+
+        return QuotationMilestone::where('quotation_id', $this->quotation_id)
+            ->whereIn('status', ['due', 'overdue'])
+            ->orderBy('sequence_no')
+            ->first();
+    }
+
+    /**
+     * Check if all milestones are paid
+     */
+    public function allMilestonesPaid(): bool
+    {
+        if (!$this->hasMilestones()) {
+            return false;
+        }
+
+        return $this->milestone_paid >= $this->milestone_total;
+    }
+
+    /**
+     * Get milestone payment progress percentage
+     */
+    public function getMilestoneProgressPercentage(): int
+    {
+        if (!$this->hasMilestones() || $this->milestone_total === 0) {
+            return 0;
+        }
+
+        return (int) (($this->milestone_paid / $this->milestone_total) * 100);
+    }
+
+    /**
+     * Update milestone payment status
+     */
+    public function updateMilestoneStatus(): void
+    {
+        if (!$this->hasMilestones()) {
+            return;
+        }
+
+        $milestones = $this->getMilestones();
+        $paidCount = $milestones->where('status', 'paid')->count();
+        $paidAmount = $milestones->where('status', 'paid')->sum('calculated_amount');
+        $remainingAmount = $this->total_amount - $paidAmount;
+
+        $this->update([
+            'milestone_paid' => $paidCount,
+            'milestone_amount_paid' => $paidAmount,
+            'milestone_amount_remaining' => max(0, $remainingAmount),
+            'current_milestone_id' => $this->getNextMilestone()?->id,
+        ]);
+
+        // If all milestones paid, mark booking as confirmed
+        if ($this->allMilestonesPaid() && !$this->all_milestones_paid_at) {
+            $this->update([
+                'all_milestones_paid_at' => now(),
+                'status' => self::STATUS_CONFIRMED,
+                'confirmed_at' => now(),
+                'payment_status' => 'paid',
+            ]);
+        }
+    }
 }
+

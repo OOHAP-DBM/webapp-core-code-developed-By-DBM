@@ -189,4 +189,128 @@ class RefundController extends Controller
         return redirect()->route('admin.cancellation-policies.index')
             ->with('success', 'Cancellation policy created successfully');
     }
+
+    /**
+     * Show policy edit form
+     */
+    public function editPolicy(CancellationPolicy $policy)
+    {
+        return view('admin.cancellation-policies.edit', compact('policy'));
+    }
+
+    /**
+     * Update existing policy
+     */
+    public function updatePolicy(Request $request, CancellationPolicy $policy)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
+            'is_default' => 'boolean',
+            'applies_to' => 'required|in:all,customer,vendor,admin',
+            'booking_type' => 'nullable|in:ooh,dooh,pos',
+            'time_windows' => 'required|array',
+            'time_windows.*.hours_before' => 'required|integer|min:0',
+            'time_windows.*.refund_percent' => 'required|integer|min:0|max:100',
+            'customer_fee_type' => 'required|in:percentage,fixed',
+            'customer_fee_value' => 'required|numeric|min:0',
+            'vendor_penalty_type' => 'required|in:percentage,fixed',
+            'vendor_penalty_value' => 'required|numeric|min:0',
+            'auto_refund_enabled' => 'boolean',
+            'refund_processing_days' => 'required|integer|min:1',
+            'enforce_campaign_start' => 'boolean',
+            'allow_partial_refund' => 'boolean',
+        ]);
+
+        $validated['updated_by'] = Auth::id();
+        $validated['is_active'] = $request->has('is_active');
+        $validated['is_default'] = $request->has('is_default');
+        $validated['auto_refund_enabled'] = $request->has('auto_refund_enabled');
+        $validated['pos_auto_refund_disabled'] = $request->has('pos_auto_refund_disabled');
+        $validated['enforce_campaign_start'] = $request->has('enforce_campaign_start');
+        $validated['allow_partial_refund'] = $request->has('allow_partial_refund');
+
+        // Process time_windows array
+        if ($request->has('time_windows')) {
+            $timeWindows = [];
+            foreach ($request->input('time_windows') as $window) {
+                $timeWindows[] = [
+                    'hours_before' => (int)$window['hours_before'],
+                    'refund_percent' => (int)$window['refund_percent'],
+                    'customer_fee_percent' => isset($window['customer_fee_percent']) && $window['customer_fee_percent'] !== '' 
+                        ? (int)$window['customer_fee_percent'] 
+                        : null,
+                    'vendor_penalty_percent' => isset($window['vendor_penalty_percent']) && $window['vendor_penalty_percent'] !== '' 
+                        ? (int)$window['vendor_penalty_percent'] 
+                        : null,
+                ];
+            }
+            // Sort by hours_before descending
+            usort($timeWindows, fn($a, $b) => $b['hours_before'] <=> $a['hours_before']);
+            $validated['time_windows'] = $timeWindows;
+        }
+
+        // If set as default, unset other defaults
+        if ($validated['is_default']) {
+            CancellationPolicy::where('id', '!=', $policy->id)
+                ->where('is_default', true)
+                ->update(['is_default' => false]);
+        }
+
+        $policy->update($validated);
+
+        return redirect()->route('admin.cancellation-policies.index')
+            ->with('success', 'Cancellation policy updated successfully');
+    }
+
+    /**
+     * Delete policy
+     */
+    public function destroyPolicy(CancellationPolicy $policy)
+    {
+        // Check if policy is being used
+        if ($policy->refunds()->exists()) {
+            return redirect()->back()->with('error', 'Cannot delete policy that has been used in refunds');
+        }
+
+        if ($policy->is_default) {
+            return redirect()->back()->with('error', 'Cannot delete the default policy');
+        }
+
+        $policy->delete();
+
+        return redirect()->route('admin.cancellation-policies.index')
+            ->with('success', 'Cancellation policy deleted successfully');
+    }
+
+    /**
+     * Toggle policy status
+     */
+    public function togglePolicyStatus(Request $request, CancellationPolicy $policy)
+    {
+        $policy->update(['is_active' => !$policy->is_active]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'is_active' => $policy->is_active,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Policy status updated');
+    }
+
+    /**
+     * View all vendor-created policies
+     */
+    public function vendorPolicies()
+    {
+        $policies = CancellationPolicy::whereNotNull('vendor_id')
+            ->with(['vendor', 'creator', 'updater'])
+            ->latest()
+            ->paginate(20);
+
+        return view('admin.cancellation-policies.vendor-policies', compact('policies'));
+    }
 }

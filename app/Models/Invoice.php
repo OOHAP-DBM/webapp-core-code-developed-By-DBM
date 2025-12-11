@@ -29,6 +29,7 @@ class Invoice extends Model
      * Invoice type constants
      */
     const TYPE_FULL_PAYMENT = 'full_payment';
+    const TYPE_MILESTONE_PAYMENT = 'milestone_payment';
     const TYPE_MILESTONE = 'milestone';
     const TYPE_SUBSCRIPTION = 'subscription';
     const TYPE_POS = 'pos';
@@ -46,6 +47,7 @@ class Invoice extends Model
         'invoice_type',
         'booking_id',
         'booking_payment_id',
+        'quotation_milestone_id',
         'milestone_id',
         'pos_booking_id',
         'seller_name',
@@ -155,6 +157,11 @@ class Invoice extends Model
     public function bookingPayment(): BelongsTo
     {
         return $this->belongsTo(BookingPayment::class);
+    }
+
+    public function milestone(): BelongsTo
+    {
+        return $this->belongsTo(QuotationMilestone::class, 'quotation_milestone_id');
     }
 
     public function items(): HasMany

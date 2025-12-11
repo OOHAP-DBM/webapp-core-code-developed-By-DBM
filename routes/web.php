@@ -338,6 +338,18 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     
     // Reports
     Route::get('/reports', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'index'])->name('reports.index');
+    
+    // Cancellation Policies (PROMPT 71)
+    Route::prefix('cancellation-policies')->name('cancellation-policies.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/toggle-status', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/preview-refund', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'previewRefund'])->name('preview-refund');
+    });
     Route::get('/reports/revenue', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'revenue'])->name('reports.revenue');
     
     // Profile
@@ -467,6 +479,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/', [\App\Http\Controllers\Admin\RefundController::class, 'policies'])->name('index');
         Route::get('/create', [\App\Http\Controllers\Admin\RefundController::class, 'createPolicy'])->name('create');
         Route::post('/', [\App\Http\Controllers\Admin\RefundController::class, 'storePolicy'])->name('store');
+        Route::get('/{policy}/edit', [\App\Http\Controllers\Admin\RefundController::class, 'editPolicy'])->name('edit');
+        Route::put('/{policy}', [\App\Http\Controllers\Admin\RefundController::class, 'updatePolicy'])->name('update');
+        Route::delete('/{policy}', [\App\Http\Controllers\Admin\RefundController::class, 'destroyPolicy'])->name('destroy');
+        Route::post('/{policy}/toggle-status', [\App\Http\Controllers\Admin\RefundController::class, 'togglePolicyStatus'])->name('toggle-status');
+        Route::get('/vendor-policies', [\App\Http\Controllers\Admin\RefundController::class, 'vendorPolicies'])->name('vendor-policies');
     });
     
     // Payment Settlement Engine (PROMPT 33)

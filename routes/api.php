@@ -60,4 +60,7 @@ Route::prefix('v1')->group(function () {
     
     // Vendor Quote & RFP System (PROMPT 44 & 45 - Quote generation and RFP workflow)
     require base_path('routes/api_v1/vendor-quotes.php');
+    
+    // Milestone Payment System (PROMPT 70 - Vendor-controlled milestone payments)
+    require base_path('routes/api_v1/milestone_payments.php');
 });

@@ -115,6 +115,12 @@ class BookingService
                 'customer_notes' => $customerInput['notes'] ?? null,
             ]);
 
+            // Initialize milestones if quotation has milestone payment mode
+            if ($quotation->hasMilestones()) {
+                $milestoneService = app(\App\Services\MilestoneService::class);
+                $milestoneService->initializeBookingMilestones($booking);
+            }
+
             // Create immutable price snapshot
             \App\Models\BookingPriceSnapshot::create([
                 'booking_id' => $booking->id,
