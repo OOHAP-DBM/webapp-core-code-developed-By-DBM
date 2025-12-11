@@ -105,6 +105,13 @@ Schedule::command('fraud:monitor --cleanup')
     ->withoutOverlapping(15)
     ->onOneServer();
 
+// Generate daily revenue snapshots at 1 AM (PROMPT 74)
+Schedule::command('revenue:generate-snapshots --vendors --locations')
+    ->dailyAt('01:00')
+    ->name('generate-revenue-snapshots')
+    ->withoutOverlapping(30)
+    ->onOneServer();
+
 // ============================================
 // Artisan Commands
 // ============================================

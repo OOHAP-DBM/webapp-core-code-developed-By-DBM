@@ -634,6 +634,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     // Activity Log
     Route::get('/activity-log', [\App\Http\Controllers\Web\Admin\ActivityLogController::class, 'index'])->name('activity-log.index');
+    
+    // Revenue Dashboard & Analytics (PROMPT 74)
+    Route::prefix('revenue')->name('revenue.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Admin\RevenueController::class, 'dashboard'])->name('dashboard');
+        Route::get('/vendor-revenue', [\App\Http\Controllers\Admin\RevenueController::class, 'vendorRevenue'])->name('vendor-revenue');
+        Route::get('/location-revenue', [\App\Http\Controllers\Admin\RevenueController::class, 'locationRevenue'])->name('location-revenue');
+        Route::get('/commission-analytics', [\App\Http\Controllers\Admin\RevenueController::class, 'commissionAnalytics'])->name('commission-analytics');
+        Route::get('/payout-management', [\App\Http\Controllers\Admin\RevenueController::class, 'payoutManagement'])->name('payout-management');
+        Route::get('/export', [\App\Http\Controllers\Admin\RevenueController::class, 'export'])->name('export');
+    });
 });
 
 // ============================================
