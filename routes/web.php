@@ -23,6 +23,12 @@ Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::cla
 Route::get('/dooh', [\App\Http\Controllers\Web\DOOHController::class, 'index'])->name('dooh.index');
 Route::get('/dooh/{id}', [\App\Http\Controllers\Web\DOOHController::class, 'show'])->name('dooh.show');
 
+// Sitemap Routes (PROMPT 79)
+Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap.index');
+Route::get('/sitemap-static.xml', [\App\Http\Controllers\SitemapController::class, 'static'])->name('sitemap.static');
+Route::get('/sitemap-hoardings.xml', [\App\Http\Controllers\SitemapController::class, 'hoardings'])->name('sitemap.hoardings');
+Route::get('/sitemap-locations.xml', [\App\Http\Controllers\SitemapController::class, 'locations'])->name('sitemap.locations');
+
 // Map Search Routes
 Route::get('/map-search', [\App\Http\Controllers\MapSearchController::class, 'index'])->name('map-search.index');
 Route::post('/api/map/search', [\App\Http\Controllers\MapSearchController::class, 'search'])->name('api.map.search');
@@ -643,6 +649,26 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/commission-analytics', [\App\Http\Controllers\Admin\RevenueController::class, 'commissionAnalytics'])->name('commission-analytics');
         Route::get('/payout-management', [\App\Http\Controllers\Admin\RevenueController::class, 'payoutManagement'])->name('payout-management');
         Route::get('/export', [\App\Http\Controllers\Admin\RevenueController::class, 'export'])->name('export');
+    });
+    
+    // Hoarding Approval Workflow (PROMPT 78)
+    Route::prefix('approvals')->name('approvals.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'index'])->name('index');
+        Route::get('/{id}', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'show'])->name('show');
+        Route::post('/{id}/start-verification', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'startVerification'])->name('start-verification');
+        Route::post('/{id}/checklist', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'updateChecklist'])->name('update-checklist');
+        Route::post('/{id}/approve', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'reject'])->name('reject');
+        Route::get('/{id}/versions/{version1}/{version2}', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'compareVersions'])->name('compare-versions');
+        Route::post('/bulk-approve', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'bulkApprove'])->name('bulk-approve');
+        Route::post('/{id}/assign', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'assign'])->name('assign');
+        Route::get('/export', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'export'])->name('export');
+        
+        // Templates & Settings
+        Route::get('/templates/manage', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'templates'])->name('templates');
+        Route::post('/templates', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'storeTemplate'])->name('templates.store');
+        Route::get('/settings/manage', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'settings'])->name('settings');
+        Route::post('/settings', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'saveSettings'])->name('settings.save');
     });
 });
 
