@@ -5,17 +5,18 @@ namespace App\Services;
 use App\Models\BookingRefund;
 use App\Models\CancellationPolicy;
 use App\Models\Booking;
+use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class BookingCancellationService
 {
-    protected RazorpayService $razorpayService;
+    protected PaymentService $paymentService;
 
-    public function __construct(RazorpayService $razorpayService)
+    public function __construct(PaymentService $paymentService)
     {
-        $this->razorpayService = $razorpayService;
+        $this->paymentService = $paymentService;
     }
 
     /**
@@ -107,17 +108,26 @@ class BookingCancellationService
         $refund->markAsProcessing();
 
         try {
-            $refundResponse = $this->razorpayService->createRefund(
+            // Create refund via PaymentService
+            $refundResult = $this->paymentService->createRefund(
                 $refund->pg_payment_id,
                 $refund->refund_amount,
-                'Booking cancellation refund'
+                [
+                    'reason' => 'Booking cancellation',
+                    'notes' => "Refund for booking #{$refund->booking_id}",
+                ]
             );
 
-            $refund->markAsCompleted($refundResponse['id'] ?? 'manual');
+            if (!$refundResult['success']) {
+                throw new \Exception($refundResult['error'] ?? 'Refund creation failed');
+            }
+
+            $refundData = $refundResult['refund_data'];
+            $refund->markAsCompleted($refundData['id'] ?? 'manual');
 
             // Update original booking
             $refund->booking->update([
-                'refund_id' => $refundResponse['id'] ?? null,
+                'refund_id' => $refundData['id'] ?? null,
                 'refund_amount' => $refund->refund_amount,
                 'refunded_at' => now(),
                 'payment_status' => 'refunded',
@@ -125,7 +135,8 @@ class BookingCancellationService
 
             Log::info('Auto-refund processed successfully', [
                 'refund_id' => $refund->id,
-                'pg_refund_id' => $refundResponse['id'] ?? null,
+                'pg_refund_id' => $refundData['id'] ?? null,
+                'transaction_id' => $refundResult['refund_transaction']->id ?? null,
             ]);
 
         } catch (\Exception $e) {

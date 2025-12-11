@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Services\HoardingBookingService;
-use App\Services\RazorpayService;
+use App\Services\PaymentService;
 use App\Models\BookingDraft;
 use App\Models\Booking;
+use App\Models\PaymentTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,14 +17,14 @@ use Exception;
 class BookingFlowController extends Controller
 {
     protected HoardingBookingService $bookingService;
-    protected RazorpayService $razorpayService;
+    protected PaymentService $paymentService;
 
     public function __construct(
         HoardingBookingService $bookingService,
-        RazorpayService $razorpayService
+        PaymentService $paymentService
     ) {
         $this->bookingService = $bookingService;
-        $this->razorpayService = $razorpayService;
+        $this->paymentService = $paymentService;
     }
 
     /**
@@ -323,19 +324,33 @@ class BookingFlowController extends Controller
                 throw new Exception('Booking hold has expired. Please book again.');
             }
 
-            // Create Razorpay order
-            $orderData = $this->razorpayService->createOrder(
-                $booking->total_amount,
-                'INR',
-                "booking_{$booking->id}",
-                [
+            // Create payment order via PaymentService
+            $orderResult = $this->paymentService->createOrder($booking->total_amount, 'INR', [
+                'reference_type' => 'Booking',
+                'reference_id' => $booking->id,
+                'user_id' => $booking->customer_id,
+                'receipt' => "booking_{$booking->id}_" . time(),
+                'description' => "Booking #{$booking->id} - {$booking->hoarding->title}",
+                'customer_name' => $booking->customer->name,
+                'customer_email' => $booking->customer->email,
+                'customer_phone' => $booking->customer->phone,
+                'manual_capture' => true,
+                'capture_expiry_minutes' => 30,
+                'metadata' => [
                     'booking_id' => $booking->id,
                     'customer_id' => $booking->customer_id,
                     'hoarding_id' => $booking->hoarding_id,
-                ]
-            );
+                ],
+            ]);
 
-            // Save order ID to booking
+            if (!$orderResult['success']) {
+                throw new Exception($orderResult['error'] ?? 'Failed to create payment order');
+            }
+
+            $orderData = $orderResult['order_data'];
+            $transaction = $orderResult['transaction'];
+
+            // Save order ID and transaction reference to booking
             $booking->update([
                 'razorpay_order_id' => $orderData['id'],
             ]);
@@ -392,21 +407,21 @@ class BookingFlowController extends Controller
         DB::beginTransaction();
 
         try {
-            // Verify signature
-            $isValid = $this->razorpayService->verifyPaymentSignature(
-                $request->razorpay_order_id,
-                $request->razorpay_payment_id,
-                $request->razorpay_signature
-            );
-
-            if (!$isValid) {
-                throw new Exception('Invalid payment signature');
-            }
-
             // Find booking
             $booking = Booking::where('razorpay_order_id', $request->razorpay_order_id)
                 ->where('customer_id', Auth::id())
                 ->firstOrFail();
+
+            // Find payment transaction
+            $transaction = PaymentTransaction::where('gateway_order_id', $request->razorpay_order_id)
+                ->where('reference_type', 'Booking')
+                ->where('reference_id', $booking->id)
+                ->firstOrFail();
+
+            // Update transaction with payment ID from callback
+            $transaction->update([
+                'gateway_payment_id' => $request->razorpay_payment_id,
+            ]);
 
             // Update booking with payment details
             $booking->update([
@@ -416,8 +431,8 @@ class BookingFlowController extends Controller
                 'payment_status' => 'authorized',
             ]);
 
-            // Capture payment
-            $captureResult = $this->razorpayService->capturePayment(
+            // Capture payment via PaymentService
+            $captureResult = $this->paymentService->capturePayment(
                 $request->razorpay_payment_id,
                 $booking->total_amount
             );

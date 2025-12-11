@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Contracts\PaymentGatewayInterface;
 use App\Models\PaymentTransaction;
 use App\Services\Gateways\RazorpayGateway;
-use App\Services\Gateways\StripeGateway;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -37,7 +36,7 @@ class PaymentService
     {
         return match ($gateway) {
             'razorpay' => app(RazorpayGateway::class),
-            'stripe' => app(StripeGateway::class),
+            // 'stripe' => app(StripeGateway::class), // Phase 2
             default => throw new Exception("Unsupported payment gateway: {$gateway}"),
         };
     }
