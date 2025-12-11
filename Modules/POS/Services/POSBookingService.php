@@ -6,19 +6,26 @@ use Modules\POS\Models\POSBooking;
 use Modules\Hoardings\Models\Hoarding;
 use Modules\Settings\Services\SettingsService;
 use App\Services\TaxService;
+use App\Services\InvoiceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class POSBookingService
 {
     protected SettingsService $settingsService;
     protected TaxService $taxService;
+    protected InvoiceService $invoiceService;
 
-    public function __construct(SettingsService $settingsService, TaxService $taxService)
-    {
+    public function __construct(
+        SettingsService $settingsService,
+        TaxService $taxService,
+        InvoiceService $invoiceService
+    ) {
         $this->settingsService = $settingsService;
         $this->taxService = $taxService;
+        $this->invoiceService = $invoiceService;
     }
 
     /**
@@ -39,14 +46,7 @@ class POSBookingService
             // Calculate pricing
             $pricing = $this->calculatePricing($data);
 
-            // Generate invoice number if auto-invoice is enabled
-            $invoiceData = [];
-            if ($this->isAutoInvoiceEnabled()) {
-                $invoiceData = [
-                    'invoice_number' => POSBooking::generateInvoiceNumber(),
-                    'invoice_date' => now(),
-                ];
-            }
+            // Note: GST-compliant invoice will be generated after booking creation
 
             // Credit note handling
             $creditNoteData = [];
@@ -92,7 +92,38 @@ class POSBookingService
                 'payment_notes' => $data['payment_notes'] ?? null,
                 'notes' => $data['notes'] ?? null,
                 'booking_snapshot' => $this->createBookingSnapshot($data),
-            ], $pricing, $invoiceData, $creditNoteData, $approvalData));
+            ], $pricing, $creditNoteData, $approvalData));
+
+            // PROMPT 64: Generate GST-compliant invoice if auto-invoice enabled
+            if ($this->isAutoInvoiceEnabled()) {
+                try {
+                    $invoice = $this->invoiceService->generateInvoiceForBooking(
+                        $booking,
+                        null, // No payment record for POS
+                        \App\Models\Invoice::TYPE_POS,
+                        Auth::id()
+                    );
+                    
+                    // Store invoice reference in POS booking
+                    $booking->update([
+                        'invoice_number' => $invoice->invoice_number,
+                        'invoice_date' => $invoice->invoice_date,
+                        'invoice_path' => $invoice->pdf_path,
+                    ]);
+                    
+                    Log::info('POS invoice generated', [
+                        'pos_booking_id' => $booking->id,
+                        'invoice_id' => $invoice->id,
+                        'invoice_number' => $invoice->invoice_number,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to generate POS invoice', [
+                        'pos_booking_id' => $booking->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    // Don't fail the booking if invoice fails
+                }
+            }
 
             return $booking->fresh();
         });

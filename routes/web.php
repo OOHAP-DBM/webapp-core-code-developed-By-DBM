@@ -158,15 +158,40 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
         // My Quotations
         Route::get('/quotations', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myQuotations'])->name('quotations');
         
-        // My Invoices
-        Route::get('/invoices', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myInvoices'])->name('invoices');
-        Route::get('/invoices/export/{format}', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'exportInvoices'])->name('invoices.export');
+        // My Invoices (PROMPT 64)
+        Route::get('/invoices', [\App\Http\Controllers\InvoiceController::class, 'index'])->name('invoices');
+        Route::get('/invoices/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoices/{invoice}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('invoices.download');
+        Route::get('/invoices/{invoice}/print', [\App\Http\Controllers\InvoiceController::class, 'print'])->name('invoices.print');
+        Route::post('/invoices/{invoice}/email', [\App\Http\Controllers\InvoiceController::class, 'sendEmail'])->name('invoices.email');
+        Route::get('/invoices/export/{format}', [\App\Http\Controllers\InvoiceController::class, 'export'])->name('invoices.export');
         
         // My Threads
         Route::get('/threads', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myThreads'])->name('threads');
         
         // Refresh Stats
         Route::post('/refresh-stats', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'refreshStats'])->name('refresh-stats');
+    });
+    
+    // DOOH Creatives & Schedules (PROMPT 67)
+    Route::prefix('dooh')->name('dooh.')->group(function () {
+        // Creatives
+        Route::get('/creatives', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'creatives'])->name('creatives.index');
+        Route::get('/creatives/create', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'createCreative'])->name('creatives.create');
+        Route::post('/creatives', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'storeCreative'])->name('creatives.store');
+        Route::get('/creatives/{creative}', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'showCreative'])->name('creatives.show');
+        Route::delete('/creatives/{creative}', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'destroyCreative'])->name('creatives.destroy');
+        
+        // Schedules
+        Route::get('/schedules', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'schedules'])->name('schedules.index');
+        Route::get('/schedules/create', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'createSchedule'])->name('schedules.create');
+        Route::post('/schedules', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'storeSchedule'])->name('schedules.store');
+        Route::get('/schedules/{schedule}', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'showSchedule'])->name('schedules.show');
+        Route::post('/schedules/{schedule}/cancel', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'cancelSchedule'])->name('schedules.cancel');
+        
+        // AJAX Routes
+        Route::post('/check-availability', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'checkAvailability'])->name('check-availability');
+        Route::post('/playback-preview', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'playbackPreview'])->name('playback-preview');
     });
 });
 
@@ -363,6 +388,40 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Finance & Commission Management
     Route::get('/finance/bookings-payments', [\App\Http\Controllers\Admin\FinanceController::class, 'bookingsPaymentsLedger'])->name('finance.bookings-payments');
     Route::get('/finance/pending-manual-payouts', [\App\Http\Controllers\Admin\FinanceController::class, 'pendingManualPayouts'])->name('finance.pending-manual-payouts');
+    
+    // Invoice Management (PROMPT 64)
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\InvoiceController::class, 'adminIndex'])->name('index');
+        Route::get('/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'adminShow'])->name('show');
+        Route::get('/{invoice}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('download');
+        Route::post('/{invoice}/cancel', [\App\Http\Controllers\InvoiceController::class, 'adminCancel'])->name('cancel');
+        Route::post('/{invoice}/mark-paid', [\App\Http\Controllers\InvoiceController::class, 'adminMarkPaid'])->name('mark-paid');
+        Route::post('/{invoice}/regenerate-pdf', [\App\Http\Controllers\InvoiceController::class, 'adminRegeneratePDF'])->name('regenerate-pdf');
+        Route::post('/{invoice}/email', [\App\Http\Controllers\InvoiceController::class, 'sendEmail'])->name('email');
+    });
+    
+    // DOOH Creatives & Schedules Management (PROMPT 67)
+    Route::prefix('dooh')->name('dooh.')->group(function () {
+        // Creatives Management
+        Route::get('/creatives', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'creatives'])->name('creatives.index');
+        Route::get('/creatives/{creative}', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'showCreative'])->name('creatives.show');
+        Route::post('/creatives/{creative}/approve', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'approveCreative'])->name('creatives.approve');
+        Route::post('/creatives/{creative}/reject', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'rejectCreative'])->name('creatives.reject');
+        
+        // Schedules Management
+        Route::get('/schedules', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'schedules'])->name('schedules.index');
+        Route::get('/schedules/{schedule}', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'showSchedule'])->name('schedules.show');
+        Route::post('/schedules/{schedule}/approve', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'approveSchedule'])->name('schedules.approve');
+        Route::post('/schedules/{schedule}/reject', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'rejectSchedule'])->name('schedules.reject');
+        Route::post('/schedules/{schedule}/pause', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'pauseSchedule'])->name('schedules.pause');
+        Route::post('/schedules/{schedule}/resume', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'resumeSchedule'])->name('schedules.resume');
+        Route::post('/schedules/bulk-approve', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'bulkApprove'])->name('schedules.bulk-approve');
+        Route::get('/schedules/export', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'exportSchedules'])->name('schedules.export');
+        
+        // Screen Calendar & Playback
+        Route::get('/screens/{screen}/calendar', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'screenCalendar'])->name('screens.calendar');
+        Route::get('/screens/{screen}/playback', [\Modules\DOOH\Controllers\Admin\AdminDOOHScheduleController::class, 'dailyPlayback'])->name('screens.playback');
+    });
     
     // Settings (New Enhanced Settings System - PROMPT 29)
     Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');

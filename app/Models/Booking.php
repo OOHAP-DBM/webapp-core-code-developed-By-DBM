@@ -127,6 +127,16 @@ class Booking extends Model
         return $this->hasOne(CommissionLog::class);
     }
 
+    public function invoices(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Invoice::class);
+    }
+
+    public function invoice(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\Invoice::class)->latest();
+    }
+
     public function podSubmissions(): HasMany
     {
         return $this->hasMany(\Modules\POD\Models\PODSubmission::class)->orderBy('submission_date', 'desc');

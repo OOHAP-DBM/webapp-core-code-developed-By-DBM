@@ -37,6 +37,16 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at',
         'phone_verified_at',
         'last_login_at',
+        // GST and company details (PROMPT 64)
+        'gstin',
+        'company_name',
+        'pan',
+        'customer_type',
+        'billing_address',
+        'billing_city',
+        'billing_state',
+        'billing_state_code',
+        'billing_pincode',
     ];
 
     /**
@@ -203,6 +213,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function wishlist(): HasMany
     {
         return $this->hasMany(Wishlist::class);
+    }
+
+    /**
+     * Get the user's invoices (PROMPT 64)
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(\App\Models\Invoice::class, 'customer_id');
     }
 
     /**

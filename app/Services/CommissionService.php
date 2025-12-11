@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Booking;
 use App\Models\BookingPayment;
 use App\Models\CommissionLog;
+use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Settings\Services\SettingsService;
@@ -135,6 +136,33 @@ class CommissionService
                 'rule_id' => $ruleId,
                 'rule_name' => $ruleName,
             ]);
+
+            // PROMPT 64: Auto-generate GST-compliant invoice
+            try {
+                $invoiceService = app(\App\Services\InvoiceService::class);
+                $invoice = $invoiceService->generateInvoiceForBooking(
+                    $booking,
+                    $bookingPayment,
+                    \App\Models\Invoice::TYPE_FULL_PAYMENT
+                );
+                
+                Log::info('Invoice generated automatically', [
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'booking_id' => $booking->id,
+                ]);
+
+                // Auto-send email if enabled
+                if (Setting::getValue('invoice_auto_send_email', true)) {
+                    $invoiceService->sendInvoiceEmail($invoice);
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to generate invoice after payment', [
+                    'booking_id' => $booking->id,
+                    'error' => $e->getMessage(),
+                ]);
+                // Don't fail the transaction if invoice generation fails
+            }
 
             return [$bookingPayment, $commissionLog];
         });

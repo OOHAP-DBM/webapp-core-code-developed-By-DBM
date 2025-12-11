@@ -65,6 +65,14 @@ class BookingPayment extends Model
     }
 
     /**
+     * Relationship: Has One Invoice (PROMPT 64)
+     */
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(\App\Models\Invoice::class);
+    }
+
+    /**
      * Scopes
      */
     public function scopePendingPayout($query)
