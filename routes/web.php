@@ -29,6 +29,13 @@ Route::get('/sitemap-static.xml', [\App\Http\Controllers\SitemapController::clas
 Route::get('/sitemap-hoardings.xml', [\App\Http\Controllers\SitemapController::class, 'hoardings'])->name('sitemap.hoardings');
 Route::get('/sitemap-locations.xml', [\App\Http\Controllers\SitemapController::class, 'locations'])->name('sitemap.locations');
 
+// Language Routes (PROMPT 80)
+Route::post('/language/switch', [\App\Http\Controllers\LanguageController::class, 'switch'])->name('language.switch');
+Route::get('/language/selector', [\App\Http\Controllers\LanguageController::class, 'selector'])->name('language.selector');
+Route::get('/api/languages', [\App\Http\Controllers\LanguageController::class, 'index'])->name('api.languages.index');
+Route::get('/api/languages/{locale}/translations', [\App\Http\Controllers\LanguageController::class, 'getTranslations'])->name('api.languages.translations');
+Route::post('/api/languages/suggest', [\App\Http\Controllers\LanguageController::class, 'suggestTranslation'])->name('api.languages.suggest')->middleware('auth');
+
 // Map Search Routes
 Route::get('/map-search', [\App\Http\Controllers\MapSearchController::class, 'index'])->name('map-search.index');
 Route::post('/api/map/search', [\App\Http\Controllers\MapSearchController::class, 'search'])->name('api.map.search');
