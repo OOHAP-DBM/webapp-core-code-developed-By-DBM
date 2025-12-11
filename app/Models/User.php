@@ -238,4 +238,125 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->wishlist()->count();
     }
+
+    /**
+     * Get vendor's SLA violations (PROMPT 68)
+     */
+    public function slaViolations(): HasMany
+    {
+        return $this->hasMany(\App\Models\VendorSLAViolation::class, 'vendor_id');
+    }
+
+    /**
+     * Get vendor's custom SLA setting (PROMPT 68)
+     */
+    public function customSLASetting()
+    {
+        return $this->belongsTo(\App\Models\VendorSLASetting::class, 'vendor_sla_setting_id');
+    }
+
+    /**
+     * Update reliability tier based on current score (PROMPT 68)
+     */
+    public function updateReliabilityTier(): void
+    {
+        $score = $this->reliability_score;
+
+        $tier = match (true) {
+            $score >= 90 => 'excellent',
+            $score >= 75 => 'good',
+            $score >= 60 => 'average',
+            $score >= 40 => 'poor',
+            default => 'critical',
+        };
+
+        $this->update(['reliability_tier' => $tier]);
+    }
+
+    /**
+     * Get reliability tier color (PROMPT 68)
+     */
+    public function getReliabilityTierColor(): string
+    {
+        return match ($this->reliability_tier) {
+            'excellent' => 'success',
+            'good' => 'info',
+            'average' => 'warning',
+            'poor' => 'danger',
+            'critical' => 'dark',
+            default => 'secondary',
+        };
+    }
+
+    /**
+     * Get reliability score percentage (PROMPT 68)
+     */
+    public function getReliabilityScorePercentage(): float
+    {
+        return round($this->reliability_score ?? 100.00, 2);
+    }
+
+    /**
+     * Check if vendor is reliable (score >= 75) (PROMPT 68)
+     */
+    public function isReliable(): bool
+    {
+        return $this->reliability_score >= 75;
+    }
+
+    /**
+     * Check if vendor has critical reliability (score < 40) (PROMPT 68)
+     */
+    public function hasCriticalReliability(): bool
+    {
+        return $this->reliability_score < 40;
+    }
+
+    /**
+     * Get vendor's monthly violation count (PROMPT 68)
+     */
+    public function getMonthlyViolationCount(): int
+    {
+        return $this->sla_violations_this_month ?? 0;
+    }
+
+    /**
+     * Get vendor's total violation count (PROMPT 68)
+     */
+    public function getTotalViolationCount(): int
+    {
+        return $this->sla_violations_count ?? 0;
+    }
+
+    /**
+     * Check if vendor is at risk of critical status (PROMPT 68)
+     */
+    public function isAtRisk(): bool
+    {
+        // At risk if:
+        // - Score is between 40-60 (poor tier)
+        // - OR has 2+ violations this month
+        // - OR has 5+ total violations
+        return $this->reliability_score < 60 && $this->reliability_score >= 40
+            || $this->sla_violations_this_month >= 2
+            || $this->sla_violations_count >= 5;
+    }
+
+    /**
+     * Get vendor's on-time performance summary (PROMPT 68)
+     */
+    public function getPerformanceSummary(): array
+    {
+        return [
+            'reliability_score' => $this->reliability_score ?? 100.00,
+            'reliability_tier' => $this->reliability_tier ?? 'excellent',
+            'total_violations' => $this->sla_violations_count ?? 0,
+            'monthly_violations' => $this->sla_violations_this_month ?? 0,
+            'on_time_acceptance_rate' => $this->on_time_acceptance_rate ?? 100.00,
+            'on_time_quote_rate' => $this->on_time_quote_rate ?? 100.00,
+            'avg_acceptance_time' => $this->avg_acceptance_time_hours ?? 0,
+            'avg_quote_time' => $this->avg_quote_time_hours ?? 0,
+            'last_violation' => $this->last_sla_violation_at,
+        ];
+    }
 }

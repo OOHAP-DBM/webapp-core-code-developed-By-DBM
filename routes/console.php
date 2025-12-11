@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use App\Jobs\CaptureExpiredHoldsJob;
 use App\Services\HoardingBookingService;
+use App\Services\SLATrackingService;
 
 // ============================================
 // Scheduled Tasks
@@ -39,6 +40,32 @@ Schedule::call(function () {
     ->everyMinute()
     ->name('release-expired-holds')
     ->withoutOverlapping(2)
+    ->onOneServer();
+
+// Monitor vendor SLA deadlines hourly (PROMPT 68)
+Schedule::command('sla:monitor')
+    ->hourly()
+    ->name('monitor-vendor-slas')
+    ->withoutOverlapping(10)
+    ->onOneServer();
+
+// Process daily vendor reliability score recovery (PROMPT 68)
+Schedule::call(function () {
+    app(SLATrackingService::class)->processDailyRecovery();
+})
+    ->daily()
+    ->at('00:00')
+    ->name('vendor-reliability-recovery')
+    ->withoutOverlapping(10)
+    ->onOneServer();
+
+// Reset monthly violation counts on 1st of each month (PROMPT 68)
+Schedule::call(function () {
+    app(SLATrackingService::class)->resetMonthlyViolationCounts();
+})
+    ->monthlyOn(1, '00:00')
+    ->name('reset-monthly-violations')
+    ->withoutOverlapping(5)
     ->onOneServer();
 
 // ============================================
