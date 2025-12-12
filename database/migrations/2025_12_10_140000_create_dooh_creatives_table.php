@@ -85,7 +85,7 @@ return new class extends Migration
             
             // Status & tracking
             $table->enum('status', ['draft', 'active', 'archived', 'deleted'])->default('draft');
-            $table->timestamp('uploaded_at');
+            $table->timestamp('uploaded_at')->nullable();
             $table->timestamp('archived_at')->nullable();
             
             $table->timestamps();

@@ -39,6 +39,7 @@ class Hoarding extends Model implements HasMedia
         'weekly_price',
         'monthly_price',
         'enable_weekly_booking',
+        'grace_period_days',
         'type',
         'status',
     ];
@@ -374,4 +375,42 @@ class Hoarding extends Model implements HasMedia
 
         return $angle * $earthRadius;
     }
+
+    /**
+     * Get the grace period days for this hoarding
+     * Returns vendor-specific grace period or admin default
+     */
+    public function getGracePeriodDays(): int
+    {
+        return $this->grace_period_days ?? (int) config('booking.grace_period_days', env('BOOKING_GRACE_PERIOD_DAYS', 2));
+    }
+
+    /**
+     * Get the earliest allowed start date for campaigns
+     * This enforces the grace period to prevent last-minute bookings
+     */
+    public function getEarliestAllowedStartDate(): \Carbon\Carbon
+    {
+        return \Carbon\Carbon::today()->addDays($this->getGracePeriodDays());
+    }
+
+    /**
+     * Validate if a start date is within the allowed grace period
+     */
+    public function isStartDateAllowed(\Carbon\Carbon $startDate): bool
+    {
+        return $startDate->greaterThanOrEqualTo($this->getEarliestAllowedStartDate());
+    }
+
+    /**
+     * Get validation message for invalid start dates
+     */
+    public function getGracePeriodValidationMessage(): string
+    {
+        $days = $this->getGracePeriodDays();
+        $earliestDate = $this->getEarliestAllowedStartDate()->format('d M Y');
+        
+        return "Campaign start date must be at least {$days} day(s) from today. Earliest allowed date: {$earliestDate}";
+    }
 }
+

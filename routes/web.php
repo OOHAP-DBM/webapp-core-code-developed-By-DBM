@@ -23,6 +23,10 @@ Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::cla
 Route::get('/dooh', [\App\Http\Controllers\Web\DOOHController::class, 'index'])->name('dooh.index');
 Route::get('/dooh/{id}', [\App\Http\Controllers\Web\DOOHController::class, 'show'])->name('dooh.show');
 
+// Newsletter Routes
+Route::post('/newsletter/subscribe', [\App\Http\Controllers\NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+Route::post('/newsletter/unsubscribe', [\App\Http\Controllers\NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
+
 // Sitemap Routes (PROMPT 79)
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap.index');
 Route::get('/sitemap-static.xml', [\App\Http\Controllers\SitemapController::class, 'static'])->name('sitemap.static');
@@ -67,6 +71,14 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('/logout', [\App\Http\Controllers\Web\Auth\LoginController::class, 'logout'])->name('logout')->middleware('auth');
+
+// ============================================
+// ROLE SWITCHING (PROMPT 96)
+// ============================================
+Route::middleware(['auth'])->prefix('auth')->name('auth.')->group(function () {
+    Route::post('/switch-role/{role}', [\App\Http\Controllers\Web\Auth\RoleSwitchController::class, 'switch'])->name('switch-role');
+    Route::get('/available-roles', [\App\Http\Controllers\Web\Auth\RoleSwitchController::class, 'getAvailableRoles'])->name('available-roles');
+});
 
 // ============================================
 // CUSTOMER PANEL (Authenticated)
@@ -452,6 +464,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/clear-cache', [\App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('settings.clear-cache');
+    
+    // Geo-Fencing Settings (PROMPT 98)
+    Route::get('/settings/geofencing', [\App\Http\Controllers\Web\Admin\GeofencingSettingsController::class, 'index'])->name('settings.geofencing');
+    Route::put('/settings/geofencing', [\App\Http\Controllers\Web\Admin\GeofencingSettingsController::class, 'update'])->name('settings.geofencing.update');
+    Route::get('/settings/geofencing/violations', [\App\Http\Controllers\Web\Admin\GeofencingSettingsController::class, 'violations'])->name('settings.geofencing.violations');
     
     // Price Update Engine (PROMPT 30)
     Route::prefix('price-updates')->name('price-updates.')->group(function () {

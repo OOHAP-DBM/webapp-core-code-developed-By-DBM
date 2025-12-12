@@ -23,6 +23,19 @@ class HoardingController extends Controller
     }
 
     /**
+     * Display all hoardings listing
+     */
+    public function index()
+    {
+        $hoardings = $this->hoardingService->getActiveHoardings([
+            'per_page' => 12,
+            'with' => ['vendor', 'media']
+        ]);
+
+        return view('hoardings.index', compact('hoardings'));
+    }
+
+    /**
      * Display the specified hoarding.
      */
     public function show(int $id)

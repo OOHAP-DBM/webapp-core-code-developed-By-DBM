@@ -54,7 +54,11 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Start Date <span class="text-danger">*</span></label>
-                                    <input type="date" name="start_date" class="form-control" min="{{ now()->addDays(7)->format('Y-m-d') }}" required>
+                                    <input type="date" name="start_date" class="form-control" 
+                                           min="{{ $hoarding->getEarliestAllowedStartDate()->format('Y-m-d') }}" required>
+                                    <small class="text-muted">
+                                        Minimum {{ $hoarding->getGracePeriodDays() }} day(s) advance booking required
+                                    </small>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">End Date <span class="text-danger">*</span></label>

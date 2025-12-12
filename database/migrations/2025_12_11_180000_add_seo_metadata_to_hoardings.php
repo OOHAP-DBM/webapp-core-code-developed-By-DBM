@@ -13,17 +13,16 @@ return new class extends Migration
     {
         // Add SEO columns to hoardings table
         Schema::table('hoardings', function (Blueprint $table) {
-            $table->string('slug')->unique()->nullable()->after('location_name');
-            $table->string('meta_title', 70)->nullable()->after('slug');
-            $table->text('meta_description')->nullable()->after('meta_title');
-            $table->json('meta_keywords')->nullable()->after('meta_description');
-            $table->string('og_image')->nullable()->after('meta_keywords');
-            $table->boolean('index_page')->default(true)->after('og_image');
-            $table->integer('view_count')->default(0)->after('index_page');
-            $table->timestamp('last_viewed_at')->nullable()->after('view_count');
+            $table->string('slug')->unique()->nullable();
+            $table->string('meta_title', 70)->nullable();
+            $table->text('meta_description')->nullable();
+            $table->json('meta_keywords')->nullable();
+            $table->string('og_image')->nullable();
+            $table->boolean('index_page')->default(true);
+            $table->integer('view_count')->default(0);
+            $table->timestamp('last_viewed_at')->nullable();
             
             $table->index('slug');
-            $table->index(['city', 'board_type']);
             $table->index('view_count');
         });
 

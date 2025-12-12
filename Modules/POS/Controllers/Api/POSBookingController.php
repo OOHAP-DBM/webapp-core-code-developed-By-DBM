@@ -3,6 +3,8 @@
 namespace Modules\POS\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\GracePeriodService;
+use App\Models\Hoarding;
 use Modules\POS\Services\POSBookingService;
 use Modules\POS\Models\POSBooking;
 use Illuminate\Http\Request;
@@ -12,10 +14,12 @@ use Illuminate\Support\Facades\Auth;
 class POSBookingController extends Controller
 {
     protected POSBookingService $posBookingService;
+    protected GracePeriodService $gracePeriodService;
 
-    public function __construct(POSBookingService $posBookingService)
+    public function __construct(POSBookingService $posBookingService, GracePeriodService $gracePeriodService)
     {
         $this->posBookingService = $posBookingService;
+        $this->gracePeriodService = $gracePeriodService;
     }
 
     /**
@@ -96,7 +100,7 @@ class POSBookingController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
+        $validator = \Validator::make($request->all(), [
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'nullable|email|max:255',
             'customer_phone' => 'required|string|max:20',
@@ -114,6 +118,14 @@ class POSBookingController extends Controller
             'payment_notes' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
+
+        // Add grace period validation if hoarding_id is present
+        if ($request->hoarding_id) {
+            $hoarding = Hoarding::findOrFail($request->hoarding_id);
+            $this->gracePeriodService->addValidationRule($validator, 'start_date', $hoarding);
+        }
+        
+        $validated = $validator->validate();
 
         try {
             $booking = $this->posBookingService->createBooking($validated);

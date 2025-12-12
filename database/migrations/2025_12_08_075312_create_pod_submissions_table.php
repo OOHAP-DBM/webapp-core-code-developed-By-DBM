@@ -36,7 +36,7 @@ return new class extends Migration
 
         // Add campaign tracking columns to bookings table
         Schema::table('bookings', function (Blueprint $table) {
-            $table->timestamp('campaign_started_at')->nullable()->after('pod_approved_at');
+            $table->timestamp('campaign_started_at')->nullable();
         });
     }
 

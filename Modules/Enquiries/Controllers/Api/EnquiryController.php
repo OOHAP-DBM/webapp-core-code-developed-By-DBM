@@ -3,6 +3,8 @@
 namespace Modules\Enquiries\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\GracePeriodService;
+use App\Models\Hoarding;
 use Modules\Enquiries\Services\EnquiryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,10 +14,12 @@ use Illuminate\Support\Facades\Validator;
 class EnquiryController extends Controller
 {
     protected EnquiryService $service;
+    protected GracePeriodService $gracePeriodService;
 
-    public function __construct(EnquiryService $service)
+    public function __construct(EnquiryService $service, GracePeriodService $gracePeriodService)
     {
         $this->service = $service;
+        $this->gracePeriodService = $gracePeriodService;
     }
 
     /**
@@ -24,6 +28,8 @@ class EnquiryController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $hoarding = Hoarding::findOrFail($request->hoarding_id);
+        
         $validator = Validator::make($request->all(), [
             'hoarding_id' => 'required|exists:hoardings,id',
             'preferred_start_date' => 'required|date|after_or_equal:today',
@@ -31,6 +37,9 @@ class EnquiryController extends Controller
             'duration_type' => 'required|in:days,weeks,months',
             'message' => 'nullable|string|max:1000',
         ]);
+
+        // Add grace period validation
+        $this->gracePeriodService->addValidationRule($validator, 'preferred_start_date', $hoarding);
 
         if ($validator->fails()) {
             return response()->json([

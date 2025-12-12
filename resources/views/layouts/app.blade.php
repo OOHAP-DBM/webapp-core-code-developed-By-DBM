@@ -17,8 +17,8 @@
 </head>
 <body class="antialiased">
     <div id="app" class="min-h-screen bg-gray-50">
-        <!-- Header -->
-        @include('layouts.partials.header')
+        {{-- <!-- Header -->
+        @include('layouts.partials.header') --}}
 
         <!-- Main Content -->
         <main class="py-6">
@@ -26,7 +26,7 @@
         </main>
 
         <!-- Footer -->
-        @include('layouts.partials.footer')
+        {{-- @include('layouts.partials.footer') --}}
     </div>
 
     @stack('modals')

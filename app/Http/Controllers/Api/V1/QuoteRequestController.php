@@ -5,16 +5,19 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\QuoteRequest;
 use App\Services\QuoteRequestService;
+use App\Services\GracePeriodService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class QuoteRequestController extends Controller
 {
     protected $requestService;
+    protected $gracePeriodService;
 
-    public function __construct(QuoteRequestService $requestService)
+    public function __construct(QuoteRequestService $requestService, GracePeriodService $gracePeriodService)
     {
         $this->requestService = $requestService;
+        $this->gracePeriodService = $gracePeriodService;
     }
 
     /**
@@ -85,7 +88,9 @@ class QuoteRequestController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $hoarding = \App\Models\Hoarding::findOrFail($request->hoarding_id);
+        
+        $validator = \Validator::make($request->all(), [
             'hoarding_id' => 'required|exists:hoardings,id',
             'preferred_start_date' => 'required|date|after:today',
             'preferred_end_date' => 'required|date|after:preferred_start_date',
@@ -105,6 +110,10 @@ class QuoteRequestController extends Controller
             'response_deadline' => 'nullable|date|after:now',
             'decision_deadline' => 'nullable|date|after:response_deadline',
         ]);
+
+        // Add grace period validation
+        $this->gracePeriodService->addValidationRule($validator, 'preferred_start_date', $hoarding);
+        $validated = $validator->validate();
 
         $customer = Auth::user();
 

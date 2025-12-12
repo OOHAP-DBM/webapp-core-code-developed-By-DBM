@@ -3,6 +3,7 @@
 namespace Modules\Enquiries\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\GracePeriodService;
 use Modules\Threads\Services\ThreadService;
 use Modules\Enquiries\Models\Enquiry;
 use Modules\Hoardings\Models\Hoarding;
@@ -15,10 +16,12 @@ use Carbon\Carbon;
 class EnquiryController extends Controller
 {
     protected ThreadService $threadService;
+    protected GracePeriodService $gracePeriodService;
 
-    public function __construct(ThreadService $threadService)
+    public function __construct(ThreadService $threadService, GracePeriodService $gracePeriodService)
     {
         $this->threadService = $threadService;
+        $this->gracePeriodService = $gracePeriodService;
     }
 
     /**
@@ -26,7 +29,9 @@ class EnquiryController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $hoarding = Hoarding::with('vendor')->findOrFail($request->hoarding_id);
+        
+        $validator = \Validator::make($request->all(), [
             'hoarding_id' => 'required|exists:hoardings,id',
             'preferred_start_date' => 'required|date|after_or_equal:today',
             'preferred_end_date' => 'required|date|after:preferred_start_date',
@@ -34,9 +39,12 @@ class EnquiryController extends Controller
             'message' => 'nullable|string|max:2000',
         ]);
 
+        // Add grace period validation
+        $this->gracePeriodService->addValidationRule($validator, 'preferred_start_date', $hoarding);
+        $validator->validate();
+
         DB::beginTransaction();
         try {
-            $hoarding = Hoarding::with('vendor')->findOrFail($request->hoarding_id);
             $user = Auth::user();
 
             // Create snapshot

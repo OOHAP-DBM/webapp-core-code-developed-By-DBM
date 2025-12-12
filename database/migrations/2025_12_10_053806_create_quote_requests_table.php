@@ -58,7 +58,7 @@ return new class extends Migration
             $table->timestamp('decision_deadline')->nullable()->comment('Customer will decide by');
             
             // Selected Quote
-            $table->foreignId('selected_quote_id')->nullable()->constrained('vendor_quotes');
+            $table->unsignedBigInteger('selected_quote_id')->nullable();
             $table->timestamp('quote_selected_at')->nullable();
             
             // Metadata

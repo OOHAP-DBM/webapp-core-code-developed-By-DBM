@@ -40,16 +40,20 @@ class AuthController extends Controller
             $role
         );
 
-        // Create API token
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Set active role to assigned role (PROMPT 96)
+        $user->update(['active_role' => $role]);
+
+        // Create API token with role context
+        $token = $user->createToken('auth_token', ['role:' . $role])->plainTextToken;
 
         return response()->json([
             'success' => true,
             'message' => 'Registration successful',
             'data' => [
-                'user' => new UserResource($user),
+                'user' => new UserResource($user->fresh()),
                 'token' => $token,
                 'token_type' => 'Bearer',
+                'active_role' => $role,
             ],
         ], 201);
     }
@@ -85,16 +89,23 @@ class AuthController extends Controller
         // Update last login
         $user->updateLastLogin();
 
-        // Create API token
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Set active role to primary role if not set (PROMPT 96)
+        if (!$user->active_role) {
+            $user->update(['active_role' => $user->getPrimaryRole()]);
+        }
+
+        // Create API token with role context
+        $activeRole = $user->fresh()->getActiveRole();
+        $token = $user->createToken('auth_token', ['role:' . $activeRole])->plainTextToken;
 
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
             'data' => [
-                'user' => new UserResource($user),
+                'user' => new UserResource($user->fresh()),
                 'token' => $token,
                 'token_type' => 'Bearer',
+                'active_role' => $activeRole,
             ],
         ]);
     }

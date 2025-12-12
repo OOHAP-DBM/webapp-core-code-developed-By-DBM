@@ -9,12 +9,15 @@ use App\Http\Controllers\Api\RazorpayWebhookController;
  * 
  * All API v1 endpoints are prefixed with /api/v1
  * Module-specific routes are loaded from routes/api_v1/ directory
+ * Rate limiting applied based on endpoint sensitivity
  */
 
-// Razorpay Webhook (No auth middleware - verified via signature)
-Route::post('/webhooks/razorpay', [RazorpayWebhookController::class, 'handle']);
+// Razorpay Webhook (No auth middleware - verified via signature, rate limited)
+Route::middleware(['throttle:webhooks'])->group(function () {
+    Route::post('/webhooks/razorpay', [RazorpayWebhookController::class, 'handle']);
+});
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     
     // Health check
     Route::get('/health', function () {

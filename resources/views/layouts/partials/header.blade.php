@@ -33,7 +33,10 @@
                         Sign Up
                     </a>
                 @else
-                    <a href="{{ auth()->user()->hasRole('admin') ? route('admin.dashboard') : (auth()->user()->hasRole('vendor') ? route('vendor.dashboard') : route('customer.dashboard')) }}" 
+                    <!-- Role Switcher (PROMPT 96) -->
+                    @include('components.role-switcher')
+                    
+                    <a href="{{ auth()->user()->getDashboardRoute() }}" 
                        class="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
                         Dashboard
                     </a>

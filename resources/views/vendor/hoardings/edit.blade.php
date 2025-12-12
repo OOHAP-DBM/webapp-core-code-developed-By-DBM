@@ -118,6 +118,30 @@
                             </div>
                         </div>
 
+                        <!-- Grace Period -->
+                        <div class="mb-3">
+                            <label for="grace_period_days" class="form-label">
+                                Grace Period (Days)
+                                <i class="bi bi-info-circle text-muted" data-bs-toggle="tooltip" 
+                                   title="Minimum days in advance customers must book. Leave empty to use system default ({{ config('booking.grace_period_days', env('BOOKING_GRACE_PERIOD_DAYS', 2)) }} days)."></i>
+                            </label>
+                            <input type="number" min="0" max="90" class="form-control @error('grace_period_days') is-invalid @enderror" 
+                                id="grace_period_days" name="grace_period_days" 
+                                value="{{ old('grace_period_days', $hoarding->grace_period_days) }}"
+                                placeholder="Default: {{ config('booking.grace_period_days', env('BOOKING_GRACE_PERIOD_DAYS', 2)) }} days">
+                            <small class="text-muted">
+                                Customers can't book campaigns starting earlier than this grace period. 
+                                @if($hoarding->grace_period_days)
+                                    Current: <strong>{{ $hoarding->grace_period_days }} days</strong>
+                                @else
+                                    Currently using system default: <strong>{{ config('booking.grace_period_days', env('BOOKING_GRACE_PERIOD_DAYS', 2)) }} days</strong>
+                                @endif
+                            </small>
+                            @error('grace_period_days')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <!-- Enable Weekly Booking -->
                         <div class="mb-3">
                             <div class="form-check">

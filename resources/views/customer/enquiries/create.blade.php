@@ -49,8 +49,12 @@
                                        class="form-control" 
                                        id="preferred_start_date" 
                                        name="preferred_start_date" 
-                                       min="{{ date('Y-m-d') }}"
+                                       min="{{ $hoarding->getEarliestAllowedStartDate()->format('Y-m-d') }}"
                                        required>
+                                <small class="text-muted">
+                                    Earliest date: {{ $hoarding->getEarliestAllowedStartDate()->format('d M Y') }} 
+                                    ({{ $hoarding->getGracePeriodDays() }} day grace period)
+                                </small>
                                 <div class="invalid-feedback"></div>
                             </div>
                             <div class="col-md-6">

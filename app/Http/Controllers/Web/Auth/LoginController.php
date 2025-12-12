@@ -48,6 +48,11 @@ class LoginController extends Controller
         // Login user
         Auth::login($user, $request->boolean('remember'));
 
+        // Set active role to primary role if not set (PROMPT 96)
+        if (!$user->active_role) {
+            $user->update(['active_role' => $user->getPrimaryRole()]);
+        }
+
         // Update last login
         $user->updateLastLogin();
 

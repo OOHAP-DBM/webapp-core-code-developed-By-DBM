@@ -3,6 +3,8 @@
 namespace Modules\Bookings\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\GracePeriodService;
+use App\Models\Hoarding;
 use Modules\Bookings\Services\DirectBookingService;
 use Modules\Bookings\Services\BookingService;
 use App\Services\RazorpayService;
@@ -26,17 +28,20 @@ class DirectBookingController extends Controller
     protected BookingService $bookingService;
     protected RazorpayService $razorpayService;
     protected CommissionService $commissionService;
+    protected GracePeriodService $gracePeriodService;
 
     public function __construct(
         DirectBookingService $directBookingService,
         BookingService $bookingService,
         RazorpayService $razorpayService,
-        CommissionService $commissionService
+        CommissionService $commissionService,
+        GracePeriodService $gracePeriodService
     ) {
         $this->directBookingService = $directBookingService;
         $this->bookingService = $bookingService;
         $this->razorpayService = $razorpayService;
         $this->commissionService = $commissionService;
+        $this->gracePeriodService = $gracePeriodService;
     }
 
     /**
@@ -92,11 +97,17 @@ class DirectBookingController extends Controller
     public function checkAvailability(Request $request): JsonResponse
     {
         try {
-            $validated = $request->validate([
+            $hoarding = Hoarding::findOrFail($request->hoarding_id);
+            
+            $validator = \Validator::make($request->all(), [
                 'hoarding_id' => 'required|integer|exists:hoardings,id',
                 'start_date' => 'required|date|after_or_equal:today',
                 'end_date' => 'required|date|after:start_date',
             ]);
+
+            // Add grace period validation
+            $this->gracePeriodService->addValidationRule($validator, 'start_date', $hoarding);
+            $validated = $validator->validate();
 
             $result = $this->directBookingService->checkHoardingAvailability(
                 $validated['hoarding_id'],
@@ -126,12 +137,18 @@ class DirectBookingController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            $validated = $request->validate([
+            $hoarding = Hoarding::findOrFail($request->hoarding_id);
+            
+            $validator = \Validator::make($request->all(), [
                 'hoarding_id' => 'required|integer|exists:hoardings,id',
                 'start_date' => 'required|date|after_or_equal:today',
                 'end_date' => 'required|date|after:start_date',
                 'customer_notes' => 'nullable|string|max:1000',
             ]);
+
+            // Add grace period validation
+            $this->gracePeriodService->addValidationRule($validator, 'start_date', $hoarding);
+            $validated = $validator->validate();
 
             $validated['customer_id'] = Auth::id();
 

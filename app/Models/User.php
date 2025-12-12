@@ -47,6 +47,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'billing_state',
         'billing_state_code',
         'billing_pincode',
+        // Multi-role switching (PROMPT 96)
+        'active_role',
+        'previous_role',
+        'last_role_switch_at',
     ];
 
     /**
@@ -72,6 +76,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'phone_verified_at' => 'datetime',
             'otp_expires_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'last_role_switch_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -149,7 +154,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getDashboardRoute(): string
     {
-        $role = $this->getPrimaryRole();
+        // Use active role if available (PROMPT 96)
+        $role = $this->active_role ?? $this->getPrimaryRole();
 
         return match($role) {
             'super_admin', 'admin' => 'admin.dashboard',
@@ -157,6 +163,73 @@ class User extends Authenticatable implements MustVerifyEmail
             'staff' => 'staff.dashboard',
             default => 'customer.dashboard',
         };
+    }
+
+    /**
+     * Get user's active role (PROMPT 96)
+     */
+    public function getActiveRole(): ?string
+    {
+        return $this->active_role ?? $this->getPrimaryRole();
+    }
+
+    /**
+     * Get layout for current active role (PROMPT 96)
+     */
+    public function getActiveLayout(): string
+    {
+        $role = $this->getActiveRole();
+
+        return match($role) {
+            'super_admin', 'admin' => 'layouts.admin',
+            'vendor', 'subvendor' => 'layouts.vendor',
+            'staff' => 'layouts.staff',
+            default => 'layouts.customer',
+        };
+    }
+
+    /**
+     * Check if user can switch roles (PROMPT 96)
+     */
+    public function canSwitchRoles(): bool
+    {
+        $allRoles = $this->roles()->pluck('name')->toArray();
+        
+        // Customer cannot switch
+        if (in_array('customer', $allRoles) && count($allRoles) === 1) {
+            return false;
+        }
+        
+        // Only admins with multiple roles can switch
+        $hasAdmin = in_array('admin', $allRoles) || in_array('super_admin', $allRoles);
+        
+        return $hasAdmin && count($allRoles) > 1;
+    }
+
+    /**
+     * Get available roles for switching (PROMPT 96)
+     */
+    public function getAvailableRoles(): array
+    {
+        if (!$this->canSwitchRoles()) {
+            return [];
+        }
+
+        $allRoles = $this->roles()->pluck('name')->toArray();
+        $hasAdmin = in_array('admin', $allRoles) || in_array('super_admin', $allRoles);
+        $hasVendor = in_array('vendor', $allRoles) || in_array('subvendor', $allRoles);
+        
+        if ($hasAdmin && $hasVendor) {
+            // Admin with vendor role - can switch between both
+            return array_values(array_intersect($allRoles, ['super_admin', 'admin', 'vendor', 'subvendor']));
+        }
+        
+        if ($hasAdmin) {
+            // Admin without vendor role - can switch between admin types only
+            return array_values(array_intersect($allRoles, ['super_admin', 'admin']));
+        }
+        
+        return [];
     }
 
     /**

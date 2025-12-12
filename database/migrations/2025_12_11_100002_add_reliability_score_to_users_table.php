@@ -78,17 +78,18 @@ return new class extends Migration
         });
         
         // Initialize reliability scores for existing vendors
-        DB::statement("
-            UPDATE users 
-            SET reliability_score = 100.00,
-                reliability_tier = 'excellent',
-                last_score_update_at = NOW()
-            WHERE id IN (
-                SELECT DISTINCT vendor_id 
-                FROM hoardings 
-                WHERE vendor_id IS NOT NULL
-            )
-        ");
+        DB::table('users')
+            ->whereIn('id', function ($query) {
+                $query->select('vendor_id')
+                    ->from('hoardings')
+                    ->whereNotNull('vendor_id')
+                    ->distinct();
+            })
+            ->update([
+                'reliability_score' => 100.00,
+                'reliability_tier' => 'excellent',
+                'last_score_update_at' => now()
+            ]);
     }
 
     /**

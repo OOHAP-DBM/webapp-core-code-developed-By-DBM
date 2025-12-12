@@ -16,11 +16,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'active_role' => \App\Http\Middleware\ActiveRoleMiddleware::class, // PROMPT 96
         ]);
         
         // Add SetLocale middleware to web group (PROMPT 80)
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\EnsureActiveRole::class, // PROMPT 96
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

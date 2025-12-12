@@ -8,10 +8,24 @@ use App\Models\Hoarding;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Settings\Services\SettingsService;
 use Exception;
 
 class PODService
 {
+    /**
+     * @var SettingsService
+     */
+    protected $settings;
+
+    /**
+     * PODService constructor.
+     */
+    public function __construct(SettingsService $settings)
+    {
+        $this->settings = $settings;
+    }
+
     /**
      * Upload POD (Proof of Delivery) with geo-validation
      * 
@@ -50,17 +64,22 @@ class PODService
                     $hoarding->longitude
                 );
 
-                // Validate distance within radius
-                $maxDistance = config('pod.max_distance_meters', 100); // Default 100 meters
-                if ($distanceFromHoarding > $maxDistance) {
-                    Log::warning('POD uploaded outside acceptable radius', [
+                // Get geo-fencing settings from database (admin configurable)
+                $maxDistance = $this->settings->get('pod.geofence_radius_meters', 100);
+                $strictValidation = $this->settings->get('pod.strict_geofence_validation', true);
+
+                if ($strictValidation && $distanceFromHoarding > $maxDistance) {
+                    Log::warning('POD uploaded outside acceptable geofence radius', [
                         'booking_id' => $booking->id,
+                        'hoarding_id' => $hoarding->id,
                         'distance' => $distanceFromHoarding,
                         'max_distance' => $maxDistance,
+                        'upload_location' => ['lat' => $latitude, 'lng' => $longitude],
+                        'hoarding_location' => ['lat' => $hoarding->latitude, 'lng' => $hoarding->longitude],
                     ]);
 
                     throw new Exception(
-                        "Location too far from hoarding. Distance: {$distanceFromHoarding}m (Max: {$maxDistance}m)"
+                        "Location validation failed. You must be within {$maxDistance}m of the hoarding to upload POD. Current distance: " . round($distanceFromHoarding) . "m"
                     );
                 }
             }

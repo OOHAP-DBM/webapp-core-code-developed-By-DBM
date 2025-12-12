@@ -101,6 +101,11 @@ return new class extends Migration
             $table->index(['vendor_id', 'status']);
             $table->index(['customer_id', 'status']);
         });
+        
+        // Add foreign key to quote_requests after both tables exist
+        Schema::table('quote_requests', function (Blueprint $table) {
+            $table->foreign('selected_quote_id')->references('id')->on('vendor_quotes')->onDelete('set null');
+        });
     }
 
     /**
