@@ -66,4 +66,13 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     
     // Milestone Payment System (PROMPT 70 - Vendor-controlled milestone payments)
     require base_path('routes/api_v1/milestone_payments.php');
+    
+    // Booking Overlap Validation Engine (PROMPT 101 - Check date conflicts & availability)
+    Route::prefix('booking-overlap')->group(base_path('routes/api_v1/booking_overlap.php'));
+    
+    // Maintenance Blocks (PROMPT 102 - Admin/Vendor blocking periods for maintenance/repairs)
+    Route::prefix('maintenance-blocks')->group(base_path('routes/api_v1/maintenance_blocks.php'));
+    
+    // Hoarding Availability Calendar API (PROMPT 104 - Frontend calendar with availability status)
+    require base_path('routes/api_v1/hoarding_availability.php');
 });

@@ -112,6 +112,14 @@ class Hoarding extends Model implements HasMedia
     }
 
     /**
+     * Get all maintenance blocks for this hoarding (PROMPT 102)
+     */
+    public function maintenanceBlocks()
+    {
+        return $this->hasMany(MaintenanceBlock::class);
+    }
+
+    /**
      * Scope a query to only include active hoardings.
      */
     public function scopeActive($query)

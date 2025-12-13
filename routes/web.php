@@ -665,6 +665,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Activity Log
     Route::get('/activity-log', [\App\Http\Controllers\Web\Admin\ActivityLogController::class, 'index'])->name('activity-log.index');
     
+    // PROMPT 100: Admin Override System
+    Route::prefix('overrides')->name('overrides.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\AdminOverrideController::class, 'index'])->name('index');
+        Route::get('/{override}', [\App\Http\Controllers\Admin\AdminOverrideController::class, 'show'])->name('show');
+    });
+    
     // Revenue Dashboard & Analytics (PROMPT 74)
     Route::prefix('revenue')->name('revenue.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Admin\RevenueController::class, 'dashboard'])->name('dashboard');

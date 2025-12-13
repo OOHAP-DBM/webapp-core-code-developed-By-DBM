@@ -50,4 +50,21 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // Booking Rules Configuration
     Route::get('/booking-rules', [BookingRulesController::class, 'index']);
     Route::put('/booking-rules', [BookingRulesController::class, 'update']);
+    
+    // PROMPT 100: Admin Override System
+    Route::prefix('overrides')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\AdminOverrideController::class, 'index']);
+        Route::get('/{override}', [\App\Http\Controllers\Admin\AdminOverrideController::class, 'show']);
+        Route::get('/history', [\App\Http\Controllers\Admin\AdminOverrideController::class, 'history']);
+        
+        // Override specific entities
+        Route::post('/booking/{booking}', [\App\Http\Controllers\Admin\AdminOverrideController::class, 'overrideBooking']);
+        Route::post('/payment/{payment}', [\App\Http\Controllers\Admin\AdminOverrideController::class, 'overridePayment']);
+        Route::post('/offer/{offer}', [\App\Http\Controllers\Admin\AdminOverrideController::class, 'overrideOffer']);
+        Route::post('/quote/{quote}', [\App\Http\Controllers\Admin\AdminOverrideController::class, 'overrideQuote']);
+        Route::post('/commission/{commission}', [\App\Http\Controllers\Admin\AdminOverrideController::class, 'overrideCommission']);
+        
+        // Revert override (super admin only)
+        Route::post('/{override}/revert', [\App\Http\Controllers\Admin\AdminOverrideController::class, 'revert']);
+    });
 });

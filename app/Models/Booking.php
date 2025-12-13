@@ -5,13 +5,14 @@ namespace App\Models;
 use App\Traits\HasSnapshots;
 use App\Traits\Auditable;
 use App\Traits\HasTimeline;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
 {
-    use HasSnapshots, Auditable, HasTimeline;
+    use HasFactory, HasSnapshots, Auditable, HasTimeline;
     
     protected $snapshotType = 'booking';
     protected $snapshotOnCreate = true;
@@ -476,5 +477,126 @@ class Booking extends Model
             ]);
         }
     }
+
+    /**
+     * PROMPT 101: Overlap Detection Methods
+     */
+
+    /**
+     * Check if this booking overlaps with given date range
+     * 
+     * @param string|\Carbon\Carbon $startDate
+     * @param string|\Carbon\Carbon $endDate
+     * @return bool
+     */
+    public function overlapsWith($startDate, $endDate): bool
+    {
+        $start = $startDate instanceof \Carbon\Carbon ? $startDate : \Carbon\Carbon::parse($startDate);
+        $end = $endDate instanceof \Carbon\Carbon ? $endDate : \Carbon\Carbon::parse($endDate);
+
+        // Overlap if: (StartA <= EndB) AND (EndA >= StartB)
+        return $this->start_date->lte($end) && $this->end_date->gte($start);
+    }
+
+    /**
+     * Scope: Get bookings that overlap with date range
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string|\Carbon\Carbon $startDate
+     * @param string|\Carbon\Carbon $endDate
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOverlapping($query, $startDate, $endDate)
+    {
+        $start = $startDate instanceof \Carbon\Carbon ? $startDate->format('Y-m-d') : $startDate;
+        $end = $endDate instanceof \Carbon\Carbon ? $endDate->format('Y-m-d') : $endDate;
+
+        return $query->where(function ($q) use ($start, $end) {
+            $q->where('start_date', '<=', $end)
+              ->where('end_date', '>=', $start);
+        });
+    }
+
+    /**
+     * Scope: Get active bookings that occupy dates (excludes cancelled/refunded)
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOccupying($query)
+    {
+        return $query->whereIn('status', [
+            self::STATUS_CONFIRMED,
+            self::STATUS_PAYMENT_HOLD,
+            self::STATUS_PENDING_PAYMENT_HOLD,
+        ]);
+    }
+
+    /**
+     * Scope: Get only active holds (not expired)
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActiveHolds($query)
+    {
+        return $query->where('status', self::STATUS_PENDING_PAYMENT_HOLD)
+                     ->where('hold_expiry_at', '>', now());
+    }
+
+    /**
+     * Check if hoarding is available for given date range
+     * Static method for easy access
+     * 
+     * @param int $hoardingId
+     * @param string|\Carbon\Carbon $startDate
+     * @param string|\Carbon\Carbon $endDate
+     * @param int|null $excludeBookingId
+     * @return bool
+     */
+    public static function isHoardingAvailable(
+        int $hoardingId,
+        $startDate,
+        $endDate,
+        ?int $excludeBookingId = null
+    ): bool {
+        $query = static::where('hoarding_id', $hoardingId)
+            ->occupying()
+            ->overlapping($startDate, $endDate);
+
+        if ($excludeBookingId) {
+            $query->where('id', '!=', $excludeBookingId);
+        }
+
+        return !$query->exists();
+    }
+
+    /**
+     * Get conflicting bookings for given date range
+     * 
+     * @param int $hoardingId
+     * @param string|\Carbon\Carbon $startDate
+     * @param string|\Carbon\Carbon $endDate
+     * @param int|null $excludeBookingId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getConflicts(
+        int $hoardingId,
+        $startDate,
+        $endDate,
+        ?int $excludeBookingId = null
+    ) {
+        $query = static::where('hoarding_id', $hoardingId)
+            ->occupying()
+            ->overlapping($startDate, $endDate)
+            ->with(['customer', 'vendor']);
+
+        if ($excludeBookingId) {
+            $query->where('id', '!=', $excludeBookingId);
+        }
+
+        return $query->get();
+    }
 }
+
 

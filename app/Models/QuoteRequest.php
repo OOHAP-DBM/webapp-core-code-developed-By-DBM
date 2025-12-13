@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\HasSnapshots;
 use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +13,7 @@ use Illuminate\Support\Str;
 
 class QuoteRequest extends Model
 {
-    use HasSnapshots, Auditable, SoftDeletes;
+    use HasFactory, HasSnapshots, Auditable, SoftDeletes;
 
     protected $snapshotType = 'quote_request';
     protected $snapshotOnCreate = true;

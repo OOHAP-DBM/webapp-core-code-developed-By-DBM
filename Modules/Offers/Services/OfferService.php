@@ -4,6 +4,7 @@ namespace Modules\Offers\Services;
 
 use App\Models\Offer;
 use App\Models\Enquiry;
+use App\Services\OfferExpiryService;  // PROMPT 105
 use Modules\Offers\Repositories\Contracts\OfferRepositoryInterface;
 use Modules\Offers\Events\OfferSent;
 use Illuminate\Support\Collection;
@@ -13,10 +14,14 @@ use Illuminate\Support\Facades\DB;
 class OfferService
 {
     protected OfferRepositoryInterface $repository;
+    protected OfferExpiryService $expiryService;  // PROMPT 105
 
-    public function __construct(OfferRepositoryInterface $repository)
-    {
+    public function __construct(
+        OfferRepositoryInterface $repository,
+        OfferExpiryService $expiryService  // PROMPT 105
+    ) {
         $this->repository = $repository;
+        $this->expiryService = $expiryService;  // PROMPT 105
     }
 
     /**
@@ -72,8 +77,9 @@ class OfferService
 
     /**
      * Send an offer (draft -> sent) and dispatch event
+     * PROMPT 105: Updated to set expiry timestamp
      */
-    public function sendOffer(int $offerId): Offer
+    public function sendOffer(int $offerId, ?int $expiryDays = null): Offer
     {
         $offer = $this->repository->find($offerId);
 
@@ -90,6 +96,9 @@ class OfferService
             $this->repository->updateStatus($offerId, Offer::STATUS_SENT);
             $offer->refresh();
 
+            // PROMPT 105: Set expiry timestamp
+            $this->expiryService->setOfferExpiry($offer, $expiryDays);
+
             // Dispatch event
             event(new OfferSent($offer));
 
@@ -99,10 +108,7 @@ class OfferService
             DB::rollBack();
             throw $e;
         }
-    }
-
-    /**
-     * Accept an offer (customer)
+    } PROMPT 105: Updated to validate expiry
      */
     public function acceptOffer(int $offerId): Offer
     {
@@ -110,6 +116,13 @@ class OfferService
 
         if (!$offer) {
             throw new \Exception('Offer not found');
+        }
+
+        // PROMPT 105: Validate expiry before acceptance
+        [$canAccept, $reason] = $this->expiryService->validateOfferAcceptance($offer);
+        
+        if (!$canAccept) {
+            throw new \Exception($reason
         }
 
         if (!$offer->canAccept()) {
@@ -184,10 +197,41 @@ class OfferService
         ])->filter(function($offer) {
             return $offer->enquiry->customer_id === Auth::id();
         });
+    } PROMPT 105: Delegate to OfferExpiryService
+     */
+    public function checkExpiredOffers(): int
+    {
+        return $this->expiryService->expireAllDueOffers();
     }
 
     /**
-     * Check and mark expired offers
+     * Extend offer expiry by X days
+     * PROMPT 105: New method
+     */
+    public function extendOfferExpiry(int $offerId, int $additionalDays): Offer
+    {
+        $offer = $this->repository->find($offerId);
+
+        if (!$offer) {
+            throw new \Exception('Offer not found');
+        }
+
+        return $this->expiryService->extendOfferExpiry($offer, $additionalDays);
+    }
+
+    /**
+     * Reset offer expiry to X days from now
+     * PROMPT 105: New method
+     */
+    public function resetOfferExpiry(int $offerId, int $expiryDays): Offer
+    {
+        $offer = $this->repository->find($offerId);
+
+        if (!$offer) {
+            throw new \Exception('Offer not found');
+        }
+
+        return $this->expiryService->resetOfferExpiry($offer, $expiryDays
      */
     public function checkExpiredOffers(): int
     {

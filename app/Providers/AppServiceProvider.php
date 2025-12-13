@@ -95,6 +95,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Register policies
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(\App\Models\Booking::class, \App\Policies\BookingPolicy::class);
+        Gate::policy(\App\Models\BookingPayment::class, \App\Policies\BookingPaymentPolicy::class);
+        Gate::policy(\App\Models\CommissionLog::class, \App\Policies\CommissionLogPolicy::class);
+        Gate::policy(\App\Models\QuoteRequest::class, \App\Policies\QuoteRequestPolicy::class);
+        Gate::policy(\Modules\Offers\Models\Offer::class, \Modules\Offers\Policies\OfferPolicy::class);
 
         // Register event listeners
         Event::listen(
@@ -110,6 +115,12 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             QuotationApproved::class,
             \Modules\Quotations\Listeners\NotifyVendorOnApproval::class
+        );
+
+        // PROMPT 107: Generate PO when quotation is approved
+        Event::listen(
+            QuotationApproved::class,
+            \Modules\Quotations\Listeners\GeneratePurchaseOrder::class
         );
 
         // Register Razorpay webhook event listeners

@@ -49,6 +49,27 @@ Schedule::command('sla:monitor')
     ->withoutOverlapping(10)
     ->onOneServer();
 
+// Auto-expire offers that have passed their expiry time (PROMPT 105)
+Schedule::command('offers:expire')
+    ->hourly()
+    ->name('expire-offers')
+    ->withoutOverlapping(5)
+    ->onOneServer();
+
+// Process expired quotations and auto-cancel bookings (PROMPT 106)
+Schedule::command('quotations:process-expired')
+    ->hourly()
+    ->name('process-expired-quotations')
+    ->withoutOverlapping(5)
+    ->onOneServer();
+
+// Send quotation expiry warnings twice daily (PROMPT 106)
+Schedule::command('quotations:process-expired --warnings')
+    ->twiceDaily(9, 17) // 9 AM and 5 PM
+    ->name('quotation-expiry-warnings')
+    ->withoutOverlapping(5)
+    ->onOneServer();
+
 // Check milestone due dates daily (PROMPT 70 Phase 2)
 Schedule::command('milestones:check-due')
     ->dailyAt('09:00') // Run at 9 AM daily
