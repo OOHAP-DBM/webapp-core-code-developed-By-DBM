@@ -80,7 +80,7 @@
                             Login
                         </a>
                         <span class="text-gray-500">New on OOHAPP?</span>
-                        <a href="{{ route('register') }}" class="text-teal-600 font-semibold hover:text-teal-700">
+                        <a href="{{ route('register.role-selection') }}" class="text-teal-600 font-semibold hover:text-teal-700">
                             Signup
                         </a>
                     </div>

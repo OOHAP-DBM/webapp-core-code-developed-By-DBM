@@ -3,6 +3,20 @@
 @section('page-title', 'Dashboard')
 
 @section('content')
+@php
+    $vendorProfile = auth()->user()->vendorProfile ?? null;
+    $pendingStatuses = ['pending_approval', 'draft'];
+@endphp
+
+@if(session('status') === 'pending' || ($vendorProfile && in_array($vendorProfile->onboarding_status, $pendingStatuses)))
+    <div class="alert alert-warning" style="background: #ffe6e6; color: #333; border-radius: 8px; display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+        <img src="/images/hourglass.svg" style="height: 32px;">
+        <div>
+            <strong>Your Vendor Request is Pending!</strong><br>
+            <span>Once approved by the admin, you can access the features of OOHAPP Vendor</span>
+        </div>
+    </div>
+@endif
 <div class="row g-4 mb-4">
     <!-- Revenue Card -->
     <div class="col-xl-3 col-md-6">
@@ -215,12 +229,21 @@
             </div>
             <div class="vendor-card-body">
                 <div class="row g-3">
+
                     <div class="col-md-3">
-                        <a href="{{ route('vendor.listings.create', ['type' => 'ooh']) }}" class="btn btn-outline-primary w-100 py-3">
-                            <i class="bi bi-plus-circle d-block mb-2" style="font-size: 2rem;"></i>
-                            Add New Listing
-                        </a>
+                        @if($vendorProfile && $vendorProfile->onboarding_status === 'approved')
+                            <a href="{{ route('vendor.listings.create', ['type' => 'ooh']) }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-plus-circle d-block mb-2" style="font-size: 2rem;"></i>
+                                Add New Listing
+                            </a>
+                        @else
+                            <button type="button" class="btn btn-outline-primary w-100 py-3" onclick="showPendingModal()">
+                                <i class="bi bi-plus-circle d-block mb-2" style="font-size: 2rem;"></i>
+                                Add New Listing
+                            </button>
+                        @endif
                     </div>
+
                     <div class="col-md-3">
                         <a href="{{ route('vendor.bookings.index') }}" class="btn btn-outline-success w-100 py-3">
                             <i class="bi bi-calendar-check d-block mb-2" style="font-size: 2rem;"></i>
@@ -244,6 +267,28 @@
         </div>
     </div>
 </div>
+
+<!-- Pending Modal -->
+<div id="pendingModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3);">
+    <div style="background:#fff; max-width:400px; margin:10% auto; padding:2rem; border-radius:8px; text-align:center;">
+        <img src="/images/billboard.svg" alt="Pending" style="height: 60px;">
+        <h2 style="font-size:1.3rem; margin-top:1rem;">Your Vendor Request is Pending!</h2>
+        <p style="margin-bottom:1.5rem;">Once Approved you will become a OOHAPP Vendor</p>
+        <button onclick="closePendingModal()" class="btn btn-dark mt-3">Done</button>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+function showPendingModal() {
+    document.getElementById('pendingModal').style.display = 'block';
+}
+function closePendingModal() {
+    document.getElementById('pendingModal').style.display = 'none';
+}
+</script>
+@endpush
+
 @endsection
 
 @push('scripts')

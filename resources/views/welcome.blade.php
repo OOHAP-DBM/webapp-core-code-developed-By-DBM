@@ -397,7 +397,7 @@
                         <a href="{{ url('/dashboard') }}" class="btn-primary">Dashboard</a>
                     @else
                         <a href="{{ route('login') }}">Login</a>
-                        <a href="{{ route('register') }}" class="btn-primary">Get Started</a>
+                        <a href="{{ route('register.role-selection') }}" class="btn-primary">Get Started</a>
                     @endauth
                 </nav>
             </div>
@@ -523,7 +523,7 @@
                         <li><a href="{{ route('hoardings.index') }}">Hoardings</a></li>
                         <li><a href="{{ route('dooh.index') }}">DOOH Screens</a></li>
                         <li><a href="{{ route('search') }}">Search</a></li>
-                        <li><a href="{{ route('register') }}">Register</a></li>
+                        <li><a href="{{ route('register.role-selection') }}">Register</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">

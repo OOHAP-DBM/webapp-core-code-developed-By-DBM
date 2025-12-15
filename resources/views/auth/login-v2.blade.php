@@ -287,7 +287,7 @@
 
         <!-- Footer Links -->
         <div class="footer-links">
-            Don't have an account? <a href="{{ route('register') }}">Sign Up</a>
+            Don't have an account? <a href="{{ route('register.role-selection') }}">Sign Up</a>
         </div>
     </div>
 </div>
