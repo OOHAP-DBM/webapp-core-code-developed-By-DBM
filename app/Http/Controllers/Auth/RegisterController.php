@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+
 
 class RegisterController extends Controller
 {
@@ -139,5 +143,60 @@ class RegisterController extends Controller
         $user->sendEmailVerificationNotification();
 
         return back()->with('success', 'Verification link sent to your email!');
+    }
+
+    public function sendEmailOtp(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+        // $otp = rand(100000, 999999);
+        $otp = 123456;
+
+        Cache::put('email_otp_' . $request->email, $otp, now()->addMinutes(10));
+        // Send OTP via email
+        // echo $otp; // For testing purposes
+        try {
+            Mail::raw("Your OOHAPP verification code is: $otp", function ($m) use ($request) {
+                $m->to($request->email)->subject('OOHAPP Email Verification');
+            });
+        } catch (\Exception $e) {
+            \Log::error('Email OTP send failed: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to send OTP. Please try again.']);
+        }
+        return response()->json(['success' => true]);
+    }
+
+    public function verifyEmailOtp(Request $request)
+    {
+        $request->validate(['email' => 'required|email', 'otp' => 'required']);
+        $cachedOtp = Cache::get('email_otp_' . $request->email);
+        if ($cachedOtp && $request->otp == $cachedOtp) {
+            Cache::forget('email_otp_' . $request->email);
+            return response()->json(['success' => true]);
+        }
+        return response()->json(['success' => false, 'message' => 'Invalid OTP']);
+    }
+
+    public function sendPhoneOtp(Request $request)
+    {
+        $request->validate(['phone' => 'required']);
+        // $otp = rand(100000, 999999);
+        $otp = 123456;
+        Cache::put('phone_otp_' . $request->phone, $otp, now()->addMinutes(10));
+        // Send OTP via SMS (replace with your SMS gateway logic)
+        // Example: Http::post('https://sms-gateway/send', [...]);
+        // For demo:
+        // Log::info(\"Send OTP $otp to phone {$request->phone}\");
+        return response()->json(['success' => true]);
+    }
+
+    public function verifyPhoneOtp(Request $request)
+    {
+        $request->validate(['phone' => 'required', 'otp' => 'required']);
+        $cachedOtp = Cache::get('phone_otp_' . $request->phone);
+        if ($cachedOtp && $request->otp == $cachedOtp) {
+            Cache::forget('phone_otp_' . $request->phone);
+            return response()->json(['success' => true]);
+        }
+        return response()->json(['success' => false, 'message' => 'Invalid OTP']);
     }
 }

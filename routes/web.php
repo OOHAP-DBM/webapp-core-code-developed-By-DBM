@@ -62,6 +62,12 @@ Route::middleware('guest')->group(function () {
     // Registration - Form (after role selection)
     Route::get('/register/form', [\App\Http\Controllers\Auth\RegisterController::class, 'showRegistrationForm'])->name('register.form');
     Route::post('/register/submit', [\App\Http\Controllers\Auth\RegisterController::class, 'register'])->name('register.submit');
+
+    // Registration OTP routes
+    Route::post('/register/send-email-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'sendEmailOtp'])->name('register.sendEmailOtp');
+    Route::post('/register/verify-email-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'verifyEmailOtp'])->name('register.verifyEmailOtp');
+    Route::post('/register/send-phone-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'sendPhoneOtp'])->name('register.sendPhoneOtp');
+    Route::post('/register/verify-phone-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'verifyPhoneOtp'])->name('register.verifyPhoneOtp');
     
     // OTP Login (Optional - Future)
     // Route::get('/login/otp', [\App\Http\Controllers\Web\Auth\OTPController::class, 'showOTPForm'])->name('login.otp');

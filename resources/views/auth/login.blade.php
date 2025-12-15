@@ -1,329 +1,182 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - OohApp</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            min-height: 100vh;
-            display: flex;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .left-section {
-            background: #000;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 60px 40px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .left-section::before {
-            content: '';
-            position: absolute;
-            bottom: -50px;
-            right: -50px;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-        
-        .billboard-illustration {
-            max-width: 400px;
-            margin-bottom: 40px;
-            z-index: 1;
-        }
-        
-        .logo {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-        }
-        
-        .logo .ooh {
-            color: #fff;
-        }
-        
-        .logo .app {
-            color: #00B894;
-        }
-        
-        .tagline {
-            font-size: 1.1rem;
-            color: #ddd;
-            text-align: center;
-            max-width: 400px;
-        }
-        
-        .right-section {
-            background: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 60px 40px;
-        }
-        
-        .login-form {
-            max-width: 450px;
-            width: 100%;
-        }
-        
-        .login-form h2 {
-            font-size: 2rem;
-            font-weight: 600;
-            color: #2d3436;
-            margin-bottom: 10px;
-        }
-        
-        .login-form p {
-            color: #636e72;
-            margin-bottom: 30px;
-        }
-        
-        .form-label {
-            font-weight: 600;
-            color: #2d3436;
-            margin-bottom: 8px;
-        }
-        
-        .form-control {
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        
-        .form-control:focus {
-            border-color: #00B894;
-            box-shadow: 0 0 0 0.2rem rgba(0, 184, 148, 0.15);
-        }
-        
-        .input-group-text {
-            background: #f8f9fa;
-            border: 2px solid #e0e0e0;
-            border-right: none;
-        }
-        
-        .input-group .form-control {
-            border-left: none;
-        }
-        
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            background: #00B894;
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            transition: all 0.3s;
-        }
-        
-        .btn-login:hover {
-            background: #00a383;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 184, 148, 0.3);
-        }
-        
-        .form-check-input:checked {
-            background-color: #00B894;
-            border-color: #00B894;
-        }
-        
-        .forgot-password {
-            color: #00B894;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        
-        .forgot-password:hover {
-            text-decoration: underline;
-        }
-        
-        .signup-link {
-            text-align: center;
-            margin-top: 30px;
-            color: #636e72;
-        }
-        
-        .signup-link a {
-            color: #00B894;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .signup-link a:hover {
-            text-decoration: underline;
-        }
-        
-        .is-invalid {
-            border-color: #dc3545;
-        }
-        
-        .invalid-feedback {
-            display: block;
-            color: #dc3545;
-            font-size: 0.875rem;
-            margin-top: 5px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="row min-vh-100">
-            <!-- Left Section -->
-            <div class="col-lg-6 left-section d-none d-lg-flex">
-                <div class="billboard-illustration">
-                    <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Billboard Structure -->
-                        <rect x="50" y="40" width="300" height="180" rx="8" fill="#f0f0f0" stroke="#333" stroke-width="3"/>
-                        <line x1="200" y1="220" x2="200" y2="280" stroke="#555" stroke-width="6"/>
-                        <line x1="180" y1="280" x2="220" y2="280" stroke="#555" stroke-width="8"/>
-                        <circle cx="200" cy="130" r="50" fill="#00B894" opacity="0.7"/>
-                        <text x="200" y="140" font-size="20" fill="#fff" text-anchor="middle" font-weight="bold">OOH</text>
-                    </svg>
-                </div>
-                <div class="logo">
-                    <span class="ooh">OOH</span><span class="app">APP</span>
-                </div>
-                <p class="tagline">"Empowering brands to rise above the skyline."</p>
-            </div>
+@extends('layouts.guest')
 
-            <!-- Right Section -->
-            <div class="col-lg-6 right-section">
-                <div class="login-form">
-                    <h2>Welcome Back!</h2>
-                    <p>Sign in to continue to OohApp</p>
+@section('title', 'Login - OOHAPP')
 
-                    @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow:hidden;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #ffffff;
+}
+
+/* FULL SCREEN */
+.auth-wrapper {
+    width: 100vw;
+    height: 100vh;
+}
+
+/* LEFT IMAGE */
+.auth-left {
+    background: #000;
+    padding: 0;
+    background-size:cover;
+}
+
+.auth-left img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;      /* IMPORTANT for clarity */
+    display: block;
+}
+
+/* RIGHT FORM */
+.auth-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+}
+
+/* FORM BOX */
+.login-box {
+    width: 100%;
+    max-width: 380px;
+}
+
+/* BRAND */
+.brand {
+    margin-bottom: 10px;
+}
+
+.brand h2 {
+    font-size: 20px;
+    font-weight: 400;
+}
+
+/* INPUTS */
+.form-control {
+    height: 46px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* BUTTON */
+.btn-primary {
+    height: 46px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+    .auth-left {
+        display: none;
+    }
+
+    .auth-right {
+        width: 100%;
+    }
+}
+.btn-continue {
+    height: 46px;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.btn-continue.active {
+    background: #2bb57c;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+</style>
+@endpush
+
+@section('content')
+<div class="container-fluid auth-wrapper">
+    <div class="row h-100">
+
+        <!-- LEFT IMAGE : col-5 -->
+        <div class="col-md-5 d-none d-md-block auth-left">
+            <img src="{{ asset('login_image/Left Blue.png') }}" alt="OOHAPP Login">
+        </div>
+
+        <!-- RIGHT FORM : col-7 -->
+        <div class="col-md-7 col-12 auth-right">
+            <div class="login-box">
+
+                <!-- BRAND -->
+                <div class="brand">
+                    <h2>Login to your account</h2>
+                </div>
+
+                <!-- FORM -->
+                <form method="POST" action="{{ route('login') }}">
+                    @csrf
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            {{ $errors->first() }}
                         </div>
                     @endif
 
-                    @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
+                    <div class="mb-3">
+                        <input type="text"
+                               name="identifier"
+                               class="form-control"
+                               placeholder="Email"
+                               value="{{ old('identifier') }}"
+                               required>
+                               <small>We will send you a 4-digit OTP to confirm your email</small>
+                    </div>          
+                    <button type="submit" class="btn btn-continue w-100 mb-3 text-light border border-1">
+                        Continue
+                    </button>
+                </form>
 
-                    @if(session('info'))
-                        <div class="alert alert-info alert-dismissible fade show" role="alert">
-                            {{ session('info') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
-
-                    <form action="{{ route('login.submit') }}" method="POST">
-                        @csrf
-
-                        <!-- Email or Phone -->
-                        <div class="mb-3">
-                            <label for="login" class="form-label">Email or Mobile Number</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                <input 
-                                    type="text" 
-                                    class="form-control @error('login') is-invalid @enderror" 
-                                    id="login" 
-                                    name="login" 
-                                    value="{{ old('login') }}" 
-                                    placeholder="Enter your email or phone number"
-                                    required
-                                    autofocus
-                                >
-                            </div>
-                            @error('login')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Password -->
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-                                <input 
-                                    type="password" 
-                                    class="form-control @error('password') is-invalid @enderror" 
-                                    id="password" 
-                                    name="password" 
-                                    placeholder="Enter your password"
-                                    required
-                                >
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
-                                    <i class="fas fa-eye" id="password-eye"></i>
-                                </button>
-                            </div>
-                            @error('password')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Remember Me & Forgot Password -->
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div class="form-check">
-                                <input 
-                                    class="form-check-input" 
-                                    type="checkbox" 
-                                    id="remember" 
-                                    name="remember"
-                                    {{ old('remember') ? 'checked' : '' }}
-                                >
-                                <label class="form-check-label" for="remember">
-                                    Remember Me
-                                </label>
-                            </div>
-                            <a href="#" class="forgot-password">Forgot Password?</a>
-                        </div>
-
-                        <button type="submit" class="btn btn-login">
-                            Sign In <i class="fas fa-arrow-right ms-2"></i>
-                        </button>
-                    </form>
-
-                    <div class="signup-link">
-                        Don't have an account? <a href="{{ route('register.role-selection') }}">Sign Up</a>
-                    </div>
-                </div>
             </div>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function togglePassword() {
-            const field = document.getElementById('password');
-            const icon = document.getElementById('password-eye');
-            
-            if (field.type === 'password') {
-                field.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                field.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
+    </div>
+</div>
+@endsection
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.querySelector('input[name="identifier"]');
+    const button = document.querySelector('.btn-continue');
+
+    if (!input || !button) return;
+
+    input.addEventListener('input', function () {
+        if (this.value.trim() !== '') {
+            button.disabled = false;
+            button.classList.add('active');
+        } else {
+            button.disabled = true;
+            button.classList.remove('active');
         }
-    </script>
-</body>
-</html>
+    });
+});
+</script>
+@endpush
+

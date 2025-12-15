@@ -97,8 +97,8 @@
         </div>
 
         <!-- Bottom Bar -->
-        <div class="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-600">
-            <div class="flex items-center space-x-2 mb-4 md:mb-0">
+        <div class="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-center items-center text-sm text-gray-600 text-center">
+            <div class="flex items-center space-x-2 mb-2 md:mb-0 text-center bg-light">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
                 </svg>
@@ -107,44 +107,20 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </div>
-            <p class="text-gray-500">© {{ date('Y') }} www.OOHAPP.com. All rights reserved.</p>
         </div>
     </div>
 </footer>
-                    <li><a href="#" class="hover:text-white transition-colors flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                        Privacy Policy
-                    </a></li>
-                    <li><a href="#" class="hover:text-white transition-colors flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                        Terms of Service
-                    </a></li>
-                    <li><a href="#" class="hover:text-white transition-colors flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                        Cookie Policy
-                    </a></li>
-                    <li><a href="#" class="hover:text-white transition-colors flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                        Contact Us
-                    </a></li>
-                </ul>
+                     <center class="text-gray-500 py-2" style="background-color:#e8e8e8;">© {{ date('Y') }} www.OOHAPP.com. All rights reserved.</center>
+   
             </div>
         </div>
 
-        <!-- Bottom Bar -->
+        <!-- Bottom Bar
         <div class="pt-8 border-t border-gray-800">
             <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
                 <p>&copy; {{ date('Y') }} OOHAPP. All rights reserved.</p>
                 <p class="mt-2 md:mt-0">Made with ❤️ in India</p>
             </div>
-        </div>
+        </div> -->
     </div>
 </footer>
