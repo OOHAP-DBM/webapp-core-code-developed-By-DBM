@@ -150,6 +150,78 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get vendor profile
+     */
+    public function vendorProfile()
+    {
+        return $this->hasOne(VendorProfile::class);
+    }
+
+    /**
+     * Check if user is a vendor
+     */
+    public function isVendor(): bool
+    {
+        return $this->hasRole('vendor');
+    }
+
+    /**
+     * Check if user is a customer
+     */
+    public function isCustomer(): bool
+    {
+        return $this->hasRole('customer');
+    }
+
+    /**
+     * Check if vendor onboarding is complete
+     */
+    public function hasCompletedVendorOnboarding(): bool
+    {
+        if (!$this->isVendor()) {
+            return false;
+        }
+
+        return $this->vendorProfile && $this->vendorProfile->isOnboardingComplete();
+    }
+
+    /**
+     * Check if vendor is approved
+     */
+    public function isVendorApproved(): bool
+    {
+        if (!$this->isVendor()) {
+            return false;
+        }
+
+        return $this->vendorProfile && $this->vendorProfile->isApproved();
+    }
+
+    /**
+     * Get vendor onboarding status
+     */
+    public function getVendorOnboardingStatus(): ?string
+    {
+        if (!$this->isVendor() || !$this->vendorProfile) {
+            return null;
+        }
+
+        return $this->vendorProfile->onboarding_status;
+    }
+
+    /**
+     * Get current onboarding step for vendor
+     */
+    public function getCurrentOnboardingStep(): int
+    {
+        if (!$this->isVendor() || !$this->vendorProfile) {
+            return 1;
+        }
+
+        return $this->vendorProfile->onboarding_step;
+    }
+
+    /**
      * Get user's dashboard route based on role
      */
     public function getDashboardRoute(): string

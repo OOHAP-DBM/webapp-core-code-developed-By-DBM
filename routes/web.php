@@ -48,29 +48,60 @@ Route::get('/api/map/nearby', [\App\Http\Controllers\MapSearchController::class,
 Route::get('/api/map/autocomplete', [\App\Http\Controllers\MapSearchController::class, 'autocomplete'])->name('api.map.autocomplete');
 
 // ============================================
-// AUTH ROUTES (Guest users)
+// AUTH ROUTES (PROMPT 112 - Role-Based Auth)
 // ============================================
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [\App\Http\Controllers\Web\Auth\LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Web\Auth\LoginController::class, 'login']);
+    // Login
+    Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login.submit');
     
-    Route::get('/register', [\App\Http\Controllers\Web\Auth\RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [\App\Http\Controllers\Web\Auth\RegisterController::class, 'register']);
+    // Registration - Role Selection First
+    Route::get('/register', [\App\Http\Controllers\Auth\RegisterController::class, 'showRoleSelection'])->name('register.role-selection');
+    Route::post('/register/role', [\App\Http\Controllers\Auth\RegisterController::class, 'storeRoleSelection'])->name('register.store-role');
     
-    // OTP Login
-    Route::get('/login/otp', [\App\Http\Controllers\Web\Auth\OTPController::class, 'showOTPForm'])->name('login.otp');
-    Route::post('/login/otp/send', [\App\Http\Controllers\Web\Auth\OTPController::class, 'sendOTP'])->name('otp.send');
-    Route::post('/login/otp/verify', [\App\Http\Controllers\Web\Auth\OTPController::class, 'verifyOTP'])->name('otp.verify');
-    Route::post('/login/otp/resend', [\App\Http\Controllers\Web\Auth\OTPController::class, 'resendOTP'])->name('otp.resend');
+    // Registration - Form (after role selection)
+    Route::get('/register/form', [\App\Http\Controllers\Auth\RegisterController::class, 'showRegistrationForm'])->name('register.form');
+    Route::post('/register/submit', [\App\Http\Controllers\Auth\RegisterController::class, 'register'])->name('register.submit');
     
-    // Password Reset (to be implemented)
-    // Route::get('/forgot-password', [\App\Http\Controllers\Web\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-    // Route::post('/forgot-password', [\App\Http\Controllers\Web\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-    // Route::get('/reset-password/{token}', [\App\Http\Controllers\Web\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-    // Route::post('/reset-password', [\App\Http\Controllers\Web\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
+    // OTP Login (Optional - Future)
+    // Route::get('/login/otp', [\App\Http\Controllers\Web\Auth\OTPController::class, 'showOTPForm'])->name('login.otp');
+    // Route::post('/login/otp/send', [\App\Http\Controllers\Web\Auth\OTPController::class, 'sendOTP'])->name('otp.send');
+    // Route::post('/login/otp/verify', [\App\Http\Controllers\Web\Auth\OTPController::class, 'verifyOTP'])->name('otp.verify');
+    
+    // Password Reset (Future)
+    // Route::get('/forgot-password', [...])->name('password.request');
 });
 
-Route::post('/logout', [\App\Http\Controllers\Web\Auth\LoginController::class, 'logout'])->name('logout')->middleware('auth');
+Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout')->middleware('auth');
+
+// ============================================
+// VENDOR ONBOARDING (PROMPT 112)
+// ============================================
+Route::middleware(['auth', 'role:vendor'])->prefix('vendor/onboarding')->name('vendor.onboarding.')->group(function () {
+    // Step 1: Company Details
+    Route::get('/company-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showCompanyDetails'])->name('company-details');
+    Route::post('/company-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeCompanyDetails'])->name('company-details.store');
+    
+    // Step 2: Business Information
+    Route::get('/business-info', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showBusinessInfo'])->name('business-info');
+    Route::post('/business-info', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeBusinessInfo'])->name('business-info.store');
+    
+    // Step 3: KYC Documents
+    Route::get('/kyc-documents', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showKYCDocuments'])->name('kyc-documents');
+    Route::post('/kyc-documents', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeKYCDocuments'])->name('kyc-documents.store');
+    
+    // Step 4: Bank Details
+    Route::get('/bank-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showBankDetails'])->name('bank-details');
+    Route::post('/bank-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeBankDetails'])->name('bank-details.store');
+    
+    // Step 5: Terms & Agreement
+    Route::get('/terms-agreement', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showTermsAgreement'])->name('terms-agreement');
+    Route::post('/terms-agreement', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeTermsAgreement'])->name('terms-agreement.store');
+    
+    // Status Screens
+    Route::get('/waiting', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showWaitingScreen'])->name('waiting');
+    Route::get('/rejected', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showRejectionScreen'])->name('rejected');
+});
 
 // ============================================
 // ROLE SWITCHING (PROMPT 96)

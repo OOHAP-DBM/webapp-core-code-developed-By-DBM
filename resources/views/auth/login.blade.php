@@ -1,345 +1,329 @@
-@extends('layouts.guest')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - OohApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .left-section {
+            background: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .left-section::before {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .billboard-illustration {
+            max-width: 400px;
+            margin-bottom: 40px;
+            z-index: 1;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        
+        .logo .ooh {
+            color: #fff;
+        }
+        
+        .logo .app {
+            color: #00B894;
+        }
+        
+        .tagline {
+            font-size: 1.1rem;
+            color: #ddd;
+            text-align: center;
+            max-width: 400px;
+        }
+        
+        .right-section {
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 40px;
+        }
+        
+        .login-form {
+            max-width: 450px;
+            width: 100%;
+        }
+        
+        .login-form h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 10px;
+        }
+        
+        .login-form p {
+            color: #636e72;
+            margin-bottom: 30px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 8px;
+        }
+        
+        .form-control {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #00B894;
+            box-shadow: 0 0 0 0.2rem rgba(0, 184, 148, 0.15);
+        }
+        
+        .input-group-text {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-right: none;
+        }
+        
+        .input-group .form-control {
+            border-left: none;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: #00B894;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            transition: all 0.3s;
+        }
+        
+        .btn-login:hover {
+            background: #00a383;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 184, 148, 0.3);
+        }
+        
+        .form-check-input:checked {
+            background-color: #00B894;
+            border-color: #00B894;
+        }
+        
+        .forgot-password {
+            color: #00B894;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+        
+        .signup-link {
+            text-align: center;
+            margin-top: 30px;
+            color: #636e72;
+        }
+        
+        .signup-link a {
+            color: #00B894;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .is-invalid {
+            border-color: #dc3545;
+        }
+        
+        .invalid-feedback {
+            display: block;
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <!-- Left Section -->
+            <div class="col-lg-6 left-section d-none d-lg-flex">
+                <div class="billboard-illustration">
+                    <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Billboard Structure -->
+                        <rect x="50" y="40" width="300" height="180" rx="8" fill="#f0f0f0" stroke="#333" stroke-width="3"/>
+                        <line x1="200" y1="220" x2="200" y2="280" stroke="#555" stroke-width="6"/>
+                        <line x1="180" y1="280" x2="220" y2="280" stroke="#555" stroke-width="8"/>
+                        <circle cx="200" cy="130" r="50" fill="#00B894" opacity="0.7"/>
+                        <text x="200" y="140" font-size="20" fill="#fff" text-anchor="middle" font-weight="bold">OOH</text>
+                    </svg>
+                </div>
+                <div class="logo">
+                    <span class="ooh">OOH</span><span class="app">APP</span>
+                </div>
+                <p class="tagline">"Empowering brands to rise above the skyline."</p>
+            </div>
 
-@section('title', 'Login - OOHAPP')
+            <!-- Right Section -->
+            <div class="col-lg-6 right-section">
+                <div class="login-form">
+                    <h2>Welcome Back!</h2>
+                    <p>Sign in to continue to OohApp</p>
 
-@push('styles')
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-<style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-    }
-    
-    .auth-container {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
-    
-    .auth-card {
-        background: white;
-        border-radius: 24px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        max-width: 440px;
-        width: 100%;
-        padding: 48px 40px;
-    }
-    
-    .brand-logo {
-        text-align: center;
-        margin-bottom: 32px;
-    }
-    
-    .brand-logo h1 {
-        font-size: 32px;
-        font-weight: 700;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 8px;
-    }
-    
-    .brand-logo p {
-        color: #64748b;
-        font-size: 15px;
-    }
-    
-    .form-group {
-        margin-bottom: 24px;
-    }
-    
-    .form-label {
-        font-weight: 500;
-        font-size: 14px;
-        color: #334155;
-        margin-bottom: 8px;
-        display: block;
-    }
-    
-    .form-control-custom {
-        width: 100%;
-        padding: 14px 16px;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        font-size: 15px;
-        transition: all 0.3s;
-        outline: none;
-    }
-    
-    .form-control-custom:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-    }
-    
-    .form-control-custom::placeholder {
-        color: #94a3b8;
-    }
-    
-    .btn-primary-custom {
-        width: 100%;
-        padding: 14px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        border-radius: 12px;
-        color: white;
-        font-weight: 600;
-        font-size: 15px;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    
-    .btn-primary-custom:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-    }
-    
-    .btn-primary-custom:active {
-        transform: translateY(0);
-    }
-    
-    .divider {
-        display: flex;
-        align-items: center;
-        text-align: center;
-        margin: 24px 0;
-    }
-    
-    .divider::before,
-    .divider::after {
-        content: '';
-        flex: 1;
-        border-bottom: 1px solid #e2e8f0;
-    }
-    
-    .divider span {
-        padding: 0 16px;
-        color: #94a3b8;
-        font-size: 14px;
-    }
-    
-    .btn-otp {
-        width: 100%;
-        padding: 14px;
-        background: white;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        color: #334155;
-        font-weight: 600;
-        font-size: 15px;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        text-decoration: none;
-    }
-    
-    .btn-otp:hover {
-        border-color: #667eea;
-        background: #f8fafc;
-        color: #334155;
-    }
-    
-    .footer-links {
-        text-align: center;
-        margin-top: 24px;
-        font-size: 14px;
-        color: #64748b;
-    }
-    
-    .footer-links a {
-        color: #667eea;
-        text-decoration: none;
-        font-weight: 600;
-    }
-    
-    .footer-links a:hover {
-        text-decoration: underline;
-    }
-    
-    .checkbox-group {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 20px;
-    }
-    
-    .checkbox-group input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-    }
-    
-    .checkbox-group label {
-        font-size: 14px;
-        color: #64748b;
-        cursor: pointer;
-        margin: 0;
-    }
-    
-    .alert-custom {
-        padding: 12px 16px;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        font-size: 14px;
-    }
-    
-    .alert-error {
-        background: #fef2f2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
-    }
-    
-    .alert-success {
-        background: #f0fdf4;
-        color: #166534;
-        border: 1px solid #bbf7d0;
-    }
-</style>
-@endpush
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
 
-@section('content')
-<div class="auth-container">
-    <div class="auth-card">
-        <!-- Brand Logo -->
-        <div class="brand-logo">
-            <h1>OOHAPP</h1>
-            <p>Welcome back! Please login to your account</p>
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    @if(session('info'))
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            {{ session('info') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('login.submit') }}" method="POST">
+                        @csrf
+
+                        <!-- Email or Phone -->
+                        <div class="mb-3">
+                            <label for="login" class="form-label">Email or Mobile Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input 
+                                    type="text" 
+                                    class="form-control @error('login') is-invalid @enderror" 
+                                    id="login" 
+                                    name="login" 
+                                    value="{{ old('login') }}" 
+                                    placeholder="Enter your email or phone number"
+                                    required
+                                    autofocus
+                                >
+                            </div>
+                            @error('login')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input 
+                                    type="password" 
+                                    class="form-control @error('password') is-invalid @enderror" 
+                                    id="password" 
+                                    name="password" 
+                                    placeholder="Enter your password"
+                                    required
+                                >
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                    <i class="fas fa-eye" id="password-eye"></i>
+                                </button>
+                            </div>
+                            @error('password')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Remember Me & Forgot Password -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input 
+                                    class="form-check-input" 
+                                    type="checkbox" 
+                                    id="remember" 
+                                    name="remember"
+                                    {{ old('remember') ? 'checked' : '' }}
+                                >
+                                <label class="form-check-label" for="remember">
+                                    Remember Me
+                                </label>
+                            </div>
+                            <a href="#" class="forgot-password">Forgot Password?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-login">
+                            Sign In <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </form>
+
+                    <div class="signup-link">
+                        Don't have an account? <a href="{{ route('register.role-selection') }}">Sign Up</a>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <!-- Login Form -->
-        <form class="mt-8 space-y-6" method="POST" action="{{ route('login') }}">
-            @csrf
-
-            <!-- Error Messages -->
-            @if ($errors->any())
-                <div class="rounded-md bg-red-50 p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <h3 class="text-sm font-medium text-red-800">
-                                @if ($errors->has('identifier'))
-                                    {{ $errors->first('identifier') }}
-                                @elseif ($errors->has('password'))
-                                    {{ $errors->first('password') }}
-                                @else
-                                    {{ $errors->first() }}
-                                @endif
-                            </h3>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            <!-- Success Messages -->
-            @if (session('success'))
-                <div class="rounded-md bg-green-50 p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-green-800">
-                                {{ session('success') }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            <div class="rounded-md shadow-sm -space-y-px">
-                <!-- Email or Phone -->
-                <div>
-                    <label for="identifier" class="sr-only">Email or Phone</label>
-                    <input 
-                        id="identifier" 
-                        name="identifier" 
-                        type="text" 
-                        required 
-                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm @error('identifier') border-red-500 @enderror" 
-                        placeholder="Email or Phone Number"
-                        value="{{ old('identifier') }}"
-                    >
-                </div>
-
-                <!-- Password -->
-                <div>
-                    <label for="password" class="sr-only">Password</label>
-                    <input 
-                        id="password" 
-                        name="password" 
-                        type="password" 
-                        required 
-                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm @error('password') border-red-500 @enderror" 
-                        placeholder="Password"
-                    >
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between">
-                <!-- Remember Me -->
-                <div class="flex items-center">
-                    <input 
-                        id="remember" 
-                        name="remember" 
-                        type="checkbox" 
-                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                        {{ old('remember') ? 'checked' : '' }}
-                    >
-                    <label for="remember" class="ml-2 block text-sm text-gray-900">
-                        Remember me
-                    </label>
-                </div>
-
-                <!-- Forgot Password -->
-                <div class="text-sm">
-                    {{-- <a href="{{ route('password.request') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
-                        Forgot your password?
-                    </a> --}}
-                    <a href="#" class="font-medium text-gray-400 cursor-not-allowed">
-                        Forgot your password?
-                    </a>
-                </div>
-            </div>
-
-            <!-- Submit Button -->
-            <div>
-                <button 
-                    type="submit" 
-                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                        <svg class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                        </svg>
-                    </span>
-                    Sign in
-                </button>
-            </div>
-
-            <!-- OTP Login Option -->
-            <div class="text-center">
-                <p class="text-sm text-gray-600">
-                    Or
-                    <a href="{{ route('login.otp') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
-                        login with OTP
-                    </a>
-                </p>
-            </div>
-        </form>
     </div>
-</div>
-@endsection
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePassword() {
+            const field = document.getElementById('password');
+            const icon = document.getElementById('password-eye');
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                field.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>
