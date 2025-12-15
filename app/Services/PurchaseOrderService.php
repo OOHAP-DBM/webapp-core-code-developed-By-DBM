@@ -16,16 +16,24 @@ use Modules\Threads\Services\ThreadService;
 
 /**
  * PROMPT 107: Purchase Order Generation Service
+ * PROMPT 109: Enhanced with Currency + Tax Configuration
  * 
  * Auto-generates PO from approved quotations, creates PDF, attaches to thread, and notifies vendor
  */
 class PurchaseOrderService
 {
     protected ThreadService $threadService;
+    protected TaxConfigurationService $taxConfigService;
+    protected CurrencyService $currencyService;
 
-    public function __construct(ThreadService $threadService)
-    {
+    public function __construct(
+        ThreadService $threadService,
+        TaxConfigurationService $taxConfigService,
+        CurrencyService $currencyService
+    ) {
         $this->threadService = $threadService;
+        $this->taxConfigService = $taxConfigService;
+        $this->currencyService = $currencyService;
     }
 
     /**
@@ -89,7 +97,7 @@ class PurchaseOrderService
     }
 
     /**
-     * Create PO record from quotation
+     * Create PO record from quotation (PROMPT 109: Enhanced with tax calculation)
      *
      * @param Quotation $quotation
      * @return PurchaseOrder
@@ -98,6 +106,32 @@ class PurchaseOrderService
     {
         $poNumber = PurchaseOrder::generatePoNumber();
 
+        // Get currency configuration
+        $currency = $this->currencyService->getDefaultCurrency();
+
+        // Calculate comprehensive taxes (GST + TCS + TDS)
+        $taxCalculation = $this->taxConfigService->calculateCompleteTax(
+            $quotation->total_amount,
+            [
+                'transaction_type' => 'purchase_order',
+                'applies_to' => 'purchase_order',
+                'customer_id' => $quotation->customer_id,
+                'vendor_id' => $quotation->vendor_id,
+                'customer_state_code' => $quotation->customer->billing_state_code ?? null,
+                'vendor_state_code' => $quotation->vendor->billing_state_code ?? null,
+                'buyer_state_code' => $quotation->customer->billing_state_code ?? null,
+                'seller_state_code' => $quotation->vendor->billing_state_code ?? null,
+                'has_gstin' => !empty($quotation->customer->gstin),
+                'customer_type' => $quotation->customer->customer_type ?? 'individual',
+            ]
+        );
+
+        // Determine place of supply
+        $placeOfSupply = $quotation->customer->billing_state ?? 
+                        $quotation->customer->state ?? 
+                        $quotation->vendor->billing_state ?? 
+                        'Maharashtra';
+
         return PurchaseOrder::create([
             'po_number' => $poNumber,
             'quotation_id' => $quotation->id,
@@ -105,17 +139,61 @@ class PurchaseOrderService
             'vendor_id' => $quotation->vendor_id,
             'enquiry_id' => $quotation->offer->enquiry_id,
             'offer_id' => $quotation->offer_id,
+            
+            // Items
             'items' => $quotation->items,
+            
+            // Amounts
             'total_amount' => $quotation->total_amount,
-            'tax' => $quotation->tax,
+            'subtotal' => $taxCalculation['subtotal'],
             'discount' => $quotation->discount,
-            'grand_total' => $quotation->grand_total,
+            
+            // Currency (PROMPT 109)
+            'currency_code' => $currency->code,
+            'currency_symbol' => $currency->symbol,
+            
+            // GST (PROMPT 109)
+            'tax' => $taxCalculation['gst_amount'],
+            'tax_rate' => $taxCalculation['gst_rate'],
+            'cgst_rate' => $taxCalculation['cgst_rate'],
+            'cgst_amount' => $taxCalculation['cgst_amount'],
+            'sgst_rate' => $taxCalculation['sgst_rate'],
+            'sgst_amount' => $taxCalculation['sgst_amount'],
+            'igst_rate' => $taxCalculation['igst_rate'],
+            'igst_amount' => $taxCalculation['igst_amount'],
+            
+            // TCS (PROMPT 109)
+            'has_tcs' => $taxCalculation['tcs_applicable'],
+            'tcs_rate' => $taxCalculation['tcs_rate'],
+            'tcs_amount' => $taxCalculation['tcs_amount'],
+            'tcs_section' => $taxCalculation['tcs_section'],
+            
+            // TDS (PROMPT 109)
+            'has_tds' => $taxCalculation['tds_applicable'],
+            'tds_rate' => $taxCalculation['tds_rate'],
+            'tds_amount' => $taxCalculation['tds_amount'],
+            'tds_section' => $taxCalculation['tds_section'],
+            
+            // Tax metadata (PROMPT 109)
+            'is_intra_state' => $taxCalculation['is_intra_state'],
+            'is_reverse_charge' => $taxCalculation['is_reverse_charge'],
+            'place_of_supply' => $placeOfSupply,
+            'tax_calculation_details' => $taxCalculation['tax_calculation_details'],
+            
+            // Grand total
+            'grand_total' => $taxCalculation['grand_total'],
+            
+            // Payment details
             'has_milestones' => $quotation->has_milestones,
             'payment_mode' => $quotation->payment_mode,
             'milestone_count' => $quotation->milestone_count,
             'milestone_summary' => $quotation->milestone_summary,
+            
+            // Notes and terms
             'notes' => $quotation->notes,
             'terms_and_conditions' => $this->getDefaultTermsAndConditions(),
+            
+            // Status
             'status' => PurchaseOrder::STATUS_PENDING,
         ]);
     }

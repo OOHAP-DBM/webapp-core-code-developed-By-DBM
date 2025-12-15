@@ -160,6 +160,27 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('/bookings', function() { return redirect()->route('customer.orders.index'); })->name('bookings.store');
     
     // ============================================
+    // CAMPAIGN DASHBOARD (PROMPT 110)
+    // ============================================
+    Route::prefix('campaigns')->name('campaigns.')->group(function () {
+        // Main Views
+        Route::get('/', [\App\Http\Controllers\Customer\CampaignController::class, 'dashboard'])->name('dashboard');
+        Route::get('/all', [\App\Http\Controllers\Customer\CampaignController::class, 'index'])->name('index');
+        Route::get('/{id}', [\App\Http\Controllers\Customer\CampaignController::class, 'show'])->name('show');
+        
+        // Export & Reports
+        Route::get('/{id}/report', [\App\Http\Controllers\Customer\CampaignController::class, 'downloadReport'])->name('download-report');
+        Route::get('/export/csv', [\App\Http\Controllers\Customer\CampaignController::class, 'export'])->name('export');
+        
+        // AJAX Endpoints
+        Route::get('/api/active', [\App\Http\Controllers\Customer\CampaignController::class, 'active'])->name('api.active');
+        Route::get('/api/upcoming', [\App\Http\Controllers\Customer\CampaignController::class, 'upcoming'])->name('api.upcoming');
+        Route::get('/api/completed', [\App\Http\Controllers\Customer\CampaignController::class, 'completed'])->name('api.completed');
+        Route::get('/api/stats', [\App\Http\Controllers\Customer\CampaignController::class, 'stats'])->name('api.stats');
+        Route::get('/api/pending-actions', [\App\Http\Controllers\Customer\CampaignController::class, 'pendingActions'])->name('api.pending-actions');
+    });
+    
+    // ============================================
     // CUSTOMER DASHBOARD + REPORTS (PROMPT 40)
     // ============================================
     Route::prefix('my')->name('my.')->group(function () {
@@ -296,6 +317,17 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\BookingController::class, 'updateStatus'])->name('update-status');
     });
     Route::post('/bookings/{id}/approve-pod', [\App\Http\Controllers\Web\Vendor\BookingController::class, 'approvePOD'])->name('bookings.approve-pod');
+    
+    // Booking Pipeline Board (PROMPT 111 - Kanban View)
+    Route::prefix('pipeline')->name('pipeline.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'index'])->name('index');
+        Route::get('/data', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'getData'])->name('data');
+        Route::post('/move', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'moveBooking'])->name('move');
+        Route::get('/booking/{id}', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'getBookingDetails'])->name('booking');
+        Route::get('/stats', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'getStats'])->name('stats');
+        Route::post('/bulk-move', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'bulkMove'])->name('bulk-move');
+        Route::get('/export', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'export'])->name('export');
+    });
     
     // Hoarding Availability Calendar (PROMPT 49)
     Route::get('/hoarding/{id}/calendar', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'show'])->name('hoarding.calendar');
@@ -699,6 +731,32 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/templates', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'storeTemplate'])->name('templates.store');
         Route::get('/settings/manage', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'settings'])->name('settings');
         Route::post('/settings', [\App\Http\Controllers\Admin\HoardingApprovalController::class, 'saveSettings'])->name('settings.save');
+    });
+    
+    // Currency Configuration (PROMPT 109)
+    Route::prefix('currency')->name('currency.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\CurrencyConfigController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\CurrencyConfigController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\CurrencyConfigController::class, 'store'])->name('store');
+        Route::get('/{currency}/edit', [\App\Http\Controllers\Admin\CurrencyConfigController::class, 'edit'])->name('edit');
+        Route::put('/{currency}', [\App\Http\Controllers\Admin\CurrencyConfigController::class, 'update'])->name('update');
+        Route::delete('/{currency}', [\App\Http\Controllers\Admin\CurrencyConfigController::class, 'destroy'])->name('destroy');
+        Route::post('/{currency}/set-default', [\App\Http\Controllers\Admin\CurrencyConfigController::class, 'setDefault'])->name('set-default');
+        Route::patch('/{currency}/toggle-active', [\App\Http\Controllers\Admin\CurrencyConfigController::class, 'toggleActive'])->name('toggle-active');
+        Route::post('/update-rates', [\App\Http\Controllers\Admin\CurrencyConfigController::class, 'updateRates'])->name('update-rates');
+        Route::get('/preview', [\App\Http\Controllers\Admin\CurrencyConfigController::class, 'preview'])->name('preview');
+    });
+    
+    // Tax Configuration (PROMPT 109)
+    Route::prefix('tax-config')->name('tax-config.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\TaxConfigController::class, 'index'])->name('index');
+        Route::get('/{taxConfig}/edit', [\App\Http\Controllers\Admin\TaxConfigController::class, 'edit'])->name('edit');
+        Route::put('/{taxConfig}', [\App\Http\Controllers\Admin\TaxConfigController::class, 'update'])->name('update');
+        Route::patch('/{taxConfig}/quick-update', [\App\Http\Controllers\Admin\TaxConfigController::class, 'quickUpdate'])->name('quick-update');
+        Route::patch('/{taxConfig}/toggle-active', [\App\Http\Controllers\Admin\TaxConfigController::class, 'toggleActive'])->name('toggle-active');
+        Route::post('/test-calculation', [\App\Http\Controllers\Admin\TaxConfigController::class, 'testCalculation'])->name('test-calculation');
+        Route::get('/export', [\App\Http\Controllers\Admin\TaxConfigController::class, 'export'])->name('export');
+        Route::get('/reset-defaults', [\App\Http\Controllers\Admin\TaxConfigController::class, 'resetDefaults'])->name('reset-defaults');
     });
 });
 
