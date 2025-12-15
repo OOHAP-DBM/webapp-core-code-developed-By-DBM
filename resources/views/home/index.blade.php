@@ -72,20 +72,35 @@
         
     </section>
      <!-- Personalized Recommendations CTA -->
-            <div class="mt-12 text-center">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">See Personalized Recommendations</h3>
+      <div class="container mx-auto px-4">
+          <hr class="border-gray-200">
+      </div>
+       <section class="py-12 bg-white">
+            <div class="container mx-auto px-4 text-center">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">
+                    See Personalized Recommendations
+                </h3>
+
                 @guest
                     <div class="flex items-center justify-center space-x-4">
-                        <a href="{{ route('login') }}" class="px-8 py-3 bg-gray-900 text-white rounded font-semibold hover:bg-gray-800 transition-colors">
+                        <a href="{{ route('login') }}"
+                        class="px-8 py-3 bg-gray-900 text-white rounded font-semibold hover:bg-gray-800">
                             Login
                         </a>
+
                         <span class="text-gray-500">New on OOHAPP?</span>
-                        <a href="{{ route('register.role-selection') }}" class="text-teal-600 font-semibold hover:text-teal-700">
+
+                        <a href="{{route('register.role-selection')}}"
+                        class="text-teal-600 font-semibold hover:text-teal-700">
                             Signup
                         </a>
                     </div>
                 @endguest
             </div>
+       </section>
+       <div class="container mx-auto px-4">
+            <hr class="border-gray-200">
+       </div>
      <!-- Top DOOH Section -->
     {{-- <section class="py-16 bg-gray-50">
         <div class="container mx-auto px-4">
@@ -110,7 +125,7 @@
     <section class="py-16 bg-white">
         <div class="container mx-auto px-4">
             <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Top DOAs</h2>
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Top Spots</h2>
                 <p class="text-gray-600">Explore advertising opportunities in major cities</p>
             </div>
 
@@ -129,7 +144,7 @@
       <!-- Newsletter Subscription -->
     <section class="py-12 bg-gray-900">
         <div class="container mx-auto px-4">
-            <div class="max-w-4xl mx-auto">
+            <div class="mx-auto max-w-7xl px-6">
                 <!-- Flash Messages -->
                 @if(session('newsletter_success'))
                     <div class="mb-6 p-4 bg-green-500 text-white rounded-lg flex items-center justify-between">
@@ -182,7 +197,7 @@
                 <div class="flex flex-col md:flex-row items-center justify-between gap-6">
                     <!-- Left Content -->
                     <div class="text-white md:w-1/2">
-                        <h2 class="text-2xl md:text-3xl font-bold mb-2">Unlock special offers just for you</h2>
+                        <h2 class="text-2xl md:text-3xl mb-2">Unlock special offers just for you</h2>
                         <p class="text-gray-300 text-sm md:text-base">The finest offers are the ones that arrive in your inbox.</p>
                     </div>
 
@@ -196,7 +211,7 @@
                                 placeholder="Your email" 
                                 value="{{ old('email') }}"
                                 required
-                                class="flex-1 px-4 py-3 rounded-md border-none focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 @error('email') ring-2 ring-red-500 @enderror"
+                                class="flex-1 px-4 py-3 rounded-md border-none bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 @error('email') ring-2 ring-red-500 @enderror"
                             >
                             <button 
                                 type="submit" 

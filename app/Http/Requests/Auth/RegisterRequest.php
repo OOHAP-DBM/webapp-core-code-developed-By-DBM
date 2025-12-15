@@ -22,8 +22,22 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['required', 'string', 'max:15', 'unique:users,phone', 'regex:/^[0-9]{10,15}$/'],
+            'email' => [
+                'required_without:phone',
+                'nullable',
+                'string',
+                'email',
+                'max:255',
+                'unique:users,email'
+            ],
+            'phone' => [
+                'required_without:email',
+                'nullable',
+                'string',
+                'max:15',
+                'unique:users,phone',
+                'regex:/^[0-9]{10,15}$/'
+            ],
             'password' => ['required', 'confirmed', Password::min(8)
                 ->mixedCase()
                 ->numbers()

@@ -62,17 +62,21 @@ class RegisterController extends Controller
      */
     public function register(RegisterRequest $request)
     {
-        // Ensure role is in session
+
+        // Restore role from request if session is missing (for multi-step forms)
+        if (!session()->has('signup_role') && $request->filled('role')) {
+            session(['signup_role' => $request->input('role')]);
+        }
         if (!session()->has('signup_role')) {
             return redirect()->route('register.role-selection')
                 ->with('error', 'Please select your role first.');
         }
-
         $role = session('signup_role');
 
         DB::beginTransaction();
 
         try {
+            \Log::debug('RegisterController@register: request', $request->all());
             // Create user
             $user = User::create([
                 'name' => $request->name,
@@ -122,7 +126,10 @@ class RegisterController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+            \Log::error('Registration failed: ' . $e->getMessage(), [
+                'exception' => $e,
+                'request' => $request->all()
+            ]);
             return back()
                 ->withInput($request->except('password', 'password_confirmation'))
                 ->with('error', 'Registration failed. Please try again.');

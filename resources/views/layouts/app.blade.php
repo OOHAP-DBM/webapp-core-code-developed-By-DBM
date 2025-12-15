@@ -21,7 +21,7 @@
         @include('layouts.partials.header') --}}
 
         <!-- Main Content -->
-        <main class="py-6">
+        <main class="pt-6">
             @yield('content')
         </main>
 

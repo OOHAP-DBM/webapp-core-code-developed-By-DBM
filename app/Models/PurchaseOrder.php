@@ -269,10 +269,10 @@ class PurchaseOrder extends Model
         ]);
     }
 
-    /**
-     * Check if PO can be confirmed
-     */ (PROMPT 109: Currency-aware)
-     */
+    // /**
+    //  * Check if PO can be confirmed
+    //  */ (PROMPT 109: Currency-aware)
+    //  */
     public function getFormattedGrandTotal(): string
     {
         $symbol = $this->currency_symbol ?? '₹';
@@ -358,8 +358,8 @@ class PurchaseOrder extends Model
                 'section' => $this->tds_section,
             ] : null,
             'grand_total' => $this->getFormattedGrandTotal(),
-        ]
-
+            ];
+    }
     /**
      * Check if PO can be cancelled
      */
@@ -379,10 +379,10 @@ class PurchaseOrder extends Model
     /**
      * Get formatted grand total
      */
-    public function getFormattedGrandTotal(): string
-    {
-        return '₹ ' . number_format($this->grand_total, 2);
-    }
+    // public function getFormattedGrandTotal(): string
+    // {
+    //     return '₹ ' . number_format($this->grand_total, 2);
+    // }
 
     /**
      * Get status label

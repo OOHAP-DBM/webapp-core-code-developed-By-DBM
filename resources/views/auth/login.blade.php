@@ -1,31 +1,18 @@
 @extends('layouts.guest')
 
-@section('title', 'Login - OOHAPP')
+@section('title', 'Signup - OOHAPP')
 
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
 <style>
-
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 html, body {
     width: 100%;
     height: 100%;
-    overflow:hidden;
+    overflow: hidden;
 }
 
-body {
-    font-family: 'Inter', sans-serif;
-    background: #ffffff;
-}
-
-/* FULL SCREEN */
 .auth-wrapper {
     width: 100vw;
     height: 100vh;
@@ -35,14 +22,12 @@ body {
 .auth-left {
     background: #000;
     padding: 0;
-    background-size:cover;
 }
 
 .auth-left img {
     width: 100%;
     height: 100%;
-    object-fit: cover;      /* IMPORTANT for clarity */
-    display: block;
+    object-fit: cover;
 }
 
 /* RIGHT FORM */
@@ -50,53 +35,29 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #ffffff;
+    background: #fff;
 }
 
 /* FORM BOX */
-.login-box {
+.signup-box {
     width: 100%;
     max-width: 380px;
+    text-align: center;
 }
 
-/* BRAND */
-.brand {
-    margin-bottom: 10px;
+.signup-box h3 {
+    font-weight: 600;
+    margin-bottom: 20px;
 }
 
-.brand h2 {
-    font-size: 20px;
-    font-weight: 400;
-}
-
-/* INPUTS */
 .form-control {
     height: 46px;
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: 6px;
 }
 
-/* BUTTON */
-.btn-primary {
-    height: 46px;
-    border-radius: 8px;
-    font-size: 14px;
-}
-
-/* MOBILE */
-@media (max-width: 768px) {
-    .auth-left {
-        display: none;
-    }
-
-    .auth-right {
-        width: 100%;
-    }
-}
 .btn-continue {
     height: 46px;
     border-radius: 8px;
-    font-size: 14px;
     background: #e5e7eb;
     color: #9ca3af;
     cursor: not-allowed;
@@ -104,8 +65,75 @@ body {
 
 .btn-continue.active {
     background: #2bb57c;
-    color: #ffffff;
+    color: #fff;
     cursor: pointer;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 25px 0;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+.divider span {
+    margin: 0 10px;
+}
+
+.social-btn {
+    height: 46px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.footer-text {
+    margin-top: 60px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.footer-text a {
+    text-decoration: none;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .auth-left {
+        display: none;
+    }
+}
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    border: 1px solid #d1d5db;
+    color: #111827;
+    font-weight: 500;
+
+    transition: all 0.2s ease;
+}
+
+.google-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.google-btn img {
+    display: block;
 }
 
 </style>
@@ -115,43 +143,78 @@ body {
 <div class="container-fluid auth-wrapper">
     <div class="row h-100">
 
-        <!-- LEFT IMAGE : col-5 -->
+        <!-- LEFT IMAGE -->
         <div class="col-md-5 d-none d-md-block auth-left">
-            <img src="{{ asset('login_image/Left Blue.png') }}" alt="OOHAPP Login">
+            <img src="{{ asset('assets/images/login/login_image.jpeg') }}" alt="OOHAPP">
         </div>
 
-        <!-- RIGHT FORM : col-7 -->
+        <!-- RIGHT FORM -->
         <div class="col-md-7 col-12 auth-right">
-            <div class="login-box">
+            <div class="signup-box">
 
-                <!-- BRAND -->
-                <div class="brand">
-                    <h2>Login to your account</h2>
-                </div>
+                <h3 class="text-start">Login to your account</h3>
 
-                <!-- FORM -->
-                <form method="POST" action="{{ route('login') }}">
+                @if ($errors->any())
+                    <div class="alert alert-danger text-start">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('login') }}" id="signupForm">
                     @csrf
 
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            {{ $errors->first() }}
-                        </div>
-                    @endif
-
-                    <div class="mb-3">
-                        <input type="text"
-                               name="identifier"
+                    <div class="mb-2 text-start">
+                        <input type="email"
+                               name="email"
+                               id="emailInput"
                                class="form-control"
                                placeholder="Email"
-                               value="{{ old('identifier') }}"
                                required>
-                               <small>We will send you a 4-digit OTP to confirm your email</small>
-                    </div>          
-                    <button type="submit" class="btn btn-continue w-100 mb-3 text-light border border-1">
+                        <small class="text-muted">
+                            We will send you a 4-digit OTP to confirm your email
+                        </small>
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-continue w-100 mt-3"
+                            id="continueBtn"
+                            disabled>
                         Continue
                     </button>
                 </form>
+
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+
+                <button class="social-btn">
+                    <i class="fa-solid fa-mobile-screen me-2"></i>
+                    Continue with Mobile
+                </button>
+
+                <button class="social-btn google-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                        width="18"
+                        class="me-2">
+                    Continue with Google
+                </button>
+
+
+                <div class="footer-text">
+                    <p class="mb-1">
+                        Create an Account?
+                        <a href="{{route('register.role-selection')}}" class="text-success">SignUp</a>
+                    </p>
+                    <small>
+                        By clicking continue button, you agree with the
+                        <a href="#">Terms & Conditions</a> and
+                        <a href="#">Privacy policy</a> of OOHAPP.
+                    </small>
+                </div>
 
             </div>
         </div>
@@ -159,24 +222,22 @@ body {
     </div>
 </div>
 @endsection
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const input = document.querySelector('input[name="identifier"]');
-    const button = document.querySelector('.btn-continue');
+    const email = document.getElementById('emailInput');
+    const btn   = document.getElementById('continueBtn');
 
-    if (!input || !button) return;
-
-    input.addEventListener('input', function () {
+    email.addEventListener('input', function () {
         if (this.value.trim() !== '') {
-            button.disabled = false;
-            button.classList.add('active');
+            btn.disabled = false;
+            btn.classList.add('active');
         } else {
-            button.disabled = true;
-            button.classList.remove('active');
+            btn.disabled = true;
+            btn.classList.remove('active');
         }
     });
 });
 </script>
 @endpush
-

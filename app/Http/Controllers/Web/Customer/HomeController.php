@@ -19,7 +19,7 @@ class HomeController extends Controller
             'total_hoardings' => \App\Models\Hoarding::where('status', 'approved')->count(),
             'cities' => \App\Models\Hoarding::distinct('city')->count('city'),
             'active_vendors' => \App\Models\User::role('vendor')->where('status', 'active')->count(),
-            'bookings' => \Modules\Bookings\Models\Booking::where('status', 'completed')->count(),
+            'bookings' => \App\Models\Booking::where('status', 'completed')->count(),
         ];
 
         // Get featured hoardings
@@ -31,13 +31,12 @@ class HomeController extends Controller
 
         // Check if user has location stored
         $userLocation = null;
+        $nearbyHoardings = null;
         if (session()->has('user_location')) {
             $userLocation = session('user_location');
-            
             // Get nearby hoardings if location exists
             $lat = $userLocation['lat'] ?? null;
             $lng = $userLocation['lng'] ?? null;
-            
             if ($lat && $lng) {
                 $nearbyHoardings = \App\Models\Hoarding::selectRaw("
                     *, ( 6371 * acos( cos( radians(?) ) *

@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
         // Seed tax rules
         $this->call([
             TaxRulesSeeder::class,
+            RolesAndPermissionsSeeder::class,
+            SettingsSeeder::class,
         ]);
     }
 }
