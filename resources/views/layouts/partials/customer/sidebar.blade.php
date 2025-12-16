@@ -63,6 +63,9 @@
                 </svg>
                 Payments
             </a>
+            <a href="{{route('logout')}}">
+                LogOut
+            </a>
         </div>
     </nav>
 </aside>

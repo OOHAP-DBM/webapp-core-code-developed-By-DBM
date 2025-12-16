@@ -135,6 +135,15 @@ html, body {
 .google-btn img {
     display: block;
 }
+.otp-box {
+    width: 44px;
+    height: 46px;
+    text-align: center;
+    font-size: 18px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
 
 </style>
 @endpush
@@ -145,7 +154,7 @@ html, body {
 
         <!-- LEFT IMAGE -->
         <div class="col-md-5 d-none d-md-block auth-left">
-            <img src="{{ asset('assets/images/login/login_image.jpeg') }}" alt="OOHAPP">
+             <a href="{{route('home')}}"><img src="{{ asset('assets/images/login/login_image.jpeg') }}"></a>
         </div>
 
         <!-- RIGHT FORM -->
@@ -164,7 +173,7 @@ html, body {
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('login') }}" id="signupForm">
+                <form method="POST" action="{{ route('login.submit') }}" id="signupForm">
                     @csrf
 
                     <div class="mb-2 text-start">
@@ -217,6 +226,30 @@ html, body {
                 </div>
 
             </div>
+            <!-- OTP LOGIN UI -->
+            <div id="otp-login-ui" class="d-none mt-4">
+
+                <div class="mb-3 text-start">
+                    <h6 class="fw-semibold">Verify with OTP</h6>
+                    <p class="text-muted small">
+                        Enter the 4-digit code sent to <br>
+                        <strong id="otp-login-email"></strong>
+                    </p>
+                </div>
+
+                <div class="d-flex gap-2 mb-3">
+                    <input class="otp-box" maxlength="1">
+                    <input class="otp-box" maxlength="1">
+                    <input class="otp-box" maxlength="1">
+                    <input class="otp-box" maxlength="1">
+                </div>
+
+                <small class="text-muted">
+                    Resend OTP in <span class="text-success">00:30</span>
+                </small>
+
+            </div>
+
         </div>
 
     </div>
@@ -226,18 +259,107 @@ html, body {
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const email = document.getElementById('emailInput');
-    const btn   = document.getElementById('continueBtn');
 
-    email.addEventListener('input', function () {
-        if (this.value.trim() !== '') {
-            btn.disabled = false;
-            btn.classList.add('active');
-        } else {
-            btn.disabled = true;
-            btn.classList.remove('active');
-        }
+    const emailInput = document.getElementById('emailInput');
+    const continueBtn = document.getElementById('continueBtn');
+    const form = document.getElementById('signupForm');
+
+    const otpUI = document.getElementById('otp-login-ui');
+    const otpEmailText = document.getElementById('otp-login-email');
+    const otpBoxes = document.querySelectorAll('.otp-box');
+
+    let enteredEmail = '';
+
+    // enable button
+    emailInput.addEventListener('input', () => {
+        continueBtn.disabled = !emailInput.value.trim();
+        continueBtn.classList.toggle('active', !continueBtn.disabled);
     });
+
+    // CONTINUE CLICK
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        sendLoginOtp();
+    });
+
+    // SEND OTP
+    function sendLoginOtp() {
+        enteredEmail = emailInput.value;
+
+        fetch("{{ route('login.sendEmailOtp') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({ email: enteredEmail })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (!res.success) {
+                alert(res.message || 'OTP send failed');
+                return;
+            }
+
+            // hide email input
+            form.style.display = 'none';
+
+            // show otp
+            otpEmailText.innerText = enteredEmail;
+            otpUI.classList.remove('d-none');
+            otpBoxes[0].focus();
+        });
+    }
+
+    // OTP INPUT HANDLING
+    otpBoxes.forEach((box, index) => {
+
+        box.addEventListener('input', () => {
+            box.value = box.value.replace(/\D/g, '');
+
+            if (box.value && otpBoxes[index + 1]) {
+                otpBoxes[index + 1].focus();
+            }
+
+            const otp = Array.from(otpBoxes).map(b => b.value).join('');
+            if (otp.length === 4) {
+                verifyLoginOtp(otp);
+            }
+        });
+
+        box.addEventListener('keydown', e => {
+            if (e.key === 'Backspace' && !box.value && otpBoxes[index - 1]) {
+                otpBoxes[index - 1].focus();
+            }
+        });
+    });
+
+    // VERIFY OTP
+    function verifyLoginOtp(otp) {
+        fetch("{{ route('login.verifyEmailOtp') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({
+                email: enteredEmail,
+                otp: otp
+            })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (!res.success) {
+                alert(res.message || 'Invalid OTP');
+                return;
+            }
+
+            // LOGIN SUCCESS → redirect
+            window.location.href = res.redirect || "{{ route('home') }}";
+        });
+    }
+
 });
 </script>
+
 @endpush
