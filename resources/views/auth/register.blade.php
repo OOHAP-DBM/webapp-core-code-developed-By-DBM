@@ -7,235 +7,345 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
 <style>
-html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
-
-.auth-wrapper {
-    width: 100vw;
-    height: 100vh;
-}
-
-/* LEFT IMAGE */
-.auth-left {
-    background: #000;
-    padding: 0;
-}
-
-.auth-left img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* RIGHT FORM */
-.auth-right {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-}
-
-/* FORM BOX */
-.signup-box {
-    width: 100%;
-    max-width: 380px;
-    text-align: center;
-}
-
-.signup-box h3 {
-    font-weight: 600;
-    margin-bottom: 20px;
-}
-
-.form-control {
-    height: 46px;
-    border-radius: 6px;
-}
-
-.btn-continue {
-    height: 46px;
-    border-radius: 8px;
-    background: #e5e7eb;
-    color: #9ca3af;
-    cursor: not-allowed;
-}
-
-.btn-continue.active {
-    background: #2bb57c;
-    color: #fff;
-    cursor: pointer;
-}
-
-.divider {
-    display: flex;
-    align-items: center;
-    margin: 25px 0;
-    color: #9ca3af;
-    font-size: 13px;
-}
-
-.divider::before,
-.divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #e5e7eb;
-}
-
-.divider span {
-    margin: 0 10px;
-}
-
-.social-btn {
-    height: 46px;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    width: 100%;
-    margin-bottom: 12px;
-}
-
-.footer-text {
-    margin-top: 60px;
-    font-size: 13px;
-    color: #6b7280;
-}
-
-.footer-text a {
-    text-decoration: none;
-    font-weight: 500;
-}
-
-@media (max-width: 768px) {
-    .auth-left {
-        display: none;
+    html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
     }
-}
-.google-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
 
-    border: 1px solid #d1d5db;
-    color: #111827;
-    font-weight: 500;
+    .auth-wrapper {
+        width: 100vw;
+        height: 100vh;
+    }
 
-    transition: all 0.2s ease;
-}
+    /* LEFT IMAGE */
+    .auth-left {
+        background: #000;
+        padding: 0;
+    }
 
-.google-btn:hover {
-    background: #f9fafb;
-    border-color: #9ca3af;
-}
+    .auth-left img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
-.google-btn img {
-    display: block;
-}
+    /* RIGHT FORM */
+    .auth-right {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+    }
+
+    /* FORM BOX */
+    .signup-box {
+        width: 100%;
+        max-width: 380px;
+        text-align: center;
+    }
+
+    .signup-box h3 {
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .form-control {
+        height: 46px;
+        border-radius: 6px;
+    }
+
+    .btn-continue {
+        height: 46px;
+        border-radius: 8px;
+        background: #e5e7eb;
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    .btn-continue.active {
+        background: #2bb57c;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        margin: 25px 0;
+        color: #9ca3af;
+        font-size: 13px;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e5e7eb;
+    }
+
+    .divider span {
+        margin: 0 10px;
+    }
+
+    .social-btn {
+        height: 46px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
+    .footer-text {
+        margin-top: 60px;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .footer-text a {
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .auth-left {
+            display: none;
+        }
+    }
+    .google-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+
+        border: 1px solid #d1d5db;
+        color: #111827;
+        font-weight: 500;
+
+        transition: all 0.2s ease;
+    }
+
+    .google-btn:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+    }
+
+    .google-btn img {
+        display: block;
+    }
 
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid auth-wrapper">
-    <div class="row h-100">
+    <div class="container-fluid auth-wrapper">
+        <div class="row h-100">
 
-        <!-- LEFT IMAGE -->
-        <div class="col-md-5 d-none d-md-block auth-left">
-            <img src="{{ asset('assets/images/login/login_image.jpeg') }}" alt="OOHAPP">
-        </div>
+            <!-- LEFT IMAGE -->
+            <div class="col-md-5 d-none d-md-block auth-left">
+                <img src="{{ asset('assets/images/login/login_image.jpeg') }}" alt="OOHAPP">
+            </div>
 
-        <!-- RIGHT FORM -->
-        <div class="col-md-7 col-12 auth-right">
-            <div class="signup-box">
+            <!-- RIGHT FORM -->
+            <div class="col-md-7 col-12 auth-right">
+                <div class="signup-box">
 
-                <h3>Signup</h3>
-                 @if ($errors->any())
-                    <div class="alert alert-danger text-start">
-                        <ul class="mb-0">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
+                    <h3>Signup</h3>
+                    <div id="ajaxError" class="alert alert-danger text-start d-none"></div>
+                    @if ($errors->any())
+                        <div class="alert alert-danger text-start">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                    <form method="POST" action="{{ route('register.sendEmailOtp') }}" id="signupForm">
+                        @csrf
+
+                        <div class="mb-2 text-start">
+                            <input type="email"
+                                name="email"
+                                id="emailInput"
+                                class="form-control"
+                                placeholder="Email"
+                                required>
+                            <small class="text-muted">
+                                We will send you a 4-digit OTP to confirm your email
+                            </small>
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-continue w-100 mt-3"
+                                id="continueBtn"
+                                disabled>
+                            Continue
+                        </button>
+                    </form>
+
+                    <div class="divider">
+                        <span>OR</span>
                     </div>
-                @endif
-                <form method="POST" action="{{ route('register.sendEmailOtp') }}" id="signupForm">
-                    @csrf
 
-                    <div class="mb-2 text-start">
-                        <input type="email"
-                               name="email"
-                               id="emailInput"
-                               class="form-control"
-                               placeholder="Email"
-                               required>
-                        <small class="text-muted">
-                            We will send you a 4-digit OTP to confirm your email
+                    <button class="social-btn">
+                        <i class="fa-solid fa-mobile-screen me-2"></i>
+                        Continue with Mobile
+                    </button>
+
+                    <button class="social-btn google-btn">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                            width="18"
+                            class="me-2">
+                        Continue with Google
+                    </button>
+
+
+                    <div class="footer-text">
+                        <p class="mb-1">
+                            Already Have an Account?
+                            <a href="{{ route('login') }}" class="text-success">Login</a>
+                        </p>
+                        <small>
+                            By clicking continue button, you agree with the
+                            <a href="#">Terms & Conditions</a> and
+                            <a href="#">Privacy policy</a> of OOHAPP.
                         </small>
                     </div>
 
-                    <button type="submit"
-                            class="btn btn-continue w-100 mt-3"
-                            id="continueBtn"
-                            disabled>
-                        Continue
-                    </button>
-                </form>
-
-                <div class="divider">
-                    <span>OR</span>
                 </div>
-
-                <button class="social-btn">
-                    <i class="fa-solid fa-mobile-screen me-2"></i>
-                    Continue with Mobile
-                </button>
-
-                <button class="social-btn google-btn">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                        width="18"
-                        class="me-2">
-                    Continue with Google
-                </button>
-
-
-                <div class="footer-text">
-                    <p class="mb-1">
-                        Already Have an Account?
-                        <a href="{{ route('login') }}" class="text-success">Login</a>
-                    </p>
-                    <small>
-                        By clicking continue button, you agree with the
-                        <a href="#">Terms & Conditions</a> and
-                        <a href="#">Privacy policy</a> of OOHAPP.
-                    </small>
-                </div>
-
             </div>
+
         </div>
-
     </div>
-</div>
 @endsection
-
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const email = document.getElementById('emailInput');
-    const btn   = document.getElementById('continueBtn');
+    document.addEventListener('DOMContentLoaded', function () {
 
-    email.addEventListener('input', function () {
-        if (this.value.trim() !== '') {
-            btn.disabled = false;
-            btn.classList.add('active');
-        } else {
+        const emailInput = document.getElementById('emailInput');
+        const btn = document.getElementById('continueBtn');
+        const form = document.getElementById('signupForm');
+        const errorBox = document.getElementById('ajaxError');
+
+        let step = 'email'; // email | otp
+        let enteredEmail = '';
+
+        emailInput.addEventListener('input', function () {
+
+            // EMAIL STEP
+            if (step === 'email') {
+                if (this.value.trim() !== '') {
+                    btn.disabled = false;
+                    btn.classList.add('active');
+                } else {
+                    btn.disabled = true;
+                    btn.classList.remove('active');
+                }
+            }
+
+            // OTP STEP
+            if (step === 'otp') {
+                if (this.value.trim().length === 4) {
+                    btn.disabled = false;
+                    btn.classList.add('active');
+                } else {
+                    btn.disabled = true;
+                    btn.classList.remove('active');
+                }
+            }
+        });
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            errorBox.classList.add('d-none');
+            errorBox.innerHTML = '';
+
+            if (step === 'email') {
+                sendOtp();
+            } else {
+                verifyOtp(); // ✅ verify route ONLY here
+            }
+        });
+
+        function sendOtp() {
             btn.disabled = true;
-            btn.classList.remove('active');
+            enteredEmail = emailInput.value;
+
+            fetch("{{ route('register.sendEmailOtp') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({ email: enteredEmail })
+            })
+            .then(r => r.json())
+            .then(res => {
+
+                if (!res.success) {
+                    showError(res.message || 'Failed to send OTP');
+                    btn.disabled = false;
+                    return;
+                }
+
+                // ✅ SWITCH TO OTP MODE
+                step = 'otp';
+
+                emailInput.value = '';
+                emailInput.type = 'text';
+                emailInput.placeholder = 'Enter 4-digit OTP';
+                emailInput.maxLength = 4;
+
+                btn.innerText = 'Verify OTP';
+                btn.disabled = true;
+                btn.classList.remove('active');
+            })
+            .catch(() => {
+                showError('Something went wrong. Please try again.');
+                btn.disabled = false;
+            });
         }
+
+        function verifyOtp() {
+                btn.disabled = true;
+
+                fetch("{{ route('register.verifyEmailOtp') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({
+                        email: enteredEmail,
+                        otp: emailInput.value
+                    })
+                })
+                .then(r => r.json())
+                .then(res => {
+
+                    if (!res.success) {
+                        showError(res.message || 'Invalid OTP');
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    // ✅ VERIFY ROUTE HIT HONE KE BAAD FIXED REDIRECT
+                    window.location.href = "{{ route('register.role-selection') }}";
+                })
+                .catch(() => {
+                    showError('OTP verification failed.');
+                    btn.disabled = false;
+                });
+        }
+
+        function showError(msg) {
+            errorBox.innerHTML = msg;
+            errorBox.classList.remove('d-none');
+        }
+
     });
-});
 </script>
 @endpush

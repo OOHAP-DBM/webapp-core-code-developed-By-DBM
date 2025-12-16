@@ -155,8 +155,8 @@ class RegisterController extends Controller
     public function sendEmailOtp(Request $request)
     {
         $request->validate(['email' => 'required|email']);
-        // $otp = rand(100000, 999999);
-        $otp = 123456;
+        $otp = rand(1000, 9999);
+        // $otp = 123456;
 
         Cache::put('email_otp_' . $request->email, $otp, now()->addMinutes(10));
         // Send OTP via email

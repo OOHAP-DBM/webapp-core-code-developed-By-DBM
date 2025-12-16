@@ -4,12 +4,7 @@
             <!-- Logo -->
             <div class="flex items-center flex-shrink-0">
                 <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
-                    <div class="w-7 h-7 bg-green-500 rounded flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white font-bold" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
-                        </svg>
-                    </div>
-                    <span class="text-xl font-bold text-gray-900">OOHAPP</span>
+                   <img src="{{asset('assets/images/logo/logo_image.jpeg')}}" alt="" width="150">
                 </a>
             </div>
 
@@ -78,34 +73,42 @@
             <!-- Right Side Icons -->
             <div class="flex items-center space-x-3 lg:space-x-5">
                 @auth
-                    <!-- Saved/Bookmarks -->
-                    <a href="{{ route('customer.saved') ?? '#' }}" class="hidden md:block text-gray-600 hover:text-gray-900 transition-colors" title="Saved">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- User Profile -->
+                    <a href="" class="text-gray-600 hover:text-gray-900 transition-colors" title="Profile">
+                        <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </a>
+                      <!-- Saved/Bookmarks -->
+                    <a href="#" class="hidden md:block text-gray-600 hover:text-gray-900 transition-colors" title="Saved">
+                        <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
                         </svg>
                     </a>
-
-                    <!-- Cart with Badge -->
-                    <a href="{{ route('customer.cart') ?? '#' }}" class="hidden md:block relative text-gray-600 hover:text-gray-900 transition-colors" title="Cart">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <!-- Cart with Badge -->
+                    <a href="#" class="hidden md:block relative text-gray-600 hover:text-gray-900 transition-colors" title="Cart">
+                        <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                         </svg>
-                        <span class="absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                            1
-                        </span>
                     </a>
 
-                    <!-- User Profile -->
-                    <a href="{{ route('customer.profile') ?? url('/dashboard') }}" class="text-gray-600 hover:text-gray-900 transition-colors" title="Profile">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                    </a>
                 @else
                     <!-- Login Button -->
                     <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900 transition-colors" title="Login">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </a>
+                        <!-- Saved/Bookmarks -->
+                    <a href="#" class="hidden md:block text-gray-600 hover:text-gray-900 transition-colors" title="Saved">
+                        <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                        </svg>
+                    </a>
+                       <!-- Cart with Badge -->
+                    <a href="#" class="hidden md:block relative text-gray-600 hover:text-gray-900 transition-colors" title="Cart">
+                        <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                         </svg>
                     </a>
                 @endauth
@@ -145,7 +148,7 @@
                 <a href="{{ route('hoardings.index') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Hoardings</a>
                 <a href="{{ route('dooh.index') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">DOOH</a>
                 @auth
-                    <a href="{{ route('customer.saved') ?? '#' }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Saved Items</a>
+                    <a href="" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Saved Items</a>
                     <a href="{{ url('/dashboard') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Dashboard</a>
                 @else
                     <a href="{{ route('login') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Login</a>
