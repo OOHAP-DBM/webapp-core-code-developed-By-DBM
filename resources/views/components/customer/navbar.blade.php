@@ -72,33 +72,78 @@
 
             <!-- Right Side Icons -->
             <div class="flex items-center space-x-3 lg:space-x-5">
-                @auth
-                    <!-- User Profile -->
-                    <a href="" class="text-gray-600 hover:text-gray-900 transition-colors" title="Profile">
-                        <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                    </a>
-                      <!-- Saved/Bookmarks -->
-                    <a href="#" class="hidden md:block text-gray-600 hover:text-gray-900 transition-colors" title="Saved">
-                        <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-                        </svg>
-                    </a>
-                       <!-- Cart with Badge -->
-                    <a href="#" class="hidden md:block relative text-gray-600 hover:text-gray-900 transition-colors" title="Cart">
-                        <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                        </svg>
-                    </a>
+                    <div class="relative inline-block" id="userDropdownWrapper">
 
-                @else
-                    <!-- Login Button -->
-                    <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900 transition-colors" title="Login">
-                        <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                    </a>
+                        <!-- USER ICON (UNCHANGED) -->
+                        <a href="javascript:void(0)"
+                        id="userDropdownBtn"
+                        class="text-gray-600 hover:text-gray-900 transition-colors"
+                        title="Login">
+                            <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </a>
+
+                        <!-- DROPDOWN -->
+                        <div id="userDropdown"
+                            class="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-50">
+
+                            <!-- TOP SECTION -->
+                            <div class="p-4 border-b">
+                                <p class="font-semibold text-gray-900">Welcome</p>
+                                <p class="text-sm text-gray-500">
+                                    To access account and manage bookings.
+                                </p>
+
+                                @guest
+                                    <!-- GUEST : Login / Signup -->
+                                    <a href="{{ route('login') }}"
+                                    class="mt-3  text-center rounded-md py-2 text-sm font-medium">
+                                        Login /
+                                    </a>
+
+                                    <a href="{{ route('register.role-selection') }}"
+                                    class="mt-2  text-center  rounded-md py-2 text-sm font-medium">
+                                        Signup
+                                    </a>
+                                @endguest
+
+                                @auth
+                                    <!-- AUTH : Dashboard -->
+                                    @if(auth()->user()->hasRole('vendor'))
+                                        <a href="{{ route('vendor.dashboard') }}"
+                                        class="mt-3  text-center  rounded-md py-2 text-sm font-medium">
+                                            Dashboard
+                                        </a>
+                                    @else
+                                        <a href="{{ route('customer.dashboard') }}"
+                                        class="mt-3  text-center  rounded-md py-2 text-sm font-medium">
+                                            Dashboard
+                                        </a>
+                                    @endif
+                                @endauth
+
+                            </div>
+
+                            <!-- LINKS -->
+                            <div class="py-2">
+                                <a href="#"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    My Booking
+                                </a>
+                                <a href="#"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Enquiry
+                                </a>
+                                <a href="#"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Help Center
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
                         <!-- Saved/Bookmarks -->
                     <a href="#" class="hidden md:block text-gray-600 hover:text-gray-900 transition-colors" title="Saved">
                         <svg class="w-6 h-6" fill="black" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +156,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                         </svg>
                     </a>
-                @endauth
+
 
                 <!-- Mobile Menu Button -->
                 <button type="button" class="md:hidden text-gray-700" onclick="toggleMobileMenu()">
@@ -213,5 +258,23 @@
             }
         }
     });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const btn  = document.getElementById('userDropdownBtn');
+    const menu = document.getElementById('userDropdown');
+
+    btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        menu.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', function () {
+        menu.classList.add('hidden');
+    });
+
+});
 </script>
 @endpush

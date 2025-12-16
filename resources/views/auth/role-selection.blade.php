@@ -124,7 +124,7 @@ body {
 
         <!-- LEFT IMAGE -->
         <div class="col-md-5 d-none d-md-block auth-left">
-            <img src="{{ asset('assets/images/login/login_image.jpeg') }}" alt="OOHAPP Login">
+              <a href="{{route('home')}}"><img src="{{ asset('assets/images/login/login_image.jpeg') }}"></a>
         </div>
 
         <!-- RIGHT FORM -->

@@ -121,8 +121,8 @@ class RegisterController extends Controller
             Auth::login($user);
 
             // Redirect to customer dashboard
-            return redirect()->route('customer.dashboard')
-                ->with('success', 'Welcome to OohApp! Your account has been created successfully.');
+            return redirect()->route('home')
+                  ->with('success', 'Welcome to OohApp! Your account has been created successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -155,8 +155,8 @@ class RegisterController extends Controller
     public function sendEmailOtp(Request $request)
     {
         $request->validate(['email' => 'required|email']);
-        $otp = rand(1000, 9999);
-        // $otp = 123456;
+        // $otp = rand(1000, 9999);
+        $otp = 1234;
 
         Cache::put('email_otp_' . $request->email, $otp, now()->addMinutes(10));
         // Send OTP via email
