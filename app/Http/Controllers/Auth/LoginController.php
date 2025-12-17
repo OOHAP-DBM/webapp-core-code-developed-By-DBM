@@ -18,7 +18,10 @@ class LoginController extends Controller
     {
         return view('auth.login');
     }
-
+    public function showMobileLoginForm()
+    {
+        return view('auth.login-mobile');
+    }
     /**
      * Handle login request
      */

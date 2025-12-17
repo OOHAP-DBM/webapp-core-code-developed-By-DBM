@@ -54,7 +54,7 @@ Route::middleware('guest')->group(function () {
     // Login
     Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login.submit');
-    
+    Route::get('/login/mobile', [\App\Http\Controllers\Auth\LoginController::class,'showMobileLoginForm'])->name('login.mobile');
     // Registration - Role Selection First
     Route::get('/register', [\App\Http\Controllers\Auth\RegisterController::class, 'showRoleSelection'])->name('register.role-selection');
     Route::post('/register/role', [\App\Http\Controllers\Auth\RegisterController::class, 'storeRoleSelection'])->name('register.store-role');

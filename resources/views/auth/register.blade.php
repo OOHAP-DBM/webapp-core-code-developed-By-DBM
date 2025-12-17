@@ -191,8 +191,8 @@ html, body {
 
             <div class="divider"><span>OR</span></div>
 
-            <a href="" class="social-btn btn text-decoration-none border-1 border">
-                <i class="fa-solid fa-mobile-screen me-2"></i>
+            <a href="{{ route('register.mobile-form')}}"
+                class="social-btn btn border border-1">
                 Continue with Mobile
             </a>
 
@@ -366,7 +366,7 @@ html, body {
         }
 
         function validatePassword(pwd) {
-            return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+=-])[^\s]{8,64}$/.test(pwd);
+            return /^(?=.*[a-z])(?=.*\d)[^\s]{8,64}$/.test(pwd);
         }
 
         /* ===================== EMAIL + OTP ===================== */
