@@ -135,15 +135,6 @@ html, body {
 .google-btn img {
     display: block;
 }
-.otp-box {
-    width: 44px;
-    height: 46px;
-    text-align: center;
-    font-size: 18px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-}
-
 
 </style>
 @endpush
@@ -154,7 +145,7 @@ html, body {
 
         <!-- LEFT IMAGE -->
         <div class="col-md-5 d-none d-md-block auth-left">
-             <a href="{{route('home')}}"><img src="{{ asset('assets/images/login/login_image.jpeg') }}"></a>
+            <a href="{{route('home')}}"><img src="{{ asset('assets/images/login/login_image.jpeg') }}" alt="OOHAPP"></a>
         </div>
 
         <!-- RIGHT FORM -->
@@ -177,15 +168,37 @@ html, body {
                     @csrf
 
                     <div class="mb-2 text-start">
-                        <input type="email"
-                               name="email"
+                        <input type="text"
+                               name="login"
                                id="emailInput"
                                class="form-control"
                                placeholder="Email"
-                               required>
+                               required
+                               autocomplete="off"
+                               autocorrect="off"
+                               autocapitalize="off"
+                               spellcheck="false"
+                        >
                         <small class="text-muted">
-                            We will send you a 4-digit OTP to confirm your email
+                            Please your valid email
                         </small>
+                    </div>
+                    <div class="mb-2 text-start d-none" id="passwordBox">
+                        <div class="position-relative">
+                            <input type="password"
+                                name="password"
+                                id="passwordInput"
+                                class="form-control pe-5"
+                                placeholder="Password"
+                                autocomplete="new-password">
+
+                            <span class="position-absolute top-50 end-0 translate-middle-y me-3"
+                                style="cursor:pointer;"
+                                id="togglePassword">
+                                <i class="fa-solid fa-eye text-muted pb-3"></i>
+                            </span>
+                            <small>Enter your password</small>
+                        </div>
                     </div>
 
                     <button type="submit"
@@ -226,30 +239,6 @@ html, body {
                 </div>
 
             </div>
-            <!-- OTP LOGIN UI -->
-            <div id="otp-login-ui" class="d-none mt-4">
-
-                <div class="mb-3 text-start">
-                    <h6 class="fw-semibold">Verify with OTP</h6>
-                    <p class="text-muted small">
-                        Enter the 4-digit code sent to <br>
-                        <strong id="otp-login-email"></strong>
-                    </p>
-                </div>
-
-                <div class="d-flex gap-2 mb-3">
-                    <input class="otp-box" maxlength="1">
-                    <input class="otp-box" maxlength="1">
-                    <input class="otp-box" maxlength="1">
-                    <input class="otp-box" maxlength="1">
-                </div>
-
-                <small class="text-muted">
-                    Resend OTP in <span class="text-success">00:30</span>
-                </small>
-
-            </div>
-
         </div>
 
     </div>
@@ -258,108 +247,77 @@ html, body {
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
 
-    const emailInput = document.getElementById('emailInput');
-    const continueBtn = document.getElementById('continueBtn');
-    const form = document.getElementById('signupForm');
+        const emailInput   = document.getElementById('emailInput');
+        const passwordBox = document.getElementById('passwordBox');
+        const passwordInp = document.getElementById('passwordInput');
+        const btn         = document.getElementById('continueBtn');
+        const form        = document.getElementById('signupForm');
 
-    const otpUI = document.getElementById('otp-login-ui');
-    const otpEmailText = document.getElementById('otp-login-email');
-    const otpBoxes = document.querySelectorAll('.otp-box');
+        let step = 1; // 1 = email, 2 = password
 
-    let enteredEmail = '';
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+        }
+        const helper = emailInput.nextElementSibling;
+        emailInput.addEventListener('input', () => {
+            const value = emailInput.value.trim();
 
-    // enable button
-    emailInput.addEventListener('input', () => {
-        continueBtn.disabled = !emailInput.value.trim();
-        continueBtn.classList.toggle('active', !continueBtn.disabled);
-    });
+            if (!value) {
+                helper.innerText = 'Please enter your email';
+                btn.disabled = true;
+                btn.classList.remove('active');
 
-    // CONTINUE CLICK
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        sendLoginOtp();
-    });
+            } else if (!isValidEmail(value)) {
+                helper.innerText = 'Enter a valid email address';
+                helper.classList.remove('text-muted');
+                helper.classList.add('text-danger');
+                btn.disabled = true;
+                btn.classList.remove('active');
 
-    // SEND OTP
-    function sendLoginOtp() {
-        enteredEmail = emailInput.value;
+            } else {
+                helper.classList.add('text-muted');
+                helper.classList.remove('text-danger');
+                btn.disabled = false;
+                btn.classList.add('active');
+            }
+        });
+        form.addEventListener('submit', function (e) {
+            // STEP 1 → show password
+            if (step === 1) {
+                e.preventDefault();
+                emailInput.closest('.mb-2').classList.add('d-none');
+                passwordBox.classList.remove('d-none');
+                passwordInp.setAttribute('required', 'required');
+                btn.textContent = 'Login';
+                btn.disabled = true;
+                btn.classList.remove('active');
 
-        fetch("{{ route('login.sendEmailOtp') }}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": "{{ csrf_token() }}"
-            },
-            body: JSON.stringify({ email: enteredEmail })
-        })
-        .then(r => r.json())
-        .then(res => {
-            if (!res.success) {
-                alert(res.message || 'OTP send failed');
+                passwordInp.focus();
+                step = 2;
                 return;
             }
-
-            // hide email input
-            form.style.display = 'none';
-
-            // show otp
-            otpEmailText.innerText = enteredEmail;
-            otpUI.classList.remove('d-none');
-            otpBoxes[0].focus();
+            // STEP 2 → normal form submit (route: login.submit)
         });
-    }
-
-    // OTP INPUT HANDLING
-    otpBoxes.forEach((box, index) => {
-
-        box.addEventListener('input', () => {
-            box.value = box.value.replace(/\D/g, '');
-
-            if (box.value && otpBoxes[index + 1]) {
-                otpBoxes[index + 1].focus();
-            }
-
-            const otp = Array.from(otpBoxes).map(b => b.value).join('');
-            if (otp.length === 4) {
-                verifyLoginOtp(otp);
-            }
+        passwordInp.addEventListener('input', () => {
+            btn.disabled = !passwordInp.value.trim();
+            btn.classList.toggle('active', !btn.disabled);
         });
+        const togglePassword = document.getElementById('togglePassword');
 
-        box.addEventListener('keydown', e => {
-            if (e.key === 'Backspace' && !box.value && otpBoxes[index - 1]) {
-                otpBoxes[index - 1].focus();
-            }
-        });
+        togglePassword.addEventListener('click', function () {
+        const isPassword = passwordInp.getAttribute('type') === 'password';
+
+        passwordInp.setAttribute('type', isPassword ? 'text' : 'password');
+
+        this.innerHTML = isPassword
+            ? '<i class="fa-solid fa-eye-slash text-muted pb-3"></i>'
+            : '<i class="fa-solid fa-eye text-muted pb-3"></i>';
     });
 
-    // VERIFY OTP
-    function verifyLoginOtp(otp) {
-        fetch("{{ route('login.verifyEmailOtp') }}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": "{{ csrf_token() }}"
-            },
-            body: JSON.stringify({
-                email: enteredEmail,
-                otp: otp
-            })
-        })
-        .then(r => r.json())
-        .then(res => {
-            if (!res.success) {
-                alert(res.message || 'Invalid OTP');
-                return;
-            }
 
-            // LOGIN SUCCESS → redirect
-            window.location.href = res.redirect || "{{ route('home') }}";
-        });
-    }
-
-});
+    });
 </script>
 
 @endpush

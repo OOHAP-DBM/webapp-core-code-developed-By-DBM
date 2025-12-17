@@ -57,6 +57,15 @@ class RegisterController extends Controller
         return view('auth.register', compact('role'));
     }
 
+    public function showMobileForm(Request $request)
+    {
+        dd($request->all());
+        return view('auth.register-mobile', [
+            'role' => $request->role ?? 'customer'
+        ]);
+    }
+
+
     /**
      * Handle registration
      */
@@ -155,6 +164,12 @@ class RegisterController extends Controller
     public function sendEmailOtp(Request $request)
     {
         $request->validate(['email' => 'required|email']);
+         if (User::where('email', $request->email)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This email is already registered. Please login instead.',
+            ], 422);
+        }
         // $otp = rand(1000, 9999);
         $otp = 1234;
 

@@ -64,6 +64,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/register/submit', [\App\Http\Controllers\Auth\RegisterController::class, 'register'])->name('register.submit');
 
     // Registration OTP routes
+    Route::get('/register/mobile', [\App\Http\Controllers\Auth\RegisterController::class, 'showMobileForm'])->name('register.mobile-form');
+
     Route::post('/register/send-email-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'sendEmailOtp'])->name('register.sendEmailOtp');
     Route::post('/register/verify-email-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'verifyEmailOtp'])->name('register.verifyEmailOtp');
     Route::post('/register/send-phone-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'sendPhoneOtp'])->name('register.sendPhoneOtp');

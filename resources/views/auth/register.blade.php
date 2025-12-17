@@ -169,7 +169,15 @@ html, body {
             <!-- EMAIL FORM -->
             <form id="signupForm">
                 <h3>Signup</h3>
-
+                  @if ($errors->any())
+                    <div class="alert alert-danger text-start mb-3">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 @csrf
                 <div class="mb-2 text-start">
                     <input type="email" id="emailInput" class="form-control" placeholder="Email" required>
@@ -183,10 +191,11 @@ html, body {
 
             <div class="divider"><span>OR</span></div>
 
-            <button class="social-btn">
+            <a href="" class="social-btn btn text-decoration-none border-1 border">
                 <i class="fa-solid fa-mobile-screen me-2"></i>
                 Continue with Mobile
-            </button>
+            </a>
+
 
             <button class="social-btn google-btn">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
@@ -238,7 +247,6 @@ html, body {
            </div>
         <!-- ================= FINAL REGISTER ================= -->
         <div id="d-done" class="d-done-box" style="display:none; margin-top:-250px !important;">
-
 
             <!-- Heading & Info -->
             <h3 class="text-start mb-2">Create a Password</h3>
@@ -328,118 +336,239 @@ html, body {
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
 
-    const emailInput = document.getElementById('emailInput');
-    const continueBtn = document.getElementById('continueBtn');
-    const signupForm = document.getElementById('signupForm');
-    const errorBox = document.getElementById('ajaxError');
+        /* ===================== HELPERS ===================== */
 
-    const otpUI = document.getElementById('otp-ui');
-    const otpEmailText = document.getElementById('otp-email-text');
-    const otpBoxes = document.querySelectorAll('.otp-box');
+        function showFieldError(input, msg) {
+            clearFieldError(input);
+            const err = document.createElement('small');
+            err.className = 'text-danger d-block mt-1';
+            err.innerText = msg;
+            input.parentNode.appendChild(err);
+        }
 
-    const divider = document.querySelector('.divider');
-    const socialBtns = document.querySelectorAll('.social-btn');
-    const footerText = document.querySelector('.footer-text');
+        function clearFieldError(input) {
+            const err = input.parentNode.querySelector('.text-danger');
+            if (err) err.remove();
 
-    let enteredEmail = '';
+            // show helper text again if exists
+            const helper = input.parentNode.querySelector('.text-muted');
+            if (helper) helper.style.display = 'block';
+        }
 
-    emailInput.addEventListener('input', () => {
-        continueBtn.disabled = !emailInput.value.trim();
-        continueBtn.classList.toggle('active', !continueBtn.disabled);
-    });
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+        }
 
-    signupForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        sendOtp();
-    });
+        function validateName(name) {
+            return /^[A-Za-z ]{2,100}$/.test(name.trim());
+        }
 
-    function sendOtp() {
-        enteredEmail = emailInput.value;
+        function validatePassword(pwd) {
+            return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+=-])[^\s]{8,64}$/.test(pwd);
+        }
 
-        fetch("{{ route('register.sendEmailOtp') }}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": "{{ csrf_token() }}"
-            },
-            body: JSON.stringify({ email: enteredEmail })
-        })
-        .then(r => r.json())
-        .then(res => {
-            if (!res.success) return showError(res.message);
+        /* ===================== EMAIL + OTP ===================== */
 
-            signupForm.style.display = 'none';
-            divider.style.display = 'none';
-            socialBtns.forEach(b => b.style.display = 'none');
-            footerText.style.display = 'none';
+        const emailInput   = document.getElementById('emailInput');
+        const signupForm   = document.getElementById('signupForm');
+        const continueBtn  = document.getElementById('continueBtn');
+        const errorBox     = document.getElementById('ajaxError');
+        const helperText   = emailInput.parentNode.querySelector('.text-muted');
 
-            otpEmailText.innerText = enteredEmail;
-            otpUI.classList.remove('d-none');
-            otpBoxes[0].focus();
-        });
-    }
+        const otpUI        = document.getElementById('otp-ui');
+        const otpBoxes     = document.querySelectorAll('.otp-box');
+        const otpEmailText = document.getElementById('otp-email-text');
 
-    otpBoxes.forEach((box, index) => {
-        box.addEventListener('input', () => {
-            box.value = box.value.replace(/\D/g, '');
-            if (box.value && otpBoxes[index + 1]) otpBoxes[index + 1].focus();
+        const divider      = document.querySelector('.divider');
+        const socialBtns   = document.querySelectorAll('.social-btn');
+        const footerText   = document.querySelector('.footer-text');
 
-            const otp = Array.from(otpBoxes).map(b => b.value).join('');
-            if (otp.length === 4) verifyOtp(otp);
-        });
+        let enteredEmail = '';
 
-        box.addEventListener('keydown', e => {
-            if (e.key === 'Backspace' && !box.value && otpBoxes[index - 1]) {
-                otpBoxes[index - 1].focus();
+        emailInput.addEventListener('input', () => {
+            errorBox.classList.add('d-none');
+            errorBox.innerText = '';
+            clearFieldError(emailInput);
+
+            if (!validateEmail(emailInput.value)) {
+                continueBtn.disabled = true;
+                continueBtn.classList.remove('active');
+                if (helperText) helperText.style.display = 'none';
+                showFieldError(emailInput, 'Enter a valid email address');
+            } else {
+                continueBtn.disabled = false;
+                continueBtn.classList.add('active');
+                if (helperText) helperText.style.display = 'block';
             }
         });
-    });
 
-    function verifyOtp(otp) {
-        fetch("{{ route('register.verifyEmailOtp') }}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": "{{ csrf_token() }}"
-            },
-            body: JSON.stringify({ email: enteredEmail, otp })
-        })
-        .then(r => r.json())
-        .then(res => {
-            if (!res.success) return showError(res.message);
+        signupForm.addEventListener('submit', function (e) {
+            e.preventDefault();
 
-            document.getElementById('otp-section').style.display = 'none';
-            document.getElementById('d-done').style.display = 'block';
-            document.getElementById('finalEmail').value = enteredEmail;
+            if (!validateEmail(emailInput.value)) {
+                showFieldError(emailInput, 'Invalid email format');
+                return;
+            }
+
+            enteredEmail = emailInput.value;
+
+            fetch("{{ route('register.sendEmailOtp') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({ email: enteredEmail })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (!res.success) return showGlobalError(res.message);
+
+                signupForm.style.display = 'none';
+                divider.style.display = 'none';
+                socialBtns.forEach(b => b.style.display = 'none');
+                footerText.style.display = 'none';
+
+                otpEmailText.innerText = enteredEmail;
+                otpUI.classList.remove('d-none');
+                otpBoxes[0].focus();
+            });
         });
-    }
 
-    function showError(msg) {
-        errorBox.innerText = msg || 'Invalid OTP';
-        errorBox.classList.remove('d-none');
-    }
-});
+        /* ===================== OTP ===================== */
+
+        otpBoxes.forEach((box, index) => {
+            box.addEventListener('input', () => {
+                box.value = box.value.replace(/\D/g, '');
+
+                if (box.value && otpBoxes[index + 1]) {
+                    otpBoxes[index + 1].focus();
+                }
+
+                const otp = Array.from(otpBoxes).map(b => b.value).join('');
+                if (otp.length === 4) verifyOtp(otp);
+            });
+
+            box.addEventListener('keydown', e => {
+                if (e.key === 'Backspace' && !box.value && otpBoxes[index - 1]) {
+                    otpBoxes[index - 1].focus();
+                }
+            });
+        });
+
+        function verifyOtp(otp) {
+            if (!/^\d{4}$/.test(otp)) {
+                showGlobalError('OTP must be 4 digits');
+                return;
+            }
+
+            fetch("{{ route('register.verifyEmailOtp') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({ email: enteredEmail, otp })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (!res.success) return showGlobalError(res.message);
+
+                document.getElementById('otp-section').style.display = 'none';
+                document.getElementById('d-done').style.display = 'block';
+                document.getElementById('finalEmail').value = enteredEmail;
+            });
+        }
+
+        function showGlobalError(msg) {
+            errorBox.innerText = msg || 'Something went wrong';
+            errorBox.classList.remove('d-none');
+        }
+
+        /* ===================== FINAL FORM ===================== */
+
+        const finalForm = document.querySelector('#d-done form');
+        if (!finalForm) return;
+
+        const nameInput   = finalForm.querySelector('input[name="name"]');
+        const password   = document.getElementById('password');
+        const confirmPwd = document.getElementById('password_confirmation');
+
+        nameInput.addEventListener('input', () => {
+            clearFieldError(nameInput);
+            if (!validateName(nameInput.value)) {
+                showFieldError(nameInput, 'Name must contain only letters and spaces');
+            }
+        });
+
+        password.addEventListener('input', () => {
+            clearFieldError(password);
+            if (!validatePassword(password.value)) {
+                showFieldError(password, 'Password must be strong (8+, upper, lower, number, symbol)');
+            }
+        });
+
+        confirmPwd.addEventListener('input', () => {
+            clearFieldError(confirmPwd);
+            if (confirmPwd.value !== password.value) {
+                showFieldError(confirmPwd, 'Passwords do not match');
+            }
+        });
+
+        finalForm.addEventListener('submit', function (e) {
+            let valid = true;
+
+            clearFieldError(nameInput);
+            clearFieldError(password);
+            clearFieldError(confirmPwd);
+
+            if (!validateName(nameInput.value)) {
+                showFieldError(nameInput, 'Enter a valid full name');
+                valid = false;
+            }
+
+            if (!validatePassword(password.value)) {
+                showFieldError(password, 'Weak password');
+                valid = false;
+            }
+
+            if (password.value !== confirmPwd.value) {
+                showFieldError(confirmPwd, 'Password confirmation mismatch');
+                valid = false;
+            }
+
+            if (!valid) e.preventDefault();
+        });
+
+    });
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.toggle-password').forEach(wrapper => {
-            wrapper.addEventListener('click', function () {
-                const input = document.getElementById(this.dataset.target);
-                const icon  = this.querySelector('i');
+
+        document.querySelectorAll('.toggle-password').forEach(toggle => {
+            toggle.addEventListener('click', function () {
+
+                const inputId = this.getAttribute('data-target');
+                const input   = document.getElementById(inputId);
+                const icon    = this.querySelector('i');
 
                 if (!input) return;
 
                 if (input.type === 'password') {
                     input.type = 'text';
-                    icon.classList.replace('fa-eye', 'fa-eye-slash');
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
                 } else {
                     input.type = 'password';
-                    icon.classList.replace('fa-eye-slash', 'fa-eye');
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
                 }
             });
         });
+
     });
 </script>
+
 @endpush

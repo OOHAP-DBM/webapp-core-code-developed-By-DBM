@@ -38,11 +38,11 @@ class RegisterRequest extends FormRequest
                 'unique:users,phone',
                 'regex:/^[0-9]{10,15}$/'
             ],
-            'password' => ['required', 'confirmed', Password::min(8)
-                ->mixedCase()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
+            'password' => ['required', 'confirmed', Password::min(4)
+                // ->mixedCase()
+                // ->numbers()
+                // ->symbols()
+                // ->uncompromised()
             ],
         ];
     }

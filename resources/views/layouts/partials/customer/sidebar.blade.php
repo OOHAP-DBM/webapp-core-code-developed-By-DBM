@@ -1,10 +1,9 @@
 {{-- Customer Sidebar --}}
-<aside class="w-64 bg-white border-r border-gray-200 overflow-y-auto">
-    <div class="p-6">
+<aside class="w-64 bg-white border-r border-gray-200 overflow-y-auto text-center">
+    <div class="p-6 text-center">
         <!-- Logo -->
-        <a href="{{ route('customer.dashboard') }}" class="flex items-center">
-            <img src="{{ asset('images/logo.svg') }}" alt="OOHAPP" class="h-8 w-auto">
-            <span class="ml-2 text-lg font-bold text-gray-900">OOHAPP</span>
+        <a href="{{ route('home') }}" class="flex items-center">
+            <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHAPP" class="h-4 w-auto">
         </a>
     </div>
 
