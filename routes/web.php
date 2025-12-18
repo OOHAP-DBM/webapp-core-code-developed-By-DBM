@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Vendor\OnboardingController;
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -86,6 +87,11 @@ Route::get('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logou
 // VENDOR ONBOARDING (PROMPT 112)
 // ============================================
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor/onboarding')->name('vendor.onboarding.')->group(function () {
+    //After Registration Verification
+    Route::post('/send-email', [OnboardingController::class, 'sendEmailOtp'])->name('send-email');
+    Route::post('/verify-email', [OnboardingController::class, 'verifyEmailOtp'])->name('verify-email');
+    Route::post('/send-phone', [OnboardingController::class, 'sendPhoneOtp'])->name('send-phone');
+    Route::post('/verify-phone', [OnboardingController::class, 'verifyPhoneOtp'])->name('verify-phone');
     // Step 1: Company Details
     Route::get('/company-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showCompanyDetails'])->name('company-details');
     Route::post('/company-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeCompanyDetails'])->name('company-details.store');
