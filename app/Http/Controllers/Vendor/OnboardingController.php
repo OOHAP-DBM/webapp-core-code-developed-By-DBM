@@ -12,12 +12,16 @@ use App\Models\VendorProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use App\Models\User;
-
-
+use App\Http\Requests\Vendor\VendorBusinessInfoRequest;
+use App\Services\VendorOnboardingService;
+use Illuminate\Support\Facades\Session; // <--- Add this line
+use Illuminate\Support\Facades\Redirect;
 class OnboardingController extends Controller
+
 {
     /**
      * Ensure vendor has profile
@@ -28,6 +32,44 @@ class OnboardingController extends Controller
         $this->middleware('role:vendor');
     }
 
+
+    /**
+     * Handle submission of vendor business info (business, bank, PAN).
+     * Uses VendorOnboardingService for all persistence and file upload.
+     * Assigns vendor role if not already assigned, keeps previous customer role.
+     * All operations are transactional for safety.
+     *
+     * @param VendorBusinessInfoRequest $request
+     * @param VendorOnboardingService $service
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function submitVendorInfo(VendorBusinessInfoRequest $request, VendorOnboardingService $service)
+    {
+        $user = Auth::user();
+        DB::beginTransaction();
+        try {
+            // Save business info, bank info, and PAN upload
+            $profile = $service->saveBusinessInfo($user, $request->validated());
+            // Onboarding step tracking
+            $profile->onboarding_step = max(1, (int) $profile->onboarding_step) + 1;
+            $profile->onboarding_status = 'draft';
+            $profile->save();
+            // Assign vendor role if not already assigned
+            if (!$user->hasRole('vendor')) {
+                $user->assignRole('vendor');
+            }
+            // Set active_role to vendor (but keep previous role)
+            $user->active_role = 'vendor';
+            $user->save();
+            DB::commit();
+            // Redirect to vendor dashboard with flash message
+            Session::flash('success', 'Your vendor request is pending. Once approved by admin, you will be notified.');
+            return Redirect::route('vendor.dashboard');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return \Redirect::back()->withErrors(['error' => 'Failed to save vendor info. Please try again.']);
+        }
+    }
     /**
      * Get or create vendor profile
      */

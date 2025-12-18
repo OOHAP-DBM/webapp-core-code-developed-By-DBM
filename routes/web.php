@@ -98,6 +98,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor/onboarding')->name('v
     
     // Step 2: Business Information
     Route::get('/business-info', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showBusinessInfo'])->name('business-info');
+    // Business Info Form Submission (new backend)
+    Route::post('/business-info/submit', [\App\Http\Controllers\Vendor\OnboardingController::class, 'submitVendorInfo'])->name('submitVendorInfo');
     Route::post('/business-info', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeBusinessInfo'])->name('business-info.store');
     
     // Step 3: KYC Documents
