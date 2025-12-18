@@ -187,7 +187,10 @@ html, body {
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
                 <span>Continue with Google</span>
             </button>
-
+            <div class="footer-text fs-6 text-center mt-5 pt-5">
+                Already Have an Account?
+                <a href="{{ route('login') }}" class="text-success fw-bold fs-6">Login</a>
+            </div>
             
         </div>
 
@@ -222,6 +225,7 @@ html, body {
 
                 <!-- IMPORTANT -->
                 <input type="hidden" name="phone" id="finalPhone">
+                <input type="hidden" name="phone_verified" value="1">
                 <input type="hidden" name="role" value="{{ session('signup_role') }}">
 
                 <!-- NAME -->
