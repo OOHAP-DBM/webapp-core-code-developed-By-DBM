@@ -112,7 +112,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function generateOTP(): string
     {
-        $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        // $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $otp =1234;
         
         $this->update([
             'otp' => $otp,

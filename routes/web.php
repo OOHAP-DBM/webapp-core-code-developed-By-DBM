@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\OnboardingController;
+use App\Http\Controllers\Web\Customer\ProfileController;
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -24,7 +25,6 @@ Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::cla
 Route::get('/dooh', [\App\Http\Controllers\Web\DOOHController::class, 'index'])->name('dooh.index');
 Route::get('/dooh/{id}', [\App\Http\Controllers\Web\DOOHController::class, 'show'])->name('dooh.show');
 
-// Newsletter Routes
 Route::post('/newsletter/subscribe', [\App\Http\Controllers\NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
 Route::post('/newsletter/unsubscribe', [\App\Http\Controllers\NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
 
@@ -132,6 +132,8 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     // Home/Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('dashboard');
     Route::get('/home', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('home');
+    Route::post('/customer/profile/send-otp', [ProfileController::class, 'sendOtp'])->name('profile.send-otp');
+    Route::post('/customer/profile/verify-otp', [ProfileController::class, 'verifyOtp'])->name('profile.verify-otp');
     
     // Search (PROMPT 54: Smart Search Algorithm)
     Route::get('/search', [\App\Http\Controllers\Web\Customer\SearchController::class, 'index'])->name('search');
@@ -181,6 +183,8 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/profile/edit', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'index'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/change-password', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'changePassword'])->name('profile.change-password');
+    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
+
     Route::get('/profile/kyc', function() { return view('customer.profile.kyc'); })->name('profile.kyc');
     Route::post('/kyc/submit', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'submitKyc'])->name('kyc.submit');
     

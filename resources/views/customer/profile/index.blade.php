@@ -1,300 +1,649 @@
 @extends('layouts.customer')
 
-@section('title', 'My Profile - OOHAPP')
-
-@push('styles')
+@section('title', 'Personal Information - OOHAPP')
 <style>
-    .profile-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        padding: 32px;
-        color: white;
-        margin-bottom: 32px;
-    }
-    
-    .profile-avatar {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: white;
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #9ca3af;
+        font-size: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 48px;
-        color: #667eea;
-        margin-bottom: 16px;
+        width: 32px;
+        height: 32px;
+        z-index: 10;
+        pointer-events: auto;
+        transition: color 0.2s;
     }
-    
-    .profile-tabs {
-        background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    .password-toggle:hover {
+        color: #0a0d11ff;
     }
-    
-    .nav-pills .nav-link {
-        border-radius: 12px;
-        padding: 12px 24px;
-        color: #64748b;
-        font-weight: 500;
+
+    /* Modal backdrop blur effect */
+    .modal-backdrop {
+        transition: backdrop-filter 0.3s ease;
     }
-    
-    .nav-pills .nav-link.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+    .modal-backdrop.active {
+        backdrop-filter: blur(4px);
     }
-    
-    .kyc-status-card {
-        background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        text-align: center;
+
+    /* Enhanced modal styling */
+    .modal-container {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        animation: modalSlideIn 0.3s ease-out;
     }
-    
-    .kyc-status-icon {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 16px;
-        font-size: 32px;
-    }
-    
-    .kyc-status-pending .kyc-status-icon {
-        background: #fff7ed;
-        color: #f59e0b;
-    }
-    
-    .kyc-status-approved .kyc-status-icon {
-        background: #f0fdf4;
-        color: #10b981;
-    }
-    
-    .kyc-status-rejected .kyc-status-icon {
-        background: #fef2f2;
-        color: #ef4444;
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
 </style>
-@endpush
-
 @section('content')
-<div class="container-fluid px-4">
-    <!-- Profile Header -->
-    <div class="profile-header">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <div class="profile-avatar">
-                    <i class="bi bi-person-circle"></i>
-                </div>
-                <h2>{{ auth()->user()->name }}</h2>
-                <p class="mb-2">{{ auth()->user()->email }}</p>
-                <p class="mb-0">{{ auth()->user()->phone }}</p>
-            </div>
-            <div class="col-md-4 text-end mt-3 mt-md-0">
-                <div class="badge bg-white text-primary px-3 py-2">
-                    <i class="bi bi-shield-check me-1"></i>
-                    {{ ucfirst(auth()->user()->status) }}
-                </div>
-            </div>
-        </div>
+<div class="px-6 py-6">
+
+    {{-- Breadcrumb --}}
+    <div class="text-sm text-gray-500 mb-4">
+        <a href="{{ route('home') }}" class="text-decoration-none">Home</a>
+        >
+        <a href="{{ route('customer.dashboard') }}" class="text-decoration-none">My Account</a>
+        >
+        Profile
+        >
+        <span class="text-gray-800">Personal Information</span>
     </div>
 
-    <div class="row">
-        <!-- Sidebar Navigation -->
-        <div class="col-lg-3">
-            <div class="profile-tabs">
-                <ul class="nav nav-pills flex-column" role="tablist">
-                    <li class="nav-item mb-2">
-                        <a class="nav-link active" data-bs-toggle="pill" href="#personal-info">
-                            <i class="bi bi-person me-2"></i>Personal Information
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link" data-bs-toggle="pill" href="#kyc">
-                            <i class="bi bi-shield-check me-2"></i>KYC Verification
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link" data-bs-toggle="pill" href="#security">
-                            <i class="bi bi-lock me-2"></i>Security
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                            <i class="bi bi-box-arrow-right me-2"></i>Logout
-                        </a>
-                    </li>
-                </ul>
-                
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                    @csrf
-                </form>
+    {{-- Card --}}
+    <div class="bg-white rounded-lg border border-gray-200 p-6 w-full lg:max-w-6xl">
+
+        <h2 class="text-lg font-semibold text-gray-800 mb-1">
+            Personal Information
+        </h2>
+
+        <p class="text-sm text-gray-500 mb-6">
+            Hey! Please provide your information to create a customized OOHAPP experience.
+        </p>
+
+        <form action="{{ route('customer.profile.update') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+
+            {{-- Profile Picture --}}
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Profile picture
+                </label>
+
+                @if(auth()->user()->avatar)
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-600">
+                                {{ basename(auth()->user()->avatar) }}
+                            </span>
+                            <a href="javascript:void(0)"
+                                onclick="removeAvatar()"
+                                class="text-sm text-red-500 hover:underline">
+                                    remove
+                            </a>
+                        </div>
+                    </div>
+                @else
+                <div class="flex items-center gap-4">
+                    <label for="profileImage" class="text-sm text-blue-600 hover:underline cursor-pointer">
+                        Upload
+                    </label>
+                    <input type="file" id="profileImage" name="avatar" accept="image/*" class="hidden">
+                </div>
+                @endif
             </div>
+
+            {{-- Full Name --}}
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name <span class="text-red-500">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    name="name"
+                    value="{{ old('name', auth()->user()->name) }}"
+                    class="w-full border-b border-gray-300 focus:border-green-500 focus:outline-none py-2"
+                    required
+                >
+            </div>
+            <div class="flex items-center justify-between gap-4">
+                    <input
+                        type="text"
+                        id="phoneInput"
+                        name="phone"
+                        value="{{ auth()->user()->phone }}"
+                        {{ auth()->user()->phone ? 'readonly' : '' }}
+                        placeholder="Enter mobile number"
+                        class="w-full border-b border-gray-300 py-2 bg-transparent"
+                    >
+
+                    @if(auth()->user()->phone_verified_at)
+                        <span class="text-green-600 text-sm">✔</span>
+                    @else
+                        <a href="javascript:void(0)"
+                        class="text-sm text-blue-600 hover:underline whitespace-nowrap"
+                        onclick="sendOtp('phone')">
+                            Verify Now
+                        </a>
+                    @endif
+            </div>
+             <div class="flex items-center justify-between gap-4">
+                <input
+                    type="email"
+                    id="emailInput"
+                    name="email"
+                    value="{{ auth()->user()->email }}"
+                    {{ auth()->user()->email ? 'readonly' : '' }}
+                    placeholder="Enter email address"
+                    class="w-full border-b border-gray-300 py-2 bg-transparent"
+                >
+
+                @if(auth()->user()->email_verified_at)
+                    <span class="text-green-600 text-sm">✔</span>
+                @else
+                    <a href="javascript:void(0)"
+                    class="text-sm text-blue-600 hover:underline whitespace-nowrap"
+                    onclick="sendOtp('email')">
+                        Verify Now
+                    </a>
+                @endif
+            </div>
+
+
+            {{-- Password --}}
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Password
+                </label>
+
+                @if(auth()->user()->password)
+                    <div class="flex items-center justify-between gap-4">
+                        <input
+                            type="text"
+                            value="***********"
+                            disabled
+                            class="w-full border-b border-gray-300 py-2 bg-gray-50"
+                        >
+                        <a href="javascript:void(0)"
+                            onclick="openChangePasswordModal()"
+                            class="text-sm text-blue-600 hover:underline whitespace-nowrap">
+                                Change Password
+                        </a>
+                    </div>
+                @else
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Enter Password"
+                        class="w-full border-b border-gray-300 focus:border-green-500 focus:outline-none py-2"
+                    >
+                @endif
+            </div>
+
+            {{-- Company Name --}}
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Company Name
+                </label>
+
+                <input
+                    type="text"
+                    name="company_name"
+                    value="{{ old('company_name', auth()->user()->company_name) }}"
+                    placeholder="Enter Company Name"
+                    class="w-full border-b border-gray-300 focus:border-green-500 focus:outline-none py-2"
+                >
+            </div>
+
+            {{-- GSTIN --}}
+            <div class="mb-8">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    GSTIN Number
+                </label>
+
+                <input
+                    type="text"
+                    name="gstin"
+                    value="{{ old('gstin', auth()->user()->gstin) }}"
+                    placeholder="Enter GSTIN"
+                    class="w-full border-b border-gray-300 focus:border-green-500 focus:outline-none py-2"
+                >
+            </div>
+
+            {{-- Submit --}}
+            <div class="text-right">
+                <button
+                    type="submit"
+                    class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-md text-sm font-medium">
+                    Update
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{{-- Change Password Modal --}}
+<div id="changePasswordModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal-backdrop">
+    <div class="bg-white rounded-lg w-100 max-w-lg p-6 relative border border-gray-300 modal-container">
+
+        <button onclick="closeChangePasswordModal()"
+                class="absolute top-2 right-3 text-gray-500 text-xl">×</button>
+
+        <h3 class="text-lg font-semibold mb-4">Change Password</h3>
+
+        <div class="space-y-4">
+            <div class="relative">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Current Password
+                </label>
+                <input
+                    type="password"
+                    id="currentPassword"
+                    class="w-full border border-gray-300 rounded py-2 px-3 pr-10 focus:border-green-500 focus:outline-none"
+                    placeholder="Enter current password"
+                >
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPassword'); return false;">
+                    <i id="currentPasswordIcon" class="bi bi-eye"></i>
+                </button>
+            </div>
+
+            <div class="relative">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    New Password
+                </label>
+                <input
+                    type="password"
+                    id="newPassword"
+                    class="w-full border border-gray-300 rounded py-2 px-3 pr-10 focus:border-green-500 focus:outline-none"
+                    placeholder="Enter new password"
+                >
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPassword'); return false;">
+                    <i id="newPasswordIcon" class="bi bi-eye"></i>
+                </button>
+            </div>
+
+            <div class="relative">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Confirm Password
+                </label>
+                <input
+                    type="password"
+                    id="confirmPassword"
+                    class="w-full border border-gray-300 rounded py-2 px-3 pr-10 focus:border-green-500 focus:outline-none"
+                    placeholder="Confirm new password"
+                >
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPassword'); return false;">
+                    <i id="confirmPasswordIcon" class="bi bi-eye"></i>
+                </button>
+            </div>
+
+            <div id="passwordError" class="text-red-500 text-sm hidden"></div>
         </div>
 
-        <!-- Main Content -->
-        <div class="col-lg-9">
-            <div class="tab-content">
-                <!-- Personal Information -->
-                <div class="tab-pane fade show active" id="personal-info">
-                    <div class="profile-tabs">
-                        <h4 class="mb-4">Personal Information</h4>
-
-                        <form action="{{ route('customer.profile.update') }}" method="POST">
-                            @csrf
-                            @method('PUT')
-
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Full Name</label>
-                                    <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', auth()->user()->name) }}" required>
-                                    @error('name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label">Email Address</label>
-                                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', auth()->user()->email) }}" required>
-                                    @error('email')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label">Phone Number</label>
-                                    <input type="tel" name="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', auth()->user()->phone) }}" required>
-                                    @error('phone')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label">Company Name (Optional)</label>
-                                    <input type="text" name="company_name" class="form-control" value="{{ old('company_name', auth()->user()->company_name) }}">
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label">Address</label>
-                                    <textarea name="address" class="form-control" rows="3">{{ old('address', auth()->user()->address) }}</textarea>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">City</label>
-                                    <input type="text" name="city" class="form-control" value="{{ old('city', auth()->user()->city) }}">
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">State</label>
-                                    <input type="text" name="state" class="form-control" value="{{ old('state', auth()->user()->state) }}">
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">PIN Code</label>
-                                    <input type="text" name="pincode" class="form-control" value="{{ old('pincode', auth()->user()->pincode) }}">
-                                </div>
-                            </div>
-
-                            <div class="mt-4">
-                                <button type="submit" class="btn btn-primary px-4">
-                                    <i class="bi bi-check-circle me-2"></i>Save Changes
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- KYC Verification -->
-                <div class="tab-pane fade" id="kyc">
-                    <div class="profile-tabs">
-                        <h4 class="mb-4">KYC Verification</h4>
-
-                        @php
-                        $kycStatus = auth()->user()->kyc_status ?? 'not_submitted';
-                        @endphp
-
-                        @if($kycStatus === 'approved')
-                        <div class="kyc-status-card kyc-status-approved">
-                            <div class="kyc-status-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <h5>KYC Verified</h5>
-                            <p class="text-muted mb-0">Your KYC has been approved</p>
-                        </div>
-                        @elseif($kycStatus === 'pending')
-                        <div class="kyc-status-card kyc-status-pending">
-                            <div class="kyc-status-icon">
-                                <i class="bi bi-clock"></i>
-                            </div>
-                            <h5>KYC Under Review</h5>
-                            <p class="text-muted mb-0">Your documents are being verified</p>
-                        </div>
-                        @elseif($kycStatus === 'rejected')
-                        <div class="kyc-status-card kyc-status-rejected">
-                            <div class="kyc-status-icon">
-                                <i class="bi bi-x-circle-fill"></i>
-                            </div>
-                            <h5>KYC Rejected</h5>
-                            <p class="text-muted mb-3">{{ auth()->user()->kyc_rejection_reason ?? 'Please resubmit your documents' }}</p>
-                            <a href="{{ route('customer.kyc.create') }}" class="btn btn-primary">Resubmit KYC</a>
-                        </div>
-                        @else
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle me-2"></i>
-                            Complete your KYC verification to unlock all features
-                        </div>
-
-                        <a href="{{ route('customer.kyc.create') }}" class="btn btn-primary">
-                            <i class="bi bi-shield-check me-2"></i>Start KYC Verification
-                        </a>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Security -->
-                <div class="tab-pane fade" id="security">
-                    <div class="profile-tabs">
-                        <h4 class="mb-4">Change Password</h4>
-
-                        <form action="{{ route('customer.profile.change-password') }}" method="POST">
-                            @csrf
-
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label class="form-label">Current Password</label>
-                                    <input type="password" name="current_password" class="form-control @error('current_password') is-invalid @enderror" required>
-                                    @error('current_password')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label">New Password</label>
-                                    <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" required>
-                                    @error('password')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <small class="text-muted">Minimum 8 characters</small>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label">Confirm New Password</label>
-                                    <input type="password" name="password_confirmation" class="form-control" required>
-                                </div>
-                            </div>
-
-                            <div class="mt-4">
-                                <button type="submit" class="btn btn-primary px-4">
-                                    <i class="bi bi-lock me-2"></i>Update Password
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+        <div class="flex gap-3 mt-6">
+            <button
+                onclick="closeChangePasswordModal()"
+                class="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50">
+                Cancel
+            </button>
+            <button
+                onclick="submitPasswordChange()"
+                class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded">
+                Update Password
+            </button>
         </div>
     </div>
 </div>
+<div id="otpModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal-backdrop">
+    <div class="bg-white rounded-lg w-96 p-6 relative border border-gray-300 modal-container">
+
+        <button onclick="closeOtpModal()"
+                class="absolute top-2 right-3 text-gray-500 text-xl">×</button>
+
+        <h3 class="text-lg font-semibold mb-2">Verify</h3>
+
+        <p class="text-sm text-gray-500 mb-4">
+            Enter the 4-digit code sent to
+            <span id="otpTarget" class="font-medium"></span>
+        </p>
+
+        <input
+            type="text"
+            id="otpInput"
+            maxlength="4"
+            class="w-full text-center tracking-widest text-lg
+                   border border-gray-300 rounded py-2 mb-4"
+            placeholder="____"
+        >
+
+        <button
+            onclick="verifyOtp()"
+            class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded">
+            Verify
+        </button>
+
+        <p class="text-center text-xs text-gray-400 mt-3">
+            Didn’t receive code?
+            <a href="#" onclick="resendOtp()" class="text-green-600">Resend</a>
+        </p>
+    </div>
+</div>
 @endsection
+<script>
+    /* ===============================
+    GLOBAL STATE
+    ================================ */
+    let currentIdentifier = '';
+    let otpTimer = null;
+
+    /* ===============================
+    INPUT VALIDATIONS
+    ================================ */
+
+    // only numbers in phone & otp
+    document.addEventListener('input', function (e) {
+        if (e.target.id === 'phoneInput') {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+        }
+
+        if (e.target.id === 'otpInput') {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+        }
+    });
+
+    /* ===============================
+    SEND OTP (FIXED)
+    ================================ */
+    function sendOtp(type) {
+
+        let identifier = '';
+
+        if (type === 'phone') {
+            identifier = document.getElementById('phoneInput').value.trim();
+
+            if (!identifier) {
+                alert('Enter mobile number');
+                return;
+            }
+
+            if (identifier.length !== 10) {
+                alert('Enter valid 10 digit mobile number');
+                return;
+            }
+        }
+
+        if (type === 'email') {
+            identifier = document.getElementById('emailInput').value.trim();
+
+            if (!identifier) {
+                alert('Enter email address');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(identifier)) {
+                alert('Invalid email address');
+                return;
+            }
+        }
+
+        fetch("{{ route('customer.profile.send-otp') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({ identifier })
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (!res.success) {
+                alert(res.message);
+                return;
+            }
+
+            openOtpModal(identifier);
+        });
+    }
+
+    /* ===============================
+    OTP MODAL
+    ================================ */
+    function openOtpModal(identifier) {
+        currentIdentifier = identifier;
+
+        document.getElementById('otpTarget').innerText = identifier;
+        document.getElementById('otpInput').value = '';
+
+        const modal = document.getElementById('otpModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // Add blur effect to backdrop
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 10);
+
+        document.getElementById('otpInput').focus();
+    }
+
+    function closeOtpModal() {
+        const modal = document.getElementById('otpModal');
+        modal.classList.remove('active');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+
+    /* ===============================
+    VERIFY OTP
+    ================================ */
+    function verifyOtp() {
+
+        const otp = document.getElementById('otpInput').value.trim();
+
+        if (otp.length !== 4) {
+            alert('Enter 4 digit OTP');
+            return;
+        }
+
+        fetch("{{ route('customer.profile.verify-otp') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({
+                identifier: currentIdentifier,
+                otp: otp
+            })
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (!res.success) {
+                alert(res.message);
+                return;
+            }
+
+            closeOtpModal();
+            location.reload(); // ✔ refresh verified UI
+        });
+    }
+
+    /* ===============================
+    RESEND OTP
+    ================================ */
+    function resendOtp() {
+        sendOtp(
+            currentIdentifier.includes('@') ? 'email' : 'phone'
+        );
+    }
+    function removeAvatar() {
+
+        if (!confirm('Remove profile picture?')) return;
+
+        fetch("{{ route('customer.profile.avatar.remove') }}", {
+            method: "DELETE",
+            headers: {
+                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                "Accept": "application/json"
+            }
+        })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('Request failed');
+            }
+            return res.json();
+        })
+        .then(res => {
+            if (res.success) {
+                location.reload(); // ✅ auto reload
+            } else {
+                alert(res.message || 'Something went wrong');
+            }
+        })
+        .catch(() => {
+            alert('Server error');
+        });
+    }
+
+    /* ===============================
+    CHANGE PASSWORD MODAL
+    ================================ */
+    function openChangePasswordModal() {
+        // Clear form fields
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+        document.getElementById('passwordError').classList.add('hidden');
+        
+        const modal = document.getElementById('changePasswordModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Add blur effect to backdrop
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 10);
+        
+        document.getElementById('currentPassword').focus();
+    }
+
+    function closeChangePasswordModal() {
+        const modal = document.getElementById('changePasswordModal');
+        modal.classList.remove('active');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+        
+        // Clear form
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+    }
+
+    function togglePasswordVisibility(fieldId) {
+        const field = document.getElementById(fieldId);
+        const iconId = fieldId + 'Icon';
+        const icon = document.getElementById(iconId);
+        
+        if (field.type === 'password') {
+            field.type = 'text';
+            if (icon) {
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            }
+        } else {
+            field.type = 'password';
+            if (icon) {
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+    }
+
+    function submitPasswordChange() {
+        const currentPassword = document.getElementById('currentPassword').value.trim();
+        const newPassword = document.getElementById('newPassword').value.trim();
+        const confirmPassword = document.getElementById('confirmPassword').value.trim();
+        const errorDiv = document.getElementById('passwordError');
+
+        // Validation
+        if (!currentPassword) {
+            errorDiv.innerText = 'Current password is required';
+            errorDiv.classList.remove('hidden');
+            return;
+        }
+
+        if (!newPassword) {
+            errorDiv.innerText = 'New password is required';
+            errorDiv.classList.remove('hidden');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            errorDiv.innerText = 'Password must be at least 6 characters';
+            errorDiv.classList.remove('hidden');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            errorDiv.innerText = 'Passwords do not match';
+            errorDiv.classList.remove('hidden');
+            return;
+        }
+
+        if (currentPassword === newPassword) {
+            errorDiv.innerText = 'New password must be different from current password';
+            errorDiv.classList.remove('hidden');
+            return;
+        }
+
+        // Submit password change
+        fetch("{{ route('customer.profile.change-password') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({
+                current_password: currentPassword,
+                new_password: newPassword,
+                new_password_confirmation: confirmPassword
+            })
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (!res.success) {
+                errorDiv.innerText = res.message || 'Failed to update password';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            alert('Password updated successfully!');
+            closeChangePasswordModal();
+        })
+        .catch(err => {
+            errorDiv.innerText = 'Server error. Please try again.';
+            errorDiv.classList.remove('hidden');
+        });
+    }
+</script>
