@@ -1,0 +1,2235 @@
+﻿1) UPDATED SYSTEM PRIMER (use this first)
+Copy → Paste into Copilot before any module prompt.
+You are LaraCopilot — expert in Laravel 11+, Blade (server-rendered) + API-first design, Spatie Permissions, Stancl tenancy, queue-based workflows, and Razorpay payments. 
+
+
+PROJECT: OOHAPP — B2B2C Hoarding Marketplace (OOH + DOOH). Build both:
+  • Server-rendered Blade frontends (Admin, Vendor, Customer, Staff) with UI matching Figma links supplied.
+  • API v1 endpoints (JSON) for SPA/mobile use and third-party integrations.
+
+
+IMPORTANT LINKS (use these as UI guides for Blade templates):
+Customer Web Figma: https://www.figma.com/design/IVKPt4p1lcnVswR8pUkkMS/Oohapp--Customer-Web---Updated?node-id=0-1&t=SZkhOmZEYIUK6lBD-1
+Vendor Web Figma: https://www.figma.com/design/pS3dP1ADfV3ZUDNehGWEZ7/Oohapp---Vendor-Web-Panel---Updated?node-id=0-1&t=F7rTTC75lg3W2joRs-1
+Designer/Printer/Mounter Figma: https://www.figma.com/design/GxjpFEw6YYmXgKjJj76csi/OOHAPP---Printer---Mounter---Graphic-designer-Surveyor-Latest-?node-id=1601-20207&t=9AffOFezkg3DobCl-1
+(Use those frames/screens as reference for Blade page layout, component naming, and data shown.)
+
+
+GLOBAL RULES (apply to every prompt):
+1. ALWAYS generate:
+   - Migration, Model, Factory, Seeder (if relevant)
+   - Repository interface + implementation
+   - Service class (business logic)
+   - Controller (API) + Resource JSON
+   - Blade views (server-rendered pages) matching Figma screens (index, show, create/edit, modal fragments)
+   - FormRequest validation
+   - Policies (authorize)
+   - Routes: web.php (Blade pages) and routes/api_v1/*.php
+   - Events & Listeners where flows require (e.g., EnquiryCreated -> NotifyVendor)
+   - Queue jobs for heavy tasks (notifications, pdf generation, webhooks)
+   - Unit + Feature test stubs for core flows
+2. All money calculations MUST be snapshot-based and immutable from the moment of offer/quotation acceptance.
+3. Razorpay flow: create-order (manual capture), payment.authorized -> booking payment_hold (hold_expiry_at = now + booking_hold_minutes). If customer voids before expiry -> void. Scheduler every 5 mins captures expired holds; fund-split via Route API. If vendor KYC incomplete, route payout to admin and mark vendor_payout_status = pending_manual_payout.
+4. Booking start = mount approved POD (mounter uploads geo-tagged photo/video and vendor approves). Only then campaign considered active.
+5. Admin must be able to configure all system settings (booking_hold_minutes, commission %, grace_period, max_future_booking_start_months, auto_approval toggles, email templates, notification recipients, DOOH slot durations, etc.). Use Settings table + admin Blade UI.
+6. Multi-tenant: support landlord + tenant model (stancl/tenancy). Implement tenant-aware services and per-tenant overrides for settings.
+7. Frontend: Blade components must be modular (partials for header, nav, cards, modals). Provide accessible, responsive markup. Use BEM-like classes and Tailwind utility classes optional but keep Blade-first approach.
+8. When generating forms/pages, mirror Figma visuals: data columns, filters, pagination, cards, activity timelines, and modals. Provide component names (e.g., resources/views/vendor/hoardings/index.blade.php).
+9. Provide example API request/response for every controller method.
+10. Break large features into smaller Copilot prompts — keep each prompt limited in length so Copilot does not hit the token limit. When you generate prompts, keep them focused on one module + Blade pages.
+
+
+Acknowledge and wait for module-specific prompt.
+
+
+________________
+
+
+2) HOW I SUBDIVIDED 82 → ~150 (plan)
+To avoid GitHub Copilot length-limit errors, I split each original prompt into focused, copy-paste-ready prompts that each:
+* target a single deliverable (e.g., Booking Migration + Model + Repository + Service + API + Blade index/show),
+
+* include frontend (Blade) and API work,
+
+* produce tests and policies.
+
+Rough mapping:
+   * Each original prompt became 1–3 smaller prompts (so total ~150).
+
+   * I deliver prompts in batches of 20 (safe size). You receive the first 20 now; I'll produce subsequent batches on request.
+
+________________
+
+
+3) FIRST BATCH: Prompts 1–20 (Blade + API + Figma awareness)
+Paste each prompt into Copilot individually. Each asks for Blade pages + API endpoints + required backend artifacts.
+________________
+
+
+Prompt 1 — Project scaffolding + repo bindings (Blade + API)
+LaraCopilot: Scaffold the OOHAPP project base. Generate:
+- Module folders: Modules/{Auth,Users,Hoardings,DOOH,Enquiry,Offer,Quotation,Booking,Payment,Vendor,KYC,Staff,Admin,Settings,Notifications,Reports,Media,Search}.
+- App/Providers/RepositoryServiceProvider binding repository interfaces.
+- routes/web.php with mounted Blade routes for Admin, Vendor, Customer, Staff.
+- routes/api_v1/*.php for module APIs.
+- Basic Blade layout templates (layouts/app.blade.php, layouts/vendor.blade.php, layouts/admin.blade.php) with header/footer placeholders matching provided Figma topbars.
+- Install stubs for packages: spatie/permission, stancl/tenancy, spatie/media-library, guzzle, razorpay.
+Output: artisan commands used, file skeleton list, example binding code.
+
+
+________________
+
+
+Prompt 2 — Users, Roles, Authentication (Blade + API)
+LaraCopilot: Create users migration/model with role mapping (spatie). Implement:
+- Auth controllers: Web (Blade) and API (token-based via Sanctum).
+- Blade pages: auth/login.blade.php, auth/register.blade.php, auth/otp.blade.php.
+- OTP login flow (API + Blade).
+- Seeder to create roles: super_admin, admin, vendor, customer, staff, subvendor.
+- Middleware for role-based portals (redirect based on role after login).
+- Policy examples for User management.
+Include tests for registration/login and role-based redirection.
+
+
+________________
+
+
+Prompt 3 — Settings (Admin Blade UI + API)
+LaraCopilot: Implement Settings module.
+- Migration: settings (key:string, value:text, type:string, description:text, tenant_id nullable).
+- SettingsService::get/set.
+- Admin Blade pages: admin/settings/index.blade.php with grouped settings (Booking, Payments, DOOH, Notifications, Commission).
+- API: GET/PUT /api/v1/admin/settings.
+- Seed default settings: booking_hold_minutes=30, admin_commission_percent=10.00, max_future_booking_start_months=4.
+- Caching layer and per-tenant overrides.
+
+
+________________
+
+
+Prompt 4 — Hoardings (CRUD) + Blade listing + API
+LaraCopilot: Implement Hoardings module (OOH minimal POC).
+- Migration: hoardings (vendor_id, title, description, address, lat, lng, weekly_price, monthly_price, enable_weekly_booking, type enum, status enum).
+- Model + relations (vendor->hoardings).
+- Repository + HoardingService (search filters).
+- API: /api/v1/hoardings (list, show, filter by vendor, category).
+- Blade: vendor/hoardings/index.blade.php (card list with filters), vendor/hoardings/create.blade.php, hoardings/show.blade.php for customer (use Figma layout).
+- Add soft deletes, index on lat/lng.
+- Unit test stubs for listing and create.
+
+
+________________
+
+
+Prompt 5 — Hoarding Geo & Geofencing (Blade map + API)
+LaraCopilot: Add HoardingGeo model & UI.
+- Migration: hoarding_geos (hoarding_id, geojson polygon, bounding_box).
+- API: GET /api/v1/hoardings?bbox=&near=&radius= (returns compact map pins + full list).
+- Blade: customer/hoardings/map.blade.php integrating Mapbox/Leaflet, cluster pins, on-click preview modal matching Figma design.
+- Server-side polygon check and Haversine fallback.
+- Tests for geo queries.
+
+
+________________
+
+
+Prompt 6 — Enquiry (Form in Blade + API thread)
+LaraCopilot: Build Enquiry module.
+- Migration: enquiries (customer_id, hoarding_id, preferred_start_date, preferred_end_date, duration_type, message, status, snapshot json).
+- Controller & EnquiryService: on create capture hoarding snapshot (price & flags) into snapshot field.
+- API: POST /api/v1/enquiries, GET /api/v1/enquiries/{id}.
+- Blade: customer/enquiries/create.blade.php embedded on hoarding show page; admin/vendor thread view blade (thread partial).
+- Event EnquiryCreated -> NotifyVendor listener.
+
+
+________________
+
+
+Prompt 7 — Offer (Vendor Blade + API + versioning)
+LaraCopilot: Implement Offer module.
+- Migration: offers (enquiry_id, vendor_id, price, price_type, price_snapshot json, description, valid_until, status, version).
+- OfferService: create offer copies snapshot, versioning for multiple offers per enquiry.
+- API: POST /api/v1/enquiries/{id}/offers (vendor), PATCH /api/v1/offers/{id}/send, PATCH /api/v1/offers/{id}/accept (customer).
+- Blade: vendor/offers/create.blade.php, vendor/offers/index.blade.php, customer/offers/list.blade.php.
+- Trigger OfferSent notification and keep immutable price_snapshot.
+
+
+________________
+
+
+Prompt 8 — Quotation (Versioned) + Blade generator + API
+LaraCopilot: Implement Quotation module.
+- Migration: quotations (offer_id, customer_id, vendor_id, version, items json, total_amount, tax, discount, status).
+- QuotationService: create versioned quotations from offers; allow vendor/admin to create new versions.
+- API: GET /api/v1/offers/{id}/quotations, POST /api/v1/offers/{id}/quotations, PATCH /api/v1/quotations/{id}/approve.
+- Blade: vendor/quotations/editor.blade.php with PDF preview button, customer/quotations/show.blade.php to accept.
+- Save immutable snapshot on approve.
+
+
+________________
+
+
+Prompt 9 — Booking creation from Quotation (Blade confirmation + API)
+LaraCopilot: Booking creation module.
+- Migration: bookings (quotation_id, customer_id, vendor_id, hoarding_id, start_date, end_date, duration_type, total_amount, status enum pending_payment_hold/payment_hold/confirmed/cancelled/refunded, hold_expiry_at, razorpay_order_id).
+- BookingService::createFromQuotation(quotation_id, customer_input) -> validate availability, lock dates (DB transaction), create booking status=pending_payment_hold.
+- API: POST /api/v1/quotations/{id}/book (returns booking + razorpay order creation endpoint next).
+- Blade: customer/bookings/confirm.blade.php showing payment hold countdown UI (30min).
+- BookingStatus logs saved for each transition.
+
+
+________________
+
+
+Prompt 10 — Razorpay Order Creation (API + Controller + Blade)
+LaraCopilot: Integrate Razorpay create-order (manual capture).
+- RazorpayService with createOrder(amount,currency,receipt,capture_method=manual).
+- API: POST /api/v1/bookings/{id}/create-order -> creates razorpay order, stores razorpay_order_id in bookings, returns order payload for client.
+- Blade: customer/bookings/payment.blade.php showing Razorpay widget & 30-min timer (visually match Figma countdown).
+- Log Razorpay request/response.
+
+
+________________
+
+
+Prompt 11 — Razorpay Webhooks (authorized/captured/failed) + API
+LaraCopilot: Webhook handling module.
+- Controller: RazorpayWebhookController -> handle payment.authorized: set booking.status=payment_hold, payment_status=authorized, hold_expiry_at = now + booking_hold_minutes (Settings). payment.captured: set payment_status=captured; payment.failed -> mark payment_failed & release hold.
+- Validate webhook signature.
+- Listeners: OnPaymentAuthorized -> UpdateBookingOnPaymentAuthorized; OnPaymentCaptured -> ScheduleBookingConfirmJob.
+- Tests: simulate webhook payloads.
+
+
+________________
+
+
+Prompt 12 — CaptureExpiredHoldsJob (Scheduler + Blade status)
+LaraCopilot: Implement CaptureExpiredHoldsJob.
+- Scheduler: Kernel -> schedule everyFiveMinutes -> dispatch CaptureExpiredHoldsJob.
+- Job: select bookings where status=payment_hold and hold_expiry_at <= now, attempt RazorpayService.capture(payment_id, amount_snapshot), on success -> booking.status=confirmed, payment_status=captured; on failure -> mark payment_failed and release slot.
+- Ensure idempotency using DB locking or job unique IDs.
+- Blade: admin/bookings/holds.blade.php to view upcoming expiries and manual-capture button.
+
+
+________________
+
+
+Prompt 13 — Booking payment void (customer cancel during hold) + API + Blade
+LaraCopilot: Cancel-during-hold flow.
+- API: POST /api/v1/bookings/{id}/cancel-during-hold -> verify booking.status=payment_hold and hold_expiry_at > now, call RazorpayService.voidPayment(payment_id), on success set booking.status=cancelled, payment_status=voided, release hoarding slot.
+- Blade: customer/bookings/hold_view.blade.php shows Cancel button within timer.
+- Event BookingPaymentVoided dispatched.
+
+
+________________
+
+
+Prompt 14 — BookingPriceSnapshot table + model + service
+LaraCopilot: Implement booking_price_snapshots table.
+- Migration: booking_price_snapshots (booking_id, quotation_snapshot json, services_price decimal, discounts decimal, taxes decimal, total_amount decimal, currency, created_at).
+- Ensure BookingService saves snapshot on booking creation and uses it for all later calculations (no recalculation).
+- API: GET /api/v1/bookings/{id}/price-snapshot.
+- Blade: admin/bookings/price_snapshot.blade.php shows breakdown.
+
+
+________________
+
+
+Prompt 15 — Commission & BookingPayments ledger + Blade UI
+LaraCopilot: Create booking_payments & commission logs.
+- Migration: booking_payments (booking_id, gross_amount, admin_commission_amount, vendor_payout_amount, pg_fee_amount, razorpay_payment_id, razorpay_order_id, razorpay_transfer_ids json, vendor_payout_status, payout_mode, payout_reference, paid_at, status).
+- CommissionLog (booking_id, admin_commission, vendor_payout, tax, created_at).
+- Service: CommissionService::calculateAndRecord(booking).
+- Blade: admin/finance/bookings_payments.blade.php with ledger per booking and vendor payout controls (manual mark paid).
+
+
+________________
+
+
+Prompt 16 — Vendor KYC submit (Blade + API + media)
+LaraCopilot: Vendor KYC module.
+- Migration: vendor_kyc (vendor_id, business_type, business_name, gst_number, pan_number, legal_name, contact_name, contact_email, contact_phone, address, account_holder_name, account_number (encrypted), ifsc, bank_name, account_type, verification_status, verification_details json).
+- Spatie Media integration for PAN/Aadhar/GST/business_proof/cancelled_cheque.
+- API: POST /api/v1/vendor/kyc to submit KYC.
+- Blade: vendor/kyc/submit.blade.php with form and document upload (match Figma).
+- On submit: vendor.status = kyc_submitted; dispatch CreateRazorpaySubAccountJob.
+
+
+________________
+
+
+Prompt 17 — Razorpay Sub-Account Creation Service + Webhooks
+LaraCopilot: Implement RazorpayPayoutService.createSubAccount(vendorKyc).
+- Call Razorpay Route API /v1/accounts with KYC payload; store razorpay_account_id and set payout_status = pending_verification.
+- Webhook handlers: account.verified -> vendor.status = kyc_verified; account.rejected -> vendor.status = kyc_rejected with notes.
+- Blade: admin/vendor/kyc_reviews.blade.php for manual override and KYC audit.
+
+
+________________
+
+
+Prompt 18 — Payout routing at capture time (KYC-check) + API
+LaraCopilot: Ensure on capture TriggerFundSplit checks vendor KYC status.
+- If kyc_verified -> transfer vendor_payout to vendor subaccount via Razorpay Route API; mark vendor_payout_status = auto_paid.
+- If not verified -> transfer vendor_payout to admin account; mark vendor_payout_status = pending_manual_payout and notify vendor/admin.
+- Blade: admin/finance/pending_manual_payouts.blade.php to process manual payouts.
+
+
+________________
+
+
+Prompt 19 — POD (Proof of Delivery) by Mounter + Blade + API
+LaraCopilot: Build POD workflow.
+- Migration: booking_proofs (booking_id, uploaded_by, media_id, latitude, longitude, type photo/video, uploaded_at, verified_at, verified_by, verified_notes).
+- Staff/Mounter view Blade: staff/pod/upload.blade.php (or API for mobile app) to upload geo-tagged photo/video.
+- Service: validate geo within radius of hoarding (configurable), store media, vendor approval UI vendor/bookings/pod_review.blade.php.
+- Only after vendor approves POD -> booking becomes active/started. Dispatch BookingActivated event.
+
+
+________________
+
+
+Prompt 20 — Admin configs for booking rules + Blade
+LaraCopilot: Admin Booking Rules UI.
+- Blade: admin/settings/booking_rules.blade.php to edit booking_hold_minutes, grace_period, max_future_booking_start_months, booking_min_duration, booking_max_duration, allow_weekly_booking default.
+- API: GET/PUT /api/v1/admin/booking-rules.
+- Ensure services read SettingsService and validation uses these rules globally (BookingService, QuotationService).
+
+
+________________
+
+
+________________
+
+
+✅ PROMPTS 21–40 (SAFE SIZE FOR GITHUB COPILOT)
+(All prompts assume: Laravel 10+, Blade, API + Web, Spatie Permissions, Tenancy-ready, Modular Architecture, Admin-configurable logic, OOH + DOOH marketplace rules.)
+________________
+
+
+🔷 PROMPT 21 — Create Vendor POS Booking Module (OOH + DOOH)
+You are Copilot.
+Implement a complete Vendor POS Booking Module with the following capabilities:
+      1. Vendor can book any OOH or DOOH hoarding/slot directly from POS.
+
+      2. POS booking does NOT require online payment; vendor can:
+
+         * Mark as Cash Collected
+
+         * Mark as Credit Note
+
+         * Cancel Credit Note
+
+         * Execute order even without receiving customer payment.
+
+            3. POS panel must generate:
+
+               * Real-time inventory update
+
+               * Booking timeline
+
+               * GST-ready invoice for vendor’s customer
+
+               * Notification/SMS/WhatsApp acknowledgment to vendor customer.
+
+                  4. POS booking rules:
+
+                     * Admin-configurable:
+
+                        * Auto-approval ON/OFF
+
+                        * Allow cash with no online payment
+
+                        * Auto-invoice ON/OFF
+
+                           5. Build API + Blade views:
+
+                              * POS Dashboard
+
+                              * Search hoardings
+
+                              * Create POS booking
+
+                              * POS Booking list
+
+                              * POS Booking detail
+
+Follow the project architecture and previous models.
+________________
+
+
+🔷         PROMPT 22 — Implement OOH Booking Flow (Direct Booking Flow)
+Create full OOH direct booking flow:
+                                 1. Customer selects campaign → selects duration → selects hoarding.
+
+                                 2. Validations:
+
+                                    * Check availability (including grace period)
+
+                                    * Max booking duration
+
+                                    * Max future start date
+
+                                    * Admin-configurable rules
+
+                                       3. Payment logic:
+
+                                          * Razorpay payment initiated → hold for 30 minutes
+
+                                          * Countdown timer on booking page
+
+                                          * If canceled within 30 minutes → auto-refund
+
+                                          * If not canceled → distribute:
+
+                                             * Admin commission
+
+                                             * Vendor payout (if KYC complete)
+
+                                             * Else hold in admin account
+
+                                                4. Campaign start date = when mounter uploads photo/video + vendor approves.
+
+                                                5. Generate API + Blade pages:
+
+                                                   * Booking Summary
+
+                                                   * Payment Page (timer)
+
+                                                   * Payment Result Page
+
+________________
+
+
+🔷 PROMPT 23 — Implement OOH Enquiry → Offer → Quotation Workflow
+Implement the full lead lifecycle:
+                                                      1. Customer generates enquiry
+
+                                                      2. Vendor receives notification + email + thread message
+
+                                                      3. Vendor can create multiple Offer Versions
+
+                                                         * Snapshot stored for each version
+
+                                                         * When accepted → freeze version
+
+                                                            4. Next: Quotation versions + snapshot
+
+                                                            5. After Quotation acceptance → booking flow continues
+
+                                                            6. Thread communication:
+
+                                                               * Customer ↔ Vendor
+
+                                                               * For multi-vendor enquiry → Admin acts as virtual intermediary
+
+                                                                  7. Build APIs + Blade screens:
+
+                                                                     * Enquiry list
+
+                                                                     * Offer builder
+
+                                                                     * Quotation builder
+
+                                                                     * Thread conversation UI
+Note: Offer can be created and accepted and quotation can be created and accepted on thread aslo
+________________
+
+
+🔷 PROMPT 24 — Implement DOOH Package Booking Flow
+Implement the completely different DOOH flow:
+                                                                        1. Customer books based on:
+
+                                                                           * Minimum Slots per day
+
+                                                                           * Package per month
+
+                                                                           * Minimum booking amount
+
+                                                                           * Slot frequency and loop interval
+
+                                                                              2. DOOH does not have:
+
+                                                                                 * Mounting
+
+                                                                                 * Printing
+
+                                                                                    3. Only survey package may be needed.
+
+                                                                                    4. API integration:
+
+                                                                                       * Read DOOH inventory API
+
+                                                                                       * Sync available slots, price, loops, duration
+
+                                                                                          5. Build:
+
+                                                                                             * DOOH inventory listing screen
+
+                                                                                             * DOOH package purchase page
+
+                                                                                             * DOOH slot frequency selector
+
+                                                                                             * Booking confirmation with Razorpay
+
+________________
+
+
+🔷 PROMPT 25 — Implement Customer Web (Figma Based)
+Generate full Blade UI according to Customer Web Figma:
+Include:
+                                                                                                * Login/Signup with OTP
+
+                                                                                                * Home page with geofencing
+
+                                                                                                * Search
+
+                                                                                                * Shortlist (Wishlist)
+
+                                                                                                * Enquiry Flow
+
+                                                                                                * Booking Flow
+
+                                                                                                * Profile + KYC section
+
+                                                                                                * My Orders
+
+                                                                                                * Thread inbox
+
+                                                                                                * Notification center
+
+Ensure:
+                                                                                                   * Responsive layouts
+
+                                                                                                   * Components reusable
+
+                                                                                                   * Dynamic inventory cards based on admin settings
+
+                                                                                                   * API backed
+
+________________
+
+
+🔷 PROMPT 26 — Implement Vendor Web Panel (Figma Based)
+Implement Vendor Web according to Figma:
+Modules:
+                                                                                                      * Dashboard (Revenue, Bookings, Status)
+
+                                                                                                      * Listing Management:
+
+                                                                                                         * Add OOH
+
+                                                                                                         * Add DOOH
+
+                                                                                                         * Bulk Update Price
+
+                                                                                                         * Update Offers
+
+                                                                                                            * Booking Management
+
+                                                                                                            * Task Management (graphics, printer, mounter)
+
+                                                                                                            * Payouts
+
+                                                                                                            * POS
+
+Include all admin-configurable validations.
+________________
+
+
+🔷 PROMPT 27 — Implement Sub-Vendor Apps (Graphics, Printer, Mounter, Surveyor)
+Implement Web + Mobile for all staff types.
+Each staff type performs:
+Graphics Designer
+                                                                                                               * Receives design tasks
+
+                                                                                                               * Uploads files
+
+                                                                                                               * Sends updates to vendor + customer
+
+Printer
+                                                                                                                  * Prints after graphics approval
+
+                                                                                                                  * Upload printing proof
+
+Mounter
+                                                                                                                     * Go to location → take photo/video → upload
+
+                                                                                                                     * This triggers campaign start approval
+
+Surveyor
+                                                                                                                        * Handles survey tasks
+
+                                                                                                                        * Upload report
+
+Include Blade + APIs + Role-based permissions.
+________________
+
+
+🔷 PROMPT 28 — Create Universal Messaging Thread System
+Implement a system like email/chat combined.
+Features:
+                                                                                                                           * Every enquiry/offer/quotation/booking has a thread
+
+                                                                                                                           * Messages support:
+
+                                                                                                                              * Text
+
+                                                                                                                              * Attachments
+
+                                                                                                                              * System events
+
+                                                                                                                                 * Read receipts
+
+                                                                                                                                 * Real-time notifications
+
+Views:
+                                                                                                                                    * Inbox
+
+                                                                                                                                    * Thread detail
+
+                                                                                                                                    * Message composer
+
+________________
+
+
+🔷 PROMPT 29 — Implement Admin Panel (Full Configuration)
+Build complete Admin Panel (Blade + API) for:
+                                                                                                                                       * Global settings
+
+                                                                                                                                       * Grace period rules
+
+                                                                                                                                       * Max booking duration
+
+                                                                                                                                       * Future booking constraints
+
+                                                                                                                                       * Auto approval settings
+
+                                                                                                                                       * Commission settings
+
+                                                                                                                                       * Offer automation
+
+                                                                                                                                       * Notifications templates
+
+                                                                                                                                       * Price update rules
+
+                                                                                                                                       * KYC rules
+
+                                                                                                                                       * Task management settings
+
+                                                                                                                                       * DOOH API configuration
+
+                                                                                                                                       * Payment rules
+
+                                                                                                                                       * Cancellation rules
+
+                                                                                                                                       * Refund logic
+
+________________
+
+
+🔷 PROMPT 30 — Implement Price Update Engine
+Create price update system:
+                                                                                                                                          * Single listing update
+
+                                                                                                                                          * Bulk update by:
+
+                                                                                                                                             * Area
+
+                                                                                                                                             * Vendor
+
+                                                                                                                                             * Property type
+
+                                                                                                                                             * City
+
+                                                                                                                                             * Type (OOH/DOOH)
+
+                                                                                                                                             * Size
+
+                                                                                                                                                * Logs + audit trail
+
+                                                                                                                                                * Snapshot stored per update
+
+________________
+
+
+🔷 PROMPT 31 — Implement Commission Engine
+Add commission rules:
+                                                                                                                                                   * Per vendor
+
+                                                                                                                                                   * Per hoarding
+
+                                                                                                                                                   * Per location
+
+                                                                                                                                                   * Flat commission
+
+                                                                                                                                                   * Time-based commission
+
+                                                                                                                                                   * Session-based offers (seasonal)
+
+Used for:
+                                                                                                                                                      * Revenue sharing
+
+                                                                                                                                                      * Booking distribution
+
+________________
+
+
+🔷 PROMPT 32 — Implement Booking Cancellation + Refund Logic
+Rules:
+                                                                                                                                                         * Admin-configurable cancellation time window
+
+                                                                                                                                                         * Customer cancellation fee
+
+                                                                                                                                                         * Vendor cancellation penalty
+
+                                                                                                                                                         * Auto-refund through PG
+
+                                                                                                                                                         * Refund report for admin
+
+                                                                                                                                                         * POS bookings cannot be auto-refunded
+
+Generate Blade + API.
+________________
+
+
+🔷 PROMPT 33 — Implement Payment Settlement Engine
+Rules:
+                                                                                                                                                            * Razorpay split logic
+
+                                                                                                                                                            * Admin commission first
+
+                                                                                                                                                            * Vendor KYC required for payout
+
+                                                                                                                                                            * If KYC incomplete → payout stored in admin wallet
+
+                                                                                                                                                            * Manual payout approval screen for admin
+
+                                                                                                                                                            * Ledger for each vendor
+
+________________
+
+
+🔷 PROMPT 34 — Implement Email + Notification Template System
+Generate Admin-configurable templates for:
+                                                                                                                                                               * OTP
+
+                                                                                                                                                               * Enquiry received
+
+                                                                                                                                                               * Offer created
+
+                                                                                                                                                               * Offer accepted
+
+                                                                                                                                                               * Quotation created
+
+                                                                                                                                                               * Payment complete
+
+                                                                                                                                                               * Survey booked
+
+                                                                                                                                                               * Mounting scheduled
+
+                                                                                                                                                               * Campaign started
+
+                                                                                                                                                               * Booking completed
+
+                                                                                                                                                               * Refund issued
+
+Support:
+                                                                                                                                                                  * Web notification
+
+                                                                                                                                                                  * Email
+
+                                                                                                                                                                  * SMS
+
+                                                                                                                                                                  * WhatsApp
+
+________________
+
+
+🔷 PROMPT 35 — Implement Geofencing + Map Based Search
+Add features:
+                                                                                                                                                                     * Auto-location detect
+
+                                                                                                                                                                     * Radius selection
+
+                                                                                                                                                                     * Map view of hoardings
+
+                                                                                                                                                                     * Dynamic search filters
+
+                                                                                                                                                                     * Admin settings for search ranking priority
+
+________________
+
+
+🔷 PROMPT 36 — Implement Snapshot Engine
+Whenever critical data changes, generate snapshots for:
+                                                                                                                                                                        * Offers
+
+                                                                                                                                                                        * Quotations
+
+                                                                                                                                                                        * Price updates
+
+                                                                                                                                                                        * Booking confirmation
+
+                                                                                                                                                                        * Commission rules
+
+Use JSON snapshots stored immutably.
+________________
+
+
+🔷 PROMPT 37 — Implement Audit Trail + Logs
+Record:
+                                                                                                                                                                           * Who changed what
+
+                                                                                                                                                                           * Before vs after values
+
+                                                                                                                                                                           * Timestamps
+
+                                                                                                                                                                           * IP address
+
+Admin panel screen for viewing logs.
+________________
+
+
+🔷 PROMPT 38 — Implement OOH Booking Timeline Engine
+For every booking, generate timeline steps:
+                                                                                                                                                                              * Enquiry
+
+                                                                                                                                                                              * Offer versions
+
+                                                                                                                                                                              * Quotation versions
+
+                                                                                                                                                                              * Payment hold
+
+                                                                                                                                                                              * Payment settled
+
+                                                                                                                                                                              * Graphics → Printing → Mounting → Proof
+
+                                                                                                                                                                              * Campaign start
+
+                                                                                                                                                                              * Campaign running
+
+                                                                                                                                                                              * Campaign completed
+
+Include timeline UI.
+________________
+
+
+🔷 PROMPT 39 — Implement DOOH Slot Rendering Engine
+Implement DOOH booking view:
+                                                                                                                                                                                 * Slot frequency
+
+                                                                                                                                                                                 * Slot interval
+
+                                                                                                                                                                                 * Total daily displays
+
+                                                                                                                                                                                 * Monthly cost
+
+                                                                                                                                                                                 * Looping logic
+
+API + calculation engine.
+________________
+
+
+🔷 PROMPT 40 — Implement Customer Dashboard + Reports
+Add customer-facing:
+                                                                                                                                                                                    * My bookings
+
+                                                                                                                                                                                    * My payments
+
+                                                                                                                                                                                    * My enquiries
+
+                                                                                                                                                                                    * My offers
+
+                                                                                                                                                                                    * My quotations
+
+                                                                                                                                                                                    * My invoices
+
+                                                                                                                                                                                    * My threads
+
+Include filters + exports.
+________________
+
+
+If you'd like, I can generate Prompts 41–60 next.
+You said:
+generate Prompts 41–60 next
+ChatGPT said:
+Here are Prompts 41–60 continuing the same structure: concise, powerful, Copilot-optimized, and context-rich for your OOHAPP B2B2C Hoarding Marketplace.
+________________
+
+
+✅ Prompts 41–60 for GitHub Copilot
+These prompts directly guide Copilot to produce clean architecture, scalable code, and correct business logic.
+________________
+
+
+This would be executed later(Not clear now)
+41. Vendor Contract & Rate-Card Engine
+Prompt:
+ “Implement a Vendor Contract module that stores: hoarding base rates, seasonal rates, minimum booking duration, grace period, refund rules, survey charges, lighting charges. Expose a service class RateCardService that returns final payable price based on duration + add-ons + seasonal rules.”
+________________
+
+
+42. Dynamic Price Calculator for Customer Booking
+Prompt:
+ “Create DynamicPriceCalculator that accepts hoarding_id, booking_start, booking_end, package_id (optional), vendor_discounts, and returns: base_price, discount_applied, vendor_offer_applied, gst, final_price. Include test cases.”
+________________
+
+
+43. Multi-Step Booking Wizard API( Not implementing this)
+Prompt:
+ “Create APIs for a 4-step Booking Wizard: Step 1 Location, Step 2 Hoarding Selection, Step 3 Offers & Packages, Step 4 Summary & Payment. Ensure each step saves draft progress.”
+________________
+
+
+43. Multi-Step Booking Wizard API
+Implement the new ‘Hoarding-First Booking Flow’ exactly as shown in the 
+Customer Web Figma. The user starts from a hoarding card and continues 
+through package selection, date selection, review summary, temporary hold, 
+and payment.
+
+
+Required Logic Flow:
+
+
+1. Hoarding Detail Fetch
+   - Return complete hoarding details including images, vendor info, pricing,
+     ratings, and all availability information such as booked dates, blocked
+     dates, holds, and maintenance periods.
+
+
+2. Package Selection
+   - Show all available packages for this hoarding including monthly and 
+     multi-month options.
+   - Include discounts, seasonal offers, strike-through pricing, and any 
+     applied offer tags.
+
+
+3. Date Selection with Availability Calendar
+   - Validate user-selected dates against booked periods, maintenance blocks, 
+     blackout days, and temporary holds.
+   - Ensure no overlap with other active bookings.
+   - Respect vendor and admin booking rules such as minimum duration, 
+     maximum future start date, weekly/monthly restrictions, etc.
+
+
+4. Create Draft Booking
+   - Create a temporary draft containing the selected hoarding, selected 
+     package, chosen dates, and calculated price.
+   - Freeze the price using a snapshot approach so future price changes do 
+     not affect this draft.
+   - The draft must be updated each time the user changes package or dates.
+
+
+5. Review Popup Summary
+   - Provide a preview summary showing hoarding details, selected duration, 
+     package information, and final payable amount.
+   - User confirms this summary before proceeding to payment.
+
+
+6. Confirm Booking & Lock Inventory
+   - Temporarily lock selected dates so no other user can book them.
+   - This lock is time-limited (booking hold window configured by admin).
+   - Mark the booking as waiting for payment.
+
+
+7. Payment Session Creation (Razorpay)
+   - Create a payment order with Razorpay using manual capture mode.
+   - Store and return payment session details required by the frontend.
+   - Begin countdown timer for the hold period.
+
+
+8. Success Callback & Final Confirmation
+   - When payment is authorized, mark the booking as under payment hold.
+   - When payment is captured, confirm the booking permanently.
+   - Release the lock if payment fails or hold expires.
+   - Trigger vendor and customer notifications and update booking timeline.
+
+
+Important:
+- Pricing must always be based on the snapshot created at draft stage.
+- All steps must save progress so the user can resume if interrupted.
+- All logic must follow global booking rules defined in the system primer.
+
+
+
+
+
+
+
+
+44. Vendor Quote Generation System
+Prompt:
+“Create a Vendor Quote Generator that auto-generates PDF and send to customer+ stores JSON snapshot. Quote includes: hoarding details, duration, charges, vendor notes, survey cost, lighting, tax, final total. Include versioning.”
+________________
+
+
+45. Customer Request → Vendor Multi-Quotation Flow
+Prompt:
+ “Implement customer ‘Request for Quote’ workflow: customer sends RFP → vendors receive → vendor submits quote → customer compares → accepts → booking created.”
+________________
+
+
+46. Audit Snapshot Middleware
+Prompt:
+ “Create middleware that triggers financial/legal audit snapshots on: offer acceptance, quote generation, quote acceptance, PO creation, payment success. Save snapshots as immutable JSON + timestamp.”
+________________
+
+
+47. Booking Timeline Generator
+Prompt:
+ “Implement Booking Timeline service that shows lifecycle: Enquiry → Offer → Quote → PO → Payment → Active Booking →Designing->Printing->mounting->Campaign Started->survey(optional)-> Campaign Completed. Each stage stores timestamp + user (vendor/customer/admin) + note.
+ Send Notification to vendor, customer and admin at all stages””
+                                                                                                                                                                                       1. Enquiry → 2. Offer → 3. Quotation → 4. Purchase Order ⭐ → 5. Payment Hold → 6. Payment Settled → 7. Designing ⭐ → 8. Graphics → 9. Printing → 10. Mounting → 11. Campaign Started → 12. Survey ⭐ → 13. Proof → 14. Running → 15. Completed
+
+
+________________
+
+
+48. Vendor Panel: Booking Management
+Prompt:
+ “Create Vendor Panel module with pages: New Bookings, Ongoing Bookings, Completed, Cancelled. Define logic: ‘ongoing = today between start & end’, ‘completed = end_date < today’. Include filtering.”
+Note: Before start writing code , review the existing code very carefully, as flow should not be disturbed
+________________
+
+
+49. Vendor Availability Calendar
+Prompt:
+ “Implement availability calendar for each hoarding using fullcalendar.js. Mark booked dates (red), enquiry dates (yellow), available dates (green). Add API: /vendor/hoarding/{id}/calendar.”
+________________
+
+
+50. Customer Saved Shortlist
+Prompt:
+ “Create Customer ‘Shortlist’ module: add/remove hoardings from wishlist, sync with user profile, persist across devices, show in customer dashboard.”
+________________
+
+
+51. DOOH Creative Upload & Approval(Will be executed later)
+Prompt:
+ “Implement creative upload workflow for DOOH: customer uploads → vendor reviews → approve/reject → logs stored → versioning of creative files.”
+________________
+
+
+52. Vendor Service Change Management(Will be executed later)
+Prompt:
+ “Build service-change workflow: vendor proposes new lighting rates/survey charges → admin reviews → auto-notifies customers with active bookings if change affects them.”
+________________
+
+
+53. Staff App Task Allocation(Will be executed later)
+Prompt:
+ “Create Staff Task Assignment API: tasks auto-created when booking confirmed (survey, installation, maintenance). Assign to nearest staff by pincode. Add start/end timestamps.”
+________________
+
+
+54. Search Algorithm Upgrade
+Prompt:
+ “Implement smart search using: coordinates + radius filter, hoarding type filter, price range, vendor rating, availability. Return sorted results: relevance → price → visibility score.”
+________________
+
+
+55. Customer Dashboard Reminder Notifications
+Prompt:
+ “Add ‘smart reminders’: payment due, creative upload pending, installation update, booking ending soon. Use Laravel notifications + queue.”
+________________
+
+
+56. Multi-Vendor Negotiation Thread(will be executed later)
+Prompt:
+ “Create negotiation thread system: customer ↔ vendor chat per hoarding. Features: file upload, offer revisions, auto-lock conversation once offer accepted.”
+________________
+
+
+57. Booking Offer Engine(will be executed later)
+Prompt:
+ “Implement offer logic: vendor can create % discount OR fixed discount based on duration (3/6/12 months). Engine auto-applies the highest eligible offer.”
+________________
+
+
+58. Admin Payout Settlement System
+Prompt:
+ “Create Vendor Payout module: track booking revenue, commission %, adjustment, GST, final vendor payout. Add payout requests → admin approval → settlement receipt (PDF).”
+________________
+
+
+59. Hoarding Image & Asset Manager
+Prompt:
+ “Implement media management using Spatie Media Library: upload hero image, night image, angle photos, size overlay, and auto-compress images.”
+________________
+
+
+60. Vendor Rating & Reliability Score(will be executed later)
+Prompt:
+ “Create rating system: customer gives rating after booking + optional comments. Generate vendor reliability score from: response time, quote quality, booking accuracy.”
+________________
+
+
+✅ Want Prompts 61–80?
+I can generate the next batch in the same format.
+Just say: “generate prompts 61–80”
+You said:
+generate prompts 61–80”
+ChatGPT said:
+Here are Prompts 61–80—powerful, concise, engineered specifically for OOHAPP and optimized for GitHub Copilot to understand your architecture, workflows, and business logic in minimal words.
+________________
+
+
+✅ Prompts 61–80
+________________
+
+
+61. Booking Conflict Prevention Engine
+Prompt:
+ “Implement a conflict-check service: reject booking if selected hoarding has overlapping confirmed bookings. Allow overlap with enquiries and quotes but not confirmed bookings.”
+________________
+
+
+62. Dynamic Tax Rules Engine
+Prompt:
+ “Create TaxService: auto-apply GST%, TDS logic, reverse charge if applicable, and handle future updates through admin panel without code changes.”
+________________
+
+
+63. Customer Multi-Brand Management(will be executed later)
+Prompt:
+ “Add Customer-Brand mapping: one user can manage multiple brands, each with separate billing addresses, GST numbers, and booking histories.”
+________________
+
+
+64. Invoicing System with GST Compliance
+Prompt:
+ “Build Invoice Generator: auto-generate tax invoice on successful payment. Include GSTIN, HSN code, SAC code, billing details, QR code, and invoice sequencing.”
+
+
+More Detailed Version
+64. GST-Compliant Invoicing System (Supports Milestones or Full Payment)
+Prompt:
+ “You are responsible for building the complete Invoice Generator module for OOHAPP.
+Implement a fully GST-compliant invoicing system that auto-generates invoices for both milestone payments and full payments.
+Requirements:
+                                                                                                                                                                                       1. Auto-generate a Tax Invoice immediately after successful payment (online, offline, POS, milestone, or full payment).
+
+                                                                                                                                                                                       2. Support both Full Payment and Milestone-Based Payment flows:
+
+                                                                                                                                                                                          * For full payment: generate a single consolidated GST invoice covering the entire booking amount.
+
+                                                                                                                                                                                          * For milestone payment: generate a separate invoice for each milestone with partial billing, GST breakup, and milestone-specific details.
+
+                                                                                                                                                                                             3. Each invoice must include all mandatory GST-compliant fields:
+
+                                                                                                                                                                                                * Seller GSTIN
+
+                                                                                                                                                                                                * Buyer GSTIN
+
+                                                                                                                                                                                                * HSN/SAC Code
+
+                                                                                                                                                                                                * Invoice Number (auto-sequencing per financial year)
+
+                                                                                                                                                                                                * Invoice Date
+
+                                                                                                                                                                                                * Place of Supply
+
+                                                                                                                                                                                                * Reverse Charge (Yes/No)
+
+                                                                                                                                                                                                   4. Include complete billing details:
+
+                                                                                                                                                                                                      * Customer Name
+
+                                                                                                                                                                                                      * Customer Address
+
+                                                                                                                                                                                                      * Customer Type (Individual / Business)
+
+                                                                                                                                                                                                      * State & State Code
+
+                                                                                                                                                                                                         5. Apply GST rules automatically:
+
+                                                                                                                                                                                                            * CGST + SGST for intra-state bookings
+
+                                                                                                                                                                                                            * IGST for inter-state bookings
+
+                                                                                                                                                                                                            * Show taxable amount, GST amount, and total amount
+
+                                                                                                                                                                                                               6. Support multiple invoice scenarios:
+
+                                                                                                                                                                                                                  * Single hoarding booking
+
+                                                                                                                                                                                                                  * Multiple hoardings booking
+
+                                                                                                                                                                                                                  * Subscription payments
+
+                                                                                                                                                                                                                  * Printing payments
+
+                                                                                                                                                                                                                  * Remounting payments
+
+                                                                                                                                                                                                                  * Vendor POS bookings
+
+                                                                                                                                                                                                                     7. Each invoice must contain:
+
+                                                                                                                                                                                                                        * Detailed item summary
+
+                                                                                                                                                                                                                        * Tax summary
+
+                                                                                                                                                                                                                        * QR code linked to digital invoice
+
+                                                                                                                                                                                                                        * Terms & Conditions
+
+                                                                                                                                                                                                                        * Digital signature or placeholder signature
+
+                                                                                                                                                                                                                           8. Generate PDF Invoice, store securely in the system, and attach/send it via email.
+
+                                                                                                                                                                                                                           9. Follow GST invoice numbering rules:
+Example format: INV/2024-25/000001
+ Reset invoice sequence automatically at the beginning of each financial year.”
+
+
+
+________________
+
+
+65. Vendor SLA & Compliance Tracker
+Prompt:
+ “Implement SLA tracking: vendor must accept enquiry within X hours, submit quote within Y hours. Track SLA violations and affect vendor reliability score.”
+________________
+
+
+66. Customer Budget Planner(will be executed later)
+Prompt:
+ “Create a budget planner tool: customer enters monthly or campaign budget → system recommends hoardings, packages, durations to fit the budget.”
+________________
+
+
+67. DOOH Schedule Planner
+Prompt:
+ “Implement scheduling for DOOH creatives: define playtime slots, loop frequency, start/end dates. Validate availability before confirming schedule.”
+________________
+
+
+68. Payment Gateway Integration Wrapper
+Prompt:
+ “Create PaymentService wrapper for Razorpay/Stripe: handles order creation, webhook validation, payment capture, refunds, and partial payments.”
+________________
+
+
+69. Vendor-Controlled Milestone Payment Logic (Quotation-Based Only)
+Prompt:
+ “You are LaraCopilot.
+Implement milestone / full payment logic without changing existing booking, offer, quotation, or payment flow.
+Rules to implement:
+                                                                                                                                                                                                                              1. Milestones are created ONLY by the vendor while generating a quotation.
+
+                                                                                                                                                                                                                                 * Vendor can add 1 or more milestones (percentage or fixed amount).
+
+                                                                                                                                                                                                                                 * Vendor may also choose no milestones.
+
+                                                                                                                                                                                                                                    2. If vendor creates milestones:
+
+                                                                                                                                                                                                                                       * System must create a milestone schedule inside the approved quotation.
+
+                                                                                                                                                                                                                                       * When customer accepts quotation → Booking is created with payment_mode = milestone.
+
+                                                                                                                                                                                                                                       * Generate separate milestone invoices with GST + invoice sequence.
+
+                                                                                                                                                                                                                                       * Customer must pay milestone-by-milestone.
+
+                                                                                                                                                                                                                                       * After each payment → update booking timeline.
+
+                                                                                                                                                                                                                                       * Final booking confirmation happens only after all milestones are paid.
+
+                                                                                                                                                                                                                                          3. If vendor does NOT create milestones:
+
+                                                                                                                                                                                                                                             * Use full payment.
+
+                                                                                                                                                                                                                                             * Create only one invoice.
+
+                                                                                                                                                                                                                                             * Payment flow continues as your existing Razorpay → hold → capture model.
+
+                                                                                                                                                                                                                                                4. If customer books directly from website (without vendor quotation):
+
+                                                                                                                                                                                                                                                   * Always use full payment only.
+
+                                                                                                                                                                                                                                                   * No milestone option shown.
+
+                                                                                                                                                                                                                                                      5. Do NOT modify existing logic:
+
+                                                                                                                                                                                                                                                         * Offer creation
+
+                                                                                                                                                                                                                                                         * Quotation versioning
+
+                                                                                                                                                                                                                                                         * Booking snapshot engine
+
+                                                                                                                                                                                                                                                         * Razorpay create-order + capture
+
+                                                                                                                                                                                                                                                         * Booking hold + expiry
+
+                                                                                                                                                                                                                                                         * PO generation
+
+                                                                                                                                                                                                                                                         * Timeline events
+
+                                                                                                                                                                                                                                                            6. Add these new components:
+
+                                                                                                                                                                                                                                                               * milestones table (quotation_id, title, amount, sequence_no, due_date, status)
+
+                                                                                                                                                                                                                                                               * MilestoneService to compute remaining amounts
+
+                                                                                                                                                                                                                                                               * Invoice generator for milestone payments
+
+                                                                                                                                                                                                                                                               * Notification templates for each milestone due/paid
+
+                                                                                                                                                                                                                                                               * Admin UI to view milestone payment progress
+
+                                                                                                                                                                                                                                                               * Vendor UI inside quotation editor to add/remove milestones
+
+                                                                                                                                                                                                                                                                  7. Milestone logic must NOT break full payment flow.
+
+                                                                                                                                                                                                                                                                     * If no milestones exist → system behaves EXACTLY as before.
+
+Ensure all code follows modular architecture, existing folders, snapshot rules, and booking timeline flow
+
+
+________________
+
+
+70. Auto-PO (Purchase Order) Generator(Will be executed later)
+Prompt:
+ “Create auto PO generator on booking confirmation. Should include vendor details, customer details, hoarding info, terms, pricing, start/end dates, digital signature.”       
+________________
+
+
+71. Booking Cancellation & Refund Rules
+Prompt:
+ “Implement cancellation policy: cancellation within 7 days = partial refund; after campaign start = no refund. Vendor can configure flexible rules in panel.”
+________________
+
+
+72. Vendor Self-Onboarding Wizard(Will be executed later)
+Prompt:
+ “Create multi-step vendor onboarding wizard: business info → document upload → GST verification → hoarding upload → preview → submit for approval.”
+________________
+
+
+73. Fraud Detection Checks
+Prompt:
+ “Implement risk engine: flag suspicious bookings (multiple high-value bookings in short time, mismatched GST, repeated failed payments). Log all events.”
+________________
+
+
+74. Revenue Dashboard (Admin)
+Prompt:
+ “Create Admin Revenue Dashboard: daily bookings, vendor revenue, commission earned, pending payouts, top locations, top vendors. Use chart.js.”
+________________
+
+
+75. Vendor Performance Dashboard
+Prompt:
+ “Build Vendor Dashboard: monthly bookings, enquiry-to-booking ratio, quote response time, SLA score, average rating, disputed bookings.”
+________________
+
+
+76. Customer Campaign Calendar(will be executed later)
+Prompt:
+ “Create a calendar that shows all campaigns per brand: booked hoardings, DOOH rotations, start/end dates, daily timeline view.”
+________________
+
+
+77. Dispute Resolution Workflow(will be executed later)
+Prompt:
+ “Implement dispute system: customer/vendor can raise issue → admin reviews → attach documents → final resolution with logs + timestamps.”
+________________
+
+
+78. Admin Approval Workflow for Hoardings
+Prompt:
+ “Create admin approval steps: submitted → under verification → approved → rejected. Versioning: vendor edits trigger re-verification.”
+________________
+
+
+79. SEO-Optimized Public Hoarding Pages
+Prompt:
+ “Generate public pages for each hoarding with metadata: title, description, city, size, latitude/longitude, vendor name, price range, breadcrumbs.”
+________________
+
+
+80. Multi-Language Support Foundation
+Prompt:
+ “Add translation structure using Laravel localization for: customer app, vendor app, admin panel. Store strings in /lang/{locale} and auto-detect browser language.”
+________________
+
+
+✅ Ready for Prompts 81–100?
+Just say “generate prompts 81–100” and I’ll continue.
+You said:
+generate prompts 81–100
+ChatGPT said:
+Here are Prompts 81–100, engineered to be short, modular, Copilot-friendly, and aligned with your OOHAPP full ecosystem (Customer Web, Vendor Web, Admin, Designer/Printer/Mounter apps, DOOH, workflows, payments, etc.).
+________________
+
+
+✅ Prompts 81–100
+________________
+
+
+Prompt 81 – Hoarding Grace-Period Enforcement 
+“Implement grace-period logic:
+                                                                                                                                                                                                                                                                        * Applicable grace = vendor-defined grace days (if available), otherwise use admin default grace days.
+
+                                                                                                                                                                                                                                                                        * Earliest allowed campaign start date = Today + Applicable Grace Days.
+
+                                                                                                                                                                                                                                                                        * Customer-selected start date (during enquiry or booking) must not be earlier than this allowed date.
+
+                                                                                                                                                                                                                                                                        * Block all earlier dates in the calendar UI.
+
+                                                                                                                                                                                                                                                                        * Enforce this rule across direct booking, quotation → booking, and POS flows.”
+
+
+
+________________
+
+
+82. Campaign Start Date = Vendor/Mounter Validation
+Prompt:
+ “Create logic: campaign officially starts only after mounter uploads proof (photo/video) → vendor approves → set final_campaign_start_date.”
+________________
+
+
+83. Snapshot Engine for Offer & Quotation(Will be executed late)
+Prompt:
+ “Implement versioning + snapshot system: each offer/quotation change creates immutable snapshot; store pricing, discounts, terms. Use for dispute-proof history.”
+________________
+
+
+84. Bulk Hoarding Price Update
+Prompt:
+ “Build admin bulk price update tool: update by vendor, city, category, size, media type. Preview changes before applying.”
+________________
+
+
+85. Max Future Booking Restriction
+Prompt:
+ “Implement max_future_booking_duration: customer cannot choose a campaign start date after X days/months defined by vendor or admin.”
+________________
+
+
+86. Admin-Configurable Notification Templates
+Prompt:
+ “Add notification template manager: admin can edit email, SMS, push templates for enquiry, offers, quotes, booking confirmation, payout, SLA alerts.”
+________________
+
+
+87. Admin-Configurable Enquiry Routing Rules(will be executed later)
+Prompt:
+ “Implement routing rules: enquiries go to vendor based on city, media-type, category, availability, or custom admin rules.”
+________________
+
+
+88. Favourite/Shortlist System
+Prompt:
+ “Add shortlist system: customer can save hoardings → list persists → one-click enquiry or booking from shortlist.”
+ Note: Before generating code, review the existing code base very properly, if this feature has been developed then skip
+________________
+
+
+89. Booking Calendar Locking System
+Prompt:
+ “Develop locking mechanism: when customer initiates booking, lock hoarding slot for 30 min until payment completes or timer expires.”
+________________
+
+
+90. Payment Timer & Auto-Release Logic
+Prompt:
+ “Implement PG payment hold: hold funds for 30 mins; if canceled, auto-release; after 40 mins auto-split: admin commission + vendor payout.”
+________________
+
+
+91. Vendor No-KYC Fund Routing
+Prompt:
+ “Implement fallback: if vendor KYC incomplete → full payout temporarily goes to admin; admin can later manually transfer.”
+________________
+
+
+92. Multi-Month & Weekly Booking Pricing Matrix
+Prompt:
+ “Create pricing matrix: vendor can set price for daily, weekly, monthly, multi-month packages, discounts, and free surveys inside packages.”
+________________
+
+
+93. Admin DOOH Playlist Manager(Will be executed later)
+Prompt:
+ “Build DOOH playlist manager: create playlist, assign creatives, define loop duration, preview schedule, push to display endpoints via API.”
+________________
+
+
+
+
+Prompt 94 – Thread-Based Communication for All Parties (Final & Clear Version)
+“Implement a full thread-based communication module. Every interaction after enquiry (offer, quotation, booking, remounting, issues, etc.) must be recorded inside a thread. Thread supports: messages, attachments, timestamps, statuses, and notifications.
+After payment capture, the customer should be able to continue communication inside the messenger for all further processes.
+Do NOT use Blade for the thread system—build the thread UI entirely in Vue (component-based, real-time, scalable).”
+Prompt 94 — Thread-Based Communication (Document-based)(will be executed later)
+Context: This prompt is built from the OOHAPP module/sub-module document you provided and the previous Prompt 94 draft. It is a developer-ready specification for implementing the thread-based communication module (enquiry → offer → payment → messenger activation). Use this as a Copilot ticket, RFC, or sprint story.
+________________
+
+
+Title
+Thread-Based Communication for All Parties — Canonical Timeline & Post-Payment Messenger Activation
+Purpose
+Implement a robust thread-based communication system for OOHAPP that becomes the canonical timeline for every interaction started by an enquiry. Ensure messenger (free-form real-time chat) is unlocked only after successful payment capture. Build the UI in Vue (no Blade) and provide a secure, scalable API-first backend and realtime layer.
+Requirements (high-level)
+                                                                                                                                                                                                                                                                           1. Threads are canonical: Every interaction after enquiry (offers, quotations, negotiations, booking requests, remount/installation notes, issues, artwork delivery, invoice/receipt, support, cancellations, status updates, etc.) must be stored in a thread and rendered as a timeline.
+                                                                                                                                                                                                                                                                           2. Messenger activation rule: Messenger (real-time free chat) must remain locked until payment is captured. Once payment success is confirmed (via Razorpay webhook or equivalent), the system must create booking records (if applicable), set thread.messenger_active = true, add immutable system messages, and push a messenger.activated event.
+                                                                                                                                                                                                                                                                           3. Frontend tech: Do not use Blade for the thread UI. Build the thread UI entirely in Vue (Composition API, componentized, embeddable across customer/vendor/admin dashboards) with real-time updates via WebSockets (Soketi/Pusher/Socket.IO) and optimistic UI.
+                                                                                                                                                                                                                                                                           4. API-first: Expose REST (or GraphQL) endpoints for thread creation, participant management, message CRUD, attachment presigned upload flow, messenger activation, and paginated message fetch. Sockets are for push-only.
+                                                                                                                                                                                                                                                                           5. Attachments: Presigned direct-to-S3 uploads, validation (configurable max size default 25MB), whitelisted mime-types, virus/scan hook, thumbnail generation for images/PDFs, and access control (attachments accessible only to thread participants).
+                                                                                                                                                                                                                                                                           6. Security & Access Control: Strict RBAC — only participants may read/write; enforce socket auth (signed short-lived tokens), input sanitization, rate-limits, and server permission checks for sensitive actions (messenger activation, booking status changes).
+                                                                                                                                                                                                                                                                           7. Audit & system messages: System events (offer sent, payment pending, payment captured, booking created, messenger activated, invoice issued, cancellation) must be added as system messages and recorded in audit logs.
+                                                                                                                                                                                                                                                                           8. Notifications: Configurable notifications (FCM/APNs, email fallback). Events: new message, offer, payment request, payment success, booking update.
+                                                                                                                                                                                                                                                                           9. Scalability & performance: Cursor-based pagination, message indexing, search by text/attachment metadata, socket channel sharding/tenancy, pruning/archive policies.
+                                                                                                                                                                                                                                                                           10. UX details: Locked messenger overlay with CTA to pay, message statuses (sent/delivered/read), typing indicators, optimistic send, message edit/delete policies (soft-delete + audit), attachments preview, clear indication of messenger state and reason.
+                                                                                                                                                                                                                                                                           11. Testing & monitoring: Unit, integration, and E2E for API + sockets; monitoring for message throughput, failed uploads, webhook processing, and alerting on failures.
+
+
+________________
+
+
+95. Hoarding Asset Approval (Images & Videos)(
+Prompt:(will be executed later)
+ “Implement vendor upload → admin approval workflow for hoarding images, videos, and proofs. Track versions and maintain history.”
+________________
+
+
+96. Multi-Role Switcher from Single Login
+Prompt:
+ “Allow a single user to switch role (Customer/Vendor/Designer/Printer/Mounter/Admin) using role-based token + front-end layout switching.”
+Prompt 96 – Multi-Role Switcher from Single Login (Best Practice Version)
+**“Implement secure multi-role switching for users who hold multiple roles (Customer, Vendor, Designer, Printer, Mounter, Admin).
+Each role must have its own permission set, layout, sidebar, and dashboard.
+Use role-based access tokens / permissions instead of a single session role.
+When user switches role:
+                                                                                                                                                                                                                                                                           * refresh token & regenerate permissions
+
+                                                                                                                                                                                                                                                                           * switch to new layout and navigation
+
+                                                                                                                                                                                                                                                                           * isolate data visibility per role
+
+                                                                                                                                                                                                                                                                           * prevent privilege escalation (e.g., Vendor cannot access Admin data).
+Store role list in the user profile but activate only one role at a time.
+Do not mix dashboards—each role must operate independently.”**
+
+
+
+________________
+
+
+97. Mobile App API Rate Limiter
+Prompt:
+ “Add rate limits for mobile APIs: prevent abuse for authentication, OTP, image uploads. Use Laravel rate limiter with role-specific rules.”
+________________
+
+
+98. Geo-Fencing for Mounting Tasks
+Prompt:
+ “Implement geofence validation: mounter must upload installation proof within X meters of hoarding latitude/longitude.”
+________________
+
+
+99. Late Mounting Penalty Logic(later)
+Prompt:
+ “Implement vendor SLA penalty: if mounting not completed in allowed window, apply penalties or reduce vendor rating.”
+________________
+
+
+100. Super Admin Overrides Everything
+Prompt:
+ “Implement admin override mode: admin can edit any booking, payment status, offer, quote, price, commission, vendor onboarding, and revert changes with logs.”
+________________
+
+
+✅ Next Set Ready
+Say “generate prompts 101–120” to continue.
+You said:
+generate prompts 101–120
+ChatGPT said:
+Here are Prompts 101–120, optimized for GitHub Copilot, fully modular, short, and ready to paste into Copilot.
+All prompts consider: Customer Web, Vendor Web, Admin Panel, Printer/Mounter/Designer apps, DOOH logic, Payments, Booking, Threading, Notifications, etc.
+________________
+
+
+✅ Prompts 101–120
+________________
+
+
+101. Booking Overlap Validation Engine
+Prompt:
+ “Implement booking overlap detector: verify selected campaign dates do not clash with existing bookings, holds, or maintenance blocks for the same hoarding.”
+________________
+
+
+102. Admin Blocking Periods (Maintenance / Repairs)
+Prompt:
+ “Add hoarding maintenance blocks: admin or vendor can mark certain dates unavailable. Booking UI must visually disable these periods.”
+________________
+
+
+103. Vendor Custom Booking Rules(will be executed later)
+Prompt:
+ “Implement vendor-level booking rules: minimum booking duration, maximum booking duration, advance notice requirement, and blackout dates.”
+________________
+
+
+104. Hoarding Availability API for Frontend Calendar
+Prompt:
+ “Create availability API: return date slots as (available, booked, blocked, hold) for the frontend calendar heatmap UI.”
+________________
+
+
+105. Offer Auto-Expiry Logic
+Prompt:
+ “Add system: vendor-created offers auto-expire after X hours/days set by admin or vendor; expired offers cannot be accepted.”
+________________
+
+
+106. Quotation Deadline + Auto-Cancel
+Prompt:
+ “Implement quotation acceptance deadline: after expiry → auto-cancel booking flow + notify customer + update thread.”
+________________
+
+
+107. Auto-Generate PO After Accepted Quotation
+Prompt:
+ “Create automation: once customer accepts quotation → auto-generate PO document (PDF) + attach to thread + notify vendor.”
+________________
+
+
+108. Multi-City Booking Logic(later)
+Prompt:
+ “Develop multi-hoarding multi-city booking handling: group hoardings by city, vendor, pricing slab; generate combined PO with breakdown.”
+________________
+
+
+109. Global Currency + Tax Configurations
+Prompt:
+ “Add admin-configurable currency, GST/Tax rules, TCS/TDS rules, reverse charge logic; apply automatically to PO and invoices.”
+________________
+
+
+110. Customer Campaign Dashboard
+Prompt:
+ “Build customer campaign dashboard: show all active, upcoming, completed campaigns, invoices, proofs, creatives, and mounting updates.”
+________________
+
+
+111. Vendor Booking Pipeline Board
+Prompt:
+ “Create Kanban-style vendor pipeline: New Enquiry → Offer Sent → Quotation Sent → In Payment → Booked →Designing->Printing-> Mounting → Live →Survey(optional) ->Completed.”
+________________
+
+
+________________
+
+
+112. Vendor-Level Commission Configuration(later)
+Prompt:
+ “Implement vendor-specific commission rules: percentage or fixed fee per booking; fallback to admin default; applied during payout.”
+________________
+
+
+113. Brand Manager
+Prompt:
+You are implementing the Brand Manager role for OOHAPP.
+Core Rules
+                                                                                                                                                                                                                                                                              * Use the existing users table for authentication (do NOT create a separate brand_manager table).
+
+                                                                                                                                                                                                                                                                              * Implement brand_manager as a role using the existing RBAC system (roles, user_roles).
+
+                                                                                                                                                                                                                                                                              * Brand Manager is NOT an agency.
+
+                                                                                                                                                                                                                                                                              * Brand Manager acts on behalf of assigned Customers / Brands inside the Customer Panel.
+
+________________
+
+
+Assignment Logic
+                                                                                                                                                                                                                                                                                 * Admin can create users and assign the brand_manager role.
+
+                                                                                                                                                                                                                                                                                 * Admin can:
+
+                                                                                                                                                                                                                                                                                    * Assign one or more customers and/or brands to a Brand Manager
+
+                                                                                                                                                                                                                                                                                    * Configure permission flags
+
+                                                                                                                                                                                                                                                                                    * Revoke or suspend access
+
+                                                                                                                                                                                                                                                                                       * Customers can:
+
+                                                                                                                                                                                                                                                                                          * View Brand Managers assigned to them
+
+                                                                                                                                                                                                                                                                                          * Approve or restrict actions (if approval flow is enabled)
+
+________________
+
+
+Permissions (Configurable by Admin)
+Brand Managers can (based on permission flags):
+                                                                                                                                                                                                                                                                                             * Create and manage campaigns for assigned brands/customers
+
+                                                                                                                                                                                                                                                                                             * Browse inventory and shortlist hoardings
+
+                                                                                                                                                                                                                                                                                             * Upload, manage, and assign creatives (static / video / DOOH)
+
+                                                                                                                                                                                                                                                                                             * Raise enquiries and booking requests
+
+                                                                                                                                                                                                                                                                                             * View booking status, execution proof, and timelines
+
+                                                                                                                                                                                                                                                                                             * View and download brand-wise and campaign-wise reports
+
+Brand Managers must NOT:
+                                                                                                                                                                                                                                                                                                * Access Admin or Vendor panels
+
+                                                                                                                                                                                                                                                                                                * Modify customer legal or billing data
+
+                                                                                                                                                                                                                                                                                                * Make payments (unless explicitly enabled)
+
+________________
+
+
+Data Modeling
+                                                                                                                                                                                                                                                                                                   * users → authentication
+
+                                                                                                                                                                                                                                                                                                   * roles, user_roles → RBAC
+
+                                                                                                                                                                                                                                                                                                   * Create mapping tables:
+
+                                                                                                                                                                                                                                                                                                      * brand_manager_customers
+
+                                                                                                                                                                                                                                                                                                      * brand_manager_brands
+
+                                                                                                                                                                                                                                                                                                         * All operational data remains customer-owned
+
+                                                                                                                                                                                                                                                                                                         * No duplication of user records
+
+________________
+
+
+UI & API
+                                                                                                                                                                                                                                                                                                            * Brand Managers use the Customer Panel UI
+
+                                                                                                                                                                                                                                                                                                            * Filter all data by assigned customers and brands
+
+                                                                                                                                                                                                                                                                                                            * Use Blade templates for web UI
+
+                                                                                                                                                                                                                                                                                                            * Enforce role + permission checks on every API and page
+
+________________
+
+
+Expected Output
+                                                                                                                                                                                                                                                                                                               * RBAC role and permissions
+
+                                                                                                                                                                                                                                                                                                               * Database migrations
+
+                                                                                                                                                                                                                                                                                                               * Policies / middleware
+
+                                                                                                                                                                                                                                                                                                               * Customer Panel views with role-based filtering
+
+________________
+
+
+✅ One-Line Validation
+Brand Manager is an admin-assigned role using the existing users table, operating inside the Customer Panel with restricted, configurable permissions.
+                                                                                                                                                                                                                                                                                                                  * 
+
+________________
+
+
+114. Brand Selector for Agency Workflows(later)
+Prompt:
+ “Implement brand selection dropdown: when agency logs in, they must select active brand context → apply brand to all actions.”
+________________
+
+
+115. Customer Company KYC (Optional)
+Prompt:
+ “Add corporate customer KYC: GST, PAN, CIN, brand logo, address. Trigger when booking amount > admin-defined threshold.”
+________________
+
+
+116. Creative Upload Flow for Designers
+Prompt:
+ “Build creative workflow: customer uploads brief → designer uploads creative versions → customer/vendor approves → send to printer.”
+________________
+
+
+117. Printer Job Ticket System
+Prompt:
+ “Create print job ticket: includes hoarding size, material, vendor notes, deadline, creative attachments; printer updates progress statuses.”
+________________
+
+
+118. Mounter Work Order Automation
+Prompt:
+ “Generate mounter work orders: once printed creative is ready → auto-create mounting task with location map, deadline, and requirements.”
+________________
+
+
+119. Mounter Location Tracking During Task
+Prompt:
+ “Implement live geolocation tracking for mounter during task; update vendor in real-time; track speed, distance from hoarding location.”
+________________
+
+
+120. Survey Assignment + Report Upload
+Prompt:
+ “Build survey module: vendor/admin assigns surveyor, surveyor uploads images/videos, notes, and GPS location; vendor approves.”
+________________
+
+
+🚀 Next batch ready
+Say “generate prompts 121–140” and I’ll continue.
+You said:
+generate prompts 121–140
+ChatGPT said:
+Here are Prompts 121–140, engineered for GitHub Copilot, short, modular, and aligned with all your workflows (Customer/Vendor/Admin/Designer/Printer/Mounter/Surveyor + Booking + DOOH + Payments + Thread + Notifications + Configurations).
+________________
+
+
+✅ Prompts 121–140
+________________
+
+
+121. Survey Price Logic (Vendor or Admin Configurable)
+Prompt:
+ “Implement configurable survey charges: vendor can enable free/paid survey; admin can override. Auto-add cost into quotation if paid.”
+________________
+
+
+122. Campaign-Level Creative Version Control
+Prompt:
+ “Add creative version manager: each new design upload is versioned; only approved version can be sent to printer; maintain full history.”
+________________
+
+
+123. Proof of Mounting Approval Flow
+Prompt:
+ “Create flow: mounter uploads proof → vendor reviews → approve/reject → if approved, set campaign live; if rejected, require re-upload.”
+________________
+
+
+124. Auto-Stop Campaign if Proof Missing
+Prompt:
+ “Implement rule: If proof not submitted within X hours of scheduled start, auto-flag campaign and notify customer + vendor + admin.”
+________________
+
+
+125. Multi-Vendor Aggregate Campaign View for Admin
+Prompt:
+ “Build admin dashboard view showing all vendors’ campaigns in a single timeline with filters for city, category, vendor, date range.”
+________________
+
+
+126. Dynamic Pricing Based on Demand
+Prompt:
+ “Add admin toggle for dynamic pricing: increase price % if demand > threshold; reduce price % in low demand periods.”
+________________
+
+
+127. City / Zone Wise Demand Heatmap
+Prompt:
+ “Create demand heatmap API: show booking frequency by city, zone, area for last X days. Use for admin insights and dynamic pricing.”
+________________
+
+
+128. Vendor SLA Settings
+Prompt:
+ “Implement SLA configuration: mounting SLA, printing SLA, response time SLA. Trigger penalties or warnings when breached.”
+________________
+
+
+129. SLA-Based Vendor Rating Auto-Calculator
+Prompt:
+ “Create vendor rating formula: consider SLA, customer feedback, cancellations, mounting delays; auto-update rating monthly.”
+________________
+
+
+130. Notification Escalation Matrix
+Prompt:
+ “Develop escalation system: if vendor does not respond within X hours to enquiry/offer/quotation → escalate to admin.”
+________________
+
+
+131. Vendor Performance Report (Monthly + Custom Range)
+Prompt:
+ “Generate vendor performance report: total bookings, cancellations, SLA breaches, revenue share, commissions, ratings.”
+________________
+
+
+132. Hoarding Audit Logs
+Prompt:
+ “Add audit logs for hoardings: track changes to price, dimensions, availability, images, ownership, vendor, admin edits.”
+________________
+
+
+133. Vendor Financial Ledger
+Prompt:
+ “Build vendor ledger: show booking payments, commissions, pending payouts, adjustments, manual credits/debits by admin.”
+________________
+
+
+134. Customer Financial Ledger
+Prompt:
+ “Add customer ledger: booking amounts, refunds, pending payments, invoices, receipts, cancellations, credits.”
+________________
+
+
+135. Booking Cancellation Policy Engine
+Prompt:
+ “Implement cancellation rules: vendor and admin configurable; calculate penalty; auto-adjust payout and refund amounts.”
+________________
+
+
+136. Rebooking Logic
+Prompt:
+ “Enable rebooking: If campaign ends early or hoarding unavailable, allow vendor to suggest alternative hoarding; customer accepts or rejects.”
+________________
+
+
+137. Auto-Invoice Generation
+Prompt:
+ “Create invoice generator: invoice at booking confirmation; GST/Tax applied; download PDF; auto-send by email and thread.”
+________________
+
+
+138. Multi-GST State Handling
+Prompt:
+ “Implement GST rules for interstate bookings: CGST/SGST for same state, IGST for different state; reflect in offer, quote, invoice.”
+________________
+
+
+139. Admin Manual Payout Processing
+Prompt:
+ “Add manual payout approval: admin can mark payout processed, upload proof, add notes, update vendor ledger.”
+________________
+
+
+140. Dispute Management Module
+Prompt:
+ “Create dispute system: customer/vendor/admin can raise dispute; attach images, notes; track status (Open, In Review, Resolved). Thread-supported.”
+________________
+
+
+🚀 Next batch ready
+Say “generate prompts 141–160” to continue.
+You said:
+generate prompts 141–160
+ChatGPT said:
+Here are Prompts 141–160, engineered for GitHub Copilot, clean, modular, focused, and aligned with all OOHAPP workflows (Customer, Vendor, Admin, Agency, Designer, Printer, Mounter/Surveyor, DOOH, Payments, Threads, Notifications, Configurations, SLAs, etc.).
+________________
+
+
+✅ Prompts 141–160
+________________
+
+
+141. Auto-Assignment Rules for Printer/Mounter
+Prompt:
+ “Implement auto-assignment logic: based on vendor preference, zone, distance, past performance, or admin-defined rules. Allow manual override.”
+________________
+
+
+142. Task Lifecycle Engine
+Prompt:
+ “Create task lifecycle: Pending → In Progress → Completed → Verified. Apply to Designer, Printer, Mounter, Surveyor tasks with timestamps.”
+________________
+
+
+143. GPS Distance Validation for All Field Tasks
+Prompt:
+ “Add GPS distance check for mounter/surveyor tasks: reject submissions if distance > threshold from hoarding location.”
+________________
+
+
+144. DOOH Creative Push API Integration
+Prompt:
+ “Create API service to push DOOH creatives to display devices; handle loop timing, fallback creatives, error retries, device offline state.”
+________________
+
+
+145. DOOH Player Health Monitoring
+Prompt:
+ “Implement health ping system: devices send heartbeat every X minutes; flag devices as Online/Offline; notify vendor/admin.”
+________________
+
+
+146. Media-Type Based Booking Rules
+Prompt:
+ “Add rules per media type (Static, DOOH, Transit, Mall, Airport): different minimum durations, pricing formats, creative specs, SLAs.”
+________________
+
+
+147. Admin Global System Configurations Module
+Prompt:
+ “Build global config center: grace period, payment hold time, commission defaults, KYC requirements, max future booking, SLA thresholds.”
+________________
+
+
+148. Automated Daily System Cron Jobs
+Prompt:
+ “Create cron jobs: expire offers & quotes, auto-release payment holds, update SLA breaches, send daily summary emails.”
+________________
+
+
+149. Notification Queue Optimization
+Prompt:
+ “Optimize notification system using queues: batch email/SMS/push notifications; add retry policy and failure log.”
+________________
+
+
+150. Customer Multi-Shortlist Grouping
+Prompt:
+ “Allow customer to create shortlist groups (e.g., ‘Mumbai February Campaign’). Each group can generate enquiry or booking.”
+________________
+
+
+151. Admin Impersonate Any User
+Prompt:
+ “Add admin impersonation: admin can temporarily use customer/vendor/agency interface for troubleshooting. All actions logged.”
+________________
+
+
+152. Offer & Quote Comparison View
+Prompt:
+ “Create UI to compare versions of offers/quotes side-by-side showing changes in price, discount, dates, and terms.”
+________________
+
+
+153. Vendor Staff Management
+Prompt:
+ “Develop vendor staff accounts: permissions for sales, operations, finance. Access limited by role-based ACL.”
+________________
+
+
+154. Customer Company Hierarchy
+Prompt:
+ “Support multi-level customer hierarchy: parent company → multiple brands → multiple users with assigned permissions.”
+________________
+
+
+155. Multi-Language Support (Admin Configurable)
+Prompt:
+ “Add translation system: admin can upload language strings; customer/vendor frontend can switch language.”
+________________
+
+
+156. Accept/Reject Rules for Creative Files
+Prompt:
+ “Implement rules: file size limit, dimension check, bleed margin check, DOOH resolution check; auto-reject with message.”
+________________
+
+
+157. Booking Timeline View
+Prompt:
+ “Create global timeline: shows all activity (enquiry → offer → quote → payment → mounting → live) with timestamps and attachments.”
+________________
+
+
+158. Admin Bulk HOARDING Import/Export
+Prompt:
+ “Implement bulk import/export: CSV/Excel support for hoarding inventory. Validate each row, generate error report.”
+________________
+
+
+159. Vendor Notification Mute/Unmute
+Prompt:
+ “Add vendor-level notification preferences: mute certain notifications (email/SMS/push/thread) while keeping critical alerts.”
+________________
+
+
+160. Auto-Split Bookings for Overlapping Date Ranges
+Prompt:
+ “Add logic: If customer selects partially booked date range, auto-split into available segments and allow booking of only free periods.”
+________________
+
+
+🚀 Next batch ready
+Say “generate prompts 161–180” to continue.
+You said:
+generate prompts 161–180
+ChatGPT said:
+Here are Prompts 161–180, engineered for GitHub Copilot and aligned with all OOHAPP modules (Customer, Vendor, Admin, DOOH, Agency, Staff Apps, POS, Payment Engine, Threads, Offer/Quote Cycle, KYC, Compliance, Configurations, Booking Rules, Notifications, etc.)
+________________
+
+
+✅ Prompts 161–180
+________________
+
+
+161. Smart Recommendation Engine for Customer
+Prompt:
+ “Build a recommendation engine that suggests hoardings based on customer geography, past bookings, budget, campaign duration, and seasonality. Make recommendations admin-configurable.”
+________________
+
+
+162. Dynamic Map Filters with Geo-Fencing
+Prompt:
+ “Implement dynamic map filters: city, zone, media type, audience density, visibility score, illumination, landmark proximity. Add geo-fencing rules configurable by admin.”
+________________
+
+
+163. Inventory Visibility Score Algorithm
+Prompt:
+ “Develop a visibility score algorithm for each hoarding using height, traffic density, angle, distance, lighting, landmark presence; store score dynamically and show in UI.”
+________________
+
+
+164. Real-Time Availability Matrix (Calendar View)
+Prompt:
+ “Build a calendar matrix showing monthly, weekly, daily availability, color coded (Booked/Partial/Available). Use live API updates from backend.”
+________________
+
+
+165. Automated Offer Suggestions for Vendors
+Prompt:
+ “Develop a system that suggests optimal offer amounts based on historical booking rates, peak season, vendor preferences, and admin profit targets.”
+________________
+
+
+166. Payment Hold + Auto-Release Engine
+Prompt:
+ “Implement payment hold logic: hold for 30 minutes; auto-release if canceled; distribute after 40 minutes; follow KYC rules; handle failed payouts safely.”
+________________
+
+
+167. Razorpay Webhook Handler
+Prompt:
+ “Add webhook handler for payment success, failure, refund, payout, disputes. Record every event with snapshot and thread notification.”
+________________
+
+
+168. Commission Calculation Rules
+Prompt:
+ “Build commission engine: vendor-level commission, hoarding-level overrides, location-based rates, DOOH vs OOH rules, minimum commission safely enforced.”
+________________
+
+
+169. Campaign Activation Workflow
+Prompt:
+ “Implement campaign activation logic: campaign goes Live after mounter uploads evidence and vendor approves creative; log timestamps and apply SLA rules.”
+________________
+
+
+170. Legal Document Auto-Generation
+Prompt:
+ “Generate PDF contracts for offers, quotes, bookings, payments with digital signatures. Store immutable document snapshots for compliance.”
+________________
+
+
+171. Vendor POS Booking with Internal Billing
+Prompt:
+ “Create vendor POS module: vendor can book directly, bypass online payment; raises internal billing; sends SMS/WhatsApp payment link optionally.”
+________________
+
+
+172. Admin Analytics Dashboard
+Prompt:
+ “Build analytics: conversion funnel, vendor performance, offer acceptance rate, DOOH slot utilization, revenue reports, agency usage, SLA breaches.”
+________________
+
+
+173. Enquiry Funnel Optimization Engine
+Prompt:
+ “Implement machine learning heuristic that tracks enquiry → offer → quote → payment → live conversion rates and suggests improvements.”
+________________
+
+
+174. Fraud & Duplicate Booking Detection
+Prompt:
+ “Add detection logic: overlapping date conflicts, abnormal pricing, duplicate enquiries, repeated payment failures; notify admin for review.”
+________________
+
+
+175. Booking Grace Period Configurator
+Prompt:
+ “Build UI and backend for admin to configure grace periods for vendors, cities, media type, season, and booking duration categories.”
+________________
+
+
+176. Mass Notification Campaigns
+Prompt:
+ “Implement bulk notification engine: send emails/SMS/WhatsApp to customers who viewed/bookmarked hoardings when discounts go live.”
+________________
+
+
+177. Offer & Quote Locking Logic
+Prompt:
+ “Add locking: once customer accepts a specific version, freeze price snapshot even if vendor updates listing later.”
+________________
+
+
+178. Mobile OTP Login Flow (Customer + Vendor + Staff)
+Prompt:
+ “Create unified OTP login with rate limiting, device tracking, fraud prevention, and fallback email OTP.”
+________________
+
+
+179. Role-Based Home Dashboards
+Prompt:
+ “Design dashboards for Customer, Vendor, Agency, Designer, Printer, Mounter, Surveyor with data widgets relevant to their workflow.”
+________________
+
+
+180. Customer Campaign Budget Planner
+Prompt:
+ “Develop a budget planner: customer enters budget + date range → system recommends hoardings or DOOH packages optimally filling budget.”
+________________
+
+
+✅ Next batch ready
+Say “generate prompts 181–200” to continue.
+You said:
+generate prompts 181–200”
+ChatGPT said:
+Here you go — Prompts 181–200, continuing the same structured, high-clarity format designed for GitHub Copilot, project engineers, and cross-functional teams working on OOHAPP (B2B/B2C Hoarding Aggregator Marketplace).
+________________
+
+
+✅ Prompts 181–200 (High-Quality, Copilot-Ready)
+181.
+"Generate a complete API contract for the Vendor 'Manage Lighting & Power Availability' module, including endpoints, request/response schemas, validation rules, and role restrictions."
+182.
+"Create database migration + Eloquent models for storing monthly hoarding maintenance logs with version history and vendor signatures."
+183.
+"Build the Customer Portal UI/UX wireframe flow for 'Bulk Booking Checkout' covering 10+ hoardings, discount logic, payment splitting, and PO confirmation."
+184.
+"Create Laravel service class for calculating final booking price using base price, GST slabs, package discounts, vendor offers, and seasonal surge."
+185.
+"Generate a Vue component for digital hoarding preview animation (simulated DOOH playback with uploaded images/videos)."
+186.
+"Write a permissions matrix for all 5 roles across Vendor Panel, Customer Panel, Staff App, and Super Admin Portal."
+187.
+"Construct a detailed payout cycle engine spec for vendors including TDS rules, GST reconciliation, pending settlements, and clawback scenarios."
+188.
+"Design the system logic for Marketplace Search Filters: location > media type > size > illumination > date > availability slots."
+189.
+"Generate WebSocket-based real-time availability updates for DOOH slot booking calendars."
+190.
+"Create a technical blueprint for the 'Booking Lifecycle Timeline' showing each status, allowed transitions, and notify triggers."
+191.
+"Write backend logic to detect double-booking and prevent overlapping bookings on the same hoarding date range."
+192.
+"Create a Vendor Panel dashboard card set: revenue, booking count, pending quotations, overdue tasks, and maintenance alerts."
+193.
+"Create a staff-allocation algorithm for assigning survey tasks based on location proximity, staff availability, and priority."
+194.
+"Define error-handling standards: API error structure, user-friendly messages, internal logging, and alerting levels."
+195.
+"Generate dynamic notification templates for email, SMS, WhatsApp covering quotation updates, offer expiry, PO confirmation, and payment reminders."
+196.
+"Build API endpoints for customer saved lists: add hoarding, remove hoarding, check availability, and save package combinations."
+197.
+"Create an automated invoice generator template for bookings including item breakdown, GST details, vendor info, and QR for UPI payment."
+198.
+"Produce frontend logic for multi-image hoarding gallery upload with cropping, compression, and reorder support."
+199.
+"Create a DOOH media scheduling engine logic that prevents overlapping media playback schedules across multiple advertisers."
+200.
+"Write a complete end-to-end test script (Cypress/Pest) for customer booking flow: login → search → view hoarding → add to cart → checkout → generate PO."

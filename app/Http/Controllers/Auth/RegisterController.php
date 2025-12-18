@@ -57,6 +57,18 @@ class RegisterController extends Controller
         return view('auth.register', compact('role'));
     }
 
+    public function showMobileForm(Request $request)
+    {
+        if (!session()->has('signup_role')) {
+            return redirect()->route('register.role-selection')
+                ->with('error', 'Please select role first');
+        }
+        $role = session('signup_role');
+        return view('auth.register-mobile', compact('role'));
+    }
+
+
+
     /**
      * Handle registration
      */
@@ -155,6 +167,12 @@ class RegisterController extends Controller
     public function sendEmailOtp(Request $request)
     {
         $request->validate(['email' => 'required|email']);
+         if (User::where('email', $request->email)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This email is already registered. Please login instead.',
+            ], 422);
+        }
         // $otp = rand(1000, 9999);
         $otp = 1234;
 
@@ -185,9 +203,15 @@ class RegisterController extends Controller
 
     public function sendPhoneOtp(Request $request)
     {
+          if (\App\Models\User::where('phone', $request->phone)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This mobile number is already registered. Please login.',
+                ], 422);
+            }
         $request->validate(['phone' => 'required']);
         // $otp = rand(100000, 999999);
-        $otp = 123456;
+        $otp = 1234;
         Cache::put('phone_otp_' . $request->phone, $otp, now()->addMinutes(10));
         // Send OTP via SMS (replace with your SMS gateway logic)
         // Example: Http::post('https://sms-gateway/send', [...]);
