@@ -156,9 +156,9 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('/enquiries/{id}/cancel', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'cancel'])->name('enquiries.cancel');
     
     // Quotations
-    Route::get('/quotations', [\App\Http\Controllers\Web\Customer\QuotationController::class, 'index'])->name('quotations.index');
-    Route::get('/quotations/{id}', [\App\Http\Controllers\Web\Customer\QuotationController::class, 'show'])->name('quotations.show');
-    Route::post('/quotations/{id}/accept', [\App\Http\Controllers\Web\Customer\QuotationController::class, 'accept'])->name('quotations.accept');
+    Route::get('/quotations', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'index'])->name('quotations.index');
+    Route::get('/quotations/{id}', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'show'])->name('quotations.show');
+    // Route for accept can be added if implemented in the new controller
     
     // Orders/Bookings
     Route::get('/orders', [\App\Http\Controllers\Web\Customer\OrderController::class, 'index'])->name('orders.index');
@@ -457,45 +457,45 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
 // ADMIN PANEL (Authenticated)
 // ============================================
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\Web\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [\Modules\Admin\Controllers\Web\AdminDashboardController::class, 'index'])->name('dashboard');
     
     // Users Management
-    Route::resource('users', \App\Http\Controllers\Web\Admin\UserController::class);
+    Route::resource('users', \Modules\Admin\Controllers\Web\User\UserController::class);
     
     // Vendors Management
-    Route::get('/vendors', [\App\Http\Controllers\Web\Admin\VendorController::class, 'index'])->name('vendors.index');
-    Route::get('/vendors/{id}', [\App\Http\Controllers\Web\Admin\VendorController::class, 'show'])->name('vendors.show');
-    Route::post('/vendors/{id}/approve', [\App\Http\Controllers\Web\Admin\VendorController::class, 'approve'])->name('vendors.approve');
-    Route::post('/vendors/{id}/suspend', [\App\Http\Controllers\Web\Admin\VendorController::class, 'suspend'])->name('vendors.suspend');
+    Route::get('/vendors', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'index'])->name('vendors.index');
+    Route::get('/vendors/{id}', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'show'])->name('vendors.show');
+    Route::post('/vendors/{id}/approve', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'approve'])->name('vendors.approve');
+    Route::post('/vendors/{id}/suspend', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'suspend'])->name('vendors.suspend');
     
     // KYC Verification
-    Route::get('/kyc', [\App\Http\Controllers\Web\Admin\AdminKYCWebController::class, 'index'])->name('kyc.index');
-    Route::get('/kyc/{id}', [\App\Http\Controllers\Web\Admin\AdminKYCWebController::class, 'show'])->name('kyc.show');
+    Route::get('/kyc', [\Modules\Admin\Controllers\Web\AdminKYCWebController::class, 'index'])->name('kyc.index');
+    Route::get('/kyc/{id}', [\Modules\Admin\Controllers\Web\AdminKYCWebController::class, 'show'])->name('kyc.show');
     
     // KYC Reviews & Manual Override
-    Route::get('/vendor/kyc-reviews', [\App\Http\Controllers\Web\Admin\AdminKYCReviewController::class, 'index'])->name('kyc-reviews.index');
-    Route::get('/vendor/kyc-reviews/{id}', [\App\Http\Controllers\Web\Admin\AdminKYCReviewController::class, 'show'])->name('kyc-reviews.show');
+    Route::get('/vendor/kyc-reviews', [\Modules\Admin\Controllers\Web\AdminKYCReviewController::class, 'index'])->name('kyc-reviews.index');
+    Route::get('/vendor/kyc-reviews/{id}', [\Modules\Admin\Controllers\Web\AdminKYCReviewController::class, 'show'])->name('kyc-reviews.show');
     
     // Hoardings Management
-    Route::get('/hoardings', [\App\Http\Controllers\Web\Admin\HoardingController::class, 'index'])->name('hoardings.index');
-    Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\Admin\HoardingController::class, 'show'])->name('hoardings.show');
-    Route::post('/hoardings/{id}/approve', [\App\Http\Controllers\Web\Admin\HoardingController::class, 'approve'])->name('hoardings.approve');
-    Route::post('/hoardings/{id}/reject', [\App\Http\Controllers\Web\Admin\HoardingController::class, 'reject'])->name('hoardings.reject');
+    Route::get('/hoardings', [\Modules\Admin\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
+    Route::get('/hoardings/{id}', [\Modules\Admin\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
+    Route::post('/hoardings/{id}/approve', [\Modules\Admin\Controllers\Web\HoardingController::class, 'approve'])->name('hoardings.approve');
+    Route::post('/hoardings/{id}/reject', [\Modules\Admin\Controllers\Web\HoardingController::class, 'reject'])->name('hoardings.reject');
     
     // Bookings Management
-    Route::get('/bookings', [\App\Http\Controllers\Web\Admin\BookingController::class, 'index'])->name('bookings.index');
-    Route::get('/bookings/{id}', [\App\Http\Controllers\Web\Admin\BookingController::class, 'show'])->name('bookings.show');
-    Route::get('/bookings/{id}/price-snapshot', [\App\Http\Controllers\Admin\BookingHoldController::class, 'showPriceSnapshot'])->name('bookings.price-snapshot');
-    Route::get('/bookings/holds/manage', [\App\Http\Controllers\Admin\BookingHoldController::class, 'index'])->name('bookings.holds');
+    Route::get('/bookings', [\Modules\Admin\Controllers\Web\BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/{id}', [\Modules\Admin\Controllers\Web\BookingController::class, 'show'])->name('bookings.show');
+    Route::get('/bookings/{id}/price-snapshot', [\Modules\Admin\Controllers\Web\BookingHoldController::class, 'showPriceSnapshot'])->name('bookings.price-snapshot');
+    Route::get('/bookings/holds/manage', [\Modules\Admin\Controllers\Web\BookingHoldController::class, 'index'])->name('bookings.holds');
     
     // Payments Management
-    Route::get('/payments', [\App\Http\Controllers\Web\Admin\PaymentController::class, 'index'])->name('payments.index');
-    Route::get('/payments/{id}', [\App\Http\Controllers\Web\Admin\PaymentController::class, 'show'])->name('payments.show');
-    Route::post('/payments/process-payouts', [\App\Http\Controllers\Web\Admin\PaymentController::class, 'processPayouts'])->name('payments.process-payouts');
+    Route::get('/payments', [\Modules\Admin\Controllers\Web\PaymentController::class, 'index'])->name('payments.index');
+    Route::get('/payments/{id}', [\Modules\Admin\Controllers\Web\PaymentController::class, 'show'])->name('payments.show');
+    Route::post('/payments/process-payouts', [\Modules\Admin\Controllers\Web\PaymentController::class, 'processPayouts'])->name('payments.process-payouts');
     
     // Finance & Commission Management
-    Route::get('/finance/bookings-payments', [\App\Http\Controllers\Admin\FinanceController::class, 'bookingsPaymentsLedger'])->name('finance.bookings-payments');
-    Route::get('/finance/pending-manual-payouts', [\App\Http\Controllers\Admin\FinanceController::class, 'pendingManualPayouts'])->name('finance.pending-manual-payouts');
+    Route::get('/finance/bookings-payments', [\Modules\Admin\Controllers\Web\FinanceController::class, 'bookingsPaymentsLedger'])->name('finance.bookings-payments');
+    Route::get('/finance/pending-manual-payouts', [\Modules\Admin\Controllers\Web\FinanceController::class, 'pendingManualPayouts'])->name('finance.pending-manual-payouts');
     
     // Invoice Management (PROMPT 64)
     Route::prefix('invoices')->name('invoices.')->group(function () {
