@@ -1,250 +1,439 @@
 @extends('layouts.app')
 
-@section('title', 'Company Details - Vendor Onboarding')
+@section('title', 'Add User Account Info')
 
 @section('content')
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-xl-8 col-lg-9">
+ <meta name="csrf-token" content="{{ csrf_token() }}">
 
-            <!-- Stepper -->
-            <div class="onboarding-steps mb-4">
-                <div class="step active">
-                    <span>1</span>
-                    <small>Company</small>
-                </div>
-                <div class="step">
-                    <span>2</span>
-                    <small>Business</small>
-                </div>
-                <div class="step">
-                    <span>3</span>
-                    <small>KYC</small>
-                </div>
-                <div class="step">
-                    <span>4</span>
-                    <small>Bank</small>
-                </div>
-                <div class="step">
-                    <span>5</span>
-                    <small>Terms</small>
-                </div>
+<div class="vendor-page-white">
+
+    <!-- Header -->
+    <div class="vendor-header mt-5">
+        <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHAPP">
+        <span>Vendor</span>
+    </div>
+
+    <!-- Stepper -->
+    <div class="vendor-signup-wrapper">
+
+        <div class="signup-steps">
+            <div class="step active">
+                <span>1</span>
+                <p>ADD USER ACCOUNT INFO</p>
             </div>
+            <div class="line"></div>
+            <div class="step">
+                <span>2</span>
+                <p>ADD BUSINESS INFO</p>
+            </div>
+        </div>
 
-            <!-- Card -->
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-header bg-white border-0 px-4 pt-4">
-                    <h4 class="fw-semibold mb-1">
-                        <i class="fas fa-building text-primary me-2"></i>
-                        Company Details
-                    </h4>
-                    <p class="text-muted mb-0">
-                        Provide official company information for verification
-                    </p>
-                </div>
+        <!-- Card -->
+        <div class="signup-card">
+            <h2>Welcome to OOHAPP</h2>
+            <p class="sub-title">Mobile & Email Verification</p>
 
-                <div class="card-body px-4 pb-4">
+            @php $user = auth()->user(); @endphp
 
-                    @if(session('success'))
-                        <div class="alert alert-success">{{ session('success') }}</div>
-                    @endif
+            <div class="row">
 
-                    @if(session('error'))
-                        <div class="alert alert-danger">{{ session('error') }}</div>
-                    @endif
+                <!-- PHONE -->
+                <div class="col">
+                    <label>Mobile</label>
+                    <div class="input-with-status">
+                        <input type="number"
+                            id="phoneInput"
+                            placeholder="Enter you phone"
+                            value="{{ $user->phone }}"
+                            {{ $user->phone_verified_at ? 'readonly' : '' }}>
 
-                    <form action="{{ route('vendor.onboarding.company-details.store') }}" method="POST">
-                        @csrf
-
-                        <!-- Company Info -->
-                        <h6 class="section-title">Company Information</h6>
-
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Company Name <span class="text-danger">*</span></label>
-                                <input type="text"
-                                       class="form-control @error('company_name') is-invalid @enderror"
-                                       name="company_name"
-                                       value="{{ old('company_name', $profile->company_name) }}"
-                                       required>
-                                @error('company_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Company Type <span class="text-danger">*</span></label>
-                                <select class="form-select @error('company_type') is-invalid @enderror"
-                                        name="company_type" required>
-                                    <option value="">Select company type</option>
-                                    @foreach([
-                                        'proprietorship' => 'Proprietorship',
-                                        'partnership' => 'Partnership',
-                                        'private_limited' => 'Private Limited',
-                                        'public_limited' => 'Public Limited',
-                                        'llp' => 'LLP',
-                                        'other' => 'Other'
-                                    ] as $key => $label)
-                                        <option value="{{ $key }}"
-                                            {{ old('company_type', $profile->company_type) === $key ? 'selected' : '' }}>
-                                            {{ $label }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('company_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                        </div>
-
-                        <!-- Legal Info -->
-                        <h6 class="section-title mt-4">Legal & Tax Details</h6>
-
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Registration Number</label>
-                                <input type="text"
-                                       class="form-control @error('company_registration_number') is-invalid @enderror"
-                                       name="company_registration_number"
-                                       value="{{ old('company_registration_number', $profile->company_registration_number) }}">
-                                @error('company_registration_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">GSTIN <span class="text-danger">*</span></label>
-                                <input type="text"
-                                       class="form-control text-uppercase @error('gstin') is-invalid @enderror"
-                                       name="gstin"
-                                       maxlength="15"
-                                       value="{{ old('gstin', $profile->gstin) }}"
-                                       placeholder="15 character GSTIN"
-                                       required>
-                                <small class="text-muted">Example: 22AAAAA0000A1Z5</small>
-                                @error('gstin')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">PAN <span class="text-danger">*</span></label>
-                                <input type="text"
-                                       class="form-control text-uppercase @error('pan') is-invalid @enderror"
-                                       name="pan"
-                                       maxlength="10"
-                                       placeholder="ABCDE1234F"
-                                       value="{{ old('pan', $profile->pan) }}"
-                                       required>
-                                @error('pan')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Website</label>
-                                <input type="url"
-                                       class="form-control @error('website') is-invalid @enderror"
-                                       name="website"
-                                       placeholder="https://example.com"
-                                       value="{{ old('website', $profile->website) }}">
-                                @error('website')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                        </div>
-
-                        <!-- Address -->
-                        <h6 class="section-title mt-4">Registered Address</h6>
-
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <textarea class="form-control @error('registered_address') is-invalid @enderror"
-                                          name="registered_address"
-                                          rows="3"
-                                          placeholder="Full registered address"
-                                          required>{{ old('registered_address', $profile->registered_address) }}</textarea>
-                                @error('registered_address')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="col-md-4">
-                                <input type="text" class="form-control" name="city"
-                                       placeholder="City"
-                                       value="{{ old('city', $profile->city) }}" required>
-                            </div>
-
-                            <div class="col-md-4">
-                                <input type="text" class="form-control" name="state"
-                                       placeholder="State"
-                                       value="{{ old('state', $profile->state) }}" required>
-                            </div>
-
-                            <div class="col-md-4">
-                                <input type="text"
-                                       class="form-control"
-                                       name="pincode"
-                                       maxlength="6"
-                                       placeholder="Pincode"
-                                       value="{{ old('pincode', $profile->pincode) }}"
-                                       required>
-                            </div>
-                        </div>
-
-                        <!-- Actions -->
-                        <div class="d-flex justify-content-between align-items-center mt-5">
-                            <a href="{{ route('logout') }}" class="btn btn-outline-secondary px-4">
-                                Logout
-                            </a>
-
-                            <button type="submit" class="btn btn-primary px-5">
-                                Save & Continue
-                                <i class="fas fa-arrow-right ms-2"></i>
+                        @if($user->phone_verified_at)
+                            <span class="verified">Verified</span>
+                        @else
+                            <button type="button" class="verify-btn" onclick="sendPhoneOtp()">
+                                Verify now
                             </button>
-                        </div>
-                    </form>
+                        @endif
+                    </div>
                 </div>
+
+                <!-- EMAIL -->
+                <div class="col">
+                    <label>Email</label>
+                    <div class="input-with-status">
+                        <input type="email"
+                            id="emailInput"
+                            placeholder="Enter you valid email"
+                            value="{{ $user->email }}"
+                            {{ $user->email_verified_at ? 'readonly' : '' }}>
+
+                        @if($user->email_verified_at)
+                            <span class="verified">Verified</span>
+                        @else
+                            <button type="button" class="verify-btn" onclick="sendEmailOtp()">
+                                Verify now
+                            </button>
+                        @endif
+                    </div>
+                </div>
+
             </div>
+
+            <!-- CONTINUE -->
+            <button
+                class="continue-btn {{ ($user->email_verified_at && $user->phone_verified_at) ? 'enabled' : '' }}"
+                {{ ($user->email_verified_at && $user->phone_verified_at) ? '' : 'disabled' }}
+                onclick="goNextStep()"
+            >
+                Continue
+            </button>
 
         </div>
     </div>
 </div>
 
+<!-- OTP MODAL -->
+<div id="otpModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:999;">
+    <div style="background:#fff; width:360px; margin:120px auto; padding:24px; border-radius:8px;">
+        <h4>Enter OTP</h4>
+
+        <input type="text" id="otpInput" maxlength="4"
+               style="width:100%; height:42px; text-align:center; font-size:18px;">
+
+        <button onclick="verifyOtp()" class="continue-btn btn-outline-success"
+                style="width:100%; margin-top:16px;">
+            Verify
+        </button>
+    </div>
+</div>
+@endsection
+
+
 @push('styles')
 <style>
-.onboarding-steps {
+/* FORCE WHITE BG ONLY FOR THIS PAGE */
+.vendor-page-white {
+    background: #ffffff;
+    min-height: 100vh;
+    padding-bottom: 60px;
+}
+
+/* HEADER */
+.vendor-header {
     display: flex;
-    justify-content: space-between;
-    position: relative;
-    margin-bottom: 1.5rem;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 30px;
 }
-.onboarding-steps::before {
-    content: '';
-    position: absolute;
-    top: 18px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: #e9ecef;
-    z-index: 0;
+.vendor-header img {
+    height: 28px;
 }
-.onboarding-steps .step {
-    text-align: center;
-    z-index: 1;
+.vendor-header span {
+    font-size: 13px;
+    color: #6b7280;
 }
-.onboarding-steps .step span {
-    width: 36px;
-    height: 36px;
-    display: inline-flex;
+
+/* WRAPPER */
+.vendor-signup-wrapper {
+    max-width: 900px;
+    margin: 20px auto 0;
+    font-family: Inter, sans-serif;
+}
+
+/* STEPPER */
+.signup-steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.signup-steps .step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #9ca3af;
+}
+.signup-steps .step span {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    background: #e9ecef;
     font-weight: 600;
 }
-.onboarding-steps .step.active span {
-    background: #0d6efd;
+.signup-steps .step.active {
+    color: #111827;
+}
+.signup-steps .step.active span {
+    background: #22c55e;
     color: #fff;
 }
-.onboarding-steps small {
-    display: block;
-    margin-top: 6px;
-    font-size: 12px;
+.signup-steps .line {
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+    margin: 0 16px;
 }
-.section-title {
-    font-size: 14px;
+
+/* CARD */
+.signup-card {
+    background: #fff;
+}
+.signup-card h2 {
+    font-size: 22px;
     font-weight: 600;
-    color: #6c757d;
-    text-transform: uppercase;
-    margin-bottom: .75rem;
+    margin-bottom: 5px;
 }
+.sub-title {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 22px;
+}
+
+/* FORM */
+.row {
+    display: flex;
+    gap: 30px;
+}
+.col {
+    flex: 1;
+}
+label {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: block;
+}
+label span {
+    color: red;
+}
+input {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* VERIFIED */
+.input-with-status {
+    position: relative;
+}
+.input-with-status .verified {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    font-weight: 500;
+    color: #22c55e;
+}
+
+/* BUTTON */
+.continue-btn {
+    margin-top: 28px;
+    width: 160px;
+    height: 42px;
+    border-radius: 6px;
+    border: none;
+    background: #e5e7eb;
+    color: #9ca3af;
+}
+.input-with-status {
+    position: relative;         
+    width: 100%;
+}
+
+.input-with-status input {
+    width: 100%;
+    height: 42px;
+    padding: 0 90px 0 12px;      
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.verify-btn {
+    position: absolute;        
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #22c55e;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.verify-btn:hover {
+    text-decoration: underline;
+}
+.continue-btn.enabled {
+    background: #22c55e;   /* light green */
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.continue-btn:disabled {
+    cursor: not-allowed;
+}
+
 </style>
 @endpush
-@endsection
+@push('scripts')
+<script>
+    let verifyType = null;
+    const csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+    /* ================== SEND PHONE OTP ================== */
+    function sendPhoneOtp() {
+        verifyType = 'phone';
+        const phone = document.getElementById('phoneInput').value.trim();
+
+        if (!phone) {
+            alert('Please enter your mobile number');
+            return;
+        }
+
+        if (!/^\d{10}$/.test(phone)) {
+            alert('Please enter a valid 10 digit mobile number');
+            return;
+        }
+
+        fetch("{{ route('vendor.onboarding.send-phone') }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ phone })
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw data;
+            openOtpModal();
+        })
+        .catch(err => {
+            alert(
+                err.message ||
+                err.errors?.phone?.[0] ||
+                'Unable to send OTP'
+            );
+        });
+    }
+
+    /* ================== SEND EMAIL OTP ================== */
+    function sendEmailOtp() {
+        verifyType = 'email';
+        const email = document.getElementById('emailInput').value.trim();
+
+        if (!email) {
+            alert('Please enter your email address');
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('Please enter a valid email address');
+            return;
+        }
+
+        fetch("{{ route('vendor.onboarding.send-email') }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw data;
+            openOtpModal();
+        })
+        .catch(err => {
+            alert(
+                err.message ||
+                err.errors?.email?.[0] ||
+                'Unable to send OTP'
+            );
+        });
+    }
+
+    /* ================== OTP MODAL ================== */
+    function openOtpModal() {
+        document.getElementById('otpInput').value = '';
+        document.getElementById('otpModal').style.display = 'block';
+    }
+
+    /* ================== VERIFY OTP ================== */
+    function verifyOtp() {
+        const otp = document.getElementById('otpInput').value.trim();
+
+        if (!otp) {
+            alert('Please enter OTP');
+            return;
+        }
+
+        if (!/^\d{4}$/.test(otp)) {
+            alert('OTP must be exactly 4 digits');
+            return;
+        }
+
+        let url, payload;
+
+        if (verifyType === 'phone') {
+            url = "{{ route('vendor.onboarding.verify-phone') }}";
+            payload = {
+                phone: document.getElementById('phoneInput').value,
+                otp
+            };
+        } else {
+            url = "{{ route('vendor.onboarding.verify-email') }}";
+            payload = {
+                email: document.getElementById('emailInput').value,
+                otp
+            };
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw data;
+            location.reload(); // Verified badge + Continue enable
+        })
+        .catch(err => {
+            alert(
+                err.message ||
+                err.errors?.otp?.[0] ||
+                'Invalid OTP'
+            );
+        });
+    }
+</script>
+<script>
+function goNextStep() {
+    const btn = document.querySelector('.continue-btn');
+    if (btn.hasAttribute('disabled')) return;
+
+    window.location.href = "{{ route('vendor.onboarding.business-info') }}";
+}
+</script>
+@endpush
+

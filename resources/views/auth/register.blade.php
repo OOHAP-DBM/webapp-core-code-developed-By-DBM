@@ -202,9 +202,9 @@ html, body {
                 <span>Continue with Google</span>
             </button>
 
-            <div class="footer-text">
+            <div class="footer-text fs-6">
                 Already Have an Account?
-                <a href="{{ route('login') }}" class="text-success">Login</a>
+                <a href="{{ route('login') }}" class="text-success fw-bold fs-6">Login</a>
             </div>
 
             <!-- OTP VERIFY UI (FIGMA STYLE) -->

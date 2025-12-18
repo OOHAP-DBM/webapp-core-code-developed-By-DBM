@@ -91,12 +91,21 @@ class RegisterController extends Controller
             \Log::debug('RegisterController@register: request', $request->all());
             // Create user
             $user = User::create([
-                'name' => $request->name,
+                'name'  => $request->name,
+
                 'email' => $request->email,
+                'email_verified_at' => $request->email_verified ? now() : null,
+
                 'phone' => $request->phone,
+                'phone_verified_at' => $request->phone_verified ? now() : null,
+
                 'password' => Hash::make($request->password),
-                'status' => $role === 'customer' ? 'active' : 'pending_verification',
+
+                'status' => $role === 'customer'
+                    ? 'active'
+                    : 'pending_verification',
             ]);
+
 
             // Assign role
             $user->assignRole($role);
