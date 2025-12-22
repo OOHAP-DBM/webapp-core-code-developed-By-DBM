@@ -529,10 +529,10 @@ html, body {
                 valid = false;
             }
 
-            if (!validatePassword(password.value)) {
-                showFieldError(password, 'Weak password');
-                valid = false;
-            }
+            // if (!validatePassword(password.value)) {
+            //     showFieldError(password, 'Weak password');
+            //     valid = false;
+            // }
 
             if (password.value !== confirmPwd.value) {
                 showFieldError(confirmPwd, 'Password confirmation mismatch');

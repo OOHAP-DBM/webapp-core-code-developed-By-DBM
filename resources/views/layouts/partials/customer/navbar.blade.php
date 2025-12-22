@@ -35,5 +35,14 @@
                 </svg>
             </button>
         </div>
+        <button
+    id="mobile-menu-btn"
+    class="block md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md"
+>
+    ☰
+</button>
+
+
+
     </div>
 </header>

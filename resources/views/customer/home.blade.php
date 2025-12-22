@@ -7,7 +7,7 @@
     .hero-section {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 60px 0;
-        color: white;
+        color: black;
         border-radius: 20px;
         margin-bottom: 40px;
     }

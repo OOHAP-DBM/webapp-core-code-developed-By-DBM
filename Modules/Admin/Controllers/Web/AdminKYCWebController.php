@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web\Admin;
+namespace Modules\Admin\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\VendorKYC;

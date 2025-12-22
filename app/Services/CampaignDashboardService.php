@@ -53,10 +53,11 @@ class CampaignDashboardService
             'total_spend' => Booking::where('customer_id', $customer->id)
                 ->whereIn('status', ['confirmed', 'in_progress', 'mounted', 'completed'])
                 ->sum('total_amount'),
+            // Use grand_total for pending payments (no 'amount' column in invoices)
             'pending_payments' => DB::table('invoices')
                 ->where('customer_id', $customer->id)
                 ->where('status', 'pending')
-                ->sum('amount'),
+                ->sum('grand_total'),
             'active_hoardings' => Booking::where('customer_id', $customer->id)
                 ->whereIn('status', ['confirmed', 'in_progress', 'mounted'])
                 ->where('start_date', '<=', $now)
@@ -333,13 +334,12 @@ class CampaignDashboardService
     protected function getRecentUpdates(User $customer, int $limit = 10): array
     {
         return DB::table('booking_timeline_events')
-            ->join('booking_timelines', 'booking_timeline_events.timeline_id', '=', 'booking_timelines.id')
-            ->join('bookings', 'booking_timelines.booking_id', '=', 'bookings.id')
+            ->join('bookings', 'booking_timeline_events.booking_id', '=', 'bookings.id')
             ->where('bookings.customer_id', $customer->id)
             ->select(
                 'booking_timeline_events.*',
                 'bookings.id as booking_id',
-                'bookings.booking_id as booking_number'
+                'bookings.id as booking_number' // Use id as booking_number
             )
             ->orderBy('booking_timeline_events.created_at', 'desc')
             ->limit($limit)
