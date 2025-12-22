@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Web\Customer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Models\Booking;
+
 
 class OrderController extends Controller
 {
@@ -16,7 +18,7 @@ class OrderController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = \Modules\Bookings\Models\Booking::where('customer_id', auth()->id())
+        $query = Booking::where('customer_id', auth()->id())
             ->with('hoarding');
 
         // Filter by status

@@ -101,7 +101,7 @@
         <!-- Action Buttons -->
         <div class="flex items-center space-x-2 mb-2">
             <button class="flex-1 py-2 px-3 border border-gray-300 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors" onclick="event.stopPropagation();">
-                Sort List
+                Add to Cart
             </button>
             <button class="flex-1 py-2 px-3 bg-teal-500 text-white text-sm font-semibold rounded hover:bg-teal-600 transition-colors" onclick="window.location.href='{{ route('hoardings.show', $hoarding->id) }}'">
                 Book Now

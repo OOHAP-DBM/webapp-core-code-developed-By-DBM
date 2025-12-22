@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class VendorProfile extends Model
+
 {
     use HasFactory, SoftDeletes;
 
@@ -87,6 +88,85 @@ class VendorProfile extends Model
         'commission_percentage' => 'decimal:2',
     ];
 
+
+    /**
+     * Get the vendor metrics (one-to-one)
+     */
+    public function vendorMetric()
+    {
+        return $this->hasOne(VendorMetric::class, 'vendor_id');
+    }
+
+    // --- Backward compatibility accessors for vendor metrics ---
+    // If vendorMetric exists, use it; else fallback to users table
+    public function getReliabilityScoreAttribute()
+    {
+        return optional($this->vendorMetric)->reliability_score ?? $this->user->reliability_score;
+    }
+    public function getReliabilityTierAttribute()
+    {
+        return optional($this->vendorMetric)->reliability_tier ?? $this->user->reliability_tier;
+    }
+    public function getSlaViolationsCountAttribute()
+    {
+        return optional($this->vendorMetric)->sla_violations_count ?? $this->user->sla_violations_count;
+    }
+    public function getSlaViolationsThisMonthAttribute()
+    {
+        return optional($this->vendorMetric)->sla_violations_this_month ?? $this->user->sla_violations_this_month;
+    }
+    public function getTotalPenaltyPointsAttribute()
+    {
+        return optional($this->vendorMetric)->total_penalty_points ?? $this->user->total_penalty_points;
+    }
+    public function getEnquiriesAcceptedCountAttribute()
+    {
+        return optional($this->vendorMetric)->enquiries_accepted_count ?? $this->user->enquiries_accepted_count;
+    }
+    public function getQuotesSubmittedCountAttribute()
+    {
+        return optional($this->vendorMetric)->quotes_submitted_count ?? $this->user->quotes_submitted_count;
+    }
+    public function getQuotesAcceptedCountAttribute()
+    {
+        return optional($this->vendorMetric)->quotes_accepted_count ?? $this->user->quotes_accepted_count;
+    }
+    public function getAvgAcceptanceTimeHoursAttribute()
+    {
+        return optional($this->vendorMetric)->avg_acceptance_time_hours ?? $this->user->avg_acceptance_time_hours;
+    }
+    public function getAvgQuoteTimeHoursAttribute()
+    {
+        return optional($this->vendorMetric)->avg_quote_time_hours ?? $this->user->avg_quote_time_hours;
+    }
+    public function getOnTimeAcceptanceRateAttribute()
+    {
+        return optional($this->vendorMetric)->on_time_acceptance_rate ?? $this->user->on_time_acceptance_rate;
+    }
+    public function getOnTimeQuoteRateAttribute()
+    {
+        return optional($this->vendorMetric)->on_time_quote_rate ?? $this->user->on_time_quote_rate;
+    }
+    public function getQuoteWinRateAttribute()
+    {
+        return optional($this->vendorMetric)->quote_win_rate ?? $this->user->quote_win_rate;
+    }
+    public function getLastSlaViolationAtAttribute()
+    {
+        return optional($this->vendorMetric)->last_sla_violation_at ?? $this->user->last_sla_violation_at;
+    }
+    public function getLastScoreUpdateAtAttribute()
+    {
+        return optional($this->vendorMetric)->last_score_update_at ?? $this->user->last_score_update_at;
+    }
+    public function getLastRecoveryAtAttribute()
+    {
+        return optional($this->vendorMetric)->last_recovery_at ?? $this->user->last_recovery_at;
+    }
+    public function getVendorSlaSettingIdAttribute()
+    {
+        return optional($this->vendorMetric)->vendor_sla_setting_id ?? $this->user->vendor_sla_setting_id;
+    }
     /**
      * Get the user that owns the vendor profile
      */

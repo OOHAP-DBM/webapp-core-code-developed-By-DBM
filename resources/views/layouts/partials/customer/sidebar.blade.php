@@ -1,10 +1,9 @@
 {{-- Customer Sidebar --}}
-<aside class="w-64 bg-white border-r border-gray-200 overflow-y-auto">
-    <div class="p-6">
+<aside class="w-64 bg-white border-r border-gray-200 overflow-y-auto text-center">
+    <div class="p-6 text-center">
         <!-- Logo -->
-        <a href="{{ route('customer.dashboard') }}" class="flex items-center">
-            <img src="{{ asset('images/logo.svg') }}" alt="OOHAPP" class="h-8 w-auto">
-            <span class="ml-2 text-lg font-bold text-gray-900">OOHAPP</span>
+        <a href="{{ route('home') }}" class="flex items-center">
+            <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHAPP" class="h-4 w-auto">
         </a>
     </div>
 
@@ -18,7 +17,15 @@
                 </svg>
                 Dashboard
             </a>
-
+                    <!-- My Profile -->
+            <a href="{{ route('customer.profile.index') }}" 
+              class="flex items-center px-3 py-2 text-sm font-medium rounded-lg{{ request()->routeIs('customer.profile*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">               
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5.121 17.804A4 4 0 0112 15a4 4 0 016.879 2.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                My Profile
+            </a>
             <!-- Enquiries -->
             <a href="{{ route('customer.enquiries.index') }}" 
                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('customer.enquiries.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">

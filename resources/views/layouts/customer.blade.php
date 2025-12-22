@@ -16,7 +16,7 @@
 </head>
 <body class="antialiased bg-gray-50">
     <!-- Toast Container (PROMPT 50) -->
-    <div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+    <div id="toast-container" class="position-fixed top-0 end-0" style="z-index: 9999;"></div>
 
     <div id="app" class="flex h-screen overflow-hidden">
         <!-- Sidebar -->

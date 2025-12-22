@@ -18,7 +18,10 @@ class LoginController extends Controller
     {
         return view('auth.login');
     }
-
+    public function showMobileLoginForm()
+    {
+        return view('auth.login-mobile');
+    }
     /**
      * Handle login request
      */
@@ -76,8 +79,7 @@ class LoginController extends Controller
 
         switch ($role) {
             case 'customer':
-                return redirect()->intended(route('customer.dashboard'));
-
+                return redirect()->intended(route('home'));
             case 'vendor':
                 return $this->handleVendorRedirect($user);
 
