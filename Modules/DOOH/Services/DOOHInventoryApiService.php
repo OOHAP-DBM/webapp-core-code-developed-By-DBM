@@ -24,6 +24,11 @@ class DOOHInventoryApiService
     {
         $this->apiBaseUrl = config('services.dooh_api.base_url', env('DOOH_API_URL'));
         $this->apiKey = config('services.dooh_api.key', env('DOOH_API_KEY'));
+        if (empty($this->apiBaseUrl) || empty($this->apiKey)) {
+            throw new \RuntimeException(
+                'DOOH API configuration is missing. Check services.dooh_api config.'
+            );
+        }
     }
 
     /**

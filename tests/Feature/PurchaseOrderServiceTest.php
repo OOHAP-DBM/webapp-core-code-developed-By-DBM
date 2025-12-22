@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
-use Modules\Offers\Models\Offer;
+use App\Models\Offer;
 use Modules\Quotations\Events\QuotationApproved;
 use Modules\Threads\Models\Thread;
 use Modules\Threads\Models\ThreadMessage;
