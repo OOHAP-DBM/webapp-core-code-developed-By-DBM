@@ -476,9 +476,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     // Vendors Management
     Route::get('/vendors', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'index'])->name('vendors.index');
+    Route::get('/vendors/requested', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'requestedVendors'])->name('vendors.requested');
     Route::get('/vendors/{id}', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'show'])->name('vendors.show');
     Route::post('/vendors/{id}/approve', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'approve'])->name('vendors.approve');
+    Route::post('/vendors/{id}/reject', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'reject'])->name('vendors.reject');
     Route::post('/vendors/{id}/suspend', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'suspend'])->name('vendors.suspend');
+        // Customer Management
+        Route::get('/customers', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'index'])->name('customers.index');
     
     // KYC Verification
     Route::get('/kyc', [\Modules\Admin\Controllers\Web\AdminKYCWebController::class, 'index'])->name('kyc.index');

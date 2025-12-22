@@ -88,6 +88,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(RazorpayService::class, function ($app) {
             return new RazorpayService();
         });
+
+        // Register AdminSidebarService as singleton
+        $this->app->singleton(\App\Services\AdminSidebarService::class, function ($app) {
+            return new \App\Services\AdminSidebarService();
+        });
     }
 
     /**
@@ -97,6 +102,15 @@ class AppServiceProvider extends ServiceProvider
     {
         // Configure API rate limiters
         $this->configureRateLimiting();
+
+        // Share sidebar counts with all admin views (View Composer)
+        view()->composer('layouts.partials.admin.sidebar', function ($view) {
+            // Get counts from AdminSidebarService
+            $counts = app(\App\Services\AdminSidebarService::class)->getSidebarCounts();
+            // Inline comment: Data source is AdminSidebarService (no DB queries in Blade)
+            $view->with('requestedVendorCount', $counts['requestedVendorCount']);
+            $view->with('totalCustomerCount', $counts['totalCustomerCount']);
+        });
 
         // Register policies
         Gate::policy(User::class, UserPolicy::class);
