@@ -87,9 +87,15 @@
                 @if(auth()->user()->avatar)
                     <div class="flex items-center gap-4">
                         <div class="flex items-center gap-3">
-                            <span class="text-sm text-gray-600">
-                                {{ basename(auth()->user()->avatar) }}
-                            </span>
+                                <div style="width:56px; height:56px; min-width:56px; min-height:56px; max-width:56px; max-height:56px; border-radius:50%; overflow:hidden;border:1px solid #d1d5db;flex-shrink:0;display:inline-block;">
+                                    <img
+                                        src="{{ str_starts_with(auth()->user()->avatar, 'http')
+                                                ? auth()->user()->avatar
+                                                : asset('storage/' . ltrim(auth()->user()->avatar, '/')) }}"
+                                        alt="Profile Image"
+                                        class="w-full h-full object-cover block"
+                                    >
+                                </div>
                             <a href="javascript:void(0)"
                                 onclick="removeAvatar()"
                                 class="text-sm text-red-500 hover:underline">
@@ -308,6 +314,7 @@
         </div>
     </div>
 </div>
+{{-- Otp Verify Modal --}}
 <div id="otpModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal-backdrop">
     <div class="bg-white rounded-lg w-96 p-6 relative border border-gray-300 modal-container">
 
