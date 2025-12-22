@@ -274,6 +274,7 @@ class OnboardingController extends Controller
 
         return view('vendor.onboarding.rejected', compact('profile'));
     }
+    //only  for verifcation vendor @aviral
     public function sendEmailOtp(Request $request)
     {
         $request->validate([
@@ -314,6 +315,7 @@ class OnboardingController extends Controller
 
         return response()->json(['success' => true]);
     }
+    //only  for verifcation vendor @aviral
     public function verifyEmailOtp(Request $request)
     {
         $request->validate([
@@ -341,6 +343,7 @@ class OnboardingController extends Controller
 
         return response()->json(['success' => true]);
     }
+    //only  for verifcation vendor @aviral
     public function sendPhoneOtp(Request $request)
     {
         $request->validate([
@@ -383,6 +386,7 @@ class OnboardingController extends Controller
 
         return response()->json(['success' => true]);
     }
+    //only  for verifcation vendor @aviral
     public function verifyPhoneOtp(Request $request)
     {
         $request->validate([
