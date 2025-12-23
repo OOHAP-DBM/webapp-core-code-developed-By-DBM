@@ -11,7 +11,24 @@ class DashboardController extends Controller
     public function index()
     {
         $vendor = Auth::user();
-        
+        $profile = $vendor->vendorProfile;
+        // Only allow dashboard if onboarding_status is pending_approval or approved
+        if (!$profile || !in_array($profile->onboarding_status, ['pending_approval', 'approved'])) {
+            // Redirect to correct onboarding step
+            $step = $profile ? $profile->onboarding_step : 1;
+            $routes = [
+                1 => 'vendor.onboarding.company-details',
+                2 => 'vendor.onboarding.business-info',
+                // 3 => 'vendor.onboarding.kyc-documents',
+                // 4 => 'vendor.onboarding.bank-details',
+                // 5 => 'vendor.onboarding.terms-agreement',
+            ];
+            $route = $routes[$step] ?? 'vendor.onboarding.company-details';
+            return redirect()->route($route)
+                ->with('info', 'Please complete your vendor onboarding.');
+        }
+
+        // ...existing code for dashboard stats and view...
         // Calculate stats
         $stats = [
             'total_revenue' => $vendor->bookings()
