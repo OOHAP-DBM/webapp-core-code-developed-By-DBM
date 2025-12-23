@@ -2,22 +2,18 @@
 
 namespace App\Models;
 
-use App\Traits\HasSnapshots;
-use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Quotation;
+use App\Models\Enquiry;
+use App\Models\User;
+
 
 class Offer extends Model
 {
-    use HasFactory, HasSnapshots, Auditable;
-    
-    protected $snapshotType = 'offer';
-    protected $snapshotOnCreate = true;
-    protected $snapshotOnUpdate = true;
-    
-    protected $auditModule = 'offer';
-    protected $priceFields = ['total_price'];
+    use HasFactory;
 
     protected $fillable = [
         'enquiry_id',
@@ -29,12 +25,19 @@ class Offer extends Model
         'valid_until',
         'status',
         'version',
+        'expiry_days',        // PROMPT 105: Auto-expiry configuration
+        'expires_at',         // PROMPT 105: Calculated expiry timestamp
+        'sent_at',            // PROMPT 105: When offer was sent
+        'expired_at',         // PROMPT 105: When marked as expired
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'price_snapshot' => 'array',
         'valid_until' => 'datetime',
+        'expires_at' => 'datetime',   // PROMPT 105
+        'sent_at' => 'datetime',       // PROMPT 105
+        'expired_at' => 'datetime',    // PROMPT 105
     ];
 
     /**
@@ -55,46 +58,6 @@ class Offer extends Model
     const PRICE_DAILY = 'daily';
 
     /**
-     * Boot method to handle events
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        // Post system message when offer is sent
-        static::updated(function ($offer) {
-            if ($offer->isDirty('status') && $offer->status === self::STATUS_SENT) {
-                $thread = Thread::where('enquiry_id', $offer->enquiry_id)->first();
-                if ($thread) {
-                    ThreadMessage::create([
-                        'thread_id' => $thread->id,
-                        'sender_id' => $offer->vendor_id,
-                        'sender_type' => 'vendor',
-                        'message_type' => 'offer',
-                        'message' => "Vendor sent an offer: ₹" . number_format($offer->price, 2) . " ({$offer->price_type})",
-                        'offer_id' => $offer->id,
-                    ]);
-                }
-            }
-            
-            // Post message when offer is accepted
-            if ($offer->isDirty('status') && $offer->status === self::STATUS_ACCEPTED) {
-                $thread = Thread::where('enquiry_id', $offer->enquiry_id)->first();
-                if ($thread) {
-                    ThreadMessage::create([
-                        'thread_id' => $thread->id,
-                        'sender_id' => $offer->enquiry->customer_id,
-                        'sender_type' => 'customer',
-                        'message_type' => 'system',
-                        'message' => "Offer #" . $offer->id . " accepted by customer",
-                        'offer_id' => $offer->id,
-                    ]);
-                }
-            }
-        });
-    }
-
-    /**
      * Get the enquiry for this offer
      */
     public function enquiry(): BelongsTo
@@ -108,6 +71,14 @@ class Offer extends Model
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'vendor_id');
+    }
+
+    /**
+     * Get all quotations for this offer
+     */
+    public function quotations(): HasMany
+    {
+        return $this->hasMany(Quotation::class);
     }
 
     /**
@@ -136,14 +107,141 @@ class Offer extends Model
 
     /**
      * Scope for non-expired sent offers
+     * PROMPT 105: Updated to check both expires_at and valid_until
      */
     public function scopeActive($query)
     {
         return $query->where('status', self::STATUS_SENT)
-            ->where(function($q) {
-                $q->whereNull('valid_until')
-                  ->orWhere('valid_until', '>', now());
+            ->where(function ($q) {
+                $q->where(function ($subQ) {
+                    // Check expires_at (PROMPT 105)
+                    $subQ->whereNull('expires_at')
+                        ->orWhere('expires_at', '>', now());
+                })->where(function ($subQ) {
+                    // Check valid_until (backward compatibility)
+                    $subQ->whereNull('valid_until')
+                        ->orWhere('valid_until', '>', now());
+                });
             });
+    }
+
+    /**
+     * Scope for expired offers
+     * PROMPT 105: New scope
+     */
+    public function scopeExpired($query)
+    {
+        return $query->where('status', self::STATUS_EXPIRED);
+    }
+
+    /**
+     * Scope for offers due to expire (sent + past expiry time)
+     * PROMPT 105: New scope
+     */
+    public function scopeDueToExpire($query)
+    {
+        return $query->where('status', self::STATUS_SENT)
+            ->where(function ($q) {
+                $q->where(function ($subQ) {
+                    $subQ->whereNotNull('expires_at')
+                        ->where('expires_at', '<', now());
+                })->orWhere(function ($subQ) {
+                    $subQ->whereNotNull('valid_until')
+                        ->where('valid_until', '<', now());
+                });
+            });
+    }
+
+    public function isExpired(): bool
+    {
+        if ($this->status === self::STATUS_EXPIRED) {
+            return true;
+        }
+
+        if ($this->status === self::STATUS_SENT) {
+            // Check expires_at (PROMPT 105)
+            if ($this->expires_at && $this->expires_at->isPast()) {
+                return true;
+            }
+
+            // Backward compatibility: check valid_until
+            if ($this->valid_until && $this->valid_until->isPast()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if offer can be accepted
+     */
+    public function canAccept(): bool
+    {
+        return $this->isSent() && !$this->isExpired();
+    }
+
+    /**
+     * Get days remaining until expiry
+     * PROMPT 105: New method
+     * 
+     * @return int|null Null if no expiry, 0 if expired
+     */
+    public function getDaysRemaining(): ?int
+    {
+        if ($this->status !== self::STATUS_SENT) {
+            return null;
+        }
+
+        $expiryDate = $this->expires_at ?? $this->valid_until;
+
+        if (!$expiryDate) {
+            return null; // No expiry set
+        }
+
+        if ($expiryDate->isPast()) {
+            return 0; // Already expired
+        }
+
+        return (int) now()->diffInDays($expiryDate, false);
+    }
+
+    /**
+     * Get formatted expiry information
+     * PROMPT 105: New method
+     * 
+     * @return string
+     */
+    public function getExpiryLabel(): string
+    {
+        if ($this->status !== self::STATUS_SENT) {
+            return 'N/A';
+        }
+
+        if ($this->isExpired()) {
+            return 'Expired';
+        }
+
+        $daysRemaining = $this->getDaysRemaining();
+
+        if ($daysRemaining === null) {
+            return 'No expiry';
+        }
+
+        if ($daysRemaining === 0) {
+            return 'Expires today';
+        }
+
+        if ($daysRemaining === 1) {
+            return 'Expires tomorrow';
+        }
+
+        if ($daysRemaining < 7) {
+            return "Expires in {$daysRemaining} days";
+        }
+
+        return 'Expires on ' . $this->expires_at->format('M d, Y')
+            ?? $this->valid_until->format('M d, Y');
     }
 
     /**
@@ -181,26 +279,26 @@ class Offer extends Model
     /**
      * Check if offer is expired
      */
-    public function isExpired(): bool
-    {
-        if ($this->status === self::STATUS_EXPIRED) {
-            return true;
-        }
+    // public function isExpired(): bool
+    // {
+    //     if ($this->status === self::STATUS_EXPIRED) {
+    //         return true;
+    //     }
 
-        if ($this->valid_until && $this->valid_until->isPast() && $this->status === self::STATUS_SENT) {
-            return true;
-        }
+    //     if ($this->valid_until && $this->valid_until->isPast() && $this->status === self::STATUS_SENT) {
+    //         return true;
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     /**
      * Check if offer can be accepted
      */
-    public function canAccept(): bool
-    {
-        return $this->isSent() && !$this->isExpired();
-    }
+    // public function canAccept(): bool
+    // {
+    //     return $this->isSent() && !$this->isExpired();
+    // }
 
     /**
      * Check if offer can be sent (is draft)
@@ -224,7 +322,7 @@ class Offer extends Model
     public function getFormattedPrice(): string
     {
         $formatted = '₹' . number_format($this->price, 2);
-        
+
         switch ($this->price_type) {
             case self::PRICE_MONTHLY:
                 return $formatted . '/month';

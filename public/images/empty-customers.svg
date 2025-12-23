@@ -1,0 +1,8 @@
+<!-- Placeholder SVG for empty state. Replace with Figma export if available. -->
+<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="160" height="160" rx="32" fill="#F3F4F6"/>
+  <circle cx="80" cy="70" r="32" fill="#E0E7EF"/>
+  <rect x="40" y="110" width="80" height="16" rx="8" fill="#E0E7EF"/>
+  <rect x="60" y="130" width="40" height="8" rx="4" fill="#E0E7EF"/>
+  <ellipse cx="80" cy="150" rx="28" ry="6" fill="#E5E7EB"/>
+</svg>

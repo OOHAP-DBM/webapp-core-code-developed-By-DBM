@@ -3,8 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
-use App\Models\{User, Booking, BookingPayment, CommissionLog, QuoteRequest, AdminOverride};
-use Modules\Offers\Models\Offer;
+use App\Models\{User,Offer, Booking, BookingPayment, CommissionLog, QuoteRequest, AdminOverride};      
 use App\Services\AdminOverrideService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;

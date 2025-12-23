@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Services\OfferExpiryService;
 use Modules\Enquiries\Models\Enquiry;
-use Modules\Offers\Models\Offer;
+use App\Models\Offer;
 use App\Models\Hoarding;
 use App\Models\Setting;
 use App\Models\User;

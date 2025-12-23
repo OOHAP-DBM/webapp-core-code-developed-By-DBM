@@ -100,7 +100,7 @@
         <input type="text" id="otpInput" maxlength="4"
                style="width:100%; height:42px; text-align:center; font-size:18px;">
 
-        <button onclick="verifyOtp()" class="continue-btn btn-outline-success"
+        <button onclick="verifyOtp()" class="continue-btn continue-btn-main"
                 style="width:100%; margin-top:16px;">
             Verify
         </button>
@@ -284,6 +284,21 @@ input {
     cursor: not-allowed;
 }
 
+/* Main theme color variable */
+:root {
+    --main-color: #22c55e; /* Change this value to update the main color globally */
+}
+
+.continue-btn-main {
+    background: var(--main-color) !important;
+    color: #fff !important;
+    border: none;
+    transition: background 0.2s;
+}
+.continue-btn-main:hover, .continue-btn-main:focus {
+    background: #16a34a !important; /* Slightly darker for hover */
+    color: #fff !important;
+}
 </style>
 @endpush
 @push('scripts')

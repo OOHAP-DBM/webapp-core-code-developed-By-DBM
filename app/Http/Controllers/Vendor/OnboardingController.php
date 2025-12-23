@@ -52,7 +52,7 @@ class OnboardingController extends Controller
             $profile = $service->saveBusinessInfo($user, $request->validated());
             // Onboarding step tracking
             $profile->onboarding_step = max(1, (int) $profile->onboarding_step) + 1;
-            $profile->onboarding_status = 'draft';
+            $profile->onboarding_status = 'pending_approval';
             $profile->save();
             // Assign vendor role if not already assigned
             if (!$user->hasRole('vendor')) {
@@ -63,7 +63,7 @@ class OnboardingController extends Controller
             $user->save();
             DB::commit();
             // Redirect to vendor dashboard with flash message
-            Session::flash('success', 'Your vendor request is pending. Once approved by admin, you will be notified.');
+            // Session::flash('success', 'Your vendor request is pending. Once approved by admin, you will be notified.');
             return Redirect::route('vendor.dashboard');
         } catch (\Exception $e) {
             DB::rollBack();

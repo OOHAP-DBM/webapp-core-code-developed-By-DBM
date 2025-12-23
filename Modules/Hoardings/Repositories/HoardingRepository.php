@@ -5,7 +5,7 @@ namespace Modules\Hoardings\Repositories;
 use App\Models\Hoarding;
 use App\Models\HoardingGeo;
 use Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface;
-use Modules\Shared\Repositories\BaseRepository;
+use App\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -84,8 +84,14 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
      * @param array $data
      * @return Hoarding
      */
-    public function create(array $data)
+    // public function create(array $data)
+    // {
+    //     return $this->model->create($data);
+    // }
+    public function createForVendor(array $data, int $vendorId): Hoarding
     {
+        $data['vendor_id'] = $vendorId;
+
         return $this->model->create($data);
     }
 

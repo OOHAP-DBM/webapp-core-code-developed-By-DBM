@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Booking, BookingPayment, CommissionLog, QuoteRequest, AdminOverride};
-use Modules\Offers\Models\Offer;
+use App\Models\Offer;
 use App\Services\AdminOverrideService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

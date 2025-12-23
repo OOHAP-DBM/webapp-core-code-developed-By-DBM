@@ -5,7 +5,7 @@ namespace Modules\Threads\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
-use Modules\Offers\Models\Offer;
+use App\Models\Offer;
 use Modules\Quotations\Models\Quotation;
 
 class ThreadMessage extends Model

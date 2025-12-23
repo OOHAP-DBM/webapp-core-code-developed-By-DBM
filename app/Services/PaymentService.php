@@ -524,4 +524,88 @@ class PaymentService
         $this->gateway = $this->resolveGateway($gateway);
         return $this;
     }
+     /**
+     * Check if a webhook event has already been processed (idempotency).
+     *
+     * @param string $eventId
+     * @return bool
+     */
+    public function isWebhookProcessed(string $eventId): bool
+    {
+        if (!$eventId) return false;
+        return PaymentTransaction::whereJsonContains('metadata->processed_webhook_events', $eventId)->exists();
+    }
+
+    /**
+     * Mark a webhook event as processed (idempotency).
+     *
+     * @param string $eventId
+     * @return void
+     */
+    public function markWebhookProcessed(string $eventId): void
+    {
+        if (!$eventId) return;
+        // Find all transactions related to this event (if any)
+        $transactions = PaymentTransaction::where(function($q) use ($eventId) {
+            $q->whereJsonDoesntContain('metadata->processed_webhook_events', $eventId)
+              ->orWhereNull('metadata');
+        })->get();
+        foreach ($transactions as $transaction) {
+            $meta = $transaction->metadata ?? [];
+            $events = $meta['processed_webhook_events'] ?? [];
+            if (!in_array($eventId, $events, true)) {
+                $events[] = $eventId;
+                $meta['processed_webhook_events'] = $events;
+                $transaction->metadata = $meta;
+                $transaction->save();
+            }
+        }
+    }
+
+    /**
+     * Mark a payment as successful (atomic, idempotent).
+     *
+     * @param string $gatewayPaymentId
+     * @param array $payload
+     * @return void
+     */
+    public function markPaymentSuccess(string $gatewayPaymentId, array $payload = []): void
+    {
+        if (!$gatewayPaymentId) return;
+        \DB::transaction(function () use ($gatewayPaymentId, $payload) {
+            $transaction = PaymentTransaction::where('gateway_payment_id', $gatewayPaymentId)->lockForUpdate()->first();
+            if (!$transaction) return;
+            if ($transaction->status === PaymentTransaction::STATUS_SUCCESS) return;
+            $meta = $transaction->metadata ?? [];
+            $meta['last_success_payload'] = $payload;
+            $transaction->metadata = $meta;
+            $transaction->status = PaymentTransaction::STATUS_SUCCESS;
+            $transaction->paid_at = now();
+            $transaction->save();
+        });
+    }
+
+    /**
+     * Mark a payment as failed (atomic, idempotent).
+     *
+     * @param string $gatewayPaymentId
+     * @param array $payload
+     * @return void
+     */
+    public function markPaymentFailed(string $gatewayPaymentId, array $payload = []): void
+    {
+        if (!$gatewayPaymentId) return;
+        \DB::transaction(function () use ($gatewayPaymentId, $payload) {
+            $transaction = PaymentTransaction::where('gateway_payment_id', $gatewayPaymentId)->lockForUpdate()->first();
+            if (!$transaction) return;
+            if (in_array($transaction->status, [PaymentTransaction::STATUS_FAILED, PaymentTransaction::STATUS_SUCCESS], true)) return;
+            $meta = $transaction->metadata ?? [];
+            $meta['last_failed_payload'] = $payload;
+            $transaction->metadata = $meta;
+            $transaction->status = PaymentTransaction::STATUS_FAILED;
+            $transaction->failure_reason = $payload['error_reason'] ?? $payload['reason'] ?? null;
+            $transaction->failure_code = $payload['error_code'] ?? null;
+            $transaction->save();
+        });
+    }
 }

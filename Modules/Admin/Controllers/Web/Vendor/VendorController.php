@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 
+
+use App\Models\VendorProfile;
+
 class VendorController extends Controller
 {
     public function index(Request $request)
@@ -14,20 +17,150 @@ class VendorController extends Controller
         return view('admin.vendors.index', compact('vendors'));
     }
 
+    /**
+     * Show requested vendors (pending approval)
+     */
+    public function requestedVendors(Request $request)
+    {
+        $requestedVendors = VendorProfile::with('user')
+            ->where('onboarding_status', 'pending_approval')
+            ->orderByDesc('created_at')
+            ->paginate(15, ['id', 'user_id', 'company_name', 'gstin', 'pan', 'created_at']);
+
+        $requestedCount = $requestedVendors->total();
+
+        return view('admin.vendors.requested', compact('requestedVendors', 'requestedCount'));
+    }
+
     public function show($id)
     {
         $vendor = User::role('vendor')->findOrFail($id);
         return view('admin.vendors.show', compact('vendor'));
     }
 
-    public function approve($id)
+
+    /**
+     * Approve vendor with commission
+     */
+
+    // public function approve(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'commission_percentage' => 'required|numeric|min:0|max:100',
+    //     ]);
+
+    //     // IMPORTANT: The ID coming from the button is the VendorProfile ID
+    //     $profile = VendorProfile::findOrFail($id);
+
+    //     // Update the profile
+    //     $profile->update([
+    //         'commission_percentage' => $request->commission_percentage,
+    //         'onboarding_status'     => 'approved', // This removes them from the 'pending_approval' query
+    //         'approved_at'           => now(),
+    //         'approved_by'           => auth()->id(),
+    //     ]);
+
+    //     // Update the associated User status
+    //     if ($profile->user) {
+    //         $profile->user->update(['status' => 'active']);
+    //     }
+
+    //     if ($request->ajax()) {
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Vendor approved and moved to active list.'
+    //         ]);
+    //     }
+
+    //     return redirect()->back()->with('success', 'Vendor approved.');
+    // }
+    public function approve(Request $request, $id)
     {
-        $vendor = User::role('vendor')->findOrFail($id);
-        $vendor->status = 'active';
-        $vendor->save();
-        return redirect()->back()->with('success', 'Vendor approved.');
+        // Use manual validator if you want total control, 
+        // but $request->validate is fine as long as JS sends 'Accept: application/json'
+        $request->validate([
+            'commission_percentage' => 'required|numeric|min:0|max:100',
+        ]);
+
+        try {
+            $profile = VendorProfile::findOrFail($id);
+
+            $profile->update([
+                'commission_percentage' => $request->commission_percentage,
+                'onboarding_status'     => 'approved',
+                'approved_at'           => now(),
+                'approved_by'           => auth()->id(),
+            ]);
+
+            if ($profile->user) {
+                $profile->user->update(['status' => 'active']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vendor approved successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Server Error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
+    /**
+     * Reject vendor with reason
+     */
+    // public function reject(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'reason' => 'required|string|max:255',
+    //     ]);
+
+    //     $profile = VendorProfile::findOrFail($id);
+    //     $profile->onboarding_status = 'rejected';
+    //     $profile->rejection_reason = $request->reason;
+    //     $profile->save();
+
+    //     if ($request->ajax()) {
+    //         return response()->json(['success' => true, 'message' => 'Vendor has been rejected.']);
+    //     }
+    //     return redirect()->back()->with('success', 'Vendor rejected.');
+    // }
+
+    /**
+     * Reject vendor with reason
+     */
+    public function reject(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:255',
+        ]);
+
+        try {
+            $profile = VendorProfile::findOrFail($id);
+
+            $profile->update([
+                'onboarding_status' => 'rejected',
+                'rejection_reason'  => $request->reason,
+            ]);
+
+            // Optional: Also update user status if needed
+            if ($profile->user) {
+                $profile->user->update(['status' => 'inactive']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vendor has been rejected.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Server Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
     public function suspend($id)
     {
         $vendor = User::role('vendor')->findOrFail($id);

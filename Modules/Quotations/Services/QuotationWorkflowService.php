@@ -3,7 +3,7 @@
 namespace Modules\Quotations\Services;
 
 use Modules\Quotations\Models\Quotation;
-use Modules\Offers\Models\Offer;
+use App\Models\Offer;
 use Modules\Threads\Models\ThreadMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

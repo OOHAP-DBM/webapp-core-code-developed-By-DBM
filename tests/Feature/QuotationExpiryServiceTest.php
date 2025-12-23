@@ -7,7 +7,7 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Models\Hoarding;
 use App\Services\QuotationExpiryService;
-use Modules\Offers\Models\Offer;
+use App\Models\Offer;
 use Modules\Enquiries\Models\Enquiry;
 use Modules\Threads\Models\Thread;
 use Modules\Threads\Models\ThreadMessage;

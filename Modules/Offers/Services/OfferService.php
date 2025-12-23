@@ -108,7 +108,10 @@ class OfferService
             DB::rollBack();
             throw $e;
         }
-    } PROMPT 105: Updated to validate expiry
+    } 
+    /**
+     * Accept an offer
+     * PROMPT 105: Validate expiry before acceptance
      */
     public function acceptOffer(int $offerId): Offer
     {
@@ -122,7 +125,7 @@ class OfferService
         [$canAccept, $reason] = $this->expiryService->validateOfferAcceptance($offer);
         
         if (!$canAccept) {
-            throw new \Exception($reason
+            throw new \Exception($reason);
         }
 
         if (!$offer->canAccept()) {
@@ -197,7 +200,10 @@ class OfferService
         ])->filter(function($offer) {
             return $offer->enquiry->customer_id === Auth::id();
         });
-    } PROMPT 105: Delegate to OfferExpiryService
+    } 
+    /**
+     * Check and expire all due offers
+     * PROMPT 105: Delegate to OfferExpiryService
      */
     public function checkExpiredOffers(): int
     {
@@ -231,11 +237,7 @@ class OfferService
             throw new \Exception('Offer not found');
         }
 
-        return $this->expiryService->resetOfferExpiry($offer, $expiryDays
-     */
-    public function checkExpiredOffers(): int
-    {
-        return $this->repository->markExpired();
+        return $this->expiryService->resetOfferExpiry($offer, $expiryDays);
     }
 
     /**

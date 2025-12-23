@@ -29,6 +29,8 @@ use App\Listeners\OnPaymentFailed;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Modules\Offers\Repositories\Contracts\OfferRepositoryInterface;
+use App\Services\OfferExpiryService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -61,7 +63,9 @@ class AppServiceProvider extends ServiceProvider
         // Register OfferService as singleton
         $this->app->singleton(OfferService::class, function ($app) {
             return new OfferService(
-                $app->make(\Modules\Offers\Repositories\Contracts\OfferRepositoryInterface::class)
+                // $app->make(\Modules\Offers\Repositories\Contracts\OfferRepositoryInterface::class)
+                $app->make(OfferRepositoryInterface::class),
+                $app->make(OfferExpiryService::class)
             );
         });
 
@@ -75,13 +79,19 @@ class AppServiceProvider extends ServiceProvider
         // Register BookingService as singleton
         $this->app->singleton(BookingService::class, function ($app) {
             return new BookingService(
-                $app->make(\Modules\Bookings\Repositories\Contracts\BookingRepositoryInterface::class)
+                $app->make(\Modules\Bookings\Repositories\Contracts\BookingRepositoryInterface::class),
+                $app->make(\Modules\Settings\Services\SettingsService::class)
             );
         });
 
         // Register RazorpayService as singleton
         $this->app->singleton(RazorpayService::class, function ($app) {
             return new RazorpayService();
+        });
+
+        // Register AdminSidebarService as singleton
+        $this->app->singleton(\App\Services\AdminSidebarService::class, function ($app) {
+            return new \App\Services\AdminSidebarService();
         });
     }
 
@@ -93,13 +103,22 @@ class AppServiceProvider extends ServiceProvider
         // Configure API rate limiters
         $this->configureRateLimiting();
 
+        // Share sidebar counts with all admin views (View Composer)
+        view()->composer('layouts.partials.admin.sidebar', function ($view) {
+            // Get counts from AdminSidebarService
+            $counts = app(\App\Services\AdminSidebarService::class)->getSidebarCounts();
+            // Inline comment: Data source is AdminSidebarService (no DB queries in Blade)
+            $view->with('requestedVendorCount', $counts['requestedVendorCount']);
+            $view->with('totalCustomerCount', $counts['totalCustomerCount']);
+        });
+
         // Register policies
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(\App\Models\Booking::class, \App\Policies\BookingPolicy::class);
         Gate::policy(\App\Models\BookingPayment::class, \App\Policies\BookingPaymentPolicy::class);
         Gate::policy(\App\Models\CommissionLog::class, \App\Policies\CommissionLogPolicy::class);
         Gate::policy(\App\Models\QuoteRequest::class, \App\Policies\QuoteRequestPolicy::class);
-        Gate::policy(\Modules\Offers\Models\Offer::class, \Modules\Offers\Policies\OfferPolicy::class);
+        Gate::policy(\App\Models\Offer::class, \Modules\Offers\Policies\OfferPolicy::class);
 
         // Register event listeners
         Event::listen(
