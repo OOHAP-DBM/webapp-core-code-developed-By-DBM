@@ -30,6 +30,7 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
 
     // Load module-specific API routes
     Route::prefix('auth')->group(base_path('routes/api_v1/auth.php'));
+    Route::prefix('customer/profile')->group(base_path('routes/api_v1/profile.php'));
     Route::prefix('hoardings')->group(base_path('routes/api_v1/hoardings.php'));
     Route::prefix('dooh')->group(base_path('routes/api_v1/dooh.php'));
     Route::prefix('enquiries')->group(base_path('routes/api_v1/enquiries.php'));

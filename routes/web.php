@@ -81,7 +81,7 @@ Route::middleware('guest')->group(function () {
     // Route::get('/forgot-password', [...])->name('password.request');
 });
 
-Route::get('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout')->middleware('auth');
+Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 // ============================================
 // VENDOR ONBOARDING (PROMPT 112)

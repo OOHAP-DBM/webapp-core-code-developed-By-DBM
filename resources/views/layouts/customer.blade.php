@@ -44,7 +44,27 @@
     
     <!-- Shortlist JavaScript (PROMPT 50) -->
     <script src="{{ asset('js/shortlist.js') }}"></script>
-    
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebar   = document.getElementById('sidebar');
+        const openBtn   = document.getElementById('mobile-menu-btn');
+        const closeBtn  = document.getElementById('mobile-btn-close');
+
+        if (openBtn) {
+            openBtn.addEventListener('click', function () {
+                sidebar.classList.remove('hidden');
+            });
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function () {
+                sidebar.classList.add('hidden');
+            });
+        }
+    });
+</script>
+
+
     @stack('scripts')
 </body>
 </html>
