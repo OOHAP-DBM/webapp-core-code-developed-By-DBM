@@ -76,7 +76,6 @@ class LoginController extends Controller
     protected function redirectBasedOnRole(User $user)
     {
         $role = $user->getPrimaryRole();
-
         switch ($role) {
             case 'customer':
                 return redirect()->intended(route('home'));
@@ -100,12 +99,12 @@ class LoginController extends Controller
     {
         $vendorProfile = $user->vendorProfile;
 
-        // If no vendor profile exists, redirect to onboarding
+        // // If no vendor profile exists, redirect to onboarding
         if (!$vendorProfile) {
             return redirect()->route('vendor.onboarding.company-details')
                 ->with('info', 'Please complete your vendor onboarding.');
         }
-
+// dd($vendorProfile->onboarding_status);
         // Check onboarding status
         switch ($vendorProfile->onboarding_status) {
             case 'draft':
@@ -114,7 +113,7 @@ class LoginController extends Controller
 
             case 'pending_approval':
                 // Show waiting screen
-                return redirect()->route('vendor.onboarding.waiting')
+                return redirect()->route('vendor.dashboard')
                     ->with('info', 'Your application is under review. We will notify you once approved.');
 
             case 'approved':

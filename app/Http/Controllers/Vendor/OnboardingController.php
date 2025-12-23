@@ -57,9 +57,10 @@ class OnboardingController extends Controller
             // Assign vendor role if not already assigned
             if (!$user->hasRole('vendor')) {
                 $user->assignRole('vendor');
+                // Set active_role to vendor (but keep previous role)
+                $user->active_role = 'vendor';
             }
-            // Set active_role to vendor (but keep previous role)
-            $user->active_role = 'vendor';
+           
             $user->save();
             DB::commit();
             // Redirect to vendor dashboard with flash message
@@ -94,7 +95,12 @@ class OnboardingController extends Controller
     public function showCompanyDetails()
     {
         $profile = $this->getVendorProfile();
-
+        if ($profile->onboarding_step == 2) {
+            return redirect()->route('vendor.onboarding.business-info');
+        }
+        if ($profile->onboarding_step >= 3) {
+            return redirect()->route('vendor.dashboard');
+        }
         return view('vendor.onboarding.company-details', compact('profile'));
     }
 
@@ -377,11 +383,17 @@ class OnboardingController extends Controller
 
         Cache::forget('vendor_email_otp_' . $user->id);
 
-        // 🔥 HERE IS THE KEY FIX
         $user->update([
             'email' => $cached['email'],
             'email_verified_at' => now()
         ]);
+
+        // Increase onboarding_step if needed
+        $profile = $user->vendorProfile;
+        if ($profile && $profile->onboarding_step < 2) {
+            $profile->onboarding_step = 2;
+            $profile->save();
+        }
 
         return response()->json(['success' => true]);
     }
@@ -448,11 +460,17 @@ class OnboardingController extends Controller
 
         Cache::forget('vendor_phone_otp_' . $user->id);
 
-        // 🔥 KEY PART
         $user->update([
             'phone' => $cached['phone'],
             'phone_verified_at' => now()
         ]);
+
+        // Increase onboarding_step if needed
+        $profile = $user->vendorProfile;
+        if ($profile && $profile->onboarding_step < 2) {
+            $profile->onboarding_step = 2;
+            $profile->save();
+        }
 
         return response()->json(['success' => true]);
     }

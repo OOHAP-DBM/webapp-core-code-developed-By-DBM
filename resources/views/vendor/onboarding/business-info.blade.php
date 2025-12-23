@@ -27,6 +27,15 @@
         @if(session('success'))
             <div class="p-4 mb-4 text-green-700 bg-green-100 rounded-lg border border-green-200">{{ session('success') }}</div>
         @endif
+        @if($errors->any())
+            <div class="p-4 mb-4 text-red-700 bg-red-100 rounded-lg border border-red-200">
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         
         <form class="signup-card space-y-6" method="POST" action="{{ route('vendor.onboarding.submitVendorInfo') }}" enctype="multipart/form-data" id="vendorOnboardingForm" novalidate>
             @csrf
