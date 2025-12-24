@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Auth\Controllers\Api;
+namespace Modules\Auth\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Modules\Auth\Services\RoleSwitchingService;

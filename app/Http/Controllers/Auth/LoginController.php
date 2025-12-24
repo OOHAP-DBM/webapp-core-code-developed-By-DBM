@@ -104,7 +104,6 @@ class LoginController extends Controller
             return redirect()->route('vendor.onboarding.company-details')
                 ->with('info', 'Please complete your vendor onboarding.');
         }
-// dd($vendorProfile->onboarding_status);
         // Check onboarding status
         switch ($vendorProfile->onboarding_status) {
             case 'draft':

@@ -20,31 +20,31 @@ return [
     'auth' => [
         'login' => [
             'requests' => env('RATE_LIMIT_LOGIN', 5),
-            'per_minutes' => 1,
+            'per_minutes' => 10,
         ],
         'register' => [
-            'requests_per_hour' => env('RATE_LIMIT_REGISTER_HOUR', 3),
-            'requests_per_day' => env('RATE_LIMIT_REGISTER_DAY', 1),
+            'requests_per_hour' => env('RATE_LIMIT_REGISTER_HOUR', 100),
+            'requests_per_day' => env('RATE_LIMIT_REGISTER_DAY', 100),
         ],
     ],
 
     'otp' => [
         'per_identifier' => [
-            'requests' => env('RATE_LIMIT_OTP_IDENTIFIER', 3),
-            'per_minutes' => 5,
+            'requests' => env('RATE_LIMIT_OTP_IDENTIFIER', 30),
+            'per_minutes' => 50,
         ],
         'per_ip' => [
             'requests' => env('RATE_LIMIT_OTP_IP', 10),
-            'per_minutes' => 5,
+            'per_minutes' => 50,
         ],
     ],
 
     'uploads' => [
         'admin' => env('RATE_LIMIT_UPLOAD_ADMIN', 100),
         'staff' => env('RATE_LIMIT_UPLOAD_STAFF', 100),
-        'vendor' => env('RATE_LIMIT_UPLOAD_VENDOR', 30),
-        'customer' => env('RATE_LIMIT_UPLOAD_CUSTOMER', 10),
-        'default' => env('RATE_LIMIT_UPLOAD_DEFAULT', 5),
+        'vendor' => env('RATE_LIMIT_UPLOAD_VENDOR', 100),
+        'customer' => env('RATE_LIMIT_UPLOAD_CUSTOMER', 100),
+        'default' => env('RATE_LIMIT_UPLOAD_DEFAULT', 50),
     ],
 
     'search' => [

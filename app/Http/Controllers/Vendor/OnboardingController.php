@@ -57,10 +57,9 @@ class OnboardingController extends Controller
             // Assign vendor role if not already assigned
             if (!$user->hasRole('vendor')) {
                 $user->assignRole('vendor');
-                // Set active_role to vendor (but keep previous role)
-                $user->active_role = 'vendor';
+              
             }
-           
+            $user->active_role = 'vendor';
             $user->save();
             DB::commit();
             // Redirect to vendor dashboard with flash message
