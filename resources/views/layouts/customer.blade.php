@@ -41,28 +41,77 @@
     </div>
 
     @stack('modals')
-    
+    <style>
+        @media (max-width: 1023px) {
+            #sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                z-index: 9999;
+            }
+            #d-none{
+                display:none;
+            }
+            #user{
+                margin-left:15px;
+            }
+        }
+</style>
     <!-- Shortlist JavaScript (PROMPT 50) -->
     <script src="{{ asset('js/shortlist.js') }}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const sidebar   = document.getElementById('sidebar');
-        const openBtn   = document.getElementById('mobile-menu-btn');
-        const closeBtn  = document.getElementById('mobile-btn-close');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar   = document.getElementById('sidebar');
+            const openBtn   = document.getElementById('mobile-menu-btn');
+            const closeBtn  = document.getElementById('mobile-btn-close');
 
-        if (openBtn) {
-            openBtn.addEventListener('click', function () {
-                sidebar.classList.remove('hidden');
-            });
-        }
+            if (openBtn) {
+                openBtn.addEventListener('click', function () {
+                    sidebar.classList.remove('hidden');
+                });
+            }
 
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function () {
-                sidebar.classList.add('hidden');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function () {
+                    sidebar.classList.add('hidden');
+                });
+            }
+            document.getElementById('near-me-btn')?.addEventListener('click', function () {
+                if (!navigator.geolocation) {
+                    alert('Geolocation not supported');
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+
+                        const form = document.getElementById('navbar-search-form');
+
+                        let latInput = document.createElement('input');
+                        latInput.type = 'hidden';
+                        latInput.name = 'lat';
+                        latInput.value = lat;
+
+                        let lngInput = document.createElement('input');
+                        lngInput.type = 'hidden';
+                        lngInput.name = 'lng';
+                        lngInput.value = lng;
+
+                        form.appendChild(latInput);
+                        form.appendChild(lngInput);
+
+                        form.submit();
+                    },
+                    function () {
+                        alert('Location access denied');
+                    }
+                );
             });
-        }
-    });
-</script>
+        });
+    </script>
 
 
     @stack('scripts')

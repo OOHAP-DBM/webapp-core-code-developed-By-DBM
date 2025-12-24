@@ -37,6 +37,35 @@
     </div>
 
     @stack('modals')
+    <style>
+    @media (max-width: 1023px) {
+        #vendor-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 9999;
+        }
+    }
+</style>
     @stack('scripts')
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar   = document.getElementById('vendor-sidebar');
+            const openBtn   = document.getElementById('vendor-mobile-menu-btn');
+            const closeBtn  = document.getElementById('vendor-mobile-btn-close');
+            if (openBtn) {
+                openBtn.addEventListener('click', function () {
+                    sidebar.classList.remove('hidden');
+                });
+            }
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function () {
+                    sidebar.classList.add('hidden');
+                });
+            }
+        });
+</script>
 </body>
 </html>
