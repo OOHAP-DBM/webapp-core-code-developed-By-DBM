@@ -188,12 +188,13 @@ class AppServiceProvider extends ServiceProvider
             $identifier = $request->input('phone') ?? $request->input('email') ?? $request->ip();
             
             return [
-                Limit::perMinutes(5, 3)
+                Limit::perMinutes(50, 3)
                     ->by('otp:' . $identifier)
                     ->response(function (Request $request, array $headers) {
                         return response()->json([
                             'message' => 'Too many OTP requests. Please wait before requesting again.',
-                            'retry_after' => $headers['Retry-After'] ?? 300
+                        'retry_after' => $headers['Retry-After'] ?? 300
+                        // 'retry_after' => 10
                         ], 429);
                     }),
                 // Additional IP-based limit
@@ -238,8 +239,8 @@ class AppServiceProvider extends ServiceProvider
         // Registration - Prevent spam accounts
         RateLimiter::for('register', function (Request $request) {
             return [
-                // 3 registrations per hour per IP
-                Limit::perHour(3)
+                // 60 registrations per hour per IP
+                Limit::perHour(100)
                     ->by($request->ip())
                     ->response(function (Request $request, array $headers) {
                         return response()->json([

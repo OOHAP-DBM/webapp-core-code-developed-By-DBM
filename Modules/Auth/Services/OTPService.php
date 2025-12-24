@@ -13,6 +13,76 @@ class OTPService
         protected UserRepositoryInterface $userRepository
     ) {}
 
+    // Modules/Auth/Services/OTPService.php
+
+    public function generateAndSendRegisterOTP(string $identifier): array
+    {
+        $user = $this->userRepository->findByEmailOrPhone($identifier);
+
+        // 1. Check if user exists and IS ALREADY REGISTERED (has a name/password)
+        if ($user && $user->name !== null) {
+            return [
+                'success' => false,
+                'message' => 'This ' . ($this->isPhoneNumber($identifier) ? 'phone' : 'email') . ' is already registered. Please login.',
+            ];
+        }
+
+        // 2. If user doesn't exist at all, create the "Skeleton" record
+        if (!$user) {
+            $data = $this->isPhoneNumber($identifier)
+                ? ['phone' => $identifier]
+                : ['email' => $identifier];
+
+            $data['status'] = 'pending_verification';
+            $user = $this->userRepository->create($data);
+        }
+
+        // 3. Generate 4-digit OTP (This uses the method in your User model)
+        $otp = $user->generateOTP();
+
+        // 4. Send the OTP
+        $this->sendOTP($user, $otp);
+
+        return [
+            'success' => true,
+            'message' => 'OTP sent successfully',
+            'is_new_user' => true
+        ];
+    }
+
+    // Modules/Auth/Services/OTPService.php
+
+    public function verifyRegisterOTP(string $identifier, string $otp): array
+    {
+        $user = $this->userRepository->findByEmailOrPhone($identifier);
+
+        // 1. Check if user exists
+        if (!$user) {
+            return ['success' => false, 'message' => 'User not found'];
+        }
+
+        // 2. Validate OTP using the method in your User Model
+        if (!$user->isOTPValid($otp)) {
+            return ['success' => false, 'message' => 'Invalid or expired OTP'];
+        }
+
+        // 3. Mark as verified in the Database
+        if ($this->isPhoneNumber($identifier)) {
+            $user->phone_verified_at = now();
+        } else {
+            $user->email_verified_at = now();
+        }
+
+        // Clear the OTP so it can't be used again
+        $user->clearOTP();
+        $user->save();
+
+        return [
+            'success' => true,
+            'message' => 'Identity verified. You can now complete your registration.',
+            'identifier' => $identifier
+        ];
+    }
     /**
      * Generate and send OTP
      */

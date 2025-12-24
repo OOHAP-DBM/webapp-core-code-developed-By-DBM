@@ -1,8 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Auth\Controllers\Api\AuthController;
-
+use Modules\Auth\Http\Controllers\Api\AuthController;
+use Modules\Auth\Http\Controllers\Api\RoleSwitchController;
+use Modules\Auth\Http\Controllers\Api\VendorOnboardingController;
 /**
  * Auth API Routes (v1)
  * Base: /api/v1/auth
@@ -19,8 +20,13 @@ Route::middleware(['throttle:auth'])->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
+// http: //127.0.0.1:8000/api/v1/auth/register/otp/verify
 // OTP Authentication with strict rate limiting
 Route::middleware(['throttle:otp'])->group(function () {
+    Route::post('/register/otp/verify', [AuthController::class, 'verifyRegisterOTP']);
+    Route::post('/register/otp/send', [AuthController::class, 'sendRegisterOTP']);
+
+
     Route::post('/otp/send', [AuthController::class, 'sendOTP']);
     Route::post('/otp/verify', [AuthController::class, 'verifyOTP']);
 });
@@ -36,7 +42,14 @@ Route::middleware(['auth:sanctum', 'throttle:authenticated'])->group(function ()
     Route::post('/refresh', [AuthController::class, 'refresh']);
     
     // Role Switching (PROMPT 96)
-    Route::get('/roles/available', [\Modules\Auth\Controllers\Api\RoleSwitchController::class, 'getAvailableRoles']);
-    Route::post('/roles/switch', [\Modules\Auth\Controllers\Api\RoleSwitchController::class, 'switchRole']);
-    Route::get('/roles/permissions', [\Modules\Auth\Controllers\Api\RoleSwitchController::class, 'getActivePermissions']);
+    Route::get('/roles/available', [RoleSwitchController::class, 'getAvailableRoles']);
+    Route::post('/roles/switch', [RoleSwitchController::class, 'switchRole']);
+    Route::get('/roles/permissions', [RoleSwitchController::class, 'getActivePermissions']);
+});
+
+// Vendor Specific Onboarding Routes
+Route::middleware(['auth:sanctum'])->prefix('vendor/onboarding')->group(function () {
+    Route::post('/send-otp', [VendorOnboardingController::class, 'sendOtp']);
+    Route::post('/verify-phone-otp', [VendorOnboardingController::class, 'verifyPhoneOtp']);
+    Route::post('/business-info', [VendorOnboardingController::class, 'submitBusinessInfo']);
 });

@@ -23,7 +23,7 @@ class UserResource extends JsonResource
             'avatar' => $this->avatar ? asset('storage/' . $this->avatar) : null,
             'email_verified_at' => $this->email_verified_at?->toISOString(),
             'phone_verified_at' => $this->phone_verified_at?->toISOString(),
-            'last_login_at' => $this->last_login_at?->toISOString(),
+            // 'last_login_at' => $this->last_login_at?->toISOString(),
             
             // Location fields
             'address' => $this->address,
@@ -35,11 +35,11 @@ class UserResource extends JsonResource
             // Roles and Permissions
             'roles' => $this->getRoleNames(),
             'permissions' => $this->getAllPermissions()->pluck('name'),
-            'primary_role' => $this->getPrimaryRole(),
+            'primary_role' => $this->active_role,
             
             // Timestamps
-            'created_at' => $this->created_at->toISOString(),
-            'updated_at' => $this->updated_at->toISOString(),
+            // 'created_at' => $this->created_at->toISOString(),
+            // 'updated_at' => $this->updated_at->toISOString(),
         ];
     }
 }
