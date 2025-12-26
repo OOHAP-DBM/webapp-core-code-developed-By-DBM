@@ -58,7 +58,7 @@ class RegisterRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     $user = User::where('email', $value)->first();
                     // If user exists and already has a name, they are already registered
-                    if ($user && !is_null($user->name)) {
+                    if ($user && !is_null($user->password)) {
                         $fail('This email is already registered. Please login.');
                     }
                 },

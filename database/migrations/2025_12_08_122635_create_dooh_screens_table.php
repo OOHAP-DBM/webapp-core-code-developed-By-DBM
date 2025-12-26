@@ -21,14 +21,14 @@ return new class extends Migration
             $table->string('external_screen_id')->nullable()->unique(); // ID from external API
             
             // Screen details
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->text('description')->nullable();
             $table->string('screen_type')->default('digital'); // digital, led, lcd
             
             // Location
-            $table->text('address');
-            $table->string('city');
-            $table->string('state');
+            $table->text('address')->nullable();;
+            $table->string('city')->nullable();;
+            $table->string('state')->nullable();;
             $table->string('country')->default('India');
             $table->decimal('lat', 10, 7)->nullable();
             $table->decimal('lng', 10, 7)->nullable();
@@ -46,9 +46,9 @@ return new class extends Migration
             
             // Pricing
             $table->integer('min_slots_per_day')->default(6); // Minimum booking requirement
-            $table->decimal('price_per_slot', 10, 2); // Price per slot
+            $table->decimal('price_per_slot', 10, 2)->nullable(); // Price per slot
             $table->decimal('price_per_month', 12, 2)->nullable(); // Package price per month
-            $table->decimal('minimum_booking_amount', 12, 2); // Minimum amount to book
+            $table->decimal('minimum_booking_amount', 12, 2)->nullable(); // Minimum amount to book
             
             // Availability
             $table->integer('total_slots_per_day')->default(144); // (24 hours × 60 min × 60 sec) / 10 sec / 300 sec loop = 288/2 = 144
@@ -60,6 +60,7 @@ return new class extends Migration
             
             // Status
             $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'suspended'])->default('draft');
+            $table->unsignedInteger('current_step')->default(1); // listing step;
             $table->enum('sync_status', ['pending', 'synced', 'failed'])->default('pending');
             $table->timestamp('last_synced_at')->nullable();
             

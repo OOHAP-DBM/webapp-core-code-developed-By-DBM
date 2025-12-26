@@ -101,9 +101,7 @@ class RegisterController extends Controller
 
                 'password' => Hash::make($request->password),
 
-                'status' => $role === 'customer'
-                    ? 'active'
-                    : 'pending_verification',
+                'status' => 'active',
             ]);
 
 

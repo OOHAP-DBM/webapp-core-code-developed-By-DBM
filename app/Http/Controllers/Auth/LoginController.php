@@ -27,6 +27,7 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
+        
         $credentials = $request->validate([
             'login' => 'required|string', // Email or phone
             'password' => 'required|string',
@@ -36,14 +37,13 @@ class LoginController extends Controller
         $loginType = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
         // Attempt authentication
-        $user = User::where($loginType, $credentials['login'])->first();
+        $user = User::where($loginType, $credentials['login'])->whereNull('deleted_at')->first();
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'login' => ['The provided credentials are incorrect.'],
             ]);
         }
-
         // Check if user is suspended
         if ($user->isSuspended()) {
             throw ValidationException::withMessages([
@@ -58,15 +58,25 @@ class LoginController extends Controller
             ]);
         }
 
+        // Check if user is not active
+        if ($user->status !== 'active') {
+            throw ValidationException::withMessages([
+                'login' => ['Your account is not active.'],
+            ]);
+        }
+
+      
         // Login the user
         Auth::login($user, $request->boolean('remember'));
+       
 
         // Update last login timestamp
         $user->updateLastLogin();
-
+       
         $request->session()->regenerate();
-
+        \Log::info('Web login successful for user after  $request->session()->regenerate();: ' . $this->redirectBasedOnRole($user));
         // Role-based redirect
+        
         return $this->redirectBasedOnRole($user);
     }
 
@@ -75,7 +85,9 @@ class LoginController extends Controller
      */
     protected function redirectBasedOnRole(User $user)
     {
-        $role = $user->getPrimaryRole();
+        // $role = $user->getPrimaryRole();
+        $role = $user->active_role;
+
         switch ($role) {
             case 'customer':
                 return redirect()->intended(route('home'));
