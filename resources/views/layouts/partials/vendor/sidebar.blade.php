@@ -56,7 +56,7 @@
                 <p class="text-sm font-medium text-gray-900 text-left">
                     {{ Auth::user()->name }}  <Span>✏</Span>
                 </p>
-                <p class="text-xs italic text-yellow-600">
+                <p class="text-xs text-yellow-600">
                     Vendor
                 </p>
 

@@ -1,11 +1,7 @@
 {{-- Admin Navbar (Figma-aligned) --}}
 <header class="admin-header sticky top-0 z-30 bg-white border-b border-gray-200 flex items-center justify-between px-6 h-20 shadow-sm">
     <div class="flex flex-col justify-center">
-        <span class="text-xs text-gray-400 font-medium tracking-wide mb-1">@yield('page-title', 'Dashboard')</span>
-        <nav class="breadcrumb flex items-center text-sm text-gray-500">
-            {{-- Example: Home > Customers Management > Total Customers --}}
-            @yield('breadcrumb', 'Home > Customers Management > Total Customers')
-        </nav>
+        <span class="font-medium tracking-wide mb-1">@yield('page-title', 'Dashboard')</span>
     </div>
     <div class="flex items-center gap-6">
         <!-- Notification bell (static badge for now) -->
@@ -15,15 +11,12 @@
             </svg>
             <span class="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-red-500"></span>
         </button>
-        <!-- Admin profile section (Figma-aligned) -->
-        <div class="flex items-center gap-3">
-            <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-lg">
-                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-            </div>
-            <div class="flex flex-col items-start">
-                <span class="font-semibold text-gray-900 leading-tight">Welcome Administrator</span>
-                <span class="text-xs text-gray-500">{{ auth()->user()->name }}</span>
-            </div>
-        </div>
+        <h2><div class="text-xs">Welcome</div>Administrator</h2>
+        <button
+            id="admin-mobile-menu-btn"
+            class="block md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md"
+        >
+            ☰
+        </button>
     </div>
 </header>

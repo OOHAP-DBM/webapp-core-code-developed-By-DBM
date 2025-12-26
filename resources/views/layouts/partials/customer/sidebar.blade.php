@@ -58,7 +58,7 @@
                 <p class="text-sm font-medium text-gray-900 text-left">
                     {{ Auth::user()->name }}
                 </p>
-                <p class="text-xs text-gray-500 italic">
+                <p class="text-xs text-yellow-600">
                     Member Since {{ Auth::user()->created_at->format('M Y') }}
                 </p>
             </div>

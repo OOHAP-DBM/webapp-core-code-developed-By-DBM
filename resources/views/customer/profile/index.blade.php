@@ -50,10 +50,11 @@
     }
 </style>
 @section('content')
-<div class="px-6 py-6">
+<div class="px-6 py-6 flex justify-center">
 
     {{-- Breadcrumb --}}
-    <div class="text-sm text-gray-500 mb-4">
+    <div class="w-full lg:max-w-6xl">
+        <div class="text-sm text-gray-500 mb-4">
         <a href="{{ route('home') }}" class="text-decoration-none">Home</a>
         >
         <a href="{{ route('customer.dashboard') }}" class="text-decoration-none">My Account</a>
@@ -64,7 +65,7 @@
     </div>
 
     {{-- Card --}}
-    <div class="bg-white rounded-lg border border-gray-200 p-6 w-full lg:max-w-6xl">
+    <div class="bg-white rounded-lg border border-gray-200 p-6 w-full">
 
         <h2 class="text-lg font-semibold text-gray-800 mb-1">
             Personal Information
@@ -654,3 +655,5 @@
         });
     }
 </script>
+    </div>
+</div>

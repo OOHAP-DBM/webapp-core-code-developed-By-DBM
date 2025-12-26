@@ -62,5 +62,26 @@
     @stack('modals')
     @stack('scripts')
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.querySelector('.admin-sidebar');
+            const openBtn = document.getElementById('admin-mobile-menu-btn');
+            const closeBtn = document.getElementById('admin-mobile-btn-close');
+
+            if (openBtn) {
+                openBtn.addEventListener('click', function () {
+                    sidebar.classList.remove('hidden');
+                    sidebar.classList.add('flex');
+                });
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function () {
+                    sidebar.classList.add('hidden');
+                    sidebar.classList.remove('flex');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
