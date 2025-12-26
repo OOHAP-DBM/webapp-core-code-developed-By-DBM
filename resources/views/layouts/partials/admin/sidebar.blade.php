@@ -460,8 +460,11 @@
 
                 <!-- Submenu -->
                 <div x-show="open" x-cloak class="mt-1 space-y-1">
-                    <a class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.my') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
-                        <span class="submenu-item-indent">- Dummy</span>
+                   <a href="{{ route('admin.vendors.index') }}"
+                        class="block py-2 text-sm rounded-md sidebar-submenu-item
+                            {{ request()->routeIs('admin.vendors.*') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="submenu-item-indent">- Total Vendor's</span>
                     </a>
                     <a class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.vendor') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
                         <span class="submenu-item-indent">- Dummy</span>
@@ -964,3 +967,60 @@
         </ul>
     </nav>
 </aside>
+@push('scripts')
+    <script>
+        (function () {
+
+            function getScrollContainer() {
+                return document.querySelector('nav.overflow-y-auto');
+            }
+
+            function openParentMenu(item) {
+                const parentLi = item.closest('li[x-data]');
+                if (!parentLi) return;
+
+                const button = parentLi.querySelector('button[type="button"]');
+                const submenu = parentLi.querySelector('[x-show]');
+
+                if (submenu && submenu.hasAttribute('style') && submenu.style.display === 'none') {
+                    button?.dispatchEvent(new Event('click', { bubbles: true }));
+                }
+            }
+
+            function scrollToActive(item) {
+                const container = getScrollContainer();
+                if (!container) return;
+
+                const itemRect = item.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+
+                const offset =
+                    itemRect.top -
+                    containerRect.top +
+                    container.scrollTop -
+                    120;
+
+                container.scrollTo({
+                    top: offset < 0 ? 0 : offset,
+                    behavior: 'smooth'
+                });
+            }
+
+            function initSidebarAutoScroll() {
+                const activeItem = document.querySelector('.sidebar-submenu-item.active');
+                if (!activeItem) return;
+
+                // Step 1: open parent menu
+                openParentMenu(activeItem);
+
+                // Step 2: wait for Alpine DOM render
+                setTimeout(() => {
+                    scrollToActive(activeItem);
+                }, 200); // ⬅️ Alpine animation safe delay
+            }
+
+            window.addEventListener('load', initSidebarAutoScroll);
+
+        })();
+    </script>
+@endpush

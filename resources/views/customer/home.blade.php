@@ -92,250 +92,267 @@
 @endpush
 
 @section('content')
-<div class="container-fluid px-4">
-    <!-- Hero Section -->
-    <div class="hero-section">
-        <div class="container">
-            <div class="text-center">
-                <!-- Geolocation Badge -->
-                @if(isset($userLocation))
-                <div class="location-badge">
-                    <i class="bi bi-geo-alt-fill"></i>
-                    <span>{{ $userLocation['city'] ?? 'Your Location' }}</span>
+<div class="p-6 bg-gray-50" id="dashboardApp">
+
+    <!-- TITLE -->
+    <h2 class="text-lg font-semibold mb-4">Dashboard</h2>
+
+    <!-- STATS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- TOTAL CAMPAIGN -->
+            <div class="bg-[#F3F4F6] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+
+                <!-- ICON -->
+                <div class="w-10 h-10 rounded-full bg-[#E5E7EB] flex items-center justify-center flex-shrink-0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z"
+                            fill="#374151"/>
+                    </svg>
                 </div>
-                @endif
-                
-                <h1 class="display-4 fw-bold mb-3">Find Perfect Advertising Spaces</h1>
-                <p class="lead mb-4">Discover hoardings and digital screens across India</p>
-                
-                <!-- Main Search Box -->
-                <div class="search-box-main">
-                    <form action="{{ route('search') }}" method="GET">
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text bg-white border-end-0">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input 
-                                type="text" 
-                                name="search" 
-                                class="form-control border-start-0 border-end-0" 
-                                placeholder="Search by city, location, or hoarding type..."
-                                value="{{ request('search') }}"
-                            >
-                            @if(!isset($userLocation))
-                            <button 
-                                type="button" 
-                                class="btn btn-outline-secondary border-start-0" 
-                                id="useLocationBtn"
-                                title="Use my location"
-                            >
-                                <i class="bi bi-crosshair"></i>
-                            </button>
-                            @endif
-                            <button type="submit" class="btn btn-primary px-4">
-                                Search
-                            </button>
-                        </div>
-                    </form>
+
+                <!-- CONTENT -->
+                <div>
+                    <p class="text-sm font-medium text-gray-700 leading-tight">
+                        Total Campaign
+                    </p>
+
+                    <p class="text-xl font-semibold text-gray-900 leading-snug mt-1" id="totalCampaign">
+                        ₹22K
+                    </p>
+
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        Spend till date
+                    </p>
+                </div>
+
+            </div>
+            <!-- ACTIVE CAMPAIGN -->
+            <div class="bg-[#DCFCE7] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+
+                <!-- ICON -->
+                <div class="w-10 h-10 rounded-full bg-[#86EFAC] flex items-center justify-center flex-shrink-0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z"
+                            fill="#166534"/>
+                    </svg>
+                </div>
+
+                <!-- CONTENT -->
+                <div>
+                    <p class="text-sm font-medium text-gray-900 leading-tight">
+                        Active Campaign
+                    </p>
+
+                    <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1" id="activeCampaign">
+                        15
+                    </p>
+
+                    <p class="text-xs text-gray-600 mt-0.5">
+                        All Active Campaign
+                    </p>
+                </div>
+
+            </div>
+            <!-- LIVE CAMPAIGN -->
+          <div class="bg-[#DBEAFE] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+
+            <!-- ICON -->
+            <div class="w-10 h-10 rounded-full bg-[#93C5FD] flex items-center justify-center flex-shrink-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z"
+                            fill="#374151"/>
+                    </svg>
+            </div>
+
+            <!-- CONTENT -->
+            <div>
+                <p class="text-sm font-medium text-gray-700 leading-tight">
+                    Live Campaign
+                </p>
+
+                <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1" id="liveCampaign">
+                    02
+                </p>
+            </div>
+
+          </div>
+            <!-- ENDED CAMPAIGN -->
+            <div class="bg-[#FECACA] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+
+                <!-- ICON -->
+                <div class="w-10 h-10 rounded-full bg-[#F87171] flex items-center justify-center flex-shrink-0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z"
+                            fill="#374151"/>
+                    </svg>
+                </div>
+
+                <!-- CONTENT -->
+                <div>
+                    <p class="text-sm font-medium text-gray-700 leading-tight">
+                        Ended Campaign
+                    </p>
+
+                    <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1" id="endedCampaign">
+                        0
+                    </p>
+                </div>
+
+            </div>
+    </div>
+    <!-- BOOKED STATISTICS -->
+    <div class="bg-white rounded-xl p-5 shadow mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold">Booked Statistics</h3>
+            <span class="text-xs text-gray-500">9–15 Sep, 2024</span>
+        </div>
+        <canvas id="bookingChart" height="90"></canvas>
+    </div>
+
+    <!-- ALL ENQUIRIES -->
+    <div class="bg-white rounded-xl p-5 shadow">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold">All Enquiries</h3>
+            <div class="relative w-56">
+                <input
+                    type="text"
+                    placeholder="Search Campaign..."
+                    class="w-full border border-gray-300 rounded-md pl-3 pr-9 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-green-500"
+                    onkeyup="filterEnquiries(this.value)"
+                >
+
+                <!-- SEARCH ICON -->
+                <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 21L16.65 16.65M19 11
+                                C19 15.4183 15.4183 19 11 19
+                                C6.58172 19 3 15.4183 3 11
+                                C3 6.58172 6.58172 3 11 3
+                                C15.4183 3 19 6.58172 19 11Z"
+                            stroke="#9CA3AF"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"/>
+                    </svg>
                 </div>
             </div>
         </div>
+        <div class="space-y-3" id="enquiryList"></div>
     </div>
 
-    <!-- Stats Section -->
-    <div class="row g-4 mb-5">
-        <div class="col-6 col-md-3">
-            <div class="stats-card">
-                <div class="number">{{ $stats['total_hoardings'] ?? '500+' }}</div>
-                <div class="label">Total Hoardings</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stats-card">
-                <div class="number">{{ $stats['cities'] ?? '50+' }}</div>
-                <div class="label">Cities Covered</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stats-card">
-                <div class="number">{{ $stats['active_vendors'] ?? '100+' }}</div>
-                <div class="label">Active Vendors</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stats-card">
-                <div class="number">{{ $stats['bookings'] ?? '1000+' }}</div>
-                <div class="label">Successful Campaigns</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Categories -->
-    <div class="mb-5">
-        <div class="section-header">
-            <h2 class="section-title">Browse by Category</h2>
-        </div>
-        <div class="d-flex gap-3 flex-wrap">
-            <a href="{{ route('search', ['type' => 'billboard']) }}" class="category-chip">
-                <i class="bi bi-badge-ad me-2"></i> Billboards
-            </a>
-            <a href="{{ route('search', ['type' => 'hoarding']) }}" class="category-chip">
-                <i class="bi bi-sign-stop me-2"></i> Hoardings
-            </a>
-            <a href="{{ route('search', ['type' => 'unipole']) }}" class="category-chip">
-                <i class="bi bi-signpost me-2"></i> Unipoles
-            </a>
-            <a href="{{ route('search', ['type' => 'digital']) }}" class="category-chip">
-                <i class="bi bi-tv me-2"></i> Digital Screens
-            </a>
-            <a href="{{ route('dooh.index') }}" class="category-chip">
-                <i class="bi bi-display me-2"></i> DOOH
-            </a>
-        </div>
-    </div>
-
-    <!-- Featured Hoardings -->
-    @if(isset($featuredHoardings) && $featuredHoardings->count() > 0)
-    <div class="mb-5">
-        <div class="section-header">
-            <h2 class="section-title">Featured Hoardings</h2>
-            <a href="{{ route('hoardings.index') }}" class="btn btn-outline-primary">View All</a>
-        </div>
-        <div class="row g-4">
-            @foreach($featuredHoardings as $hoarding)
-            <div class="col-12 col-md-6 col-lg-4">
-                <x-hoarding-card 
-                    :hoarding="$hoarding" 
-                    :showActions="true" 
-                    :isWishlisted="auth()->user()->hasWishlisted($hoarding->id)" 
-                />
-            </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
-
-    <!-- My Shortlist Section (PROMPT 50) -->
-    @if(auth()->user()->wishlistCount() > 0)
-    <div class="mb-5">
-        <div class="section-header">
-            <h2 class="section-title">
-                <i class="bi bi-heart-fill text-danger"></i> My Shortlist
-            </h2>
-            <a href="{{ route('customer.shortlist') }}" class="btn btn-outline-primary">View All ({{ auth()->user()->wishlistCount() }})</a>
-        </div>
-        <div class="row g-4">
-            @php
-            $shortlistItems = auth()->user()->wishlist()
-                ->with('hoarding')
-                ->latest()
-                ->limit(3)
-                ->get();
-            @endphp
-            
-            @foreach($shortlistItems as $item)
-            @if($item->hoarding)
-            <div class="col-12 col-md-6 col-lg-4">
-                <x-hoarding-card 
-                    :hoarding="$item->hoarding" 
-                    :showActions="true" 
-                    :isWishlisted="true" 
-                />
-            </div>
-            @endif
-            @endforeach
-        </div>
-    </div>
-    @endif
-
-    <!-- Nearby Hoardings (if geolocation enabled) -->
-    @if(isset($nearbyHoardings) && $nearbyHoardings->count() > 0)
-    <div class="mb-5">
-        <div class="section-header">
-            <h2 class="section-title">
-                <i class="bi bi-geo-alt-fill text-primary"></i> Near You
-            </h2>
-            <a href="{{ route('search', ['nearby' => 'true']) }}" class="btn btn-outline-primary">View All</a>
-        </div>
-        <div class="row g-4">
-            @foreach($nearbyHoardings as $hoarding)
-            <div class="col-12 col-md-6 col-lg-4">
-                <x-hoarding-card 
-                    :hoarding="$hoarding" 
-                    :showActions="true" 
-                    :isWishlisted="auth()->user()->hasWishlisted($hoarding->id)" 
-                />
-            </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
-
-    <!-- Popular Cities -->
-    <div class="mb-5">
-        <div class="section-header">
-            <h2 class="section-title">Popular Cities</h2>
-        </div>
-        <div class="row g-4">
-            @php
-            $popularCities = [
-                ['name' => 'Mumbai', 'count' => 150, 'image' => 'mumbai.jpg'],
-                ['name' => 'Delhi', 'count' => 120, 'image' => 'delhi.jpg'],
-                ['name' => 'Bangalore', 'count' => 100, 'image' => 'bangalore.jpg'],
-                ['name' => 'Pune', 'count' => 80, 'image' => 'pune.jpg'],
-                ['name' => 'Hyderabad', 'count' => 75, 'image' => 'hyderabad.jpg'],
-                ['name' => 'Chennai', 'count' => 70, 'image' => 'chennai.jpg'],
-            ];
-            @endphp
-            
-            @foreach($popularCities as $city)
-            <div class="col-6 col-md-4 col-lg-2">
-                <a href="{{ route('search', ['city' => $city['name']]) }}" class="text-decoration-none">
-                    <div class="stats-card">
-                        <div class="mb-3">
-                            <i class="bi bi-building" style="font-size: 32px; color: #667eea;"></i>
-                        </div>
-                        <h5 class="mb-1">{{ $city['name'] }}</h5>
-                        <p class="text-muted small mb-0">{{ $city['count'] }} Hoardings</p>
-                    </div>
-                </a>
-            </div>
-            @endforeach
-        </div>
-    </div>
 </div>
 @endsection
-
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const useLocationBtn = document.getElementById('useLocationBtn');
-    
-    if (useLocationBtn) {
-        useLocationBtn.addEventListener('click', function() {
-            if (navigator.geolocation) {
-                useLocationBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-                useLocationBtn.disabled = true;
-                
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        
-                        // Redirect to search with coordinates
-                        window.location.href = `/search?lat=${lat}&lng=${lng}&nearby=true`;
-                    },
-                    function(error) {
-                        alert('Could not get your location. Please enable location services.');
-                        useLocationBtn.innerHTML = '<i class="bi bi-crosshair"></i>';
-                        useLocationBtn.disabled = false;
-                    }
-                );
-            } else {
-                alert('Geolocation is not supported by your browser');
+    /* ===== DUMMY DYNAMIC DATA ===== */
+    const dashboardData = {
+        stats: {
+            totalCampaign: 22000,
+            activeCampaign: 15,
+            liveCampaign: 2,
+            endedCampaign: 0,
+        },
+        chart: [12, 14, 10, 8, 38, 22, 45, 32, 41, 44, 46, 47],
+        enquiries: [
+            {
+                title: "Bandra West Mumbai, 14360 Hoarding",
+                duration: "Jan 8, 2025 - Feb 8, 2025",
+                budget: "N/A",
+                spend: "₹50,000",
+                isNew: true
+            },
+            {
+                title: "Hazratganj Hoarding Limited",
+                duration: "Jan 8, 2025 - Feb 8, 2025",
+                budget: "₹5,00,000",
+                spend: "₹50,000",
+                isNew: false
+            },
+            {
+                title: "Hazratganj Hoarding Limited",
+                duration: "Jan 8, 2025 - Feb 8, 2025",
+                budget: "N/A",
+                spend: "₹50,000",
+                isNew: false
             }
+        ]
+    };
+
+    /* ===== STATS FILL ===== */
+    document.getElementById('totalCampaign').innerText = dashboardData.stats.totalCampaign.toLocaleString();
+    document.getElementById('activeCampaign').innerText = dashboardData.stats.activeCampaign;
+    document.getElementById('liveCampaign').innerText = dashboardData.stats.liveCampaign;
+    document.getElementById('endedCampaign').innerText = dashboardData.stats.endedCampaign;
+
+    /* ===== CHART ===== */
+    new Chart(document.getElementById('bookingChart'), {
+        type: 'line',
+        data: {
+            labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+            datasets: [{
+                data: dashboardData.chart,
+                borderColor: '#ec4899',
+                tension: 0.4,
+                pointRadius: 3,
+                fill: false
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    /* ===== ENQUIRIES RENDER ===== */
+    function renderEnquiries(list){
+        const container = document.getElementById('enquiryList');
+        container.innerHTML = '';
+
+        list.forEach(item => {
+            container.innerHTML += `
+                <div class="border rounded-lg p-4 text-sm border-gray-300">
+                    <p class="font-medium">
+                        ${item.title}
+                        ${item.isNew ? `<span class="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">New</span>` : ``}
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2 text-xs text-gray-500">
+                        <div>
+                            <p>Duration</p>
+                            <p class="text-gray-700">${item.duration}</p>
+                        </div>
+                        <div>
+                            <p>Your Budget</p>
+                            <p class="text-gray-700">${item.budget}</p>
+                        </div>
+                        <div>
+                            <p>Spend</p>
+                            <p class="text-gray-700">${item.spend}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
         });
     }
-});
+
+    /* ===== SEARCH FILTER ===== */
+    function filterEnquiries(keyword){
+        const filtered = dashboardData.enquiries.filter(e =>
+            e.title.toLowerCase().includes(keyword.toLowerCase())
+        );
+        renderEnquiries(filtered);
+    }
+
+    /* INIT */
+    renderEnquiries(dashboardData.enquiries);
 </script>
 @endpush

@@ -53,7 +53,7 @@
 <div class="px-6 py-6 flex justify-center">
 
     {{-- Breadcrumb --}}
-    <div class="w-full lg:max-w-6xl">
+    <div class="w-full max-w-none">
         <div class="text-sm text-gray-500 mb-4">
         <a href="{{ route('home') }}" class="text-decoration-none">Home</a>
         >
@@ -63,7 +63,6 @@
         >
         <span class="text-gray-800">Personal Information</span>
     </div>
-
     {{-- Card --}}
     <div class="bg-white rounded-lg border border-gray-200 p-6 w-full">
 
@@ -655,5 +654,3 @@
         });
     }
 </script>
-    </div>
-</div>

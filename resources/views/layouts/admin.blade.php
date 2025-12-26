@@ -50,8 +50,9 @@
             
             @include('layouts.partials.admin.navbar')
 
-            <main class="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8">
-                <div class="max-w-7xl mx-auto">
+            <main class="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-6">
+                  <div class="w-full max-w-none">
+
                     @include('layouts.partials.flash-messages')
                     @yield('content')
                 </div>

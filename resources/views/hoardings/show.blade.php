@@ -174,7 +174,7 @@ body { background:#fff; }
 
                     </div>
 
-                    <hr class="my-6">
+                    <hr class="my-6 border-gray-300">
 
                     {{-- ================= HOARDING DETAILS ================= --}}
                     <div class="space-y-5">
@@ -222,7 +222,7 @@ body { background:#fff; }
 
                     </div>
 
-                    <hr class="my-6">
+                    <hr class="my-6 border-gray-300">
 
                     {{-- ================= GAZEFLOW ================= --}}
                     <div>
@@ -241,7 +241,7 @@ body { background:#fff; }
                         </div>
                     </div>
 
-                    <hr class="my-6">
+                    <hr class="my-6 border-gray-300">
 
                     {{-- ================= AUDIENCE TYPE ================= --}}
                     <div>
@@ -265,7 +265,7 @@ body { background:#fff; }
                             @endforeach
                         </div>
                     </div>
-                    <hr class="my-6 border-gray-200">
+                    <hr class="my-6 border-gray-300">
 
                     {{-- ================= RECENTLY BOOKED ================= --}}
                     <div>
@@ -282,7 +282,7 @@ body { background:#fff; }
                         </div>
                     </div>
 
-                    <hr class="my-6">
+                    <hr class="my-6 border-gray-300">
 
                     {{-- ================= LOCATION ================= --}}
                     <div class="space-y-3 pb-5">
@@ -309,7 +309,7 @@ body { background:#fff; }
                         </div>
                     </div>
 
-                   
+
                     <iframe
                         src="https://www.google.com/maps?q={{ $hoarding->lat }},{{ $hoarding->lng }}&z=15&output=embed"
                         width="100%" height="280"
@@ -320,7 +320,7 @@ body { background:#fff; }
                     <h4 class="py-3">One Way View</h4>
 
                     {{-- ================= HOARDING ATTRIBUTES ================= --}}
-                    <div class="max-w-7xl mx-auto px-4 py-6 border-t">
+                    <div class="max-w-7xl mx-auto px-4 py-6 border-t border-gray-300">
 
                         <h3 class="text-base font-semibold mb-4">Hoarding Attributes</h3>
 
@@ -364,11 +364,8 @@ body { background:#fff; }
 
                     </div>
 
-
-
-
                     {{-- ================= RATING & REVIEWS ================= --}}
-                    <div class="max-w-7xl mx-auto px-4 py-8 border-t">
+                    <div class="max-w-7xl mx-auto px-4 py-8 border-t border-gray-300">
 
                         <h3 class="text-lg font-semibold mb-6">Rating & Reviews</h3>
 
@@ -421,33 +418,36 @@ body { background:#fff; }
                                 </a>
                             </div>
 
-                        </div>
-
+                    </div>
+                    
                         {{-- ================= SINGLE REVIEW ================= --}}
-                        <div class="mt-8 border-t pt-6">
+                    <div class="mt-8 border-t pt-6 border-gray-300">
 
-                            <div class="flex items-center gap-2 mb-2">
-                                {{-- Stars --}}
-                                @for($i=1;$i<=5;$i++)
-                                    <svg class="w-5 h-5 {{ $i<=4 ? 'text-yellow-400' : 'text-gray-300' }}"
-                                        fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.965a1 1 0 00.95.69h4.173c.969 0 1.371 1.24.588 1.81l-3.377 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.921-.755 1.688-1.54 1.118l-3.378-2.455a1 1 0 00-1.175 0l-3.378 2.455c-.784.57-1.838-.197-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.049 9.392c-.783-.57-.38-1.81.588-1.81h4.173a1 1 0 00.95-.69l1.286-3.965z"/>
-                                    </svg>
-                                @endfor
-                            </div>
-
-                            <p class="font-medium">Business Name</p>
-                            <p class="text-xs text-gray-500 mb-4">22 Oct, 2025</p>
-
-                            {{-- REVIEW IMAGES --}}
-                            <div class="flex gap-3">
-                                @for($i=1;$i<=3;$i++)
-                                    <img src="https://via.placeholder.com/120x90"
-                                        class="w-32 h-24 object-cover rounded border">
-                                @endfor
-                            </div>
-
+                        <div class="flex items-center gap-2 mb-2">
+                            {{-- Stars --}}
+                            @for($i=1;$i<=5;$i++)
+                                <svg class="w-5 h-5 {{ $i<=4 ? 'text-yellow-400' : 'text-gray-300' }}"
+                                    fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.965a1 1 0 00.95.69h4.173c.969 0 1.371 1.24.588 1.81l-3.377 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.921-.755 1.688-1.54 1.118l-3.378-2.455a1 1 0 00-1.175 0l-3.378 2.455c-.784.57-1.838-.197-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.049 9.392c-.783-.57-.38-1.81.588-1.81h4.173a1 1 0 00.95-.69l1.286-3.965z"/>
+                                </svg>
+                            @endfor
                         </div>
+
+                        <p class="font-medium">Business Name</p>
+                        <p class="text-xs text-gray-500 mb-4">22 Oct, 2025</p>
+
+                        {{-- REVIEW IMAGES --}}
+                        <div class="flex flex-wrap gap-3">
+                            @for($i=1;$i<=3;$i++)
+                                <img
+                                    src="https://via.placeholder.com/120x90"
+                                    class="w-full sm:w-32 h-24 object-cover rounded border"
+                                >
+                            @endfor
+                        </div>
+
+
+                    </div>
 
                     </div>
 
@@ -588,93 +588,6 @@ body { background:#fff; }
         </div>
     </div>
 </div>
-<!-- Newsletter Subscription -->
-<section class="py-12 bg-gray-900">
-    <div class="container mx-auto px-4">
-        <div class="mx-auto max-w-7xl px-6">
-            <!-- Flash Messages -->
-            @if(session('newsletter_success'))
-                <div class="mb-6 p-4 bg-green-500 text-white rounded-lg flex items-center justify-between">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        <span>{{ session('newsletter_success') }}</span>
-                    </div>
-                    <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                </div>
-            @endif
-
-            @if(session('newsletter_error'))
-                <div class="mb-6 p-4 bg-red-500 text-white rounded-lg flex items-center justify-between">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                        </svg>
-                        <span>{{ session('newsletter_error') }}</span>
-                    </div>
-                    <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                </div>
-            @endif
-
-            @if(session('newsletter_info'))
-                <div class="mb-6 p-4 bg-blue-500 text-white rounded-lg flex items-center justify-between">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                        <span>{{ session('newsletter_info') }}</span>
-                    </div>
-                    <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                </div>
-            @endif
-
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                <!-- Left Content -->
-                <div class="text-white md:w-1/2">
-                    <h2 class="text-2xl md:text-3xl mb-2">Unlock special offers just for you</h2>
-                    <p class="text-gray-300 text-sm md:text-base">The finest offers are the ones that arrive in your inbox.</p>
-                </div>
-
-                <!-- Right - Email Form -->
-                <div class="md:w-1/2 w-full max-w-md">
-                    <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex gap-2">
-                        @csrf
-                        <input 
-                            type="email" 
-                            name="email" 
-                            placeholder="Your email" 
-                            value="{{ old('email') }}"
-                            required
-                            class="flex-1 px-4 py-3 rounded-md border-none bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 @error('email') ring-2 ring-red-500 @enderror"
-                        >
-                        <button 
-                            type="submit" 
-                            class="px-8 py-3 bg-teal-500 text-white font-semibold rounded-md hover:bg-teal-600 transition-colors whitespace-nowrap"
-                        >
-                            Subscribe
-                        </button>
-                    </form>
-                    @error('email')
-                        <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 @include('components.customer.footer')
 {{-- ================= SCRIPT ================= --}}
 @push('scripts')

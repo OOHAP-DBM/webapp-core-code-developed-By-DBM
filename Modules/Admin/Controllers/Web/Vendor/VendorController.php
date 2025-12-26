@@ -11,26 +11,50 @@ use App\Models\VendorProfile;
 
 class VendorController extends Controller
 {
-    public function index(Request $request)
+    // public function index(Request $request)
+    // {
+    //     $vendors = User::role('vendor')->orderByDesc('created_at')->paginate(30);
+    //     return view('admin.vendors.index', compact('vendors'));
+    // }
+     public function index(Request $request)
     {
-        $vendors = User::role('vendor')->orderByDesc('created_at')->paginate(30);
-        return view('admin.vendors.index', compact('vendors'));
+          // default tab = Requested Vendors
+        $status = $request->get('status', 'pending_approval');
+
+        $vendors = VendorProfile::with('user')
+            ->where('onboarding_status', $status)
+            ->orderByDesc('created_at')
+            ->paginate(15);
+
+        // tab counts (top numbers)
+        $counts = VendorProfile::selectRaw("
+                SUM(onboarding_status = 'pending_approval') as requested,
+                SUM(onboarding_status = 'approved') as active,
+                SUM(onboarding_status = 'suspended') as disabled,
+                SUM(onboarding_status = 'rejected') as deleted
+            ")->first();
+
+        return view('admin.vendors.index', compact(
+            'vendors',
+            'status',
+            'counts'
+        ));
     }
 
     /**
      * Show requested vendors (pending approval)
      */
-    public function requestedVendors(Request $request)
-    {
-        $requestedVendors = VendorProfile::with('user')
-            ->where('onboarding_status', 'pending_approval')
-            ->orderByDesc('created_at')
-            ->paginate(15, ['id', 'user_id', 'company_name', 'gstin', 'pan', 'created_at']);
+    // public function requestedVendors(Request $request)
+    // {
+    //     $requestedVendors = VendorProfile::with('user')
+    //         ->where('onboarding_status', 'pending_approval')
+    //         ->orderByDesc('created_at')
+    //         ->paginate(15, ['id', 'user_id', 'company_name', 'gstin', 'pan', 'created_at']);
 
-        $requestedCount = $requestedVendors->total();
+    //     $requestedCount = $requestedVendors->total();
 
-        return view('admin.vendors.requested', compact('requestedVendors', 'requestedCount'));
-    }
+    //     return view('admin.vendors.requested', compact('requestedVendors', 'requestedCount'));
+    // }
 
     public function show($id)
     {
