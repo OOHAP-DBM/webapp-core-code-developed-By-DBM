@@ -67,68 +67,76 @@ class DOOHController extends Controller
     /**
      * Save current step as draft and move to next step
      */
-    public function store(Request $request)
+    public function store(Request $request, \Modules\DOOH\Services\DOOHScreenService $service)
     {
         $vendor = Auth::user();
-        // if (!$vendor->vendor_profile || $vendor->vendor_profile->onboarding_status !== 'approved') {
-        //     return redirect()->route('vendor.onboarding.waiting')
-        //         ->with('error', 'Your vendor onboarding is under review. You can add DOOH screens only after approval.');
-        // }
-
         $step = (int) $request->input('step', 1);
         $step = max(1, min(3, $step));
 
-        // Find or create draft
-        $draft = DOOHScreen::where('vendor_id', $vendor->id)
-            ->where('status', DOOHScreen::STATUS_DRAFT)
-            ->orderByDesc('updated_at')
-            ->first();
-        if (!$draft) {
-            $draft = new DOOHScreen();
-            $draft->vendor_id = $vendor->id;
-            $draft->status = DOOHScreen::STATUS_DRAFT;
-        }
-
-        // Validate and save only fields for current step
         if ($step === 1) {
-            $validated = $request->validate([
-                'screen_name' => 'required|string|max:255',
-                'category' => 'nullable|string|max:255',
-                'screen_type' => 'nullable|string|max:255',
-                'width' => 'nullable|numeric',
-                'height' => 'nullable|numeric',
-                'size_unit' => 'nullable|string|max:10',
-                'valid_till' => 'nullable|date',
-                // ...add other step 1 fields as per Figma
-            ]);
-            $draft->fill($validated);
-            $draft->current_step = 1;
-        } elseif ($step === 2) {
-            $validated = $request->validate([
-                'address' => 'required|string|max:255',
-                'pincode' => 'nullable|string|max:20',
-                'city' => 'nullable|string|max:100',
-                'state' => 'nullable|string|max:100',
-                // ...add other step 2 fields as per Figma
-            ]);
-            $draft->fill($validated);
-            $draft->current_step = 2;
-        } elseif ($step === 3) {
-            $validated = $request->validate([
-                'display_price' => 'required|numeric',
-                'video_length' => 'nullable|numeric',
-                // ...add other step 3 fields as per Figma
-            ]);
-            $draft->fill($validated);
-            $draft->current_step = 3;
+            $result = $service->storeStep1($vendor, $request->all(), $request->file('media', []));
+            if ($result['success']) {
+                return redirect()->route('vendor.dooh.create', ['step' => 2])
+                    ->with('success', 'Step 1 completed. Proceed to next step.');
+            }
+            return back()->withErrors($result['errors'])->withInput();
         }
 
-        $draft->status = DOOHScreen::STATUS_DRAFT;
-        $draft->save();
+        if ($step === 2) {
+            $validated = $request->validate([
+                'address'   => 'required|string|max:255',
+                'pincode'   => 'required|string|max:20',
+                'locality'  => 'required|string|max:100',
+                'city'      => 'required|string|max:100',
+                'state'     => 'required|string|max:100',
+                'latitude'  => 'nullable|numeric',
+                'longitude' => 'nullable|numeric',
+                'nearby_landmarks' => 'nullable|array',
+                'geotag'    => 'nullable|url|max:255',
+            ]);
+            $draft = DOOHScreen::where('vendor_id', $vendor->id)
+                ->where('status', DOOHScreen::STATUS_DRAFT)
+                ->orderByDesc('updated_at')
+                ->first();
+            if ($draft) {
+                $draft->fill($validated);
+                $draft->current_step = 2;
+                $draft->step1_completed = true;
+                $draft->save();
+            }
+            return redirect()->route('vendor.dooh.create', ['step' => 3])
+                ->with('success', 'Step 2 completed. Proceed to next step.');
+        }
 
-        // Move to next step or stay if last
-        $nextStep = $step < 3 ? $step + 1 : 3;
-        return redirect()->route('vendor.dooh.create', ['step' => $nextStep])
-            ->with('success', 'Draft saved.');
+        if ($step === 3) {
+            $validated = $request->validate([
+                'price_per_slot'        => 'required|numeric|min:1',
+                'price_per_month'       => 'nullable|numeric|min:0',
+                'minimum_booking_amount'=> 'nullable|numeric|min:0',
+                'min_slots_per_day'     => 'nullable|integer|min:1',
+                'allowed_formats'       => 'nullable|array',
+                'max_file_size_mb'      => 'nullable|integer|min:1',
+                'is_municipal_approved' => 'nullable|boolean',
+                'approval_document_path'=> 'nullable|string|max:255',
+                'has_power_backup'      => 'nullable|boolean',
+                'facing_direction'      => 'nullable|string|max:32',
+                'expected_footfall'     => 'nullable|integer|min:0',
+                'expected_eyeballs'     => 'nullable|integer|min:0',
+            ]);
+            $draft = DOOHScreen::where('vendor_id', $vendor->id)
+                ->where('status', DOOHScreen::STATUS_DRAFT)
+                ->orderByDesc('updated_at')
+                ->first();
+            if ($draft) {
+                $draft->fill($validated);
+                $draft->current_step = 3;
+                $draft->step2_completed = true;
+                $draft->step3_completed = true;
+                $draft->status = DOOHScreen::STATUS_PENDING_APPROVAL;
+                $draft->save();
+            }
+            return redirect()->route('vendor.dooh.create', ['step' => 3])
+                ->with('success', 'All steps completed. Listing submitted for approval.');
+        }
     }
 }

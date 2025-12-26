@@ -45,12 +45,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">GSTIN Number<span class="text-red-500">*</span></label>
-                        <input type="text" name="gstin" id="gstin" class="w-full border rounded-md p-2 uppercase" placeholder="22AAAAA0000A1Z5" required maxlength="15">
+                        <input type="text" name="gstin" id="gstin" class="w-full border rounded-md p-2 uppercase" placeholder="22AAAAA0000A1Z5"  maxlength="15">
                         <div class="error-msg text-red-500 text-xs mt-1 hidden">Please enter a valid 15-digit GSTIN.</div>
                     </div>
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">Business Type<span class="text-red-500">*</span></label>
-                        <select name="business_type" id="business_type" class="w-full border rounded-md p-2 bg-white" required>
+                        <select name="business_type" id="business_type" class="w-full border rounded-md p-2 bg-white" >
                             <option value="">Choose Business Type</option>
                             <option value="Proprietorship">Proprietorship</option>
                             <option value="Partnership">Partnership</option>
@@ -60,7 +60,7 @@
                     </div>
                     <div class="form-group md:col-span-2">
                         <label class="block text-sm font-medium mb-1">Business Name<span class="text-red-500">*</span></label>
-                        <input type="text" name="business_name" id="business_name" class="w-full border rounded-md p-2" placeholder="Legal Entity Name" required>
+                        <input type="text" name="business_name" id="business_name" class="w-full border rounded-md p-2" placeholder="Legal Entity Name" >
                         <div class="error-msg text-red-500 text-xs mt-1 hidden">Business name is required.</div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium mb-1">Street Address<span class="text-red-500">*</span></label>
-                        <input type="text" name="registered_address" id="registered_address" class="w-full border rounded-md p-2" required maxlength="64">
+                        <input type="text" name="registered_address" id="registered_address" class="w-full border rounded-md p-2"  maxlength="64">
                         <div class="flex justify-between mt-1">
                             <span class="error-msg text-red-500 text-xs hidden">Address is required.</span>
                             <small id="addressCharCount" class="text-gray-400 text-xs ml-auto">0/64 Characters</small>
@@ -79,16 +79,16 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Pincode<span class="text-red-500">*</span></label>
-                        <input type="text" name="pincode" id="pincode" class="w-full border rounded-md p-2" required maxlength="6" pattern="[0-9]{6}">
+                        <input type="text" name="pincode" id="pincode" class="w-full border rounded-md p-2"  maxlength="6" pattern="[0-9]{6}">
                         <div class="error-msg text-red-500 text-xs mt-1 hidden">Valid 6-digit pincode required.</div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">City<span class="text-red-500">*</span></label>
-                        <input type="text" name="city" id="city" class="w-full border rounded-md p-2" required>
+                        <input type="text" name="city" id="city" class="w-full border rounded-md p-2" >
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">State<span class="text-red-500">*</span></label>
-                        <input type="text" name="state" id="state" class="w-full border rounded-md p-2" required>
+                        <input type="text" name="state" id="state" class="w-full border rounded-md p-2" >
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Country</label>
@@ -103,7 +103,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">Bank Name<span class="text-red-500">*</span></label>
-                        <select name="bank_name" id="bank_name" class="w-full border rounded-md p-2 bg-white" required>
+                        <select name="bank_name" id="bank_name" class="w-full border rounded-md p-2 bg-white" >
                             <option value="">Choose Bank</option>
                             <option value="SBI">State Bank of India</option>
                             <option value="HDFC">HDFC Bank</option>
@@ -113,16 +113,16 @@
                     </div>
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">Account Number<span class="text-red-500">*</span></label>
-                        <input type="password" name="account_number" id="account_number" class="w-full border rounded-md p-2" required>
+                        <input type="password" name="account_number" id="account_number" class="w-full border rounded-md p-2" >
                     </div>
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">IFSC Code<span class="text-red-500">*</span></label>
-                        <input type="text" name="ifsc_code" id="ifsc_code" class="w-full border rounded-md p-2 uppercase" required placeholder="SBIN0001234">
+                        <input type="text" name="ifsc_code" id="ifsc_code" class="w-full border rounded-md p-2 uppercase"  placeholder="SBIN0001234">
                         <div class="error-msg text-red-500 text-xs mt-1 hidden">Invalid IFSC format.</div>
                     </div>
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">Account Holder Name<span class="text-red-500">*</span></label>
-                        <input type="text" name="account_holder_name" id="account_holder_name" class="w-full border rounded-md p-2" required>
+                        <input type="text" name="account_holder_name" id="account_holder_name" class="w-full border rounded-md p-2" >
                     </div>
                 </div>
             </div>
@@ -134,21 +134,23 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">PAN Number<span class="text-red-500">*</span></label>
-                        <input type="text" name="pan_number" id="pan_number" class="w-full border rounded-md p-2 uppercase" placeholder="ABCDE1234F" required maxlength="10">
+                        <input type="text" name="pan_number" id="pan_number" class="w-full border rounded-md p-2 uppercase" placeholder="ABCDE1234F"  maxlength="10">
                         <div class="error-msg text-red-500 text-xs mt-1 hidden">Enter a valid 10-digit PAN.</div>
                     </div>
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">Upload PAN (PDF/Image)<span class="text-red-500">*</span></label>
                         <div class="flex flex-col gap-2">
-                            <input type="file" name="pan_card_document" id="pan_card_document" accept=".pdf,.jpg,.jpeg,.png" class="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" required>
+                            <input type="file" name="pan_card_document" id="pan_card_document" accept=".pdf,.jpg,.jpeg,.png" class="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" >
                             <small class="text-gray-400">Max size: 5MB</small>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <button class="submit-btn w-full md:w-40 py-3 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 text-gray-500" type="submit" id="submitBtn" disabled>
-                Submit Details
+            {{-- <button class="submit-btn w-full md:w-40 py-3 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 text-gray-500" type="submit" id="submitBtn" disabled> --}}
+            <button class="submit-btn w-full md:w-40 py-3 rounded-lg font-semibold transition-all  bg-green-600 text-white" type="submit" id="submitBtn" >
+
+                Skip & Continue
             </button>
         </form>
     </div>
@@ -181,9 +183,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if(errorDiv) errorDiv.classList.add('hidden');
 
         // Check required
-        if (field.hasAttribute('required') && !field.value.trim()) {
-            isValid = false;
-        }
+        // if (field.hasAttribute('required') && !field.value.trim()) {
+        //     isValid = false;
+        // }
 
         // Pattern matching
         if (isValid && field.value.trim()) {
@@ -210,12 +212,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function checkFormValidity() {
-        const inputs = form.querySelectorAll('[required]');
+        // const inputs = form.querySelectorAll('[required]');
         let isFormValid = true;
 
-        inputs.forEach(input => {
-            if (!validateField(input)) isFormValid = false;
-        });
+        // inputs.forEach(input => {
+        //     if (!validateField(input)) isFormValid = false;
+        // });
 
         submitBtn.disabled = !isFormValid;
         if (isFormValid) {

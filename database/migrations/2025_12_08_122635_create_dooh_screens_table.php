@@ -26,19 +26,29 @@ return new class extends Migration
             $table->string('screen_type')->default('digital'); // digital, led, lcd
             
             // Location
-            $table->text('address')->nullable();;
-            $table->string('city')->nullable();;
-            $table->string('state')->nullable();;
+            $table->text('address')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('locality')->nullable();
+            $table->string('pincode', 10)->nullable();
+
             $table->string('country')->default('India');
             $table->decimal('lat', 10, 7)->nullable();
             $table->decimal('lng', 10, 7)->nullable();
-            
+
+
             // Screen specifications
-            $table->string('resolution')->nullable(); // e.g., "1920x1080"
+            $table->integer('resolution_width')->nullable();
+            $table->integer('resolution_height')->nullable();
+
             $table->string('screen_size')->nullable(); // e.g., "55 inch"
+            $table->enum('measurement_unit', ['sqft', 'sqm'])->default('sqft');
+            // Measurement unit for dimensions
+
             $table->decimal('width', 8, 2)->nullable(); // in feet
             $table->decimal('height', 8, 2)->nullable(); // in feet
-            
+            $table->decimal('area_sqft', 10, 2)->nullable();
+
             // Content specifications
             $table->integer('slot_duration_seconds')->default(10); // Duration per ad slot
             $table->integer('loop_duration_seconds')->default(300); // Total loop duration (5 min default)
@@ -57,7 +67,17 @@ return new class extends Migration
             // Allowed file formats
             $table->json('allowed_formats')->nullable(); // ['mp4', 'jpg', 'png']
             $table->integer('max_file_size_mb')->default(50);
-            
+            $table->enum('facing_direction', [
+                'north',
+                'south',
+                'east',
+                'west',
+                'north_east',
+                'north_west',
+                'south_east',
+                'south_west'
+            ])->nullable();
+
             // Status
             $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'suspended'])->default('draft');
             $table->unsignedInteger('current_step')->default(1); // listing step;
@@ -66,7 +86,7 @@ return new class extends Migration
             
             // API sync metadata
             $table->json('sync_metadata')->nullable(); // Store additional data from external API
-            
+            $table->string('currency', 10)->default('INR');
             $table->timestamps();
             $table->softDeletes();
             

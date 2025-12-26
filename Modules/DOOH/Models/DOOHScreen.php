@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\User;
-
+use Modules\DOOH\Models\DOOHScreenMedia;
 class DOOHScreen extends Model
 {
     use HasFactory, SoftDeletes;
@@ -27,10 +27,13 @@ class DOOHScreen extends Model
         'country',
         'lat',
         'lng',
+        'locality',
         'resolution',
         'screen_size',
         'width',
         'height',
+        'measurement_unit', // was 'unit' in validation, must match here
+        'calculated_area_sqft',
         'slot_duration_seconds',
         'loop_duration_seconds',
         'slots_per_loop',
@@ -46,6 +49,8 @@ class DOOHScreen extends Model
         'sync_status',
         'last_synced_at',
         'sync_metadata',
+        'pincode',
+        'locality',
     ];
 
     protected $casts = [
@@ -206,5 +211,12 @@ class DOOHScreen extends Model
             self::STATUS_SUSPENDED => 'Suspended',
             default => 'Unknown',
         };
+    }
+    public function media()
+    {
+        return $this->hasMany(
+            DOOHScreenMedia::class,
+            'dooh_screen_id'
+        );
     }
 }

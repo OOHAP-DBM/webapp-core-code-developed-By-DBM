@@ -120,9 +120,9 @@ class VendorOnboardingController extends Controller
     {
         $user = Auth::user();
         $profile = $user->vendorProfile;
-        if (!$user->email_verified_at || !$user->phone_verified_at) {
-            return response()->json(['message' => 'Contact verification required'], 403);
-        }
+        // if (!$user->email_verified_at || !$user->phone_verified_at) {
+        //     return response()->json(['message' => 'Contact verification required'], 403);
+        // }
         $service->saveBusinessInfo($user, $request->validated());
         $profile->onboarding_step = 3;
         $profile->onboarding_status = 'pending_approval';

@@ -4,40 +4,54 @@
 @section('title', 'Add DOOH Hoarding')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row justify-content-center">
-        {{-- <div class="col-lg-10">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="h4 mb-0 font-weight-bold">Add New DOOH Screen</h2>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0 bg-transparent p-0">
-                        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-                        <li class="breadcrumb-item active">Add DOOH</li>
-                    </ol>
-                </nav>
-            </div> --}}
+<div class="py-6 px-2 sm:px-6 lg:px-8 w-full max-w-5xl mx-auto">
 
-            <!-- Stepper -->
-            <div class="mb-4">
-                <div class="d-flex justify-content-between align-items-center stepper">
-                    <div class="step {{ $step == 1 ? 'active' : ($step > 1 ? 'completed' : '') }}">
-                        <div class="circle">1</div>
-                        <div class="label">Step 1</div>
+           <div class="w-full max-w-5xl mx-auto py-6">
+                <div class="flex items-stretch w-full bg-white border border-gray-300 rounded-full overflow-hidden h-16 shadow-sm">
+                    
+                    <div class="relative flex-1 flex items-center justify-center gap-3 pr-6 
+                        {{ $step >= 1 ? 'bg-white' : 'bg-gray-50' }}"
+                        style="clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%);">
+                        
+                        <div class="flex items-center justify-center w-8 h-8 rounded-full 
+                            {{ $step >= 1 ? 'bg-[#009A5C]' : 'bg-gray-400' }} text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <span class="font-semibold {{ $step >= 1 ? 'text-[#009A5C]' : 'text-gray-400' }}">Step 1</span>
                     </div>
-                    <div class="step-line"></div>
-                    <div class="step {{ $step == 2 ? 'active' : ($step > 2 ? 'completed' : '') }}">
-                        <div class="circle">2</div>
-                        <div class="label">Step 2</div>
+
+                    <div class="relative flex-1 flex items-center justify-center gap-3 px-6 border-l border-gray-300
+                        {{ $step >= 2 ? 'bg-white' : 'bg-gray-50' }}"
+                        style="clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%, 5% 50%);">
+                        
+                        <div class="flex items-center justify-center w-8 h-8 rounded-full 
+                            {{ $step >= 2 ? 'bg-[#009A5C]' : 'bg-gray-400' }} text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <span class="font-semibold {{ $step >= 2 ? 'text-[#009A5C]' : 'text-gray-400' }}">Step 2</span>
                     </div>
-                    <div class="step-line"></div>
-                    <div class="step {{ $step == 3 ? 'active' : '' }}">
-                        <div class="circle">3</div>
-                        <div class="label">Step 3</div>
+
+                    <div class="relative flex-1 flex items-center justify-center gap-3 pl-6 border-l border-gray-300
+                        {{ $step >= 3 ? 'bg-white' : 'bg-gray-50' }}"
+                        style="clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 5% 50%);">
+                        
+                        <div class="flex items-center justify-center w-8 h-8 rounded-full 
+                            {{ $step >= 3 ? 'bg-[#009A5C]' : 'bg-gray-400' }} text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <span class="font-semibold {{ $step >= 3 ? 'text-[#009A5C]' : 'text-gray-400' }}">Step 3</span>
                     </div>
+
                 </div>
             </div>
 
-            <form action="{{ route('vendor.dooh.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('vendor.dooh.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                 @csrf
                 <input type="hidden" name="step" value="{{ $step }}">
 
@@ -49,9 +63,9 @@
                     @include('dooh.vendor.partials.step3', ['draft' => $draft])
                 @endif
 
-                <div class="d-flex justify-content-end gap-2 mb-5">
-                    <a href="{{ route('hoardings.index') }}" class="btn btn-light px-4">Cancel</a>
-                    <button type="submit" class="btn btn-primary px-5 shadow-sm">
+                <div class="flex justify-end gap-3 mb-8">
+                    <a href="{{ route('hoardings.index') }}" class="px-5 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">Cancel</a>
+                    <button type="submit" class="px-7 py-2 rounded bg-green-600 text-white font-semibold shadow hover:bg-green-700 transition">
                         @if($step < 3)
                             Next
                         @else
@@ -64,30 +78,5 @@
     </div>
 </div>
 
-<style>
-    .stepper { gap: 0.5rem; }
-    .step { display: flex; flex-direction: column; align-items: center; min-width: 80px; }
-    .circle {
-        width: 32px; height: 32px; border-radius: 50%;
-        background: #fff; border: 2px solid #C8C8C8; color: #C8C8C8;
-        display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1.1rem;
-        margin-bottom: 4px;
-        transition: all 0.2s;
-    }
-    .step.active .circle {
-        border-color: #009A5C; color: #009A5C; background: #E6F7F0;
-    }
-    .step.completed .circle {
-        border-color: #009A5C; color: #fff; background: #009A5C;
-    }
-    .label { font-size: 0.95rem; color: #7D7D7D; font-weight: 500; }
-    .step-line {
-        flex: 1 1 0%; height: 2px; background: #C8C8C8; margin: 0 0.5rem;
-    }
-    .step.completed ~ .step-line { background: #009A5C; }
-    .form-label { font-weight: 500; color: #4b5563; font-size: 0.9rem; }
-    .form-control:focus { border-color: #6366f1; box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15); }
-    .card { border-radius: 12px; }
-    .btn-primary { background-color: #009A5C; border: none; }
-</style>
+<!-- All styling handled by Tailwind CSS classes -->
 @endsection

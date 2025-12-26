@@ -102,7 +102,6 @@ class OnboardingController extends Controller
         }
         return view('vendor.onboarding.company-details', compact('profile'));
     }
-
     public function storeCompanyDetails(CompanyDetailsRequest $request)
     {
         $profile = $this->getVendorProfile();
@@ -124,6 +123,39 @@ class OnboardingController extends Controller
         return redirect()->route('vendor.onboarding.business-info')
             ->with('success', 'Company details saved successfully!');
     }
+    public function showContactDetails()
+    {
+        $profile = $this->getVendorProfile();
+        if ($profile->onboarding_step == 2) {
+            return redirect()->route('vendor.onboarding.business-info');
+        }
+        if ($profile->onboarding_step >= 3) {
+            return redirect()->route('vendor.dashboard');
+        }
+        return view('vendor.onboarding.contact-details', compact('profile'));
+    }
+
+    // public function storeContactDetails( $request)
+    // {
+    //     $profile = $this->getVendorProfile();
+
+    //     $profile->update([
+    //         'company_name' => $request->company_name,
+    //         'company_registration_number' => $request->company_registration_number,
+    //         'company_type' => $request->company_type,
+    //         'gstin' => $request->gstin,
+    //         'pan' => $request->pan,
+    //         'registered_address' => $request->registered_address,
+    //         'city' => $request->city,
+    //         'state' => $request->state,
+    //         'pincode' => $request->pincode,
+    //         'website' => $request->website,
+    //         'onboarding_step' => max($profile->onboarding_step, 2),
+    //     ]);
+
+    //     return redirect()->route('vendor.onboarding.business-info')
+    //         ->with('success', 'Company details saved successfully!');
+    // }
 
     /**
      * Step 2: Business Information

@@ -85,8 +85,8 @@ class LoginController extends Controller
      */
     protected function redirectBasedOnRole(User $user)
     {
-        // $role = $user->getPrimaryRole();
-        $role = $user->active_role;
+        $role = $user->getPrimaryRole();
+        // $role = $user->active_role;
 
         switch ($role) {
             case 'customer':
@@ -113,7 +113,7 @@ class LoginController extends Controller
 
         // // If no vendor profile exists, redirect to onboarding
         if (!$vendorProfile) {
-            return redirect()->route('vendor.onboarding.company-details')
+            return redirect()->route('vendor.onboarding.contact-details')
                 ->with('info', 'Please complete your vendor onboarding.');
         }
         // Check onboarding status
@@ -142,7 +142,7 @@ class LoginController extends Controller
                     ->with('error', 'Your vendor account has been suspended. Please contact support.');
 
             default:
-                return redirect()->route('vendor.onboarding.company-details');
+                return redirect()->route('vendor.onboarding.contact-details');
         }
     }
 
@@ -152,14 +152,14 @@ class LoginController extends Controller
     protected function redirectToOnboardingStep(int $step)
     {
         $routes = [
-            1 => 'vendor.onboarding.company-details',
+            1 => 'vendor.onboarding.contact-details',
             2 => 'vendor.onboarding.business-info',
             3 => 'vendor.onboarding.kyc-documents',
             4 => 'vendor.onboarding.bank-details',
             5 => 'vendor.onboarding.terms-agreement',
         ];
 
-        $route = $routes[$step] ?? 'vendor.onboarding.company-details';
+        $route = $routes[$step] ?? 'vendor.onboarding.contact-details';
 
         return redirect()->route($route)
             ->with('info', 'Please complete your vendor onboarding.');

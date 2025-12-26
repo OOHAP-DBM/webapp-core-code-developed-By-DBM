@@ -92,9 +92,9 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor/onboarding')->name('v
     Route::post('/verify-email', [OnboardingController::class, 'verifyEmailOtp'])->name('verify-email');
     Route::post('/send-phone', [OnboardingController::class, 'sendPhoneOtp'])->name('send-phone');
     Route::post('/verify-phone', [OnboardingController::class, 'verifyPhoneOtp'])->name('verify-phone');
-    // Step 1: Company Details
-    Route::get('/company-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showCompanyDetails'])->name('company-details');
-    Route::post('/company-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeCompanyDetails'])->name('company-details.store');
+    // Step 1: Contact Details
+    Route::get('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showContactDetails'])->name('contact-details');
+    Route::post('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeContactDetails'])->name('contact-details.store');
     
     // Step 2: Business Information
     Route::get('/business-info', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showBusinessInfo'])->name('business-info');
