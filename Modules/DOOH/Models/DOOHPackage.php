@@ -12,6 +12,7 @@ class DOOHPackage extends Model
 {
     use HasFactory, SoftDeletes;
 
+
     protected $table = 'dooh_packages';
 
     protected $fillable = [
@@ -29,6 +30,8 @@ class DOOHPackage extends Model
         'discount_percent',
         'package_type',
         'is_active',
+        'duration',
+        'custom_fields',
     ];
 
     protected $casts = [
@@ -37,6 +40,7 @@ class DOOHPackage extends Model
         'discount_percent' => 'decimal:2',
         'time_slots' => 'array',
         'is_active' => 'boolean',
+        'custom_fields' => 'array',
     ];
 
     // Package type constants

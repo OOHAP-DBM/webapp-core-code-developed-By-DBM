@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             
             // Relationships
-            $table->foreignId('hoarding_id')->constrained()->onDelete('cascade');
+            $table->foreignId('dooh_screen_id')->constrained('dooh_screens')->onDelete('cascade');
             $table->foreignId('booking_id')->nullable()->constrained()->onDelete('set null');
             
             // Slot Configuration
@@ -60,7 +60,7 @@ return new class extends Migration
             $table->softDeletes();
             
             // Indexes
-            $table->index('hoarding_id');
+            $table->index('dooh_screen_id');
             $table->index('booking_id');
             $table->index('status');
             $table->index(['start_date', 'end_date']);

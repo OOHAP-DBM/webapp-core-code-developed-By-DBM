@@ -83,60 +83,71 @@ class DOOHController extends Controller
         }
 
         if ($step === 2) {
-            $validated = $request->validate([
-                'address'   => 'required|string|max:255',
-                'pincode'   => 'required|string|max:20',
-                'locality'  => 'required|string|max:100',
-                'city'      => 'required|string|max:100',
-                'state'     => 'required|string|max:100',
-                'latitude'  => 'nullable|numeric',
-                'longitude' => 'nullable|numeric',
-                'nearby_landmarks' => 'nullable|array',
-                'geotag'    => 'nullable|url|max:255',
-            ]);
             $draft = DOOHScreen::where('vendor_id', $vendor->id)
                 ->where('status', DOOHScreen::STATUS_DRAFT)
                 ->orderByDesc('updated_at')
                 ->first();
-            if ($draft) {
-                $draft->fill($validated);
-                $draft->current_step = 2;
-                $draft->step1_completed = true;
-                $draft->save();
+            if (!$draft) {
+                return back()->withErrors(['step2' => 'Draft not found.'])->withInput();
             }
-            return redirect()->route('vendor.dooh.create', ['step' => 3])
-                ->with('success', 'Step 2 completed. Proceed to next step.');
+
+            // Handle skip
+            if ($request->input('skip_step2')) {
+                $draft->current_step = 3;
+                $draft->save();
+                return redirect()->route('vendor.dooh.create', ['step' => 3])
+                    ->with('success', 'Step 2 skipped. Proceed to next step.');
+            }
+
+            // Collect all step 2 fields from request
+            $data = [
+                'nagar_nigam_approved' => $request->input('nagar_nigam_approved'),
+                'block_dates' => $request->input('block_dates'),
+                'grace_period' => $request->input('grace_period'),
+                'audience_types' => $request->input('audience_type'),
+                'visible_from' => $request->input('visible_from'),
+                'located_at' => $request->input('located_at'),
+                'hoarding_visibility' => $request->input('hoarding_visibility'),
+                'visibility_details' => $request->input('visibility_details'),
+            ];
+            $brandLogoFiles = $request->file('brand_logos', []);
+
+            $result = $service->storeStep2($draft, $data, $brandLogoFiles);
+            if ($result['success']) {
+                return redirect()->route('vendor.dooh.create', ['step' => 3])
+                    ->with('success', 'Step 2 completed. Proceed to next step.');
+            }
+            return back()->withErrors($result['errors'])->withInput();
         }
 
         if ($step === 3) {
-            $validated = $request->validate([
-                'price_per_slot'        => 'required|numeric|min:1',
-                'price_per_month'       => 'nullable|numeric|min:0',
-                'minimum_booking_amount'=> 'nullable|numeric|min:0',
-                'min_slots_per_day'     => 'nullable|integer|min:1',
-                'allowed_formats'       => 'nullable|array',
-                'max_file_size_mb'      => 'nullable|integer|min:1',
-                'is_municipal_approved' => 'nullable|boolean',
-                'approval_document_path'=> 'nullable|string|max:255',
-                'has_power_backup'      => 'nullable|boolean',
-                'facing_direction'      => 'nullable|string|max:32',
-                'expected_footfall'     => 'nullable|integer|min:0',
-                'expected_eyeballs'     => 'nullable|integer|min:0',
-            ]);
             $draft = DOOHScreen::where('vendor_id', $vendor->id)
                 ->where('status', DOOHScreen::STATUS_DRAFT)
                 ->orderByDesc('updated_at')
                 ->first();
-            if ($draft) {
-                $draft->fill($validated);
-                $draft->current_step = 3;
-                $draft->step2_completed = true;
-                $draft->step3_completed = true;
+            if (!$draft) {
+                return back()->withErrors(['step3' => 'Draft not found.'])->withInput();
+            }
+
+            // Handle skip
+            if ($request->input('skip_step3')) {
+                $draft->current_step = 4; // or mark as completed/ready for approval
                 $draft->status = DOOHScreen::STATUS_PENDING_APPROVAL;
                 $draft->save();
+                return redirect()->route('vendor.dooh.create', ['step' => 3])
+                    ->with('success', 'Step 3 skipped. Listing submitted for approval.');
             }
-            return redirect()->route('vendor.dooh.create', ['step' => 3])
-                ->with('success', 'All steps completed. Listing submitted for approval.');
+
+            $result = $service->storeStep3($draft, $request->all());
+            if ($result['success']) {
+                $draft->status = DOOHScreen::STATUS_PENDING_APPROVAL;
+                $draft->current_step = 3; // Mark as finished
+                $draft->save();
+
+                return redirect()->route('vendor.dooh.create', ['step' => 3])
+                    ->with('success', 'All steps completed. Listing submitted for approval.');
+            }
+            return back()->withErrors($result['errors'])->withInput();
         }
     }
 }

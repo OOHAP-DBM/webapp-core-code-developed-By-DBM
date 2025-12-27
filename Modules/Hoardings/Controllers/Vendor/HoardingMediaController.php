@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Vendor;
+namespace Modules\Hoardings\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
 use App\Models\Hoarding;

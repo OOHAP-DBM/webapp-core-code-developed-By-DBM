@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-use App\Models\DOOHSlot;
+use Modules\DOOH\Models\DOOHSlot;
 use App\Services\DOOHSlotService;
 use Carbon\Carbon;
 

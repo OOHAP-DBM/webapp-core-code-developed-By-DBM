@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\DOOHSlot;
+use Modules\DOOH\Models\DOOHSlot;
 use App\Models\Hoarding;
 use App\Models\Booking;
 use App\Services\DOOHSlotService;
