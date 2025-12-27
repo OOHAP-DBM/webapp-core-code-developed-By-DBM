@@ -5,9 +5,11 @@ namespace Modules\Hoardings\Services;
 use App\Models\Hoarding;
 use App\Models\HoardingGeo;
 use Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
+use Modules\DOOH\Models\DOOHScreen;
+use Illuminate\Support\Facades\Request;
 
 class HoardingService
 {
@@ -372,5 +374,45 @@ class HoardingService
     public function getMapPins(array $filters = []): Collection
     {
         return $this->hoardingRepository->getMapPins($filters);
+    }
+
+    // Modules/Hoardings/Services/HoardingService.php
+
+    public function getActiveHoardings(array $params = [])
+    {
+        $perPage = $params['per_page'] ?? 12;
+
+        // 1. Fetch Static Hoardings
+        $static = Hoarding::where('status', 'active')
+            ->with(['vendor', 'media'])
+            ->get()
+            ->map(function ($item) {
+                $item->is_digital = false; // Flag to identify in Blade
+                return $item;
+            });
+
+        // 2. Fetch Digital (DOOH) Hoardings
+        $digital = DOOHScreen::where('status', 'active')
+            ->with(['vendor', 'media'])
+            ->get()
+            ->map(function ($item) {
+                $item->is_digital = true; // Flag to identify in Blade
+                return $item;
+            });
+
+        // 3. Merge and Sort
+        $merged = $static->concat($digital)->sortByDesc('created_at');
+
+        // 4. Manually Paginate the merged collection
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $currentItems = $merged->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+        return new LengthAwarePaginator(
+            $currentItems,
+            $merged->count(),
+            $perPage,
+            $currentPage,
+            ['path' => Request::url(), 'query' => Request::query()]
+        );
     }
 }

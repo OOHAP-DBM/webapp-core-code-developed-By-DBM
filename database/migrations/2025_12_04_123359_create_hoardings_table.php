@@ -14,16 +14,19 @@ return new class extends Migration
         Schema::create('hoardings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vendor_id')->constrained('users')->onDelete('cascade');
-            $table->string('title');
+            $table->string('title')->nullable();
             $table->text('description')->nullable();
-            $table->text('address');
-            $table->decimal('lat', 10, 7);
-            $table->decimal('lng', 10, 7);
+            $table->text('address')->nullable();
+            $table->decimal('lat', 10, 7)->nullable();
+            $table->decimal('lng', 10, 7)->nullable();
             $table->decimal('weekly_price', 10, 2)->nullable();
-            $table->decimal('monthly_price', 10, 2);
+            $table->decimal('monthly_price', 10, 2)->nullable();
             $table->boolean('enable_weekly_booking')->default(true);
             $table->enum('type', ['billboard', 'digital', 'transit', 'street_furniture', 'wallscape', 'mobile'])->default('billboard');
             $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'suspended'])->default('draft');
+            $table->boolean('is_featured')->nullable();
+            $table->unsignedInteger('grace_period_days')->default(0);
+            $table->decimal('commission_percent', 5, 2)->nullable();
             $table->timestamps();
             $table->softDeletes();
 

@@ -42,6 +42,7 @@ class Hoarding extends Model implements HasMedia
         'grace_period_days',
         'type',
         'status',
+        'commission_percent'
     ];
 
     /**

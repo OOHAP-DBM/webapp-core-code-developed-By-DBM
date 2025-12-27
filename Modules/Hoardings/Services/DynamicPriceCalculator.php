@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace Modules\Hoardings\Services;
 
 use App\Models\Hoarding;
 use Modules\DOOH\Models\DOOHPackage;
 use Modules\Settings\Services\SettingsService;
 use Carbon\Carbon;
+use App\Services\TaxService;
 use Exception;
 
 /**

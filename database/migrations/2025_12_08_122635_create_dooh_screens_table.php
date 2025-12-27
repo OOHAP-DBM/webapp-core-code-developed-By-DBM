@@ -82,6 +82,7 @@ return new class extends Migration
             $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'suspended'])->default('draft');
             $table->unsignedInteger('current_step')->default(1); // listing step;
             $table->enum('sync_status', ['pending', 'synced', 'failed'])->default('pending');
+            $table->decimal('commission_percent', 5, 2)->nullable();
             $table->timestamp('last_synced_at')->nullable();
             
             // API sync metadata

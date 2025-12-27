@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\DOOHSlot;
+use Modules\DOOH\Models\DOOHSlot;
 use App\Models\Hoarding;
 use App\Models\Booking;
 use Carbon\Carbon;

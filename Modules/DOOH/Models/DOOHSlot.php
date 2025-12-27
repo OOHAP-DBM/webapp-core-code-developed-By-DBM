@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace Modules\DOOH\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
-
+use App\Models\Booking;
+// use App\Models\Hoarding;
+use Modules\DOOH\Models\DOOHScreen as Hoarding;
 class DOOHSlot extends Model
 {
     use HasFactory, SoftDeletes;
@@ -14,7 +16,7 @@ class DOOHSlot extends Model
     protected $table = 'dooh_slots';
 
     protected $fillable = [
-        'hoarding_id',
+        'dooh_screen_id',
         'booking_id',
         'slot_name',
         'start_time',
@@ -66,14 +68,41 @@ class DOOHSlot extends Model
         'metadata' => 'array',
     ];
 
+
     /**
      * Boot method to auto-calculate fields
      */
+    // protected static function boot()
+    // {
+    //     parent::boot();
+
+    //     static::creating(function ($slot) {
+    //         $slot->calculateDisplayMetrics();
+    //         $slot->calculateCosts();
+    //     });
+
+    //     static::updating(function ($slot) {
+    //         if ($slot->isDirty(['start_time', 'end_time', 'duration_seconds', 'frequency_per_hour', 'ads_in_loop'])) {
+    //             $slot->calculateDisplayMetrics();
+    //         }
+
+    //         if ($slot->isDirty(['total_daily_displays', 'price_per_display', 'start_date', 'end_date'])) {
+    //             $slot->calculateCosts();
+    //         }
+    //     });
+    // }
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($slot) {
+            // --- ADD SANITY DEFAULTS HERE ---
+            $slot->frequency_per_hour = $slot->frequency_per_hour ?: 6;
+            $slot->duration_seconds = $slot->duration_seconds ?: 30;
+            $slot->ads_in_loop = $slot->ads_in_loop ?: 6;
+            $slot->status = $slot->status ?: 'available';
+            $slot->is_active = $slot->is_active ?? true;
+
             $slot->calculateDisplayMetrics();
             $slot->calculateCosts();
         });
@@ -82,7 +111,7 @@ class DOOHSlot extends Model
             if ($slot->isDirty(['start_time', 'end_time', 'duration_seconds', 'frequency_per_hour', 'ads_in_loop'])) {
                 $slot->calculateDisplayMetrics();
             }
-            
+
             if ($slot->isDirty(['total_daily_displays', 'price_per_display', 'start_date', 'end_date'])) {
                 $slot->calculateCosts();
             }
@@ -130,7 +159,7 @@ class DOOHSlot extends Model
 
     public function scopeForHoarding($query, $hoardingId)
     {
-        return $query->where('hoarding_id', $hoardingId);
+        return $query->where('dooh_screen_id', $hoardingId);
     }
 
     public function scopeInDateRange($query, $startDate, $endDate)
@@ -154,29 +183,70 @@ class DOOHSlot extends Model
     /**
      * Calculate display metrics
      */
+    // public function calculateDisplayMetrics()
+    // {
+    //     // Calculate hours in slot
+    //     $start = Carbon::parse($this->start_time);
+    //     $end = Carbon::parse($this->end_time);
+    //     $hoursInSlot = $end->diffInHours($start);
+
+    //     // If end time is before start time, it spans midnight
+    //     if ($hoursInSlot <= 0) {
+    //         $hoursInSlot = 24 - $start->hour + $end->hour;
+    //     }
+
+    //     // Total displays per hour
+    //     $this->total_hourly_displays = $this->frequency_per_hour;
+
+    //     // Total daily displays
+    //     $this->total_daily_displays = $this->frequency_per_hour * $hoursInSlot;
+
+    //     // Calculate interval between displays
+    //     // 3600 seconds in an hour, divided by frequency
+    //     // Total daily displays
+    //     $this->total_daily_displays = ($this->frequency_per_hour ?? 0) * $hoursInSlot;
+
+    //     // Calculate interval between displays
+    //     // 3600 seconds in an hour, divided by frequency
+    //     if ($this->frequency_per_hour > 0) {
+    //         $this->interval_seconds = 3600 / $this->frequency_per_hour;
+    //     } else {
+    //         $this->interval_seconds = 0; // Or a default value
+    //     }
+
+    //     // Generate loop schedule
+    //     $this->generateLoopSchedule();
+    // }
     public function calculateDisplayMetrics()
     {
-        // Calculate hours in slot
+        // Parse times
         $start = Carbon::parse($this->start_time);
         $end = Carbon::parse($this->end_time);
+
+        // Calculate hours in slot
         $hoursInSlot = $end->diffInHours($start);
-        
-        // If end time is before start time, it spans midnight
+
+        // If end time is before start time (or same), it spans midnight
         if ($hoursInSlot <= 0) {
             $hoursInSlot = 24 - $start->hour + $end->hour;
         }
+        // Safety: Ensure at least 1 hour to avoid zero multiplication
+        $hoursInSlot = $hoursInSlot > 0 ? $hoursInSlot : 1;
 
         // Total displays per hour
-        $this->total_hourly_displays = $this->frequency_per_hour;
+        $this->total_hourly_displays = (int)($this->frequency_per_hour ?? 6);
 
         // Total daily displays
-        $this->total_daily_displays = $this->frequency_per_hour * $hoursInSlot;
+        $this->total_daily_displays = $this->total_hourly_displays * $hoursInSlot;
 
-        // Calculate interval between displays
-        // 3600 seconds in an hour, divided by frequency
-        $this->interval_seconds = 3600 / $this->frequency_per_hour;
+        // Calculate interval between displays (3600 seconds in an hour)
+        if ($this->total_hourly_displays > 0) {
+            $this->interval_seconds = 3600 / $this->total_hourly_displays;
+        } else {
+            $this->interval_seconds = 600; // Default 10 minute interval if frequency is 0
+        }
 
-        // Generate loop schedule
+        // Generate the JSON schedule
         $this->generateLoopSchedule();
     }
 
@@ -214,46 +284,88 @@ class DOOHSlot extends Model
     /**
      * Generate detailed loop schedule
      */
+    // public function generateLoopSchedule()
+    // {
+    //     $schedule = [];
+
+    //     $start = Carbon::parse($this->start_time);
+    //     $end = Carbon::parse($this->end_time);
+    //     $currentTime = $start->copy();
+
+    //     $displayNumber = 0;
+    //     $loopCycle = 0;
+
+    //     // Generate schedule for entire slot duration
+    //     while ($currentTime->lt($end) || ($currentTime->format('H:i') === $end->format('H:i'))) {
+    //         $displayNumber++;
+
+    //         // Calculate which loop cycle this belongs to
+    //         if ($this->ads_in_loop > 0) {
+    //             $loopCycle = ceil($displayNumber / $this->ads_in_loop);
+    //         }
+
+    //         $schedule[] = [
+    //             'display_number' => $displayNumber,
+    //             'time' => $currentTime->format('H:i:s'),
+    //             'loop_cycle' => $loopCycle,
+    //             'position_in_loop' => $this->loop_position ?? (($displayNumber - 1) % $this->ads_in_loop) + 1,
+    //             'duration_seconds' => $this->duration_seconds,
+    //         ];
+
+    //         // Move to next display time
+    //         $currentTime->addSeconds($this->interval_seconds);
+
+    //         // Break if we've exceeded reasonable limit
+    //         if ($displayNumber > 1000) {
+    //             break;
+    //         }
+    //     }
+
+    //     $this->loop_schedule = $schedule;
+    // }
+
     public function generateLoopSchedule()
     {
+        // 1. Force the interval to be a numeric type
+        $interval = (float) $this->interval_seconds;
+
+        // 2. Safety Guard: Prevent infinite loops if interval is 0
+        if ($interval <= 0) {
+            $this->loop_schedule = [];
+            return;
+        }
+
+        $adsCount = $this->ads_in_loop > 0 ? $this->ads_in_loop : 1;
+        $duration = $this->duration_seconds > 0 ? $this->duration_seconds : 30;
+
         $schedule = [];
-        
         $start = Carbon::parse($this->start_time);
         $end = Carbon::parse($this->end_time);
         $currentTime = $start->copy();
-        
-        $displayNumber = 0;
-        $loopCycle = 0;
 
-        // Generate schedule for entire slot duration
+        $displayNumber = 0;
+
         while ($currentTime->lt($end) || ($currentTime->format('H:i') === $end->format('H:i'))) {
             $displayNumber++;
-            
-            // Calculate which loop cycle this belongs to
-            if ($this->ads_in_loop > 0) {
-                $loopCycle = ceil($displayNumber / $this->ads_in_loop);
-            }
+
+            $loopCycle = ($adsCount > 0) ? ceil($displayNumber / $adsCount) : 1;
 
             $schedule[] = [
-                'display_number' => $displayNumber,
-                'time' => $currentTime->format('H:i:s'),
-                'loop_cycle' => $loopCycle,
-                'position_in_loop' => $this->loop_position ?? (($displayNumber - 1) % $this->ads_in_loop) + 1,
-                'duration_seconds' => $this->duration_seconds,
+                'display_number'   => $displayNumber,
+                'time'             => $currentTime->format('H:i:s'),
+                'loop_cycle'       => (int) $loopCycle,
+                'position_in_loop' => $this->loop_position ?? (($displayNumber - 1) % $adsCount) + 1,
+                'duration_seconds' => $duration,
             ];
 
-            // Move to next display time
-            $currentTime->addSeconds($this->interval_seconds);
+            // FIX: Pass the explicitly casted $interval variable
+            $currentTime->addSeconds($interval);
 
-            // Break if we've exceeded reasonable limit
-            if ($displayNumber > 1000) {
-                break;
-            }
+            if ($displayNumber > 1000) break;
         }
 
         $this->loop_schedule = $schedule;
     }
-
     /**
      * Check if slot conflicts with another slot
      */
@@ -460,7 +572,7 @@ class DOOHSlot extends Model
      */
     public static function getAvailabilityForHoarding($hoardingId, $startDate, $endDate, $startTime = null, $endTime = null)
     {
-        $query = static::where('hoarding_id', $hoardingId)
+        $query = static::where('dooh_screen_id', $hoardingId)
             ->where('is_active', true);
 
         // Check for date conflicts

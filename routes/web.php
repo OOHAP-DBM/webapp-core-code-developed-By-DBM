@@ -356,14 +356,14 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/threads/unread-count', [\App\Http\Controllers\Vendor\ThreadController::class, 'unreadCount'])->name('threads.unread-count');
     
     // Listings Management (PROMPT 26)
-    Route::get('/listings', [\App\Http\Controllers\Vendor\ListingController::class, 'index'])->name('listings.index');
-    Route::get('/listings/create', [\App\Http\Controllers\Vendor\ListingController::class, 'create'])->name('listings.create');
-    Route::post('/listings', [\App\Http\Controllers\Vendor\ListingController::class, 'store'])->name('listings.store');
-    Route::get('/listings/{id}/edit', [\App\Http\Controllers\Vendor\ListingController::class, 'edit'])->name('listings.edit');
-    Route::put('/listings/{id}', [\App\Http\Controllers\Vendor\ListingController::class, 'update'])->name('listings.update');
-    Route::delete('/listings/{id}', [\App\Http\Controllers\Vendor\ListingController::class, 'destroy'])->name('listings.destroy');
-    Route::get('/listings/bulk-update', [\App\Http\Controllers\Vendor\ListingController::class, 'bulkUpdate'])->name('listings.bulk-update');
-    Route::post('/listings/bulk-update-submit', [\App\Http\Controllers\Vendor\ListingController::class, 'bulkUpdateSubmit'])->name('listings.bulk-update-submit');
+    Route::get('/listings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'index'])->name('listings.index');
+    Route::get('/listings/create', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'create'])->name('hoardings.create');
+    Route::post('/listings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'store'])->name('listings.store');
+    Route::get('/listings/{id}/edit', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'edit'])->name('listings.edit');
+    Route::put('/listings/{id}', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'update'])->name('listings.update');
+    Route::delete('/listings/{id}', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'destroy'])->name('listings.destroy');
+    Route::get('/listings/bulk-update', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'bulkUpdate'])->name('listings.bulk-update');
+    Route::post('/listings/bulk-update-submit', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'bulkUpdateSubmit'])->name('listings.bulk-update-submit');
     
     // Bookings Management (PROMPT 48 - Enhanced)
     Route::prefix('bookings')->name('bookings.')->group(function () {

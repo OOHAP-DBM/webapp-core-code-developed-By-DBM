@@ -21,7 +21,7 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 use App\Models\Hoarding;
-use App\Models\DOOHSlot;
+use Modules\DOOH\Models\DOOHSlot;
 use App\Models\Booking;
 use App\Services\DOOHSlotService;
 use Carbon\Carbon;
