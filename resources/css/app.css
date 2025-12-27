@@ -35,10 +35,10 @@
 .admin-sidebar .sidebar-link {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    gap: 1rem;
+    padding: 0.75rem 0.75rem;
     border-radius: 0.75rem;
-    font-size: 1rem;
+    font-size: 0.80rem;
     font-weight: 500;
     color: #374151;
     text-decoration: none;
@@ -59,15 +59,82 @@
 ================================= */
 
 .admin-sidebar .sidebar-link.active {
-    background-color: var(--btn-color);
-    color: #ffffff;
-    font-weight: 600;
+    background-color: var(--btn-color-dark) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-radius: 0.75rem !important;
+}
+
+/* Active Collapsible Buttons */
+.admin-sidebar button.active {
+    background-color: var(--btn-color-dark) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-radius: 0.75rem !important;
+}
+
+/* Parent Button Green When Any Submenu Item is Active */
+.admin-sidebar li:has(.sidebar-submenu-item.active) > button {
+    background-color: var(--btn-color-dark) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-radius: 0.75rem !important;
+}
+
+/* Parent Button SVG White When Any Submenu Item is Active */
+.admin-sidebar li:has(.sidebar-submenu-item.active) > button svg,
+.admin-sidebar li:has(.sidebar-submenu-item.active) > button svg path,
+.admin-sidebar li:has(.sidebar-submenu-item.active) > button svg * {
+    fill: #ffffff !important;
+    color: #ffffff !important;
+}
+
+/* Hover State for Dropdown Buttons */
+.admin-sidebar button:hover:not(.active) {
+    background-color: rgba(34, 197, 94, 0.12);
+    color: var(--btn-color);
+}
+
+/* Active Submenu Links */
+.admin-sidebar .sidebar-submenu-item.active {
+    background-color: var(--btn-color-dark) !important;
+    color: #ffffff !important;
+}
+
+/* Hover State for Submenu Items */
+.admin-sidebar .sidebar-submenu-item:hover:not(.active) {
+    background-color: rgba(34, 197, 94, 0.12);
+    color: var(--btn-color);
 }
 
 /* Active SVG Icons */
+.admin-sidebar .sidebar-link.active svg,
 .admin-sidebar .sidebar-link.active svg path,
-.admin-sidebar .sidebar-link.active svg rect {
-    fill: #ffffff;
+.admin-sidebar .sidebar-link.active svg rect,
+.admin-sidebar .sidebar-link.active svg g path,
+.admin-sidebar .sidebar-link.active svg * {
+    fill: #ffffff !important;
+    color: #ffffff !important;
+}
+
+.admin-sidebar button.active svg,
+.admin-sidebar button.active svg path,
+.admin-sidebar button.active svg rect,
+.admin-sidebar button.active svg g path,
+.admin-sidebar button.active svg * {
+    fill: #ffffff !important;
+    color: #ffffff !important;
+}
+
+.admin-sidebar .sidebar-submenu-item.active svg,
+.admin-sidebar .sidebar-submenu-item.active svg * {
+    fill: #ffffff !important;
+}
+
+.admin-sidebar .sidebar-link.active i,
+.admin-sidebar button.active i,
+.admin-sidebar .sidebar-submenu-item.active i {
+    color: #ffffff !important;
 }
 
 /* =================================
@@ -79,6 +146,19 @@
     font-weight: 600;
     color: #6b7280;
     margin: 0.5rem 0 0.25rem 0.5rem;
+}
+
+.submenu-item-indent {
+    margin-left: 25px;
+}
+
+.logout-btn-red {
+    color: #ef4444 !important;
+}
+
+.logout-btn-red:hover {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
 }
 
 /* =================================
@@ -104,10 +184,40 @@
 
 @media (max-width: 768px) {
     .admin-header {
-        flex-direction: column;
-        height: auto;
-        padding: 1rem 0.5rem;
+        padding: 0.75rem 0.5rem !important;
+        height: auto !important;
         gap: 0.5rem;
+    }
+
+    .admin-header > div:first-child {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .admin-header > div:first-child span {
+        font-size: 0.75rem !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .admin-header > div:last-child {
+        gap: 0.5rem !important;
+    }
+
+    .admin-header h2 {
+        display: none !important;
+    }
+
+    .admin-header button[type="button"]:first-of-type {
+        width: 32px !important;
+        height: 32px !important;
+        padding: 0.25rem !important;
+    }
+
+    .admin-header button[type="button"]:first-of-type svg {
+        width: 18px !important;
+        height: 18px !important;
     }
 
     .admin-header .flex {

@@ -50,8 +50,9 @@
             
             @include('layouts.partials.admin.navbar')
 
-            <main class="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8">
-                <div class="max-w-7xl mx-auto">
+            <main class="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-6">
+                  <div class="w-full max-w-none">
+
                     @include('layouts.partials.flash-messages')
                     @yield('content')
                 </div>
@@ -62,5 +63,26 @@
     @stack('modals')
     @stack('scripts')
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.querySelector('.admin-sidebar');
+            const openBtn = document.getElementById('admin-mobile-menu-btn');
+            const closeBtn = document.getElementById('admin-mobile-btn-close');
+
+            if (openBtn) {
+                openBtn.addEventListener('click', function () {
+                    sidebar.classList.remove('hidden');
+                    sidebar.classList.add('flex');
+                });
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function () {
+                    sidebar.classList.add('hidden');
+                    sidebar.classList.remove('flex');
+                });
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group">
+<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="window.location.href='{{ route('hoardings.show', $hoarding->id) }}';">
     <!-- Image -->
     <div class="relative h-48 overflow-hidden bg-gray-100">
         @php

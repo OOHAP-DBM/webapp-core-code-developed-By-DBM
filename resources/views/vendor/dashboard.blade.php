@@ -1,364 +1,348 @@
 @extends('layouts.vendor')
-
 @section('page-title', 'Dashboard')
-
 @section('content')
-@php
-    $vendorProfile = auth()->user()->vendorProfile ?? null;
-    $pendingStatuses = ['pending_approval', 'draft'];
-@endphp
+    @php
+        $vendorProfile = auth()->user()->vendorProfile ?? null;
+        $pendingStatuses = ['pending_approval', 'draft'];
+    @endphp
+    @if(session('status') === 'pending' || ($vendorProfile && in_array($vendorProfile->onboarding_status, $pendingStatuses)))
+        <div class="mb-6 flex items-start gap-4 rounded-xl border border-red-200 bg-red-50 px-5 py-4">
 
-@if(session('status') === 'pending' || ($vendorProfile && in_array($vendorProfile->onboarding_status, $pendingStatuses)))
-    <div class="alert alert-warning" style="background: #ffe6e6; color: #333; border-radius: 8px; display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
-        <img src="/images/hourglass.svg" style="height: 32px;">
+            <!-- ICON -->
+            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+                <svg class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+
+            <!-- CONTENT -->
+            <div class="flex-1">
+                <h4 class="text-sm font-semibold text-red-700">
+                    Vendor Approval Pending
+                </h4>
+                <p class="mt-1 text-sm text-red-600">
+                    Your vendor request is under review. Once approved by the admin, you’ll be able to access all OOHAPP vendor features.
+                </p>
+            </div>
+
+            <!-- BADGE -->
+            <span class="ml-auto mt-1 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+                Pending
+            </span>
+        </div>
+    @endif
+    @php
+        /* =========================
+        | DUMMY DATA (FRONTEND ONLY)
+        ========================= */
+        $stats = [
+            'earnings' => 51000,
+            'total_hoardings' => 60,
+            'ooh' => 40,
+            'dooh' => 20,
+            'active' => 60,
+            'inactive' => 0,
+            'unsold' => 40,
+            'total_bookings' => 20,
+            'my_orders' => 10,
+            'pos' => 10,
+        ];
+
+        $topHoardings = [
+            ['title'=>'Hazratganj Chauraha','type'=>'OOH','cat'=>'Unipole','loc'=>'Lucknow','size'=>'250×650 Sqft','bookings'=>25,'publisher'=>'Inzamam Syed'],
+            ['title'=>'Hazratganj Chauraha','type'=>'OOH','cat'=>'Unipole','loc'=>'Lucknow','size'=>'250×650 Sqft','bookings'=>20,'publisher'=>'Taha Jamal'],
+            ['title'=>'Hazratganj Chauraha','type'=>'DOOH','cat'=>'Unipole','loc'=>'Lucknow','size'=>'250×650 Sqft','bookings'=>15,'publisher'=>'Abdul Hamid'],
+            ['title'=>'Hazratganj Chauraha','type'=>'OOH','cat'=>'Unipole','loc'=>'Lucknow','size'=>'250×650 Sqft','bookings'=>10,'publisher'=>'Abhishek Kumar'],
+            ['title'=>'Hazratganj Chauraha','type'=>'DOOH','cat'=>'Unipole','loc'=>'Lucknow','size'=>'250×650 Sqft','bookings'=>8,'publisher'=>'Vikas Singh'],
+        ];
+
+        $topCustomers = [
+            ['name'=>'Kenneth Allen','id'=>'OOHAPP1253','by'=>'Admin','bookings'=>20,'amount'=>56000,'loc'=>'Lucknow'],
+            ['name'=>'Kenneth Allen','id'=>'OOHAPP1253','by'=>'Admin','bookings'=>18,'amount'=>44000,'loc'=>'Gonda'],
+            ['name'=>'Kenneth Allen','id'=>'OOHAPP1253','by'=>'Self','bookings'=>16,'amount'=>35000,'loc'=>'Bahraich'],
+            ['name'=>'Kenneth Allen','id'=>'OOHAPP1253','by'=>'Admin','bookings'=>14,'amount'=>28000,'loc'=>'Basti'],
+            ['name'=>'Kenneth Allen','id'=>'OOHAPP1253','by'=>'Admin','bookings'=>10,'amount'=>19000,'loc'=>'Gorakhpur'],
+        ];
+
+        $transactions = collect(range(1,5))->map(fn($i)=>[
+            'id'=>'#11330',
+            'customer'=>'Rhonda Rhodes',
+            'bookings'=>6,
+            'status'=>'PAID',
+            'type'=>'ONLINE',
+            'date'=>'Nov 8, 25 · 6:00 AM',
+            'amount'=>35000
+        ]);
+    @endphp
+    <!-- HEADER -->
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-lg text-gray-700">
+            Good Morning, <span class="text-blue-600 font-semibold">{{ auth()->user()->name ?? 'Vendor' }}</span>!
+        </h2>
+        <a href="{{ route('vendor.hoardings.create') }}" class="bg-black text-white px-4 py-2 rounded-lg text-sm">+ Add Hoarding</a>
+    </div>
+    <!-- STATISTICS -->
+    <div class="bg-white rounded-xl p-6 mb-6">
+        <h3 class="text-sm font-semibold mb-4">Statistics</h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+            @foreach([
+                ['Total Earnings','₹ '.number_format($stats['earnings']),'blue'],
+                ['Total Hoardings',$stats['total_hoardings'],'green'],
+                ['OOH Hoardings',$stats['ooh'],'gray'],
+                ['DOOH Hoardings',$stats['dooh'],'pink'],
+                ['Active Hoardings',$stats['active'],'green'],
+                ['Inactive Hoardings',$stats['inactive'],'gray'],
+                ['Unsold Hoardings',$stats['unsold'],'gray'],
+                ['Total Bookings',$stats['total_bookings'],'blue'],
+                ['My Orders',$stats['my_orders'],'purple'],
+                ['POS Bookings',$stats['pos'],'blue'],
+            ] as [$label,$value,$color])
+            <div class="bg-gray-50 rounded-xl p-4 relative">
+                <p class="text-xs text-gray-500">{{ $label }}</p>
+                <p class="text-2xl font-semibold mt-1">{{ $value }}</p>
+                <span class="absolute rounded-b-full bottom-0 left-0 w-full h-1 bg-{{ $color }}-500"></span>
+            </div>
+            @endforeach
+        </div>
+
+        <div class="text-center mt-4">
+            <button class="text-blue-600 text-sm" style="cursor:pointer;">Show more</button>
+        </div>
+    </div>
+    <!-- CHARTS -->
+    <div class="bg-white rounded-xl p-6 mb-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div>
-            <strong>Your Vendor Request is Pending!</strong><br>
-            <span>Once approved by the admin, you can access the features of OOHAPP Vendor</span>
+            <h4 class="text-sm font-semibold mb-2">Earning statistics</h4>
+            <canvas id="earningChart" height="120"></canvas>
+        </div>
+        <div>
+            <h4 class="text-sm font-semibold mb-2">Booked statistics</h4>
+            <canvas id="bookingChart" height="120"></canvas>
         </div>
     </div>
-@endif
-<div class="row g-4 mb-4">
-    <!-- Revenue Card -->
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card">
-            <div class="stat-icon" style="background: #dbeafe; color: #2563eb;">
-                <i class="bi bi-currency-rupee"></i>
-            </div>
-            <div class="stat-label">Total Revenue</div>
-            <div class="stat-value">₹{{ number_format($stats['total_revenue'] ?? 0, 0) }}</div>
-            <div class="stat-change text-success">
-                <i class="bi bi-arrow-up"></i> {{ $stats['revenue_change'] ?? '+12.5' }}% from last month
+    <!-- Best Selling Hoardings -->
+    <div class="bg-white rounded-xl shadow-sm mb-6">
+        <div class="px-6 pt-5 pb-3 flex justify-between items-center">
+            <h4 class="text-sm font-semibold text-gray-800">
+                Top 5 Best Selling Hoardings
+            </h4>
+            <div class="text-xs text-gray-500 flex items-center gap-1">
+                SORT BY:
+                <select name="" id="">
+                    <option value="">1 Month</option>
+                    <option value="">6 Month</option>
+                    <option value="">1 Year</option>
+                </select>
             </div>
         </div>
-    </div>
 
-    <!-- Active Bookings Card -->
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card">
-            <div class="stat-icon" style="background: #d1fae5; color: #10b981;">
-                <i class="bi bi-calendar-check"></i>
-            </div>
-            <div class="stat-label">Active Bookings</div>
-            <div class="stat-value">{{ $stats['active_bookings'] ?? 0 }}</div>
-            <div class="stat-change text-success">
-                <i class="bi bi-arrow-up"></i> {{ $stats['bookings_change'] ?? '+8' }} new this week
-            </div>
-        </div>
-    </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="border-b border-gray-200 bg-gray-50 text-gray-500 uppercase text-xs">
+                    <tr>
+                        <th class="px-6 py-3 text-left">SN</th>
+                        <th class="px-6 py-3 text-left">Hoarding Title</th>
+                        <th class="px-6 py-3 text-left">Type</th>
+                        <th class="px-6 py-3 text-left">Categories</th>
+                        <th class="px-6 py-3 text-left">Hoarding Location</th>
+                        <th class="px-6 py-3 text-left">Size</th>
+                        <th class="px-6 py-3 text-left"># Of Bookings</th>
+                        <th class="px-6 py-3 text-left">Published By</th>
+                    </tr>
+                </thead>
 
-    <!-- Total Listings Card -->
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card">
-            <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
-                <i class="bi bi-grid-3x3"></i>
-            </div>
-            <div class="stat-label">Total Listings</div>
-            <div class="stat-value">{{ $stats['total_listings'] ?? 0 }}</div>
-            <div class="stat-change text-muted">
-                {{ $stats['available_listings'] ?? 0 }} available
-            </div>
-        </div>
-    </div>
+                <tbody>
+                    @foreach($topHoardings as $i => $h)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">{{ sprintf('%02d', $i+1) }}</td>
 
-    <!-- Pending Tasks Card -->
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card">
-            <div class="stat-icon" style="background: #fee2e2; color: #ef4444;">
-                <i class="bi bi-exclamation-triangle"></i>
-            </div>
-            <div class="stat-label">Pending Tasks</div>
-            <div class="stat-value">{{ $stats['pending_tasks'] ?? 0 }}</div>
-            <div class="stat-change text-danger">
-                {{ $stats['overdue_tasks'] ?? 0 }} overdue
-            </div>
-        </div>
-    </div>
-</div>
+                        <td class="px-6 py-4 font-medium text-gray-800 truncate max-w-[180px]">
+                            {{ $h['title'] }}
+                        </td>
 
-<div class="row g-4">
-    <!-- Revenue Chart -->
-    <div class="col-xl-8">
-        <div class="vendor-card">
-            <div class="vendor-card-header">
-                <h5 class="vendor-card-title">Revenue Overview</h5>
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-secondary active">Week</button>
-                    <button class="btn btn-outline-secondary">Month</button>
-                    <button class="btn btn-outline-secondary">Year</button>
-                </div>
-            </div>
-            <div class="vendor-card-body">
-                <canvas id="revenueChart" height="80"></canvas>
-            </div>
-        </div>
-    </div>
+                        <td class="px-6 py-4">{{ $h['type'] }}</td>
+                        <td class="px-6 py-4">{{ $h['cat'] }}</td>
+                        <td class="px-6 py-4 truncate max-w-[160px]">{{ $h['loc'] }}</td>
+                        <td class="px-6 py-4">{{ $h['size'] }}</td>
 
-    <!-- Booking Status -->
-    <div class="col-xl-4">
-        <div class="vendor-card">
-            <div class="vendor-card-header">
-                <h5 class="vendor-card-title">Booking Status</h5>
-            </div>
-            <div class="vendor-card-body">
-                <canvas id="bookingStatusChart" height="200"></canvas>
-                
-                <div class="mt-4">
-                    @foreach([
-                        ['label' => 'Confirmed', 'count' => $stats['confirmed_bookings'] ?? 0, 'color' => '#10b981'],
-                        ['label' => 'Pending', 'count' => $stats['pending_bookings'] ?? 0, 'color' => '#f59e0b'],
-                        ['label' => 'Completed', 'count' => $stats['completed_bookings'] ?? 0, 'color' => '#3b82f6'],
-                        ['label' => 'Cancelled', 'count' => $stats['cancelled_bookings'] ?? 0, 'color' => '#ef4444']
-                    ] as $status)
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="d-flex align-items-center">
-                                <div style="width: 12px; height: 12px; border-radius: 2px; background: {{ $status['color'] }}; margin-right: 8px;"></div>
-                                <span class="text-muted small">{{ $status['label'] }}</span>
-                            </div>
-                            <strong>{{ $status['count'] }}</strong>
-                        </div>
+                        <td class="px-6 py-4 text-green-600 font-semibold">
+                            {{ $h['bookings'] }}
+                        </td>
+
+                        <td class="px-6 py-4 text-blue-600 hover:underline cursor-pointer">
+                            {{ $h['publisher'] }}
+                        </td>
+                    </tr>
                     @endforeach
-                </div>
-            </div>
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
-
-<div class="row g-4 mt-4">
-    <!-- Recent Bookings -->
-    <div class="col-xl-7">
-        <div class="vendor-card">
-            <div class="vendor-card-header">
-                <h5 class="vendor-card-title">Recent Bookings</h5>
-                <a href="{{ route('vendor.bookings.index') }}" class="btn btn-sm btn-vendor-primary">View All</a>
-            </div>
-            <div class="vendor-card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Booking ID</th>
-                                <th>Hoarding</th>
-                                <th>Customer</th>
-                                <th>Duration</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($recentBookings ?? [] as $booking)
-                                <tr>
-                                    <td><strong>#{{ $booking->id }}</strong></td>
-                                    <td>{{ $booking->hoarding->title ?? 'N/A' }}</td>
-                                    <td>{{ $booking->customer->name ?? 'N/A' }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($booking->start_date)->format('d M') }} - {{ \Carbon\Carbon::parse($booking->end_date)->format('d M') }}</td>
-                                    <td><strong>₹{{ number_format($booking->total_amount ?? 0, 0) }}</strong></td>
-                                    <td>
-                                        <span class="badge 
-                                            @if($booking->status === 'confirmed') bg-success
-                                            @elseif($booking->status === 'pending') bg-warning
-                                            @elseif($booking->status === 'completed') bg-primary
-                                            @else bg-danger
-                                            @endif">
-                                            {{ ucfirst($booking->status) }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">No recent bookings</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+    <!-- Top 5 Customers -->
+    <div class="bg-white rounded-xl shadow-sm mb-6">
+        <div class="px-6 pt-5 pb-3 flex justify-between items-center">
+            <h4 class="text-sm font-semibold text-gray-800">
+                Top 5 Customers
+            </h4>
+            <div class="text-xs text-gray-500 flex items-center gap-1">
+                SORT BY:
+                <select name="" id="">
+                    <option value="">1 Month</option>
+                    <option value="">6 Month</option>
+                    <option value="">1 Year</option>
+                </select>
             </div>
         </div>
-    </div>
 
-    <!-- Pending Tasks -->
-    <div class="col-xl-5">
-        <div class="vendor-card">
-            <div class="vendor-card-header">
-                <h5 class="vendor-card-title">Pending Tasks</h5>
-                <a href="{{ route('vendor.tasks.index') }}" class="btn btn-sm btn-vendor-primary">View All</a>
-            </div>
-            <div class="vendor-card-body">
-                @forelse($pendingTasks ?? [] as $task)
-                    <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
-                        <div class="form-check me-3">
-                            <input class="form-check-input" type="checkbox" id="task{{ $task->id }}">
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                <h6 class="mb-0">{{ $task->title }}</h6>
-                                <span class="badge 
-                                    @if($task->priority === 'high') bg-danger
-                                    @elseif($task->priority === 'medium') bg-warning
-                                    @else bg-secondary
-                                    @endif">
-                                    {{ ucfirst($task->priority) }}
-                                </span>
-                            </div>
-                            <p class="text-muted small mb-1">{{ $task->description }}</p>
-                            <div class="d-flex align-items-center text-muted small">
-                                <i class="bi bi-calendar me-1"></i>
-                                <span>Due: {{ \Carbon\Carbon::parse($task->due_date)->format('d M Y') }}</span>
-                                <span class="mx-2">•</span>
-                                <i class="bi bi-tag me-1"></i>
-                                <span>{{ ucfirst($task->type) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-check-circle" style="font-size: 3rem;"></i>
-                        <p class="mt-2 mb-0">No pending tasks</p>
-                    </div>
-                @endforelse
-            </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="border-b border-gray-200 bg-gray-50 text-gray-500 uppercase text-xs">
+                    <tr>
+                        <th class="px-6 py-3 text-left">SN</th>
+                        <th class="px-6 py-3 text-left">Customer</th>
+                        <th class="px-6 py-3 text-left">Customer ID</th>
+                        <th class="px-6 py-3 text-left">Registered By</th>
+                        <th class="px-6 py-3 text-left"># Of Bookings</th>
+                        <th class="px-6 py-3 text-left">Total Amount</th>
+                        <th class="px-6 py-3 text-left">Location</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach($topCustomers as $i => $c)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">{{ sprintf('%02d', $i+1) }}</td>
+
+                        <td class="px-6 py-4 font-medium">{{ $c['name'] }}</td>
+                        <td class="px-6 py-4">{{ $c['id'] }}</td>
+
+                        <td class="px-6 py-4 text-blue-600">
+                            By {{ $c['by'] }}
+                        </td>
+
+                        <td class="px-6 py-4 text-green-600 font-semibold">
+                            {{ $c['bookings'] }}
+                        </td>
+
+                        <td class="px-6 py-4 text-blue-600 font-semibold">
+                            ₹{{ number_format($c['amount']) }}
+                        </td>
+
+                        <td class="px-6 py-4">{{ $c['loc'] }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="row g-4 mt-4">
-    <div class="col-12">
-        <div class="vendor-card">
-            <div class="vendor-card-header">
-                <h5 class="vendor-card-title">Quick Actions</h5>
+    <!-- Recent Transactions -->
+    <div class="bg-white rounded-xl shadow-sm">
+        <div class="px-6 pt-5 pb-1 flex justify-between items-center">
+            <div>
+                <h4 class="text-sm font-semibold text-gray-800">
+                    Recent Transactions
+                </h4>
+                <p class="text-xs text-gray-500">
+                    Total {{ count($transactions) }} Transactions done in this week
+                </p>
             </div>
-            <div class="vendor-card-body">
-                <div class="row g-3">
 
-                    <div class="col-md-3">
-                        @if($vendorProfile && $vendorProfile->onboarding_status === 'approved')
-                            <a href="{{ route('vendor.listings.create', ['type' => 'ooh']) }}" class="btn btn-outline-primary w-100 py-3">
-                                <i class="bi bi-plus-circle d-block mb-2" style="font-size: 2rem;"></i>
-                                Add New Listing
-                            </a>
-                        @else
-                            <button type="button" class="btn btn-outline-primary w-100 py-3" onclick="showPendingModal()">
-                                <i class="bi bi-plus-circle d-block mb-2" style="font-size: 2rem;"></i>
-                                Add New Listing
+            <div class="text-xs text-gray-500 flex items-center gap-1">
+                SORT BY: 
+                <select name="" id="">
+                    <option value="">1 Month</option>
+                    <option value="">6 Month</option>
+                    <option value="">1 Year</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm mt-4">
+                <thead class="border-b border-gray-200 bg-gray-50 text-gray-500 uppercase text-xs">
+                    <tr>
+                        <th class="px-6 py-3 text-left">SN</th>
+                        <th class="px-6 py-3 text-left">Transaction ID</th>
+                        <th class="px-6 py-3 text-left">Customer</th>
+                        <th class="px-6 py-3 text-left"># Of Bookings</th>
+                        <th class="px-6 py-3 text-left">Payment Status</th>
+                        <th class="px-6 py-3 text-left">Booking Type</th>
+                        <th class="px-6 py-3 text-left">Date</th>
+                        <th class="px-6 py-3 text-left">Amount Received</th>
+                        <th class="px-6 py-3 text-left">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach($transactions as $i => $t)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">{{ sprintf('%02d', $i+1) }}</td>
+                        <td class="px-6 py-4 font-medium">{{ $t['id'] }}</td>
+                        <td class="px-6 py-4">{{ $t['customer'] }}</td>
+
+                        <td class="px-6 py-4 text-green-600 font-semibold">
+                            {{ $t['bookings'] }}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                                {{ $t['status'] }}
+                            </span>
+                        </td>
+
+                        <td class="px-6 py-4 text-blue-600">
+                            {{ $t['type'] }}
+                        </td>
+
+                        <td class="px-6 py-4">{{ $t['date'] }}</td>
+
+                        <td class="px-6 py-4 text-blue-600 font-semibold">
+                            ₹{{ number_format($t['amount']) }}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <button class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-xs">
+                                Invoice
                             </button>
-                        @endif
-                    </div>
-
-                    <div class="col-md-3">
-                        <a href="{{ route('vendor.bookings.index') }}" class="btn btn-outline-success w-100 py-3">
-                            <i class="bi bi-calendar-check d-block mb-2" style="font-size: 2rem;"></i>
-                            Manage Bookings
-                        </a>
-                    </div>
-                    <div class="col-md-3">
-                        <a href="{{ route('vendor.tasks.index') }}" class="btn btn-outline-warning w-100 py-3">
-                            <i class="bi bi-list-check d-block mb-2" style="font-size: 2rem;"></i>
-                            View Tasks
-                        </a>
-                    </div>
-                    <div class="col-md-3">
-                        <a href="{{ route('vendor.payouts.index') }}" class="btn btn-outline-info w-100 py-3">
-                            <i class="bi bi-cash-stack d-block mb-2" style="font-size: 2rem;"></i>
-                            Check Payouts
-                        </a>
-                    </div>
-                </div>
-            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
-
-<!-- Pending Modal -->
-<div id="pendingModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3);">
-    <div style="background:#fff; max-width:400px; margin:10% auto; padding:2rem; border-radius:8px; text-align:center;">
-        <img src="/images/billboard.svg" alt="Pending" style="height: 60px;">
-        <h2 style="font-size:1.3rem; margin-top:1rem;">Your Vendor Request is Pending!</h2>
-        <p style="margin-bottom:1.5rem;">Once Approved you will become a OOHAPP Vendor</p>
-        <button onclick="closePendingModal()" class="btn btn-dark mt-3">Done</button>
-    </div>
-</div>
-
-@push('scripts')
-<script>
-function showPendingModal() {
-    document.getElementById('pendingModal').style.display = 'block';
-}
-function closePendingModal() {
-    document.getElementById('pendingModal').style.display = 'none';
-}
-</script>
-@endpush
-
 @endsection
-
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-// Revenue Chart
-const revenueCtx = document.getElementById('revenueChart');
-if (revenueCtx) {
-    new Chart(revenueCtx, {
-        type: 'line',
-        data: {
-            labels: {!! json_encode($revenueChartLabels ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']) !!},
-            datasets: [{
-                label: 'Revenue (₹)',
-                data: {!! json_encode($revenueChartData ?? [12000, 19000, 15000, 25000, 22000, 30000, 28000]) !!},
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        new Chart(document.getElementById('earningChart'),{
+            type:'line',
+            data:{
+                labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                datasets:[{
+                    data:[12000,13000,5000,36000,26000,42000,32000,45000,36000,46000,48000,50000],
+                    borderColor:'#2563eb',
+                    tension:.4,
+                    fill:false
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '₹' + value.toLocaleString();
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
+            options:{plugins:{legend:{display:false}}}
+        });
 
-// Booking Status Chart
-const statusCtx = document.getElementById('bookingStatusChart');
-if (statusCtx) {
-    new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Confirmed', 'Pending', 'Completed', 'Cancelled'],
-            datasets: [{
-                data: [
-                    {{ $stats['confirmed_bookings'] ?? 0 }},
-                    {{ $stats['pending_bookings'] ?? 0 }},
-                    {{ $stats['completed_bookings'] ?? 0 }},
-                    {{ $stats['cancelled_bookings'] ?? 0 }}
-                ],
-                backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
-    });
-}
-</script>
+        new Chart(document.getElementById('bookingChart'),{
+            type:'line',
+            data:{
+                labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                datasets:[{
+                    data:[12,14,8,12,36,25,45,35,45,46,48,50],
+                    borderColor:'#ec4899',
+                    tension:.4,
+                    fill:false
+                }]
+            },
+            options:{plugins:{legend:{display:false}}}
+        });
+    </script>
 @endpush
