@@ -32,14 +32,7 @@ return new class extends Migration
             $table->decimal('survey_charge', 12, 2)->nullable();
         });
 
-        // Step 2: Brand logos table
-        Schema::create('dooh_screen_brand_logos', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('dooh_screen_id')->constrained('dooh_screens')->onDelete('cascade');
-            $table->string('file_path');
-            $table->integer('sort_order')->default(0);
-            $table->timestamps();
-        });
+        // Step 2: Brand logos table (removed, replaced by hoarding_brand_logos)
         // Step 3: Update dooh_packages for campaign packages (if needed)
         Schema::table('dooh_packages', function (Blueprint $table) {
             if (!Schema::hasColumn('dooh_packages', 'duration')) {
@@ -61,7 +54,7 @@ return new class extends Migration
                 'offer_discount', 'services_included'
             ]);
         });
-        Schema::dropIfExists('dooh_screen_brand_logos');
+        // Schema::dropIfExists('dooh_screen_brand_logos'); // removed, replaced by hoarding_brand_logos
         Schema::dropIfExists('dooh_screen_slots');
         Schema::table('dooh_packages', function (Blueprint $table) {
             if (Schema::hasColumn('dooh_packages', 'duration')) {

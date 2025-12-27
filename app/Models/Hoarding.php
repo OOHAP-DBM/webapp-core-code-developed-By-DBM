@@ -16,51 +16,105 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Hoarding extends Model implements HasMedia
 {
     use HasFactory, SoftDeletes, HasSnapshots, Auditable, HasDOOHSlots, InteractsWithMedia;
-    
-    protected $snapshotType = 'price_update';
-    protected $snapshotOnCreate = false; // Don't snapshot on create
-    protected $snapshotOnUpdate = true;  // Only snapshot on update (for price changes)
-    
-    protected $auditModule = 'hoarding';
-    protected $priceFields = ['weekly_price', 'monthly_price'];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    protected $snapshotType = 'price_update';
+    protected $snapshotOnCreate = false;
+    protected $snapshotOnUpdate = true;
+
+    protected $auditModule = 'hoarding';
+
+    // Updated to include all price-related fields for auditing
+    protected $priceFields = [
+        'base_monthly_price',
+        'monthly_price',
+        'weekly_price',
+        'printing_charge',
+        'mounting_charge',
+        'designing_charge',
+        'survey_charge',
+        'remounting_charge'
+    ];
+
     protected $fillable = [
         'vendor_id',
         'title',
+        'slug',
         'description',
-        'address',
-        'lat',
-        'lng',
-        'weekly_price',
-        'monthly_price',
-        'enable_weekly_booking',
+        'hoarding_type',
+        'category',
+        'measurement_unit',
+        'width',
+        'height',
+        'valid_till',
+        'is_nagar_nigam_approved',
+        'lighting_type',
+        'has_blocked_dates',
+        'needs_grace_period',
         'grace_period_days',
-        'type',
+        'expected_footfall',
+        'expected_eyeball',
+        'address',
+        'city',
+        'state',
+        'locality',
+        'pincode',
+        'landmark',
+        'facing',
+        'latitude',
+        'longitude',
+        'geolocation_verified',
+        'geolocation_source',
+        'visibility_start',
+        'visibility_end',
+        'base_monthly_price',
+        'monthly_price',
+        'weekly_price',
+        'enable_weekly_booking',
+        'allow_listing_discount',
+        'designing_included',
+        'designing_charge',
+        'printing_included',
+        'printing_charge',
+        'mounting_included',
+        'mounting_charge',
+        'material_type',
+        'survey_charge',
+        'remounting_charge',
+        'commission_percent',
+        'is_featured',
         'status',
-        'commission_percent'
+        'current_step',
+        'views_count',
+        'bookings_count',
+        'last_booked_at'
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
-        'lat' => 'decimal:7',
-        'lng' => 'decimal:7',
-        'weekly_price' => 'decimal:2',
+        'latitude' => 'decimal:7',
+        'longitude' => 'decimal:7',
         'monthly_price' => 'decimal:2',
+        'weekly_price' => 'decimal:2',
+        'printing_charge' => 'decimal:2',
+        'mounting_charge' => 'decimal:2',
+        'designing_charge' => 'decimal:2',
+        'survey_charge' => 'decimal:2',
+        'remounting_charge' => 'decimal:2',
+        'commission_percent' => 'decimal:2',
+        'is_nagar_nigam_approved' => 'boolean',
+        'has_blocked_dates' => 'boolean',
+        'needs_grace_period' => 'boolean',
         'enable_weekly_booking' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+        'allow_listing_discount' => 'boolean',
+        'designing_included' => 'boolean',
+        'printing_included' => 'boolean',
+        'mounting_included' => 'boolean',
+        'geolocation_verified' => 'boolean',
+        'is_featured' => 'boolean',
+        'valid_till' => 'date',
+        'last_booked_at' => 'datetime',
+        'visibility_start' => 'datetime:H:i',
+        'visibility_end' => 'datetime:H:i',
     ];
-
     /**
      * Hoarding types
      */
@@ -96,6 +150,33 @@ class Hoarding extends Model implements HasMedia
         return $this->hasOne(HoardingGeo::class);
     }
 
+    /**
+     * Calculate total cost including base price and mandatory one-time charges.
+     */
+    public function getTotalOneTimeChargesAttribute(): float
+    {
+        $total = 0;
+        if (!$this->printing_included) $total += (float) $this->printing_charge;
+        if (!$this->mounting_included) $total += (float) $this->mounting_charge;
+        if (!$this->designing_included) $total += (float) $this->designing_charge;
+
+        return $total + (float) $this->survey_charge;
+    }
+
+    public function getAreaAttribute(): float
+    {
+        return $this->width * $this->height;
+    }
+
+    /**
+     * Format visibility hours for display.
+     */
+    public function getVisibilityHoursAttribute(): string
+    {
+        if (!$this->visibility_start || !$this->visibility_end) return 'Not Specified';
+
+        return $this->visibility_start->format('h:i A') . ' - ' . $this->visibility_end->format('h:i A');
+    }
     /**
      * Get all bookings for this hoarding.
      */

@@ -199,10 +199,9 @@ class DOOHScreenRepository
             $directory = "dooh/screens/brand_logos/{$screenId}";
             $filename  = "{$uuid}.{$ext}";
             $path = $file->storeAs($directory, $filename, 'public');
-            $saved[] = \Modules\DOOH\Models\DOOHScreenBrandLogo::create([
-                'dooh_screen_id' => $screenId,
-                'file_path'      => $path,
-                'sort_order'     => $index,
+            $saved[] = $screen->brandLogos()->create([
+                'file_path'  => $path,
+                'sort_order' => $index,
             ]);
         }
         return $saved;

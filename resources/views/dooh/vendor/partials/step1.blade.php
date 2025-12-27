@@ -12,7 +12,7 @@
       <div class="space-y-2">
         <label class="text-sm font-bold text-gray-700">Hoarding Type <span class="text-red-500">*</span></label>
         <div class="w-full bg-[#0094FF] border border-[#0094FF] rounded-xl px-4 py-3 text-white font-bold">
-          DOOH (Digital Out-of-Home)
+          OOH (Digital Out-of-Home)
         </div>
       </div>
 

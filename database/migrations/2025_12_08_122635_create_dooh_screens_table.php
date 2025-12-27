@@ -22,8 +22,10 @@ return new class extends Migration
             
             // Screen details
             $table->string('name')->nullable();
+            $table->string('title')->unique()->nullable();
             $table->text('description')->nullable();
             $table->string('screen_type')->default('digital'); // digital, led, lcd
+            $table->string('slug')->unique()->nullable();
             
             // Location
             $table->text('address')->nullable();

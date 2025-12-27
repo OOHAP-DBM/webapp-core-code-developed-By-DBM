@@ -123,9 +123,9 @@ class DOOHScreen extends Model
         return $this->belongsTo(User::class, 'vendor_id');
     }
 
-    public function brandLogos(): HasMany
+    public function brandLogos()
     {
-        return $this->hasMany(DOOHScreenBrandLogo::class, 'dooh_screen_id');
+        return $this->morphMany(\Modules\Hoardings\Models\HoardingBrandLogo::class, 'brandable');
     }
 
     public function slots(): HasMany
