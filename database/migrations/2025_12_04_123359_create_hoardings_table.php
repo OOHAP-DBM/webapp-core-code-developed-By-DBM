@@ -25,7 +25,6 @@ return new class extends Migration
             $table->enum('type', ['billboard', 'digital', 'transit', 'street_furniture', 'wallscape', 'mobile'])->default('billboard');
             $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'suspended'])->default('draft');
             $table->boolean('is_featured')->nullable();
-            $table->unsignedInteger('grace_period_days')->default(0);
             $table->decimal('commission_percent', 5, 2)->nullable();
             $table->timestamps();
             $table->softDeletes();

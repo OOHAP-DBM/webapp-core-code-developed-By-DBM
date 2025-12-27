@@ -16,23 +16,53 @@ class VendorController extends Controller
     //     $vendors = User::role('vendor')->orderByDesc('created_at')->paginate(30);
     //     return view('admin.vendors.index', compact('vendors'));
     // }
-     public function index(Request $request)
+    public function index(Request $request)
     {
-          // default tab = Requested Vendors
+        // 1️⃣ Current tab
         $status = $request->get('status', 'pending_approval');
 
-        $vendors = VendorProfile::with('user')
-            ->where('onboarding_status', $status)
-            ->orderByDesc('created_at')
-            ->paginate(15);
+        // 2️⃣ Vendors data (tab wise)
+        switch ($status) {
 
-        // tab counts (top numbers)
+            case 'pending_approval':
+                $vendors = VendorProfile::with('user')
+                    ->where('onboarding_status', 'pending_approval')
+                    ->latest()
+                    ->paginate(15);
+                break;
+
+            case 'approved':
+                $vendors = VendorProfile::with('user')
+                    ->where('onboarding_status', 'approved')
+                    ->latest()
+                    ->paginate(15);
+                break;
+
+            case 'suspended':
+                $vendors = VendorProfile::with('user')
+                    ->where('onboarding_status', 'suspended')
+                    ->latest()
+                    ->paginate(15);
+                break;
+
+            case 'rejected':
+                $vendors = VendorProfile::with('user')
+                    ->where('onboarding_status', 'rejected')
+                    ->latest()
+                    ->paginate(15);
+                break;
+
+            default:
+                $vendors = collect(); // safety
+        }
+
+        // 3️⃣ Tab counts (sirf numbers ke liye)
         $counts = VendorProfile::selectRaw("
-                SUM(onboarding_status = 'pending_approval') as requested,
-                SUM(onboarding_status = 'approved') as active,
-                SUM(onboarding_status = 'suspended') as disabled,
-                SUM(onboarding_status = 'rejected') as deleted
-            ")->first();
+            SUM(onboarding_status = 'pending_approval') as requested,
+            SUM(onboarding_status = 'approved') as active,
+            SUM(onboarding_status = 'suspended') as disabled,
+            SUM(onboarding_status = 'rejected') as deleted
+        ")->first();
 
         return view('admin.vendors.index', compact(
             'vendors',
