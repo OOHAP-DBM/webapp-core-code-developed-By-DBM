@@ -254,11 +254,17 @@
                     </a>
 
                     <a
-                        href=""
-                        class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
-                    >
-                        - Add Hoardings
-                    </a>
+                        @if(auth()->user() && auth()->user()->hasRole('vendor'))
+                        <a
+                            href="{{ route('vendor.hoardings.add') }}"
+                            class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50 {{ request()->routeIs('vendor.hoardings.add') || request()->is('vendor/hoardings/add') || request()->is('vendor/hoardings*') ? 'bg-gray-100 font-semibold' : '' }}"
+                        >
+                            <span class="inline-flex items-center gap-2">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                                Add Hoardings
+                            </span>
+                        </a>
+                        @endif
 
                     <a
                         href=""

@@ -17,13 +17,13 @@ class DashboardController extends Controller
             // Redirect to correct onboarding step
             $step = $profile ? $profile->onboarding_step : 1;
             $routes = [
-                1 => 'vendor.onboarding.company-details',
+                1 => 'vendor.onboarding.contact-details',
                 2 => 'vendor.onboarding.business-info',
                 // 3 => 'vendor.onboarding.kyc-documents',
                 // 4 => 'vendor.onboarding.bank-details',
                 // 5 => 'vendor.onboarding.terms-agreement',
             ];
-            $route = $routes[$step] ?? 'vendor.onboarding.company-details';
+            $route = $routes[$step] ?? 'vendor.onboarding.contact-details';
             return redirect()->route($route)
                 ->with('info', 'Please complete your vendor onboarding.');
         }

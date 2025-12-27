@@ -30,7 +30,7 @@ class EnsureVendorOnboardingComplete
 
         // If no profile, redirect to onboarding
         if (!$profile) {
-            return redirect()->route('vendor.onboarding.company-details')
+            return redirect()->route('vendor.onboarding.contact-details')
                 ->with('info', 'Please complete your vendor onboarding first.');
         }
 
@@ -59,7 +59,7 @@ class EnsureVendorOnboardingComplete
                 return $next($request);
 
             default:
-                return redirect()->route('vendor.onboarding.company-details');
+                return redirect()->route('vendor.onboarding.contact-details');
         }
     }
 
@@ -69,12 +69,12 @@ class EnsureVendorOnboardingComplete
     protected function getStepRoute(int $step): string
     {
         return match($step) {
-            1 => 'vendor.onboarding.company-details',
+            1 => 'vendor.onboarding.contact-details',
             2 => 'vendor.onboarding.business-info',
             3 => 'vendor.onboarding.kyc-documents',
             4 => 'vendor.onboarding.bank-details',
             5 => 'vendor.onboarding.terms-agreement',
-            default => 'vendor.onboarding.company-details',
+            default => 'vendor.onboarding.contact-details',
         };
     }
 }

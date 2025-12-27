@@ -109,6 +109,7 @@ class AuthController extends Controller
         // 4. Assign Role
         $role = $request->input('role', 'customer');
         $user->update(['active_role' => $role]);
+        $user->assignRole($role);
         // If using Spatie Permissions: $user->assignRole($role);
 
         // 5. Issue the Token (Now they are officially logged in)

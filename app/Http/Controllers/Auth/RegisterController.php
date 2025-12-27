@@ -101,9 +101,7 @@ class RegisterController extends Controller
 
                 'password' => Hash::make($request->password),
 
-                'status' => $role === 'customer'
-                    ? 'active'
-                    : 'pending_verification',
+                'status' => 'active',
             ]);
 
 
@@ -128,7 +126,7 @@ class RegisterController extends Controller
                 Auth::login($user);
 
                 // Redirect to vendor onboarding
-                return redirect()->route('vendor.onboarding.company-details')
+                return redirect()->route('vendor.onboarding.contact-details')
                     ->with('success', 'Account created! Please complete your vendor onboarding.');
             }
 

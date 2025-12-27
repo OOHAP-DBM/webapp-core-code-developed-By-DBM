@@ -92,9 +92,9 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor/onboarding')->name('v
     Route::post('/verify-email', [OnboardingController::class, 'verifyEmailOtp'])->name('verify-email');
     Route::post('/send-phone', [OnboardingController::class, 'sendPhoneOtp'])->name('send-phone');
     Route::post('/verify-phone', [OnboardingController::class, 'verifyPhoneOtp'])->name('verify-phone');
-    // Step 1: Company Details
-    Route::get('/company-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showCompanyDetails'])->name('company-details');
-    Route::post('/company-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeCompanyDetails'])->name('company-details.store');
+    // Step 1: Contact Details
+    Route::get('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showContactDetails'])->name('contact-details');
+    Route::post('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeContactDetails'])->name('contact-details.store');
     
     // Step 2: Business Information
     Route::get('/business-info', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showBusinessInfo'])->name('business-info');
@@ -298,10 +298,20 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
     // Dashboard (PROMPT 26)
     Route::get('/dashboard', [\App\Http\Controllers\Vendor\DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Hoardings Management
+    Route::get('hoardings/add', [\Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'showTypeSelection'])->name('hoardings.add');
+    Route::post('hoardings/select-type', [\Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'handleTypeSelection'])->name('hoardings.select-type');
+
     Route::resource('hoardings', \App\Http\Controllers\Web\Vendor\HoardingController::class);
-    
+        // Add Hoardings Type Selection (OOH/DOOH)
+     
+    // Vendor DOOH Creation (Figma-accurate, onboarding enforced)
+
+    // Multi-step DOOH wizard
+    Route::get('dooh/create', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'create'])->name('dooh.create');
+    Route::post('dooh/store', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'store'])->name('dooh.store');
+
     // Hoarding Media Management (PROMPT 59)
     Route::prefix('hoardings/{hoarding}/media')->name('hoardings.media.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'index'])->name('index');
@@ -318,7 +328,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     });
     
     // DOOH Management
-    Route::resource('dooh', \App\Http\Controllers\Web\Vendor\DOOHController::class);
+    // Route::resource('dooh', \App\Http\Controllers\Web\Vendor\DOOHController::class);
     
     // Enquiries (received)
     Route::get('/enquiries', [\App\Http\Controllers\Web\Vendor\EnquiryController::class, 'index'])->name('enquiries.index');

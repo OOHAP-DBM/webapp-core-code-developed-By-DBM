@@ -188,7 +188,7 @@ class AppServiceProvider extends ServiceProvider
             $identifier = $request->input('phone') ?? $request->input('email') ?? $request->ip();
             
             return [
-                Limit::perMinutes(50, 3)
+                Limit::perMinutes(5, 300)
                     ->by('otp:' . $identifier)
                     ->response(function (Request $request, array $headers) {
                         return response()->json([
@@ -198,7 +198,7 @@ class AppServiceProvider extends ServiceProvider
                         ], 429);
                     }),
                 // Additional IP-based limit
-                Limit::perMinutes(5, 10)->by('otp-ip:' . $request->ip())
+                Limit::perMinutes(5, 100)->by('otp-ip:' . $request->ip())
             ];
         });
 
