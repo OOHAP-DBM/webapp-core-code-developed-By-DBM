@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\DOOH\Controllers\Api\DOOHPackageBookingController;
+use Modules\DOOH\Controllers\Api\DOOHScreenController;
 
 /**
  * DOOH Package Booking API Routes (v1)
@@ -43,6 +44,8 @@ Route::middleware(['auth:sanctum', 'role:customer'])->prefix('customer')->group(
 // ============================================
 Route::middleware(['auth:sanctum', 'role:vendor'])->prefix('vendor')->group(function () {
     
+    Route::get('/dooh/draft', [DOOHScreenController::class, 'getDraft']);
+    Route::post('dooh/store', [DOOHScreenController::class, 'store']);
     // Vendor's bookings
     Route::get('/dooh/bookings', [DOOHPackageBookingController::class, 'getVendorBookings']);
     

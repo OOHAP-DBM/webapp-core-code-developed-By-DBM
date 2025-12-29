@@ -13,23 +13,17 @@ return new class extends Migration
     {
         // Add approval workflow columns to hoardings table
         Schema::table('hoardings', function (Blueprint $table) {
-            $table->enum('approval_status', ['draft', 'pending', 'under_verification', 'approved', 'rejected'])
-                  ->default('draft')
-                  ->after('status');
-            $table->unsignedBigInteger('current_version')->default(1)->after('approval_status');
-            $table->timestamp('submitted_at')->nullable()->after('current_version');
-            $table->timestamp('verified_at')->nullable()->after('submitted_at');
-            $table->timestamp('approved_at')->nullable()->after('verified_at');
-            $table->timestamp('rejected_at')->nullable()->after('approved_at');
-            $table->foreignId('verified_by')->nullable()->constrained('users')->after('rejected_at');
-            $table->foreignId('approved_by')->nullable()->constrained('users')->after('verified_by');
-            $table->foreignId('rejected_by')->nullable()->constrained('users')->after('approved_by');
-            $table->text('rejection_reason')->nullable()->after('rejected_by');
-            $table->text('admin_notes')->nullable()->after('rejection_reason');
+           
+            // $table->timestamp('submitted_at')->nullable()->after('current_version');
+            // $table->timestamp('approved_at')->nullable()->after('verified_at');
+            // $table->timestamp('rejected_at')->nullable()->after('approved_at');
+            // $table->foreignId('verified_by')->nullable()->constrained('users')->after('rejected_at');
+            // $table->foreignId('approved_by')->nullable()->constrained('users')->after('verified_by');
+            // $table->foreignId('rejected_by')->nullable()->constrained('users')->after('approved_by');
+            // $table->text('rejection_reason')->nullable()->after('rejected_by');
+            // $table->text('admin_notes')->nullable()->after('rejection_reason');
             
-            $table->index('approval_status');
-            $table->index(['vendor_id', 'approval_status']);
-            $table->index('submitted_at');
+         
         });
 
         // Hoarding versions table - tracks edit history

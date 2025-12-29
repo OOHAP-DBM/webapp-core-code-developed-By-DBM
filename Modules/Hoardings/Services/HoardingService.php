@@ -70,7 +70,7 @@ class HoardingService
         return DOOHScreen::create([
             'vendor_id'        => $vendor->id,
             'category'         => $data['category'],
-            'screen_type'      => $data['screen_type'],
+            // 'screen_type'      => $data['screen_type'],
             'width'            => $width,
             'height'           => $height,
             'measurement_unit' => $measurement_unit,

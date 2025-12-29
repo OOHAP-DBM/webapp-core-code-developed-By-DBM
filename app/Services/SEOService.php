@@ -306,7 +306,7 @@ class SEOService
                 'lastmod' => $hoarding->updated_at,
                 'changefreq' => 'weekly',
                 'priority' => 0.8,
-                'is_active' => $hoarding->approval_status === 'approved' && $hoarding->status === 'available',
+                'is_active' => $hoarding->status === 'approved' && $hoarding->status === 'available',
                 'updated_at' => now(),
             ]
         );

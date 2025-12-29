@@ -6,6 +6,7 @@ use Modules\DOOH\Repositories\DOOHScreenRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use \Modules\DOOH\Models\DOOHScreen;
 use Illuminate\Validation\ValidationException;
 
 class DOOHScreenService
@@ -43,10 +44,11 @@ class DOOHScreenService
         }
 
         return DB::transaction(function () use ($vendor, $data, $mediaFiles) {
+            
             $screen = $this->repo->createStep1($vendor, $data);
             $this->repo->storeMedia($screen->id, $mediaFiles);
 
-            $screen->current_step = 1;
+            $screen->hoarding->current_step = 1;
             $screen->save();
 
             return ['success' => true, 'screen' => $screen->fresh('media')];
@@ -56,38 +58,70 @@ class DOOHScreenService
     /**
      * Store Step 2 (Additional Settings, Visibility & Brand Logos)
      */
-    public function storeStep2($screen, $data, $brandLogoFiles = [])
+    public function storeStep2($screen, array $data, array $brandLogoFiles = [])
     {
+        // return DB::transaction(function () use ($screen, $data, $brandLogoFiles) {
+        //     try {
+        //         $update = [
+        //             'nagar_nigam_approved' => $data['nagar_nigam_approved'] ?? null,
+        //             'block_dates'          => $data['block_dates'] ?? null,
+        //             'grace_period'         => $data['grace_period'] ?? null,
+        //             'audience_types'       => $data['audience_types'] ?? null,
+        //             'visible_from'         => $data['visible_from'] ?? null,
+        //             'located_at'           => $data['located_at'] ?? null,
+        //             'hoarding_visibility'  => $data['hoarding_visibility'] ?? null,
+        //             'visibility_details'   => $data['visibility_details'] ?? null,
+        //         ];
+
+        //         $screen = $this->repo->updateStep2($screen, $update);
+
+        //         if (!empty($brandLogoFiles)) {
+        //             $this->repo->storeBrandLogos($screen->id, $brandLogoFiles);
+        //         }
+
+        //         $screen->current_step = 2;
+        //         $screen->save();
+
+        //         return ['success' => true, 'screen' => $screen->fresh(['brandLogos'])];
+        //     } catch (\Throwable $e) {
+        //         Log::error('DOOH step2 failed', ['error' => $e->getMessage()]);
+        //         return ['success' => false, 'errors' => ['step2' => ['Failed to save step 2 settings.']]];
+        //     }
+        // });
         return DB::transaction(function () use ($screen, $data, $brandLogoFiles) {
             try {
-                $update = [
-                    'nagar_nigam_approved' => $data['nagar_nigam_approved'] ?? null,
-                    'block_dates'          => $data['block_dates'] ?? null,
-                    'grace_period'         => $data['grace_period'] ?? null,
-                    'audience_types'       => $data['audience_types'] ?? null,
-                    'visible_from'         => $data['visible_from'] ?? null,
-                    'located_at'           => $data['located_at'] ?? null,
-                    'hoarding_visibility'  => $data['hoarding_visibility'] ?? null,
-                    'visibility_details'   => $data['visibility_details'] ?? null,
-                ];
+            $update = [
+                'nagar_nigam_approved' => isset($data['nagar_nigam_approved']),
+                'grace_period'         => isset($data['grace_period']),
+                'block_dates'          => $data['block_dates'] ?? [],
+                'audience_types'       => $data['audience_types'] ?? [],
+                'visible_from'         => $data['visible_from'] ?? [],
+                'located_at'           => $data['located_at'] ?? [],
+                'hoarding_visibility'  => $data['hoarding_visibility'] ?? null,
+                'visibility_details'   => $data['visibility_details'] ?? [],
+            ];
 
-                $screen = $this->repo->updateStep2($screen, $update);
+            $screen = $this->repo->updateStep2($screen, $update);
 
-                if (!empty($brandLogoFiles)) {
-                    $this->repo->storeBrandLogos($screen->id, $brandLogoFiles);
-                }
-
-                $screen->current_step = 2;
-                $screen->save();
-
-                return ['success' => true, 'screen' => $screen->fresh(['brandLogos'])];
-            } catch (\Throwable $e) {
-                Log::error('DOOH step2 failed', ['error' => $e->getMessage()]);
-                return ['success' => false, 'errors' => ['step2' => ['Failed to save step 2 settings.']]];
+            if (!empty($brandLogoFiles)) {
+                $this->repo->storeBrandLogos($screen->id, $brandLogoFiles);
             }
-        });
+
+            $screen->hoarding->current_step = 2;
+            $screen->save();
+
+            return [
+                'success' => true,
+                'screen'  => $screen->fresh('brandLogos')
+            ];
+            } catch (\Throwable $e) {
+                        Log::error('DOOH step2 failed', ['error' => $e->getMessage()]);
+                        return ['success' => false, 'errors' => ['step2' => ['Failed to save step 2 settings.']]];
+                    }
+            });
     }
 
+    
     /**
      * Store Step 3 (Pricing, Slots, Campaigns, Services)
      */
@@ -95,84 +129,88 @@ class DOOHScreenService
     // {
     //     return DB::transaction(function () use ($screen, $data) {
     //         try {
+    //             // 1. Update the Screen (Hoarding) basic pricing info
+    //             $graphicsIncluded = (int) ($data['graphics_included'] ?? 0);
+    //             $graphicsPrice = ($graphicsIncluded === 1) ? 0 : ($data['graphics_price'] ?? 0);
     //             $update = [
     //                 'display_price_per_30s' => $data['display_price_per_30s'] ?? null,
     //                 'video_length'          => $data['video_length'] ?? null,
     //                 'base_monthly_price'    => $data['base_monthly_price'] ?? null,
-    //                 'monthly_price'         => $data['monthly_price'] ?? null,
-    //                 'weekly_price'          => $data['weekly_price'] ?? null,
-    //                 'offer_discount'        => $data['offer_discount'] ?? null,
-    //                 'long_term_offers'      => $data['long_term_offers'] ?? null, // Capturing Campaign Packages
-    //                 'graphics_included'     => $data['graphics_included'] ?? null,
-    //                 'graphics_price'        => $data['graphics_price'] ?? null,
+    //                 'offer_discount'        => isset($data['has_offer_discount']) ? 1 : 0,
+    //                 'graphics_included'     => $graphicsIncluded,
+    //                 'graphics_price'        => $graphicsPrice,
     //                 'survey_charge'         => $data['survey_charge'] ?? null,
-    //                 'services_included'     => $data['services_included'] ?? null,
     //             ];
 
+    //             // Use repo to update step 3 fields
     //             $screen = $this->repo->updateStep3($screen, $update);
 
-    //             // Handle separate Slots table if not using JSON field
+    //             // 2. IMPORTANT: Store relational Packages (Using the model we built)
+    //             // This replaces the 'formatCampaignPackages' JSON logic
+    //             if (!empty($data['offer_name'])) {
+    //                 $this->repo->storePackages($screen->id, $data);
+    //             }
+
+    //             // 3. Store relational Slots (If your UI has time-slot checkboxes)
     //             if (!empty($data['slots'])) {
     //                 $this->repo->storeSlots($screen->id, $data['slots']);
     //             }
 
-    //             // Handle separate Packages table if not using JSON field
-    //             if (!empty($data['packages'])) {
-    //                 $this->repo->storePackages($screen->id, $data['packages']);
-    //             }
-
     //             $screen->current_step = 3;
-    //             $screen->status = 'active'; // Optionally activate upon completion
+    //             $screen->status = 'active';
     //             $screen->save();
 
-    //             return ['success' => true, 'screen' => $screen->fresh(['slots', 'packages'])];
+    //             return ['success' => true, 'screen' => $screen->fresh(['packages', 'slots'])];
     //         } catch (\Throwable $e) {
-    //             Log::error('DOOH step3 failed', ['error' => $e->getMessage()]);
-    //             return ['success' => false, 'errors' => ['step3' => ['Failed to save pricing and package details.']]];
+    //             \Log::error('DOOH step3 failed', ['error' => $e->getMessage()]);
+    //             throw $e;
     //         }
     //     });
     // }
-    /**
-     * Store Step 3 (Pricing, Slots, Campaigns, Services)
-     */
-    public function storeStep3($screen, $data)
+    public function storeStep3($screen, array $data)
     {
         return DB::transaction(function () use ($screen, $data) {
-            try {
-                // 1. Update the Screen (Hoarding) basic pricing info
-                $update = [
-                    'display_price_per_30s' => $data['display_price_per_30s'] ?? null,
-                    'video_length'          => $data['video_length'] ?? null,
-                    'base_monthly_price'    => $data['base_monthly_price'] ?? null,
-                    'offer_discount'        => isset($data['has_offer_discount']) ? 1 : 0,
-                    'graphics_included'     => $data['graphics_included'] ?? 0,
-                    'graphics_price'        => $data['graphics_price'] ?? null,
-                    'survey_charge'         => $data['survey_charge'] ?? null,
-                ];
 
-                // Use repo to update step 3 fields
-                $screen = $this->repo->updateStep3($screen, $update);
+            // ---- Screen Pricing ----
+            $graphicsIncluded = isset($data['graphics_included']);
 
-                // 2. IMPORTANT: Store relational Packages (Using the model we built)
-                // This replaces the 'formatCampaignPackages' JSON logic
-                if (!empty($data['offer_name'])) {
-                    $this->repo->storePackages($screen->id, $data);
-                }
+            $update = [
+                'display_price_per_30s' => $data['display_price_per_30s'] ?? null,
+                'video_length'          => $data['video_length'] ?? null,
+                // 'base_monthly_price'    => $data['base_monthly_price'] ?? null,
+                // 'graphics_included'     => $graphicsIncluded,
+                // 'graphics_price'        => $data['graphics_price'] ?? null,
+                'survey_charge'         => $data['survey_charge'] ?? 0,
+            ];
 
-                // 3. Store relational Slots (If your UI has time-slot checkboxes)
-                if (!empty($data['slots'])) {
-                    $this->repo->storeSlots($screen->id, $data['slots']);
-                }
+            $screen = $this->repo->updateStep3($screen, $update);
 
-                $screen->current_step = 3;
-                $screen->status = 'active';
-                $screen->save();
-
-                return ['success' => true, 'screen' => $screen->fresh(['packages', 'slots'])];
-            } catch (\Throwable $e) {
-                \Log::error('DOOH step3 failed', ['error' => $e->getMessage()]);
-                throw $e;
+            // ---- Slots ----
+            if (!empty($data['slots'])) {
+                $this->repo->storeSlots($screen->id, $data['slots']);
             }
+
+            // ---- Campaign Packages ----
+            if (!empty($data['offer_name'])) {
+                $this->repo->storePackages($screen->id, $data);
+            }
+
+            // ---- Finalize ----
+            // ---- Parent updates ----
+            $parentHoarding = $screen->hoarding;
+            $parentHoarding->base_monthly_price = $data['base_monthly_price'] ?? null;
+            $parentHoarding->graphics_included = $graphicsIncluded ?? 0;
+            $parentHoarding->graphics_charge = $data['graphics_price'] ?? null;
+
+            $parentHoarding->current_step = 3;
+            $parentHoarding->status = 'pending_approval';
+            $parentHoarding->save();
+
+
+            return [
+                'success' => true,
+                'screen'  => $screen->fresh(['slots', 'packages'])
+            ];
         });
     }
 

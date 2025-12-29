@@ -140,35 +140,54 @@
   </div>
     <!-- Pricing Details -->
     <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-        <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
-        <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-        Pricing<span class="text-red-500 ml-1">*</span>
-        </h3>
+      <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
+      <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+      Pricing<span class="text-red-500 ml-1">*</span>
+      </h3>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <!-- Price Per Slot -->
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700">
-                    Price Per Slot (₹) <span class="text-red-500">*</span>
-                </label>
-                <input
-                    type="number"
-                    name="price_per_slot"
-                    min="1"
-                    step="0.01"
-                    required
-                    placeholder="e.g. 50"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all"
-                />
-                <p class="text-xs text-gray-400">
-                    Cost per 10-second slot (recommended for DOOH)
-                </p>
-            </div>
+          <!-- Monthly Base Price -->
+          <div class="space-y-2">
+              <label class="text-sm font-bold text-gray-700">
+                  Monthly Base Price (₹) <span class="text-red-500">*</span>
+              </label>
+              <input
+                  type="number"
+                  name="monthly_base_price"
+                  min="1"
+                  step="0.01"
+                  required
+                  placeholder="e.g. 50,000"
+                  class="w-full border border-gray-200 rounded-xl px-4 py-3
+                        focus:border-[#009A5C] outline-none transition-all"
+              />
+              <p class="text-xs text-gray-400">
+                  Standard monthly hoarding price (before discount)
+              </p>
+          </div>
 
-        
+          <!-- Monthly Offer Price -->
+          <div class="space-y-2">
+              <label class="text-sm font-bold text-gray-700">
+                  Monthly Offer Price (₹)
+              </label>
+              <input
+                  type="number"
+                  name="monthly_offer_price"
+                  min="1"
+                  step="0.01"
+                  placeholder="e.g. 42,000"
+                  class="w-full border border-gray-200 rounded-xl px-4 py-3
+                        focus:border-[#009A5C] outline-none transition-all"
+              />
+              <p class="text-xs text-gray-400">
+                  Discounted price (optional)
+              </p>
+          </div>
 
-        </div>
+      </div>
+
     </div>
 
   <!-- Upload Hoarding Media -->

@@ -20,8 +20,8 @@ class HoardingObserver
     public function creating(Hoarding $hoarding): void
     {
         // Set initial approval status for new hoardings
-        if (!$hoarding->approval_status) {
-            $hoarding->approval_status = 'draft';
+        if (!$hoarding->status) {
+            $hoarding->status = 'draft';
         }
         
         if (!$hoarding->current_version) {
@@ -98,7 +98,7 @@ class HoardingObserver
     public function deleting(Hoarding $hoarding): void
     {
         // Prevent deletion of approved hoardings with active bookings
-        if ($hoarding->approval_status === 'approved') {
+        if ($hoarding->status === 'approved') {
             $activeBookings = \DB::table('bookings')
                 ->where('hoarding_id', $hoarding->id)
                 ->whereIn('status', ['pending', 'confirmed'])

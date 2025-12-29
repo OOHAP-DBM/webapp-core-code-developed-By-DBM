@@ -2,7 +2,7 @@
 
 namespace Modules\Hoardings\Repositories;
 
-use Modules\Hoardings\Models\Hoarding;
+use App\Models\Hoarding;
 use Modules\Hoardings\Models\HoardingMedia;
 use Modules\Hoardings\Models\HoardingPackage;
 use Illuminate\Support\Str;
@@ -21,7 +21,7 @@ class HoardingListRepository
         return Hoarding::create([
             'vendor_id'        => $vendor->id,
             'category'         => $data['category'],
-            'hoarding_type'    => $data['hoarding_type'],
+            // 'hoarding_type'    => $data['hoarding_type'],
             'width'            => $width,
             'height'           => $height,
             'measurement_unit' => $measurement_unit,
@@ -33,7 +33,7 @@ class HoardingListRepository
             'state'            => $data['state'] ?? null,
             'lat'              => $data['lat'] ?? null,
             'lng'              => $data['lng'] ?? null,
-            'price_per_slot'   => $data['price_per_slot'],
+            'base_monthly_price'   => $data['base_monthly_price'] ?? 0,
             'status'           => Hoarding::STATUS_DRAFT,
             'current_step'     => 1,
         ]);
@@ -69,7 +69,7 @@ class HoardingListRepository
 
     public function storeBrandLogos($hoardingId, array $logoFiles): array
     {
-        $hoarding = \Modules\Hoardings\Models\Hoarding::findOrFail($hoardingId);
+        $hoarding = \App\Models\Hoarding::findOrFail($hoardingId);
         $saved = [];
         foreach ($logoFiles as $index => $file) {
             $uuid = \Illuminate\Support\Str::uuid()->toString();

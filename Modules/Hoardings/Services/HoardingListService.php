@@ -21,16 +21,18 @@ class HoardingListService
      */
     public function storeStep1($vendor, $data, $mediaFiles)
     {
+        // dd($data);
+
         $validator = Validator::make($data, [
             'category'          => 'required|string|max:100',
-            'hoarding_type'     => 'required|string|max:50',
+            // 'hoarding_type'     => 'required|string|max:50',
             'width'             => 'required|numeric|min:0.1',
             'height'            => 'required|numeric|min:0.1',
             'measurement_unit'  => 'required|in:sqft,sqm',
             'address'           => 'required|string|max:255',
             'pincode'           => 'required|string|max:20',
             'locality'          => 'required|string|max:100',
-            'price_per_slot'    => 'required|numeric|min:1',
+            // 'price_per_slot'    => 'required|numeric|min:1',
         ]);
 
         if ($validator->fails() || empty($mediaFiles)) {
