@@ -14,6 +14,7 @@
                     <th class="px-4 py-3 text-left">EMAIL</th>
                     <th class="px-4 py-3 text-left">PHONE NUMBER</th>
                     <th class="px-4 py-3 text-center">ACTION</th>
+                    <th class="px-4 py-3 text-center"></th>
                 </tr>
             </thead>
 
@@ -49,9 +50,53 @@
                         </td>
 
                         <td class="px-4 py-3 text-center">
-                            <button class="text-gray-500 hover:text-gray-700">
+                            <form
+                                action="{{ route('admin.vendors.approve', $vendor->id) }}"
+                                method="POST"
+                                onsubmit="return confirm('Are you sure you want to approve this vendor?')"
+                            >
+                                @csrf
+                                <button
+                                    type="submit"
+                                    class="bg-[#F59E0B] text-white px-6 py-2 rounded-lg text-sm hover:bg-[#d48806]"
+                                >
+                                    Approve
+                                </button>
+                            </form>
+                        </td>
+
+                        <td class="px-4 py-3 text-center relative" x-data="{ open: false }">
+
+                            <!-- Three Dots -->
+                            <button
+                                @click="open = !open"
+                                class="text-gray-500 hover:text-gray-700 text-xl font-bold focus:outline-none"
+                            >
                                 ⋮
                             </button>
+
+                            <!-- Dropdown -->
+                            <div
+                                x-show="open"
+                                @click.outside="open = false"
+                                x-transition
+                                class="absolute right-6 top-8 w-36 bg-white border border-gray-200 rounded-md shadow-lg z-50"
+                            >
+                                <form
+                                    action="{{ route('admin.vendors.reject', $vendor->id) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('Are you sure you want to reject this vendor?')"
+                                >
+                                    @csrf
+                                    <button
+                                        type="submit"
+                                        class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                                    >
+                                        Reject Now
+                                    </button>
+                                </form>
+                            </div>
+
                         </td>
                     </tr>
                 @empty
