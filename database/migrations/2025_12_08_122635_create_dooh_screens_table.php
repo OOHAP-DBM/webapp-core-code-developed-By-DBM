@@ -17,7 +17,7 @@ return new class extends Migration
                     ->constrained('hoardings')
                     ->cascadeOnDelete();
                 $table->string('external_screen_id')->nullable();
-                $table->string('name')->nullable();
+                // $table->string('name')->nullable();
                 $table->string('screen_type')->nullable();
 
                 $table->integer('resolution_width')->nullable();

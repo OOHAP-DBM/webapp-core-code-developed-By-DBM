@@ -358,8 +358,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     
     // Listings Management (PROMPT 26)
     Route::get('/listings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'index'])->name('listings.index');
-    Route::get('/hoardings/create', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'create'])->name('hoardings.create');
-    Route::post('/hoardings/store', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'store'])->name('hoarding.store');
+    Route::get('/hoardings/create', [Modules\Hoardings\Controllers\Vendor\OOHListingController::class, 'create'])->name('hoardings.create');
+    Route::post('/hoardings/store', [Modules\Hoardings\Controllers\Vendor\OOHListingController::class, 'store'])->name('hoarding.store');
 
     Route::post('/listings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'store'])->name('listings.store');
     Route::get('/listings/{id}/edit', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'edit'])->name('listings.edit');

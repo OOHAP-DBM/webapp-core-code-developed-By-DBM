@@ -26,6 +26,7 @@ return new class extends Migration
             // Validity
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
+            $table->json('services_included')->nullable();
 
             // Status
             $table->boolean('is_active')->default(true);

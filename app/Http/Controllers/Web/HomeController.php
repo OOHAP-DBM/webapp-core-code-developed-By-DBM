@@ -50,8 +50,11 @@ class HomeController extends Controller
         }
 
         // Get top DOOH screens
-        $topDOOHs = DOOHScreen::where('status', 'active')
-            ->with(['vendor'])
+        $topDOOHs = DOOHScreen::whereHas('hoarding', function ($q) {
+            $q->where('status', 'approved')
+                ->where('hoarding_type', 'dooh');
+        })
+            ->with(['hoarding.vendor'])
             ->latest()
             ->take(8)
             ->get();
