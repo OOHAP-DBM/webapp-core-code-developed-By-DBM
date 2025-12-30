@@ -49,7 +49,8 @@ class HomeController extends Controller
             $bestHoardings = collect($this->getDummyHoardings());
         }
 
-       $topDOOHs = DOOHScreen::whereHas('hoarding', function ($q) {
+        // Get top DOOH screens
+        $topDOOHs = DOOHScreen::whereHas('hoarding', function ($q) {
             $q->where('status', 'approved')
                 ->where('hoarding_type', 'dooh');
         })

@@ -61,14 +61,6 @@ return new class extends Migration
             $table->decimal('monthly_price', 12, 2)->default(0);
             $table->boolean('enable_weekly_booking')->default(false);
             $table->decimal('weekly_price', 10, 2)->nullable();
-<<<<<<< HEAD
-            $table->decimal('monthly_price', 10, 2)->nullable();
-            $table->boolean('enable_weekly_booking')->default(true);
-            $table->enum('type', ['billboard', 'digital', 'transit', 'street_furniture', 'wallscape', 'mobile'])->default('billboard');
-            $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'suspended'])->default('draft');
-            $table->boolean('is_featured')->nullable();
-            $table->decimal('commission_percent', 5, 2)->nullable();
-=======
             $table->decimal('commission_percent', 5, 2)->default(0);
             $table->string('currency', 10)->default('INR');
 
@@ -92,6 +84,29 @@ return new class extends Migration
 
             /* WORKFLOW */
             $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'suspended','approved'])->default('draft');
+            $table->decimal('commission_percent', 5, 2)->default(0);
+            $table->string('currency', 10)->default('INR');
+
+            /* ONE TIME CHARGES */
+            $table->boolean('graphics_included')->default(false);
+            $table->decimal('graphics_charge', 10, 2)->nullable();
+            $table->decimal('survey_charge', 10, 2)->nullable();
+
+            /* BOOKING RULES */
+            $table->unsignedInteger('grace_period_days')->default(0);
+            $table->unsignedInteger('min_booking_months')->default(1);
+            $table->unsignedInteger('max_booking_months')->nullable();
+            $table->date('available_from')->nullable();
+            $table->date('available_to')->nullable();
+            $table->json('block_dates')->nullable();
+
+            /* LEGAL */
+            $table->boolean('nagar_nigam_approved')->default(false);
+            $table->string('permit_number')->nullable();
+            $table->date('permit_valid_till')->nullable();
+
+            /* WORKFLOW */
+            $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'suspended'])->default('draft');
             $table->unsignedInteger('current_step')->default(1);
             $table->boolean('is_featured')->default(false);
 
@@ -119,7 +134,6 @@ return new class extends Migration
             $table->integer('bookings_count')->default(0);
             $table->timestamp('last_booked_at')->nullable();
 
->>>>>>> 59e8a4016f8170dcb1c114ca9ae737591c5c7567
             $table->timestamps();
             $table->softDeletes();
             $table->index(['latitude', 'longitude'], 'hoardings_location_index');

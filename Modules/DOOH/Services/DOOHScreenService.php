@@ -180,7 +180,7 @@ class DOOHScreenService
                 // 'base_monthly_price'    => $data['base_monthly_price'] ?? null,
                 // 'graphics_included'     => $graphicsIncluded,
                 // 'graphics_price'        => $data['graphics_price'] ?? null,
-                'survey_charge'         => $data['survey_charge'] ?? 0,
+                // 'survey_charge'         => $data['survey_charge'] ?? 0,
             ];
 
             $screen = $this->repo->updateStep3($screen, $update);
@@ -201,6 +201,7 @@ class DOOHScreenService
             $parentHoarding->base_monthly_price = $data['base_monthly_price'] ?? null;
             $parentHoarding->graphics_included = $graphicsIncluded ?? 0;
             $parentHoarding->graphics_charge = $data['graphics_price'] ?? null;
+            $parentHoarding->survey_charge = $data['survey_charge'] ?? null;
 
             $parentHoarding->current_step = 3;
             $parentHoarding->status = 'pending_approval';
