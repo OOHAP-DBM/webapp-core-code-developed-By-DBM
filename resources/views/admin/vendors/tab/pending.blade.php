@@ -50,19 +50,18 @@
                         </td>
 
                         <td class="px-4 py-3 text-center">
-                            <form
-                                action="{{ route('admin.vendors.approve', $vendor->id) }}"
-                                method="POST"
-                                onsubmit="return confirm('Are you sure you want to approve this vendor?')"
+                            <button
+                                class="bg-[#F59E0B] text-white px-6 py-2 rounded-lg text-sm"
+                                @click="$dispatch('open-vendor-commission', {
+                                    vendorId: {{ $vendor->id }},
+                                    vendorName: '{{ $vendor->user->name }}',
+                                    commission: {{ (float) $vendor->commission_percentage }}
+                                })"
                             >
-                                @csrf
-                                <button
-                                    type="submit"
-                                    class="bg-[#F59E0B] text-white px-6 py-2 rounded-lg text-sm hover:bg-[#d48806]"
-                                >
-                                    Approve
-                                </button>
-                            </form>
+                                Approve
+                            </button>
+
+
                         </td>
 
                         <td class="px-4 py-3 text-center relative" x-data="{ open: false }">
@@ -82,19 +81,14 @@
                                 x-transition
                                 class="absolute right-6 top-8 w-36 bg-white border border-gray-200 rounded-md shadow-lg z-50"
                             >
-                                <form
-                                    action="{{ route('admin.vendors.reject', $vendor->id) }}"
-                                    method="POST"
-                                    onsubmit="return confirm('Are you sure you want to reject this vendor?')"
+                                <button
+                                    type="button"
+                                    class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                                    onclick="rejectVendor({{ $vendor->id }})"
                                 >
-                                    @csrf
-                                    <button
-                                        type="submit"
-                                        class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                                    >
-                                        Reject Now
-                                    </button>
-                                </form>
+                                    Reject Now
+                                </button>
+
                             </div>
 
                         </td>
@@ -128,3 +122,169 @@
     </div>
 
 </div>
+{{--vendor commision modal--}}
+<div
+    x-data="vendorCommissionModal()"
+    x-cloak
+    x-show="open"
+    x-transition
+    @open-vendor-commission.window="
+            $event.detail.commission > 0
+                ? approveDirect($event.detail)
+                : openModal($event.detail)
+        "    
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        >
+    <div
+        @click.outside="close()"
+        class="bg-[#f5f5f5] w-full max-w-lg rounded-2xl shadow-xl relative px-10 py-8"
+    >
+        <!-- Close -->
+        <button
+            @click="close()"
+            class="absolute top-5 right-6 text-xl text-gray-700 hover:text-black"
+        >
+            ✕
+        </button>
+
+        <h2 class="text-2xl font-semibold text-center mb-2" x-text="vendorName"></h2>
+        <p class="text-center text-gray-700 mb-6">Set a Vendor Commission</p>
+
+        <div class="flex justify-center gap-6 mb-8">
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">From</label>
+                <input type="number" x-model="from"
+                       class="w-28 text-center border rounded-md px-3 py-2">
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">To</label>
+                <input type="number" x-model="to"
+                       class="w-28 text-center border rounded-md px-3 py-2">
+            </div>
+        </div>
+
+        <button
+            @click="apply()"
+            class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl text-lg font-medium"
+        >
+            Apply
+        </button>
+    </div>
+</div>
+
+{{--vendor reject--}}
+<div id="reject-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden backdrop-blur-sm">
+    <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-[340px] p-8 text-center">
+        <h3 class="text-[18px] font-bold text-[#1E1B18] mb-2">Are you sure?</h3>
+        <p class="text-[12px] text-[#949291] mb-6">You are not able to recover the Requested Vendor</p>
+        <form id="reject-form" class="space-y-4">
+            <input type="hidden" id="reject_vendor_id">
+            <input type="text" id="reject_reason" class="w-full px-4 py-3 border border-[#DADADA] rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="Reason for rejection" required>
+            <div class="flex gap-3">
+                <button type="submit" class="flex-1 py-3 bg-[#EF4444] text-white rounded-xl font-bold hover:bg-red-600">Yes, Reject</button>
+                <button type="button" class="flex-1 py-3 bg-gray-100 text-[#1E1B18] rounded-xl font-bold close-modal" data-modal="reject-modal" onclick="closeRejectModal()"
+                >Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('vendorCommissionModal', () => ({
+            open: false,
+            vendorId: null,
+            vendorName: '',
+            from: 10,
+            to: '',
+
+            openModal(detail) {
+                this.vendorId = detail.vendorId;
+                this.vendorName = detail.vendorName;
+                this.from = 10;
+                this.to = '';
+                this.open = true;
+            },
+
+            approveDirect(detail) {
+                fetch(`/admin/vendors/${detail.vendorId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        commission_percentage: detail.commission
+                    })
+                }).then(() => location.reload());
+            },
+
+            close() {
+                this.open = false;
+            },
+
+            apply() {
+                if (!this.to || this.to <= 0) {
+                    alert('Please enter valid commission');
+                    return;
+                }
+
+                if (this.to < this.from) {
+                    alert('Commission cannot be less than minimum');
+                    return;
+                }
+
+                fetch(`/admin/vendors/${this.vendorId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        commission_percentage: this.to   // ✅ FINAL VALUE
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+            }
+
+        }));
+    });
+
+</script>
+<script>
+    function closeRejectModal() {
+        document.getElementById('reject-modal').classList.add('hidden');
+    }
+    function rejectVendor(id) {
+        document.getElementById('reject_vendor_id').value = id;
+        document.getElementById('reject-modal').classList.remove('hidden');
+    }
+    document.getElementById('reject-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const id = document.getElementById('reject_vendor_id').value;
+        const reason = document.getElementById('reject_reason').value;
+
+        fetch(`/admin/vendors/${id}/reject`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ reason })
+        })
+        .then(() => location.reload());
+    });
+</script>
+
