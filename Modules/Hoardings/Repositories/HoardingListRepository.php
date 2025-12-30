@@ -18,7 +18,7 @@ class HoardingListRepository
             ? round($width * $height * 10.7639, 2)
             : round($width * $height, 2);
 
-        return Hoarding::create([
+        $hoarding = Hoarding::create([
             'vendor_id'        => $vendor->id,
             'category'         => $data['category'],
             // 'hoarding_type'    => $data['hoarding_type'],
@@ -37,6 +37,16 @@ class HoardingListRepository
             'status'           => Hoarding::STATUS_DRAFT,
             'current_step'     => 1,
         ]);
+
+        // Also create OOHHoarding record
+        \Modules\Hoardings\Models\OOHHoarding::create([
+            'hoarding_id' => $hoarding->id,
+            'width' => $width,
+            'height' => $height,
+            'measurement_unit' => $measurement_unit,
+        ]);
+
+        return $hoarding;
     }
 
     public function storeMedia(int $hoardingId, array $mediaFiles): array
@@ -74,7 +84,7 @@ class HoardingListRepository
         foreach ($logoFiles as $index => $file) {
             $uuid = \Illuminate\Support\Str::uuid()->toString();
             $ext  = strtolower($file->getClientOriginalExtension());
-            $directory = "hoardings/brand_logos/{$hoardingId}";
+            $directory = "oohHoardings/brand_logos/{$hoardingId}";
             $filename  = "{$uuid}.{$ext}";
             $path = $file->storeAs($directory, $filename, 'public');
             $saved[] = $hoarding->brandLogos()->create([
@@ -87,6 +97,13 @@ class HoardingListRepository
 
     public function updateStep3($hoarding, array $data)
     {
+        // Move survey_charge to parent hoarding if present
+        if (isset($data['survey_charge'])) {
+            $parent = $hoarding->hoarding;
+            $parent->survey_charge = $data['survey_charge'];
+            $parent->save();
+            unset($data['survey_charge']);
+        }
         $hoarding->fill($data);
         $hoarding->save();
         return $hoarding;

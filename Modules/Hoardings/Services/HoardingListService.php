@@ -64,7 +64,7 @@ class HoardingListService
             if (!empty($brandLogoFiles)) {
                 $this->repo->storeBrandLogos($hoarding->id, $brandLogoFiles);
             }
-            return ['success' => true, 'hoarding' => $hoarding->fresh(['brandLogos'])];
+            return ['success' => true,   'hoarding' => $hoarding->hoarding->fresh('brandLogos')];
         });
     }
 
