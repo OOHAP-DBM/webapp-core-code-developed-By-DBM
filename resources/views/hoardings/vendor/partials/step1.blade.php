@@ -21,8 +21,12 @@
         <label class="text-sm font-bold text-gray-700">Category <span class="text-red-500">*</span></label>
         <select name="category" required
           class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%226b7280%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:20px] bg-[right_1rem_center] bg-no-repeat">
-          <option value="Unipole">Unipole</option>
-          <option value="Billboard">Billboard</option>
+          <option value="">Select Category</option>
+          @if(isset($attributes['category']))
+            @foreach($attributes['category'] as $cat)
+              <option value="{{ $cat->value }}">{{ $cat->value }}</option>
+            @endforeach
+          @endif
         </select>
       </div>
 

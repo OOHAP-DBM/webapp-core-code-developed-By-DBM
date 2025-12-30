@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class OOHHoarding extends Model
+  
 {
     use HasFactory, SoftDeletes;
 
@@ -90,5 +91,23 @@ class OOHHoarding extends Model
         }
 
         return $total + (float) $this->survey_charge;
+    }
+
+    /**
+     * Attribute relationships
+     */
+    public function categoryAttribute()
+    {
+        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'category_id');
+    }
+
+    public function materialAttribute()
+    {
+        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'material_id');
+    }
+
+    public function lightingAttribute()
+    {
+        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'lighting_id');
     }
 }

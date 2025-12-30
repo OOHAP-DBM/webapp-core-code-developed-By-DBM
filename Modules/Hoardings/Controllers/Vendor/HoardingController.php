@@ -58,7 +58,7 @@ class HoardingController extends Controller
         if ($type === 'OOH') {
             // OOH: Continue OOH flow, create draft
             Session::put('hoarding_type', 'OOH');
-            return Redirect::route('hoardings.create'); // Existing OOH create route
+            return Redirect::route('vendor.hoardings.create'); // Existing OOH create route
         }
         // Invalid type: redirect back
         return Redirect::back()->with('error', 'Please select a valid hoarding type.');

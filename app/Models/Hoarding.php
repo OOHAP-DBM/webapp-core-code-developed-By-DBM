@@ -18,6 +18,7 @@ use Modules\Hoardings\Models\HoardingPackage;
 use Modules\Hoardings\Models\HoardingBrandLogo;
 
 class Hoarding extends Model implements HasMedia
+   
 {
     use HasFactory, SoftDeletes, HasSnapshots, Auditable, InteractsWithMedia;
 
@@ -465,5 +466,23 @@ class Hoarding extends Model implements HasMedia
         $earliestDate = $this->getEarliestAllowedStartDate()->format('d M Y');
 
         return "Campaign start date must be at least {$days} day(s) from today. Earliest allowed date: {$earliestDate}";
+    }
+
+    /**
+     * Attribute relationships
+     */
+    public function categoryAttribute()
+    {
+        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'category_id');
+    }
+
+    public function materialAttribute()
+    {
+        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'material_id');
+    }
+
+    public function lightingAttribute()
+    {
+        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'lighting_id');
     }
 }

@@ -176,4 +176,11 @@ class DOOHScreen extends Model
     {
         return "{$this->name} ({$this->screen_type})";
     }
+    /**
+     * Attribute relationships
+     */
+    public function categoryAttribute()
+    {
+        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'category_id');
+    }
 }

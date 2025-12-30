@@ -39,20 +39,15 @@ class OOHListingController extends Controller
         $step = max(1, min(3, $step));
         $draft = OOHHoarding::whereHas('hoarding', function ($q) use ($vendor) {
             $q->where('vendor_id', $vendor->id)
-                ->where('status', 'draft'); // ✅ STATUS BELONGS HERE
+                ->where('status', 'draft');
         })
             ->orderByDesc('updated_at')
             ->first();
 
-
-
-        // If draft exists and current_step is set, resume from there
         if ($draft && $draft->current_step && $step < $draft->current_step) {
-            // Always resume from last incomplete step
             $step = $draft->current_step;
         }
         if (!$draft && $step === 1) {
-
             $hoarding = \App\Models\Hoarding::create([
                 'vendor_id' => $vendor->id,
                 'hoarding_type' => 'ooh',
@@ -60,18 +55,18 @@ class OOHListingController extends Controller
                 'approval_status' => 'pending',
                 'current_step' => 1,
             ]);
-
             $draft = OOHHoarding::create([
                 'hoarding_id' => $hoarding->id,
-                // 'status' => DOOHScreen::STATUS_DRAFT,
-
             ]);
         }
 
+        // Fetch attributes for form dropdowns
+        $attributes = \App\Models\HoardingAttribute::groupedByType();
 
         return view('hoardings.vendor.create', [
             'step' => $step,
             'draft' => $draft,
+            'attributes' => $attributes,
         ]);
     }
 
