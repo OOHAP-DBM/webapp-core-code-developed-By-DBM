@@ -264,74 +264,9 @@ class Hoarding extends Model implements HasMedia
         return $query->where('status', $status);
     }
 
-    /**
-     * Scope a query to search by title or address.
-     */
-    public function scopeSearch($query, $search)
+    public function getGracePeriodDays(): int
     {
-        return $query->where(function ($q) use ($search) {
-            $q->where('title', 'like', "%{$search}%")
-                ->orWhere('address', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%");
-        });
-    }
-
-    /**
-     * Scope a query to filter by location radius (basic distance filter).
-     */
-    public function scopeNearLocation($query, $lat, $lng, $radiusKm = 10)
-    {
-        // Simple bounding box calculation (not precise but fast)
-        $latDelta = $radiusKm / 111; // 1 degree latitude ≈ 111km
-        $lngDelta = $radiusKm / (111 * cos(deg2rad($lat)));
-
-        return $query->whereBetween('lat', [$lat - $latDelta, $lat + $latDelta])
-            ->whereBetween('lng', [$lng - $lngDelta, $lng + $lngDelta]);
-    }
-
-    /**
-     * Get all available hoarding types.
-     */
-    public static function getTypes(): array
-    {
-        return [
-            self::TYPE_BILLBOARD => 'Billboard',
-            self::TYPE_DIGITAL => 'Digital Screen',
-            self::TYPE_TRANSIT => 'Transit Advertising',
-            self::TYPE_STREET_FURNITURE => 'Street Furniture',
-            self::TYPE_WALLSCAPE => 'Wallscape',
-            self::TYPE_MOBILE => 'Mobile Billboard',
-        ];
-    }
-
-    /**
-     * Get all available hoarding statuses.
-     */
-    public static function getStatuses(): array
-    {
-        return [
-            self::STATUS_DRAFT => 'Draft',
-            self::STATUS_PENDING_APPROVAL => 'Pending Approval',
-            self::STATUS_ACTIVE => 'Active',
-            self::STATUS_INACTIVE => 'Inactive',
-            self::STATUS_SUSPENDED => 'Suspended',
-        ];
-    }
-
-    /**
-     * Get the formatted type label.
-     */
-    public function getTypeLabelAttribute(): string
-    {
-        return self::getTypes()[$this->type] ?? $this->type;
-    }
-
-    /**
-     * Get the formatted status label.
-     */
-    public function getStatusLabelAttribute(): string
-    {
-        return self::getStatuses()[$this->status] ?? $this->status;
+        return $this->grace_period_days ?? (int) config('booking.grace_period_days', 2);
     }
 
     /**
