@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Hoarding;
 use App\Models\User;
 
 class DOOHScreen extends Model
@@ -16,117 +17,125 @@ class DOOHScreen extends Model
     protected $table = 'dooh_screens';
 
     protected $fillable = [
-         'vendor_id',
+
+        /* FK */
+        'hoarding_id',
+        'vendor_id',
+
+        /* External sync */
         'external_screen_id',
-        'name',
-        'description',
-        'screen_type',
-        'address',
-        'city',
-        'state',
-        'country',
-        'lat',
-        'lng',
-        'locality',
-        'resolution',
-        'screen_size',
-        'width',
-        'height',
-        'measurement_unit',
-        'calculated_area_sqft',
-        'slot_duration_seconds',
-        'loop_duration_seconds',
-        'slots_per_loop',
-        'min_slots_per_day',
-        'price_per_slot',
-        'price_per_month',
-        'minimum_booking_amount',
-        'total_slots_per_day',
-        'available_slots_per_day',
-        'allowed_formats',
-        'max_file_size_mb',
-        'status',
         'sync_status',
         'last_synced_at',
         'sync_metadata',
-        'pincode',
 
-        // Step 2 & 3 Pricing & Offering Fields
-        'nagar_nigam_approved',
-        'block_dates',
-        'grace_period',
-        'audience_types',
-        'visible_from',
-        'located_at',
-        'hoarding_visibility',
-        'visibility_details',
+        /* Screen identity */
+        'screen_type', // LED, LCD, Projection
+
+        /* Resolution & size */
+        'resolution_width',
+        'resolution_height',
+        'screen_size',
+        'measurement_unit',
+
+        /* Slot logic */
+        'slot_duration_seconds',
+        'loop_duration_seconds',
+        'slots_per_loop',
+        'total_slots_per_day',
+        'available_slots_per_day',
+        'min_slots_per_day',
+
+        /* Pricing */
+        'price_per_slot',
         'display_price_per_30s',
-        'video_length',
-        'base_monthly_price', // Added to match form
+        'minimum_booking_amount',
+
+        'base_monthly_price',
         'monthly_price',
         'weekly_price',
+
+        /* Media constraints */
+        'allowed_formats',
+        'max_file_size_mb',
+        'video_length',
+
+        /* Offers */
         'offer_discount',
-        'long_term_offers',   // Added for DOOH Campaign Packages
+        'long_term_offers',
         'services_included',
-        'graphics_included',  // Added to match form logic
-        'graphics_price',     // Added to match form logic
-        'survey_charge',      // Added to match form logic
+
+        /* Graphics */
+        'graphics_included',
+        'graphics_price',
+
+        /* Commission */
         'commission_percent',
+
+        /* Workflow */
+        'status',
     ];
 
     protected $casts = [
-        'lat' => 'decimal:7',
-        'lng' => 'decimal:7',
-        'width' => 'decimal:2',
-        'height' => 'decimal:2',
-        'nagar_nigam_approved' => 'boolean',
-        'block_dates' => 'array',
-        'grace_period' => 'boolean',
-        'audience_types' => 'array',
-        'visible_from' => 'array',
-        'located_at' => 'array',
-        'visibility_details' => 'array',
+        'resolution_width' => 'integer',
+        'resolution_height' => 'integer',
+
+        'slot_duration_seconds' => 'integer',
+        'loop_duration_seconds' => 'integer',
+        'slots_per_loop' => 'integer',
+        'total_slots_per_day' => 'integer',
+        'available_slots_per_day' => 'integer',
+        'min_slots_per_day' => 'integer',
+
+        'price_per_slot' => 'decimal:2',
         'display_price_per_30s' => 'decimal:2',
-        'video_length' => 'integer',
+        'minimum_booking_amount' => 'decimal:2',
+
         'base_monthly_price' => 'decimal:2',
         'monthly_price' => 'decimal:2',
         'weekly_price' => 'decimal:2',
+
         'offer_discount' => 'boolean',
-        'long_term_offers' => 'array', // Crucial for storing dynamic packages
-        'services_included' => 'array',
         'graphics_included' => 'boolean',
+
         'graphics_price' => 'decimal:2',
-        'survey_charge' => 'decimal:2',
-        'price_per_slot' => 'decimal:2',
-        'price_per_month' => 'decimal:2',
-        'minimum_booking_amount' => 'decimal:2',
+        'commission_percent' => 'decimal:2',
+
         'allowed_formats' => 'array',
+        'long_term_offers' => 'array',
+        'services_included' => 'array',
+
         'sync_metadata' => 'array',
         'last_synced_at' => 'datetime',
-       
     ];
 
-    // --- Status Constants ---
+    /* ================= CONSTANTS ================= */
+
     const STATUS_DRAFT = 'draft';
     const STATUS_PENDING_APPROVAL = 'pending_approval';
     const STATUS_ACTIVE = 'active';
     const STATUS_INACTIVE = 'inactive';
     const STATUS_SUSPENDED = 'suspended';
+
     const SYNC_STATUS_PENDING = 'pending';
     const SYNC_STATUS_SYNCED = 'synced';
     const SYNC_STATUS_FAILED = 'failed';
 
-    // --- Relationships ---
+    /* ================= RELATIONSHIPS ================= */
 
-    public function vendor(): BelongsTo
+    public function hoarding(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'vendor_id');
+        return $this->belongsTo(Hoarding::class, 'hoarding_id');
     }
 
-    public function brandLogos(): HasMany
+    // public function vendor(): BelongsTo
+    // {
+    //     return $this->belongsTo(User::class, 'vendor_id');
+    // }
+    public function vendor()
     {
-        return $this->hasMany(DOOHScreenBrandLogo::class, 'dooh_screen_id');
+        return $this->hoarding?->vendor();
     }
+
 
     public function slots(): HasMany
     {
@@ -137,6 +146,7 @@ class DOOHScreen extends Model
     {
         return $this->hasMany(DOOHPackage::class, 'dooh_screen_id');
     }
+
     public function bookings(): HasMany
     {
         return $this->hasMany(DOOHBooking::class, 'dooh_screen_id');
@@ -146,46 +156,24 @@ class DOOHScreen extends Model
     {
         return $this->hasMany(DOOHScreenMedia::class, 'dooh_screen_id');
     }
-
-    // --- Scopes ---
-
-    public function scopeActive($query)
+    public function brandLogos(): HasMany
     {
-        return $query->where('status', self::STATUS_ACTIVE);
+        return $this->hasMany(DOOHScreenBrandLogo::class, 'dooh_screen_id');
     }
 
-    public function scopeByVendor($query, int $vendorId)
-    {
-        return $query->where('vendor_id', $vendorId);
-    }
+    /* ================= HELPERS ================= */
 
-    // --- Logic & Helpers ---
-
-    public function getDisplayNameAttribute(): string
-    {
-        return "{$this->name} - {$this->city}";
-    }
-
-    public function getStatusLabelAttribute(): string
-    {
-        return match ($this->status) {
-            self::STATUS_ACTIVE => 'Active',
-            self::STATUS_INACTIVE => 'Inactive',
-            self::STATUS_PENDING_APPROVAL => 'Pending Approval',
-            self::STATUS_DRAFT => 'Draft',
-            self::STATUS_SUSPENDED => 'Suspended',
-            default => 'Unknown',
-        };
-    }
-
-    /**
-     * Calculate slots per loop based on duration
-     */
     public function calculateSlotsPerLoop(): int
     {
         if ($this->slot_duration_seconds > 0) {
-            return intval($this->loop_duration_seconds / $this->slot_duration_seconds);
+            return (int) floor($this->loop_duration_seconds / $this->slot_duration_seconds);
         }
+
         return 0;
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        return "{$this->name} ({$this->screen_type})";
     }
 }
