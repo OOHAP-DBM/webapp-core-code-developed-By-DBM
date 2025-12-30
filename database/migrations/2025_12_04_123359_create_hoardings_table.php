@@ -91,7 +91,7 @@ return new class extends Migration
             $table->date('permit_valid_till')->nullable();
 
             /* WORKFLOW */
-            $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'suspended'])->default('draft');
+            $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'suspended','approved'])->default('draft');
             $table->unsignedInteger('current_step')->default(1);
             $table->boolean('is_featured')->default(false);
 

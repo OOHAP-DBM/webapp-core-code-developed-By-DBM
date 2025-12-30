@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->decimal('printing_charge', 10, 2)->nullable();
             $table->boolean('mounting_included')->default(false);
             $table->decimal('mounting_charge', 10, 2)->nullable();
-            $table->decimal('designing_charge', 10, 2)->nullable();
+            // $table->decimal('designing_charge', 10, 2)->nullable();
 
             $table->timestamps();
             $table->softDeletes();
