@@ -60,6 +60,8 @@
 </style>
     <!-- Shortlist JavaScript (PROMPT 50) -->
     <script src="{{ asset('js/shortlist.js') }}"></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const sidebar   = document.getElementById('sidebar');

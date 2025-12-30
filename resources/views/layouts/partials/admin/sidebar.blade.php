@@ -183,9 +183,12 @@
                     <a class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.my') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
                         <span class="submenu-item-indent">- My Hoardings</span>
                     </a>
-                    <a class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.vendor') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
+                   <a href="{{ route('admin.vendor-hoardings.index') }}"
+                    class="block py-2 text-sm rounded-md sidebar-submenu-item
+                            {{ request()->routeIs('admin.vendor-hoardings.*') ? ' active' : '' }}">
                         <span class="submenu-item-indent">- Vendor's Hoardings</span>
-                    </a>
+                   </a>
+
                     <a class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.draft') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
                         <span class="submenu-item-indent">- Hoardings in draft</span>
                     </a>

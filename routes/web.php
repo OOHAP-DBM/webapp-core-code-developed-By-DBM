@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\OnboardingController;
 use App\Http\Controllers\Web\Customer\ProfileController;
+use App\Http\Controllers\Web\SearchController;
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -18,7 +19,7 @@ use App\Http\Controllers\Web\Customer\ProfileController;
 // PUBLIC ROUTES (Customer-facing)
 // ============================================
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
-Route::get('/search', [\App\Http\Controllers\Web\SearchController::class, 'index'])->name('search');
+Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
 Route::get('/hoardings/map', [\App\Http\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
 Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
@@ -505,6 +506,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/vendor/kyc-reviews/{id}', [\Modules\Admin\Controllers\Web\AdminKYCReviewController::class, 'show'])->name('kyc-reviews.show');
     
     // Hoardings Management
+    Route::get('/vendor-hoardings',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'index'])->name('vendor-hoardings.index');
+    // status toggle
+    Route::post('/vendor-hoardings/{id}/toggle-status',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'toggleStatus'])->name('vendor-hoardings.toggle-status');
+    // save commission
+    // Route::post('/vendor-hoardings/{id}/set-commission',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'setCommission'])->name('vendor-hoardings.set-commission');
     Route::get('/hoardings', [\Modules\Admin\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
     Route::get('/hoardings/{id}', [\Modules\Admin\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
     Route::post('/hoardings/{id}/approve', [\Modules\Admin\Controllers\Web\HoardingController::class, 'approve'])->name('hoardings.approve');
