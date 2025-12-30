@@ -268,7 +268,7 @@ class GeoSearchService
      */
     protected function calculatePopularityScore(array $hoarding): float
     {
-        $views = $hoarding['views_count'] ?? 0;
+        $views = $hoarding['view_count'] ?? 0;
         $bookings = $hoarding['bookings_count'] ?? 0;
 
         // Weight bookings more than views

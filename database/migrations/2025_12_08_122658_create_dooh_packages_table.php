@@ -13,9 +13,14 @@ return new class extends Migration
     {
         Schema::create('dooh_packages', function (Blueprint $table) {
             $table->id();
-            
+
             // Screen reference
-            $table->foreignId('dooh_screen_id')->constrained('dooh_screens')->onDelete('cascade');
+            // FK (explicit, safest)
+            $table->unsignedBigInteger('dooh_screen_id');
+            $table->foreign('dooh_screen_id')
+                ->references('id')
+                ->on('dooh_screens')
+                ->onDelete('cascade');
             
             // Package details
             $table->string('package_name'); // e.g., "Basic Package", "Premium Package"

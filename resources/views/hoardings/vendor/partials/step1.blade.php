@@ -12,7 +12,7 @@
       <div class="space-y-2">
         <label class="text-sm font-bold text-gray-700">Hoarding Type <span class="text-red-500">*</span></label>
         <div class="w-full bg-[#0094FF] border border-[#0094FF] rounded-xl px-4 py-3 text-white font-bold">
-          DOOH (Digital Out-of-Home)
+          OOH (Out-of-Home)
         </div>
       </div>
 
@@ -26,20 +26,20 @@
         </select>
       </div>
 
-      <!-- Screen Type -->
+      {{-- <!-- Screen Type -->
       <div class="md:col-span-2 space-y-2 mt-2">
-        <label class="text-sm font-bold text-gray-700">Screen Type <span class="text-red-500">*</span></label>
+        <label class="text-sm font-bold text-gray-700">Hoarding Type <span class="text-red-500">*</span></label>
         <select name="screen_type" required
           class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%226b7280%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:20px] bg-[right_1rem_center] bg-no-repeat">
           <option value="LED">LED</option>
           <option value="LCD">LCD</option>
         </select>
-      </div>
+      </div> --}}
     </div>
 
     <!-- Screen Size -->
     <div class="mt-8">
-      <label class="text-sm font-bold text-gray-700 mb-4 block">Screen Size</label>
+      <label class="text-sm font-bold text-gray-700 mb-4 block">Hoarding Size</label>
       <div class="grid grid-cols-4 gap-4 items-end">
         <!-- Unit -->
         <div class="space-y-1">
@@ -52,13 +52,13 @@
 
         <!-- Width -->
         <div class="space-y-1">
-          <label class="text-xs font-bold text-gray-500">Screen Width <span class="text-red-500">*</span></label>
+          <label class="text-xs font-bold text-gray-500"> Width <span class="text-red-500">*</span></label>
           <input type="number" id="width" name="width" placeholder="500" required class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
         </div>
 
         <!-- Height -->
         <div class="space-y-1">
-          <label class="text-xs font-bold text-gray-500">Screen Height <span class="text-red-500">*</span></label>
+          <label class="text-xs font-bold text-gray-500"> Height <span class="text-red-500">*</span></label>
           <input type="number" id="height" name="height" placeholder="300" required class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
         </div>
 
@@ -140,35 +140,54 @@
   </div>
     <!-- Pricing Details -->
     <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-        <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
-        <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-        Pricing<span class="text-red-500 ml-1">*</span>
-        </h3>
+      <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
+      <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+      Pricing<span class="text-red-500 ml-1">*</span>
+      </h3>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <!-- Price Per Slot -->
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700">
-                    Price Per Slot (₹) <span class="text-red-500">*</span>
-                </label>
-                <input
-                    type="number"
-                    name="price_per_slot"
-                    min="1"
-                    step="0.01"
-                    required
-                    placeholder="e.g. 50"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all"
-                />
-                <p class="text-xs text-gray-400">
-                    Cost per 10-second slot (recommended for DOOH)
-                </p>
-            </div>
+          <!-- Monthly Base Price -->
+          <div class="space-y-2">
+              <label class="text-sm font-bold text-gray-700">
+                  Monthly Base Price (₹) <span class="text-red-500">*</span>
+              </label>
+              <input
+                  type="number"
+                  name="monthly_base_price"
+                  min="1"
+                  step="0.01"
+                  required
+                  placeholder="e.g. 50,000"
+                  class="w-full border border-gray-200 rounded-xl px-4 py-3
+                        focus:border-[#009A5C] outline-none transition-all"
+              />
+              <p class="text-xs text-gray-400">
+                  Standard monthly hoarding price (before discount)
+              </p>
+          </div>
 
-        
+          <!-- Monthly Offer Price -->
+          <div class="space-y-2">
+              <label class="text-sm font-bold text-gray-700">
+                  Monthly Offer Price (₹)
+              </label>
+              <input
+                  type="number"
+                  name="monthly_offer_price"
+                  min="1"
+                  step="0.01"
+                  placeholder="e.g. 42,000"
+                  class="w-full border border-gray-200 rounded-xl px-4 py-3
+                        focus:border-[#009A5C] outline-none transition-all"
+              />
+              <p class="text-xs text-gray-400">
+                  Discounted price (optional)
+              </p>
+          </div>
 
-        </div>
+      </div>
+
     </div>
 
   <!-- Upload Hoarding Media -->
