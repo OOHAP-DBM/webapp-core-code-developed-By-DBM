@@ -264,10 +264,10 @@ class Hoarding extends Model implements HasMedia
         return $query->where('status', $status);
     }
 
-    public function getGracePeriodDays(): int
-    {
-        return $this->grace_period_days ?? (int) config('booking.grace_period_days', 2);
-    }
+    // public function getGracePeriodDays(): int
+    // {
+    //     return $this->grace_period_days ?? (int) config('booking.grace_period_days', 2);
+    // }
 
     /**
      * Check if hoarding supports weekly booking.

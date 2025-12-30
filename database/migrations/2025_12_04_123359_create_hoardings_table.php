@@ -16,7 +16,7 @@ return new class extends Migration
             /* CORE */
             $table->string('title')->unique()->nullable();
             $table->string('slug')->unique()->nullable();
-             $table->string('name')->nullable();
+            $table->string('name')->nullable();
             $table->text('description')->nullable();
             $table->enum('hoarding_type', ['ooh', 'dooh'])->default('ooh');
             $table->string('category')->nullable();
@@ -61,29 +61,6 @@ return new class extends Migration
             $table->decimal('monthly_price', 12, 2)->default(0);
             $table->boolean('enable_weekly_booking')->default(false);
             $table->decimal('weekly_price', 10, 2)->nullable();
-            $table->decimal('commission_percent', 5, 2)->default(0);
-            $table->string('currency', 10)->default('INR');
-
-            /* ONE TIME CHARGES */
-            $table->boolean('graphics_included')->default(false);
-            $table->decimal('graphics_charge', 10, 2)->nullable();
-            $table->decimal('survey_charge', 10, 2)->nullable();
-
-            /* BOOKING RULES */
-            $table->unsignedInteger('grace_period_days')->default(0);
-            $table->unsignedInteger('min_booking_months')->default(1);
-            $table->unsignedInteger('max_booking_months')->nullable();
-            $table->date('available_from')->nullable();
-            $table->date('available_to')->nullable();
-            $table->json('block_dates')->nullable();
-
-            /* LEGAL */
-            $table->boolean('nagar_nigam_approved')->default(false);
-            $table->string('permit_number')->nullable();
-            $table->date('permit_valid_till')->nullable();
-
-            /* WORKFLOW */
-            $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'suspended','approved'])->default('draft');
             $table->decimal('commission_percent', 5, 2)->default(0);
             $table->string('currency', 10)->default('INR');
 
