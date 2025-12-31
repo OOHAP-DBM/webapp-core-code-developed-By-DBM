@@ -44,8 +44,12 @@ return [
                  * Absolute paths to directory containing the swagger annotations are stored.
                  */
                 'annotations' => [
+                    base_path('app/Swagger'),      // If you have custom swagger annotations here        
+
+                    // base_path('app'), // If you have API controllers here
+                    // base_path('app/Http/Controllers/Auth'),
+                    // base_path('Modules'),           // Your modular APIs
                     base_path('Modules'),           // Your modular APIs
-                    base_path('app/Http/Controllers/API'), // If you have API controllers here
                 ],
             ],
         ],
@@ -93,6 +97,7 @@ return [
              * Edit to set the api's base path
              */
             'base' => env('L5_SWAGGER_BASE_PATH', null),
+            'host' => env('L5_SWAGGER_CONST_HOST', null),
 
             /*
              * Absolute path to directories that should be excluded from scanning
@@ -216,6 +221,12 @@ return [
                     'in' => 'header', // The location of the API key. Valid values are "query" or "header".
                 ],
                 */
+                'sanctum' => [
+                    'type' => 'http',
+                    'scheme' => 'bearer',
+                    'bearerFormat' => 'SANCTUM',
+                    'description' => 'Enter token as: Bearer {your-token}',
+                ],
             ],
             'security' => [
                 /*
@@ -231,10 +242,15 @@ return [
                     'passport' => []
                     */
                 ],
+                'sanctum' => [],
             ],
-            
-        ],
 
+        ],
+        // 'securityDefinitions' => null,
+        'swagger_version' => '3.0',
+        'log' => [
+            'level' => 'error', // 👈 ignore warnings
+        ],
         /*
          * Set this to `true` in development mode so that docs would be regenerated on each request
          * Set this to `false` to disable swagger generation on production

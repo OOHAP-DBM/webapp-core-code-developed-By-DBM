@@ -30,6 +30,30 @@ class VendorOnboardingController extends Controller
      * @response 200 {"message": "OTP sent"}
      * @response 422 {"message": "Validation error"}
      */
+
+    /**
+     * @OA\Post(
+     *     path="/auth/vendor/onboarding/send-otp",
+     *     tags={"Vendor Onboarding"},
+     *     summary="Send OTP to vendor phone",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"phone"},
+     *             @OA\Property(property="phone", type="string", example="9876543210")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="OTP sent successfully"
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+
     public function sendOtp(SendOTPRequest $request, OTPService $otpService)
     {
         // $user = Auth::user();
@@ -44,6 +68,28 @@ class VendorOnboardingController extends Controller
      * @response 200 {"message": "Phone verified"}
      * @response 422 {"message": "Invalid OTP"}
      */
+
+    /**
+     * @OA\Post(
+     *     path="/auth/vendor/onboarding/verify-phone-otp",
+     *     tags={"Vendor Onboarding"},
+     *     summary="Verify vendor phone OTP",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"phone","otp"},
+     *             @OA\Property(property="phone", type="string", example="9876543210"),
+     *             @OA\Property(property="otp", type="string", example="123456")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Phone verified"),
+     *     @OA\Response(response=422, description="Invalid OTP")
+     * )
+     */
+
     public function verifyPhoneOtp(VerifyOTPRequest $request, OTPService $otpService)
     {
         $user = Auth::user();
@@ -66,6 +112,27 @@ class VendorOnboardingController extends Controller
      * @response 200 {"message": "OTP sent"}
      * @response 422 {"message": "Validation error"}
      */
+
+    /**
+     * @OA\Post(
+     *     path="/auth/vendor/onboarding/send-email-otp",
+     *     tags={"Vendor Onboarding"},
+     *     summary="Send OTP to vendor email",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email"},
+     *             @OA\Property(property="email", type="string", example="vendor@example.com")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="OTP sent"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+
     public function sendEmailOtp(SendOTPRequest $request, OTPService $otpService)
     {
         $user = Auth::user();
@@ -80,6 +147,28 @@ class VendorOnboardingController extends Controller
      * @response 200 {"message": "Email verified"}
      * @response 422 {"message": "Invalid OTP"}
      */
+
+    /**
+     * @OA\Post(
+     *     path="/auth/vendor/onboarding/verify-email-otp",
+     *     tags={"Vendor Onboarding"},
+     *     summary="Verify vendor email OTP",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","otp"},
+     *             @OA\Property(property="email", type="string", example="vendor@example.com"),
+     *             @OA\Property(property="otp", type="string", example="123456")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Email verified"),
+     *     @OA\Response(response=422, description="Invalid OTP")
+     * )
+     */
+
     public function verifyEmailOtp(VerifyOTPRequest $request, OTPService $otpService)
     {
         $user = Auth::user();
@@ -116,6 +205,49 @@ class VendorOnboardingController extends Controller
      * @response 403 {"message": "Contact verification required"}
      * @response 422 {"message": "Validation error"}
      */
+
+
+    /**
+     * @OA\Post(
+     *     path="/auth/vendor/onboarding/business-info",
+     *     tags={"Vendor Onboarding"},
+     *     summary="Submit vendor business & KYC information",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="gstin", type="string", example="22AAAAA0000A1Z5"),
+     *                 @OA\Property(property="business_type", type="string", example="Proprietorship"),
+     *                 @OA\Property(property="business_name", type="string", example="OOH Media Pvt Ltd"),
+     *                 @OA\Property(property="registered_address", type="string", example="123 Main Street"),
+     *                 @OA\Property(property="city", type="string", example="Delhi"),
+     *                 @OA\Property(property="state", type="string", example="Delhi"),
+     *                 @OA\Property(property="pincode", type="string", example="110001"),
+     *
+     *                 @OA\Property(property="bank_name", type="string", example="State Bank of India"),
+     *                 @OA\Property(property="account_number", type="string", example="1234567890"),
+     *                 @OA\Property(property="ifsc_code", type="string", example="SBIN0001234"),
+     *                 @OA\Property(property="account_holder_name", type="string", example="John Doe"),
+     *
+     *                 @OA\Property(property="pan_number", type="string", example="ABCDE1234F"),
+     *                 @OA\Property(
+     *                     property="pan_card_document",
+     *                     type="string",
+     *                     format="binary"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Business info submitted"),
+     *     @OA\Response(response=403, description="Contact verification required"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+
     public function submitBusinessInfo(VendorBusinessInfoRequest $request, VendorOnboardingService $service)
     {
         $user = Auth::user();
