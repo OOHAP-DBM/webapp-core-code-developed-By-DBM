@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\OnboardingController;
 use App\Http\Controllers\Web\Customer\ProfileController;
-use App\Http\Controllers\Web\SearchController;
+use Modules\Search\Controllers\SearchController;
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -54,24 +54,24 @@ Route::get('/api/map/autocomplete', [\App\Http\Controllers\MapSearchController::
 // ============================================
 Route::middleware('guest')->group(function () {
     // Login
-    Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login.submit');
-    Route::get('/login/mobile', [\App\Http\Controllers\Auth\LoginController::class,'showMobileLoginForm'])->name('login.mobile');
+    Route::get('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'login'])->name('login.submit');
+    Route::get('/login/mobile', [Modules\Auth\Http\Controllers\LoginController::class,'showMobileLoginForm'])->name('login.mobile');
     // Registration - Role Selection First
-    Route::get('/register', [\App\Http\Controllers\Auth\RegisterController::class, 'showRoleSelection'])->name('register.role-selection');
-    Route::post('/register/role', [\App\Http\Controllers\Auth\RegisterController::class, 'storeRoleSelection'])->name('register.store-role');
+    Route::get('/register', [Modules\Auth\Http\Controllers\RegisterController::class, 'showRoleSelection'])->name('register.role-selection');
+    Route::post('/register/role', [Modules\Auth\Http\Controllers\RegisterController::class, 'storeRoleSelection'])->name('register.store-role');
     
     // Registration - Form (after role selection)
-    Route::get('/register/form', [\App\Http\Controllers\Auth\RegisterController::class, 'showRegistrationForm'])->name('register.form');
-    Route::post('/register/submit', [\App\Http\Controllers\Auth\RegisterController::class, 'register'])->name('register.submit');
+    Route::get('/register/form', [Modules\Auth\Http\Controllers\RegisterController::class, 'showRegistrationForm'])->name('register.form');
+    Route::post('/register/submit', [Modules\Auth\Http\Controllers\RegisterController::class, 'register'])->name('register.submit');
 
     // Registration OTP routes
-    Route::get('/register/mobile', [\App\Http\Controllers\Auth\RegisterController::class, 'showMobileForm'])->name('register.mobile-form');
+    Route::get('/register/mobile', [Modules\Auth\Http\Controllers\RegisterController::class, 'showMobileForm'])->name('register.mobile-form');
 
-    Route::post('/register/send-email-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'sendEmailOtp'])->name('register.sendEmailOtp');
-    Route::post('/register/verify-email-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'verifyEmailOtp'])->name('register.verifyEmailOtp');
-    Route::post('/register/send-phone-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'sendPhoneOtp'])->name('register.sendPhoneOtp');
-    Route::post('/register/verify-phone-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'verifyPhoneOtp'])->name('register.verifyPhoneOtp');
+    Route::post('/register/send-email-otp', [Modules\Auth\Http\Controllers\RegisterController::class, 'sendEmailOtp'])->name('register.sendEmailOtp');
+    Route::post('/register/verify-email-otp', [Modules\Auth\Http\Controllers\RegisterController::class, 'verifyEmailOtp'])->name('register.verifyEmailOtp');
+    Route::post('/register/send-phone-otp', [Modules\Auth\Http\Controllers\RegisterController::class, 'sendPhoneOtp'])->name('register.sendPhoneOtp');
+    Route::post('/register/verify-phone-otp', [Modules\Auth\Http\Controllers\RegisterController::class, 'verifyPhoneOtp'])->name('register.verifyPhoneOtp');
     
     // OTP Login (Optional - Future)
     // Route::get('/login/otp', [\App\Http\Controllers\Web\Auth\OTPController::class, 'showOTPForm'])->name('login.otp');
@@ -82,7 +82,7 @@ Route::middleware('guest')->group(function () {
     // Route::get('/forgot-password', [...])->name('password.request');
 });
 
-Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout')->middleware('auth');
+Route::post('/logout', [Modules\Auth\Http\Controllers\LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 // ============================================
 // VENDOR ONBOARDING (PROMPT 112)
@@ -358,8 +358,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     
     // Listings Management (PROMPT 26)
     Route::get('/listings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'index'])->name('listings.index');
-    Route::get('/hoardings/create', [Modules\Hoardings\Controllers\Vendor\OOHListingController::class, 'create'])->name('hoardings.create');
-    Route::post('/hoardings/store', [Modules\Hoardings\Controllers\Vendor\OOHListingController::class, 'store'])->name('hoarding.store');
+    Route::get('/hoardings/create', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'create'])->name('hoardings.create');
+    Route::post('/hoardings/store', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'store'])->name('hoarding.store');
 
     Route::post('/listings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'store'])->name('listings.store');
     Route::get('/listings/{id}/edit', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'edit'])->name('listings.edit');
@@ -510,7 +510,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // status toggle
     Route::post('/vendor-hoardings/{id}/toggle-status',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'toggleStatus'])->name('vendor-hoardings.toggle-status');
     // save commission
-    // Route::post('/vendor-hoardings/{id}/set-commission',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'setCommission'])->name('vendor-hoardings.set-commission');
+    Route::post('/vendor-hoardings/{id}/set-commission',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'setCommission'])->name('vendor-hoardings.set-commission');
     Route::get('/hoardings', [\Modules\Admin\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
     Route::get('/hoardings/{id}', [\Modules\Admin\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
     Route::post('/hoardings/{id}/approve', [\Modules\Admin\Controllers\Web\HoardingController::class, 'approve'])->name('hoardings.approve');

@@ -178,7 +178,8 @@
                                                     new CustomEvent('open-vendor-commission', {
                                                         detail: {
                                                             id: {{ $hoarding->id }},
-                                                            name: '{{ $hoarding->vendor?->name }}'
+                                                            name: '{{ $hoarding->vendor?->name }}',
+                                                            vendor_profile_id: {{ $hoarding->vendor_profile_id }},
                                                         }
                                                     })
                                                 )
@@ -372,9 +373,37 @@
                             commission: this.commission
                         })
                     })
-                    .then(res => res.ok ? location.reload() : Promise.reject())
-                    .catch(() => alert('Failed to save hoarding commission'));
+                    .then(res => res.json())
+                    .then(data => {
+
+                        // ✅ CLOSE MODAL
+                        this.closeModal();
+
+                        // ✅ SUCCESS POPUP
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Commission Set!',
+                            text: 'Hoarding commission has been saved successfully.',
+                            confirmButtonColor: '#16a34a',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        // ✅ AUTO RELOAD AFTER POPUP
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to save hoarding commission'
+                        });
+                    });
                 }
+
             }
         }
         document.addEventListener('alpine:init', () => {
@@ -382,6 +411,7 @@
             Alpine.data('vendorCommissionModal', () => ({
                 open: false,
                 hoardingId: null,
+                vendorProfileId: null,
                 vendorName: '',
                 from: '',
                 to: '',
@@ -399,6 +429,7 @@
                 },
 
                 openModal(detail) {
+                    this.vendorProfileId = detail.vendor_profile_id;
                     this.hoardingId = detail.id;
                     this.vendorName = detail.name || 'Vendor';
                     this.from = '';
@@ -412,90 +443,115 @@
 
                 apply() {
                     if (!this.from || !this.to) {
-                        alert('Please enter vendor commission range');
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Invalid Input',
+                            text: 'Please enter vendor commission range'
+                        });
                         return;
                     }
 
-                    fetch(`/admin/vendor-hoardings/${this.hoardingId}/set-commission`, {
+                    if (Number(this.to) < Number(this.from)) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Invalid Range',
+                            text: 'To commission cannot be less than From'
+                        });
+                        return;
+                    }
+
+                    fetch(`/admin/vendors/${this.vendorProfileId}/approve`, {
                         method: 'POST',
                         headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                             'Accept': 'application/json',
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            type: 'vendor',
-                            from: this.from,
-                            to: this.to
+                            commission_percentage: this.to   // ✅ reuse controller
                         })
                     })
-                    .then(res => res.ok ? location.reload() : Promise.reject())
-                    .catch(() => alert('Failed to save vendor commission'));
+                    .then(res => res.json())
+                    .then(data => {
+
+                        this.close();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Vendor Approved!',
+                            text: `Commission set to ${this.to}%`,
+                            confirmButtonColor: '#16a34a',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        setTimeout(() => location.reload(), 2000);
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to approve vendor'
+                        });
+                    });
                 }
             }));
 
         });
         document.addEventListener('DOMContentLoaded', () => {
 
-                document.querySelectorAll('.status-toggle').forEach(button => {
+            document.querySelectorAll('.status-toggle').forEach(button => {
 
-                    button.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
 
-                        const btn = e.currentTarget;
+                    const btn = e.currentTarget;
 
-                        if (btn.dataset.loading === '1') return;
-                        btn.dataset.loading = '1';
+                    if (btn.dataset.loading === '1') return;
+                    btn.dataset.loading = '1';
 
-                        const id = btn.dataset.id;
-                        const source = btn.dataset.source;
-                        const vendorName = btn.dataset.vendorName;
+                    const id = btn.dataset.id;
+                    const source = btn.dataset.source;
+                    const hoardingCommission = btn.dataset.hoardingCommission;
 
-                        const vendorCommission = btn.dataset.vendorCommission;
-                        const hoardingCommission = btn.dataset.hoardingCommission;
+                    // ❌ RULE 1: Hoarding commission NOT set → open modal
+                    if (!hoardingCommission || hoardingCommission == 0) {
+                        btn.dataset.loading = '0';
 
-                        if (!vendorCommission) {
-                            btn.dataset.loading = '0';
-                            window.dispatchEvent(new CustomEvent('open-vendor-commission', {
-                                detail: { id, name: vendorName }
-                            }));
-                            return;
-                        }
-                        if (!hoardingCommission) {
-                            btn.dataset.loading = '0';
-                            window.dispatchEvent(new CustomEvent('open-hoarding-commission', {
+                        window.dispatchEvent(
+                            new CustomEvent('open-hoarding-commission', {
                                 detail: {
-                                    id,
+                                    id: id,
                                     title: 'Set Hoarding Commission',
-                                    source
+                                    source: source
                                 }
-                            }));
-                            return;
+                            })
+                        );
+                        return;
+                    }
+
+                    // ✅ RULE 2: Hoarding commission present → allow toggle
+                    fetch(`/admin/vendor-hoardings/${id}/toggle-status`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
                         }
-
-                        // ✅ Toggle status
-                        fetch(`/admin/vendor-hoardings/${id}/toggle-status`, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ source })
-                        })
-                        .then(res => {
-                            if (!res.ok) throw new Error();
-                            location.reload();
-                        })
-                        .catch(() => {
-                            btn.dataset.loading = '0';
-                            alert('Status update failed');
-                        });
-
+                    })
+                    .then(res => {
+                        if (!res.ok) throw new Error();
+                        location.reload();
+                    })
+                    .catch(() => {
+                        btn.dataset.loading = '0';
+                        alert('Status update failed');
                     });
 
                 });
+
+            });
 
         });
     </script>
