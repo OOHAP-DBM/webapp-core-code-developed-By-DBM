@@ -13,6 +13,8 @@ use Modules\Users\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Models\VendorProfile;
+use Illuminate\Support\Facades\DB;
 
 // /**
 //  * @OA\Tag(
@@ -208,19 +210,71 @@ class AuthController extends Controller
      * )
      */
 
+    // public function register(RegisterRequest $request): JsonResponse
+    // {
+    //     $identifier = $request->input('email') ?? $request->input('phone');
+
+    //     // 1. Find the user who was just verified
+    //     $user = $this->userService->findUserByIdentifier($identifier);
+
+    //     if (!$user) {
+    //         return response()->json(['success' => false, 'message' => 'User not found.'], 404);
+    //     }
+
+    //     // 2. IMPORTANT: Check if they are actually verified
+    //     // This prevents people from registering without an OTP
+    //     if (!$user->email_verified_at && !$user->phone_verified_at) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Your identifier is not verified. Please verify OTP first.'
+    //         ], 403);
+    //     }
+
+    //     // 3. Update the record with Name and Password
+    //     $user->update([
+    //         'name' => $request->name,
+    //         'password' => Hash::make($request->password),
+    //         'status' => 'active',
+    //     ]);
+
+    //     // 4. Assign Role
+    //     $role = $request->input('role', 'customer');
+    //     $user->update(['active_role' => $role]);
+    //     $user->assignRole($role);
+    //     // If using Spatie Permissions: $user->assignRole($role);
+
+    //     // 5. Issue the Token (Now they are officially logged in)
+    //     $token = $user->createToken('auth_token', ['role:' . $role])->plainTextToken;
+    //     if ($role === 'vendor') {
+    //         // Create vendor profile with draft status
+    //         VendorProfile::create([
+    //             'user_id' => $user->id,
+    //             'onboarding_status' => 'draft',
+    //             'onboarding_step' => 1,
+    //         ]);
+    //     }
+
+    //         return response()->json([
+    //         'success' => true,
+    //         'message' => 'Registration complete!',
+    //         'data' => [
+    //             'user' => new UserResource($user->fresh()),
+    //             'token' => $token,
+    //         ],
+    //     ], 201);
+    // }
     public function register(RegisterRequest $request): JsonResponse
     {
         $identifier = $request->input('email') ?? $request->input('phone');
 
-        // 1. Find the user who was just verified
+        // 1. Find the user
         $user = $this->userService->findUserByIdentifier($identifier);
 
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User not found.'], 404);
         }
 
-        // 2. IMPORTANT: Check if they are actually verified
-        // This prevents people from registering without an OTP
+        // 2. Security Check: Ensure verification happened
         if (!$user->email_verified_at && !$user->phone_verified_at) {
             return response()->json([
                 'success' => false,
@@ -228,30 +282,60 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // 3. Update the record with Name and Password
-        $user->update([
-            'name' => $request->name,
-            'password' => Hash::make($request->password),
-            'status' => 'active',
-        ]);
+        // Start Transaction
+            DB::beginTransaction();
 
-        // 4. Assign Role
-        $role = $request->input('role', 'customer');
-        $user->update(['active_role' => $role]);
-        $user->assignRole($role);
-        // If using Spatie Permissions: $user->assignRole($role);
+        try {
+            // 3. Update Name, Password, and Status
+            $user->update([
+                'name' => $request->name,
+                'password' => Hash::make($request->password),
+                'status' => 'active',
+            ]);
 
-        // 5. Issue the Token (Now they are officially logged in)
-        $token = $user->createToken('auth_token', ['role:' . $role])->plainTextToken;
+            // 4. Assign Role
+            $role = $request->input('role', 'customer');
+            $user->update(['active_role' => $role]);
+            $user->assignRole($role);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Registration complete!',
-            'data' => [
-                'user' => new UserResource($user->fresh()),
-                'token' => $token,
-            ],
-        ], 201);
+            // 5. Vendor Specific Logic
+            if ($role === 'vendor') {
+                VendorProfile::create([
+                    'user_id' => $user->id,
+                    'onboarding_status' => 'draft',
+                    'onboarding_step' => 1,
+                ]);
+            }
+
+            // 6. Issue Token
+            $token = $user->createToken('auth_token', ['role:' . $role])->plainTextToken;
+
+            // Everything went well, save changes permanently
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Registration complete!',
+                'data' => [
+                    'user' => new UserResource($user->fresh()),
+                    'token' => $token,
+                ],
+            ], 201);
+        } catch (\Exception $e) {
+            // Something went wrong, undo all database changes
+            DB::rollBack();
+
+            \Log::error('Registration failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration failed. Please try again.',
+                'error' => config('app.debug') ? $e->getMessage() : null // Only show error in debug mode
+            ], 500);
+        }
     }
 
     /**

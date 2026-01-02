@@ -328,7 +328,8 @@
                 "tags": [
                     "Vendor Onboarding"
                 ],
-                "summary": "Send OTP to vendor phone",
+                "summary": "Send OTP to vendor phone/email",
+                "description": "Generates and sends a 4-digit OTP to the provided identifier (phone or email).",
                 "operationId": "c9c8c426845b3ff0eec5f1f62f2e4153",
                 "requestBody": {
                     "required": true,
@@ -336,10 +337,11 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "phone"
+                                    "identifier"
                                 ],
                                 "properties": {
-                                    "phone": {
+                                    "identifier": {
+                                        "description": "Phone number or Email address",
                                         "type": "string",
                                         "example": "9876543210"
                                     }
@@ -351,7 +353,23 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "OTP sent successfully"
+                        "description": "OTP sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP sent successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
                     },
                     "422": {
                         "description": "Validation error"
@@ -364,24 +382,25 @@
                 ]
             }
         },
-        "/auth/vendor/onboarding/verify-phone-otp": {
+        "/auth/vendor/onboarding/verify-otp": {
             "post": {
                 "tags": [
                     "Vendor Onboarding"
                 ],
-                "summary": "Verify vendor phone OTP",
-                "operationId": "f6593956683b86c24ac3eeec7e370e7f",
+                "summary": "Verify vendor contact OTP",
+                "description": "Verifies the OTP and upgrades the vendor to Onboarding Step 2.",
+                "operationId": "5500af408cd57439de4e77f84185a2ba",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "phone",
+                                    "identifier",
                                     "otp"
                                 ],
                                 "properties": {
-                                    "phone": {
+                                    "identifier": {
                                         "type": "string",
                                         "example": "9876543210"
                                     },
@@ -397,97 +416,42 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Phone verified"
-                    },
-                    "422": {
-                        "description": "Invalid OTP"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/auth/vendor/onboarding/send-email-otp": {
-            "post": {
-                "tags": [
-                    "Vendor Onboarding"
-                ],
-                "summary": "Send OTP to vendor email",
-                "operationId": "d701b4deef646db59681fa153e990921",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "email"
-                                ],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "example": "vendor@example.com"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "OTP sent"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/auth/vendor/onboarding/verify-email-otp": {
-            "post": {
-                "tags": [
-                    "Vendor Onboarding"
-                ],
-                "summary": "Verify vendor email OTP",
-                "operationId": "7b7a7a8c928ca474dcd19fca5e46e815",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "email",
-                                    "otp"
-                                ],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "example": "vendor@example.com"
+                        "description": "Verification successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Verification successful"
+                                        }
                                     },
-                                    "otp": {
-                                        "type": "string",
-                                        "example": "123456"
-                                    }
-                                },
-                                "type": "object"
+                                    "type": "object"
+                                }
                             }
                         }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Email verified"
                     },
                     "422": {
-                        "description": "Invalid OTP"
+                        "description": "Invalid OTP or expired"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/auth/vendor/onboarding/skip-contact": {
+            "post": {
+                "tags": [
+                    "Vendor Onboarding"
+                ],
+                "summary": "Skip Contact verification",
+                "operationId": "4910725d0a0c5b9d2413824c296fbb9b",
+                "responses": {
+                    "200": {
+                        "description": "Contact verification skipped"
                     }
                 },
                 "security": [
@@ -585,9 +549,76 @@
                     }
                 ]
             }
+        },
+        "/auth/vendor/onboarding/skip-business-info": {
+            "post": {
+                "tags": [
+                    "Vendor Onboarding"
+                ],
+                "summary": "Skip business info/KYC step",
+                "description": "Allows the vendor to skip the business information step. Sets onboarding_step to 3 and status to 'pending_approval'.",
+                "operationId": "fb30aaa252350fa2d7c1381fd32eee68",
+                "responses": {
+                    "200": {
+                        "description": "Business info skipped successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Business info skipped"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated - Token missing or invalid"
+                    },
+                    "404": {
+                        "description": "Vendor profile not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Vendor profile not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
+        "parameters": {
+            "App\\Swagger\\OpenApi": {
+                "$ref": "#/components/parameters/AcceptHeader"
+            },
+            "AcceptHeader": {
+                "name": "Accept",
+                "in": "header",
+                "description": "Accept header. Always set to application/json for API requests.",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "default": "application/json"
+                }
+            }
+        },
         "securitySchemes": {
             "sanctum": {
                 "type": "http",

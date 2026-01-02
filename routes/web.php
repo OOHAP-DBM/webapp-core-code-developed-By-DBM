@@ -1,11 +1,9 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\OnboardingController;
 use App\Http\Controllers\Web\Customer\ProfileController;
 use App\Http\Controllers\Web\SearchController;
-
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
  * 
@@ -93,7 +91,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor/onboarding')->name('v
     Route::post('/send-email', [OnboardingController::class, 'sendEmailOtp'])->name('send-email');
     Route::post('/verify-email', [OnboardingController::class, 'verifyEmailOtp'])->name('verify-email');
     Route::post('/send-phone', [OnboardingController::class, 'sendPhoneOtp'])->name('send-phone');
-    Route::post('/verify-phone', [OnboardingController::class, 'verifyPhoneOtp'])->name('verify-phone');
+    Route::post('/verify-phone', [OnboardingController::class, 'verifyOtp'])->name('verify-phone');
     // Step 1: Contact Details
     Route::get('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showContactDetails'])->name('contact-details');
     Route::post('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeContactDetails'])->name('contact-details.store');

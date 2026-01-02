@@ -47,9 +47,13 @@ Route::middleware(['auth:sanctum', 'throttle:authenticated'])->group(function ()
     Route::get('/roles/permissions', [RoleSwitchController::class, 'getActivePermissions']);
 });
 
+
+
 // Vendor Specific Onboarding Routes
-Route::middleware(['auth:sanctum'])->prefix('vendor/onboarding')->group(function () {
+Route::middleware(['auth:sanctum','role:vendor'])->prefix('vendor/onboarding')->group(function () {
     Route::post('/send-otp', [VendorOnboardingController::class, 'sendOtp']);
-    Route::post('/verify-phone-otp', [VendorOnboardingController::class, 'verifyPhoneOtp']);
+    Route::post('/verify-otp', [VendorOnboardingController::class, 'verifyOtp']);
     Route::post('/business-info', [VendorOnboardingController::class, 'submitBusinessInfo']);
+    Route::post('/skip-business-info', [VendorOnboardingController::class, 'skipBusinessInfo']);
+    Route::post('/skip-contact', [VendorOnboardingController::class, 'skipContactVerification']);
 });

@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <div class="space-y-6">
 
   <!-- Hoarding Details -->
@@ -43,12 +44,12 @@
 
     <!-- Screen Size -->
     <div class="mt-8">
-      <label class="text-sm font-bold text-gray-700 mb-4 block">Hoarding Size</label>
+      <label class="text-sm font-bold text-gray-700 mb-1 block">Hoarding Size</label>
       <div class="grid grid-cols-4 gap-4 items-end">
         <!-- Unit -->
         <div class="space-y-1">
-          <label class="text-xs font-bold text-gray-500">Unit</label>
-          <select id="unit" name="measurement_unit" required class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none">
+          <label class="text-xs font-bold text-gray-500 ">Unit</label>
+          <select id="unit" name="measurement_unit" required class="w-full bg-white border border-gray-200 rounded-lg px-3 py-3 outline-none">
             <option value="sqft">Sqft</option>
             <option value="sqm">Sqm</option>
           </select>
@@ -114,18 +115,21 @@
     </div>
 
     <div class="mt-8 space-y-4">
-      <div class="flex items-center justify-between">
-        <label class="text-sm font-bold text-gray-700">Nearby Landmarks</label>
-        <button type="button" class="bg-[#1A1A1A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-all">
-          + Add another landmark
-        </button>
-      </div>
-      <div class="space-y-3">
-        <input type="text" placeholder="Opposite Ram Dharam Kanta" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+          <!-- Nearby Landmarks -->
+      <div class="mt-8 space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-bold text-gray-700">Nearby Landmarks</label>
+          <button type="button" id="addLandmarkBtn" class="bg-[#1A1A1A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-all">
+            + Add another landmark
+          </button>
+        </div>
+        <div class="space-y-3" id="landmarksContainer">
+          <input type="text" name="landmarks[]" placeholder="Opposite Ram Dharam Kanta" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+        </div>
       </div>
     </div>
 
-    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-[#FBFBFB] rounded-2xl border border-gray-50">
+    {{-- <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-[#FBFBFB] rounded-2xl border border-gray-50">
       <div class="space-y-2">
         <label class="text-sm font-bold text-gray-700 flex items-center">
           Geotag <span class="ml-2 w-4 h-4 bg-[#009A5C] rounded flex items-center justify-center text-[10px] text-white">✓</span>
@@ -140,7 +144,25 @@
         <label class="text-sm font-bold text-gray-700">Longitude</label>
         <input type="text" name="lng" placeholder="80.94577..." class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none bg-white">
       </div>
+    </div> --}}
+    <!-- Geotag, Lat, Lng Section (replace your current section with this) -->
+  <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-[#FBFBFB] rounded-2xl border border-gray-50">
+    <div class="space-y-2">
+      <label class="text-sm font-bold text-gray-700 flex items-center">
+        Geotag <span class="ml-2 w-4 h-4 bg-[#009A5C] rounded flex items-center justify-center text-[10px] text-white">✓</span>
+      </label>
+      <input type="url" name="geotag" id="geotag" value="http://geotag.oohapp.com" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none">
+      <div id="location-error" class="text-xs text-red-500 mt-1 hidden"></div>
     </div>
+    <div class="space-y-2">
+      <label class="text-sm font-bold text-gray-700">Latitude</label>
+      <input type="text" name="lat" id="lat" placeholder="26.84457..." class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none bg-white">
+    </div>
+    <div class="space-y-2">
+      <label class="text-sm font-bold text-gray-700">Longitude</label>
+      <input type="text" name="lng" id="lng" placeholder="80.94577..." class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none bg-white">
+    </div>
+  </div>
   </div>
     <!-- Pricing Details -->
     <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
@@ -333,5 +355,17 @@ document.querySelector('form').addEventListener('submit', function(e) {
     }
     mediaInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
+});
+// Landmark dynamic addition
+const addLandmarkBtn = document.getElementById('addLandmarkBtn');
+const landmarksContainer = document.getElementById('landmarksContainer');
+
+addLandmarkBtn.addEventListener('click', function() {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.name = 'landmarks[]';
+  input.placeholder = 'Enter landmark';
+  input.className = 'w-full border border-gray-200 rounded-xl px-4 py-3 outline-none mt-2';
+  landmarksContainer.appendChild(input);
 });
 </script>
