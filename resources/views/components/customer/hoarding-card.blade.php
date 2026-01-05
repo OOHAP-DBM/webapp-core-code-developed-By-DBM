@@ -105,17 +105,15 @@
             @endphp
 
             <button
-                type="button"
                 id="cart-btn-{{ $hoarding->id }}"
-                data-state="{{ $isInCart ? 'remove' : 'add' }}"
-                onclick="event.stopPropagation(); toggleCart({{ $hoarding->id }})"
-                class="flex-1 py-2 px-3 text-sm font-semibold rounded
-                    {{ $isInCart
-                        ? 'bg-red-400 text-white hover:bg-red-500'
-                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }}">
+                data-in-cart="{{ $isInCart ? '1' : '0' }}"
+                onclick="event.stopPropagation(); toggleCart(this, {{ $hoarding->id }})"
+                class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded"
+            >
                 {{ $isInCart ? 'Remove' : 'Add to Cart' }}
             </button>
+
+
 
 
 

@@ -89,9 +89,10 @@ class HomeController extends Controller
                 'query' => request()->query(),
             ]
         );
-        $cartIds = auth()->check()
-            ? $cartService->getCartHoardingIds()
-            : [];
+        
+        $cartIds = app(CartService::class)
+        ->getCartHoardingIds();
+       
         // ---------------------------------------------------------------------------
 
         return view('home.index', compact(
@@ -100,7 +101,7 @@ class HomeController extends Controller
             'topDOOHs',
             'topCities',
             'userLocation',
-            'cartIds'
+            'cartIds',
         ));
     }
 

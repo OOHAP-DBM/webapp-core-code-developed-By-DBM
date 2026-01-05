@@ -22,9 +22,6 @@ return new class extends Migration
                 ->constrained('hoardings')
                 ->cascadeOnDelete();
 
-            $table->string('package_type')->default('monthly');
-            $table->decimal('price', 10, 2);
-
             $table->timestamps();
 
             // ek hi hoarding 1 user ke cart me duplicate na ho

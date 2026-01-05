@@ -8,63 +8,53 @@ use Modules\Cart\Services\CartService;
 
 class CartController extends Controller
 {
-    protected CartService $cartService;
-
-    public function __construct(CartService $cartService)
-    {
-        $this->cartService = $cartService;
-    }
-    /**
-     * Add to cart (AJAX / Web)
-     */
-    public function add(Request $request)
-    {
-        $request->validate([
-            'hoarding_id' => 'required|integer',
-            'package_type' => 'nullable|string', // 👈 NEW (safe)
-        ]);
-
-        $result = $this->cartService->add(
-            $request->hoarding_id,
-            $request->package_type ?? 'monthly' // 👈 DEFAULT SAFE
-        );
-
-        if (($result['status'] ?? '') === 'login_required') {
-            return response()->json([
-                'success'  => false,
-                'message'  => $result['message'],
-                'redirect' => route('login'),
-            ], 401);
-        }
-
-        return response()->json([
-            'success' => in_array(($result['status'] ?? ''), ['success', 'added', true, 1], true),
-            'message' => $result['message'] ?? 'Action completed',
-            'price'   => $result['price'] ?? null, // 👈 OPTIONAL (useful for UI)
-        ]);
-    }
-
-    /**
-     * Cart count
-     */
+    /* =====================================================
+     | CART PAGE
+     ===================================================== */
     public function index(CartService $cartService)
     {
-        $items = $cartService->getUserCart();
-        $summary = $cartService->getCartSummary();
-
-        return view('cart.index', compact('items', 'summary'));
+        return view('cart.index', [
+            'items'   => $cartService->getCartForUI(),
+            'summary' => $cartService->getCartSummary(),
+        ]);
     }
-    public function remove(Request $request)
+
+    /* =====================================================
+     | ADD TO CART
+     ===================================================== */
+    public function add(Request $request, CartService $cartService)
     {
-        $request->validate([
-            'hoarding_id' => 'required|integer'
+        $data = $request->validate([
+            'hoarding_id'    => 'required|integer',
+            'package_id'     => 'nullable|integer',
+            'package_source' => 'nullable|string|in:ooh_package,dooh_package,slot',
         ]);
 
-        $this->cartService->remove($request->hoarding_id);
+        return response()->json(
+            $cartService->add(
+                $data['hoarding_id'],
+                $data['package_id'] ?? null,
+                $data['package_source'] ?? null
+            )
+        );
+    }
+
+    /* =====================================================
+     | REMOVE FROM CART
+     ===================================================== */
+    public function remove(Request $request, CartService $cartService)
+    {
+        $data = $request->validate([
+            'hoarding_id' => 'required|integer',
+        ]);
+
+        // direct remove (no exists logic)
+        $cartService->remove($data['hoarding_id']);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Removed from cart'
+            'status'  => 'removed',
+            'in_cart' => false,          
+            'message' => 'Item removed from cart',
         ]);
     }
 

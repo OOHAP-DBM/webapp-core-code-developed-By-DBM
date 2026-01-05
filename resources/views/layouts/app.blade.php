@@ -32,84 +32,95 @@
 
     @stack('modals')
     @stack('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-   <script>
-function toggleCart(hoardingId) {
-    const btn = document.getElementById(`cart-btn-${hoardingId}`);
-    const state = btn.dataset.state; // add | remove
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        (function () {
 
-    const url = state === 'add'
-        ? "{{ route('cart.add') }}"
-        : "{{ route('cart.remove') }}";
+            /* ================================
+            | APPLY BUTTON UI
+            ================================= */
+            function applyCartUI(btn, inCart) {
+                btn.dataset.inCart = inCart ? '1' : '0';
+                btn.classList.remove('add', 'remove');
 
-    fetch(url, {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ hoarding_id: hoardingId })
-    })
-    .then(async res => {
-        if (res.status === 401) {
-            window.location.href = "{{ route('login') }}";
-            return;
-        }
-        return res.json();
-    })
-    .then(data => {
-        if (!data || !data.success) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Failed',
-                text: data?.message || 'Action failed'
+                if (inCart) {
+                    btn.textContent = 'Remove';
+                    btn.classList.add('remove');
+                } else {
+                    btn.textContent = 'Add to Cart';
+                    btn.classList.add('add');
+                }
+            }
+
+            /* ================================
+            | INITIALIZE ALL BUTTONS (🔥 FIX)
+            ================================= */
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('.cart-btn').forEach(btn => {
+                    const inCart = btn.dataset.inCart === '1';
+                    applyCartUI(btn, inCart);
+                });
             });
-            return;
-        }
 
-        if (state === 'add') {
-            // ADD → REMOVE
-            btn.dataset.state = 'remove';
-            btn.textContent = 'Remove';
-            btn.className =
-                'flex-1 py-2 px-3 bg-red-400 text-white text-sm font-semibold rounded hover:bg-red-500';
+            /* ================================
+            | TOGGLE CART
+            ================================= */
+            window.toggleCart = function (btn, hoardingId) {
 
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: 'Added to cart',
-                showConfirmButton: false,
-                timer: 2000
-            });
-        } else {
-            // REMOVE → ADD
-            btn.dataset.state = 'add';
-            btn.textContent = 'Add to Cart';
-            btn.className =
-                'flex-1 py-2 px-3 border border-gray-300 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50';
+                const inCart = btn.dataset.inCart === '1';
+                const url = inCart
+                    ? "{{ route('cart.remove') }}"
+                    : "{{ route('cart.add') }}";
 
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: 'Removed from cart',
-                showConfirmButton: false,
-                timer: 2000
-            });
-        }
-    })
-    .catch(() => {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Something went wrong!'
-        });
-    });
-}
-</script>
+                btn.disabled = true;
 
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ hoarding_id: hoardingId })
+                })
+                .then(res => res.json())
+                .then(data => {
+
+                    if (data.status === 'login_required') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Login required',
+                            text: data.message
+                        });
+                        return;
+                    }
+
+                    applyCartUI(btn, data.in_cart);
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: data.message,
+                        showConfirmButton: false,
+                        timer: 1400
+                    });
+
+                })
+                .catch(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Something went wrong'
+                    });
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                });
+            };
+
+        })();
+    </script>
 
 </body>
 </html>
