@@ -148,6 +148,18 @@ class VendorController extends Controller
 
             if ($profile->user) {
                 $profile->user->update(['status' => 'active']);
+
+                // Send approval email to vendor
+                try {
+                    \Mail::to($profile->user->email)->send(
+                        new \Modules\Mail\VendorApprovedMail(
+                            $profile->user,
+                            $request->commission_percentage
+                        )
+                    );
+                } catch (\Exception $e) {
+                    \Log::error('Vendor approval email failed: ' . $e->getMessage());
+                }
             }
 
             return response()->json([

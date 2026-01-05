@@ -96,6 +96,7 @@ class VendorHoardingController extends Controller
         $hoardings->getCollection()->transform(function ($h) {
             return (object) [
                 'id' => $h->id,
+                'vendor_profile_id' => $h->vendor?->vendorProfile?->id,
                 'title' => $h->title ?? $h->name,
                 'type' => strtoupper($h->hoarding_type), // Result: OOH or DOOH
                 'vendor' => $h->vendor,
@@ -149,5 +150,20 @@ class VendorHoardingController extends Controller
             'status'  => $hoarding->status
         ]);
     }
+    public function setCommission(Request $request, $id)
+    {
+        $request->validate([
+            'commission' => 'required|numeric|min:0|max:100',
+        ]);
+        $hoarding = Hoarding::findOrFail($id);
+        $hoarding->commission_percent = $request->commission;
+        $hoarding->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Hoarding commission saved'
+        ]);
+    }
+
 
 }

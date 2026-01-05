@@ -68,53 +68,97 @@
 
                         {{-- DETAILS --}}
                         <div class="flex-1">
-                            <h3 class="text-lg font-semibold">{{ $item->title ?? 'Unipole Hazaratganj Lucknow' }}</h3>
-                            <p class="text-sm text-gray-500">{{ $item->address ?? 'Vipul khand gomti nagar' }}</p>
+                            {{-- TITLE --}}
+                            <h2 class="text-xl font-semibold mt-1">
+                                {{ $item->title }}
+                            </h2>
 
-                            <div class="flex items-center gap-3 text-sm mt-1">
-                                <span>{{$item->hoarding_type}} | 300*250Sq.ft</span>
-                                <span class="flex items-center gap-1 text-sm text-gray-600">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="#ffc83d"
-                                        class="w-4 h-4">
-                                        <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2" />
-                                    </svg>
+                            {{-- ADDRESS --}}
+                            <p class="text-sm text-gray-500">
+                                {{ $item->address }}, {{ $item->city }}
+                            </p>
 
-                                    <span>{{ $item->rating ?? 4.5 }}</span>
-                                    <span class="text-xs text-gray-400">
-                                        ({{ $item->reviews_count ?? 16 }} Ratings)
+                            {{-- TYPE + SIZE --}}
+                            <div class="flex items-center gap-3 text-sm mt-1 text-gray-600">
+                                <span class="uppercase font-medium">
+                                    {{ $item->hoarding_type }}
+                                </span>
+
+                                @if($item->display_width && $item->display_height)
+                                    <span>
+                                        | {{ $item->display_width }} × {{ $item->display_height }}
+                                        {{ $item->display_unit === 'px' ? 'px' : 'Sq.ft' }}
                                     </span>
+                                @endif
+
+                            </div>
+
+                            {{-- FEATURED TAG --}}
+                            @if($item->is_featured)
+                                <div class="my-3">
+                                    <span class="bg-[#fc6286] text-white text-xs px-2 py-0.5 rounded">
+                                        Recommended
+                                    </span>
+                                </div>
+                            @else
+                            <div class="my-3">
+                                <span class="bg-[#ffb854]  text-xs px-2 py-0.5 rounded">
+                                            Limited Time Offer
                                 </span>
                             </div>
+                            @endif
 
-                            <div class="flex gap-2 mt-2">
-                                <span class="bg-[#ffb854] text-xs px-2 py-0.5 rounded">Limited time offer</span>
-                                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded">OOH</span>
-                            </div>
-
+                            {{-- PRICE --}}
                             <div class="mt-3">
-                                <span class="text-xl font-bold">₹{{ number_format($item->price ?? 10999) }}</span>
-                                <span class="text-sm text-gray-500">/Month</span>
-                            </div>
-                                 {{-- OLD PRICE + DISCOUNT --}}
-                            <div class="flex items-center gap-2 mt-1">
-                                <!-- Old price -->
-                                <span class="text-xs text-red-400 line-through">
-                                    ₹{{ number_format(($item->price ?? 10999) + 4200) }}
+                                <span class="text-xl font-bold">
+                                    ₹{{ number_format($item->price) }}
+                                </span>
+                                <span class="text-sm text-gray-500">
+                                    @if($item->hoarding_type === 'dooh')
+                                        / 10 Second Slot
+                                    @elseif(request('duration') === 'weekly')
+                                        /Week
+                                    @else
+                                        /Month
+                                    @endif
                                 </span>
 
-                                <!-- Discount badge -->
-                                <span class="text-[11px] text-green-600 font-medium">
-                                    ₹3000 OFF!
-                                </span>
                             </div>
 
+                            {{-- BASE PRICE (CUT / RED) --}}
+                            @if(!empty($item->base_monthly_price) && $item->base_monthly_price > $item->price)
+                                <div class="mt-1">
+                                    <span class="text-xs text-red-500 line-through">
+                                        ₹{{ number_format($item->base_monthly_price) }} 
+                                    </span>
+                                    &nbsp;
+                                    @if($item->discount_percent)
+                                        <span class="bg-green-200 text-xs text-green-700 px-2 py-0.5 rounded">
+                                             {{ $item->discount_percent }}% OFF
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
 
-                            <p class="text-xs text-gray-500 mt-1">Taxes excluded</p>
-                            <p class="text-xs text-gray-500">Hoarding Available From: {{ $item->available_from ?? 'December 25' }}</p>
-                            <p class="text-xs text-blue-600">{{ $item->packages_count ?? 3 }} Packages Available</p>
+                            {{-- TAX NOTE --}}
+                            <p class="text-xs text-gray-500 my-2">
+                                Taxes excluded
+                            </p>
+
+                            {{-- AVAILABLE FROM --}}
+                            @if($item->available_from)
+                                <p class="text-xs text-gray-500">
+                                    Available from:
+                                    {{ \Carbon\Carbon::parse($item->available_from)->format('d M Y') }}
+                                </p>
+                            @endif
+
+                            {{-- GAZEFLOW --}}
+                            @if($item->expected_eyeball)
+                                <p class="text-xs text-gray-500">
+                                    Approx {{ number_format($item->expected_eyeball) }} daily eyeballs
+                                </p>
+                            @endif
                         </div>
 
                         {{-- ACTIONS --}}
@@ -145,4 +189,4 @@
 
             {{ $results->links() }}
         </div>
-    </div>
+</div>

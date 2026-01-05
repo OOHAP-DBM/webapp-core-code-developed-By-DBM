@@ -50,6 +50,8 @@
                         </svg>
                         <div class="flex flex-col">
                             <span class="text-xs text-gray-400 leading-tight">From - To</span>
+                            <input type="hidden" name="from_date" id="from_date">
+                            <input type="hidden" name="to_date" id="to_date">
                             <input 
                                 type="text" 
                                 id="dateRange"
@@ -360,14 +362,20 @@
     document.addEventListener('DOMContentLoaded', function() {
         const dateInput = document.getElementById('dateRange');
         if (dateInput && typeof flatpickr !== 'undefined') {
-            flatpickr(dateInput, {
-                mode: 'range',
-                dateFormat: 'D, d M y',
-                defaultDate: [new Date(), new Date(Date.now() + 86400000)],
-                onChange: function(selectedDates, dateStr) {
-                    // Handle date selection
+            flatpickr("#dateRange", {
+                mode: "range",
+                dateFormat: "D, d M y",
+                onChange: function (selectedDates) {
+                    if (selectedDates.length === 2) {
+                        document.getElementById('from_date').value =
+                            selectedDates[0].toISOString().split('T')[0];
+
+                        document.getElementById('to_date').value =
+                            selectedDates[1].toISOString().split('T')[0];
+                    }
                 }
             });
+
         } else {
             // Fallback: Set default text
             if (dateInput) {
