@@ -1,6 +1,5 @@
 <?php
-
-namespace App\Http\Controllers\Vendor;
+namespace Modules\Auth\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Vendor\CompanyDetailsRequest;
@@ -20,6 +19,9 @@ use App\Http\Requests\Vendor\VendorBusinessInfoRequest;
 use App\Services\VendorOnboardingService;
 use Illuminate\Support\Facades\Session; // <--- Add this line
 use Illuminate\Support\Facades\Redirect;
+use Modules\Auth\Http\Requests\VerifyOTPRequest;
+use Modules\Auth\Services\OTPService;
+use Illuminate\Http\JsonResponse;
 class OnboardingController extends Controller
 
 {
@@ -505,4 +507,48 @@ class OnboardingController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function skipContactVerification()
+    {
+        $user = auth()->user();
+        $profile = $user->vendorProfile;
+
+        if ($profile && $profile->onboarding_step < 2) {
+            $profile->update([
+                'onboarding_step' => 2
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function skipBusinessInfo(): JsonResponse
+    {
+        try {
+            $user = auth()->user();
+            $profile = $this->getVendorProfile();
+
+            // Update step to 3 and set status to pending so they can access dashboard
+            $profile->update([
+                'onboarding_step' => 3,
+                'onboarding_status' => 'pending_approval'
+            ]);
+
+            // Optional: Ensure role is assigned even if they skip
+            if (!$user->hasRole('vendor')) {
+                $user->assignRole('vendor');
+                $user->active_role = 'vendor';
+                $user->save();
+            }
+
+            return response()->json([
+                'success' => true,
+                'redirect' => route('vendor.dashboard')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+
 }
