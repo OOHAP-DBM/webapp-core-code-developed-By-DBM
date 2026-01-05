@@ -100,13 +100,31 @@
 
         <!-- Action Buttons -->
         <div class="flex items-center space-x-2 mb-2">
-            <button class="flex-1 py-2 px-3 border border-gray-300 text-gray-700 text-sm font-semibold rounded hover:bg-gray-50 transition-colors" onclick="event.stopPropagation();">
-                Add to Cart
+            @php
+                $isInCart = in_array($hoarding->id, $cartIds ?? []);
+            @endphp
+
+            <button
+                type="button"
+                id="cart-btn-{{ $hoarding->id }}"
+                data-state="{{ $isInCart ? 'remove' : 'add' }}"
+                onclick="event.stopPropagation(); toggleCart({{ $hoarding->id }})"
+                class="flex-1 py-2 px-3 text-sm font-semibold rounded
+                    {{ $isInCart
+                        ? 'bg-red-400 text-white hover:bg-red-500'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }}">
+                {{ $isInCart ? 'Remove' : 'Add to Cart' }}
             </button>
-            <button class="flex-1 py-2 px-3 bg-teal-500 text-white text-sm font-semibold rounded hover:bg-teal-600 transition-colors" onclick="window.location.href='{{ route('hoardings.show', $hoarding->id) }}'">
+
+
+
+            <button class="flex-1 py-2 px-3 bg-teal-500 text-white text-sm font-semibold rounded hover:bg-teal-600 transition-colors"
+                onclick="window.location.href='{{ route('hoardings.show', $hoarding->id) }}'">
                 Book Now
             </button>
         </div>
+
 
         <!-- Enquire Link -->
         <a href="#" class="block text-center text-xs text-teal-600 hover:text-teal-700 font-medium" onclick="event.stopPropagation();">

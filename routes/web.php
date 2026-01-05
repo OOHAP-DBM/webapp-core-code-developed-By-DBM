@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\OnboardingController;
 use App\Http\Controllers\Web\Customer\ProfileController;
 use Modules\Search\Controllers\SearchController;
+use Modules\Cart\Controllers\Web\CartController;
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -20,6 +21,9 @@ use Modules\Search\Controllers\SearchController;
 // ============================================
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+Route::post('/cart/add', [CartController::class,'add'])->middleware('auth')->name('cart.add');
+Route::post('/cart/remove', [CartController::class, 'remove'])->middleware('auth')->name('cart.remove');
+Route::get('/cart', [\Modules\Cart\Controllers\Web\CartController::class, 'index'])->middleware('auth')->name('cart.index');
 Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
 Route::get('/hoardings/map', [\App\Http\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
 Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
