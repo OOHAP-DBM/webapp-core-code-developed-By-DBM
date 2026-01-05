@@ -10,7 +10,7 @@ return new class extends Migration
         Schema::create('hoarding_packages', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('hoarding_id');
-            $table->string('package_code', 50)->unique();
+            $table->string('package_code', 50)->unique()->nullable();
             $table->string('package_name');
             $table->decimal('discount_percent', 5, 2); // max 100
             // Ownership

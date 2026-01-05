@@ -92,7 +92,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor/onboarding')->name('v
     Route::post('/send-email', [OnboardingController::class, 'sendEmailOtp'])->name('send-email');
     Route::post('/verify-email', [OnboardingController::class, 'verifyEmailOtp'])->name('verify-email');
     Route::post('/send-phone', [OnboardingController::class, 'sendPhoneOtp'])->name('send-phone');
-    Route::post('/verify-phone', [OnboardingController::class, 'verifyPhoneOtp'])->name('verify-phone');
+    Route::post('/verify-phone', [OnboardingController::class, 'verifyOtp'])->name('verify-phone');
     // Step 1: Contact Details
     Route::get('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showContactDetails'])->name('contact-details');
     Route::post('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeContactDetails'])->name('contact-details.store');
@@ -515,7 +515,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/hoardings/{id}', [\Modules\Admin\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
     Route::post('/hoardings/{id}/approve', [\Modules\Admin\Controllers\Web\HoardingController::class, 'approve'])->name('hoardings.approve');
     Route::post('/hoardings/{id}/reject', [\Modules\Admin\Controllers\Web\HoardingController::class, 'reject'])->name('hoardings.reject');
-    
+
+    // ===================== ADMIN CATEGORY CRUD =====================
+   
+    Route::get('/hoarding-attributes', [\Modules\Hoardings\Controllers\Admin\HoardingAttributeController::class, 'index'])->name('hoarding-attributes.index');
+    Route::post('/hoarding-attributes', [\Modules\Hoardings\Controllers\Admin\HoardingAttributeController::class, 'store'])->name('hoarding-attributes.store');
+    Route::delete('/hoarding-attributes/{id}', [\Modules\Hoardings\Controllers\Admin\HoardingAttributeController::class, 'destroy'])->name('hoarding-attributes.destroy');
     // Bookings Management
     Route::get('/bookings', [\Modules\Admin\Controllers\Web\BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{id}', [\Modules\Admin\Controllers\Web\BookingController::class, 'show'])->name('bookings.show');

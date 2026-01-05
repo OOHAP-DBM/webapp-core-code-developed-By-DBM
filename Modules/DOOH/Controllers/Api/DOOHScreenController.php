@@ -26,7 +26,9 @@ class DOOHScreenController extends Controller
     {
         $vendor = Auth::user();
         $step = (int) $request->input('step', 1);
-        $screenId = $request->input('screen_id'); // Required for Step 2 and 3
+        $screenId = $request->input('screen_id');
+
+        // No category_id validation needed, category is now a string
 
         try {
             switch ($step) {

@@ -25,14 +25,12 @@ class HoardingListService
 
         $validator = Validator::make($data, [
             'category'          => 'required|string|max:100',
-            // 'hoarding_type'     => 'required|string|max:50',
             'width'             => 'required|numeric|min:0.1',
             'height'            => 'required|numeric|min:0.1',
             'measurement_unit'  => 'required|in:sqft,sqm',
             'address'           => 'required|string|max:255',
             'pincode'           => 'required|string|max:20',
             'locality'          => 'required|string|max:100',
-            // 'price_per_slot'    => 'required|numeric|min:1',
         ]);
 
         if ($validator->fails() || empty($mediaFiles)) {
@@ -59,12 +57,20 @@ class HoardingListService
      */
     public function storeStep2($hoarding, $data, $brandLogoFiles = [])
     {
+        // Handle blocked_dates_json from form (JSON array of dates)
+        if (!empty($data['blocked_dates_json'])) {
+            $decoded = json_decode($data['blocked_dates_json'], true);
+            if (is_array($decoded)) {
+                $data['block_dates'] = $decoded;
+            }
+            unset($data['blocked_dates_json']);
+        }
         return \DB::transaction(function () use ($hoarding, $data, $brandLogoFiles) {
             $hoarding = $this->repo->updateStep2($hoarding, $data);
             if (!empty($brandLogoFiles)) {
                 $this->repo->storeBrandLogos($hoarding->id, $brandLogoFiles);
             }
-            return ['success' => true, 'hoarding' => $hoarding->fresh(['brandLogos'])];
+            return ['success' => true,   'hoarding' => $hoarding->hoarding->fresh('brandLogos')];
         });
     }
 

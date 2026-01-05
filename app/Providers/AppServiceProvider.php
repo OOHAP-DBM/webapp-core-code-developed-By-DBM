@@ -238,6 +238,13 @@ class AppServiceProvider extends ServiceProvider
 
         // Registration - Prevent spam accounts
         RateLimiter::for('register', function (Request $request) {
+            if (app()->environment('local')) {
+                return Limit::none();
+            }
+            // Check if the request is coming from the internal console/generator
+            if (app()->runningInConsole()) {
+                return Limit::none();
+            }
             return [
                 // 60 registrations per hour per IP
                 Limit::perHour(100)

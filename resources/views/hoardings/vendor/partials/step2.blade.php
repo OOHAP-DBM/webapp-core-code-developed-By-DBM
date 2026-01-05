@@ -35,22 +35,68 @@
         <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100">
             <label class="text-sm font-bold text-gray-700">Do you want to block any certain dates?</label>
             <div class="flex items-center gap-6">
-                <label class="flex items-center cursor-pointer group">
-                    <input type="radio" name="block_dates" value="1" class="hidden peer">
-                    <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
-                        <div class="w-2 h-2 bg-white rounded-full"></div>
-                    </div>
-                    <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
-                </label>
-                <label class="flex items-center cursor-pointer group">
-                    <input type="radio" name="block_dates" value="0" class="hidden peer" checked>
-                    <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
-                        <div class="w-2 h-2 bg-white rounded-full"></div>
-                    </div>
-                    <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">No</span>
-                </label>
+              <label class="flex items-center cursor-pointer group">
+                <input type="radio" name="block_dates" value="1" class="hidden peer" x-model="blockDatesEnabled">
+                <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
+                  <div class="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+                <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
+              </label>
+              <label class="flex items-center cursor-pointer group">
+                <input type="radio" name="block_dates" value="0" class="hidden peer" x-model="blockDatesEnabled" checked>
+                <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
+                  <div class="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+                <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">No</span>
+              </label>
             </div>
-        </div>
+          </div>
+            <!-- Calendar for blocking dates -->
+            <div x-data="{ blockDatesEnabled: '{{ old('block_dates', '0') }}', blockedDates: [] }" class="mt-4" x-show="blockDatesEnabled == '1'" x-cloak>
+              <label class="block text-sm font-bold text-gray-700 mb-2">Select dates to block</label>
+              <input type="text" x-ref="blockedDatesCalendar" class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none bg-white" placeholder="Pick dates to block...">
+              <input type="hidden" name="blocked_dates_json" :value="JSON.stringify(blockedDates)">
+              <div class="text-xs text-gray-500 mt-2" x-text="blockedDates.length ? 'Blocked: ' + blockedDates.join(', ') : 'No dates selected.'"></div>
+            </div>
+            <script>
+            document.addEventListener('alpine:init', () => {
+              Alpine.directive('flatpickr', (el, {expression}, {evaluateLater, effect}) => {
+                let evaluate = evaluateLater(expression)
+                effect(() => {
+                  evaluate((dates) => {
+                    flatpickr(el, {
+                      mode: 'multiple',
+                      dateFormat: 'Y-m-d',
+                      onChange: function(selectedDates, dateStrArr) {
+                        let input = el.closest('[x-data]').__x.$data;
+                        input.blockedDates = dateStrArr;
+                      }
+                    });
+                  })
+                })
+              })
+            })
+            </script>
+
+          <!-- Calendar for blocking dates -->
+          <div x-data="{ blockDatesEnabled: false, blockedDates: [] }" x-init="
+            $watch('blockDatesEnabled', value => {
+              if (value == '1') {
+                flatpickr($refs.blockedDatesInput, {
+                  mode: 'multiple',
+                  dateFormat: 'Y-m-d',
+                  onChange: function(selectedDates, dateStr, instance) {
+                    $refs.blockedDatesHidden.value = JSON.stringify(selectedDates.map(d => instance.formatDate(d, 'Y-m-d')));
+                  }
+                });
+              }
+            });
+          " class="mt-4" x-show="blockDatesEnabled == '1'">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Select Blocked Dates</label>
+            <input type="text" x-ref="blockedDatesInput" class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none" placeholder="Pick one or more dates">
+            <input type="hidden" name="blocked_dates_json" x-ref="blockedDatesHidden">
+            <p class="text-xs text-gray-400 mt-1">Selected dates will be blocked for booking.</p>
+          </div>
 
         <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100">
             <label class="text-sm font-bold text-gray-700">Do you need grace period after booking?</label>

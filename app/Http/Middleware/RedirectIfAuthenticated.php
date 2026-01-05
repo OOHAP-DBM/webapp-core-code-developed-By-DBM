@@ -26,9 +26,16 @@ class RedirectIfAuthenticated
                 // Check if user account is active
                 if (!$user->isActive()) {
                     Auth::guard($guard)->logout();
+                    if ($request->expectsJson() || $request->is('api/*')) {
+                        return response()->json(['message' => 'Your account is ' . $user->status . '. Please contact support.'], 403);
+                    }
                     return redirect()->route('login')->with('error', 'Your account is ' . $user->status . '. Please contact support.');
                 }
 
+                // Redirect to role-based dashboard (web only)
+                if ($request->expectsJson() || $request->is('api/*')) {
+                    return response()->json(['message' => 'Already authenticated.'], 200);
+                }
                 // Redirect to role-based dashboard
                 return redirect($user->getDashboardRoute());
             }

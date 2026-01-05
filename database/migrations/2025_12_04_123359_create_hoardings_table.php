@@ -16,7 +16,7 @@ return new class extends Migration
             /* CORE */
             $table->string('title')->unique()->nullable();
             $table->string('slug')->unique()->nullable();
-             $table->string('name')->nullable();
+            $table->string('name')->nullable();
             $table->text('description')->nullable();
             $table->enum('hoarding_type', ['ooh', 'dooh'])->default('ooh');
             $table->string('category')->nullable();

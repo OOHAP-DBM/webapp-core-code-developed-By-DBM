@@ -41,7 +41,7 @@ class OOHHoarding extends Model
         'designing_charge',
 
         'remounting_charge',
-        'survey_charge',
+        // 'survey_charge',
     ];
 
     protected $casts = [
@@ -91,5 +91,19 @@ class OOHHoarding extends Model
         }
 
         return $total + (float) $this->survey_charge;
+    }
+    /**
+     * Get all packages for this OOH hoarding (via parent hoarding).
+     */
+    public function packages()
+    {
+        return $this->hasManyThrough(
+            \Modules\Hoardings\Models\HoardingPackage::class,
+            \App\Models\Hoarding::class,
+            'id', // Foreign key on hoardings table...
+            'hoarding_id', // Foreign key on packages table...
+            'hoarding_id', // Local key on ooh_hoardings table...
+            'id' // Local key on hoardings table...
+        );
     }
 }

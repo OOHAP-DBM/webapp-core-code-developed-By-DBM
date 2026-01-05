@@ -15,8 +15,10 @@ use \Modules\DOOH\Models\DOOHScreen;
 use \Modules\Hoardings\Models\OOHHoarding;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Hoardings\Models\HoardingPackage;
+use Modules\Hoardings\Models\HoardingBrandLogo;
 
 class Hoarding extends Model implements HasMedia
+   
 {
     use HasFactory, SoftDeletes, HasSnapshots, Auditable, InteractsWithMedia;
 
@@ -36,6 +38,8 @@ class Hoarding extends Model implements HasMedia
         'monthly_price',
         'weekly_price',
         'commission_percent',
+        'graphics_charge',
+        'survey_charge',
     ];
 
     /* ===================== FILLABLE ===================== */
@@ -87,6 +91,10 @@ class Hoarding extends Model implements HasMedia
         'enable_weekly_booking',
         'commission_percent',
         'currency',
+        'survey_charge ',
+        'graphics_charge ',
+        'graphics_included',
+
 
         /* Booking rules */
         'grace_period_days',
@@ -130,6 +138,9 @@ class Hoarding extends Model implements HasMedia
         'weekly_price' => 'decimal:2',
         'commission_percent' => 'decimal:2',
         'enable_weekly_booking' => 'boolean',
+        'survey_charge' => 'decimal:2',
+        'graphics_charge' => 'decimal:2',
+        'graphics_included' => 'boolean',
 
         'grace_period_days' => 'integer',
         'block_dates' => 'array',
@@ -342,6 +353,12 @@ class Hoarding extends Model implements HasMedia
             });
     }
 
+
+    public function brandLogos()
+    {
+        return $this->hasMany(HoardingBrandLogo::class)
+            ->orderBy('sort_order');
+    }
     /**
      * Get hero image URL (with fallback to primary_image column if exists).
      */
@@ -444,5 +461,23 @@ class Hoarding extends Model implements HasMedia
         $earliestDate = $this->getEarliestAllowedStartDate()->format('d M Y');
 
         return "Campaign start date must be at least {$days} day(s) from today. Earliest allowed date: {$earliestDate}";
+    }
+
+    /**
+     * Attribute relationships
+     */
+    public function categoryAttribute()
+    {
+        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'category_id');
+    }
+
+    public function materialAttribute()
+    {
+        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'material_id');
+    }
+
+    public function lightingAttribute()
+    {
+        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'lighting_id');
     }
 }
