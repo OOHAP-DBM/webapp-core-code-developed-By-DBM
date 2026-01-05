@@ -307,7 +307,6 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::post('hoardings/select-type', [\Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'handleTypeSelection'])->name('hoardings.select-type');
 
     Route::resource('hoardings', \App\Http\Controllers\Web\Vendor\HoardingController::class);
-        // Add Hoardings Type Selection (OOH/DOOH)
      
     // Vendor DOOH Creation (Figma-accurate, onboarding enforced)
 
@@ -359,16 +358,17 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/threads/unread-count', [\App\Http\Controllers\Vendor\ThreadController::class, 'unreadCount'])->name('threads.unread-count');
     
     // Listings Management (PROMPT 26)
-    Route::get('/listings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'index'])->name('listings.index');
-    Route::get('/hoardings/create', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'create'])->name('hoardings.create');
-    Route::post('/hoardings/store', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'store'])->name('hoarding.store');
+    Route::get('/my-hoardings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'myHoardings'])->name('hoardings.myHoardings');
+    Route::post('hoardings/{id}/toggle', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'toggleStatus'])->name('hoardings.toggle');
+    Route::get('/hoardings/create', [Modules\Hoardings\Controllers\Vendor\OOHListingController::class, 'create'])->name('hoardings.create');
+    Route::post('/hoardings/store', [Modules\Hoardings\Controllers\Vendor\OOHListingController::class, 'store'])->name('hoarding.store');
 
-    Route::post('/listings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'store'])->name('listings.store');
-    Route::get('/listings/{id}/edit', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'edit'])->name('listings.edit');
-    Route::put('/listings/{id}', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'update'])->name('listings.update');
-    Route::delete('/listings/{id}', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'destroy'])->name('listings.destroy');
-    Route::get('/listings/bulk-update', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'bulkUpdate'])->name('listings.bulk-update');
-    Route::post('/listings/bulk-update-submit', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'bulkUpdateSubmit'])->name('listings.bulk-update-submit');
+    Route::post('/my-hoardings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'store'])->name('my-hoardings.store');
+    Route::get('/my-hoardings/{id}/edit', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'edit'])->name('my-hoardings.edit');
+    Route::put('/my-hoardings/{id}', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'update'])->name('my-hoardings.update');
+    Route::delete('/my-hoardings/{id}', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'destroy'])->name('my-hoardings.destroy');
+    Route::get('/my-hoardings/bulk-update', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'bulkUpdate'])->name('my-hoardings.bulk-update');
+    Route::post('/my-hoardings/bulk-update-submit', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'bulkUpdateSubmit'])->name('my-hoardings.bulk-update-submit');
     
     // Bookings Management (PROMPT 48 - Enhanced)
     Route::prefix('bookings')->name('bookings.')->group(function () {
@@ -771,7 +771,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     // Reports
     Route::get('/reports', [\App\Http\Controllers\Web\Admin\ReportController::class, 'index'])->name('reports.index');
-    Route::get('/reports/revenue', [\App\Http\Controllers\Web\Admin\ReportController::class, 'revenue'])->name('reports.revenue');
+    Route::get('/reports/revenue', [\AppHttp\Controllers\Web\Admin\ReportController::class, 'revenue'])->name('reports.revenue');
     Route::get('/reports/vendors', [\App\Http\Controllers\Web\Admin\ReportController::class, 'vendors'])->name('reports.vendors');
     
     // Activity Log

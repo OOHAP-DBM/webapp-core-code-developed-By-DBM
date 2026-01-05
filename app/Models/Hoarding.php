@@ -250,10 +250,10 @@ class Hoarding extends Model implements HasMedia
     // /**
     //  * Scope a query to filter by vendor.
     //  */
-    // public function scopeByVendor($query, $vendorId)
-    // {
-    //     return $query->where('vendor_id', $vendorId);
-    // }
+    public function scopeByVendor($query, $vendorId)
+    {
+        return $query->where('vendor_id', $vendorId);
+    }
 
   
 

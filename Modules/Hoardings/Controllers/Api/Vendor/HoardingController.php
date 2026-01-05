@@ -32,37 +32,50 @@ class HoardingController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    // public function index(Request $request): JsonResponse
+    // {
+    //     $filters = [
+    //         'vendor_id' => $request->input('vendor_id'),
+    //         'type' => $request->input('type'),
+    //         'status' => $request->input('status'),
+    //         'search' => $request->input('search'),
+    //         'lat' => $request->input('lat'),
+    //         'lng' => $request->input('lng'),
+    //         'radius' => $request->input('radius', 10),
+    //         'bbox' => $request->input('bbox'), // Format: minLat,minLng,maxLat,maxLng
+    //         'near' => $request->input('near'), // Format: lat,lng
+    //         'sort_by' => $request->input('sort_by', 'created_at'),
+    //         'sort_order' => $request->input('sort_order', 'desc'),
+    //     ];
+
+    //     $perPage = $request->input('per_page', 15);
+    //     $hoardings = $this->hoardingService->getAll($filters, $perPage);
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => HoardingResource::collection($hoardings),
+    //         'meta' => [
+    //             'current_page' => $hoardings->currentPage(),
+    //             'from' => $hoardings->firstItem(),
+    //             'last_page' => $hoardings->lastPage(),
+    //             'per_page' => $hoardings->perPage(),
+    //             'to' => $hoardings->lastItem(),
+    //             'total' => $hoardings->total(),
+    //         ],
+    //     ]);
+    // }
+
+    /**
+     * Get all hoardings for the authenticated vendor (API)
+     */
+    public function index(Request $request)
     {
-        $filters = [
-            'vendor_id' => $request->input('vendor_id'),
-            'type' => $request->input('type'),
-            'status' => $request->input('status'),
-            'search' => $request->input('search'),
-            'lat' => $request->input('lat'),
-            'lng' => $request->input('lng'),
-            'radius' => $request->input('radius', 10),
-            'bbox' => $request->input('bbox'), // Format: minLat,minLng,maxLat,maxLng
-            'near' => $request->input('near'), // Format: lat,lng
-            'sort_by' => $request->input('sort_by', 'created_at'),
-            'sort_order' => $request->input('sort_order', 'desc'),
-        ];
-
-        $perPage = $request->input('per_page', 15);
+        $vendor = Auth::user();
+        $filters = $request->only(['type', 'status', 'search']);
+        $filters['vendor_id'] = $vendor->id;
+        $perPage = $request->get('per_page', 20);
         $hoardings = $this->hoardingService->getAll($filters, $perPage);
-
-        return response()->json([
-            'success' => true,
-            'data' => HoardingResource::collection($hoardings),
-            'meta' => [
-                'current_page' => $hoardings->currentPage(),
-                'from' => $hoardings->firstItem(),
-                'last_page' => $hoardings->lastPage(),
-                'per_page' => $hoardings->perPage(),
-                'to' => $hoardings->lastItem(),
-                'total' => $hoardings->total(),
-            ],
-        ]);
+        return response()->json($hoardings);
     }
 
     /**
