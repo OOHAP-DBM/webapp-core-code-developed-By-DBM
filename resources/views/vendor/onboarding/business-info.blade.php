@@ -147,11 +147,20 @@
                 </div>
             </div>
 
-            {{-- <button class="submit-btn w-full md:w-40 py-3 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 text-gray-500" type="submit" id="submitBtn" disabled> --}}
-            <button class="submit-btn w-full md:w-40 py-3 rounded-lg font-semibold transition-all  bg-green-600 text-white" type="submit" id="submitBtn" >
+           <div class="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 pb-10">
+                <button type="submit" 
+                        id="submitBtn" 
+                        class="w-full md:w-48 py-3 rounded-lg font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-all active:scale-95 flex items-center justify-center">
+                    <span>Continue</span>
+                </button>
 
-                Skip & Continue
-            </button>
+                <button type="button" 
+                        onclick="skipBusinessInfo()" 
+                        id="skipBtn"
+                        class="w-full md:w-48 py-3 rounded-lg font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-all flex items-center justify-center">
+                    Skip for Now
+                </button>
+            </div>
         </form>
     </div>
 </div>
@@ -159,14 +168,103 @@
 @endsection
 
 @push('scripts')
+{{-- <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('vendorOnboardingForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const addressInput = document.getElementById('registered_address');
+        const addressCharCount = document.getElementById('addressCharCount');
+
+        // Validation Patterns
+        const patterns = {
+            gstin: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
+            pan: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+            ifsc: /^[A-Z]{4}0[A-Z0-9]{6}$/,
+            pincode: /^[1-9][0-9]{5}$/
+        };
+
+        function validateField(field) {
+            let isValid = true;
+            const errorDiv = field.parentElement.querySelector('.error-msg');
+            
+            // Reset state
+            field.classList.remove('border-red-500', 'border-green-500');
+            if(errorDiv) errorDiv.classList.add('hidden');
+
+            // Check required
+            // if (field.hasAttribute('required') && !field.value.trim()) {
+            //     isValid = false;
+            // }
+
+            // Pattern matching
+            if (isValid && field.value.trim()) {
+                if (field.id === 'gstin' && !patterns.gstin.test(field.value.toUpperCase())) isValid = false;
+                if (field.id === 'pan_number' && !patterns.pan.test(field.value.toUpperCase())) isValid = false;
+                if (field.id === 'ifsc_code' && !patterns.ifsc.test(field.value.toUpperCase())) isValid = false;
+                if (field.id === 'pincode' && !patterns.pincode.test(field.value)) isValid = false;
+            }
+
+            // File size check
+            if (field.type === 'file' && field.files[0]) {
+                if (field.files[0].size > 5 * 1024 * 1024) isValid = false;
+            }
+
+            // UI Feedback
+            if (!isValid && field.value.trim() !== "") {
+                field.classList.add('border-red-500');
+                if(errorDiv) errorDiv.classList.remove('hidden');
+            } else if (isValid && field.value.trim() !== "") {
+                field.classList.add('border-green-500');
+            }
+
+            return isValid;
+        }
+
+        function checkFormValidity() {
+            // const inputs = form.querySelectorAll('[required]');
+            let isFormValid = true;
+
+            // inputs.forEach(input => {
+            //     if (!validateField(input)) isFormValid = false;
+            // });
+
+            submitBtn.disabled = !isFormValid;
+            if (isFormValid) {
+                submitBtn.classList.remove('bg-gray-200', 'text-gray-500');
+                submitBtn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700');
+            } else {
+                submitBtn.classList.add('bg-gray-200', 'text-gray-500');
+                submitBtn.classList.remove('bg-green-600', 'text-white');
+            }
+        }
+
+        // Event Listeners
+        form.addEventListener('input', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+                checkFormValidity();
+            }
+        });
+
+        addressInput.addEventListener('input', function() {
+            const len = this.value.length;
+            addressCharCount.textContent = `${len}/64 Characters`;
+            addressCharCount.classList.toggle('text-red-500', len > 64);
+        });
+
+        form.addEventListener('submit', function(e) {
+            if (submitBtn.disabled) e.preventDefault();
+        });
+
+        
+    });
+</script> --}}
+@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('vendorOnboardingForm');
     const submitBtn = document.getElementById('submitBtn');
-    const addressInput = document.getElementById('registered_address');
-    const addressCharCount = document.getElementById('addressCharCount');
-
-    // Validation Patterns
+    const skipBtn = document.getElementById('skipBtn');
+    
     const patterns = {
         gstin: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
         pan: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
@@ -174,77 +272,114 @@ document.addEventListener('DOMContentLoaded', function() {
         pincode: /^[1-9][0-9]{5}$/
     };
 
-    function validateField(field) {
-        let isValid = true;
-        const errorDiv = field.parentElement.querySelector('.error-msg');
-        
-        // Reset state
-        field.classList.remove('border-red-500', 'border-green-500');
-        if(errorDiv) errorDiv.classList.add('hidden');
-
-        // Check required
-        // if (field.hasAttribute('required') && !field.value.trim()) {
-        //     isValid = false;
-        // }
-
-        // Pattern matching
-        if (isValid && field.value.trim()) {
-            if (field.id === 'gstin' && !patterns.gstin.test(field.value.toUpperCase())) isValid = false;
-            if (field.id === 'pan_number' && !patterns.pan.test(field.value.toUpperCase())) isValid = false;
-            if (field.id === 'ifsc_code' && !patterns.ifsc.test(field.value.toUpperCase())) isValid = false;
-            if (field.id === 'pincode' && !patterns.pincode.test(field.value)) isValid = false;
-        }
-
-        // File size check
-        if (field.type === 'file' && field.files[0]) {
-            if (field.files[0].size > 5 * 1024 * 1024) isValid = false;
-        }
-
-        // UI Feedback
-        if (!isValid && field.value.trim() !== "") {
-            field.classList.add('border-red-500');
-            if(errorDiv) errorDiv.classList.remove('hidden');
-        } else if (isValid && field.value.trim() !== "") {
-            field.classList.add('border-green-500');
-        }
-
-        return isValid;
-    }
-
-    function checkFormValidity() {
-        // const inputs = form.querySelectorAll('[required]');
-        let isFormValid = true;
-
-        // inputs.forEach(input => {
-        //     if (!validateField(input)) isFormValid = false;
-        // });
-
-        submitBtn.disabled = !isFormValid;
-        if (isFormValid) {
-            submitBtn.classList.remove('bg-gray-200', 'text-gray-500');
-            submitBtn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700');
-        } else {
-            submitBtn.classList.add('bg-gray-200', 'text-gray-500');
-            submitBtn.classList.remove('bg-green-600', 'text-white');
-        }
-    }
-
-    // Event Listeners
-    form.addEventListener('input', (e) => {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
-            checkFormValidity();
-        }
-    });
-
-    addressInput.addEventListener('input', function() {
-        const len = this.value.length;
-        addressCharCount.textContent = `${len}/64 Characters`;
-        addressCharCount.classList.toggle('text-red-500', len > 64);
-    });
-
     form.addEventListener('submit', function(e) {
-        if (submitBtn.disabled) e.preventDefault();
+        let isValid = true;
+        
+        // Define fields to validate
+        const requiredFields = [
+            { id: 'gstin', pattern: patterns.gstin },
+            { id: 'business_type' },
+            { id: 'business_name' },
+            { id: 'registered_address' },
+            { id: 'pincode', pattern: patterns.pincode },
+            { id: 'city' },
+            { id: 'state' },
+            { id: 'bank_name' },
+            { id: 'account_number' },
+            { id: 'ifsc_code', pattern: patterns.ifsc },
+            { id: 'account_holder_name' },
+            { id: 'pan_number', pattern: patterns.pan }
+        ];
+
+        requiredFields.forEach(field => {
+            const input = document.getElementById(field.id);
+            if (!input) return;
+
+            const errorMsg = input.parentElement.querySelector('.error-msg');
+            let fieldValid = true;
+
+            // 1. Check if empty
+            if (!input.value.trim()) {
+                fieldValid = false;
+            } 
+            // 2. Check pattern if provided
+            else if (field.pattern && !field.pattern.test(input.value.toUpperCase())) {
+                fieldValid = false;
+            }
+
+            // Apply UI Changes
+            if (!fieldValid) {
+                input.classList.add('border-red-500', 'bg-red-50');
+                if (errorMsg) errorMsg.classList.remove('hidden');
+                isValid = false;
+            } else {
+                input.classList.remove('border-red-500', 'bg-red-50');
+                input.classList.add('border-green-500');
+                if (errorMsg) errorMsg.classList.add('hidden');
+            }
+        });
+
+        // Handle File Upload Validation (PAN Card)
+        const panFile = document.getElementById('pan_card_document');
+        if (panFile && panFile.files.length === 0) {
+            panFile.classList.add('text-red-500');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            e.preventDefault(); // Stop form submission
+            // Scroll to the first error
+            const firstError = document.querySelector('.border-red-500');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        } else {
+            // Show loading state on button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> Processing...';
+        }
     });
+
+    // Optional: Clear error styling when user starts typing
+    form.querySelectorAll('input, select').forEach(element => {
+        element.addEventListener('input', function() {
+            this.classList.remove('border-red-500', 'bg-red-50');
+            const err = this.parentElement.querySelector('.error-msg');
+            if (err) err.classList.add('hidden');
+        });
+    });
+
+    /**
+     * LOGIC 2: SKIP (Bypass Validation)
+     */
+    window.skipBusinessInfo = function() {
+        if (!confirm('Are you sure you want to skip? You can provide these details later from your profile settings.')) return;
+
+        skipBtn.disabled = true;
+        skipBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> Skipping...';
+
+        fetch("{{ route('vendor.onboarding.skip-business-info') }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                throw new Error(data.message);
+            }
+        })
+        .catch(err => {
+            alert('Error: ' + err.message);
+            skipBtn.disabled = false;
+            skipBtn.innerText = 'Skip for Now';
+        });
+    };
 });
 </script>
 @endpush
