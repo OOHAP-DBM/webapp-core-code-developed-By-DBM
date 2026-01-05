@@ -2,7 +2,7 @@
 
 namespace Modules\Hoardings\Repositories;
 
-use Modules\Hoardings\Models\Hoarding;
+use App\Models\Hoarding;
 use Modules\Hoardings\Models\HoardingMedia;
 use Modules\Hoardings\Models\HoardingPackage;
 use Illuminate\Support\Str;
@@ -18,10 +18,10 @@ class HoardingListRepository
             ? round($width * $height * 10.7639, 2)
             : round($width * $height, 2);
 
-        return Hoarding::create([
+        $hoarding = Hoarding::create([
             'vendor_id'        => $vendor->id,
             'category'         => $data['category'],
-            'hoarding_type'    => $data['hoarding_type'],
+            // 'hoarding_type'    => $data['hoarding_type'],
             'width'            => $width,
             'height'           => $height,
             'measurement_unit' => $measurement_unit,
@@ -33,10 +33,20 @@ class HoardingListRepository
             'state'            => $data['state'] ?? null,
             'lat'              => $data['lat'] ?? null,
             'lng'              => $data['lng'] ?? null,
-            'price_per_slot'   => $data['price_per_slot'],
+            'base_monthly_price'   => $data['base_monthly_price'] ?? 0,
             'status'           => Hoarding::STATUS_DRAFT,
             'current_step'     => 1,
         ]);
+
+        // Also create OOHHoarding record
+        \Modules\Hoardings\Models\OOHHoarding::create([
+            'hoarding_id' => $hoarding->id,
+            'width' => $width,
+            'height' => $height,
+            'measurement_unit' => $measurement_unit,
+        ]);
+
+        return $hoarding;
     }
 
     public function storeMedia(int $hoardingId, array $mediaFiles): array
@@ -69,12 +79,12 @@ class HoardingListRepository
 
     public function storeBrandLogos($hoardingId, array $logoFiles): array
     {
-        $hoarding = \Modules\Hoardings\Models\Hoarding::findOrFail($hoardingId);
+        $hoarding = \App\Models\Hoarding::findOrFail($hoardingId);
         $saved = [];
         foreach ($logoFiles as $index => $file) {
             $uuid = \Illuminate\Support\Str::uuid()->toString();
             $ext  = strtolower($file->getClientOriginalExtension());
-            $directory = "hoardings/brand_logos/{$hoardingId}";
+            $directory = "oohHoardings/brand_logos/{$hoardingId}";
             $filename  = "{$uuid}.{$ext}";
             $path = $file->storeAs($directory, $filename, 'public');
             $saved[] = $hoarding->brandLogos()->create([
@@ -87,6 +97,13 @@ class HoardingListRepository
 
     public function updateStep3($hoarding, array $data)
     {
+        // Move survey_charge to parent hoarding if present
+        if (isset($data['survey_charge'])) {
+            $parent = $hoarding->hoarding;
+            $parent->survey_charge = $data['survey_charge'];
+            $parent->save();
+            unset($data['survey_charge']);
+        }
         $hoarding->fill($data);
         $hoarding->save();
         return $hoarding;

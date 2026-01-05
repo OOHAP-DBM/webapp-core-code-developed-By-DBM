@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\OnboardingController;
 use App\Http\Controllers\Web\Customer\ProfileController;
+use Modules\Search\Controllers\SearchController;
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -18,7 +19,7 @@ use App\Http\Controllers\Web\Customer\ProfileController;
 // PUBLIC ROUTES (Customer-facing)
 // ============================================
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
-Route::get('/search', [\App\Http\Controllers\Web\SearchController::class, 'index'])->name('search');
+Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
 Route::get('/hoardings/map', [\App\Http\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
 Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
@@ -53,24 +54,24 @@ Route::get('/api/map/autocomplete', [\App\Http\Controllers\MapSearchController::
 // ============================================
 Route::middleware('guest')->group(function () {
     // Login
-    Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login.submit');
-    Route::get('/login/mobile', [\App\Http\Controllers\Auth\LoginController::class,'showMobileLoginForm'])->name('login.mobile');
+    Route::get('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'login'])->name('login.submit');
+    Route::get('/login/mobile', [Modules\Auth\Http\Controllers\LoginController::class,'showMobileLoginForm'])->name('login.mobile');
     // Registration - Role Selection First
-    Route::get('/register', [\App\Http\Controllers\Auth\RegisterController::class, 'showRoleSelection'])->name('register.role-selection');
-    Route::post('/register/role', [\App\Http\Controllers\Auth\RegisterController::class, 'storeRoleSelection'])->name('register.store-role');
+    Route::get('/register', [Modules\Auth\Http\Controllers\RegisterController::class, 'showRoleSelection'])->name('register.role-selection');
+    Route::post('/register/role', [Modules\Auth\Http\Controllers\RegisterController::class, 'storeRoleSelection'])->name('register.store-role');
     
     // Registration - Form (after role selection)
-    Route::get('/register/form', [\App\Http\Controllers\Auth\RegisterController::class, 'showRegistrationForm'])->name('register.form');
-    Route::post('/register/submit', [\App\Http\Controllers\Auth\RegisterController::class, 'register'])->name('register.submit');
+    Route::get('/register/form', [Modules\Auth\Http\Controllers\RegisterController::class, 'showRegistrationForm'])->name('register.form');
+    Route::post('/register/submit', [Modules\Auth\Http\Controllers\RegisterController::class, 'register'])->name('register.submit');
 
     // Registration OTP routes
-    Route::get('/register/mobile', [\App\Http\Controllers\Auth\RegisterController::class, 'showMobileForm'])->name('register.mobile-form');
+    Route::get('/register/mobile', [Modules\Auth\Http\Controllers\RegisterController::class, 'showMobileForm'])->name('register.mobile-form');
 
-    Route::post('/register/send-email-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'sendEmailOtp'])->name('register.sendEmailOtp');
-    Route::post('/register/verify-email-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'verifyEmailOtp'])->name('register.verifyEmailOtp');
-    Route::post('/register/send-phone-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'sendPhoneOtp'])->name('register.sendPhoneOtp');
-    Route::post('/register/verify-phone-otp', [\App\Http\Controllers\Auth\RegisterController::class, 'verifyPhoneOtp'])->name('register.verifyPhoneOtp');
+    Route::post('/register/send-email-otp', [Modules\Auth\Http\Controllers\RegisterController::class, 'sendEmailOtp'])->name('register.sendEmailOtp');
+    Route::post('/register/verify-email-otp', [Modules\Auth\Http\Controllers\RegisterController::class, 'verifyEmailOtp'])->name('register.verifyEmailOtp');
+    Route::post('/register/send-phone-otp', [Modules\Auth\Http\Controllers\RegisterController::class, 'sendPhoneOtp'])->name('register.sendPhoneOtp');
+    Route::post('/register/verify-phone-otp', [Modules\Auth\Http\Controllers\RegisterController::class, 'verifyPhoneOtp'])->name('register.verifyPhoneOtp');
     
     // OTP Login (Optional - Future)
     // Route::get('/login/otp', [\App\Http\Controllers\Web\Auth\OTPController::class, 'showOTPForm'])->name('login.otp');
@@ -81,7 +82,7 @@ Route::middleware('guest')->group(function () {
     // Route::get('/forgot-password', [...])->name('password.request');
 });
 
-Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout')->middleware('auth');
+Route::post('/logout', [Modules\Auth\Http\Controllers\LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 // ============================================
 // VENDOR ONBOARDING (PROMPT 112)
@@ -91,7 +92,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor/onboarding')->name('v
     Route::post('/send-email', [OnboardingController::class, 'sendEmailOtp'])->name('send-email');
     Route::post('/verify-email', [OnboardingController::class, 'verifyEmailOtp'])->name('verify-email');
     Route::post('/send-phone', [OnboardingController::class, 'sendPhoneOtp'])->name('send-phone');
-    Route::post('/verify-phone', [OnboardingController::class, 'verifyPhoneOtp'])->name('verify-phone');
+    Route::post('/verify-phone', [OnboardingController::class, 'verifyOtp'])->name('verify-phone');
     // Step 1: Contact Details
     Route::get('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showContactDetails'])->name('contact-details');
     Route::post('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeContactDetails'])->name('contact-details.store');
@@ -505,11 +506,21 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/vendor/kyc-reviews/{id}', [\Modules\Admin\Controllers\Web\AdminKYCReviewController::class, 'show'])->name('kyc-reviews.show');
     
     // Hoardings Management
+    Route::get('/vendor-hoardings',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'index'])->name('vendor-hoardings.index');
+    // status toggle
+    Route::post('/vendor-hoardings/{id}/toggle-status',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'toggleStatus'])->name('vendor-hoardings.toggle-status');
+    // save commission
+    Route::post('/vendor-hoardings/{id}/set-commission',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'setCommission'])->name('vendor-hoardings.set-commission');
     Route::get('/hoardings', [\Modules\Admin\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
     Route::get('/hoardings/{id}', [\Modules\Admin\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
     Route::post('/hoardings/{id}/approve', [\Modules\Admin\Controllers\Web\HoardingController::class, 'approve'])->name('hoardings.approve');
     Route::post('/hoardings/{id}/reject', [\Modules\Admin\Controllers\Web\HoardingController::class, 'reject'])->name('hoardings.reject');
-    
+
+    // ===================== ADMIN CATEGORY CRUD =====================
+   
+    Route::get('/hoarding-attributes', [\Modules\Hoardings\Controllers\Admin\HoardingAttributeController::class, 'index'])->name('hoarding-attributes.index');
+    Route::post('/hoarding-attributes', [\Modules\Hoardings\Controllers\Admin\HoardingAttributeController::class, 'store'])->name('hoarding-attributes.store');
+    Route::delete('/hoarding-attributes/{id}', [\Modules\Hoardings\Controllers\Admin\HoardingAttributeController::class, 'destroy'])->name('hoarding-attributes.destroy');
     // Bookings Management
     Route::get('/bookings', [\Modules\Admin\Controllers\Web\BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{id}', [\Modules\Admin\Controllers\Web\BookingController::class, 'show'])->name('bookings.show');

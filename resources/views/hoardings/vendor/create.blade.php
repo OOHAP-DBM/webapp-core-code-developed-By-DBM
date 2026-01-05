@@ -52,8 +52,12 @@
             </div>
 
             <form action="{{ route('vendor.hoarding.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+
                 @csrf
                 <input type="hidden" name="step" value="{{ $step }}">
+                @if($step > 1 && $draft)
+                    <input type="hidden" name="ooh_id" value="{{ $draft->id }}">
+                @endif
 
                 @if($step == 1)
                     @include('hoardings.vendor.partials.step1', ['draft' => $draft])

@@ -180,9 +180,9 @@
                                     <td>{{ $hoarding->width }}x{{ $hoarding->height }}m</td>
                                     <td>₹{{ number_format($hoarding->price_per_month, 0) }}</td>
                                     <td>
-                                        @if($hoarding->approval_status === 'pending')
+                                        @if($hoarding->status === 'pending')
                                         <span class="badge bg-warning">Pending</span>
-                                        @elseif($hoarding->approval_status === 'under_verification')
+                                        @elseif($hoarding->status === 'under_verification')
                                         <span class="badge bg-info">Verifying</span>
                                         @endif
                                     </td>

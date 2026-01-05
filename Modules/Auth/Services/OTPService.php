@@ -6,6 +6,7 @@ use App\Models\User;
 use Modules\Users\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Auth;
 
 class OTPService
 {
@@ -212,4 +213,53 @@ class OTPService
 
         return $this->generateAndSendOTP($identifier);
     }
+
+
+    public function verifyOTPForLoggedInUser(string $identifier, string $otp): array
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return ['success' => false, 'message' => 'Unauthorized'];
+        }
+
+        if (!$user->isOTPValid($otp)) {
+            return ['success' => false, 'message' => 'Invalid or expired OTP'];
+        }
+
+        // Save identifier
+        if ($this->isPhoneNumber($identifier)) {
+            // Prevent overwrite
+            if ($user->phone && $user->phone !== $identifier) {
+                return ['success' => false, 'message' => 'Phone already set'];
+            }
+
+            $user->phone = $identifier;
+            $user->phone_verified_at = now();
+        } else {
+            if ($user->email && $user->email !== $identifier) {
+                return ['success' => false, 'message' => 'Email already set'];
+            }
+
+            $user->email = $identifier;
+            $user->email_verified_at = now();
+        }
+
+        $user->clearOTP();
+
+        if ($user->status === 'pending_verification') {
+            $user->status = 'active';
+        }
+
+        $user->last_login_at = now();
+        $user->save();
+
+        return [
+            'success' => true,
+            'message' => 'Verified successfully',
+            'user' => $user->fresh(),
+        ];
+    }
+
+    
 }

@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\Auth;
 use Modules\DOOH\Models\DOOHScreen;
 use Modules\DOOH\Services\DOOHPackageBookingService;
 
+
 use Illuminate\Http\RedirectResponse;
+use App\Models\Hoarding;
 
 class DOOHController extends Controller
 {
@@ -38,10 +40,18 @@ class DOOHController extends Controller
         $step = max(1, min(3, $step));
 
         // Find or create draft for this vendor
-        $draft = DOOHScreen::where('vendor_id', $vendor->id)
-            ->where('status', DOOHScreen::STATUS_DRAFT)
+        // $draft = DOOHScreen::where('vendor_id', $vendor->id)
+        //     ->where('status', DOOHScreen::STATUS_DRAFT)
+        //     ->orderByDesc('updated_at')
+        //     ->first();
+        $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+            $q->where('vendor_id', $vendor->id)
+                ->where('status', 'draft'); // ✅ STATUS BELONGS HERE
+        })
             ->orderByDesc('updated_at')
             ->first();
+
+
 
         // If draft exists and current_step is set, resume from there
         if ($draft && $draft->current_step && $step < $draft->current_step) {
@@ -50,17 +60,38 @@ class DOOHController extends Controller
         }
 
         // If no draft, create a new one on step 1
+        // if (!$draft && $step === 1) {
+        //     $draft = new DOOHScreen();
+        //     $draft->vendor_id = $vendor->id;
+        //     $draft->status = DOOHScreen::STATUS_DRAFT;
+        //     $draft->current_step = 1;
+        //     $draft->save();
+        // }
         if (!$draft && $step === 1) {
-            $draft = new DOOHScreen();
-            $draft->vendor_id = $vendor->id;
-            $draft->status = DOOHScreen::STATUS_DRAFT;
-            $draft->current_step = 1;
-            $draft->save();
+
+            $hoarding = \App\Models\Hoarding::create([
+                'vendor_id' => $vendor->id,
+                'hoarding_type' => 'dooh',
+                'status' => 'draft',
+                'approval_status' => 'pending',
+                'current_step' => 1,
+            ]);
+
+            $draft = DOOHScreen::create([
+                'hoarding_id' => $hoarding->id,
+                // 'status' => DOOHScreen::STATUS_DRAFT,
+              
+            ]);
         }
+
+
+        // Fetch attributes for form dropdowns (categories, etc.)
+        $attributes = \App\Models\HoardingAttribute::groupedByType();
 
         return view('dooh.vendor.create', [
             'step' => $step,
             'draft' => $draft,
+            'attributes' => $attributes,
         ]);
     }
 
@@ -83,10 +114,13 @@ class DOOHController extends Controller
         }
 
         if ($step === 2) {
-            $draft = DOOHScreen::where('vendor_id', $vendor->id)
-                ->where('status', DOOHScreen::STATUS_DRAFT)
+            $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+                $q->where('vendor_id', $vendor->id)
+                    ->where('status', 'draft'); // use the hoarding's status
+            })
                 ->orderByDesc('updated_at')
                 ->first();
+
             if (!$draft) {
                 return back()->withErrors(['step2' => 'Draft not found.'])->withInput();
             }
@@ -121,18 +155,24 @@ class DOOHController extends Controller
         }
 
         if ($step === 3) {
-            $draft = DOOHScreen::where('vendor_id', $vendor->id)
-                ->where('status', DOOHScreen::STATUS_DRAFT)
+            $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+                $q->where('vendor_id', $vendor->id)
+                    ->where('status', DOOHScreen::STATUS_DRAFT); // status check on parent
+            })
                 ->orderByDesc('updated_at')
                 ->first();
+
+
             if (!$draft) {
                 return back()->withErrors(['step3' => 'Draft not found.'])->withInput();
             }
 
             // Handle skip
+
             if ($request->input('skip_step3')) {
                 $draft->current_step = 4; // or mark as completed/ready for approval
-                $draft->status = DOOHScreen::STATUS_PENDING_APPROVAL;
+                $draft->hoarding->status = Hoarding::STATUS_PENDING_APPROVAL;
+                $draft->hoarding->save();
                 $draft->save();
                 return redirect()->route('vendor.dooh.create', ['step' => 3])
                     ->with('success', 'Step 3 skipped. Listing submitted for approval.');
@@ -140,8 +180,8 @@ class DOOHController extends Controller
 
             $result = $service->storeStep3($draft, $request->all());
             if ($result['success']) {
-                $draft->status = DOOHScreen::STATUS_PENDING_APPROVAL;
-                $draft->current_step = 3; // Mark as finished
+                $draft->hoarding->status = Hoarding::STATUS_PENDING_APPROVAL;
+                $draft->hoarding->current_step = 3; // Mark as finished
                 $draft->save();
 
                 return redirect()->route('vendor.dooh.create', ['step' => 3])

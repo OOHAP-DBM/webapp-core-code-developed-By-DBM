@@ -26,7 +26,7 @@
     </div>
 </div>
 
-<div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+{{-- <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
     <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-3">
             <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
@@ -72,7 +72,7 @@
             </div>
         @endforeach
     </div>
-</div>
+</div> --}}
 
 <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
     <div class="flex items-center gap-3 mb-4">

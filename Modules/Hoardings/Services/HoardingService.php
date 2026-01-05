@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Modules\DOOH\Models\DOOHScreen;
 use Illuminate\Support\Facades\Request;
 use \Module\Hoardings\Models\HoardingBrandLogo;
+use Modules\Hoardings\Models\HoardingMedia;
 
 class HoardingService
 {
@@ -70,7 +71,7 @@ class HoardingService
         return DOOHScreen::create([
             'vendor_id'        => $vendor->id,
             'category'         => $data['category'],
-            'screen_type'      => $data['screen_type'],
+            // 'screen_type'      => $data['screen_type'],
             'width'            => $width,
             'height'           => $height,
             'measurement_unit' => $measurement_unit,
@@ -200,7 +201,7 @@ class HoardingService
         \Log::info('Package Data Received:', $data);
         // 1. Clear existing packages if you want a fresh sync, 
         // or use IDs to update specific ones. Usually, for this UI, fresh sync is easier.
-        DOOHPackage::where('dooh_screen_id', $screenId)->delete();
+        HoardingPackage::where('dooh_screen_id', $screenId)->delete();
 
         if (isset($data['offer_name']) && is_array($data['offer_name'])) {
             foreach ($data['offer_name'] as $index => $name) {

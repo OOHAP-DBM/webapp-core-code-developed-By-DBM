@@ -224,7 +224,7 @@ class HoardingApprovalService
                 $version = $this->createVersion($hoarding, 'edit', $changedFields);
                 
                 // Update status to pending if it was previously approved
-                if ($hoarding->approval_status === 'approved') {
+                if ($hoarding->status === 'approved') {
                     $hoarding->update([
                         'approval_status' => 'pending',
                         'submitted_at' => now(),

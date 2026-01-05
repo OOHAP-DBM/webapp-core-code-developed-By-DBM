@@ -10,7 +10,7 @@ return new class extends Migration
         Schema::create('hoarding_packages', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('hoarding_id');
-            $table->string('package_code', 50)->unique();
+            $table->string('package_code', 50)->unique()->nullable();
             $table->string('package_name');
             $table->decimal('discount_percent', 5, 2); // max 100
             // Ownership
@@ -26,6 +26,7 @@ return new class extends Migration
             // Validity
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
+            $table->json('services_included')->nullable();
 
             // Status
             $table->boolean('is_active')->default(true);

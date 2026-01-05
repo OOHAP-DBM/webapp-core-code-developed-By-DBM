@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace Modules\Auth\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
@@ -107,6 +107,22 @@ class RegisterController extends Controller
 
             // Assign role
             $user->assignRole($role);
+
+            // Send welcome email (queued - better performance)
+            try {
+                if (!empty($user->email)) {
+                    Mail::to($user->email)->send(
+                        $role === 'vendor'
+                            ? new \Modules\Mail\VendorWelcomeMail($user)
+                            : new \Modules\Mail\CustomerWelcomeMail($user)
+                    );
+                }
+            } catch (\Throwable $e) {
+                \Log::error('Welcome mail failed', [
+                    'email' => $user->email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             // Handle vendor-specific setup
             if ($role === 'vendor') {

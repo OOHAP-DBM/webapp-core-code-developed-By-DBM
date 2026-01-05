@@ -88,21 +88,35 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
             @foreach([
-                ['Total Earnings','₹ '.number_format($stats['earnings']),'blue'],
-                ['Total Hoardings',$stats['total_hoardings'],'green'],
-                ['OOH Hoardings',$stats['ooh'],'gray'],
-                ['DOOH Hoardings',$stats['dooh'],'pink'],
-                ['Active Hoardings',$stats['active'],'green'],
-                ['Inactive Hoardings',$stats['inactive'],'gray'],
-                ['Unsold Hoardings',$stats['unsold'],'gray'],
-                ['Total Bookings',$stats['total_bookings'],'blue'],
-                ['My Orders',$stats['my_orders'],'purple'],
-                ['POS Bookings',$stats['pos'],'blue'],
-            ] as [$label,$value,$color])
+                ['Total Earnings','₹ '.number_format($stats['earnings']),'earnings'],
+                ['Total Hoardings',$stats['total_hoardings'],'hoardings'],
+                ['OOH Hoardings',$stats['ooh'],'ooh'],
+                ['DOOH Hoardings',$stats['dooh'],'dooh'],
+                ['Active Hoardings',$stats['active'],'active'],
+                ['Inactive Hoardings',$stats['inactive'],'inactive'],
+                ['Unsold Hoardings',$stats['unsold'],'unsold'],
+                ['Total Bookings',$stats['total_bookings'],'bookings'],
+                ['My Orders',$stats['my_orders'],'orders'],
+                ['POS Bookings',$stats['pos'],'pos'],
+            ] as [$label,$value,$key])
+            @php
+                $statColors = [
+                    'earnings'  => 'bg-blue-500',
+                    'hoardings' => 'bg-green-500',
+                    'ooh'       => 'bg-gray-500',
+                    'dooh'      => 'bg-pink-500',
+                    'active'    => 'bg-green-500',
+                    'inactive'  => 'bg-gray-500',
+                    'unsold'    => 'bg-gray-500',
+                    'bookings'  => 'bg-blue-500',
+                    'orders'    => 'bg-purple-500',
+                    'pos'       => 'bg-blue-500',
+                ];
+            @endphp
             <div class="bg-gray-50 rounded-xl p-4 relative">
                 <p class="text-xs text-gray-500">{{ $label }}</p>
                 <p class="text-2xl font-semibold mt-1">{{ $value }}</p>
-                <span class="absolute rounded-b-full bottom-0 left-0 w-full h-1 bg-{{ $color }}-500"></span>
+                <span class="absolute rounded-b-full bottom-0 left-0 w-full h-1 {{ $statColors[$key] ?? 'bg-gray-300' }}"></span>
             </div>
             @endforeach
         </div>

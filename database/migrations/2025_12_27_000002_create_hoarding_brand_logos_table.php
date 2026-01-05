@@ -8,14 +8,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('hoarding_brand_logos', function (Blueprint $table) {
-            $table->id();
-            $table->string('brand_name'); // e.g., 'Pepsi'
-            $table->unsignedBigInteger('brandable_id');
-            $table->string('brandable_type');
-            $table->string('file_path'); // Path to the logo image
+            $table->unsignedBigInteger('hoarding_id');
+            $table->string('brand_name')->nullable();
+
+            $table->string('file_path');
             $table->integer('sort_order')->default(0);
+
             $table->timestamps();
-            $table->index(['brandable_id', 'brandable_type']);
+
+            $table->foreign('hoarding_id')
+                ->references('id')
+                ->on('hoardings')
+                ->onDelete('cascade');
         });
     }
 

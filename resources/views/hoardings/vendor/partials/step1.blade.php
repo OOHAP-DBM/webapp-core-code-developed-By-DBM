@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <div class="space-y-6">
 
   <!-- Hoarding Details -->
@@ -21,8 +22,12 @@
         <label class="text-sm font-bold text-gray-700">Category <span class="text-red-500">*</span></label>
         <select name="category" required
           class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%226b7280%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:20px] bg-[right_1rem_center] bg-no-repeat">
-          <option value="Unipole">Unipole</option>
-          <option value="Billboard">Billboard</option>
+          <option value="">Select Category</option>
+          @if(isset($attributes['category']))
+            @foreach($attributes['category'] as $cat)
+              <option value="{{ $cat->value }}">{{ $cat->value }}</option>
+            @endforeach
+          @endif
         </select>
       </div>
 
@@ -39,12 +44,12 @@
 
     <!-- Screen Size -->
     <div class="mt-8">
-      <label class="text-sm font-bold text-gray-700 mb-4 block">Hoarding Size</label>
+      <label class="text-sm font-bold text-gray-700 mb-1 block">Hoarding Size</label>
       <div class="grid grid-cols-4 gap-4 items-end">
         <!-- Unit -->
         <div class="space-y-1">
-          <label class="text-xs font-bold text-gray-500">Unit</label>
-          <select id="unit" name="measurement_unit" required class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none">
+          <label class="text-xs font-bold text-gray-500 ">Unit</label>
+          <select id="unit" name="measurement_unit" required class="w-full bg-white border border-gray-200 rounded-lg px-3 py-3 outline-none">
             <option value="sqft">Sqft</option>
             <option value="sqm">Sqm</option>
           </select>
@@ -110,18 +115,21 @@
     </div>
 
     <div class="mt-8 space-y-4">
-      <div class="flex items-center justify-between">
-        <label class="text-sm font-bold text-gray-700">Nearby Landmarks</label>
-        <button type="button" class="bg-[#1A1A1A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-all">
-          + Add another landmark
-        </button>
-      </div>
-      <div class="space-y-3">
-        <input type="text" placeholder="Opposite Ram Dharam Kanta" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+          <!-- Nearby Landmarks -->
+      <div class="mt-8 space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-bold text-gray-700">Nearby Landmarks</label>
+          <button type="button" id="addLandmarkBtn" class="bg-[#1A1A1A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-all">
+            + Add another landmark
+          </button>
+        </div>
+        <div class="space-y-3" id="landmarksContainer">
+          <input type="text" name="landmarks[]" placeholder="Opposite Ram Dharam Kanta" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+        </div>
       </div>
     </div>
 
-    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-[#FBFBFB] rounded-2xl border border-gray-50">
+    {{-- <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-[#FBFBFB] rounded-2xl border border-gray-50">
       <div class="space-y-2">
         <label class="text-sm font-bold text-gray-700 flex items-center">
           Geotag <span class="ml-2 w-4 h-4 bg-[#009A5C] rounded flex items-center justify-center text-[10px] text-white">✓</span>
@@ -136,39 +144,76 @@
         <label class="text-sm font-bold text-gray-700">Longitude</label>
         <input type="text" name="lng" placeholder="80.94577..." class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none bg-white">
       </div>
+    </div> --}}
+    <!-- Geotag, Lat, Lng Section (replace your current section with this) -->
+  <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-[#FBFBFB] rounded-2xl border border-gray-50">
+    <div class="space-y-2">
+      <label class="text-sm font-bold text-gray-700 flex items-center">
+        Geotag <span class="ml-2 w-4 h-4 bg-[#009A5C] rounded flex items-center justify-center text-[10px] text-white">✓</span>
+      </label>
+      <input type="url" name="geotag" id="geotag" value="http://geotag.oohapp.com" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none">
+      <div id="location-error" class="text-xs text-red-500 mt-1 hidden"></div>
     </div>
+    <div class="space-y-2">
+      <label class="text-sm font-bold text-gray-700">Latitude</label>
+      <input type="text" name="lat" id="lat" placeholder="26.84457..." class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none bg-white">
+    </div>
+    <div class="space-y-2">
+      <label class="text-sm font-bold text-gray-700">Longitude</label>
+      <input type="text" name="lng" id="lng" placeholder="80.94577..." class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none bg-white">
+    </div>
+  </div>
   </div>
     <!-- Pricing Details -->
     <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-        <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
-        <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-        Pricing<span class="text-red-500 ml-1">*</span>
-        </h3>
+      <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
+      <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+      Pricing<span class="text-red-500 ml-1">*</span>
+      </h3>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <!-- Price Per Slot -->
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700">
-                    Price Per Slot (₹) <span class="text-red-500">*</span>
-                </label>
-                <input
-                    type="number"
-                    name="price_per_slot"
-                    min="1"
-                    step="0.01"
-                    required
-                    placeholder="e.g. 50"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all"
-                />
-                <p class="text-xs text-gray-400">
-                    Cost per 10-second slot (recommended for DOOH)
-                </p>
-            </div>
+          <!-- Monthly Base Price -->
+          <div class="space-y-2">
+              <label class="text-sm font-bold text-gray-700">
+                  Monthly Base Price (₹) <span class="text-red-500">*</span>
+              </label>
+              <input
+                  type="number"
+                  name="monthly_base_price"
+                  min="1"
+                  step="0.01"
+                  required
+                  placeholder="e.g. 50,000"
+                  class="w-full border border-gray-200 rounded-xl px-4 py-3
+                        focus:border-[#009A5C] outline-none transition-all"
+              />
+              <p class="text-xs text-gray-400">
+                  Standard monthly hoarding price (before discount)
+              </p>
+          </div>
 
-        
+          <!-- Monthly Offer Price -->
+          <div class="space-y-2">
+              <label class="text-sm font-bold text-gray-700">
+                  Monthly Offer Price (₹)
+              </label>
+              <input
+                  type="number"
+                  name="monthly_offer_price"
+                  min="1"
+                  step="0.01"
+                  placeholder="e.g. 42,000"
+                  class="w-full border border-gray-200 rounded-xl px-4 py-3
+                        focus:border-[#009A5C] outline-none transition-all"
+              />
+              <p class="text-xs text-gray-400">
+                  Discounted price (optional)
+              </p>
+          </div>
 
-        </div>
+      </div>
+
     </div>
 
   <!-- Upload Hoarding Media -->
@@ -310,5 +355,17 @@ document.querySelector('form').addEventListener('submit', function(e) {
     }
     mediaInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
+});
+// Landmark dynamic addition
+const addLandmarkBtn = document.getElementById('addLandmarkBtn');
+const landmarksContainer = document.getElementById('landmarksContainer');
+
+addLandmarkBtn.addEventListener('click', function() {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.name = 'landmarks[]';
+  input.placeholder = 'Enter landmark';
+  input.className = 'w-full border border-gray-200 rounded-xl px-4 py-3 outline-none mt-2';
+  landmarksContainer.appendChild(input);
 });
 </script>

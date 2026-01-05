@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Hoardings\Controllers\Vendor;
 
 use Illuminate\Http\Request;
@@ -6,10 +7,6 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use App\Models\Hoarding;
-use Illuminate\View\View;
 
 /**
  * Vendor HoardingController
@@ -66,9 +63,6 @@ class HoardingController extends Controller
         // Invalid type: redirect back
         return Redirect::back()->with('error', 'Please select a valid hoarding type.');
     }
-
-
-
     public function index(Request $request)
     {
         $vendor = Auth::user();
@@ -170,90 +164,6 @@ class HoardingController extends Controller
     //         ->route('hoardings.vendor.listings.index')
     //         ->with('success', 'Listing created successfully! It will be reviewed by admin.');
     // }
-
-    public function store(Request $request, \Modules\DOOH\Services\DOOHScreenService $service)
-    {
-        $vendor = Auth::user();
-        $step = (int) $request->input('step', 1);
-        $step = max(1, min(3, $step));
-
-        if ($step === 1) {
-            $result = $service->storeStep1($vendor, $request->all(), $request->file('media', []));
-            if ($result['success']) {
-                return redirect()->route('hoardings.vendor.create', ['step' => 2])
-                    ->with('success', 'Step 1 completed. Proceed to next step.');
-            }
-            return back()->withErrors($result['errors'])->withInput();
-        }
-
-        if ($step === 2) {
-            $draft = Hoarding::where('vendor_id', $vendor->id)
-                ->where('status', Hoarding::STATUS_DRAFT)
-                ->orderByDesc('updated_at')
-                ->first();
-            if (!$draft) {
-                return back()->withErrors(['step2' => 'Draft not found.'])->withInput();
-            }
-
-            // Handle skip
-            if ($request->input('skip_step2')) {
-                $draft->current_step = 3;
-                $draft->save();
-                return redirect()->route('vendor.dooh.create', ['step' => 3])
-                    ->with('success', 'Step 2 skipped. Proceed to next step.');
-            }
-
-            // Collect all step 2 fields from request
-            $data = [
-                'nagar_nigam_approved' => $request->input('nagar_nigam_approved'),
-                'block_dates' => $request->input('block_dates'),
-                'grace_period' => $request->input('grace_period'),
-                'audience_types' => $request->input('audience_type'),
-                'visible_from' => $request->input('visible_from'),
-                'located_at' => $request->input('located_at'),
-                'hoarding_visibility' => $request->input('hoarding_visibility'),
-                'visibility_details' => $request->input('visibility_details'),
-            ];
-            $brandLogoFiles = $request->file('brand_logos', []);
-
-            $result = $service->storeStep2($draft, $data, $brandLogoFiles);
-            if ($result['success']) {
-                return redirect()->route('hoardings.vendor.create', ['step' => 3])
-                    ->with('success', 'Step 2 completed. Proceed to next step.');
-            }
-            return back()->withErrors($result['errors'])->withInput();
-        }
-
-        if ($step === 3) {
-            $draft = Hoarding::where('vendor_id', $vendor->id)
-                ->where('status', Hoarding::STATUS_DRAFT)
-                ->orderByDesc('updated_at')
-                ->first();
-            if (!$draft) {
-                return back()->withErrors(['step3' => 'Draft not found.'])->withInput();
-            }
-
-            // Handle skip
-            if ($request->input('skip_step3')) {
-                $draft->current_step = 4; // or mark as completed/ready for approval
-                $draft->status = Hoarding::STATUS_PENDING_APPROVAL;
-                $draft->save();
-                return redirect()->route('hoardings.vendor.create', ['step' => 3])
-                    ->with('success', 'Step 3 skipped. Listing submitted for approval.');
-            }
-
-            $result = $service->storeStep3($draft, $request->all());
-            if ($result['success']) {
-                $draft->status = Hoarding::STATUS_PENDING_APPROVAL;
-                $draft->current_step = 3; // Mark as finished
-                $draft->save();
-
-                return redirect()->route('hoardings.vendor.create', ['step' => 3])
-                    ->with('success', 'All steps completed. Listing submitted for approval.');
-            }
-            return back()->withErrors($result['errors'])->withInput();
-        }
-    }
 
     public function edit($id)
     {
@@ -402,150 +312,6 @@ class HoardingController extends Controller
             ->route('hoardings.vendor.index')
             ->with('success', 'Listings updated successfully!');
     }
-
-    /**
-     * Multi-step OOH Hoarding creation wizard (step 1-3)
-     */
-    public function create(Request $request): View
-    {
-        $vendor = Auth::user();
-        // if (!$vendor->vendor_profile || $vendor->vendor_profile->onboarding_status !== 'approved') {
-        //     return redirect()->route('vendor.onboarding.waiting')
-        //         ->with('error', 'Your vendor onboarding is under review. You can add DOOH screens only after approval.');
-        // }
-
-        $step = (int) $request->query('step', 1);
-        $step = max(1, min(3, $step));
-
-        // Find or create draft for this vendor
-        $draft = Hoarding::where('vendor_id', $vendor->id)
-            ->where('status', Hoarding::STATUS_DRAFT)
-            ->orderByDesc('updated_at')
-            ->first();
-
-        // If draft exists and current_step is set, resume from there
-        if ($draft && $draft->current_step && $step < $draft->current_step) {
-            // Always resume from last incomplete step
-            $step = $draft->current_step;
-        }
-
-        // If no draft, create a new one on step 1
-        if (!$draft && $step === 1) {
-            $draft = new Hoarding();
-            $draft->vendor_id = $vendor->id;
-            $draft->status = Hoarding::STATUS_DRAFT;
-            $draft->current_step = 1;
-            $draft->save();
-        }
-
-        return view('hoardings.vendor.create', [
-            'step' => $step,
-            'draft' => $draft,
-            'sidebarActive' => 'add-hoardings',
-        ]);
-    }
-
-    /**
-     * Save current OOH step as draft and move to next step
-     */
-    public function storeMultiStep(Request $request)
-    {
-        $vendor = Auth::user();
-        $step = (int) $request->input('step', 1);
-        $step = max(1, min(3, $step));
-
-        $draft = $vendor->hoardings()
-            ->where('status', 'draft')
-            ->orderByDesc('updated_at')
-            ->first();
-        if (!$draft) {
-            return back()->withErrors(['step' => 'Draft not found.'])->withInput();
-        }
-
-        // Step 1: Hoarding Details
-        if ($step === 1) {
-            $data = $request->only([
-                'title',
-                'description',
-                'type',
-                'orientation',
-                'address',
-                'city',
-                'state',
-                'pincode',
-                'width',
-                'height',
-                'illumination',
-                'resolution',
-            ]);
-            $draft->fill($data);
-            $draft->current_step = 2;
-            $draft->save();
-            return redirect()->route('vendor.hoardings.create-multistep', ['step' => 2])
-                ->with('success', 'Step 1 completed. Proceed to next step.');
-        }
-
-        // Step 2: Location & Media
-        if ($step === 2) {
-            // Handle skip
-            if ($request->input('skip_step2')) {
-                $draft->current_step = 3;
-                $draft->save();
-                return redirect()->route('vendor.hoardings.create-multistep', ['step' => 3])
-                    ->with('success', 'Step 2 skipped. Proceed to next step.');
-            }
-            $data = $request->only([
-                'latitude',
-                'longitude',
-                'landmark',
-            ]);
-            $draft->fill($data);
-            // Handle primary image upload
-            if ($request->hasFile('primary_image')) {
-                $draft->primary_image = $request->file('primary_image')->store('hoardings', 'public');
-            }
-            $draft->current_step = 3;
-            $draft->save();
-            // Handle gallery images
-            if ($request->hasFile('gallery_images')) {
-                foreach ($request->file('gallery_images') as $image) {
-                    $path = $image->store('hoardings', 'public');
-                    $draft->galleryImages()->create(['image_path' => $path]);
-                }
-            }
-            return redirect()->route('vendor.hoardings.create-multistep', ['step' => 3])
-                ->with('success', 'Step 2 completed. Proceed to next step.');
-        }
-
-        // Step 3: Pricing, Services, Campaigns
-        if ($step === 3) {
-            // Handle skip
-            if ($request->input('skip_step3')) {
-                $draft->current_step = 4;
-                $draft->status = 'pending';
-                $draft->save();
-                return redirect()->route('hoardings.vendor.listings.index')
-                    ->with('success', 'Step 3 skipped. Listing submitted for approval.');
-            }
-            $data = $request->only([
-                'price_per_month',
-                'price_per_slot',
-                'printing_cost',
-                'installation_cost',
-                'maintenance_cost',
-                'available_from',
-                'minimum_booking_days',
-                'is_featured',
-                'traffic_type',
-                'audience_type',
-            ]);
-            $draft->fill($data);
-            $draft->current_step = 4;
-            $draft->status = 'pending';
-            $draft->save();
-            // TODO: Handle campaign packages/services if needed
-            return redirect()->route('hoardings.vendor.listings.index')
-                ->with('success', 'All steps completed. Listing submitted for approval.');
-        }
-    }
 }
+
+            

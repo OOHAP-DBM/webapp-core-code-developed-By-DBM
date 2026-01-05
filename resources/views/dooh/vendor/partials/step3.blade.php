@@ -299,17 +299,33 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- 5. Graphics Logic ---
+    // --- 5. Graphics Logic (Fixed: No = Enable Price, Yes = Disable Price) ---
     const graphicsRadios = document.querySelectorAll('input[name="graphics_included"]');
     const graphicsPriceDiv = document.getElementById('graphics-price-container');
     const graphicsInput = document.getElementById('graphics_price');
+    const graphicsLabel = graphicsPriceDiv.querySelector('label');
 
     graphicsRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
-            const isYes = e.target.value === "1";
-            graphicsPriceDiv.classList.toggle('opacity-50', !isYes);
-            graphicsInput.disabled = !isYes;
-            graphicsInput.classList.toggle('bg-gray-50', !isYes);
-            if(!isYes) graphicsInput.value = '';
+            // Logic: If NOT included (0), then we need to set a price (enable).
+            // If ALREADY included (1), the price is 0/disabled.
+            const isNotIncluded = e.target.value === "0";
+            
+            graphicsPriceDiv.classList.toggle('opacity-50', !isNotIncluded);
+            graphicsInput.disabled = !isNotIncluded;
+            
+            // UI Feedback
+            if (isNotIncluded) {
+                graphicsInput.classList.remove('bg-gray-50');
+                graphicsInput.classList.add('bg-white', 'border-[#009A5C]');
+                graphicsLabel.innerHTML = 'Enter Graphics Price <span class="text-red-500">*</span>';
+                graphicsInput.focus();
+            } else {
+                graphicsInput.classList.add('bg-gray-50');
+                graphicsInput.classList.remove('bg-white', 'border-[#009A5C]');
+                graphicsLabel.innerText = 'Enter Graphics Price';
+                graphicsInput.value = ''; // Clear value if they switch back to "Yes"
+            }
         });
     });
 });
