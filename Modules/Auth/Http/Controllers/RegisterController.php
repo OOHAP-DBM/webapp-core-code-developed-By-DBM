@@ -253,4 +253,16 @@ class RegisterController extends Controller
         }
         return response()->json(['success' => false, 'message' => 'Invalid OTP']);
     }
+
+    public function skipContactVerification(): JsonResponse
+    {
+        $user = Auth::user();
+        $profile = $user->vendorProfile;
+
+        if (!$profile) {
+            return response()->json(['message' => 'Vendor profile not found'], 404);
+        }
+        $profile->update(['onboarding_step' => 2]);
+        return response()->json(['message' => 'Contact verification skipped']);
+    }
 }
