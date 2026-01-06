@@ -16,8 +16,6 @@ return new class extends Migration
             // Ownership
             $table->unsignedBigInteger('vendor_id');
 
-            // Pricing (base, before offer)
-            $table->decimal('base_price_per_month', 12, 2);
 
             // Booking rules
             $table->integer('min_booking_duration')->default(1); // in months

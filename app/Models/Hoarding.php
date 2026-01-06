@@ -127,8 +127,8 @@ class Hoarding extends Model implements HasMedia
         'longitude' => 'decimal:7',
         'geolocation_verified' => 'boolean',
 
-        'visibility_start' => 'datetime:H:i',
-        'visibility_end' => 'datetime:H:i',
+        // 'visibility_start' => 'datetime:H:i',
+        // 'visibility_end' => 'datetime:H:i',
         'visibility_details' => 'array',
 
         'audience_types' => 'array',

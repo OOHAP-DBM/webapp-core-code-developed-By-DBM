@@ -83,8 +83,11 @@ class OOHListingController extends Controller
         try {
             switch ($step) {
                 case 1:
-                    // Use service/repo for step 1 creation
-                    $result = $this->hoardingService->storeStep1($vendor, $request->all(), $request->file('media', []));
+                    // Use validated data and files from FormRequest
+                    $step1Request = app(\Modules\Hoardings\Http\Requests\StoreOOHHoardingStep1Request::class);
+                    $validated = $step1Request->validated();
+                    $mediaFiles = $step1Request->file('media', []);
+                    $result = $this->hoardingService->storeStep1($vendor, $validated, $mediaFiles);
                     return redirect()->route('vendor.hoardings.create', ['step' => 2])
                         ->with('success', 'Step 1 completed. Proceed to next step.');
 
