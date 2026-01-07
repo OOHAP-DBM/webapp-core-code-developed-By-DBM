@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             TaxRulesSeeder::class,
            
             SettingsSeeder::class,
+            HoardingAttributesSeeder::class,
         ]);
     }
 }

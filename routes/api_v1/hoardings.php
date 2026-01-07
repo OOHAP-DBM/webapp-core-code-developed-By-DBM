@@ -22,6 +22,9 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
     Route::put('/{id}', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'update']);
     Route::delete('/{id}', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'destroy']);
     Route::post('/{id}/media', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'uploadMedia']);
+
+    // Vendor-specific: Get all hoardings for authenticated vendor
+    Route::get('/vendor/hoardings', [\Modules\Hoardings\Controllers\Api\Vendor\HoardingController::class, 'index']);
 });
 
 // Admin routes

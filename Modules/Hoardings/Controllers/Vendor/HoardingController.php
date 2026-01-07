@@ -7,6 +7,8 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
+use Modules\Hoardings\Services\HoardingService;
+use App\Models\Hoarding;
 
 /**
  * Vendor HoardingController
@@ -18,6 +20,13 @@ use Illuminate\Support\Facades\Session;
  */
 class HoardingController extends Controller
 {
+    protected $hoardingService;
+
+    public function __construct(HoardingService $hoardingService)
+    {
+        $this->hoardingService = $hoardingService;
+    }
+
     /**
      * Show hoarding type selection screen (OOH/DOOH)
      * GET /vendor/hoardings/add
@@ -63,6 +72,7 @@ class HoardingController extends Controller
         // Invalid type: redirect back
         return Redirect::back()->with('error', 'Please select a valid hoarding type.');
     }
+
     public function index(Request $request)
     {
         $vendor = Auth::user();
@@ -99,71 +109,6 @@ class HoardingController extends Controller
 
         return view('vendor.listings.index', compact('listings', 'cities'));
     }
-
-    // public function create(Request $request)
-    // {
-    //     $type = $request->get('type', 'ooh');
-    //     return view('hoardings.vendor.create', compact('type'));
-    // }
-
-    // public function store(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'title' => 'required|string|max:255',
-    //         'description' => 'required|string',
-    //         'media_type' => 'required|in:ooh,dooh',
-    //         'type' => 'required|string',
-    //         'orientation' => 'nullable|in:horizontal,vertical,square',
-    //         'address' => 'required|string',
-    //         'city' => 'required|string|max:100',
-    //         'state' => 'required|string|max:100',
-    //         'pincode' => 'required|digits:6',
-    //         'latitude' => 'nullable|numeric',
-    //         'longitude' => 'nullable|numeric',
-    //         'width' => 'required|numeric|min:0',
-    //         'height' => 'required|numeric|min:0',
-    //         'illumination' => 'nullable|boolean',
-    //         'resolution' => 'nullable|string',
-    //         'slot_duration' => 'nullable|integer|min:1',
-    //         'slots_per_hour' => 'nullable|integer|min:1',
-    //         'price_per_month' => 'required|numeric|min:0',
-    //         'price_per_slot' => 'nullable|numeric|min:0',
-    //         'printing_cost' => 'nullable|numeric|min:0',
-    //         'installation_cost' => 'nullable|numeric|min:0',
-    //         'maintenance_cost' => 'nullable|numeric|min:0',
-    //         'available_from' => 'nullable|date',
-    //         'minimum_booking_days' => 'nullable|integer|min:1',
-    //         'is_featured' => 'nullable|boolean',
-    //         'traffic_type' => 'nullable|in:high,medium,low',
-    //         'audience_type' => 'nullable|string',
-    //         'landmark' => 'nullable|string',
-    //         'primary_image' => 'required|image|max:5120',
-    //         'gallery_images.*' => 'nullable|image|max:5120',
-    //     ]);
-
-    //     $vendor = Auth::user();
-
-    //     // Handle primary image upload
-    //     if ($request->hasFile('primary_image')) {
-    //         $validated['primary_image'] = $request->file('primary_image')
-    //             ->store('hoardings', 'public');
-    //     }
-
-    //     // Create listing
-    //     $listing = $vendor->hoardings()->create($validated);
-
-    //     // Handle gallery images
-    //     if ($request->hasFile('gallery_images')) {
-    //         foreach ($request->file('gallery_images') as $image) {
-    //             $path = $image->store('hoardings', 'public');
-    //             $listing->galleryImages()->create(['image_path' => $path]);
-    //         }
-    //     }
-
-    //     return redirect()
-    //         ->route('hoardings.vendor.listings.index')
-    //         ->with('success', 'Listing created successfully! It will be reviewed by admin.');
-    // }
 
     public function edit($id)
     {
@@ -312,6 +257,64 @@ class HoardingController extends Controller
             ->route('hoardings.vendor.index')
             ->with('success', 'Listings updated successfully!');
     }
+
+    public function myHoardings(Request $request)
+    {
+        $vendor = Auth::user();
+        $activeTab = $request->query('tab', 'all'); // Detect which tab is active
+
+        // 1. Check if the vendor has ANY hoardings at all (to show empty state)
+        $totalCount = Hoarding::where('vendor_id', $vendor->id)->count();
+        if ($totalCount === 0) {
+            return view('hoardings.vendor.empty');
+        }
+
+        // 2. Fetch data based on the active tab
+        if ($activeTab === 'draft') {
+            $data = Hoarding::where('vendor_id', $vendor->id)
+                ->where('status', 'Draft')
+                ->latest()
+                ->paginate(10);
+        } else {
+            $filters = [
+                'vendor_id' => $vendor->id,
+                'status' => ['active', 'inactive', 'pending_approval']
+            ];
+            // Using your service for published/live hoardings
+            $data = $this->hoardingService->getAll($filters, 10);
+        }
+
+        // 3. Map the data so the Blade file stays clean
+        // We use "through" on paginated items to keep pagination links working
+        $hoardingList = $data->getCollection()->map(function ($h) {
+            return [
+                'id' => $h->id,
+                'title' => $h->title,
+                'hoarding_type' => $h->hoarding_type,
+                'location' => $h->locality . ', ' . $h->city,
+                'bookings_count' => $h->bookings_count ?? 0,
+                'status' => ucfirst($h->status === "active" ? 'Published' : $h->status),
+            ];
+        });
+
+        // Update the collection inside the paginator
+        $data->setCollection($hoardingList);
+
+        return view('hoardings.vendor.list', [
+            'hoardings' => $data,
+            'activeTab' => $activeTab
+        ]);
+    }
+
+    public function toggleStatus($id)
+    {
+        $hoarding = Hoarding::where('vendor_id', Auth::id())->findOrFail($id);
+
+        // Toggle logic
+        $hoarding->status = ($hoarding->status === 'active') ? 'inactive' : 'active';
+        $hoarding->save();
+
+        return back()->with('success', 'Hoarding status updated successfully.');
+    }
 }
 
-            
