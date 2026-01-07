@@ -27,6 +27,7 @@ return new class extends Migration
 
             // meta
             $table->text('customer_note')->nullable();
+            $table->string('contact_number')->nullable();
 
             $table->timestamps();
 

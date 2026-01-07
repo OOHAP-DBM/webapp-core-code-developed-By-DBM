@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Modules\Hoardings\Controllers\Vendor;
+namespace Modules\Hoardings\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
 
@@ -83,8 +83,11 @@ class OOHListingController extends Controller
         try {
             switch ($step) {
                 case 1:
-                    // Use service/repo for step 1 creation
-                    $result = $this->hoardingService->storeStep1($vendor, $request->all(), $request->file('media', []));
+                    // Use validated data and files from FormRequest
+                    $step1Request = app(\Modules\Hoardings\Http\Requests\StoreOOHHoardingStep1Request::class);
+                    $validated = $step1Request->validated();
+                    $mediaFiles = $step1Request->file('media', []);
+                    $result = $this->hoardingService->storeStep1($vendor, $validated, $mediaFiles);
                     return redirect()->route('vendor.hoardings.create', ['step' => 2])
                         ->with('success', 'Step 1 completed. Proceed to next step.');
 
@@ -102,9 +105,9 @@ class OOHListingController extends Controller
                         ->whereHas('hoarding', function ($q) use ($vendor) {
                             $q->where('vendor_id', $vendor->id);
                         })->firstOrFail();
-                    $result = $this->hoardingService->storeStep3($screen, $request->all());
-                    return redirect()->route('vendor.hoardings.create', ['step' => 3])
-                        ->with('success', 'All steps completed. Listing submitted for approval.');
+                    $this->hoardingService->storeStep3($screen, $request->all());
+                    return redirect()->route('vendor.hoardings.myHoardings', ['step' => 3])
+                        ->with('success', 'Hoarding submitted successfully! It is now under review and will be published once approved.');
 
                 default:
                     return redirect()->back()->withErrors(['message' => 'Invalid step provided']);

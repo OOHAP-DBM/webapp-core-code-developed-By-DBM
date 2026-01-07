@@ -35,20 +35,21 @@ return new class extends Migration
             $table->json('time_slots')->nullable(); // Specific time preferences: [{"start": "09:00", "end": "18:00"}]
             
             // Pricing
-            $table->decimal('price_per_month', 12, 2);
-            $table->decimal('price_per_day', 10, 2)->nullable(); // Daily rate
-            $table->integer('min_booking_months')->default(1); // Minimum booking period
-            $table->integer('max_booking_months')->default(12); // Maximum booking period
-            
+            $table->integer('min_booking_duration')->default(1); // Minimum booking period
+            // $table->integer('max_booking_duration')->default(12); // Maximum booking period
+            $table->string('duration_unit')->default('months');
             // Discount
             $table->decimal('discount_percent', 5, 2)->default(0); // Discount for long-term bookings
             
             // Package type
             $table->enum('package_type', ['standard', 'premium', 'custom'])->default('standard');
-            
+            $table->json('services_included')->nullable();
             // Status
             $table->boolean('is_active')->default(true);
-            
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->json('custom_fields')->nullable();
+            $table->boolean('auto_apply')->default(false);
             $table->timestamps();
             $table->softDeletes();
             

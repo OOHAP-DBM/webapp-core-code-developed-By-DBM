@@ -31,9 +31,10 @@ class HoardingListRepository
             'locality'         => $data['locality'],
             'city'             => $data['city'] ?? null,
             'state'            => $data['state'] ?? null,
-            'lat'              => $data['lat'] ?? null,
-            'lng'              => $data['lng'] ?? null,
+            'latitude'              => $data['lat'] ?? null,
+            'longitude'              => $data['lng'] ?? null,
             'base_monthly_price'   => $data['base_monthly_price'] ?? 0,
+            'monthly_price'   => $data['monthly_price'] ?? null,
             'status'           => Hoarding::STATUS_DRAFT,
             'current_step'     => 1,
         ]);
@@ -70,12 +71,36 @@ class HoardingListRepository
         return $savedMedia;
     }
 
+    /**
+     * Update the hoarding instance with Step 2 data.
+     *
+     * @param  Hoarding  $hoarding
+     * @param  array  $data
+     * @return Hoarding
+     */
     public function updateStep2($hoarding, array $data)
     {
         $hoarding->fill($data);
-        $hoarding->save();
+        try {
+            $result = $hoarding->save();
+        } catch (\Throwable $e) {
+            \Log::error('Step2 updateStep2: save error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        }
         return $hoarding;
     }
+
+    /**
+     * Handle brand logo storage.
+     */
+    // public function storeBrandLogos(int $hoardingId, array $files): void
+    // {
+    //     foreach ($files as $file) {
+    //         $path = $file->store("hoardings/{$hoardingId}/logos", 'public');
+
+    //         // Assuming you have a related BrandLogo model
+    //         // $this->brandLogoModel->create(['hoarding_id' => $hoardingId, 'path' => $path]);
+    //     }
+    // }
 
     public function storeBrandLogos($hoardingId, array $logoFiles): array
     {
@@ -97,12 +122,38 @@ class HoardingListRepository
 
     public function updateStep3($hoarding, array $data)
     {
-        // Move survey_charge to parent hoarding if present
+        // Move parent fields to parent hoarding if present
+        $parent = $hoarding->hoarding;
+        $parentChanged = false;
         if (isset($data['survey_charge'])) {
-            $parent = $hoarding->hoarding;
             $parent->survey_charge = $data['survey_charge'];
-            $parent->save();
             unset($data['survey_charge']);
+            $parentChanged = true;
+        }
+        if (isset($data['graphics_included'])) {
+            $parent->graphics_included = $data['graphics_included'];
+            unset($data['graphics_included']);
+            $parentChanged = true;
+        }
+        if (isset($data['graphics_charge'])) {
+            $parent->graphics_charge = $data['graphics_charge'];
+            unset($data['graphics_charge']);
+            $parentChanged = true;
+        }
+        if (isset($data['weekly_price_1'])) {
+            $parent->weekly_price_1 = $data['weekly_price_1'];
+            $parentChanged = true;
+        }
+        if (isset($data['weekly_price_2'])) {
+            $parent->weekly_price_2 = $data['weekly_price_2'];
+            $parentChanged = true;
+        }
+        if (isset($data['weekly_price_3'])) {
+            $parent->weekly_price_3 = $data['weekly_price_3'];
+            $parentChanged = true;
+        }
+        if ($parentChanged) {
+            $parent->save();
         }
         $hoarding->fill($data);
         $hoarding->save();
@@ -111,19 +162,29 @@ class HoardingListRepository
 
     public function storePackages($hoardingId, array $data)
     {
-        HoardingPackage::where('hoarding_id', $hoardingId)->delete();
+        // Find the child OOHHoarding for this parent hoarding
+        $oohHoarding = \Modules\Hoardings\Models\OOHHoarding::where('hoarding_id', $hoardingId)->first();
+        $childHoardingId = $oohHoarding ? $oohHoarding->id : null;
+        if (!$childHoardingId) {
+            // fallback to parent if not found
+            $childHoardingId = $hoardingId;
+        }
+        HoardingPackage::where('hoarding_id', $childHoardingId)->delete();
+        $parent = \App\Models\Hoarding::find($hoardingId);
         if (isset($data['offer_name']) && is_array($data['offer_name'])) {
             foreach ($data['offer_name'] as $index => $name) {
                 if (!empty($name)) {
                     HoardingPackage::create([
-                        'hoarding_id'         => $hoardingId,
+                        'hoarding_id'         => $childHoardingId,
+                        'vendor_id'           => $parent->vendor_id,
                         'package_name'        => $name,
                         'min_booking_duration'=> $data['offer_duration'][$index] ?? 1,
                         'duration_unit'       => $data['offer_unit'][$index] ?? 'months',
                         'discount_percent'    => $data['offer_discount'][$index] ?? 0,
+                        'start_date'          => $data['offer_start_date'][$index] ?? null,
+                        'end_date'            => $data['offer_end_date'][$index] ?? null,
                         'is_active'           => true,
-                        'price_per_month'     => $data['base_monthly_price'] ?? 0,
-                        'slots_per_day'       => 1,
+                        'services_included'   => isset($data['offer_services'][$index]) ? (array)$data['offer_services'][$index] : [],
                     ]);
                 }
             }

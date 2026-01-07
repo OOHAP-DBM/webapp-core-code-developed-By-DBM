@@ -247,10 +247,10 @@
                     class="space-y-1"
                 >
                     <a
-                        href=""
+                        href="{{ route('vendor.hoardings.myHoardings') }}"
                         class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
                     >
-                        - All Hoardings
+                        - My Hoardings
                     </a>
 
                     <a

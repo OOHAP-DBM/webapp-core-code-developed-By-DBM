@@ -40,6 +40,7 @@ class Hoarding extends Model implements HasMedia
         'commission_percent',
         'graphics_charge',
         'survey_charge',
+        'wee'
     ];
 
     /* ===================== FILLABLE ===================== */
@@ -127,8 +128,8 @@ class Hoarding extends Model implements HasMedia
         'longitude' => 'decimal:7',
         'geolocation_verified' => 'boolean',
 
-        'visibility_start' => 'datetime:H:i',
-        'visibility_end' => 'datetime:H:i',
+        // 'visibility_start' => 'datetime:H:i',
+        // 'visibility_end' => 'datetime:H:i',
         'visibility_details' => 'array',
 
         'audience_types' => 'array',
@@ -250,10 +251,10 @@ class Hoarding extends Model implements HasMedia
     // /**
     //  * Scope a query to filter by vendor.
     //  */
-    // public function scopeByVendor($query, $vendorId)
-    // {
-    //     return $query->where('vendor_id', $vendorId);
-    // }
+    public function scopeByVendor($query, $vendorId)
+    {
+        return $query->where('vendor_id', $vendorId);
+    }
 
   
 

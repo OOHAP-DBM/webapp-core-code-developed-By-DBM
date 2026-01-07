@@ -292,7 +292,7 @@ class AdminOverrideController extends Controller
     public function revert(Request $request, AdminOverride $override)
     {
         // Only super admin can revert overrides
-        if (!Auth::user()->hasRole('super_admin')) {
+        if (!Auth::user()->hasRole('admin')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only super admin can revert overrides',

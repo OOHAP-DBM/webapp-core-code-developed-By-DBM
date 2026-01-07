@@ -25,12 +25,12 @@ class DOOHPackage extends Model
         'time_slots',
         'price_per_month',
         'price_per_day',
-        'min_booking_months',
-        'max_booking_months',
+        'min_booking_duration',
         'discount_percent',
         'package_type',
         'is_active',
-        'duration',
+        'duration_unit',
+        'services_included',
         'custom_fields',
     ];
 
@@ -40,6 +40,9 @@ class DOOHPackage extends Model
         'discount_percent' => 'decimal:2',
         'time_slots' => 'array',
         'is_active' => 'boolean',
+        'duration_unit' => 'string',
+        'min_booking_duration' => 'integer',
+        'services_included' => 'array',
         'custom_fields' => 'array',
     ];
 

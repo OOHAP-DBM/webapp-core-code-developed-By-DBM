@@ -23,22 +23,36 @@ class HoardingListService
     {
         // dd($data);
 
-        $validator = Validator::make($data, [
-            'category'          => 'required|string|max:100',
-            'width'             => 'required|numeric|min:0.1',
-            'height'            => 'required|numeric|min:0.1',
-            'measurement_unit'  => 'required|in:sqft,sqm',
-            'address'           => 'required|string|max:255',
-            'pincode'           => 'required|string|max:20',
-            'locality'          => 'required|string|max:100',
-        ]);
 
-        if ($validator->fails() || empty($mediaFiles)) {
-            $errors = $validator->errors()->toArray();
-            if (empty($mediaFiles)) {
-                $errors['media'][] = 'At least one media file is required.';
+
+        // Backend safety check for offer price
+        $errors = [];
+        if (isset($data['monthly_offer_price']) && isset($data['base_monthly_price'])) {
+            if ($data['monthly_offer_price'] !== null && $data['monthly_offer_price'] >= $data['base_monthly_price']) {
+                $errors['monthly_offer_price'][] = 'Offer price must be less than the base monthly price.';
             }
-            throw new ValidationException($validator, response()->json(['errors' => $errors], 422));
+        }
+
+        // Media validation (images only, no videos, max 5MB)
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+        $maxSize = 5 * 1024 * 1024; // 5MB
+        if (empty($mediaFiles)) {
+            $errors['media'][] = 'At least one image is required.';
+        } else {
+            foreach ($mediaFiles as $file) {
+                if (!in_array($file->getMimeType(), $allowedMimes)) {
+                    $errors['media'][] = 'Only JPG, JPEG, PNG, and WEBP images are allowed.';
+                    break;
+                }
+                if ($file->getSize() > $maxSize) {
+                    $errors['media'][] = 'Each image must not exceed 5MB.';
+                    break;
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
         }
 
         return DB::transaction(function () use ($vendor, $data, $mediaFiles) {
@@ -55,25 +69,134 @@ class HoardingListService
     /**
      * Store Step 2 (Additional Settings, Visibility & Brand Logos)
      */
-    public function storeStep2($hoarding, $data, $brandLogoFiles = [])
+    // public function storeStep2($hoarding, $data, $brandLogoFiles = [])
+    // {
+    //     // 1. Map Form Fields to Database Columns
+    //     $data['nagar_nigam_approved'] = $data['nagar_nigam_approved'] ?? 0;
+    //     // Handle blocked_dates_json from form (JSON array of dates)
+    //     if (!empty($data['blocked_dates_json'])) {
+    //         $decoded = json_decode($data['blocked_dates_json'], true);
+    //         if (is_array($decoded)) {
+    //             $data['block_dates'] = $decoded;
+    //         }
+    //         unset($data['blocked_dates_json']);
+    //     }
+    //     if (isset($data['audience_types'])) {
+    //         $data['audience_types'] = $data['audience_types']; // Ensure Model has array cast
+    //     }
+    //     return \DB::transaction(function () use ($hoarding, $data, $brandLogoFiles) {
+    //         $hoarding = $this->repo->updateStep2($hoarding, $data);
+    //         if (!empty($brandLogoFiles)) {
+    //             $this->repo->storeBrandLogos($hoarding->id, $brandLogoFiles);
+    //         }
+    //         return ['success' => true,   'hoarding' => $hoarding->hoarding->fresh('brandLogos')];
+    //     });
+    // }
+
+    /**
+     * Process and store data for Step 2 of the Hoarding creation.
+     * * @param  Hoarding  $hoarding
+     * @param  array  $data
+     * @param  array  $brandLogoFiles
+     * @return array
+     */
+    public function storeStep2($hoarding, array $data, array $brandLogoFiles = []): array
     {
-        // Handle blocked_dates_json from form (JSON array of dates)
-        if (!empty($data['blocked_dates_json'])) {
-            $decoded = json_decode($data['blocked_dates_json'], true);
-            if (is_array($decoded)) {
-                $data['block_dates'] = $decoded;
-            }
-            unset($data['blocked_dates_json']);
-        }
-        return \DB::transaction(function () use ($hoarding, $data, $brandLogoFiles) {
-            $hoarding = $this->repo->updateStep2($hoarding, $data);
+
+        // Always update the parent Hoarding model
+        $parentHoarding = method_exists($hoarding, 'hoarding') && $hoarding->hoarding ? $hoarding->hoarding : $hoarding;
+        $childHoarding = $hoarding;
+
+        // 1. Data Transformation (Mapping form inputs to DB columns)
+        $formattedData = $this->mapHoardingStep2Data($data);
+
+        return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles) {
+            // 2. Persist main hoarding data (parent)
+            $updatedHoarding = $this->repo->updateStep2($parentHoarding, $formattedData);
+
+            // 3. Handle Brand Logos via Repository (child)
             if (!empty($brandLogoFiles)) {
-                $this->repo->storeBrandLogos($hoarding->id, $brandLogoFiles);
+                $this->repo->storeBrandLogos($childHoarding->id, $brandLogoFiles);
             }
-            return ['success' => true,   'hoarding' => $hoarding->hoarding->fresh('brandLogos')];
+
+            return [
+                'success'  => true,
+                'message'  => 'Hoarding details updated successfully.',
+                'hoarding' => $updatedHoarding->fresh('brandLogos')
+            ];
         });
     }
 
+    /**
+     * Maps incoming request data to database-friendly formats.
+     */
+    protected function mapHoardingStep2Data(array $data): array
+    {
+        // \Log::info('Step2 incoming data', $data);
+        $mapped = [
+            // Legal
+            'nagar_nigam_approved' => (bool) ($data['nagar_nigam_approved'] ?? false),
+            'permit_number'        => $data['permit_number_hidden'] ?? $data['permit_number'] ?? null,
+            'permit_valid_till'    => $data['permit_valid_till_hidden'] ?? $data['permit_valid_till'] ?? null,
+
+            // Audience
+            'expected_footfall'    => (int) ($data['expected_footfall'] ?? 0),
+            'expected_eyeball'     => (int) ($data['expected_eyeball'] ?? 0),
+            'audience_types'       => $data['audience_type'] ?? $data['audience_types'] ?? [],
+
+            // Blocked Dates
+            'block_dates' => $this->parseBlockDates($data['blocked_dates_json'] ?? null),
+
+            // Grace Period
+            'grace_period_days'    => isset($data['needs_grace_period']) && $data['needs_grace_period'] == '1'
+                ? (int) $data['grace_period_days']
+                : 0,
+
+            // Visibility
+            'hoarding_visibility'  => $data['visibility_type'] ?? $data['hoarding_visibility'] ?? null,
+            'visibility_start'    => is_array($data['visibility_start'] ?? null) ? ($data['visibility_start'][0] ?? null) : ($data['visibility_start'] ?? null),
+            'visibility_end'      => is_array($data['visibility_end'] ?? null) ? ($data['visibility_end'][0] ?? null) : ($data['visibility_end'] ?? null),
+            'facing_direction'    => $data['facing_direction'] ?? null,
+            'road_type'           => $data['road_type'] ?? null,
+            'traffic_type'        => $data['traffic_type'] ?? null,
+            'visibility_details'   => json_encode([
+                'visible_from' => $data['visible_from'] ?? [],
+                'located_at'   => $data['located_at'] ?? [],
+            ]),
+
+            // Step Management
+            'current_step'         => 2,
+        ];
+        // \Log::info('Step2 mapped data', $mapped);
+        return $mapped;
+    }
+
+    /**
+     * Parse block dates from JSON or comma-separated string.
+     */
+    protected function parseBlockDates($input)
+    {
+        if (!$input) return null;
+        // Remove extra quotes if present
+        $input = trim($input, '"');
+        // Try JSON decode first
+        $decoded = json_decode($input, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+        // Fallback: comma-separated string
+        $arr = array_map('trim', explode(',', $input));
+        return array_filter($arr);
+    }
+    /**
+     * Helper to safely decode JSON fields.
+     */
+    protected function parseJsonField(?string $json)
+    {
+        if (!$json) return null;
+        $decoded = json_decode($json, true);
+        return is_array($decoded) ? $decoded : null;
+    }
     /**
      * Store Step 3 (Packages)
      */
@@ -83,6 +206,19 @@ class HoardingListService
             $hoarding = $this->repo->updateStep3($hoarding, $data);
             if (!empty($data['offer_name'])) {
                 $this->repo->storePackages($hoarding->id, $data);
+            }
+            // Set parent hoarding status to pending_approval
+            $parent = $hoarding->hoarding;
+            if ($parent && $parent->status !== \App\Models\Hoarding::STATUS_PENDING_APPROVAL) {
+                $parent->status = \App\Models\Hoarding::STATUS_PENDING_APPROVAL;
+                $parent->save();
+                // Notify all admins
+                // $admins = \App\Models\User::role(['admin', 'super_admin'])->get();
+                $admins = \App\Models\User::role(['admin'])->get();
+
+                foreach ($admins as $admin) {
+                    $admin->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
+                }
             }
             return ['success' => true, 'hoarding' => $hoarding->fresh(['packages'])];
         });
