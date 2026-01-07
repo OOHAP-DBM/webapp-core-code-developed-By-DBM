@@ -59,6 +59,12 @@ return new class extends Migration
         Schema::table('enquiries', function (Blueprint $table) {
             $table->string('contact_number')->nullable()->after('customer_note');
         });
+        Schema::table('ooh_hoardings', function (Blueprint $table) {
+            $table->boolean('remounting_included')->default(false)->after('mounting_charge');
+            $table->decimal('remounting_charge', 10, 2)->nullable()->after('remounting_included'); // Includes Mounting + Printing
+            $table->boolean('lighting_included')->default(false)->after('remounting_charge');
+            $table->decimal('lighting_charge', 10, 2)->nullable()->after('lighting_included');
+        });
 
         // --- hoardings table changes ---
         Schema::table('hoardings', function (Blueprint $table) {
@@ -68,10 +74,7 @@ return new class extends Migration
             $table->decimal('weekly_price_3', 12, 2)->nullable()->after('weekly_price_2');
 
             // Service Charges (From the "Services Includes" UI)
-            $table->decimal('mounting_charge', 10, 2)->nullable();
-            $table->decimal('remounting_charge', 10, 2)->nullable(); // Includes Mounting + Printing
-            $table->boolean('lighting_included')->default(false);
-            $table->decimal('lighting_charge', 10, 2)->nullable();
+           
         });
     }
 
@@ -94,11 +97,11 @@ return new class extends Migration
             $table->dropColumn(['discount_type', 'discount_value', 'slots_per_month', 'time_slots', 'auto_apply']);
             $table->dropIndex(['is_active', 'package_code']);
         });
-
-        // --- hoardings table changes ---
-        Schema::table('hoardings', function (Blueprint $table) {
-            $table->dropColumn(['slug', 'graphics_included', 'graphics_charge', 'survey_charge', 'block_dates', 'meta_title', 'meta_description', 'meta_keywords', 'og_image', 'canonical_url', 'noindex']);
-            $table->dropIndex(['hoardings_location_index', 'status', 'vendor_id', 'submitted_at']);
+        Schema::table('enquiries', function (Blueprint $table) {
+            $table->dropColumn('contact_number');
+        });
+        Schema::table('ooh_hoardings', function (Blueprint $table) {
+            $table->dropColumn(['remounting_included', 'remounting_charge', 'lighting_included', 'lighting_charge']);
         });
     }
 };
