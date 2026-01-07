@@ -56,6 +56,9 @@ return new class extends Migration
             $table->date('end_date')->nullable()->after('start_date');
        
         });
+        Schema::table('enquiries', function (Blueprint $table) {
+            $table->string('contact_number')->nullable()->after('customer_note');
+        });
 
         // --- hoardings table changes ---
         Schema::table('hoardings', function (Blueprint $table) {
