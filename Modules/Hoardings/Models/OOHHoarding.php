@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\Hoarding;    
+use App\Models\Hoarding;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Hoardings\Models\HoardingBrandLogo;
 
 class OOHHoarding extends Model
 {
@@ -37,11 +39,10 @@ class OOHHoarding extends Model
         'mounting_included',
         'mounting_charge',
 
-        'designing_included',
-        'designing_charge',
-
+        'remounting_included',
         'remounting_charge',
-        // 'survey_charge',
+        'lighting_included',
+        'lighting_charge',
     ];
 
     protected $casts = [
@@ -52,12 +53,15 @@ class OOHHoarding extends Model
         'printing_included' => 'boolean',
         'mounting_included' => 'boolean',
         'designing_included' => 'boolean',
+        'remounting_included' => 'boolean',
+        'lighting_included' => 'boolean',
 
         'printing_charge' => 'decimal:2',
         'mounting_charge' => 'decimal:2',
         'designing_charge' => 'decimal:2',
         'remounting_charge' => 'decimal:2',
-        'survey_charge' => 'decimal:2',
+        'lighting_charge' => 'decimal:2',
+        
     ];
 
     /* ================= RELATIONSHIPS ================= */
@@ -105,5 +109,12 @@ class OOHHoarding extends Model
             'hoarding_id', // Local key on ooh_hoardings table...
             'id' // Local key on hoardings table...
         );
+    }
+
+    public function brandLogos(): HasMany
+    {
+        // Replace 'HoardingBrandLogo' with your actual Model name for logos
+        // and ensure the foreign key matches your table (e.g., hoarding_id)
+        return $this->hasMany(HoardingBrandLogo::class, 'hoarding_id');
     }
 }

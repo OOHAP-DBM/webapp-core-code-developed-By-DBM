@@ -42,7 +42,11 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
         }
 
         if (!empty($filters['status'])) {
-            $query->byStatus($filters['status']);
+            if (is_array($filters['status'])) {
+                $query->whereIn('status', $filters['status']);
+            } else {
+                $query->byStatus($filters['status']);
+            }
         }
 
         if (!empty($filters['search'])) {
@@ -63,7 +67,6 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
         $sortBy = $filters['sort_by'] ?? 'created_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
-
         return $query->paginate($perPage);
     }
 
