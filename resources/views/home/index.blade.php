@@ -31,38 +31,30 @@
                 @endforelse
             </div>
 
-            <!-- Pagination Info -->
-            @if($bestHoardings->count() > 0)
-                <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+            @if($bestHoardings->hasPages())
+                <div class="mt-8 pt-6 border-t border-gray-200 flex items-center justify-between">
+                    
+                    {{-- LEFT : Showing text --}}
                     <div class="text-sm text-gray-600">
-                        Showing <span class="font-semibold">1</span> of <span class="font-semibold">300</span>
+                        Showing
+                        <span class="font-semibold">
+                            {{ $bestHoardings->firstItem() }}
+                        </span>
+                        to
+                        <span class="font-semibold">
+                            {{ $bestHoardings->lastItem() }}
+                        </span>
+                        of
+                        <span class="font-semibold">
+                            {{ $bestHoardings->total() }}
+                        </span>
                     </div>
-                    <div class="flex items-center space-x-1">
-                        <button class="w-8 h-8 flex items-center justify-center rounded bg-teal-500 text-white font-semibold text-sm hover:bg-teal-600">
-                            1
-                        </button>
-                        <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 text-gray-700 text-sm hover:bg-gray-50">
-                            2
-                        </button>
-                        <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 text-gray-700 text-sm hover:bg-gray-50">
-                            3
-                        </button>
-                        <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 text-gray-700 text-sm hover:bg-gray-50">
-                            4
-                        </button>
-                        <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 text-gray-700 text-sm hover:bg-gray-50">
-                            5
-                        </button>
-                        <span class="px-2 text-gray-500">...</span>
-                        <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 text-gray-700 text-sm hover:bg-gray-50">
-                            35
-                        </button>
-                        <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 text-gray-700 text-sm hover:bg-gray-50">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </button>
+
+                    {{-- RIGHT : Pagination --}}
+                    <div>
+                        {{ $bestHoardings->links() }}
                     </div>
+
                 </div>
             @endif
 

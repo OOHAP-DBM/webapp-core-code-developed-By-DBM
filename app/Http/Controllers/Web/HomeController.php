@@ -9,6 +9,10 @@ use Modules\DOOH\Models\DOOHScreen;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Modules\Cart\Services\CartService;
+
 
 class HomeController extends Controller
 {
@@ -17,7 +21,7 @@ class HomeController extends Controller
      *
      * @return View
      */
-    public function index(): View
+    public function index(CartService $cartService): View
     {
         // Get platform statistics
         $stats = [
@@ -41,7 +45,6 @@ class HomeController extends Controller
         $bestHoardings = Hoarding::where('status', 'active')
             ->with(['vendor'])
             ->latest('created_at')
-            ->take(8)
             ->get();
 
         // If no hoardings, use dummy data
@@ -56,7 +59,6 @@ class HomeController extends Controller
         })
             ->with(['hoarding.vendor'])
             ->latest()
-            ->take(8)
             ->get();
 
         // If no DOOH screens, use dummy data
@@ -69,13 +71,37 @@ class HomeController extends Controller
 
         // Check if user has location stored
         $userLocation = session('user_location');
+        // ---------------- PAGINATION ADD (WITHOUT REMOVING ANYTHING) ----------------
+        $page = request()->get('page', 1);
+        $perPage = 8;
+
+        $bestHoardings = $bestHoardings instanceof Collection
+            ? $bestHoardings
+            : collect($bestHoardings);
+
+        $bestHoardings = new LengthAwarePaginator(
+            $bestHoardings->forPage($page, $perPage),
+            $bestHoardings->count(),
+            $perPage,
+            $page,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+        
+        $cartIds = app(CartService::class)
+        ->getCartHoardingIds();
+       
+        // ---------------------------------------------------------------------------
 
         return view('home.index', compact(
             'stats',
             'bestHoardings',
             'topDOOHs',
             'topCities',
-            'userLocation'
+            'userLocation',
+            'cartIds',
         ));
     }
 

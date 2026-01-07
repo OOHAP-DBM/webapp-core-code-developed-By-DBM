@@ -216,7 +216,7 @@
                         </svg>
                     </a>
                     <!-- Cart with Badge -->
-                    <a href="#" class="relative inline-block" title="Cart">
+                    <a href="{{ route('cart.index') }}" class="relative inline-block" title="Cart">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="black"
                             xmlns="http://www.w3.org/2000/svg"
                             class="text-gray-700">

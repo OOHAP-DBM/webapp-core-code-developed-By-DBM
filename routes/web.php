@@ -1,9 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Vendor\OnboardingController;
+use Modules\Auth\Http\Controllers\OnboardingController;
 use App\Http\Controllers\Web\Customer\ProfileController;
 use Modules\Search\Controllers\SearchController;
+use Modules\Cart\Controllers\Web\CartController;
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -20,6 +21,9 @@ use Modules\Search\Controllers\SearchController;
 // ============================================
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+Route::post('/cart/add', [CartController::class,'add'])->middleware('auth')->name('cart.add');
+Route::post('/cart/remove', [CartController::class, 'remove'])->middleware('auth')->name('cart.remove');
+Route::get('/cart', [\Modules\Cart\Controllers\Web\CartController::class, 'index'])->middleware('auth')->name('cart.index');
 Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
 Route::get('/hoardings/map', [\App\Http\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
 Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
@@ -92,32 +96,34 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor/onboarding')->name('v
     Route::post('/send-email', [OnboardingController::class, 'sendEmailOtp'])->name('send-email');
     Route::post('/verify-email', [OnboardingController::class, 'verifyEmailOtp'])->name('verify-email');
     Route::post('/send-phone', [OnboardingController::class, 'sendPhoneOtp'])->name('send-phone');
-    Route::post('/verify-phone', [OnboardingController::class, 'verifyOtp'])->name('verify-phone');
+    Route::post('/verify-phone', [OnboardingController::class, 'verifyPhoneOtp'])->name('verify-phone');
     // Step 1: Contact Details
-    Route::get('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showContactDetails'])->name('contact-details');
-    Route::post('/contact-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeContactDetails'])->name('contact-details.store');
-    
+    Route::get('/contact-details', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'showContactDetails'])->name('contact-details');
+    Route::post('/contact-details', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'storeContactDetails'])->name('contact-details.store');
+    Route::post('/skip-verification', [OnboardingController::class, 'skipContactVerification'])
+        ->name('skip-verification');
     // Step 2: Business Information
-    Route::get('/business-info', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showBusinessInfo'])->name('business-info');
+    Route::get('/business-info', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'showBusinessInfo'])->name('business-info');
     // Business Info Form Submission (new backend)
-    Route::post('/business-info/submit', [\App\Http\Controllers\Vendor\OnboardingController::class, 'submitVendorInfo'])->name('submitVendorInfo');
-    Route::post('/business-info', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeBusinessInfo'])->name('business-info.store');
-    
+    Route::post('/business-info/submit', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'submitVendorInfo'])->name('submitVendorInfo');
+    Route::post('/business-info', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'storeBusinessInfo'])->name('business-info.store');
+    Route::post('/business-info/skip', [OnboardingController::class, 'skipBusinessInfo'])
+        ->name('skip-business-info');
     // Step 3: KYC Documents
-    Route::get('/kyc-documents', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showKYCDocuments'])->name('kyc-documents');
-    Route::post('/kyc-documents', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeKYCDocuments'])->name('kyc-documents.store');
+    Route::get('/kyc-documents', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'showKYCDocuments'])->name('kyc-documents');
+    Route::post('/kyc-documents', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'storeKYCDocuments'])->name('kyc-documents.store');
     
     // Step 4: Bank Details
-    Route::get('/bank-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showBankDetails'])->name('bank-details');
-    Route::post('/bank-details', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeBankDetails'])->name('bank-details.store');
+    Route::get('/bank-details', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'showBankDetails'])->name('bank-details');
+    Route::post('/bank-details', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'storeBankDetails'])->name('bank-details.store');
     
     // Step 5: Terms & Agreement
-    Route::get('/terms-agreement', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showTermsAgreement'])->name('terms-agreement');
-    Route::post('/terms-agreement', [\App\Http\Controllers\Vendor\OnboardingController::class, 'storeTermsAgreement'])->name('terms-agreement.store');
+    Route::get('/terms-agreement', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'showTermsAgreement'])->name('terms-agreement');
+    Route::post('/terms-agreement', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'storeTermsAgreement'])->name('terms-agreement.store');
     
     // Status Screens
-    Route::get('/waiting', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showWaitingScreen'])->name('waiting');
-    Route::get('/rejected', [\App\Http\Controllers\Vendor\OnboardingController::class, 'showRejectionScreen'])->name('rejected');
+    Route::get('/waiting', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'showWaitingScreen'])->name('waiting');
+    Route::get('/rejected', [\Modules\Auth\Http\Controllers\OnboardingController::class, 'showRejectionScreen'])->name('rejected');
 });
 
 // ============================================
