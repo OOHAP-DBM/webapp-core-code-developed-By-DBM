@@ -9,25 +9,22 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Enquiries\Models\Enquiry;
 use Modules\Enquiries\Models\EnquiryItem;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 use Carbon\Carbon;
 use Modules\DOOH\Models\DOOHPackage;
 use Modules\Hoardings\Models\HoardingPackage;
 
 class EnquiryController extends Controller
 {
-    /**
-     * Display a listing of customer enquiries.
-     */
+    /* =====================================================
+     | INDEX
+     ===================================================== */
     public function index(Request $request)
     {
         $query = Enquiry::where('customer_id', Auth::id())
             ->with(['hoarding', 'quotation'])
             ->latest();
 
-        // Filter by status
-        if ($request->has('status') && $request->status) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
@@ -36,52 +33,51 @@ class EnquiryController extends Controller
         return view('customer.enquiries.index', compact('enquiries'));
     }
 
-    /**
-     * Show the form for creating a new enquiry.
-     */
+    /* =====================================================
+     | CREATE
+     ===================================================== */
     public function create(Request $request)
     {
-        // Get hoarding from query parameter
-        $hoardingId = $request->query('hoarding_id');
         $hoarding = null;
 
-        if ($hoardingId) {
-            $hoarding = Hoarding::where('status', 'approved')->findOrFail($hoardingId);
+        if ($request->filled('hoarding_id')) {
+            $hoarding = Hoarding::where('status', 'approved')
+                ->findOrFail($request->hoarding_id);
         }
 
         return view('customer.enquiry-create', compact('hoarding'));
     }
 
-    /**
-     * Store a newly created enquiry in storage.
-     */
+    /* =====================================================
+     | STORE
+     ===================================================== */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'hoarding_id'           => 'required|exists:hoardings,id',
+            'hoarding_id'          => 'required|exists:hoardings,id',
 
-            'package_id'            => 'nullable|integer',
-            'package_label'         => 'nullable|string|max:255',
+            'package_id'           => 'nullable|integer',
+            'package_label'        => 'nullable|string|max:255',
 
-            'amount'                => 'required|numeric|min:0',
-            'duration_type'         => 'required|string',
+            'amount'               => 'required|numeric|min:0',
+            'duration_type'        => 'required|string',
 
-            'preferred_start_date'  => 'required|date',
-            'preferred_end_date'    => 'nullable|date',
+            'preferred_start_date' => 'required|date',
+            'preferred_end_date'   => 'nullable|date',
 
-            'customer_name'         => 'required|string|max:255',
-            'customer_email'        => 'nullable|email|max:255',
-            'customer_mobile'       => 'required|string|max:20',
+            'customer_name'        => 'required|string|max:255',
+            'customer_email'       => 'nullable|email|max:255',
+            'customer_mobile'      => 'required|string|max:20',
 
-            'message'               => 'nullable|string|max:1000',
+            'message'              => 'nullable|string|max:1000',
         ]);
 
         return DB::transaction(function () use ($validated) {
 
-            /* ===================== USER ===================== */
+            /* ================= USER ================= */
             $user = auth()->user();
 
-            /* ===================== ENQUIRY ===================== */
+            /* ================= ENQUIRY ================= */
             $enquiry = Enquiry::create([
                 'customer_id'    => $user->id,
                 'source'         => $user->role ?? 'user',
@@ -90,7 +86,7 @@ class EnquiryController extends Controller
                 'contact_number' => $validated['customer_mobile'],
             ]);
 
-            /* ===================== HOARDING ===================== */
+            /* ================= HOARDING ================= */
             $hoarding = Hoarding::where('id', $validated['hoarding_id'])
                 ->where('status', 'active')
                 ->firstOrFail();
@@ -98,54 +94,64 @@ class EnquiryController extends Controller
             $isOOH  = $hoarding->hoarding_type === EnquiryItem::TYPE_OOH;
             $isDOOH = $hoarding->hoarding_type === EnquiryItem::TYPE_DOOH;
 
-            /* ===================== COMMON ===================== */
+            /* ================= COMMON ================= */
             $startDate = Carbon::parse($validated['preferred_start_date']);
             $endDate   = null;
             $services  = [];
-            $expectedDuration = 0;
+            $expectedDuration = null;
 
-            /* ===================== LOGIC ===================== */
+            /* =====================================================
+             | PACKAGE SELECTED
+             ===================================================== */
             if (!empty($validated['package_id'])) {
 
-                /* ========== PACKAGE (OOH + DOOH) ========== */
                 if ($isOOH) {
                     $package = HoardingPackage::findOrFail($validated['package_id']);
                 } else {
                     $package = DOOHPackage::findOrFail($validated['package_id']);
                 }
 
-                $services = $package->services_included ?? [];
-
-                // months-based
                 $endDate = (clone $startDate)->addMonths($package->min_booking_duration);
-                $expectedDuration = $startDate->diffInDays($endDate);
+                $expectedDuration = $startDate->diffInDays($endDate) . ' days';
+
+                $serviceNames = $package->services_included ?? [];
+                $priceMap    = $hoarding->service_prices ?? [];
+
+                $services = $this->buildServicesWithPrice($serviceNames, $priceMap);
 
             } else {
 
-                /* ========== BASE PRICE ========== */
+                /* =================================================
+                 | BASE PRICE
+                 ================================================= */
+
                 if ($isOOH) {
 
-                    // OOH base → date based
                     if (empty($validated['preferred_end_date'])) {
                         throw new \Exception('End date required for OOH base booking');
                     }
 
                     $endDate = Carbon::parse($validated['preferred_end_date']);
-                    $expectedDuration = $startDate->diffInDays($endDate)." days";
-                    $services = $hoarding->services ?? [];
+                    $expectedDuration = $startDate->diffInDays($endDate) . ' days';
+
+                    $serviceNames = $hoarding->services ?? [];
+                    $priceMap    = $hoarding->service_prices ?? [];
+
+                    $services = $this->buildBaseOOHServices($hoarding);
+
 
                 } else {
+                    // DOOH BASE
+                    $endDate = Carbon::parse(
+                        $validated['preferred_end_date'] ?? $validated['preferred_start_date']
+                    );
 
-                    // 🔥 DOOH BASE → TIME BASED
-                    $endDate = Carbon::parse($validated['preferred_end_date'] ?? $validated['preferred_start_date']);
-
-                    // 10 seconds per slot (BASE RULE)
-                    $expectedDuration = "10 second"; // seconds
+                    $expectedDuration = '10 seconds';
                     $services = [];
                 }
             }
 
-            /* ===================== ENQUIRY ITEM ===================== */
+            /* ================= ENQUIRY ITEM ================= */
             EnquiryItem::create([
                 'enquiry_id'           => $enquiry->id,
                 'hoarding_id'          => $hoarding->id,
@@ -168,8 +174,8 @@ class EnquiryController extends Controller
                     'customer_email'  => $validated['customer_email'],
                     'customer_mobile' => $validated['customer_mobile'],
                     'duration_unit'   => $isDOOH && empty($validated['package_id'])
-                                            ? 'seconds'
-                                            : 'days',
+                        ? 'seconds'
+                        : 'days',
                 ],
 
                 'status' => EnquiryItem::STATUS_NEW,
@@ -183,9 +189,9 @@ class EnquiryController extends Controller
         });
     }
 
-    /**
-     * Display the specified enquiry.
-     */
+    /* =====================================================
+     | SHOW
+     ===================================================== */
     public function show(int $id)
     {
         $enquiry = Enquiry::where('customer_id', Auth::id())
@@ -195,22 +201,71 @@ class EnquiryController extends Controller
         return view('customer.enquiries.show', compact('enquiry'));
     }
 
-    /**
-     * Cancel an enquiry.
-     */
+    /* =====================================================
+     | CANCEL
+     ===================================================== */
     public function cancel(int $id)
     {
         $enquiry = Enquiry::where('customer_id', Auth::id())
             ->where('status', 'pending')
             ->findOrFail($id);
 
-        $enquiry->update([
-            'status' => 'cancelled',
-        ]);
+        $enquiry->update(['status' => 'cancelled']);
 
         return response()->json([
             'success' => true,
             'message' => 'Enquiry cancelled successfully',
         ]);
     }
+
+    /* =====================================================
+     | SERVICE PRICE BUILDER (CORE)
+     ===================================================== */
+    private function buildServicesWithPrice(array $serviceNames, array $priceMap = []): array
+    {
+        $services = [];
+
+        foreach ($serviceNames as $service) {
+            $price = (int) ($priceMap[$service] ?? 0);
+
+            $services[] = [
+                'name'  => $service,
+                'price' => $price,
+                'type'  => $price > 0 ? 'paid' : 'free',
+            ];
+        }
+
+        return $services;
+    }
+    private function buildBaseOOHServices(Hoarding $hoarding): array
+    {
+        $services = [];
+
+        // Graphics
+        if ((int) $hoarding->graphics_included === 1) {
+            $services[] = [
+                'name'  => 'graphics',
+                'price' => 0,
+                'type'  => 'free',
+            ];
+        } elseif (!empty($hoarding->graphics_charge) && $hoarding->graphics_charge > 0) {
+            $services[] = [
+                'name'  => 'graphics',
+                'price' => (int) $hoarding->graphics_charge,
+                'type'  => 'paid',
+            ];
+        }
+
+        // Survey
+        if (!empty($hoarding->survey_charge) && $hoarding->survey_charge > 0) {
+            $services[] = [
+                'name'  => 'survey',
+                'price' => (int) $hoarding->survey_charge,
+                'type'  => 'paid',
+            ];
+        }
+
+        return $services;
+    }
+
 }

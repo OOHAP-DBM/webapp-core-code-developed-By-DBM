@@ -82,12 +82,15 @@ window.selectedPackageState = {
             monthSelect.disabled = true;
         }
 
+       const rawPrice = opt.getAttribute('data-price');
+
         window.selectedPackageState = {
             id: this.value,
             label: opt.dataset.label || '',
-            price: Math.round(Number(opt.dataset.price || 0)),
+            price: rawPrice ? parseInt(rawPrice, 10) : 0,
             months: pkgMonths
         };
+
 
         syncEnquiryHiddenFields();
     });
@@ -104,25 +107,28 @@ window.selectedPackageState = {
     }
 
     function recalcBasePrice() {
-        if (enquiryPackage.value !== 'base') return;
-        if (hoardingType === 'dooh' && monthSelect.value === '10_sec') return;
+    // 🔒 ONLY BASE PRICE
+    if (enquiryPackage.value !== 'base') return;
 
-        const months = Math.max(1, parseInt(monthSelect.value || 1, 10));
-        const base = Number(baseOption.dataset.base || 0);
-        const finalPrice = Math.round(base * months);
+    if (hoardingType === 'dooh' && monthSelect.value === '10_sec') return;
 
-        baseOption.textContent = 
-            `Base Price – ₹${finalPrice} (${months} Month${months > 1 ? 's' : ''})`;
-        baseOption.dataset.price = finalPrice;
+    const months = Math.max(1, parseInt(monthSelect.value || 1, 10));
+    const base   = Number(baseOption.dataset.base || 0);
+    const price  = Math.round(base * months);
 
-        window.selectedPackageState = {
-            id: 'base',
-            label: `Base Price (${months} Month${months > 1 ? 's' : ''})`,
-            price: finalPrice,
-            months: months
-        };
+    baseOption.textContent =
+        `Base Price – ₹${price} (${months} Month${months > 1 ? 's' : ''})`;
 
-    }
+    baseOption.dataset.price = price;
+
+    window.selectedPackageState = {
+        id: 'base',
+        label: `Base Price (${months} Month${months > 1 ? 's' : ''})`,
+        price: price,
+        months: months
+    };
+}
+
 
     /* ---------- GRACE PERIOD ---------- */
     function applyGracePeriod(graceDays = 0) {
@@ -222,33 +228,47 @@ function syncEnquiryHiddenFields() {
     const startDate = document.getElementById('enquiryStartDate')?.value;
     if (!startDate || !window.selectedPackageState) return;
 
-    const months = parseInt(window.selectedPackageState.months || 1);
+    const hoardingType =
+        document.getElementById('hoardingType')?.value; // ✅ FIX
 
-    /* ===== END DATE ===== */
     const start = new Date(startDate);
-    const end = new Date(start);
-    end.setMonth(end.getMonth() + months);
+    let end = new Date(start);
 
-    const yyyy = end.getFullYear();
-    const mm = String(end.getMonth() + 1).padStart(2, '0');
-    const dd = String(end.getDate()).padStart(2, '0');
+    if (hoardingType === 'dooh') {
 
-    document.getElementById('enquiryEndDate').value = `${yyyy}-${mm}-${dd}`;
+        if (window.selectedPackageState.id === 'base') {
+            // DOOH base → 10 sec
+            end = start;
+            document.getElementById('enquiryDurationType').value = '10_seconds';
+        } else {
+            // DOOH package → months
+            end.setMonth(end.getMonth() + window.selectedPackageState.months);
+            document.getElementById('enquiryDurationType').value = 'months';
+        }
 
-    /* ===== PACKAGE FIELDS ===== */
-    const pkgIdInput    = document.getElementById('enquiryPackageId');
-    const pkgLabelInput = document.getElementById('enquiryPackageLabel');
-    const amountInput   = document.getElementById('enquiryAmount');
-
-    if (window.selectedPackageState.id === 'base') {
-        pkgIdInput.value = '';
     } else {
-        pkgIdInput.value = window.selectedPackageState.id;
+        // OOH base + package
+        end.setMonth(end.getMonth() + window.selectedPackageState.months);
+        document.getElementById('enquiryDurationType').value = 'months';
     }
 
-    pkgLabelInput.value = window.selectedPackageState.label || null;
-    amountInput.value   = window.selectedPackageState.price ?? 0;
+    document.getElementById('enquiryEndDate').value =
+        end.toISOString().slice(0, 10);
+
+    // ✅ PRICE (NO OVERRIDE NOW)
+    document.getElementById('enquiryAmount').value =
+        Number(window.selectedPackageState.price);
+
+    document.getElementById('enquiryPackageId').value =
+        window.selectedPackageState.id === 'base'
+            ? ''
+            : window.selectedPackageState.id;
+
+    document.getElementById('enquiryPackageLabel').value =
+        window.selectedPackageState.label || '';
 }
+
+
 
 
 
@@ -271,21 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
         monthSelect.addEventListener('change', syncEnquiryHiddenFields);
     }
 
-    if (enquiryPackage) {
-        enquiryPackage.addEventListener('change', function() {
-            const opt = this.options[this.selectedIndex];
-            if (this.value === 'base') {
-                /* Base price handled elsewhere */
-            } else {
-                window.selectedPackageState = {
-                    id: this.value,
-                    label: opt.text,
-                    price: Number(opt.dataset.price || 0)
-                };
-            }
-            syncEnquiryHiddenFields();
-        });
-    }
+
 
     /* SYNC BEFORE FORM SUBMIT */
     if (enquiryForm) {
@@ -317,8 +323,8 @@ window.openEnquiryModal = function (payload) {
     /* ================= BASE PRICE INIT ================= */
     const base = Math.round(Number(payload.basePrice || 0));
     baseOption.dataset.base  = base;
-    baseOption.dataset.price = base;
-    baseOption.textContent  = `Base Price – ₹${base}`;
+    // baseOption.dataset.price = base;
+    // baseOption.textContent  = `Base Price – ₹${base}`;
 
     /* ================= RESET MONTH ================= */
     if (monthSelect) {
@@ -350,12 +356,15 @@ window.openEnquiryModal = function (payload) {
                 monthSelect.disabled = true;
             }
 
+            const rawPrice = opt.getAttribute('data-price');
+
             window.selectedPackageState = {
                 id: opt.value,
                 label: opt.dataset.label || opt.text,
-                price: Number(opt.dataset.price || 0),
+                price: rawPrice ? parseInt(rawPrice, 10) : 0,
                 months: months
             };
+
 
             syncEnquiryHiddenFields();
             return;
@@ -427,4 +436,57 @@ window.openEnquiryModal = function (payload) {
 
     syncEnquiryHiddenFields();
 };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    const enquiryToast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const form = document.getElementById('enquiryForm');
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document
+                        .querySelector('meta[name="csrf-token"]')
+                        .content
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+
+                if (!data.success) throw new Error();
+
+                enquiryToast.fire({
+                    icon: 'success',
+                    title: 'Enquiry Submitted',
+                    html: `<small>Enquiry ID: <b>#${data.enquiry_id}</b></small>`
+                });
+
+                closeEnquiryModal();
+                form.reset();
+            })
+            .catch(() => {
+                enquiryToast.fire({
+                    icon: 'error',
+                    title: 'Something went wrong'
+                });
+            });
+        });
+
+    });
 </script>

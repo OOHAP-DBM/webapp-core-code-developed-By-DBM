@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Hoardings\Controllers\Vendor;
+namespace Modules\Hoardings\Http\Controllers\Vendor;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;

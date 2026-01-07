@@ -313,8 +313,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/dashboard', [\App\Http\Controllers\Vendor\DashboardController::class, 'index'])->name('dashboard');
 
     // Hoardings Management
-    Route::get('hoardings/add', [\Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'showTypeSelection'])->name('hoardings.add');
-    Route::post('hoardings/select-type', [\Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'handleTypeSelection'])->name('hoardings.select-type');
+    Route::get('hoardings/add', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'showTypeSelection'])->name('hoardings.add');
+    Route::post('hoardings/select-type', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'handleTypeSelection'])->name('hoardings.select-type');
 
     Route::resource('hoardings', \App\Http\Controllers\Web\Vendor\HoardingController::class);
      
@@ -368,17 +368,17 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/threads/unread-count', [\App\Http\Controllers\Vendor\ThreadController::class, 'unreadCount'])->name('threads.unread-count');
     
     // Listings Management (PROMPT 26)
-    Route::get('/my-hoardings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'myHoardings'])->name('hoardings.myHoardings');
-    Route::post('hoardings/{id}/toggle', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'toggleStatus'])->name('hoardings.toggle');
-    Route::get('/hoardings/create', [Modules\Hoardings\Controllers\Vendor\OOHListingController::class, 'create'])->name('hoardings.create');
-    Route::post('/hoardings/store', [Modules\Hoardings\Controllers\Vendor\OOHListingController::class, 'store'])->name('hoarding.store');
+    Route::get('/my-hoardings', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'myHoardings'])->name('hoardings.myHoardings');
+    Route::post('hoardings/{id}/toggle', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'toggleStatus'])->name('hoardings.toggle');
+    Route::get('/hoardings/create', [Modules\Hoardings\Http\Controllers\Vendor\OOHListingController::class, 'create'])->name('hoardings.create');
+    Route::post('/hoardings/store', [Modules\Hoardings\Http\Controllers\Vendor\OOHListingController::class, 'store'])->name('hoarding.store');
 
-    Route::post('/my-hoardings', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'store'])->name('my-hoardings.store');
-    Route::get('/my-hoardings/{id}/edit', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'edit'])->name('my-hoardings.edit');
-    Route::put('/my-hoardings/{id}', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'update'])->name('my-hoardings.update');
-    Route::delete('/my-hoardings/{id}', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'destroy'])->name('my-hoardings.destroy');
-    Route::get('/my-hoardings/bulk-update', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'bulkUpdate'])->name('my-hoardings.bulk-update');
-    Route::post('/my-hoardings/bulk-update-submit', [Modules\Hoardings\Controllers\Vendor\HoardingController::class, 'bulkUpdateSubmit'])->name('my-hoardings.bulk-update-submit');
+    Route::post('/my-hoardings', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'store'])->name('my-hoardings.store');
+    Route::get('/my-hoardings/{id}/edit', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'edit'])->name('my-hoardings.edit');
+    Route::put('/my-hoardings/{id}', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])->name('my-hoardings.update');
+    Route::delete('/my-hoardings/{id}', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'destroy'])->name('my-hoardings.destroy');
+    Route::get('/my-hoardings/bulk-update', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'bulkUpdate'])->name('my-hoardings.bulk-update');
+    Route::post('/my-hoardings/bulk-update-submit', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'bulkUpdateSubmit'])->name('my-hoardings.bulk-update-submit');
     
     // Bookings Management (PROMPT 48 - Enhanced)
     Route::prefix('bookings')->name('bookings.')->group(function () {
@@ -518,11 +518,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/vendor/kyc-reviews/{id}', [\Modules\Admin\Controllers\Web\AdminKYCReviewController::class, 'show'])->name('kyc-reviews.show');
     
     // Hoardings Management
-    Route::get('/vendor-hoardings',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'index'])->name('vendor-hoardings.index');
+    Route::get('/vendor-hoardings',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'index'])->name('vendor-hoardings.index');
     // status toggle
-    Route::post('/vendor-hoardings/{id}/toggle-status',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'toggleStatus'])->name('vendor-hoardings.toggle-status');
+    Route::post('/vendor-hoardings/{id}/toggle-status',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'toggleStatus'])->name('vendor-hoardings.toggle-status');
     // save commission
-    Route::post('/vendor-hoardings/{id}/set-commission',[\Modules\Hoardings\Controllers\Admin\VendorHoardingController::class, 'setCommission'])->name('vendor-hoardings.set-commission');
+    Route::post('/vendor-hoardings/{id}/set-commission',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'setCommission'])->name('vendor-hoardings.set-commission');
     Route::get('/hoardings', [\Modules\Admin\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
     Route::get('/hoardings/{id}', [\Modules\Admin\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
     Route::post('/hoardings/{id}/approve', [\Modules\Admin\Controllers\Web\HoardingController::class, 'approve'])->name('hoardings.approve');
@@ -530,9 +530,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // ===================== ADMIN CATEGORY CRUD =====================
    
-    Route::get('/hoarding-attributes', [\Modules\Hoardings\Controllers\Admin\HoardingAttributeController::class, 'index'])->name('hoarding-attributes.index');
-    Route::post('/hoarding-attributes', [\Modules\Hoardings\Controllers\Admin\HoardingAttributeController::class, 'store'])->name('hoarding-attributes.store');
-    Route::delete('/hoarding-attributes/{id}', [\Modules\Hoardings\Controllers\Admin\HoardingAttributeController::class, 'destroy'])->name('hoarding-attributes.destroy');
+    Route::get('/hoarding-attributes', [\Modules\Hoardings\Http\Controllers\Admin\HoardingAttributeController::class, 'index'])->name('hoarding-attributes.index');
+    Route::post('/hoarding-attributes', [\Modules\Hoardings\Http\Controllers\Admin\HoardingAttributeController::class, 'store'])->name('hoarding-attributes.store');
+    Route::delete('/hoarding-attributes/{id}', [\Modules\Hoardings\Http\Controllers\Admin\HoardingAttributeController::class, 'destroy'])->name('hoarding-attributes.destroy');
     // Bookings Management
     Route::get('/bookings', [\Modules\Admin\Controllers\Web\BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{id}', [\Modules\Admin\Controllers\Web\BookingController::class, 'show'])->name('bookings.show');

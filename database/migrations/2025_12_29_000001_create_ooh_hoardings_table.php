@@ -14,13 +14,17 @@ return new class extends Migration {
             $table->decimal('height', 8, 2)->nullable();
             $table->string('measurement_unit')->default('Sq.ft');
             $table->enum('orientation', ['horizontal', 'vertical'])->nullable();
-            $table->enum('lighting_type', ['frontlight', 'backlight', 'none'])->nullable();
+            $table->string('lighting_type')->nullable();
             $table->string('material_type')->nullable();
 
             $table->boolean('printing_included')->default(false);
             $table->decimal('printing_charge', 10, 2)->nullable();
             $table->boolean('mounting_included')->default(false);
             $table->decimal('mounting_charge', 10, 2)->nullable();
+            $table->boolean('remounting_included')->default(false);
+            $table->decimal('remounting_charge', 10, 2)->nullable(); // Includes Mounting + Printing
+            $table->boolean('lighting_included')->default(false);
+            $table->decimal('lighting_charge', 10, 2)->nullable();
 //             $table->decimal('designing_charge', 10, 2)->nullable();
 
             $table->timestamps();

@@ -76,9 +76,9 @@ class HomeController extends Controller
 
 
         // If no hoardings, use dummy data
-        if ($bestHoardings->isEmpty()) {
-            $bestHoardings = collect($this->getDummyHoardings());
-        }
+        // if ($bestHoardings->isEmpty()) {
+        //     $bestHoardings = collect($this->getDummyHoardings());
+        // }
 
         // Get top DOOH screens
         $topDOOHs = DOOHScreen::whereHas('hoarding', function ($q) {

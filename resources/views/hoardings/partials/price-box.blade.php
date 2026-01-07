@@ -14,29 +14,46 @@
     @endif
 </div>
     {{-- OOH PACKAGES (OPTIONAL) --}}
-@if($hoarding->packages->count())
-    <p class="mt-4 font-semibold text-sm">Available Packages</p>
+    @if($hoarding->packages->count())
+        <p class="mt-4 font-semibold text-sm">Available Packages</p>
 
-    @foreach($hoarding->packages as $pkg)
-        <div class="package-card"
-            onclick="selectPackage({
-                id: {{ $pkg->id }},
-                name: '{{ $pkg->package_name }}',
-                price: {{ $pkg->base_price_per_month * $pkg->min_booking_duration }},
-                type: 'ooh'
-            }, this)">
-            
-            <p class="font-medium">{{ $pkg->package_name }}</p>
-            <p class="text-xs text-gray-500">
-                {{ $pkg->min_booking_duration }} {{ ucfirst($pkg->duration_unit) }}
-            </p>
-            <p class="font-semibold">
-                ₹{{ number_format($pkg->base_price_per_month * $pkg->min_booking_duration) }}
-            </p>
-        </div>
-    @endforeach
+        @foreach($hoarding->packages as $pkg)
 
-@endif
+                @php
+                    $basePrice = $hoarding->monthly_price * $pkg->min_booking_duration;
+                    $discount  = ($basePrice * $pkg->discount_percent) / 100;
+                    $finalPrice = $basePrice - $discount;
+                @endphp
+
+                <div class="package-card"
+                    onclick="selectPackage({
+                        id: {{ $pkg->id }},
+                        months: {{ $pkg->min_booking_duration }},
+                        discount: {{ $pkg->discount_percent }},
+                        price: {{ round($finalPrice) }},
+                        type: 'ooh'
+                    }, this)">
+
+                    <p class="font-medium">{{ $pkg->package_name }}</p>
+
+                    <p class="text-xs text-gray-500">
+                        {{ $pkg->min_booking_duration }} Month Package
+                        @if($pkg->discount_percent)
+                            • {{ $pkg->discount_percent }}% OFF
+                        @endif
+                    </p>
+
+                    <p class="font-semibold">
+                        ₹{{ number_format($finalPrice) }}
+                    </p>
+
+                    <p class="text-xs text-gray-400 line-through">
+                        ₹{{ number_format($basePrice) }}
+                    </p>
+                </div>
+            @endforeach
+
+    @endif
 @else
     {{-- DOOH BASE PRICE --}}
 <div class="text-xl font-bold">
@@ -48,23 +65,40 @@
     <p class="mt-4 font-semibold text-sm">Available Plans</p>
 
     @foreach($hoarding->packages as $pkg)
-        <div class="package-card"
-            onclick="selectPackage({
-                id: {{ $pkg->id }},
-                name: '{{ $pkg->package_name }}',
-                price: {{ $pkg->slots_per_month }},
-                type: 'dooh'
-            }, this)">
-            
-            <p class="font-medium">{{ $pkg->package_name }}</p>
-            <p class="text-xs text-gray-500">
-                {{ $pkg->duration }}
-            </p>
-            <p class="font-semibold">
-                ₹{{ number_format($pkg->slots_per_month) }}/Month
-            </p>
-        </div>
-    @endforeach
+
+            @php
+                $basePrice  = $hoarding->price_per_slot * $pkg->min_booking_duration;
+                $discount   = ($basePrice * $pkg->discount_percent) / 100;
+                $finalPrice = $basePrice - $discount;
+            @endphp
+
+            <div class="package-card"
+                onclick="selectPackage({
+                    id: {{ $pkg->id }},
+                    months: {{ $pkg->min_booking_duration }},
+                    discount: {{ $pkg->discount_percent }},
+                    price: {{ round($finalPrice) }},
+                    type: 'dooh'
+                }, this)">
+
+                <p class="font-medium">{{ $pkg->package_name }}</p>
+
+                <p class="text-xs text-gray-500">
+                    {{ $pkg->min_booking_duration }} Month Plan
+                    @if($pkg->discount_percent)
+                        • {{ $pkg->discount_percent }}% OFF
+                    @endif
+                </p>
+
+                <p class="font-semibold">
+                    ₹{{ number_format($finalPrice) }}/Month
+                </p>
+
+                <p class="text-xs text-gray-400 line-through">
+                    ₹{{ number_format($basePrice) }}
+                </p>
+            </div>
+        @endforeach
 
 @endif
 @endif

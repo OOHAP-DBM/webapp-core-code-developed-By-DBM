@@ -36,10 +36,11 @@ class Hoarding extends Model implements HasMedia
     protected $priceFields = [
         'base_monthly_price',
         'monthly_price',
-        'weekly_price',
+        'weekly_price_1',
         'commission_percent',
         'graphics_charge',
         'survey_charge',
+        'wee'
     ];
 
     /* ===================== FILLABLE ===================== */
@@ -87,7 +88,7 @@ class Hoarding extends Model implements HasMedia
         /* Pricing (base only) */
         'base_monthly_price',
         'monthly_price',
-        'weekly_price',
+        'weekly_price_1',
         'enable_weekly_booking',
         'commission_percent',
         'currency',

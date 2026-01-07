@@ -216,24 +216,41 @@
                         </option>
 
                         @foreach($packages as $pkg)
+                            @php
+                                $finalPrice = 0;
+                                $discountPercent = (int) ($pkg->discount_percent ?? 0);
+
+                                if (($hoarding->price_type ?? null) === 'ooh') {
+                                    $monthly  = (int) ($hoarding->monthly_price ?? 0);
+                                    $months   = (int) ($pkg->min_booking_duration ?? 1);
+
+                                    $base = $monthly * $months;
+                                    $discountAmount = ($base * $discountPercent) / 100;
+                                    $finalPrice = max(0, round($base - $discountAmount));
+                                } else {
+                                    $finalPrice = (int) ($pkg->slots_per_month ?? 0);
+                                }
+                            @endphp
+
                             <option value="{{ $pkg->id }}"
                                     data-label="{{ $pkg->package_name }}"
-                                    data-price="{{ $hoarding->price_type === 'ooh'
-                                        ? ($pkg->base_price_per_month * $pkg->min_booking_duration)
-                                        : $pkg->slots_per_month }}"
-                                    data-months="{{ $pkg->min_booking_duration }}">
+                                    data-price="{{ $finalPrice }}"
+                                    data-months="{{ $pkg->min_booking_duration ?? 1 }}">
 
-                                    {{ $pkg->package_name }}
-                                    ({{ $pkg->min_booking_duration }} {{ $pkg->duration_unit }})
-                                    – ₹{{ number_format(
-                                        $hoarding->price_type === 'ooh'
-                                            ? ($pkg->base_price_per_month * $pkg->min_booking_duration)
-                                            : $pkg->slots_per_month
-                                    ) }}
+                                {{ $pkg->package_name }}
+                                ({{ $pkg->min_booking_duration }} {{ $pkg->duration_unit }})
+                                – ₹{{ number_format($finalPrice) }}
+                                @if($discountPercent > 0)
+                                    &nbsp;&nbsp; [{{ $discountPercent }}% OFF]
+                                @endif
+
                             </option>
                         @endforeach
 
+
+
                     </select>
+                    
                 </div>
 
                 <div>
