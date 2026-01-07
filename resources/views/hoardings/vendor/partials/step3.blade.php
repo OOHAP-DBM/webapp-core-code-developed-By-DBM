@@ -131,13 +131,13 @@
                     </label>
                 </div>
             </div>
-            <div id="lighting-box" class="transition-all">
+            <div id="mounting-box" class="transition-all">
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                    <input type="number" name="lighting_charge" placeholder="Price" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                    <input type="number" name="mounting_charge" placeholder="Price" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
                 </div>
             </div>
-             <div class="flex items-center justify-between mt-20">
+            <div class="flex items-center justify-between mt-20">
                 <label class="text-sm font-bold text-gray-700">Lighting Included (Free)?</label>
                 <div class="flex items-center gap-2">
                     <label class="cursor-pointer">
@@ -150,12 +150,20 @@
                     </label>
                 </div>
             </div>
-            <div id="mounting-box" class="transition-all">
+            <div id="lighting-box" class="transition-all">
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                    <input type="number" name="mounting_charge" placeholder="Price" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                    <input type="number" name="lighting_charge" placeholder="Lighting Charge" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
                 </div>
+                <select name="lighting_type" class="w-full border  border-gray-200 rounded-xl px-4 py-3 text-sm outline-none bg-white mt-3">
+                    <option value="">Select Lighting Type</option>
+                    <option value="front-lit">Front-lit</option>
+                    <option value="back-lit">Back-lit</option>
+                    <option value="led">LED</option>
+                    {{-- <option value="none">None</option> --}}
+                </select>
             </div>
+           
         </div>
 
         <div class="bg-gray-50/50 p-6 rounded-2xl border border-dashed border-gray-200 space-y-4">
@@ -199,29 +207,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 2. Universal Service Toggle Logic
-    // Logic: YES (1) = Free (Disable/Hide Price) | NO (0) = Charges (Enable/Show Price)
-    const toggles = document.querySelectorAll('.toggle-service');
-    
-    function handleToggle(radio) {
-        const target = document.getElementById(radio.dataset.target);
-        const isFree = radio.value === "1";
-        
-        if (isFree) {
-            target.classList.add('opacity-40', 'pointer-events-none');
-            target.querySelectorAll('input, select').forEach(el => {
-                el.disabled = true;
-                el.value = '';
-            });
-        } else {
-            target.classList.remove('opacity-40', 'pointer-events-none');
-            target.querySelectorAll('input, select').forEach(el => el.disabled = false);
-        }
-    }
+    // 2. Service Toggle Logic (Mounting, Lighting, Printing, Graphics independent)
+    const serviceToggles = [
+        { name: 'mounting_included', box: 'mounting-box', type: 'all' },
+        { name: 'printing_included', box: 'printing-box', type: 'all' },
+        { name: 'graphics_included', box: 'graphics-box', type: 'all' },
+        { name: 'lighting_included', box: 'lighting-box', type: 'lighting' },
+    ];
 
-    toggles.forEach(radio => {
-        if (radio.checked) handleToggle(radio);
-        radio.addEventListener('change', () => handleToggle(radio));
+    serviceToggles.forEach(service => {
+        const radios = document.querySelectorAll(`input[name="${service.name}"]`);
+        const target = document.getElementById(service.box);
+        function updateBox() {
+            const checked = Array.from(radios).find(r => r.checked);
+            if (!checked || !target) return;
+            const isFree = checked.value === "1";
+            if (service.type === 'lighting') {
+                // Only disable/clear the price input, not the select
+                const priceInput = target.querySelector('input[name="lighting_charge"]');
+                if (isFree) {
+                    if (priceInput) {
+                        priceInput.disabled = true;
+                        priceInput.value = '';
+                    }
+                } else {
+                    if (priceInput) priceInput.disabled = false;
+                }
+                // Always keep lighting_type select enabled
+                const lightingSelect = target.querySelector('select[name="lighting_type"]');
+                // if (lightingSelect) lightingSelect.disabled = false;
+                // Optionally style
+                // if (isFree) {
+                //     target.classList.add('opacity-40');
+                // } else {
+                //     target.classList.remove('opacity-40');
+                // }
+            } else {
+                // For other services, disable all inputs/selects
+                if (isFree) {
+                    target.classList.add('opacity-40', 'pointer-events-none');
+                    target.querySelectorAll('input, select').forEach(el => {
+                        el.disabled = true;
+                        el.value = '';
+                    });
+                } else {
+                    target.classList.remove('opacity-40', 'pointer-events-none');
+                    target.querySelectorAll('input, select').forEach(el => el.disabled = false);
+                }
+            }
+        }
+        radios.forEach(radio => {
+            radio.addEventListener('change', updateBox);
+            if (radio.checked) updateBox();
+        });
     });
 
     // 3. Campaign Packages Logic
@@ -237,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <label class="text-[10px] font-bold text-gray-400 uppercase">Offer Label</label>
                         <input type="text" name="offer_name[${index}]" placeholder="e.g. Festival" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none">
                     </div>
-                    <div class="md:col-span-4 space-y-2">
+                    <div class="md:col-span-3 space-y-2">
                         <label class="text-[10px] font-bold text-gray-400 uppercase">Min. Booking</label>
                         <div class="flex">
                             <input type="number" name="offer_duration[${index}]" placeholder="Qty" class="w-20 border border-gray-200 rounded-l-xl px-4 py-3 text-sm">
@@ -247,12 +285,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             </select>
                         </div>
                     </div>
-                    <div class="md:col-span-3 space-y-2">
+                    <div class="md:col-span-2 space-y-2">
                         <label class="text-[10px] font-bold text-gray-400 uppercase">Discount (%)</label>
                         <div class="relative">
                             <input type="number" name="offer_discount[${index}]" placeholder="0" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm">
                             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">%</span>
                         </div>
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase">Offer End Date</label>
+                        <input type="date" name="offer_end_date[${index}]" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none">
                     </div>
                     <div class="md:col-span-1 flex justify-center pb-2">
                         <button type="button" class="remove-offer text-gray-300 hover:text-red-500">

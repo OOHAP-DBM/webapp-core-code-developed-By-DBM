@@ -207,6 +207,19 @@ class HoardingListService
             if (!empty($data['offer_name'])) {
                 $this->repo->storePackages($hoarding->id, $data);
             }
+            // Set parent hoarding status to pending_approval
+            $parent = $hoarding->hoarding;
+            if ($parent && $parent->status !== \App\Models\Hoarding::STATUS_PENDING_APPROVAL) {
+                $parent->status = \App\Models\Hoarding::STATUS_PENDING_APPROVAL;
+                $parent->save();
+                // Notify all admins
+                // $admins = \App\Models\User::role(['admin', 'super_admin'])->get();
+                $admins = \App\Models\User::role(['admin'])->get();
+
+                foreach ($admins as $admin) {
+                    $admin->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
+                }
+            }
             return ['success' => true, 'hoarding' => $hoarding->fresh(['packages'])];
         });
     }

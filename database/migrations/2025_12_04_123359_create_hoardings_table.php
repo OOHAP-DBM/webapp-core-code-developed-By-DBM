@@ -60,9 +60,12 @@ return new class extends Migration
             $table->decimal('base_monthly_price', 12, 2)->default(0);
             $table->decimal('monthly_price', 12, 2)->default(0);
             $table->boolean('enable_weekly_booking')->default(false);
-            $table->decimal('weekly_price', 10, 2)->nullable();
+            $table->decimal('weekly_price_1', 12, 2)->nullable();
+            $table->decimal('weekly_price_2', 12, 2)->nullable();
+            $table->decimal('weekly_price_3', 12, 2)->nullable();
             $table->decimal('commission_percent', 5, 2)->default(0);
             $table->string('currency', 10)->default('INR');
+
 
             /* ONE TIME CHARGES */
             $table->boolean('graphics_included')->default(false);

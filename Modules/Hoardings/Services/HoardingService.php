@@ -563,4 +563,39 @@ class HoardingService
             ['path' => Request::url(), 'query' => Request::query()]
         );
     }
+
+    /**
+     * Store slots (array of [name, from_time, to_time])
+     */
+    // public function storeSlots(int $screenId, array $slots): array
+    // {
+    //     $screen = \Modules\DOOH\Models\DOOHScreen::findOrFail($screenId);
+
+    //     // Delete existing slots to prevent duplicates on update
+    //     $screen->slots()->delete();
+
+    //     $saved = [];
+    //     foreach ($slots as $details) {
+    //         // Only save if the toggle was turned 'on' (active)
+    //         if (isset($details['active']) && $details['active'] == '1') {
+    //             $saved[] = \Modules\DOOH\Models\DOOHSlot::create([
+    //                 'dooh_screen_id' => $screenId,
+    //                 'slot_name'   => $details['name'],
+    //                 'start_time'  => date("H:i:s", strtotime($details['start_time'])),
+    //                 'end_time'    => date("H:i:s", strtotime($details['end_time'])),
+    //                 'status'      => 'available',
+    //                 'is_active'   => true,
+    //                 // Add these defaults to satisfy the NOT NULL constraint immediately
+    //                 'total_hourly_displays'  => 0,
+    //                 'total_daily_displays'   => 0,
+    //                 'interval_seconds'       => 0,
+    //                 'hourly_cost'            => 0,
+    //                 'daily_cost'             => 0,
+    //                 'monthly_cost'           => 0,
+
+    //             ]);
+    //         }
+    //     }
+    //     return $saved;
+    // }
 }

@@ -73,7 +73,7 @@
                         @if($step < 3)
                             Next
                         @else
-                            Save Draft
+                            Publish
                         @endif
                     </button>
                 </div>

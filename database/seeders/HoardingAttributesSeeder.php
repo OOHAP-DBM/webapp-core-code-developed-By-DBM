@@ -10,24 +10,31 @@ class HoardingAttributesSeeder extends Seeder
 {
     public function run()
     {
-        $categories = [
-            ['name' => 'Billboard', 'slug' => 'billboard'],
-            ['name' => 'Unipole', 'slug' => 'unipole'],
-            ['name' => 'Gantries', 'slug' => 'gantries'],
-            ['name' => 'Bus Shelter', 'slug' => 'bus-shelter'],
-            ['name' => 'Bridge Panel', 'slug' => 'bridge-panel'],
-            ['name' => 'Airport', 'slug' => 'airport'],
-            ['name' => 'Mall', 'slug' => 'mall'],
-            ['name' => 'Metro', 'slug' => 'metro'],
-            ['name' => 'Other', 'slug' => 'other'],
+        $attributes = [
+            // Type: category
+            ['type' => 'category', 'label' => 'Billboard', 'value' => 'billboard', 'is_active' => true],
+            ['type' => 'category', 'label' => 'Unipole', 'value' => 'unipole', 'is_active' => true],
+            ['type' => 'category', 'label' => 'Gantries', 'value' => 'gantries', 'is_active' => true],
+            ['type' => 'category', 'label' => 'Bus Shelter', 'value' => 'bus-shelter', 'is_active' => true],
+            ['type' => 'category', 'label' => 'Bridge Panel', 'value' => 'bridge-panel', 'is_active' => true],
+            ['type' => 'category', 'label' => 'Airport', 'value' => 'airport', 'is_active' => true],
+            ['type' => 'category', 'label' => 'Mall', 'value' => 'mall', 'is_active' => true],
+            ['type' => 'category', 'label' => 'Metro', 'value' => 'metro', 'is_active' => true],
+            ['type' => 'category', 'label' => 'Other', 'value' => 'other', 'is_active' => true],
+            // Add more types (material, lighting, etc.) as needed
         ];
 
-        foreach ($categories as $cat) {
+        foreach ($attributes as $attr) {
             DB::table('hoarding_attributes')->updateOrInsert(
-                ['slug' => $cat['slug']],
                 [
-                    'name' => $cat['name'],
-                    'slug' => $cat['slug'],
+                    'type' => $attr['type'],
+                    'value' => $attr['value'],
+                ],
+                [
+                    'type' => $attr['type'],
+                    'label' => $attr['label'],
+                    'value' => $attr['value'],
+                    'is_active' => $attr['is_active'],
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]
