@@ -22,7 +22,6 @@ class HoardingPackage extends Model
         'package_code',
         'package_name',
         'discount_percent',
-        'base_price_per_month',
         'min_booking_duration',
         'duration_unit',
         'start_date',

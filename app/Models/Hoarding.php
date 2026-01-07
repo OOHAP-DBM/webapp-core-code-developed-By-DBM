@@ -40,6 +40,7 @@ class Hoarding extends Model implements HasMedia
         'commission_percent',
         'graphics_charge',
         'survey_charge',
+        'wee'
     ];
 
     /* ===================== FILLABLE ===================== */
