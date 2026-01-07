@@ -16,7 +16,7 @@ return new class extends Migration
             if (!Schema::hasColumn('hoarding_packages', 'ooh_hoarding_id')) {
                 $table->unsignedBigInteger('ooh_hoarding_id')->after('vendor_id');
                 $table->foreign('ooh_hoarding_id')->references('id')->on('ooh_hoardings')->onDelete('cascade');
-                $table->index('ooh_hoarding_id');
+                // $table->index('ooh_hoarding_id');
             }
             if (!Schema::hasColumn('hoarding_packages', 'description')) {
                 $table->text('description')->nullable()->after('package_name');

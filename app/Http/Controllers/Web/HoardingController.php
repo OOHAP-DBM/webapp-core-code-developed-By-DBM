@@ -69,7 +69,7 @@ class HoardingController extends Controller
             if ($screen) {
                 $hoarding->packages = $screen->packages()
                     ->active()
-                    ->orderBy('min_booking_months')
+                    ->orderBy('min_booking_duration')
                     ->get();
             }
         }

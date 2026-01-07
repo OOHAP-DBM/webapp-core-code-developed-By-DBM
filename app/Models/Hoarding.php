@@ -98,7 +98,7 @@ class Hoarding extends Model implements HasMedia
 
         /* Booking rules */
         'grace_period_days',
-        'min_booking_months',
+        'min_booking_duration',
         'max_booking_months',
         'available_from',
         'available_to',

@@ -41,7 +41,7 @@
     {{-- DOOH BASE PRICE --}}
 <div class="text-xl font-bold">
     ₹{{ number_format($hoarding->price_per_slot) }}
-    <span class="text-sm text-gray-500">/Slot</span>
+    <span class="text-sm text-gray-500">/10 Second Slot</span>
 </div>
     {{-- DOOH PACKAGES (OPTIONAL) --}}
 @if($hoarding->packages->count())
