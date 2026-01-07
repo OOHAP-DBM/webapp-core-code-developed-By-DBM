@@ -50,6 +50,7 @@ class EnquiryController extends Controller
      */
     public function store(Request $request)
     {
+        dd($request->all());
         $validated = $request->validate([
             'hoarding_id' => 'required|exists:hoardings,id',
             'start_date' => 'required|date|after:today',

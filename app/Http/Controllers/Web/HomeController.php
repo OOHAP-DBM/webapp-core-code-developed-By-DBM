@@ -43,9 +43,37 @@ class HomeController extends Controller
 
         // Get recently added hoardings
         $bestHoardings = Hoarding::where('status', 'active')
-            ->with(['vendor'])
+            ->with([
+                'vendor',
+                'doohScreen' // 🔥 MUST
+            ])
             ->latest('created_at')
             ->get();
+
+        $bestHoardings = $bestHoardings->map(function ($hoarding) {
+
+            if ($hoarding->hoarding_type === 'dooh') {
+
+                $hoarding->price_type = 'dooh';
+
+                $hoarding->base_price_for_enquiry =
+                    (float) (optional($hoarding->doohScreen)->price_per_slot ?? 0);
+
+            } else {
+
+                $hoarding->price_type = 'ooh';
+
+                $hoarding->base_price_for_enquiry =
+                    (float) ($hoarding->monthly_price ?? 0);
+
+                $hoarding->monthly_price_display = $hoarding->monthly_price;
+                $hoarding->base_monthly_price_display = $hoarding->base_monthly_price;
+            }
+            $hoarding->grace_period_days = (int) ($hoarding->grace_period_days ?? 0);
+            
+            return $hoarding;
+        });
+
 
         // If no hoardings, use dummy data
         if ($bestHoardings->isEmpty()) {
@@ -89,6 +117,7 @@ class HomeController extends Controller
                 'query' => request()->query(),
             ]
         );
+        
         
         $cartIds = app(CartService::class)
         ->getCartHoardingIds();

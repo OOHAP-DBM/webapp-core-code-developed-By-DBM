@@ -133,6 +133,17 @@ Route::middleware(['auth'])->prefix('auth')->name('auth.')->group(function () {
     Route::post('/switch-role/{role}', [\App\Http\Controllers\Web\Auth\RoleSwitchController::class, 'switch'])->name('switch-role');
     Route::get('/available-roles', [\App\Http\Controllers\Web\Auth\RoleSwitchController::class, 'getAvailableRoles'])->name('available-roles');
 });
+// ============================================
+// ENQUIRY SUBMISSION (ADMIN + CUSTOMER)
+// ============================================
+Route::middleware('auth')->group(function () {
+    // Enquiries
+    Route::get('/enquiries', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'index'])->name('enquiries.index');
+    Route::get('/enquiries/create', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'create'])->name('enquiries.create');
+    Route::post('/enquiries', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'store'])->name('enquiries.store');
+    Route::get('/enquiries/{id}', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'show'])->name('enquiries.show');
+    Route::post('/enquiries/{id}/cancel', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'cancel'])->name('enquiries.cancel');
+});
 
 // ============================================
 // CUSTOMER PANEL (Authenticated)
@@ -165,12 +176,7 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/shortlist/check/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'check'])->name('shortlist.check');
     Route::get('/shortlist/count', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'count'])->name('shortlist.count');
     
-    // Enquiries
-    Route::get('/enquiries', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'index'])->name('enquiries.index');
-    Route::get('/enquiries/create', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'create'])->name('enquiries.create');
-    Route::post('/enquiries', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'store'])->name('enquiries.store');
-    Route::get('/enquiries/{id}', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'show'])->name('enquiries.show');
-    Route::post('/enquiries/{id}/cancel', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'cancel'])->name('enquiries.cancel');
+
     
     // Quotations
     Route::get('/quotations', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'index'])->name('quotations.index');

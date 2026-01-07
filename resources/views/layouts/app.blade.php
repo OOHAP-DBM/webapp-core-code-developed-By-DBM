@@ -47,7 +47,7 @@
                     btn.textContent = 'Remove';
                     btn.classList.add('remove');
                 } else {
-                    btn.textContent = 'Add to Cart';
+                    btn.textContent = 'Sort List';
                     btn.classList.add('add');
                 }
             }
@@ -121,6 +121,7 @@
 
         })();
     </script>
-
+@include('hoardings.partials.enquiry-modal')
+@include('hoardings.scripts.enquiry-modal')
 </body>
 </html>
