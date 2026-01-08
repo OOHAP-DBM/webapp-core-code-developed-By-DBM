@@ -184,7 +184,7 @@
             </label>
         </div>
     </div>
-</div>
+  </div>
 
 
 
@@ -194,142 +194,142 @@
             <h3 class="text-xl font-bold text-gray-800">Hoardings Attributes</h3>
         </div>
 
-    <div class="mb-8">
-        <label class="text-sm font-bold text-gray-500 mb-4 block uppercase tracking-wider">Visible From</label>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            @php $visibleOptions = ['Metro Ride', 'From Flyover', 'From the road', 'Roof top', 'Wall hanging']; @endphp
-            @foreach($visibleOptions as $option)
-            <label class="flex items-center p-4 border border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-green-50/50 hover:border-[#009A5C] transition-all group">
-                <input type="checkbox" name="visible_from[]" value="{{ $option }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
-                <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-[#009A5C]">{{ $option }}</span>
-            </label>
-            @endforeach
+        <div class="mb-8">
+            <label class="text-sm font-bold text-gray-500 mb-4 block uppercase tracking-wider">Visible From</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @php $visibleOptions = ['Metro Ride', 'From Flyover', 'From the road', 'Roof top', 'Wall hanging']; @endphp
+                @foreach($visibleOptions as $option)
+                <label class="flex items-center p-4 border border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-green-50/50 hover:border-[#009A5C] transition-all group">
+                    <input type="checkbox" name="visible_from[]" value="{{ $option }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
+                    <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-[#009A5C]">{{ $option }}</span>
+                </label>
+                @endforeach
+            </div>
         </div>
-    </div>
 
-    <div>
-        <label class="text-sm font-bold text-gray-500 mb-4 block uppercase tracking-wider">Located At</label>
-        <div class="grid grid-cols-2 md:grid-cols-2 gap-y-4 gap-x-12">
-            @php $locationOptions = ['Highway hoarding', 'At Square', 'Shopping Mall', 'Airport', 'Park', 'Main Road', 'Intracity Highway', 'Pause Area']; @endphp
-            @foreach($locationOptions as $loc)
-            <label class="flex items-center space-x-3 cursor-pointer group">
-                <input type="checkbox" name="located_at[]" value="{{ $loc }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
-                <span class="text-sm text-gray-600 group-hover:text-gray-900">{{ $loc }}</span>
-            </label>
-            @endforeach
-        </div>
-    </div>
-</div>
-
-<!-- Hoardings Visibility -->
-<div 
-  x-data="{ visibility: 'one_way' }"
-  class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8"
->
-  <h3 class="text-xl font-bold text-gray-800 mb-8 flex items-center">
-    <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-    Hoardings View For Visitors
-  </h3>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-    <!-- ONE WAY -->
-    <div class="space-y-4">
-      <label
-        class="flex items-center p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all"
-        :class="visibility === 'one_way'
-          ? 'border-[#009A5C] bg-green-50/40'
-          : 'border-gray-200 hover:border-[#009A5C]'"
-      >
-        <input
-          type="radio"
-          name="visibility_type"
-          value="one_way"
-          x-model="visibility"
-          class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
-        >
-        <span class="ml-3 text-sm font-bold text-gray-700">
-          One Way Visibility
-        </span>
-      </label>
-
-      <div
-        class="grid grid-cols-2 gap-4 transition-all"
-        x-show="visibility === 'one_way'"
-        x-transition
-      >
-       <div>
-          <label class="text-xs font-bold text-gray-400 mb-1 block">Going From</label>
-          <input
-            type="text"
-            name="visibility_start[]"
-            placeholder="Eg. Santacruz"
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
-          >
-        </div>
         <div>
-          <label class="text-xs font-bold text-gray-400 mb-1 block">To</label>
-          <input
-            type="text"
-            name="visibility_end[]"
-            placeholder="Eg. Fun Mall"
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+            <label class="text-sm font-bold text-gray-500 mb-4 block uppercase tracking-wider">Located At</label>
+            <div class="grid grid-cols-2 md:grid-cols-2 gap-y-4 gap-x-12">
+                @php $locationOptions = ['Highway hoarding', 'At Square', 'Shopping Mall', 'Airport', 'Park', 'Main Road', 'Intracity Highway', 'Pause Area']; @endphp
+                @foreach($locationOptions as $loc)
+                <label class="flex items-center space-x-3 cursor-pointer group">
+                    <input type="checkbox" name="located_at[]" value="{{ $loc }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
+                    <span class="text-sm text-gray-600 group-hover:text-gray-900">{{ $loc }}</span>
+                </label>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <!-- Hoardings Visibility -->
+    <div 
+      x-data="{ visibility: 'one_way' }"
+      class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8"
+    >
+      <h3 class="text-xl font-bold text-gray-800 mb-8 flex items-center">
+        <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+        Hoardings View For Visitors
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <!-- ONE WAY -->
+        <div class="space-y-4">
+          <label
+            class="flex items-center p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all"
+            :class="visibility === 'one_way'
+              ? 'border-[#009A5C] bg-green-50/40'
+              : 'border-gray-200 hover:border-[#009A5C]'"
           >
+            <input
+              type="radio"
+              name="visibility_type"
+              value="one_way"
+              x-model="visibility"
+              class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
+            >
+            <span class="ml-3 text-sm font-bold text-gray-700">
+              One Way Visibility
+            </span>
+          </label>
+
+          <div
+            class="grid grid-cols-2 gap-4 transition-all"
+            x-show="visibility === 'one_way'"
+            x-transition
+          >
+          <div>
+              <label class="text-xs font-bold text-gray-400 mb-1 block">Going From</label>
+              <input
+                type="text"
+                name="visibility_start[]"
+                placeholder="Eg. Santacruz"
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+              >
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-400 mb-1 block">To</label>
+              <input
+                type="text"
+                name="visibility_end[]"
+                placeholder="Eg. Fun Mall"
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+              >
+            </div>
+
+          
+          </div>
         </div>
 
-       
+        <!-- BOTH WAY -->
+        <div class="space-y-4">
+          <label
+            class="flex items-center p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all"
+            :class="visibility === 'both_side'
+              ? 'border-[#009A5C] bg-green-50/40'
+              : 'border-gray-200 hover:border-[#009A5C]'"
+          >
+            <input
+              type="radio"
+              name="visibility_type"
+              value="both_side"
+              x-model="visibility"
+              class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
+            >
+            <span class="ml-3 text-sm font-bold text-gray-700">
+              Both Side Visibility
+            </span>
+          </label>
+
+          <div
+            class="grid grid-cols-2 gap-4 transition-all"
+            x-show="visibility === 'both_side'"
+            x-transition
+          >
+            <div>
+              <label class="text-xs font-bold text-gray-400 mb-1 block">Going From</label>
+              <input
+                type="text"
+                name="visibility_start[]"
+                placeholder="Eg. Santacruz"
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+              >
+            </div>
+
+            <div>
+              <label class="text-xs font-bold text-gray-400 mb-1 block">To</label>
+              <input
+                type="text"
+                name="visibility_end[]"
+                placeholder="Eg. Fun Mall"
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+              >
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
-
-    <!-- BOTH WAY -->
-    <div class="space-y-4">
-      <label
-        class="flex items-center p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all"
-        :class="visibility === 'both_side'
-          ? 'border-[#009A5C] bg-green-50/40'
-          : 'border-gray-200 hover:border-[#009A5C]'"
-      >
-        <input
-          type="radio"
-          name="visibility_type"
-          value="both_side"
-          x-model="visibility"
-          class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
-        >
-        <span class="ml-3 text-sm font-bold text-gray-700">
-          Both Side Visibility
-        </span>
-      </label>
-
-      <div
-        class="grid grid-cols-2 gap-4 transition-all"
-        x-show="visibility === 'both_side'"
-        x-transition
-      >
-        <div>
-          <label class="text-xs font-bold text-gray-400 mb-1 block">Going From</label>
-          <input
-            type="text"
-            name="visibility_start[]"
-            placeholder="Eg. Santacruz"
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
-          >
-        </div>
-
-        <div>
-          <label class="text-xs font-bold text-gray-400 mb-1 block">To</label>
-          <input
-            type="text"
-            name="visibility_end[]"
-            placeholder="Eg. Fun Mall"
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
-          >
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
 
 
   </div>

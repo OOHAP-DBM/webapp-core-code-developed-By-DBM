@@ -46,6 +46,8 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->prefix('vendor')->group(func
     
     Route::get('/dooh/draft', [DOOHScreenController::class, 'getDraft']);
     Route::post('dooh/store', [DOOHScreenController::class, 'store']);
+    // Vendor's DOOH hoarding listing (web-style)
+    Route::get('/dooh/screens', [DOOHScreenController::class, 'index']);
     // Vendor's bookings
     Route::get('/dooh/bookings', [DOOHPackageBookingController::class, 'getVendorBookings']);
     

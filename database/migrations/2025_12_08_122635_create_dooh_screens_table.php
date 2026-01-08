@@ -22,9 +22,9 @@ return new class extends Migration
 
                 $table->integer('resolution_width')->nullable();
                 $table->integer('resolution_height')->nullable();
-                $table->string('resolution_unit')->default('pixels');
-                $table->decimal('screen_size', 10, 2)->nullable();
-                $table->string('screen_unit')->default('inches');
+                // $table->string('resolution_unit')->default('pixels');
+                // $table->decimal('screen_size', 10, 2)->nullable();
+                // $table->string('screen_unit')->default('inches');
 
                 /* SLOT LOGIC */
                 $table->integer('slot_duration_seconds')->nullable();

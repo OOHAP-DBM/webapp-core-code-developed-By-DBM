@@ -4,7 +4,7 @@
 @section('title', 'Add OOH Hoarding')
 
 @section('content')
-<div class="py-6 px-2 sm:px-6 lg:px-8 w-full max-w-5xl mx-auto">
+<div class="py-4 px-2 sm:px-4 md:px-6 lg:px-8 w-full max-w-8xl mx-auto">
 
            <div class="w-full max-w-5xl mx-auto py-6">
                 <div class="flex items-stretch w-full bg-white border border-gray-300 rounded-full overflow-hidden h-16 shadow-sm">

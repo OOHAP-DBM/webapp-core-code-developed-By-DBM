@@ -46,49 +46,49 @@ class HoardingController extends Controller
     /**
      * Show the form for creating a new hoarding.
      */
-    public function create()
-    {
-        $types = $this->hoardingService->getTypes();
-        $statuses = $this->hoardingService->getStatuses();
+    // public function create()
+    // {
+    //     $types = $this->hoardingService->getTypes();
+    //     $statuses = $this->hoardingService->getStatuses();
 
-        return view('vendor.hoardings.create', compact('types', 'statuses'));
-    }
+    //     return view('vendor.hoardings.create', compact('types', 'statuses'));
+    // }
 
     /**
      * Store a newly created hoarding.
      */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'address' => 'required|string',
-            'lat' => 'required|numeric|between:-90,90',
-            'lng' => 'required|numeric|between:-180,180',
-            'weekly_price' => 'nullable|numeric|min:0',
-            'monthly_price' => 'required|numeric|min:0',
-            'grace_period_days' => 'nullable|integer|min:0|max:90',
-            'enable_weekly_booking' => 'boolean',
-            'type' => 'required|in:billboard,digital,transit,street_furniture,wallscape,mobile',
-            'status' => 'nullable|in:draft,pending_approval,active,inactive',
-        ]);
+    // public function store(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'title' => 'required|string|max:255',
+    //         'description' => 'nullable|string',
+    //         'address' => 'required|string',
+    //         'lat' => 'required|numeric|between:-90,90',
+    //         'lng' => 'required|numeric|between:-180,180',
+    //         'weekly_price' => 'nullable|numeric|min:0',
+    //         'monthly_price' => 'required|numeric|min:0',
+    //         'grace_period_days' => 'nullable|integer|min:0|max:90',
+    //         'enable_weekly_booking' => 'boolean',
+    //         'type' => 'required|in:billboard,digital,transit,street_furniture,wallscape,mobile',
+    //         'status' => 'nullable|in:draft,pending_approval,active,inactive',
+    //     ]);
 
-        try {
-            $validated['vendor_id'] = auth()->id();
-            $validated['enable_weekly_booking'] = $request->has('enable_weekly_booking');
+    //     try {
+    //         $validated['vendor_id'] = auth()->id();
+    //         $validated['enable_weekly_booking'] = $request->has('enable_weekly_booking');
 
-            $hoarding = $this->hoardingService->create($validated);
+    //         $hoarding = $this->hoardingService->create($validated);
 
-            // Clear statistics cache
-            $this->hoardingService->clearVendorStatistics(auth()->id());
+    //         // Clear statistics cache
+    //         $this->hoardingService->clearVendorStatistics(auth()->id());
 
-            return redirect()->route('vendor.hoardings.index')
-                ->with('success', 'Hoarding created successfully.');
-        } catch (\Exception $e) {
-            return back()->withInput()
-                ->with('error', $e->getMessage());
-        }
-    }
+    //         return redirect()->route('vendor.hoardings.index')
+    //             ->with('success', 'Hoarding created successfully.');
+    //     } catch (\Exception $e) {
+    //         return back()->withInput()
+    //             ->with('error', $e->getMessage());
+    //     }
+    // }
 
     /**
      * Display the specified hoarding.
@@ -178,7 +178,7 @@ class HoardingController extends Controller
         // Clear statistics cache
         $this->hoardingService->clearVendorStatistics(auth()->id());
 
-        return redirect()->route('vendor.hoardings.index')
+        return redirect()->route('vendor.hoardings.myHoardings')
             ->with('success', 'Hoarding deleted successfully.');
     }
 }

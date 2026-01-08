@@ -8,8 +8,8 @@ class StoreOOHHoardingStep2Request extends FormRequest
 {
     public function authorize()
     {
-        // Only allow if authenticated as vendor
-        return auth('vendor')->check();
+        // Only allow if authenticated (vendor via sanctum or default)
+        return auth()->check();
     }
 
     public function rules()
@@ -22,12 +22,13 @@ class StoreOOHHoardingStep2Request extends FormRequest
             'expected_eyeball' => 'nullable|integer|min:0',
             'audience_type' => 'nullable|array',
             'audience_type.*' => 'string',
-            'blocked_dates_json' => 'nullable|string',
+            // Accept string or array for blocked_dates_json
+            'blocked_dates_json' => 'nullable',
             'needs_grace_period' => 'nullable|in:0,1',
             'grace_period_days' => 'nullable|integer|min:0',
             'visibility_type' => 'nullable|string',
-            'visibility_start' => 'nullable|date',
-            'visibility_end' => 'nullable|date',
+            'visibility_start' => 'nullable|string',
+            'visibility_end' => 'nullable|string',
             'facing_direction' => 'nullable|string',
             'road_type' => 'nullable|string',
             'traffic_type' => 'nullable|string',
@@ -36,7 +37,7 @@ class StoreOOHHoardingStep2Request extends FormRequest
             'located_at' => 'nullable|array',
             'located_at.*' => 'string',
             'brand_logos' => 'nullable|array',
-            'brand_logos.*' => 'file|mimes:jpg,jpeg,png,webp|max:5120',
+            // 'brand_logos.*' => 'file|mimes:jpg,jpeg,png,webp|max:5120',
         ];
     }
 

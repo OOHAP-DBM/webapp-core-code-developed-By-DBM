@@ -11,6 +11,7 @@ class HoardingListRepository
 {
     public function createStep1($vendor, $data)
     {
+        
         $width = floatval($data['width']);
         $height = floatval($data['height']);
         $measurement_unit = $data['measurement_unit'] ?? $data['unit'] ?? null;
@@ -80,11 +81,13 @@ class HoardingListRepository
      */
     public function updateStep2($hoarding, array $data)
     {
+        // dd("hera");
         $hoarding->fill($data);
         try {
             $result = $hoarding->save();
         } catch (\Throwable $e) {
             \Log::error('Step2 updateStep2: save error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            throw new \Exception('Failed to update hoarding: ' . $e->getMessage(), 0, $e);
         }
         return $hoarding;
     }
@@ -171,7 +174,26 @@ class HoardingListRepository
         }
         HoardingPackage::where('hoarding_id', $childHoardingId)->delete();
         $parent = \App\Models\Hoarding::find($hoardingId);
-        if (isset($data['offer_name']) && is_array($data['offer_name'])) {
+        // New: handle offers array (from JSON)
+        if (isset($data['offers']) && is_array($data['offers'])) {
+            foreach ($data['offers'] as $offer) {
+                if (!empty($offer['name'])) {
+                    HoardingPackage::create([
+                        'hoarding_id'           => $childHoardingId,
+                        'vendor_id'             => $parent->vendor_id,
+                        'package_name'          => $offer['name'],
+                        'min_booking_duration'  => $offer['min_booking_duration'] ?? 1,
+                        'duration_unit'         => $offer['duration_unit'] ?? 'months',
+                        'discount_percent'      => $offer['discount_value'] ?? $offer['discount'] ?? 0,
+                        'start_date'            => $offer['start_date'] ?? null,
+                        'end_date'              => $offer['end_date'] ?? null,
+                        'is_active'             => $offer['is_active'] ?? true,
+                        'services_included'     => $offer['services'] ?? [],
+                    ]);
+                }
+            }
+        } elseif (isset($data['offer_name']) && is_array($data['offer_name'])) {
+            // Legacy: handle old array fields
             foreach ($data['offer_name'] as $index => $name) {
                 if (!empty($name)) {
                     HoardingPackage::create([
