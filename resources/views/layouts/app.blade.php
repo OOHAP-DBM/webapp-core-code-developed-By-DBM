@@ -105,6 +105,9 @@
                         showConfirmButton: false,
                         timer: 1400
                     });
+                    setTimeout(() => {
+                        window.location.reload(true);
+                    }, 1000);
 
                 })
                 .catch(() => {

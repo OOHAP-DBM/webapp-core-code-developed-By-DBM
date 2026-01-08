@@ -22,14 +22,20 @@ return new class extends Migration
                 ->constrained('hoardings')
                 ->cascadeOnDelete();
 
+            // ✅ SELECTED PACKAGE (NEW)
+            $table->foreignId('package_id')
+                ->nullable()
+                ->constrained('hoarding_packages')
+                ->nullOnDelete();
+
+            $table->string('package_label')->nullable();
+
             $table->timestamps();
 
             // ek hi hoarding 1 user ke cart me duplicate na ho
             $table->unique(['user_id', 'hoarding_id']);
         });
     }
-
-
 
     /**
      * Reverse the migrations.

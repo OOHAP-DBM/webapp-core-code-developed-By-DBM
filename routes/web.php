@@ -23,6 +23,7 @@ Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->nam
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::post('/cart/add', [CartController::class,'add'])->middleware('auth')->name('cart.add');
 Route::post('/cart/remove', [CartController::class, 'remove'])->middleware('auth')->name('cart.remove');
+Route::post('/cart/select-package', [CartController::class, 'selectPackage'])->name('cart.selectPackage');
 Route::get('/cart', [\Modules\Cart\Controllers\Web\CartController::class, 'index'])->middleware('auth')->name('cart.index');
 Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
 Route::get('/hoardings/map', [\App\Http\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
@@ -143,6 +144,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/enquiries', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'store'])->name('enquiries.store');
     Route::get('/enquiries/{id}', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'show'])->name('enquiries.show');
     Route::post('/enquiries/{id}/cancel', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'cancel'])->name('enquiries.cancel');
+    Route::get('/enquiry/shortlisted', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'shortlisted']);
+
+
 });
 
 // ============================================

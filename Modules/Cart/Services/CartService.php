@@ -159,22 +159,30 @@ class CartService
      ===================================================== */
     public function getCartForUI()
     {
+        
         $items = DB::table('carts')
             ->join('hoardings', 'hoardings.id', '=', 'carts.hoarding_id')
             ->where('carts.user_id', Auth::id())
             ->select(
                 'carts.id as cart_id',
+                'carts.package_id', 
                 'hoardings.id as hoarding_id',
                 'hoardings.title',
-                'hoardings.address',
                 'hoardings.city',
                 'hoardings.state',
-                'hoardings.hoarding_type'
+                'hoardings.locality',
+                'hoardings.category',
+                'hoardings.hoarding_type',
+                'hoardings.monthly_price',
+                'hoardings.base_monthly_price',
+                'hoardings.grace_period_days',
+
             )
             ->get();
 
-        return $items->map(fn ($item) => $this->attachPackages($item));
+        return $items->map(fn ($item) => $this->buildCartItem($item));
     }
+
 
     public function getCartSummary()
     {
@@ -201,11 +209,14 @@ class CartService
                 ->where('hoarding_id', $item->hoarding_id)
                 ->first();
 
-            $item->packages = DB::table('dooh_packages')
-                ->where('dooh_screen_id', $screen->id)
-                ->where('is_active', 1)
-                ->get();
+            $item->packages = $screen
+                ? DB::table('dooh_packages')
+                    ->where('dooh_screen_id', $screen->id)
+                    ->where('is_active', 1)
+                    ->get()
+                : collect();
         }
+
 
         return $item;
     }
@@ -230,4 +241,137 @@ class CartService
             'message' => $message,
         ], $extra);
     }
+    private function buildCartItem($item)
+    {
+        /* =====================================================
+        SIZE
+        ===================================================== */
+        $item->size = 'N/A';
+
+        if ($item->hoarding_type === 'ooh') {
+            $ooh = DB::table('ooh_hoardings')
+                ->where('hoarding_id', $item->hoarding_id)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($ooh && $ooh->width && $ooh->height) {
+                $item->size =
+                    $ooh->width . '×' .
+                    $ooh->height . ' ' .
+                    ($ooh->measurement_unit ?? '');
+            }
+        }
+
+        if ($item->hoarding_type === 'dooh') {
+            $screen = DB::table('dooh_screens')
+                ->where('hoarding_id', $item->hoarding_id)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($screen && $screen->screen_size) {
+                $item->size =
+                    $screen->screen_size . ' ' .
+                    ($screen->screen_unit ?? '');
+            }
+        }
+
+        /* =====================================================
+        PACKAGES (FOR DROPDOWN)
+        ===================================================== */
+        if ($item->hoarding_type === 'ooh') {
+            $item->packages = DB::table('hoarding_packages')
+                ->where('hoarding_id', $item->hoarding_id)
+                ->where('is_active', 1)
+                ->get();
+        } else {
+            $item->packages = collect();
+        }
+
+        /* =====================================================
+        SELECTED PACKAGE (ONLY FROM CART)
+        ===================================================== */
+        $item->selected_package = null;
+
+        if ($item->package_id && $item->packages->count()) {
+            $item->selected_package = $item->packages
+                ->firstWhere('id', $item->package_id);
+        }
+
+        /* =====================================================
+        PRICE LOGIC (OOH)
+        ===================================================== */
+        if ($item->hoarding_type === 'ooh') {
+
+            $item->base_monthly_price = round((float) ($item->base_monthly_price ?? 0), 2);
+            $item->monthly_price      = round((float) ($item->monthly_price ?? 0), 2);
+
+            // default = monthly
+            $item->discounted_monthly_price = $item->base_monthly_price;
+            $item->discount_amount = 0;
+
+            if ($item->selected_package) {
+
+                $discountPercent = (float) ($item->selected_package->discount_percent ?? 0);
+
+                if ($discountPercent > 0 && $item->base_monthly_price > 0) {
+                    $item->discount_amount = round(
+                        ($item->base_monthly_price * $discountPercent) / 100,
+                        2
+                    );
+
+                    $item->discounted_monthly_price = round(
+                        $item->base_monthly_price - $item->discount_amount,
+                        2
+                    );
+                }
+            }
+
+            $item->final_price = $item->discounted_monthly_price;
+
+            $item->package_details = $item->selected_package
+                ? (object) [
+                    'id'                   => $item->selected_package->id,
+                    'package_name'         => $item->selected_package->package_name,
+                    'discount_percent'     => (float) $item->selected_package->discount_percent,
+                    'min_booking_duration' => (int) $item->selected_package->min_booking_duration,
+                    'duration_unit'        => $item->selected_package->duration_unit,
+                    'services_included'    => is_string($item->selected_package->services_included)
+                        ? json_decode($item->selected_package->services_included, true)
+                        : ($item->selected_package->services_included ?? []),
+                ]
+                : null;
+        }
+
+        /* =====================================================
+        PRICE LOGIC (DOOH)
+        ===================================================== */
+        if ($item->hoarding_type === 'dooh') {
+
+            $screen = DB::table('dooh_screens')
+                ->where('hoarding_id', $item->hoarding_id)
+                ->first();
+
+            $item->slot_price = round(
+                (float) (
+                    $screen
+                        ? ($screen->display_price_per_30s ?: $screen->price_per_slot)
+                        : 0
+                ),
+                2
+            );
+
+            $item->final_price = $item->slot_price;
+
+            // normalize unused fields
+            $item->base_monthly_price = null;
+            $item->monthly_price = null;
+            $item->discounted_monthly_price = null;
+            $item->discount_amount = 0;
+            $item->package_details = null;
+        }
+
+        return $item;
+    }
+
+
 }

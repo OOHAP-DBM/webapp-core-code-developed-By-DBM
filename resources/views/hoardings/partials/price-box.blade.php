@@ -20,7 +20,7 @@
         @foreach($hoarding->packages as $pkg)
 
                 @php
-                    $basePrice = $hoarding->monthly_price * $pkg->min_booking_duration;
+                    $basePrice = $hoarding->base_monthly_price * $pkg->min_booking_duration;
                     $discount  = ($basePrice * $pkg->discount_percent) / 100;
                     $finalPrice = $basePrice - $discount;
                 @endphp

@@ -316,7 +316,11 @@ window.openEnquiryModal = function (payload) {
 
     /* ================= OPEN MODAL ================= */
     modal.classList.remove('hidden');
-
+    if (!payload) {
+        // Cart page apna data khud handle karta hai
+        // Yahan kisi payload-based field ko touch mat karo
+        return;
+    }
     hoardingInput.value = payload.id;
     countInput.value    = payload.count ?? 1;
 

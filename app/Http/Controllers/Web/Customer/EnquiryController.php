@@ -12,7 +12,7 @@ use Modules\Enquiries\Models\EnquiryItem;
 use Carbon\Carbon;
 use Modules\DOOH\Models\DOOHPackage;
 use Modules\Hoardings\Models\HoardingPackage;
-
+use Modules\Cart\Services\CartService;
 class EnquiryController extends Controller
 {
     /* =====================================================
@@ -53,29 +53,66 @@ class EnquiryController extends Controller
      ===================================================== */
     public function store(Request $request)
     {
+        logger('📩 ENQUIRY REQUEST RAW', $request->all());
+
         $validated = $request->validate([
-            'hoarding_id'          => 'required|exists:hoardings,id',
+            'hoarding_id' => 'required',
+            'hoarding_id.*' => 'exists:hoardings,id',
 
-            'package_id'           => 'nullable|integer',
-            'package_label'        => 'nullable|string|max:255',
+            'package_id' => 'nullable',
+            'package_id.*' => 'nullable|exists:hoarding_packages,id',
 
-            'amount'               => 'required|numeric|min:0',
-            'duration_type'        => 'required|string',
+            'package_label' => 'nullable',
+            'amount' => 'required',
+            'amount.*' => 'numeric|min:0',
 
+            'duration_type' => 'required|string',
             'preferred_start_date' => 'required|date',
-            'preferred_end_date'   => 'nullable|date',
+            'preferred_end_date' => 'nullable|date',
 
-            'customer_name'        => 'required|string|max:255',
-            'customer_email'       => 'nullable|email|max:255',
-            'customer_mobile'      => 'required|string|max:20',
-
-            'message'              => 'nullable|string|max:1000',
+            'customer_name' => 'required|string',
+            'customer_mobile' => 'nullable|string',
+            'customer_email' => 'nullable|email',
+            'message' => 'nullable|string',
         ]);
 
-        return DB::transaction(function () use ($validated) {
+        /* =====================================================
+        | 🔥 NORMALIZE EVERYTHING TO ARRAY (CORE FIX)
+        ===================================================== */
+        $hoardingIds = is_array($validated['hoarding_id'])
+            ? array_values($validated['hoarding_id'])
+            : [$validated['hoarding_id']];
 
-            /* ================= USER ================= */
+        $packageIds = is_array($validated['package_id'] ?? null)
+            ? array_values($validated['package_id'])
+            : [$validated['package_id'] ?? null];
+
+        $packageLabels = is_array($validated['package_label'] ?? null)
+            ? array_values($validated['package_label'])
+            : [$validated['package_label'] ?? 'Base Price'];
+
+        $amounts = is_array($validated['amount'])
+            ? array_values($validated['amount'])
+            : [$validated['amount']];
+
+        logger('🧩 NORMALIZED DATA', compact(
+            'hoardingIds', 'packageIds', 'packageLabels', 'amounts'
+        ));
+
+        return DB::transaction(function () use (
+            $validated,
+            $hoardingIds,
+            $packageIds,
+            $packageLabels,
+            $amounts
+        ) {
+
+            logger('🟢 TRANSACTION START');
+
             $user = auth()->user();
+            $customerEmail = $validated['customer_email']
+                ?? auth()->user()->email
+                ?? null;
 
             /* ================= ENQUIRY ================= */
             $enquiry = Enquiry::create([
@@ -84,102 +121,106 @@ class EnquiryController extends Controller
                 'status'         => Enquiry::STATUS_SUBMITTED,
                 'customer_note'  => $validated['message'] ?? null,
                 'contact_number' => $validated['customer_mobile'],
+                'customer_email' => $customerEmail,
             ]);
 
-            /* ================= HOARDING ================= */
-            $hoarding = Hoarding::where('id', $validated['hoarding_id'])
-                ->where('status', 'active')
-                ->firstOrFail();
+            logger('🧾 ENQUIRY CREATED', ['id' => $enquiry->id]);
 
-            $isOOH  = $hoarding->hoarding_type === EnquiryItem::TYPE_OOH;
-            $isDOOH = $hoarding->hoarding_type === EnquiryItem::TYPE_DOOH;
+            /* ================= LOOP ITEMS ================= */
+            foreach ($hoardingIds as $index => $hoardingId) {
 
-            /* ================= COMMON ================= */
-            $startDate = Carbon::parse($validated['preferred_start_date']);
-            $endDate   = null;
-            $services  = [];
-            $expectedDuration = null;
+                $packageId    = $packageIds[$index] ?? null;
+                $packageLabel = $packageLabels[$index] ?? 'Base Price';
+                $amount       = $amounts[$index] ?? 0;
 
-            /* =====================================================
-             | PACKAGE SELECTED
-             ===================================================== */
-            if (!empty($validated['package_id'])) {
+                logger('➡️ PROCESS ITEM', compact(
+                    'hoardingId','packageId','packageLabel','amount'
+                ));
 
-                if ($isOOH) {
-                    $package = HoardingPackage::findOrFail($validated['package_id']);
+                $hoarding = Hoarding::where('id', $hoardingId)
+                    ->where('status', 'active')
+                    ->firstOrFail();
+
+                $startDate = Carbon::parse($validated['preferred_start_date']);
+
+                $services = [];
+                $endDate = null;
+                $expectedDuration = null;
+                $packageType = 'base';
+
+                /* ================= PACKAGE ================= */
+                if (!empty($packageId)) {
+
+                    $package = HoardingPackage::findOrFail($packageId);
+
+                    $endDate = (clone $startDate)
+                        ->addMonths($package->min_booking_duration);
+
+                    $expectedDuration =
+                        $startDate->diffInDays($endDate) . ' days';
+
+                    $serviceNames = is_string($package->services_included)
+                        ? json_decode($package->services_included, true)
+                        : ($package->services_included ?? []);
+
+                    $priceMap = is_string($hoarding->service_prices)
+                        ? json_decode($hoarding->service_prices, true)
+                        : ($hoarding->service_prices ?? []);
+
+                    $services = $this->buildServicesWithPrice(
+                        $serviceNames,
+                        $priceMap
+                    );
+
+                    $packageType = 'package';
+
+                    logger('📦 PACKAGE APPLIED', ['package_id' => $packageId]);
+
                 } else {
-                    $package = DOOHPackage::findOrFail($validated['package_id']);
-                }
 
-                $endDate = (clone $startDate)->addMonths($package->min_booking_duration);
-                $expectedDuration = $startDate->diffInDays($endDate) . ' days';
+                    $endDate = !empty($validated['preferred_end_date'])
+                        ? Carbon::parse($validated['preferred_end_date'])
+                        : (clone $startDate)->addMonth();
 
-                $serviceNames = $package->services_included ?? [];
-                $priceMap    = $hoarding->service_prices ?? [];
-
-                $services = $this->buildServicesWithPrice($serviceNames, $priceMap);
-
-            } else {
-
-                /* =================================================
-                 | BASE PRICE
-                 ================================================= */
-
-                if ($isOOH) {
-
-                    if (empty($validated['preferred_end_date'])) {
-                        throw new \Exception('End date required for OOH base booking');
-                    }
-
-                    $endDate = Carbon::parse($validated['preferred_end_date']);
-                    $expectedDuration = $startDate->diffInDays($endDate) . ' days';
-
-                    $serviceNames = $hoarding->services ?? [];
-                    $priceMap    = $hoarding->service_prices ?? [];
+                    $expectedDuration =
+                        $startDate->diffInDays($endDate) . ' days';
 
                     $services = $this->buildBaseOOHServices($hoarding);
 
-
-                } else {
-                    // DOOH BASE
-                    $endDate = Carbon::parse(
-                        $validated['preferred_end_date'] ?? $validated['preferred_start_date']
-                    );
-
-                    $expectedDuration = '10 seconds';
-                    $services = [];
+                    logger('🏷 BASE BOOKING');
                 }
+
+                /* ================= ENQUIRY ITEM ================= */
+                EnquiryItem::create([
+                    'enquiry_id'           => $enquiry->id,
+                    'hoarding_id'          => $hoarding->id,
+                    'hoarding_type'        => $hoarding->hoarding_type,
+
+                    'package_id'           => $packageId,
+                    'package_type'         => $packageType,
+
+                    'preferred_start_date' => $startDate,
+                    'preferred_end_date'   => $endDate,
+                    'expected_duration'    => $expectedDuration,
+
+                    'services' => $services,
+
+                    'meta' => [
+                        'package_label' => $packageLabel,
+                        'amount'        => $amount,
+                        'duration_type' => $validated['duration_type'],
+                        'customer_name' => $validated['customer_name'],
+                        'customer_email' => $customerEmail,
+                        'customer_mobile'=> $validated['customer_mobile'],
+                    ],
+
+                    'status' => EnquiryItem::STATUS_NEW,
+                ]);
+
+                logger('✅ ENQUIRY ITEM SAVED', ['hoarding_id' => $hoardingId]);
             }
 
-            /* ================= ENQUIRY ITEM ================= */
-            EnquiryItem::create([
-                'enquiry_id'           => $enquiry->id,
-                'hoarding_id'          => $hoarding->id,
-                'hoarding_type'        => $hoarding->hoarding_type,
-
-                'package_id'           => $validated['package_id'] ?? null,
-                'package_type'         => $validated['package_id'] ? 'package' : 'base',
-
-                'preferred_start_date' => $startDate,
-                'preferred_end_date'   => $endDate,
-                'expected_duration'    => $expectedDuration,
-
-                'services'             => $services,
-
-                'meta' => [
-                    'package_label'   => $validated['package_label'] ?? 'Base Price',
-                    'amount'          => $validated['amount'],
-                    'duration_type'   => $validated['duration_type'],
-                    'customer_name'   => $validated['customer_name'],
-                    'customer_email'  => $validated['customer_email'],
-                    'customer_mobile' => $validated['customer_mobile'],
-                    'duration_unit'   => $isDOOH && empty($validated['package_id'])
-                        ? 'seconds'
-                        : 'days',
-                ],
-
-                'status' => EnquiryItem::STATUS_NEW,
-            ]);
+            logger('🎉 TRANSACTION COMMIT');
 
             return response()->json([
                 'success'    => true,
@@ -188,6 +229,10 @@ class EnquiryController extends Controller
             ]);
         });
     }
+
+
+
+
 
     /* =====================================================
      | SHOW
@@ -267,5 +312,24 @@ class EnquiryController extends Controller
 
         return $services;
     }
-
+    public function shortlisted(CartService $cartService)
+    {
+        return response()->json(
+            $cartService->getCartForUI()
+        );
+    }
+    public function packages($id)
+    {
+        return DB::table('hoarding_packages')
+            ->where('hoarding_id', $id)
+            ->where('is_active', 1)
+            ->select(
+                'id',
+                'package_name',
+                'price',
+                'duration',
+                'duration_unit'
+            )
+            ->get();
+    }
 }
