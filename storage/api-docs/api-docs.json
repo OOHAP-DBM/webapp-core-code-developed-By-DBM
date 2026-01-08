@@ -601,9 +601,556 @@
                     }
                 ]
             }
+        },
+        "/hoardings/vendor/ooh/step-1": {
+            "post": {
+                "tags": [
+                    "OOH Hoardings"
+                ],
+                "summary": "Create OOH Hoarding - Step 1",
+                "operationId": "eda97faed1eae55675b84fe7d458b233",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OOHStep1Request"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/hoardings/vendor/ooh/step-2/{ooh_id}": {
+            "post": {
+                "tags": [
+                    "OOH Hoardings"
+                ],
+                "summary": "Update OOH Hoarding - Step 2",
+                "operationId": "ee926df87d87b3570c8e951f6eac9fd3",
+                "parameters": [
+                    {
+                        "name": "ooh_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OOHStep2Request"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/hoardings/vendor/ooh/step-3/{ooh_id}": {
+            "post": {
+                "tags": [
+                    "OOH Hoardings"
+                ],
+                "summary": "Update OOH Hoarding - Step 3",
+                "operationId": "0effd52d563c58c5772d68803eae37e8",
+                "parameters": [
+                    {
+                        "name": "ooh_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OOHStep3Request"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/hoardings/vendor/ooh/draft": {
+            "get": {
+                "tags": [
+                    "OOH Hoardings"
+                ],
+                "summary": "Get vendor's draft hoardings",
+                "operationId": "8092488e1157f7837593cafc06a57667",
+                "responses": {
+                    "200": {
+                        "description": "Drafts",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/hoardings/vendor/ooh/{id}": {
+            "get": {
+                "tags": [
+                    "OOH Hoardings"
+                ],
+                "summary": "Get OOH Hoarding details",
+                "operationId": "08c6f036be99229e2debf71d068d08c1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
+        "schemas": {
+            "OOHStep1Request": {
+                "required": [
+                    "category",
+                    "width",
+                    "height",
+                    "measurement_unit",
+                    "address",
+                    "pincode",
+                    "locality",
+                    "state",
+                    "base_monthly_price",
+                    "lat",
+                    "lng"
+                ],
+                "properties": {
+                    "category": {
+                        "type": "string",
+                        "example": "Billboard"
+                    },
+                    "width": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 40
+                    },
+                    "height": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 20
+                    },
+                    "measurement_unit": {
+                        "type": "string",
+                        "enum": [
+                            "sqft",
+                            "sqm"
+                        ],
+                        "example": "sqft"
+                    },
+                    "address": {
+                        "type": "string",
+                        "example": "MG Road, Near Metro Station"
+                    },
+                    "pincode": {
+                        "type": "string",
+                        "example": "560001"
+                    },
+                    "locality": {
+                        "type": "string",
+                        "example": "MG Road"
+                    },
+                    "city": {
+                        "type": "string",
+                        "example": "Bengaluru",
+                        "nullable": true
+                    },
+                    "state": {
+                        "type": "string",
+                        "example": "Karnataka"
+                    },
+                    "lat": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 12.9716,
+                        "nullable": true
+                    },
+                    "lng": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 77.5946,
+                        "nullable": true
+                    },
+                    "base_monthly_price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 250000,
+                        "nullable": true
+                    },
+                    "monthly_price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 24000,
+                        "nullable": true
+                    },
+                    "media": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "OOHStep2Request": {
+                "properties": {
+                    "nagar_nigam_approved": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "permit_number": {
+                        "type": "string",
+                        "example": "NGM-2024-4567",
+                        "nullable": true
+                    },
+                    "permit_valid_till": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-12-31",
+                        "nullable": true
+                    },
+                    "expected_footfall": {
+                        "type": "integer",
+                        "example": 50000
+                    },
+                    "expected_eyeball": {
+                        "type": "integer",
+                        "example": 150000
+                    },
+                    "audience_types": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "daily commuters",
+                            "office crowd"
+                        ]
+                    },
+                    "blocked_dates_json": {
+                        "type": "string",
+                        "example": [
+                            "2026-01-10",
+                            "2026-01-15"
+                        ],
+                        "nullable": true
+                    },
+                    "needs_grace_period": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "grace_period_days": {
+                        "type": "integer",
+                        "example": 7
+                    },
+                    "visibility_type": {
+                        "type": "string",
+                        "example": "one_way"
+                    },
+                    "visibility_start": {
+                        "type": "string",
+                        "example": "GT Road",
+                        "nullable": true
+                    },
+                    "visibility_end": {
+                        "type": "string",
+                        "example": "Central Mall",
+                        "nullable": true
+                    },
+                    "facing_direction": {
+                        "type": "string",
+                        "example": "north"
+                    },
+                    "road_type": {
+                        "type": "string",
+                        "example": "highway"
+                    },
+                    "traffic_type": {
+                        "type": "string",
+                        "example": "vehicular"
+                    },
+                    "visible_from": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "metro station",
+                            "signal"
+                        ]
+                    },
+                    "located_at": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "road divider",
+                            "junction"
+                        ]
+                    },
+                    "brand_logos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "OOHStep3Request": {
+                "required": [
+                    "offers_json"
+                ],
+                "properties": {
+                    "offers_json": {
+                        "description": "JSON-encoded array of campaign packages. Each package object should have: name, min_booking_duration, duration_unit, discount, end_date, services.",
+                        "type": "string",
+                        "example": "[{name: 'Annual Bulk', min_booking_duration: 12, duration_unit: 'months', discount: 10, end_date: '2026-12-31', services: ['printing','mounting']}]"
+                    },
+                    "enable_weekly_booking": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "weekly_price_1": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 345
+                    },
+                    "weekly_price_2": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 543
+                    },
+                    "weekly_price_3": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 45
+                    },
+                    "graphics_included": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "graphics_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 354
+                    },
+                    "printing_included": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "printing_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 5435
+                    },
+                    "printing_material_type": {
+                        "type": "string",
+                        "example": "flex"
+                    },
+                    "mounting_included": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "mounting_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 34
+                    },
+                    "lighting_included": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "lighting_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 43
+                    },
+                    "lighting_type": {
+                        "type": "string",
+                        "example": "front-lit"
+                    },
+                    "remounting_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 345
+                    },
+                    "survey_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 34
+                    }
+                },
+                "type": "object"
+            }
+        },
         "parameters": {
             "App\\Swagger\\OpenApi": {
                 "$ref": "#/components/parameters/AcceptHeader"
@@ -636,6 +1183,10 @@
         {
             "name": "Vendor Onboarding",
             "description": "Vendor Onboarding"
+        },
+        {
+            "name": "OOH Hoardings",
+            "description": "OOH Hoardings"
         }
     ]
 }

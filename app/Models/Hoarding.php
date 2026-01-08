@@ -40,6 +40,7 @@ class Hoarding extends Model implements HasMedia
         'commission_percent',
         'graphics_charge',
         'survey_charge',
+        'wee'
     ];
 
     /* ===================== FILLABLE ===================== */
@@ -113,6 +114,7 @@ class Hoarding extends Model implements HasMedia
         'status',
         'current_step',
         'is_featured',
+        'located_at',
 
         /* Analytics */
         'view_count',
@@ -127,11 +129,12 @@ class Hoarding extends Model implements HasMedia
         'longitude' => 'decimal:7',
         'geolocation_verified' => 'boolean',
 
-        'visibility_start' => 'datetime:H:i',
-        'visibility_end' => 'datetime:H:i',
+        // 'visibility_start' => 'datetime:H:i',
+        // 'visibility_end' => 'datetime:H:i',
         'visibility_details' => 'array',
 
         'audience_types' => 'array',
+        'located_at' => 'array',
 
         'base_monthly_price' => 'decimal:2',
         'monthly_price' => 'decimal:2',
@@ -250,10 +253,10 @@ class Hoarding extends Model implements HasMedia
     // /**
     //  * Scope a query to filter by vendor.
     //  */
-    // public function scopeByVendor($query, $vendorId)
-    // {
-    //     return $query->where('vendor_id', $vendorId);
-    // }
+    public function scopeByVendor($query, $vendorId)
+    {
+        return $query->where('vendor_id', $vendorId);
+    }
 
   
 
@@ -264,11 +267,6 @@ class Hoarding extends Model implements HasMedia
     {
         return $query->where('status', $status);
     }
-
-    // public function getGracePeriodDays(): int
-    // {
-    //     return $this->grace_period_days ?? (int) config('booking.grace_period_days', 2);
-    // }
 
     /**
      * Check if hoarding supports weekly booking.

@@ -7,61 +7,56 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\Hoarding;
+use Modules\Enquiries\Models\EnquiryItem;
 
 class Enquiry extends Model
 {
     use HasFactory;
 
+    protected $table = 'enquiries';
+
     protected $fillable = [
         'customer_id',
-        'hoarding_id',
-        'preferred_start_date',
-        'preferred_end_date',
-        'duration_type',
-        'message',
+        'source',
         'status',
-        'snapshot',
+        'customer_note',
     ];
+
+    /* ===================== CASTS ===================== */
 
     protected $casts = [
-        'preferred_start_date' => 'date',
-        'preferred_end_date' => 'date',
-        'snapshot' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
-    /**
-     * Status constants
-     */
-    const STATUS_PENDING = 'pending';
-    const STATUS_ACCEPTED = 'accepted';
-    const STATUS_REJECTED = 'rejected';
+    /* ===================== CONSTANTS ===================== */
+
+    const STATUS_DRAFT     = 'draft';
+    const STATUS_SUBMITTED = 'submitted';
+    const STATUS_RESPONDED = 'responded';
     const STATUS_CANCELLED = 'cancelled';
 
-    /**
-     * Duration type constants
-     */
-    const DURATION_DAYS = 'days';
-    const DURATION_WEEKS = 'weeks';
-    const DURATION_MONTHS = 'months';
+    /* ===================== RELATIONSHIPS ===================== */
 
     /**
-     * Get the customer who made the enquiry
+     * Customer who raised the enquiry
      */
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'customer_id');
+        return $this->belongsTo(\App\Models\User::class, 'customer_id');
     }
 
     /**
-     * Get the hoarding for this enquiry
+     * Enquiry items (OOH / DOOH selections)
      */
-    public function hoarding(): BelongsTo
+    public function items(): HasMany
     {
-        return $this->belongsTo(Hoarding::class);
+        return $this->hasMany(EnquiryItem::class);
     }
 
     /**
-     * Get all offers for this enquiry
+     * Offers created against this enquiry
      */
     public function offers(): HasMany
     {
@@ -69,67 +64,53 @@ class Enquiry extends Model
     }
 
     /**
-     * Get the thread for this enquiry
+     * Communication thread
      */
     public function thread(): HasOne
     {
         return $this->hasOne(\Modules\Threads\Models\Thread::class);
     }
 
-    /**
-     * Scope for pending enquiries
-     */
-    public function scopePending($query)
+    /* ===================== SCOPES ===================== */
+
+    public function scopeDraft($query)
     {
-        return $query->where('status', self::STATUS_PENDING);
+        return $query->where('status', self::STATUS_DRAFT);
+    }
+
+    public function scopeSubmitted($query)
+    {
+        return $query->where('status', self::STATUS_SUBMITTED);
+    }
+
+    public function scopeResponded($query)
+    {
+        return $query->where('status', self::STATUS_RESPONDED);
+    }
+
+    /* ===================== HELPERS ===================== */
+
+    public function isDraft(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    public function isSubmitted(): bool
+    {
+        return $this->status === self::STATUS_SUBMITTED;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
     }
 
     /**
-     * Scope for accepted enquiries
+     * Total hoardings/screens in enquiry
      */
-    public function scopeAccepted($query)
+    public function getItemsCountAttribute(): int
     {
-        return $query->where('status', self::STATUS_ACCEPTED);
-    }
-
-    /**
-     * Check if enquiry is pending
-     */
-    public function isPending(): bool
-    {
-        return $this->status === self::STATUS_PENDING;
-    }
-
-    /**
-     * Check if enquiry is accepted
-     */
-    public function isAccepted(): bool
-    {
-        return $this->status === self::STATUS_ACCEPTED;
-    }
-
-    /**
-     * Check if enquiry is rejected
-     */
-    public function isRejected(): bool
-    {
-        return $this->status === self::STATUS_REJECTED;
-    }
-
-    /**
-     * Calculate duration in days
-     */
-    public function getDurationInDays(): int
-    {
-        return $this->preferred_start_date->diffInDays($this->preferred_end_date);
-    }
-
-    /**
-     * Get snapshot value by key
-     */
-    public function getSnapshotValue(string $key, $default = null)
-    {
-        return $this->snapshot[$key] ?? $default;
+        return $this->items()->count();
     }
 }
 

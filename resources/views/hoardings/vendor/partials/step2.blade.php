@@ -5,120 +5,116 @@
 
   <!-- Body -->
   <div class="p-8 space-y-8">
-<div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
-    <div class="flex items-center gap-3 mb-8">
-        <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
-        <h3 class="text-xl font-bold text-gray-800">Additional Settings</h3>
-    </div>
-
-    <div class="space-y-6">
-        <div class="flex items-center justify-between p-4 bg-green-50/30 rounded-2xl border border-green-100/50">
-            <label class="text-sm font-bold text-gray-700">Nagar Nigam Approved? <span class="text-red-500">*</span></label>
-            <div class="flex items-center gap-6">
-                <label class="flex items-center cursor-pointer group">
-                    <input type="radio" name="nagar_nigam_approved" value="1" class="hidden peer" checked>
-                    <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
-                        <div class="w-2 h-2 bg-white rounded-full"></div>
-                    </div>
-                    <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
-                </label>
-                <label class="flex items-center cursor-pointer group">
-                    <input type="radio" name="nagar_nigam_approved" value="0" class="hidden peer">
-                    <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
-                        <div class="w-2 h-2 bg-white rounded-full"></div>
-                    </div>
-                    <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">No</span>
-                </label>
-            </div>
+    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+        <div class="flex items-center gap-3 mb-8">
+            <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
+            <h3 class="text-xl font-bold text-gray-800">Additional Settings</h3>
         </div>
 
-        <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100">
-            <label class="text-sm font-bold text-gray-700">Do you want to block any certain dates?</label>
-            <div class="flex items-center gap-6">
-              <label class="flex items-center cursor-pointer group">
-                <input type="radio" name="block_dates" value="1" class="hidden peer" x-model="blockDatesEnabled">
-                <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
-                  <div class="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
-              </label>
-              <label class="flex items-center cursor-pointer group">
-                <input type="radio" name="block_dates" value="0" class="hidden peer" x-model="blockDatesEnabled" checked>
-                <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
-                  <div class="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">No</span>
-              </label>
-            </div>
-          </div>
-            <!-- Calendar for blocking dates -->
-            <div x-data="{ blockDatesEnabled: '{{ old('block_dates', '0') }}', blockedDates: [] }" class="mt-4" x-show="blockDatesEnabled == '1'" x-cloak>
-              <label class="block text-sm font-bold text-gray-700 mb-2">Select dates to block</label>
-              <input type="text" x-ref="blockedDatesCalendar" class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none bg-white" placeholder="Pick dates to block...">
-              <input type="hidden" name="blocked_dates_json" :value="JSON.stringify(blockedDates)">
-              <div class="text-xs text-gray-500 mt-2" x-text="blockedDates.length ? 'Blocked: ' + blockedDates.join(', ') : 'No dates selected.'"></div>
-            </div>
-            <script>
-            document.addEventListener('alpine:init', () => {
-              Alpine.directive('flatpickr', (el, {expression}, {evaluateLater, effect}) => {
-                let evaluate = evaluateLater(expression)
-                effect(() => {
-                  evaluate((dates) => {
-                    flatpickr(el, {
-                      mode: 'multiple',
-                      dateFormat: 'Y-m-d',
-                      onChange: function(selectedDates, dateStrArr) {
-                        let input = el.closest('[x-data]').__x.$data;
-                        input.blockedDates = dateStrArr;
-                      }
-                    });
-                  })
-                })
-              })
-            })
-            </script>
-
-          <!-- Calendar for blocking dates -->
-          <div x-data="{ blockDatesEnabled: false, blockedDates: [] }" x-init="
-            $watch('blockDatesEnabled', value => {
-              if (value == '1') {
-                flatpickr($refs.blockedDatesInput, {
-                  mode: 'multiple',
-                  dateFormat: 'Y-m-d',
-                  onChange: function(selectedDates, dateStr, instance) {
-                    $refs.blockedDatesHidden.value = JSON.stringify(selectedDates.map(d => instance.formatDate(d, 'Y-m-d')));
-                  }
-                });
-              }
-            });
-          " class="mt-4" x-show="blockDatesEnabled == '1'">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Select Blocked Dates</label>
-            <input type="text" x-ref="blockedDatesInput" class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none" placeholder="Pick one or more dates">
-            <input type="hidden" name="blocked_dates_json" x-ref="blockedDatesHidden">
-            <p class="text-xs text-gray-400 mt-1">Selected dates will be blocked for booking.</p>
-          </div>
-
-        <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100">
-            <label class="text-sm font-bold text-gray-700">Do you need grace period after booking?</label>
-            <div class="flex items-center gap-6">
-                <label class="flex items-center cursor-pointer group">
-                    <input type="radio" name="needs_grace_period" value="1" class="hidden peer">
-                    <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
+        <div class="space-y-6">
+            <div class="flex items-center justify-between p-4 bg-green-50/30 rounded-2xl border border-green-100/50">
+                <label class="text-sm font-bold text-gray-700">Nagar Nigam Approved? <span class="text-red-500">*</span></label>
+                <div class="flex items-center gap-6">
+                    <label class="flex items-center cursor-pointer group">
+                      <input type="radio" name="nagar_nigam_approved" value="1" class="hidden peer" id="nagar-yes">
+                      <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
                         <div class="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                      <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer group">
+                      <input type="radio" name="nagar_nigam_approved" value="0" class="hidden peer" id="nagar-no" checked>
+                      <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
+                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                      <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">No</span>
+                    </label>
+                        <!-- Nagar Nigam Modal -->
+                        <div id="nagarModal" class="fixed inset-0 z-50 flex items-center justify-center bg-transparent hidden">
+                          <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-xs">
+                            <h2 class="text-lg font-bold mb-4 text-gray-800">Enter Permit Details</h2>
+                            <input type="text" id="permitNumberInput" name="permit_number" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" placeholder="Permit Number">
+                            <input type="date" id="permitValidTillInput" name="permit_valid_till" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" placeholder="Permit Valid Till">
+                            <div class="flex justify-end gap-2">
+                              <button type="button" id="nagarCancelBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold">Cancel</button>
+                              <button type="button" id="nagarSaveBtn" class="px-4 py-2 rounded-lg bg-[#009A5C] text-white font-semibold">Save</button>
+                            </div>
+                          </div>
+                        </div>
+                        <input type="hidden" name="permit_number_hidden" id="permitNumberHidden" value="">
+                        <input type="hidden" name="permit_valid_till_hidden" id="permitValidTillHidden" value="">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100">
+                <label class="text-sm font-bold text-gray-700">Do you want to block any certain dates?</label>
+                <div class="flex items-center gap-6">
+                  <label class="flex items-center cursor-pointer group">
+                    <input type="radio" name="block_dates" value="1" class="hidden peer" id="block-yes">
+                    <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
+                      <div class="w-2 h-2 bg-white rounded-full"></div>
                     </div>
                     <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
-                </label>
-                <label class="flex items-center cursor-pointer group">
-                    <input type="radio" name="needs_grace_period" value="0" class="hidden peer" checked>
+                  </label>
+                  <label class="flex items-center cursor-pointer group">
+                    <input type="radio" name="block_dates" value="0" class="hidden peer" id="block-no" checked>
                     <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
-                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                      <div class="w-2 h-2 bg-white rounded-full"></div>
                     </div>
                     <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">No</span>
-                </label>
+                  </label>
+                </div>
             </div>
+
+            <!-- Block Dates Modal -->
+            <div id="blockDatesModal" class="fixed inset-0 z-50 flex items-center justify-center bg-transparent hidden">
+              <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-xs">
+                <h2 class="text-lg font-bold mb-4 text-gray-800">Select Blocked Dates</h2>
+                <input type="text" id="blockDatesCalendar" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" placeholder="Pick dates to block...">
+                <div class="flex justify-end gap-2">
+                  <button type="button" id="blockDatesCancelBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold">Cancel</button>
+                  <button type="button" id="blockDatesSaveBtn" class="px-4 py-2 rounded-lg bg-[#009A5C] text-white font-semibold">Save</button>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" name="blocked_dates_json" id="blockedDatesHidden" value="">
+
+            <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100">
+                <label class="text-sm font-bold text-gray-700">Do you need grace period after booking?</label>
+                <div class="flex items-center gap-6">
+                  <label class="flex items-center cursor-pointer group">
+                    <input type="radio" name="needs_grace_period" value="1" class="hidden peer" id="grace-yes">
+                    <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
+                      <div class="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                    <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
+                  </label>
+                  <label class="flex items-center cursor-pointer group">
+                    <input type="radio" name="needs_grace_period" value="0" class="hidden peer" id="grace-no" checked>
+                    <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
+                      <div class="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                    <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">No</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Grace Period Modal -->
+              <div id="graceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-transparent hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-xs">
+                  <h2 class="text-lg font-bold mb-4 text-gray-800">Set Grace Period (in days)</h2>
+                  <input type="number" min="1" max="30" id="gracePeriodInput" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" placeholder="Enter number of days">
+                  <div class="flex justify-end gap-2">
+                    <button type="button" id="graceCancelBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold">Cancel</button>
+                    <button type="button" id="graceSaveBtn" class="px-4 py-2 rounded-lg bg-[#009A5C] text-white font-semibold">Save</button>
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" name="grace_period_days" id="gracePeriodDaysHidden" value="">
+
+            
         </div>
     </div>
-</div>
    
       
 
@@ -188,7 +184,7 @@
             </label>
         </div>
     </div>
-</div>
+  </div>
 
 
 
@@ -198,142 +194,288 @@
             <h3 class="text-xl font-bold text-gray-800">Hoardings Attributes</h3>
         </div>
 
-    <div class="mb-8">
-        <label class="text-sm font-bold text-gray-500 mb-4 block uppercase tracking-wider">Visible From</label>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            @php $visibleOptions = ['Metro Ride', 'From Flyover', 'From the road', 'Roof top', 'Wall hanging']; @endphp
-            @foreach($visibleOptions as $option)
-            <label class="flex items-center p-4 border border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-green-50/50 hover:border-[#009A5C] transition-all group">
-                <input type="checkbox" name="visible_from[]" value="{{ $option }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
-                <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-[#009A5C]">{{ $option }}</span>
-            </label>
-            @endforeach
-        </div>
-    </div>
-
-    <div>
-        <label class="text-sm font-bold text-gray-500 mb-4 block uppercase tracking-wider">Located At</label>
-        <div class="grid grid-cols-2 md:grid-cols-2 gap-y-4 gap-x-12">
-            @php $locationOptions = ['Highway hoarding', 'At Square', 'Shopping Mall', 'Airport', 'Park', 'Main Road', 'Intracity Highway', 'Pause Area']; @endphp
-            @foreach($locationOptions as $loc)
-            <label class="flex items-center space-x-3 cursor-pointer group">
-                <input type="checkbox" name="located_at[]" value="{{ $loc }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
-                <span class="text-sm text-gray-600 group-hover:text-gray-900">{{ $loc }}</span>
-            </label>
-            @endforeach
-        </div>
-    </div>
-</div>
-
-<!-- Hoardings Visibility -->
-<div 
-  x-data="{ visibility: 'one_way' }"
-  class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8"
->
-  <h3 class="text-xl font-bold text-gray-800 mb-8 flex items-center">
-    <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-    Hoardings Visibility
-  </h3>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-    <!-- ONE WAY -->
-    <div class="space-y-4">
-      <label
-        class="flex items-center p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all"
-        :class="visibility === 'one_way'
-          ? 'border-[#009A5C] bg-green-50/40'
-          : 'border-gray-200 hover:border-[#009A5C]'"
-      >
-        <input
-          type="radio"
-          name="visibility_type"
-          value="one_way"
-          x-model="visibility"
-          class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
-        >
-        <span class="ml-3 text-sm font-bold text-gray-700">
-          One Way Visibility
-        </span>
-      </label>
-
-      <div
-        class="grid grid-cols-2 gap-4 transition-all"
-        x-show="visibility === 'one_way'"
-        x-transition
-      >
-        <div>
-          <label class="text-xs font-bold text-gray-400 mb-1 block">To</label>
-          <input
-            type="text"
-            name="visibility_to[]"
-            placeholder="Eg. Fun Mall"
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
-          >
+        <div class="mb-8">
+            <label class="text-sm font-bold text-gray-500 mb-4 block uppercase tracking-wider">Visible From</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @php $visibleOptions = ['Metro Ride', 'From Flyover', 'From the road', 'Roof top', 'Wall hanging']; @endphp
+                @foreach($visibleOptions as $option)
+                <label class="flex items-center p-4 border border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-green-50/50 hover:border-[#009A5C] transition-all group">
+                    <input type="checkbox" name="visible_from[]" value="{{ $option }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
+                    <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-[#009A5C]">{{ $option }}</span>
+                </label>
+                @endforeach
+            </div>
         </div>
 
         <div>
-          <label class="text-xs font-bold text-gray-400 mb-1 block">Going From</label>
-          <input
-            type="text"
-            name="visibility_from[]"
-            placeholder="Eg. Santacruz"
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
-          >
+            <label class="text-sm font-bold text-gray-500 mb-4 block uppercase tracking-wider">Located At</label>
+            <div class="grid grid-cols-2 md:grid-cols-2 gap-y-4 gap-x-12">
+                @php $locationOptions = ['Highway hoarding', 'At Square', 'Shopping Mall', 'Airport', 'Park', 'Main Road', 'Intracity Highway', 'Pause Area']; @endphp
+                @foreach($locationOptions as $loc)
+                <label class="flex items-center space-x-3 cursor-pointer group">
+                    <input type="checkbox" name="located_at[]" value="{{ $loc }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
+                    <span class="text-sm text-gray-600 group-hover:text-gray-900">{{ $loc }}</span>
+                </label>
+                @endforeach
+            </div>
         </div>
+    </div>
+
+    <!-- Hoardings Visibility -->
+    <div 
+      x-data="{ visibility: 'one_way' }"
+      class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8"
+    >
+      <h3 class="text-xl font-bold text-gray-800 mb-8 flex items-center">
+        <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+        Hoardings View For Visitors
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <!-- ONE WAY -->
+        <div class="space-y-4">
+          <label
+            class="flex items-center p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all"
+            :class="visibility === 'one_way'
+              ? 'border-[#009A5C] bg-green-50/40'
+              : 'border-gray-200 hover:border-[#009A5C]'"
+          >
+            <input
+              type="radio"
+              name="visibility_type"
+              value="one_way"
+              x-model="visibility"
+              class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
+            >
+            <span class="ml-3 text-sm font-bold text-gray-700">
+              One Way Visibility
+            </span>
+          </label>
+
+          <div
+            class="grid grid-cols-2 gap-4 transition-all"
+            x-show="visibility === 'one_way'"
+            x-transition
+          >
+          <div>
+              <label class="text-xs font-bold text-gray-400 mb-1 block">Going From</label>
+              <input
+                type="text"
+                name="visibility_start[]"
+                placeholder="Eg. Santacruz"
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+              >
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-400 mb-1 block">To</label>
+              <input
+                type="text"
+                name="visibility_end[]"
+                placeholder="Eg. Fun Mall"
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+              >
+            </div>
+
+          
+          </div>
+        </div>
+
+        <!-- BOTH WAY -->
+        <div class="space-y-4">
+          <label
+            class="flex items-center p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all"
+            :class="visibility === 'both_side'
+              ? 'border-[#009A5C] bg-green-50/40'
+              : 'border-gray-200 hover:border-[#009A5C]'"
+          >
+            <input
+              type="radio"
+              name="visibility_type"
+              value="both_side"
+              x-model="visibility"
+              class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
+            >
+            <span class="ml-3 text-sm font-bold text-gray-700">
+              Both Side Visibility
+            </span>
+          </label>
+
+          <div
+            class="grid grid-cols-2 gap-4 transition-all"
+            x-show="visibility === 'both_side'"
+            x-transition
+          >
+            <div>
+              <label class="text-xs font-bold text-gray-400 mb-1 block">Going From</label>
+              <input
+                type="text"
+                name="visibility_start[]"
+                placeholder="Eg. Santacruz"
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+              >
+            </div>
+
+            <div>
+              <label class="text-xs font-bold text-gray-400 mb-1 block">To</label>
+              <input
+                type="text"
+                name="visibility_end[]"
+                placeholder="Eg. Fun Mall"
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+              >
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- BOTH WAY -->
-    <div class="space-y-4">
-      <label
-        class="flex items-center p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all"
-        :class="visibility === 'both_side'
-          ? 'border-[#009A5C] bg-green-50/40'
-          : 'border-gray-200 hover:border-[#009A5C]'"
-      >
-        <input
-          type="radio"
-          name="visibility_type"
-          value="both_side"
-          x-model="visibility"
-          class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
-        >
-        <span class="ml-3 text-sm font-bold text-gray-700">
-          Both Side Visibility
-        </span>
-      </label>
-
-      <div
-        class="grid grid-cols-2 gap-4 transition-all"
-        x-show="visibility === 'both_side'"
-        x-transition
-      >
-        <div>
-          <label class="text-xs font-bold text-gray-400 mb-1 block">Going From</label>
-          <input
-            type="text"
-            name="both_visibility_from[]"
-            placeholder="Eg. Santacruz"
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
-          >
-        </div>
-
-        <div>
-          <label class="text-xs font-bold text-gray-400 mb-1 block">To</label>
-          <input
-            type="text"
-            name="both_visibility_to[]"
-            placeholder="Eg. Fun Mall"
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
-          >
-        </div>
-      </div>
-    </div>
 
   </div>
 </div>
+ <script>
+          // Grace period modal logic
+          const graceYes = document.getElementById('grace-yes');
+          const graceNo = document.getElementById('grace-no');
+          const graceModal = document.getElementById('graceModal');
+          const graceInput = document.getElementById('gracePeriodInput');
+          const graceSaveBtn = document.getElementById('graceSaveBtn');
+          const graceCancelBtn = document.getElementById('graceCancelBtn');
+          const graceHidden = document.getElementById('gracePeriodDaysHidden');
 
+          if (graceYes && graceModal && graceInput && graceSaveBtn && graceCancelBtn && graceHidden) {
+            graceYes.addEventListener('change', function() {
+              if (this.checked) {
+                graceModal.classList.remove('hidden');
+                graceInput.value = graceHidden.value || '';
+              }
+            });
+            graceNo.addEventListener('change', function() {
+              if (this.checked) {
+                graceHidden.value = '';
+              }
+            });
+            graceSaveBtn.addEventListener('click', function() {
+              const val = parseInt(graceInput.value, 10);
+              if (!isNaN(val) && val > 0 && val <= 30) {
+                graceHidden.value = val;
+                graceModal.classList.add('hidden');
+              } else {
+                graceInput.classList.add('border-red-500');
+                graceInput.focus();
+              }
+            });
+            graceCancelBtn.addEventListener('click', function() {
+              graceModal.classList.add('hidden');
+              graceYes.checked = false;
+              graceNo.checked = true;
+              graceHidden.value = '';
+            });
+          }
+  </script>
 
-  </div>
-</div>
+  <script>
+// Block Dates modal logic
+const blockYes = document.getElementById('block-yes');
+const blockNo = document.getElementById('block-no');
+const blockModal = document.getElementById('blockDatesModal');
+const blockCalendar = document.getElementById('blockDatesCalendar');
+const blockSaveBtn = document.getElementById('blockDatesSaveBtn');
+const blockCancelBtn = document.getElementById('blockDatesCancelBtn');
+const blockHidden = document.getElementById('blockedDatesHidden');
+let blockSelectedDates = [];
+
+if (blockYes && blockModal && blockCalendar && blockSaveBtn && blockCancelBtn && blockHidden) {
+  blockYes.addEventListener('change', function() {
+    if (this.checked) {
+      blockModal.classList.remove('hidden');
+      blockCalendar.value = '';
+      blockSelectedDates = [];
+    }
+  });
+  blockNo.addEventListener('change', function() {
+    if (this.checked) {
+      blockHidden.value = '';
+    }
+  });
+  blockSaveBtn.addEventListener('click', function() {
+    if (blockSelectedDates.length > 0) {
+      blockHidden.value = JSON.stringify(blockSelectedDates);
+      blockModal.classList.add('hidden');
+    } else {
+      blockCalendar.classList.add('border-red-500');
+      blockCalendar.focus();
+    }
+  });
+  blockCancelBtn.addEventListener('click', function() {
+    blockModal.classList.add('hidden');
+    blockYes.checked = false;
+    blockNo.checked = true;
+    blockHidden.value = '';
+  });
+  // Initialize flatpickr calendar
+  flatpickr(blockCalendar, {
+    mode: 'multiple',
+    dateFormat: 'Y-m-d',
+    minDate: new Date(),
+    disable: [function(date) {
+      // Disable all past dates
+      return date < new Date().setHours(0,0,0,0);
+    }],
+    onChange: function(selectedDates, dateStrArr) {
+      blockSelectedDates = dateStrArr;
+    }
+  });
+}
+</script>
+
+ <script>
+    // Nagar Nigam modal logic
+    const nagarYes = document.getElementById('nagar-yes');
+    const nagarNo = document.getElementById('nagar-no');
+    const nagarModal = document.getElementById('nagarModal');
+    const permitNumberInput = document.getElementById('permitNumberInput');
+    const permitValidTillInput = document.getElementById('permitValidTillInput');
+    const nagarSaveBtn = document.getElementById('nagarSaveBtn');
+    const nagarCancelBtn = document.getElementById('nagarCancelBtn');
+    const permitNumberHidden = document.getElementById('permitNumberHidden');
+    const permitValidTillHidden = document.getElementById('permitValidTillHidden');
+
+    if (nagarYes && nagarModal && permitNumberInput && permitValidTillInput && nagarSaveBtn && nagarCancelBtn && permitNumberHidden && permitValidTillHidden) {
+      nagarYes.addEventListener('change', function() {
+        if (this.checked) {
+          nagarModal.classList.remove('hidden');
+          permitNumberInput.value = permitNumberHidden.value || '';
+          permitValidTillInput.value = permitValidTillHidden.value || '';
+        }
+      });
+      nagarNo.addEventListener('change', function() {
+        if (this.checked) {
+          permitNumberHidden.value = '';
+          permitValidTillHidden.value = '';
+        }
+      });
+      nagarSaveBtn.addEventListener('click', function() {
+        const permitNum = permitNumberInput.value.trim();
+        const permitDate = permitValidTillInput.value;
+        if (permitNum && permitDate) {
+          permitNumberHidden.value = permitNum;
+          permitValidTillHidden.value = permitDate;
+          nagarModal.classList.add('hidden');
+        } else {
+          if (!permitNum) permitNumberInput.classList.add('border-red-500');
+          if (!permitDate) permitValidTillInput.classList.add('border-red-500');
+          if (!permitNum) permitNumberInput.focus();
+          else permitValidTillInput.focus();
+        }
+      });
+      nagarCancelBtn.addEventListener('click', function() {
+        nagarModal.classList.add('hidden');
+        nagarYes.checked = false;
+        nagarNo.checked = true;
+        permitNumberHidden.value = '';
+        permitValidTillHidden.value = '';
+      });
+    }
+  </script>

@@ -21,17 +21,26 @@ class EnsureVendorOnboardingComplete
             return $next($request);
         }
 
-        // Allow access to onboarding routes
-        if ($request->routeIs('vendor.onboarding.*') || $request->routeIs('logout')) {
-            return $next($request);
-        }
-
         $profile = $user->vendorProfile;
 
         // If no profile, redirect to onboarding
         if (!$profile) {
             return redirect()->route('vendor.onboarding.contact-details')
                 ->with('info', 'Please complete your vendor onboarding first.');
+        }
+
+        // Restrict /vendor/onboarding/business-info to onboarding_step == 2
+        if ($request->routeIs('vendor.onboarding.business-info')) {
+            if ((int) $profile->onboarding_step !== 2) {
+                return redirect()->route($this->getStepRoute($profile->onboarding_step))
+                    ->with('info', 'You must complete the previous onboarding steps first.');
+            }
+            return $next($request);
+        }
+
+        // Allow access to other onboarding routes and logout
+        if ($request->routeIs('vendor.onboarding.*') || $request->routeIs('logout')) {
+            return $next($request);
         }
 
         // Check onboarding status

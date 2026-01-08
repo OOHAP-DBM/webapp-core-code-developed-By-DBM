@@ -50,6 +50,8 @@
                         </svg>
                         <div class="flex flex-col">
                             <span class="text-xs text-gray-400 leading-tight">From - To</span>
+                            <input type="hidden" name="from_date" id="from_date">
+                            <input type="hidden" name="to_date" id="to_date">
                             <input 
                                 type="text" 
                                 id="dateRange"
@@ -214,7 +216,7 @@
                         </svg>
                     </a>
                     <!-- Cart with Badge -->
-                    <a href="#" class="relative inline-block" title="Cart">
+                    <a href="{{ route('cart.index') }}" class="relative inline-block" title="Cart">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="black"
                             xmlns="http://www.w3.org/2000/svg"
                             class="text-gray-700">
@@ -360,14 +362,20 @@
     document.addEventListener('DOMContentLoaded', function() {
         const dateInput = document.getElementById('dateRange');
         if (dateInput && typeof flatpickr !== 'undefined') {
-            flatpickr(dateInput, {
-                mode: 'range',
-                dateFormat: 'D, d M y',
-                defaultDate: [new Date(), new Date(Date.now() + 86400000)],
-                onChange: function(selectedDates, dateStr) {
-                    // Handle date selection
+            flatpickr("#dateRange", {
+                mode: "range",
+                dateFormat: "D, d M y",
+                onChange: function (selectedDates) {
+                    if (selectedDates.length === 2) {
+                        document.getElementById('from_date').value =
+                            selectedDates[0].toISOString().split('T')[0];
+
+                        document.getElementById('to_date').value =
+                            selectedDates[1].toISOString().split('T')[0];
+                    }
                 }
             });
+
         } else {
             // Fallback: Set default text
             if (dateInput) {

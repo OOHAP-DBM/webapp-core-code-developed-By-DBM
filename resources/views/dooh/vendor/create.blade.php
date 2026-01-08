@@ -60,7 +60,9 @@
             <form action="{{ route('vendor.dooh.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6 px-1 sm:px-0">
                 @csrf
                 <input type="hidden" name="step" value="{{ $step }}">
-
+                @if($step > 1 && $draft)
+                    <input type="hidden" name="screen_id" value="{{ $draft->id }}">
+                @endif
                 @if($step == 1)
                     @include('dooh.vendor.partials.step1', ['draft' => $draft])
                 @elseif($step == 2)
@@ -72,11 +74,9 @@
                 <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mb-8 w-full">
                     <a href="{{ route('hoardings.index') }}" class="w-full sm:w-auto px-5 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition text-center">Cancel</a>
                     <button type="submit" class="w-full sm:w-auto px-7 py-2 rounded bg-green-600 text-white font-semibold shadow hover:bg-green-700 transition text-center">
-                        @if($step == 1)
+                         @if($step < 3)
                             Next
-                        @elseif($step == 2)
-                            Skip & Next
-                        @elseif($step == 3)
+                        @else
                             Publish
                         @endif
                     </button>

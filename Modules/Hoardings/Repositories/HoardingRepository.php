@@ -42,7 +42,11 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
         }
 
         if (!empty($filters['status'])) {
-            $query->byStatus($filters['status']);
+            if (is_array($filters['status'])) {
+                $query->whereIn('status', $filters['status']);
+            } else {
+                $query->byStatus($filters['status']);
+            }
         }
 
         if (!empty($filters['search'])) {
@@ -63,7 +67,6 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
         $sortBy = $filters['sort_by'] ?? 'created_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
-
         return $query->paginate($perPage);
     }
 
@@ -122,13 +125,57 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
     public function delete(int $id): bool
     {
         $hoarding = $this->findById($id);
-        
         if (!$hoarding) {
             return false;
         }
 
+        // Delete related data based on hoarding_type
+        if ($hoarding->hoarding_type === \App\Models\Hoarding::TYPE_OOH) {
+            // Delete OOH child, packages, brand logos
+            $ooh = $hoarding->ooh;
+            if ($ooh) {
+                \Modules\Hoardings\Models\OOHHoarding::where('hoarding_id', $ooh->id)->delete();
+                // Delete OOH packages
+                \Modules\Hoardings\Models\HoardingPackage::where('hoarding_id', $ooh->id)->delete();
+                // Delete OOH brand logos
+                \Modules\Hoardings\Models\HoardingBrandLogo::where('hoarding_id', $ooh->id)->delete();
+                $ooh->delete();
+            }
+        } elseif ($hoarding->hoarding_type === \App\Models\Hoarding::TYPE_DOOH) {
+            // Delete DOOH screens, slots, packages, brand logos
+            $doohScreens = $hoarding->doohScreens;
+            foreach ($doohScreens as $screen) {
+                // Delete DOOH packages
+                if (method_exists($screen, 'packages')) {
+                    $screen->packages()->delete();
+                }
+                // Delete DOOH slots
+                if (method_exists($screen, 'slots')) {
+                    $screen->slots()->delete();
+                }
+                // Delete DOOH brand logos
+                if (method_exists($screen, 'brandLogos')) {
+                    $screen->brandLogos()->delete();
+                }
+                // Delete DOOH media
+                if (method_exists($screen, 'media')) {
+                    $screen->media()->delete();
+                }
+                $screen->delete();
+            }
+            // Delete DOOH packages directly linked to hoarding (if any)
+            \Modules\Hoardings\Models\HoardingPackage::where('hoarding_id', $hoarding->id)->delete();
+            // Delete DOOH brand logos directly linked to hoarding (if any)
+            \Modules\Hoardings\Models\HoardingBrandLogo::where('hoarding_id', $hoarding->id)->delete();
+        }
+
+        // Delete packages and brand logos linked to parent hoarding (if any)
+        \Modules\Hoardings\Models\HoardingPackage::where('hoarding_id', $hoarding->id)->delete();
+        \Modules\Hoardings\Models\HoardingBrandLogo::where('hoarding_id', $hoarding->id)->delete();
+
         return $hoarding->delete();
     }
+   
 
     /**
      * Get hoardings by vendor.
