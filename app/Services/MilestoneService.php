@@ -277,7 +277,7 @@ class MilestoneService
     /**
      * Get milestone payment summary for quotation
      */
-    public function getMilestone Summary(Quotation $quotation): array
+    public function getMilestoneSummary(Quotation $quotation): array
     {
         if (!$quotation->hasMilestones()) {
             return [

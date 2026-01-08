@@ -103,28 +103,34 @@ class HoardingListService
     public function storeStep2($hoarding, array $data, array $brandLogoFiles = []): array
     {
 
+        // dd($data);
         // Always update the parent Hoarding model
         $parentHoarding = method_exists($hoarding, 'hoarding') && $hoarding->hoarding ? $hoarding->hoarding : $hoarding;
+       \Log::info('Step2 parentHoarding', ['id' => $parentHoarding->id]);
         $childHoarding = $hoarding;
-
+        \Log::info('Step2 childHoarding', ['id' => $childHoarding->id]);
         // 1. Data Transformation (Mapping form inputs to DB columns)
         $formattedData = $this->mapHoardingStep2Data($data);
 
-        return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles) {
-            // 2. Persist main hoarding data (parent)
-            $updatedHoarding = $this->repo->updateStep2($parentHoarding, $formattedData);
+        try {
+            return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles) {
+                // 2. Persist main hoarding data (parent)
+                $updatedHoarding = $this->repo->updateStep2($parentHoarding, $formattedData);
 
-            // 3. Handle Brand Logos via Repository (child)
-            if (!empty($brandLogoFiles)) {
-                $this->repo->storeBrandLogos($childHoarding->id, $brandLogoFiles);
-            }
+                // 3. Handle Brand Logos via Repository (child)
+                if (!empty($brandLogoFiles)) {
+                    $this->repo->storeBrandLogos($childHoarding->id, $brandLogoFiles);
+                }
 
-            return [
-                'success'  => true,
-                'message'  => 'Hoarding details updated successfully.',
-                'hoarding' => $updatedHoarding->fresh('brandLogos')
-            ];
-        });
+                return [
+                    'success'  => true,
+                    'message'  => 'Hoarding details updated successfully.',
+                    'hoarding' => $updatedHoarding->fresh('brandLogos')
+                ];
+            });
+        } catch (\Throwable $e) {
+            throw new \Exception('Step 2 failed: ' . $e->getMessage(), 0, $e);
+        }
     }
 
     /**
@@ -159,10 +165,8 @@ class HoardingListService
             'facing_direction'    => $data['facing_direction'] ?? null,
             'road_type'           => $data['road_type'] ?? null,
             'traffic_type'        => $data['traffic_type'] ?? null,
-            'visibility_details'   => json_encode([
-                'visible_from' => $data['visible_from'] ?? [],
-                'located_at'   => $data['located_at'] ?? [],
-            ]),
+            'visibility_details'   => $data['visible_from'] ?? null,
+            'located_at'   => $data['located_at'] ?? null,
 
             // Step Management
             'current_step'         => 2,
@@ -177,16 +181,23 @@ class HoardingListService
     protected function parseBlockDates($input)
     {
         if (!$input) return null;
-        // Remove extra quotes if present
-        $input = trim($input, '"');
-        // Try JSON decode first
-        $decoded = json_decode($input, true);
-        if (is_array($decoded)) {
-            return $decoded;
+        // If already array, return as is
+        if (is_array($input)) {
+            return $input;
         }
-        // Fallback: comma-separated string
-        $arr = array_map('trim', explode(',', $input));
-        return array_filter($arr);
+        // Remove extra quotes if present
+        if (is_string($input)) {
+            $input = trim($input, '"');
+            // Try JSON decode first
+            $decoded = json_decode($input, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+            // Fallback: comma-separated string
+            $arr = array_map('trim', explode(',', $input));
+            return array_filter($arr);
+        }
+        return null;
     }
     /**
      * Helper to safely decode JSON fields.
@@ -202,20 +213,42 @@ class HoardingListService
      */
     public function storeStep3($hoarding, $data)
     {
+        // dd($data);
         return \DB::transaction(function () use ($hoarding, $data) {
             $hoarding = $this->repo->updateStep3($hoarding, $data);
-            if (!empty($data['offer_name'])) {
+
+            // Support offers_json (JSON string) from web or API, like DOOH
+            $offers = [];
+            if (!empty($data['offers_json'])) {
+                $offers = json_decode($data['offers_json'], true);
+            }
+            // If not using offers_json, fallback to old array fields
+            if (empty($offers) && !empty($data['offer_name'])) {
+                $count = is_array($data['offer_name']) ? count($data['offer_name']) : 0;
+                for ($i = 0; $i < $count; $i++) {
+                    $offers[] = [
+                        'name' => $data['offer_name'][$i] ?? '',
+                        'min_booking_duration' => $data['offer_duration'][$i] ?? 1,
+                        'duration_unit' => $data['offer_unit'][$i] ?? 'months',
+                        'discount' => $data['offer_discount'][$i] ?? 0,
+                        'start_date' => $data['offer_start_date'][$i] ?? null,
+                        'end_date' => $data['offer_end_date'][$i] ?? null,
+                        'services' => $data['offer_services'][$i] ?? [],
+                    ];
+                }
+            }
+            if (!empty($offers)) {
+                $data['offers'] = $offers;
                 $this->repo->storePackages($hoarding->id, $data);
             }
+
             // Set parent hoarding status to pending_approval
             $parent = $hoarding->hoarding;
             if ($parent && $parent->status !== \App\Models\Hoarding::STATUS_PENDING_APPROVAL) {
                 $parent->status = \App\Models\Hoarding::STATUS_PENDING_APPROVAL;
                 $parent->save();
                 // Notify all admins
-                // $admins = \App\Models\User::role(['admin', 'super_admin'])->get();
                 $admins = \App\Models\User::role(['admin'])->get();
-
                 foreach ($admins as $admin) {
                     $admin->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
                 }
