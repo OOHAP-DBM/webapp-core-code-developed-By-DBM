@@ -21,6 +21,7 @@ class Enquiry extends Model
         'source',
         'status',
         'customer_note',
+        'contact_number',
     ];
 
     /* ===================== CASTS ===================== */

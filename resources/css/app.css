@@ -225,3 +225,10 @@
         align-items: flex-start;
     }
 }
+.cart-btn.add {
+    @apply border border-gray-300 text-gray-700 hover:bg-gray-50;
+}
+
+.cart-btn.remove {
+    @apply border border-gray-300   text-red-400 hover:text-red-500;
+}

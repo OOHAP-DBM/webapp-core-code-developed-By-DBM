@@ -531,7 +531,6 @@
                         return;
                     }
 
-                    // ✅ RULE 2: Hoarding commission present → allow toggle
                     fetch(`/admin/vendor-hoardings/${id}/toggle-status`, {
                         method: 'POST',
                         headers: {
@@ -542,11 +541,34 @@
                     })
                     .then(res => {
                         if (!res.ok) throw new Error();
-                        location.reload();
+                        return res.json();
+                    })
+                    .then(data => {
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Status Updated',
+                            text: data.status === 'active'
+                                ? 'Hoarding has been published successfully.'
+                                : 'Hoarding has been unpublished successfully.',
+                            confirmButtonColor: '#16a34a',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1800);
+
                     })
                     .catch(() => {
                         btn.dataset.loading = '0';
-                        alert('Status update failed');
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Update Failed',
+                            text: 'Unable to update hoarding status'
+                        });
                     });
 
                 });

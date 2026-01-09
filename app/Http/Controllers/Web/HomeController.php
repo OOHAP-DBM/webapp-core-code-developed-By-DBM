@@ -9,6 +9,10 @@ use Modules\DOOH\Models\DOOHScreen;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Modules\Cart\Services\CartService;
+
 
 class HomeController extends Controller
 {
@@ -17,7 +21,7 @@ class HomeController extends Controller
      *
      * @return View
      */
-    public function index(): View
+    public function index(CartService $cartService): View
     {
         // Get platform statistics
         $stats = [
@@ -39,15 +43,42 @@ class HomeController extends Controller
 
         // Get recently added hoardings
         $bestHoardings = Hoarding::where('status', 'active')
-            ->with(['vendor'])
+            ->with([
+                'vendor',
+                'doohScreen' // 🔥 MUST
+            ])
             ->latest('created_at')
-            ->take(8)
             ->get();
 
+        $bestHoardings = $bestHoardings->map(function ($hoarding) {
+
+            if ($hoarding->hoarding_type === 'dooh') {
+
+                $hoarding->price_type = 'dooh';
+
+                $hoarding->base_price_for_enquiry =
+                    (float) (optional($hoarding->doohScreen)->price_per_slot ?? 0);
+
+            } else {
+
+                $hoarding->price_type = 'ooh';
+
+                $hoarding->base_price_for_enquiry =
+                    (float) ($hoarding->monthly_price ?? 0);
+
+                $hoarding->monthly_price_display = $hoarding->monthly_price;
+                $hoarding->base_monthly_price_display = $hoarding->base_monthly_price;
+            }
+            $hoarding->grace_period_days = (int) ($hoarding->grace_period_days ?? 0);
+            
+            return $hoarding;
+        });
+
+
         // If no hoardings, use dummy data
-        if ($bestHoardings->isEmpty()) {
-            $bestHoardings = collect($this->getDummyHoardings());
-        }
+        // if ($bestHoardings->isEmpty()) {
+        //     $bestHoardings = collect($this->getDummyHoardings());
+        // }
 
         // Get top DOOH screens
         $topDOOHs = DOOHScreen::whereHas('hoarding', function ($q) {
@@ -56,7 +87,6 @@ class HomeController extends Controller
         })
             ->with(['hoarding.vendor'])
             ->latest()
-            ->take(8)
             ->get();
 
         // If no DOOH screens, use dummy data
@@ -69,13 +99,38 @@ class HomeController extends Controller
 
         // Check if user has location stored
         $userLocation = session('user_location');
+        // ---------------- PAGINATION ADD (WITHOUT REMOVING ANYTHING) ----------------
+        $page = request()->get('page', 1);
+        $perPage = 8;
+
+        $bestHoardings = $bestHoardings instanceof Collection
+            ? $bestHoardings
+            : collect($bestHoardings);
+
+        $bestHoardings = new LengthAwarePaginator(
+            $bestHoardings->forPage($page, $perPage),
+            $bestHoardings->count(),
+            $perPage,
+            $page,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+        
+        
+        $cartIds = app(CartService::class)
+        ->getCartHoardingIds();
+       
+        // ---------------------------------------------------------------------------
 
         return view('home.index', compact(
             'stats',
             'bestHoardings',
             'topDOOHs',
             'topCities',
-            'userLocation'
+            'userLocation',
+            'cartIds',
         ));
     }
 
