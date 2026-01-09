@@ -43,11 +43,11 @@
     </div>
 
     <div class="max-w-[1600px] mx-auto p-6 space-y-5">
-        <div class="flex flex-wrap gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
+        {{-- <div class="flex flex-wrap gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
             @foreach(range('A', 'Z') as $char)
                 <a href="#" class="hover:text-blue-500 {{ $char == 'H' ? 'text-blue-500 underline' : '' }}">{{ $char }}</a>
             @endforeach
-        </div>
+        </div> --}}
 
         <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
             <div class="overflow-x-auto">
@@ -146,7 +146,9 @@
                         <option>08</option>
                         <option>10</option>
                     </select>
-                    <span>Showing 1 to {{ count($hoardings) }} of 350 records</span>
+                    <span>
+                        Showing {{ ($hoardings->firstItem() ?? 0) }} to {{ ($hoardings->lastItem() ?? count($hoardings)) }} of {{ ($hoardings->total() ?? count($hoardings)) }} records
+                    </span>
                 </div>
                 <div class="flex items-center gap-1">
                     <button class="w-7 h-7 flex items-center justify-center rounded text-gray-300"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>

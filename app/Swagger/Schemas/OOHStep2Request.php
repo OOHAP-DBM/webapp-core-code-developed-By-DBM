@@ -71,21 +71,21 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(
  *         property="visibility_type",
  *         type="string",
- *         example="high"
+ *         example="one_way"
  *     ),
  *
  *     @OA\Property(
  *         property="visibility_start",
  *         type="string",
  *         nullable=true,
- *         example="100m"
+ *         example="GT Road"
  *     ),
  *
  *     @OA\Property(
  *         property="visibility_end",
  *         type="string",
  *         nullable=true,
- *         example="500m"
+ *         example="Central Mall"
  *     ),
  *
  *     @OA\Property(

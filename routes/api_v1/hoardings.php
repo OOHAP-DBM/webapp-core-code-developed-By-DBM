@@ -18,7 +18,7 @@ Route::get('/search', [\Modules\Hoardings\Controllers\Api\HoardingController::cl
 Route::get('/availability/{id}', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'checkAvailability']);
 
 // Vendor routes - Manage hoardings
-Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:vendor'])->prefix('vendor')->group(function () {
     Route::post('/', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'store']);
     Route::put('/{id}', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'update']);
     Route::delete('/{id}', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'destroy']);
@@ -26,11 +26,11 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
 
     // Vendor-specific: Get all hoardings for authenticated vendor
     Route::get('/vendor/hoardings', [\Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController::class, 'index']);
-    Route::post('step-1', [OOHListingController::class, 'storeStep1']);
-    Route::post('step-2/{ooh_id}', [OOHListingController::class, 'storeStep2']);
-    Route::post('step-3/{ooh_id}', [OOHListingController::class, 'storeStep3']);
-    Route::get('draft', [OOHListingController::class, 'getDrafts']);
-    Route::get('{id}', [OOHListingController::class, 'show']);
+    Route::post('ooh/step-1', [OOHListingController::class, 'storeStep1']);
+    Route::post('ooh/step-2/{ooh_id}', [OOHListingController::class, 'storeStep2']);
+    Route::post('ooh/step-3/{ooh_id}', [OOHListingController::class, 'storeStep3']);
+    Route::get('ooh/draft', [OOHListingController::class, 'getDrafts']);
+    Route::get('/{id}', [OOHListingController::class, 'show']);
 
 });
 

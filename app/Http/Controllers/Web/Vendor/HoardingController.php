@@ -46,13 +46,13 @@ class HoardingController extends Controller
     /**
      * Show the form for creating a new hoarding.
      */
-    public function create()
-    {
-        $types = $this->hoardingService->getTypes();
-        $statuses = $this->hoardingService->getStatuses();
+    // public function create()
+    // {
+    //     $types = $this->hoardingService->getTypes();
+    //     $statuses = $this->hoardingService->getStatuses();
 
-        return view('vendor.hoardings.create', compact('types', 'statuses'));
-    }
+    //     return view('vendor.hoardings.create', compact('types', 'statuses'));
+    // }
 
     /**
      * Store a newly created hoarding.
@@ -178,7 +178,7 @@ class HoardingController extends Controller
         // Clear statistics cache
         $this->hoardingService->clearVendorStatistics(auth()->id());
 
-        return redirect()->route('vendor.hoardings.index')
+        return redirect()->route('vendor.hoardings.myHoardings')
             ->with('success', 'Hoarding deleted successfully.');
     }
 }

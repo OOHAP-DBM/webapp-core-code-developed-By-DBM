@@ -9,7 +9,8 @@ use Illuminate\Support\Str;
 use Modules\DOOH\Models\DOOHScreenMedia;
 use Modules\DOOH\Models\DOOHPackage;
 use App\Models\Hoarding;
-
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class DOOHScreenRepository
 {
@@ -51,6 +52,7 @@ class DOOHScreenRepository
             /** -------------------------------
              * 1. Create Parent Hoarding
              * -------------------------------- */
+          
             $hoarding = Hoarding::create([
                 'vendor_id'      => $vendor->id,
                 'title'          => $data['name'] ?? null,
@@ -81,26 +83,41 @@ class DOOHScreenRepository
             /** -------------------------------
              * 2. Create DOOH Screen
              * -------------------------------- */
+         
+            // dd($areaSqft);
+            // Inline resolution normalization logic
+            if (($data['resolution_type'] ?? '') !== 'custom') {
+                $preset = $data['resolution_type'] ?? '';
+                if (strpos($preset, 'x') !== false) {
+                    [$resWidth, $resHeight] = explode('x', $preset);
+                } else {
+                    $resWidth = null;
+                    $resHeight = null;
+                }
+            } else {
+                $resWidth = $data['resolution_width'] ?? null;
+                $resHeight = $data['resolution_height'] ?? null;
+            }
             $width  = (float) $data['width'];
             $height = (float) $data['height'];
+            $measurement_unit = $data['measurement_unit'] ?? null;
 
-            $areaSqft = ($data['measurement_unit'] === 'sqm')
+            $areaSqft = ($measurement_unit === 'sqm')
                 ? round($width * $height * 10.7639, 2)
                 : round($width * $height, 2);
-
             return DOOHScreen::create([
                 'hoarding_id' => $hoarding->id,
-                // 'vendor_id'   => $vendor->id,
                 'screen_type' => $data['screen_type'],
-
-                'resolution_width'       => $width,
-                'resolution_height'      => $height,
-                'resolution_unit' => $data['measurement_unit'],
+                'width' => $width,
+                'height' => $height,
+                'measurement_unit' => $measurement_unit,
+                'resolution_width'  => $resWidth,
+                'resolution_height' => $resHeight,
                 'calculated_area_sqft' => $areaSqft,
-
-                'price_per_slot' => $data['price_per_slot'],
-                // 'status'         => Hoarding::STATUS_DRAFT,
+                'price_per_10_sec_slot' => $data['price_per_10_sec_slot'],
+                'display_price_per_30s' => $data['price_per_30_sec_slot']?? 0,
             ]);
+
         });
     }
     public function getOrCreateHoardingDraft($vendor, array $data)
@@ -209,17 +226,11 @@ class DOOHScreenRepository
     public function updateStep3(DOOHScreen $screen, array $data): DOOHScreen
     {
         $allowed = [
-            'display_price_per_30s',
+            'price_per_slot',
             'video_length',
-            'base_monthly_price',
-            'graphics_included',
-            'graphics_price',
-            'survey_charge',
         ];
-
         $screen->fill(array_intersect_key($data, array_flip($allowed)));
         $screen->save();
-
         return $screen;
     }
 
@@ -268,14 +279,30 @@ class DOOHScreenRepository
      */
     public function storePackages(int $screenId, array $data)
     {
+        // dd($data);
         \Log::info('Package Data Received:', $data);
-        // 1. Clear existing packages if you want a fresh sync, 
-        // or use IDs to update specific ones. Usually, for this UI, fresh sync is easier.
         DOOHPackage::where('dooh_screen_id', $screenId)->delete();
-
-        if (isset($data['offer_name']) && is_array($data['offer_name'])) {
+        // New: handle offers array (from JSON)
+        if (isset($data['offers']) && is_array($data['offers'])) {
+            foreach ($data['offers'] as $offer) {
+                if (!empty($offer['name'])) {
+                    DOOHPackage::create([
+                        'dooh_screen_id'         => $screenId,
+                        'package_name'           => $offer['name'],
+                        'min_booking_duration'   => $offer['min_booking_duration'] ?? 1,
+                        'duration_unit'          => $offer['duration_unit'] ?? 'months',
+                        'discount_percent'       => $offer['discount_value'] ?? $offer['discount'] ?? 0,
+                        'is_active'              => $offer['is_active'] ?? true,
+                        'slots_per_day'          => 1,
+                        'services_included'      => isset($offer['services']) ? json_encode($offer['services']) : null,
+                        'custom_fields'          => null,
+                        'end_date'               => $offer['end_date'] ?? null,
+                    ]);
+                }
+            }
+        } elseif (isset($data['offer_name']) && is_array($data['offer_name'])) {
+            // Legacy: handle old array fields
             foreach ($data['offer_name'] as $index => $name) {
-                // Only save if the name is not empty
                 if (!empty($name)) {
                     DOOHPackage::create([
                         'dooh_screen_id'       => $screenId,
@@ -284,10 +311,10 @@ class DOOHScreenRepository
                         'duration_unit'        => $data['offer_unit'][$index] ?? 'months',
                         'discount_percent'     => $data['offer_discount'][$index] ?? 0,
                         'is_active'            => true,
-                        // 'package_type'         => 'campaign',
-                        // Map other fields as needed
-                        'price_per_month'      => $data['base_monthly_price'] ?? 0,
                         'slots_per_day'        => 1,
+                        'services_included'    => isset($data['offer_services'][$index]) ? json_encode($data['offer_services'][$index]) : null,
+                        'custom_fields'        => null,
+                        'end_date'             => $data['offer_end_date'][$index] ?? null,
                     ]);
                 }
             }
@@ -296,23 +323,33 @@ class DOOHScreenRepository
     /**
      * Update Step 2 fields for a screen
      */
-    public function updateStep2($screen, array $data)
+    // public function updateStep2($screen, array $data)
+    // {
+    //     $allowed = [
+    //         'nagar_nigam_approved',
+    //         'grace_period',
+    //         'block_dates',
+    //         'audience_types',
+    //         'visible_from',
+    //         'located_at',
+    //         'hoarding_visibility',
+    //         'visibility_details',
+    //     ];
+
+    //     $screen->fill(array_intersect_key($data, array_flip($allowed)));
+    //     $screen->save();
+
+    //     return $screen;
+    // }
+    public function updateStep2($hoarding, array $data)
     {
-        $allowed = [
-            'nagar_nigam_approved',
-            'grace_period',
-            'block_dates',
-            'audience_types',
-            'visible_from',
-            'located_at',
-            'hoarding_visibility',
-            'visibility_details',
-        ];
-
-        $screen->fill(array_intersect_key($data, array_flip($allowed)));
-        $screen->save();
-
-        return $screen;
+        $hoarding->fill($data);
+        try {
+            $result = $hoarding->save();
+        } catch (\Throwable $e) {
+            \Log::error('Step2 updateStep2: save error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        }
+        return $hoarding;
     }
 
     /**

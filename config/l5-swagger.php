@@ -7,6 +7,12 @@ return [
             'api' => [
                 'title' => 'OOHApp API Documentation',
             ],
+            'urls' => [
+                [
+                    'url' => '/api/documentation/api-docs.json',
+                    'name' => 'OOHApp API'
+                ]
+            ],
 
             'routes' => [
                 /*

@@ -103,7 +103,7 @@ class DOOHController extends Controller
         $vendor = Auth::user();
         $step = (int) $request->input('step', 1);
         $step = max(1, min(3, $step));
-
+        $screenId = $request->input('screen_id');
         if ($step === 1) {
             $result = $service->storeStep1($vendor, $request->all(), $request->file('media', []));
             if ($result['success']) {
@@ -114,44 +114,52 @@ class DOOHController extends Controller
         }
 
         if ($step === 2) {
-            $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
-                $q->where('vendor_id', $vendor->id)
-                    ->where('status', 'draft'); // use the hoarding's status
-            })
-                ->orderByDesc('updated_at')
-                ->first();
+            // $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+            //     $q->where('vendor_id', $vendor->id)
+            //         ->where('status', 'draft'); // use the hoarding's status
+            // })
+            //     ->orderByDesc('updated_at')
+            //     ->first();
 
-            if (!$draft) {
-                return back()->withErrors(['step2' => 'Draft not found.'])->withInput();
-            }
+            // if (!$draft) {
+            //     return back()->withErrors(['step2' => 'Draft not found.'])->withInput();
+            // }
 
-            // Handle skip
-            if ($request->input('skip_step2')) {
-                $draft->current_step = 3;
-                $draft->save();
-                return redirect()->route('vendor.dooh.create', ['step' => 3])
-                    ->with('success', 'Step 2 skipped. Proceed to next step.');
-            }
+            // // Handle skip
+            // if ($request->input('skip_step2')) {
+            //     $draft->current_step = 3;
+            //     $draft->save();
+            //     return redirect()->route('vendor.dooh.create', ['step' => 3])
+            //         ->with('success', 'Step 2 skipped. Proceed to next step.');
+            // }
 
-            // Collect all step 2 fields from request
-            $data = [
-                'nagar_nigam_approved' => $request->input('nagar_nigam_approved'),
-                'block_dates' => $request->input('block_dates'),
-                'grace_period' => $request->input('grace_period'),
-                'audience_types' => $request->input('audience_type'),
-                'visible_from' => $request->input('visible_from'),
-                'located_at' => $request->input('located_at'),
-                'hoarding_visibility' => $request->input('hoarding_visibility'),
-                'visibility_details' => $request->input('visibility_details'),
-            ];
-            $brandLogoFiles = $request->file('brand_logos', []);
+            // // Collect all step 2 fields from request
+            // $data = [
+            //     'nagar_nigam_approved' => $request->input('nagar_nigam_approved'),
+            //     'block_dates' => $request->input('block_dates'),
+            //     'grace_period' => $request->input('grace_period'),
+            //     'audience_types' => $request->input('audience_type'),
+            //     'visible_from' => $request->input('visible_from'),
+            //     'located_at' => $request->input('located_at'),
+            //     'hoarding_visibility' => $request->input('hoarding_visibility'),
+            //     'visibility_details' => $request->input('visibility_details'),
+            // ];
+            // $brandLogoFiles = $request->file('brand_logos', []);
 
-            $result = $service->storeStep2($draft, $data, $brandLogoFiles);
-            if ($result['success']) {
-                return redirect()->route('vendor.dooh.create', ['step' => 3])
-                    ->with('success', 'Step 2 completed. Proceed to next step.');
-            }
-            return back()->withErrors($result['errors'])->withInput();
+            // $result = $service->storeStep2($draft, $data, $brandLogoFiles);
+            // if ($result['success']) {
+            //     return redirect()->route('vendor.dooh.create', ['step' => 3])
+            //         ->with('success', 'Step 2 completed. Proceed to next step.');
+            // }
+            // return back()->withErrors($result['errors'])->withInput();
+
+            $screen = DOOHScreen::where('id', $screenId)
+                ->whereHas('hoarding', function ($q) use ($vendor) {
+                    $q->where('vendor_id', $vendor->id);
+                })->firstOrFail();
+            $result = $service->storeStep2($screen, $request->all(), $request->file('brand_logos', []));
+            return redirect()->route('vendor.dooh.create', ['step' => 3])
+                ->with('success', 'Step 2 completed. Proceed to next step.');
         }
 
         if ($step === 3) {
@@ -184,8 +192,8 @@ class DOOHController extends Controller
                 $draft->hoarding->current_step = 3; // Mark as finished
                 $draft->save();
 
-                return redirect()->route('vendor.dooh.create', ['step' => 3])
-                    ->with('success', 'All steps completed. Listing submitted for approval.');
+                return redirect()->route('vendor.hoardings.myHoardings', ['step' => 3])
+                    ->with('success', 'Hoarding submitted successfully! It is now under review and will be published once approved.');
             }
             return back()->withErrors($result['errors'])->withInput();
         }

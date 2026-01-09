@@ -602,13 +602,13 @@
                 ]
             }
         },
-        "/api/v1/ooh/step-1": {
+        "/hoardings/vendor/ooh/step-1": {
             "post": {
                 "tags": [
                     "OOH Hoardings"
                 ],
                 "summary": "Create OOH Hoarding - Step 1",
-                "operationId": "805f01d5ef7f5f65444d8b47170c1cce",
+                "operationId": "eda97faed1eae55675b84fe7d458b233",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -652,13 +652,13 @@
                 ]
             }
         },
-        "/api/v1/ooh/step-2/{ooh_id}": {
+        "/hoardings/vendor/ooh/step-2/{ooh_id}": {
             "post": {
                 "tags": [
                     "OOH Hoardings"
                 ],
                 "summary": "Update OOH Hoarding - Step 2",
-                "operationId": "d4c37dbc3b7dc37c8f8e8418dba283db",
+                "operationId": "ee926df87d87b3570c8e951f6eac9fd3",
                 "parameters": [
                     {
                         "name": "ooh_id",
@@ -712,13 +712,13 @@
                 ]
             }
         },
-        "/api/v1/ooh/step-3/{ooh_id}": {
+        "/hoardings/vendor/ooh/step-3/{ooh_id}": {
             "post": {
                 "tags": [
                     "OOH Hoardings"
                 ],
                 "summary": "Update OOH Hoarding - Step 3",
-                "operationId": "8f894556f5411404bc07172bb08945be",
+                "operationId": "0effd52d563c58c5772d68803eae37e8",
                 "parameters": [
                     {
                         "name": "ooh_id",
@@ -772,13 +772,13 @@
                 ]
             }
         },
-        "/api/v1/ooh/draft": {
+        "/hoardings/vendor/ooh/draft": {
             "get": {
                 "tags": [
                     "OOH Hoardings"
                 ],
                 "summary": "Get vendor's draft hoardings",
-                "operationId": "d2d67dc32dd3de19283351ab4f27efd6",
+                "operationId": "8092488e1157f7837593cafc06a57667",
                 "responses": {
                     "200": {
                         "description": "Drafts",
@@ -812,13 +812,13 @@
                 ]
             }
         },
-        "/api/v1/ooh/{id}": {
+        "/hoardings/vendor/ooh/{id}": {
             "get": {
                 "tags": [
                     "OOH Hoardings"
                 ],
                 "summary": "Get OOH Hoarding details",
-                "operationId": "287fa467aba07813d23b3b7b4bd8cb89",
+                "operationId": "08c6f036be99229e2debf71d068d08c1",
                 "parameters": [
                     {
                         "name": "id",
@@ -944,8 +944,15 @@
                     "monthly_price": {
                         "type": "number",
                         "format": "float",
-                        "example": 275000,
+                        "example": 24000,
                         "nullable": true
+                    },
+                    "media": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "binary"
+                        }
                     }
                 },
                 "type": "object"
@@ -1003,16 +1010,16 @@
                     },
                     "visibility_type": {
                         "type": "string",
-                        "example": "high"
+                        "example": "one_way"
                     },
                     "visibility_start": {
                         "type": "string",
-                        "example": "100m",
+                        "example": "GT Road",
                         "nullable": true
                     },
                     "visibility_end": {
                         "type": "string",
-                        "example": "500m",
+                        "example": "Central Mall",
                         "nullable": true
                     },
                     "facing_direction": {
@@ -1058,50 +1065,87 @@
                 "type": "object"
             },
             "OOHStep3Request": {
+                "required": [
+                    "offers_json"
+                ],
                 "properties": {
-                    "offer_name": {
+                    "offers_json": {
+                        "description": "JSON-encoded array of campaign packages. Each package object should have: name, min_booking_duration, duration_unit, discount, end_date, services.",
                         "type": "string",
-                        "example": "Republic Day Special",
-                        "nullable": true
+                        "example": "[{name: 'Annual Bulk', min_booking_duration: 12, duration_unit: 'months', discount: 10, end_date: '2026-12-31', services: ['printing','mounting']}]"
                     },
-                    "discount_type": {
-                        "type": "string",
-                        "enum": [
-                            "percentage",
-                            "flat"
-                        ],
-                        "example": "percentage",
-                        "nullable": true
+                    "enable_weekly_booking": {
+                        "type": "boolean",
+                        "example": true
                     },
-                    "discount_value": {
+                    "weekly_price_1": {
                         "type": "number",
                         "format": "float",
-                        "example": 15,
-                        "nullable": true
+                        "example": 345
                     },
-                    "min_booking_duration": {
-                        "type": "integer",
-                        "example": 1
+                    "weekly_price_2": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 543
                     },
-                    "duration_unit": {
-                        "type": "string",
-                        "example": "months"
+                    "weekly_price_3": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 45
                     },
-                    "start_date": {
-                        "type": "string",
-                        "format": "date",
-                        "example": "2026-02-01",
-                        "nullable": true
-                    },
-                    "end_date": {
-                        "type": "string",
-                        "format": "date",
-                        "example": "2026-04-30",
-                        "nullable": true
-                    },
-                    "auto_apply": {
+                    "graphics_included": {
                         "type": "boolean",
                         "example": false
+                    },
+                    "graphics_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 354
+                    },
+                    "printing_included": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "printing_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 5435
+                    },
+                    "printing_material_type": {
+                        "type": "string",
+                        "example": "flex"
+                    },
+                    "mounting_included": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "mounting_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 34
+                    },
+                    "lighting_included": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "lighting_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 43
+                    },
+                    "lighting_type": {
+                        "type": "string",
+                        "example": "front-lit"
+                    },
+                    "remounting_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 345
+                    },
+                    "survey_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 34
                     }
                 },
                 "type": "object"
