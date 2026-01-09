@@ -8,113 +8,171 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rules\Password;
+use Modules\Auth\Services\OTPService;
+use App\Services\ProfileService;
 use Throwable;
 // Customer Profile Section @Aviral
+
+
+/**
+ * @OA\Schema(
+ *     schema="CustomerProfile",
+ *     type="object",
+ *     @OA\Property(property="id", type="integer", example=12),
+ *     @OA\Property(property="name", type="string", example="Rahul Sharma"),
+ *     @OA\Property(property="email", type="string", example="rahul@example.com"),
+ *     @OA\Property(property="email_verified", type="boolean", example=true),
+ *     @OA\Property(property="phone", type="string", example="9876543210"),
+ *     @OA\Property(property="phone_verified", type="boolean", example=true),
+ *     @OA\Property(property="avatar", type="string", example="https://app.com/storage/media/users/avatars/12/avatar.png"),
+ *     @OA\Property(property="company_name", type="string", example="OOH Media Pvt Ltd"),
+ *     @OA\Property(property="gstin", type="string", example="09ABCDE1234F1Z5")
+ * )
+ */
+
 class ProfileController extends Controller
 {
+
     /**
-     * Get logged-in customer profile
+     * @OA\Get(
+     *     path="/customer/profile",
+     *     tags={"Customer Profile"},
+     *     summary="Get logged-in customer profile",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Profile fetched successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/CustomerProfile")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
-    public function show(Request $request)
+
+    public function show(Request $request, ProfileService $service)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $service->response($request->user(), [
+                'company_name' => $request->user()->company_name,
+                'gstin' => $request->user()->gstin,
+            ]),
+        ]);
+    }
+
+
+    /**
+     * @OA\Post(
+     *     path="/customer/profile",
+     *     tags={"Customer Profile"},
+     *     summary="Update customer profile",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"name","email","phone"},
+     *                 @OA\Property(property="name", type="string", example="Rahul Sharma"),
+     *                 @OA\Property(property="email", type="string", example="rahul@example.com"),
+     *                 @OA\Property(property="phone", type="string", example="9876543210"),
+     *                 @OA\Property(property="company_name", type="string", example="OOH Media Pvt Ltd"),
+     *                 @OA\Property(property="gstin", type="string", example="09ABCDE1234F1Z5"),
+     *                 @OA\Property(
+     *                     property="avatar",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="Profile image (jpg, png, webp)"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Profile updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Profile updated successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/CustomerProfile")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=403, description="Email or phone not verified"),
+     *     @OA\Response(response=422, description="Validation error"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
+
+    public function update(Request $request, ProfileService $service)
     {
         $user = $request->user();
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'email_verified' => (bool) $user->email_verified_at,
-                'phone' => $user->phone,
-                'phone_verified' => (bool) $user->phone_verified_at,
-                'avatar' => $user->avatar
-                    ? asset('storage/' . $user->avatar)
-                    : null,
-                'company_name' => $user->company_name,
-                'gstin' => $user->gstin,
-            ],
-        ]);
-    }
-    /**
-     * Update profile
-     */
-    public function update(Request $request)
-    {
-        try {
-            $user = $request->user();
-            if (!$user->email || !$user->email_verified_at) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please verify your email address before updating profile'
-                ], 403);
-            }
-
-            if (!$user->phone || !$user->phone_verified_at) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please verify your phone number before updating profile'
-                ], 403);
-            }
-            $data = $request->validate([
-                'name'         => 'required|string|max:255',
-                'email'        => 'required|email|unique:users,email,' . $user->id,
-                'phone'        => 'required|string|unique:users,phone,' . $user->id,
-                'company_name' => 'nullable|string|max:255',
-                'gstin'        => 'nullable|string|max:255',
-                'avatar'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            ]);
-            if ($request->hasFile('avatar')) {
-                $path = $request->file('avatar')->store(
-                    'media/users/avatars/' . $user->id,
-                    'public'
-                );
-                if (!Storage::disk('public')->exists($path)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Avatar upload failed'
-                    ], 422);
-                }
-                $data['avatar'] = $path;
-            }
-
-            $user->update($data);
-            $user->refresh();
-
-            return response()->json([
-            'success' => true,
-            'message' => 'Profile updated successfully',
-            'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'email_verified' => (bool) $user->email_verified_at,
-                'phone' => $user->phone,
-                'phone_verified' => (bool) $user->phone_verified_at,
-                'avatar' => $user->avatar
-                    ? asset('storage/' . $user->avatar)
-                    : null,
-                'company_name' => $user->company_name,
-                'gstin' => $user->gstin,
-            ],
-        ]);
-
-        } catch (Throwable $e) {
-
-            Log::error('PROFILE_UPDATE_FAILED', [
-                'user_id' => $request->user()->id ?? null,
-                'error'   => $e->getMessage()
-            ]);
-
+        if (!$user->email_verified_at || !$user->phone_verified_at) {
             return response()->json([
                 'success' => false,
-                'message' => 'Profile update failed'
-            ], 500);
+                'message' => 'Verify email & phone first',
+            ], 403);
         }
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'phone' => 'required|string|unique:users,phone,'.$user->id,
+            'company_name' => 'nullable|string|max:255',
+            'gstin' => 'nullable|string|max:255',
+            'avatar' => 'nullable|image|max:2048',
+        ]);
+
+        if ($request->hasFile('avatar')) {
+            $data['avatar'] = $service->updateAvatar($user, $request->file('avatar'));
+        }
+
+        if ($data['email'] !== $user->email) $data['email_verified_at'] = null;
+        if ($data['phone'] !== $user->phone) $data['phone_verified_at'] = null;
+
+        $user->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated',
+            'data' => $service->response($user->fresh(), [
+                'company_name' => $user->company_name,
+                'gstin' => $user->gstin,
+            ]),
+        ]);
     }
+
+
     /**
-     * Remove avatar
+     * @OA\Delete(
+     *     path="/customer/profile/avatar",
+     *     tags={"Customer Profile"},
+     *     summary="Remove customer avatar",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Avatar removed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Avatar removed successfully")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=500, description="Unable to remove avatar")
+     * )
      */
+
     public function removeAvatar(Request $request)
     {
         try {
@@ -130,7 +188,6 @@ class ProfileController extends Controller
                 'success' => true,
                 'message' => 'Avatar removed successfully',
             ]);
-
         } catch (Throwable $e) {
             Log::error('AVATAR_REMOVE_FAILED', [
                 'user_id' => $request->user()->id ?? null,
@@ -143,45 +200,62 @@ class ProfileController extends Controller
             ], 500);
         }
     }
+
+
     /**
-     * Change password + send mail
+     * @OA\Post(
+     *     path="/customer/profile/change-password",
+     *     tags={"Customer Profile"},
+     *     summary="Change account password",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"current_password","new_password","new_password_confirmation"},
+     *             @OA\Property(property="current_password", type="string", example="OldPass@123"),
+     *             @OA\Property(property="new_password", type="string", example="NewPass@123"),
+     *             @OA\Property(property="new_password_confirmation", type="string", example="NewPass@123")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Password changed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Password changed successfully")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=422, description="Invalid current password"),
+     *     @OA\Response(response=500, description="Unable to change password")
+     * )
      */
-    public function changePassword(Request $request)
+
+    public function changePassword(Request $request, ProfileService $service)
     {
         try {
             $request->validate([
                 'current_password' => 'required',
-                'new_password'     => 'required|min:8|confirmed',
+                'new_password' => [
+                    'required',
+                    'confirmed'
+                ],
             ]);
 
-            $user = $request->user();
-
-            if (!Hash::check($request->current_password, $user->password)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Current password is incorrect',
-                ], 422);
-            }
-
-            $user->update([
-                'password' => Hash::make($request->new_password),
-            ]);
-
-            // Static security mail (no extra files)
-            if ($user->email) {
-                Mail::raw("Hello {$user->name},\n\nYour account password has been changed successfully.\n\nIf you did not perform this action, please contact OOHAPP support immediately.\n\nRegards,\nOOHAPP Security Team",
-                    fn ($msg) => $msg->to($user->email)
-                                      ->subject('Your OOHAPP Password Was Changed')
-                );
-            }
+            $result = $service->changePassword(
+                $request->user(),
+                $request->current_password,
+                $request->new_password
+            );
 
             return response()->json([
-                'success' => true,
-                'message' => 'Password changed successfully',
-            ]);
-
-        } catch (Throwable $e) {
-            Log::error('PASSWORD_CHANGE_FAILED', [
+                'success' => $result['success'],
+                'message' => $result['message'],
+            ], $result['success'] ? 200 : 422);
+        } catch (\Throwable $e) {
+            \Log::error('PASSWORD_CHANGE_FAILED', [
                 'user_id' => $request->user()->id ?? null,
                 'error' => $e->getMessage(),
             ]);
@@ -192,95 +266,108 @@ class ProfileController extends Controller
             ], 500);
         }
     }
+
+
     /**
-     * Send OTP
+     * @OA\Post(
+     *     path="/customer/profile/send-otp",
+     *     tags={"Customer Profile"},
+     *     summary="Send OTP to email or phone",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"identifier"},
+     *             @OA\Property(property="identifier", type="string", example="rahul@example.com")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="OTP sent successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="OTP sent successfully")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=403, description="Invalid identifier"),
+     *     @OA\Response(response=500, description="Unable to send OTP")
+     * )
      */
-    public function sendOtp(Request $request)
+
+    public function sendOtp(Request $request, OTPService $otpService)
     {
-        try {
-            $request->validate([
-                'identifier' => 'required',
-            ]);
-            $user = $request->user();
-            $otp = $user->generateOTP();
-            if (filter_var($request->identifier, FILTER_VALIDATE_EMAIL)) {
-                Mail::raw(
-                    "Your OOHAPP verification OTP is: {$otp}. This OTP is valid for 10 minutes.",
-                    function ($message) use ($request) {
-                        $message->to($request->identifier)
-                                ->subject('OOHAPP OTP Verification');
-                    }
-                );
-            } else {
-                // 📱 SEND SMS (placeholder)
-                // yaha SMS gateway integrate hoga
-                Log::info('OTP_SMS_SENT', [
-                    'phone' => $request->identifier,
-                    'otp'   => $otp,
-                ]);
-            }
-            return response()->json([
-                'success' => true,
-                'message' => 'OTP sent successfully',
-            ]);
-        } catch (Throwable $e) {
-            Log::error('SEND_OTP_FAILED', [
-                'user_id' => $request->user()->id ?? null,
-                'error'   => $e->getMessage(),
-            ]);
+        $request->validate([
+            'identifier' => 'required|string',
+        ]);
+
+        $user = $request->user();
+
+        if (!in_array($request->identifier, [$user->email, $user->phone])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unable to send OTP',
-            ], 500);
+                'message' => 'Invalid identifier',
+            ], 403);
         }
+
+        $result = $otpService->generateAndSendOTP($request->identifier);
+
+        return response()->json([
+            'success' => $result['success'],
+            'message' => $result['message'],
+        ], $result['success'] ? 200 : 500);
     }
+
+
+
     /**
-     * Verify OTP
+     * @OA\Post(
+     *     path="/customer/profile/verify-otp",
+     *     tags={"Customer Profile"},
+     *     summary="Verify OTP for email or phone",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"identifier","otp"},
+     *             @OA\Property(property="identifier", type="string", example="rahul@example.com"),
+     *             @OA\Property(property="otp", type="string", example="123456")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="OTP verified successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Verified successfully")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=422, description="Invalid or expired OTP"),
+     *     @OA\Response(response=500, description="OTP verification failed")
+     * )
      */
-    public function verifyOtp(Request $request)
+
+    public function verifyOtp(Request $request, OTPService $otpService)
     {
-        try {
-            $request->validate([
-                'identifier' => 'required',
-                'otp'        => 'required|digits:4',
-            ]);
+        $request->validate([
+            'identifier' => 'required|string',
+            'otp' => 'required|digits:6',
+        ]);
 
-            $user = $request->user();
+        $result = $otpService->verifyOTPForLoggedInUser(
+            $request->identifier,
+            $request->otp
+        );
 
-            if (!$user->isOTPValid($request->otp)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid or expired OTP',
-                ], 422);
-            }
-
-            $user->clearOTP();
-
-            filter_var($request->identifier, FILTER_VALIDATE_EMAIL)
-                ? $user->update([
-                    'email' => $request->identifier,
-                    'email_verified_at' => now(),
-                ])
-                : $user->update([
-                    'phone' => $request->identifier,
-                    'phone_verified_at' => now(),
-                ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Verified successfully',
-            ]);
-
-        } catch (Throwable $e) {
-            Log::error('VERIFY_OTP_FAILED', [
-                'user_id' => $request->user()->id ?? null,
-                'error' => $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'OTP verification failed',
-            ], 500);
-        }
+        return response()->json([
+            'success' => $result['success'],
+            'message' => $result['message'],
+        ], $result['success'] ? 200 : 422);
     }
+
 }
