@@ -15,6 +15,14 @@ use Throwable;
 // Customer Profile Section @Aviral
 
 
+
+/**
+ * @OA\Tag(
+ *     name="Authentication",
+ *     description="Customer & Vendor authentication APIs"
+ * )
+ */
+
 /**
  * @OA\Schema(
  *     schema="CustomerProfile",
