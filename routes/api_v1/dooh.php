@@ -43,6 +43,13 @@ Route::middleware(['auth:sanctum', 'role:customer'])->prefix('customer')->group(
 // VENDOR ROUTES
 // ============================================
 Route::middleware(['auth:sanctum', 'role:vendor'])->prefix('vendor')->group(function () {
+
+    Route::post('/create/step-1', [DOOHScreenController::class, 'storeStep1'])
+        ->name('vendor.dooh.step1.store');
+    Route::post('/{screenId}/step-2', [DOOHScreenController::class, 'storeStep2'])
+        ->name('vendor.dooh.step2.store');
+    Route::post('/{screenId}/step-3', [DOOHScreenController::class, 'storeStep3'])
+        ->name('vendor.dooh.step3.store');
     
     Route::get('/dooh/draft', [DOOHScreenController::class, 'getDraft']);
     Route::post('dooh/store', [DOOHScreenController::class, 'store']);

@@ -176,7 +176,7 @@
 
                     <div>
                         <label class="font-medium">
-                            When you want to start the booking? *
+                            When you want to start the campaign? *
                         </label>
                         <input type="date"
                                name="preferred_start_date"
@@ -258,7 +258,7 @@
                     <textarea id="enquiryMessage"
                               name="message"
                               class="enquiry-input h-40 resize-none"
-                              placeholder="Write here..."></textarea>
+                              placeholder="Any specific campaign requirements, target audience, or other details.."></textarea>
                 </div>
 
             </div>

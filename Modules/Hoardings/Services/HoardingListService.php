@@ -216,6 +216,7 @@ class HoardingListService
         // dd($data);
         return \DB::transaction(function () use ($hoarding, $data) {
             $hoarding = $this->repo->updateStep3($hoarding, $data);
+            // dd($hoarding);
 
             // Support offers_json (JSON string) from web or API, like DOOH
             $offers = [];
