@@ -235,37 +235,26 @@ function syncEnquiryHiddenFields() {
     let end = new Date(start);
 
     if (hoardingType === 'dooh') {
-
-        if (window.selectedPackageState.id === 'base') {
-            // DOOH base → 10 sec
-            end = start;
-            document.getElementById('enquiryDurationType').value = '10_seconds';
-        } else {
-            // DOOH package → months
-            end.setMonth(end.getMonth() + window.selectedPackageState.months);
-            document.getElementById('enquiryDurationType').value = 'months';
-        }
-
+        // DOOH: always months selection, duration type is months
+        end.setMonth(end.getMonth() + window.selectedPackageState.months);
+        document.getElementById('enquiryDurationType').value = 'months';
     } else {
-        // OOH base + package
+        // OOH: months selection
         end.setMonth(end.getMonth() + window.selectedPackageState.months);
         document.getElementById('enquiryDurationType').value = 'months';
     }
 
-    document.getElementById('enquiryEndDate').value =
-        end.toISOString().slice(0, 10);
+    document.getElementById('enquiryEndDate').value = end.toISOString().slice(0, 10);
 
-    // ✅ PRICE (NO OVERRIDE NOW)
-    document.getElementById('enquiryAmount').value =
-        Number(window.selectedPackageState.price);
-
-    document.getElementById('enquiryPackageId').value =
-        window.selectedPackageState.id === 'base'
-            ? ''
-            : window.selectedPackageState.id;
-
-    document.getElementById('enquiryPackageLabel').value =
-        window.selectedPackageState.label || '';
+    // Pricing: always show unit price, do not multiply by months
+    let priceLabel = window.selectedPackageState.label || '';
+    let priceValue = Number(window.selectedPackageState.price);
+    if (hoardingType === 'dooh') {
+        priceLabel += ' (Per 10s Slot)';
+    }
+    document.getElementById('enquiryAmount').value = priceValue;
+    document.getElementById('enquiryPackageId').value = window.selectedPackageState.id === 'base' ? '' : window.selectedPackageState.id;
+    document.getElementById('enquiryPackageLabel').value = priceLabel;
 }
 
 
@@ -381,41 +370,20 @@ window.openEnquiryModal = function (payload) {
 
     enquiryPackage.value = 'base';
 
-    if (hoardingType === 'dooh') {
-
-        /* ---------- DOOH BASE ---------- */
-        let opt = monthSelect.querySelector('option[value="10_sec"]');
-        if (!opt) {
-            opt = document.createElement('option');
-            opt.value = '10_sec';
-            opt.textContent = '10 Seconds';
-            monthSelect.prepend(opt);
-        }
-
-        monthSelect.value = '10_sec';
-        monthSelect.disabled = true;
-
-        window.selectedPackageState = {
-            id: 'base',
-            label: `Base Price – ₹${base} (10 Seconds)`,
-            price: base,
-            months: 1
-        };
-
-        baseOption.textContent = `Base Price – ₹${base} (10 Seconds)`;
-
-    } else {
-
-        /* ---------- OOH BASE ---------- */
-        window.selectedPackageState = {
-            id: 'base',
-            label: 'Base Price (1 Month)',
-            price: base,
-            months: 1
-        };
-
-        baseOption.textContent = `Base Price – ₹${base} (1 Month)`;
+    // Both OOH and DOOH: allow 1-12 months selection
+    if (monthSelect) {
+        monthSelect.disabled = false;
+        monthSelect.value = 1;
     }
+    window.selectedPackageState = {
+        id: 'base',
+        label: hoardingType === 'dooh' ? `Base Price – ₹${base}` : 'Base Price (1 Month)',
+        price: base,
+        months: 1
+    };
+    baseOption.textContent = hoardingType === 'dooh'
+        ? `Base Price – ₹${base} (Per 10s Slot)`
+        : `Base Price – ₹${base} (1 Month)`;
     /* ================= GRACE PERIOD ================= */
     if (payload.graceDays) {
         const startDateInput = document.getElementById('enquiryStartDate');
