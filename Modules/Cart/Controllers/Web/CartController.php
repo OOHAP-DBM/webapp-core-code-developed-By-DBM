@@ -5,6 +5,7 @@ namespace Modules\Cart\Controllers\Web;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Cart\Services\CartService;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
@@ -55,6 +56,27 @@ class CartController extends Controller
             'status'  => 'removed',
             'in_cart' => false,          
             'message' => 'Item removed from cart',
+        ]);
+    }
+    public function selectPackage(Request $request)
+    {
+        $request->validate([
+            'hoarding_id'   => 'required|integer',
+            'package_id'    => 'nullable|integer',
+            'package_label' => 'nullable|string',
+        ]);
+
+        DB::table('carts')
+        ->where('user_id', auth()->id())
+        ->where('hoarding_id', $request->hoarding_id)
+        ->update([
+            'package_id'    => $request->package_id,
+            'package_label' => $request->package_label,
+            'updated_at'    => now(), 
+        ]);
+
+        return response()->json([
+            'success' => true
         ]);
     }
 
