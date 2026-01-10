@@ -114,6 +114,7 @@ class Hoarding extends Model implements HasMedia
         'status',
         'current_step',
         'is_featured',
+        'located_at',
 
         /* Analytics */
         'view_count',
@@ -133,6 +134,7 @@ class Hoarding extends Model implements HasMedia
         'visibility_details' => 'array',
 
         'audience_types' => 'array',
+        'located_at' => 'array',
 
         'base_monthly_price' => 'decimal:2',
         'monthly_price' => 'decimal:2',

@@ -606,4 +606,135 @@ class AuthController extends Controller
             ],
         ]);
     }
+
+
+    /**
+     * @OA\Post(
+     *     path="/auth/password/forgot",
+     *     tags={"Authentication"},
+     *     summary="Send OTP for forgot password",
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"identifier"},
+     *             @OA\Property(property="identifier", type="string", example="test@email.com")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="OTP sent successfully"),
+     *     @OA\Response(response=404, description="User not found")
+     * )
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'identifier' => 'required|string',
+        ]);
+
+        $result = $this->otpService->generateAndSendPasswordResetOTP(
+            $request->identifier
+        );
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP sent for password reset',
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/auth/password/verify-otp",
+     *     tags={"Authentication"},
+     *     summary="Verify OTP for password reset",
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"identifier","otp"},
+     *             @OA\Property(property="identifier", type="string", example="test@email.com"),
+     *             @OA\Property(property="otp", type="string", example="123456")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="OTP verified"),
+     *     @OA\Response(response=422, description="Invalid or expired OTP")
+     * )
+     */
+    public function verifyForgotPasswordOTP(Request $request): JsonResponse
+    {
+        $request->validate([
+            'identifier' => 'required|string',
+            'otp' => 'required|digits:6',
+        ]);
+
+        $result = $this->otpService->verifyPasswordResetOTP(
+            $request->identifier,
+            $request->otp
+        );
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP verified successfully',
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/auth/password/reset",
+     *     tags={"Authentication"},
+     *     summary="Reset password after OTP verification",
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"identifier","password","password_confirmation"},
+     *             @OA\Property(property="identifier", type="string", example="test@email.com"),
+     *             @OA\Property(property="password", type="string", example="NewPass@123"),
+     *             @OA\Property(property="password_confirmation", type="string", example="NewPass@123")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Password reset successful"),
+     *     @OA\Response(response=403, description="OTP not verified")
+     * )
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'identifier' => 'required|string',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $result = $this->otpService->resetPassword(
+            $request->identifier,
+            $request->password
+        );
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset successfully. Please login.',
+        ]);
+    }
 }

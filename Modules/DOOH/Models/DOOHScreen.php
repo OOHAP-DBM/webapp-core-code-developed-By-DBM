@@ -30,7 +30,8 @@ class DOOHScreen extends Model
 
         /* Screen identity */
         'screen_type', // LED, LCD, Projection
-
+        'height',
+        'width',
         /* Resolution & size */
         'resolution_width',
         'resolution_height',
@@ -47,6 +48,7 @@ class DOOHScreen extends Model
 
         /* Pricing */
         'price_per_slot',
+        'price_per_10_sec_slot',
         'display_price_per_30s',
         'minimum_booking_amount',
 
@@ -78,6 +80,8 @@ class DOOHScreen extends Model
     protected $casts = [
         'resolution_width' => 'integer',
         'resolution_height' => 'integer',
+        'width' => 'integer',
+        'height' => 'integer',
 
         'slot_duration_seconds' => 'integer',
         'loop_duration_seconds' => 'integer',
@@ -88,6 +92,7 @@ class DOOHScreen extends Model
 
         'price_per_slot' => 'decimal:2',
         'display_price_per_30s' => 'decimal:2',
+        'price_per_10_sec_slot' => 'decimal:2',
         'minimum_booking_amount' => 'decimal:2',
 
         'base_monthly_price' => 'decimal:2',

@@ -10,6 +10,10 @@ use \Modules\DOOH\Models\DOOHScreen;
 use Illuminate\Validation\ValidationException;
 
 class DOOHScreenService
+    /**
+     * Get DOOH hoarding listing for API (step1, step2, step3 fields)
+     */
+
 {
     protected $repo;
 
@@ -32,7 +36,11 @@ class DOOHScreenService
             'address'           => 'required|string|max:255',
             'pincode'           => 'required|string|max:20',
             'locality'          => 'required|string|max:100',
-            'price_per_slot'    => 'required|numeric|min:1',
+            'price_per_10_sec_slot'    => 'required|numeric|min:1',
+            'price_per_30_sec_slot'    => 'required|numeric|min:1',
+            'resolution_type' => 'required|string',
+            'resolution_width' => 'required_if:resolution_type,custom|nullable|integer|min:1',
+            'resolution_height' => 'required_if:resolution_type,custom|nullable|integer|min:1',
         ]);
 
         if ($validator->fails() || empty($mediaFiles)) {
@@ -55,70 +63,183 @@ class DOOHScreenService
         });
     }
 
+    protected function normalizeResolution(array $data): array
+    {
+        if ($data['resolution_type'] !== 'custom') {
+            [$width, $height] = explode('x', $data['resolution_type']);
+        } else {
+            $width = $data['resolution_width'];
+            $height = $data['resolution_height'];
+        }
+
+        return [
+            'resolution_width'  => (int) $width,
+            'resolution_height' => (int) $height,
+            'aspect_ratio'      => round($width / $height, 2),
+        ];
+    }
+
     /**
      * Store Step 2 (Additional Settings, Visibility & Brand Logos)
      */
-    public function storeStep2($screen, array $data, array $brandLogoFiles = [])
+    // public function storeStep2($screen, array $data, array $brandLogoFiles = [])
+    // {
+    //     return DB::transaction(function () use ($screen, $data, $brandLogoFiles) {
+    //         try {
+    //             $update = [
+    //                 'nagar_nigam_approved' => $data['nagar_nigam_approved'] ?? null,
+    //                 'block_dates'          => $data['block_dates'] ?? null,
+    //                 'grace_period'         => $data['grace_period'] ?? null,
+    //                 'audience_types'       => $data['audience_types'] ?? null,
+    //                 'visible_from'         => $data['visible_from'] ?? null,
+    //                 'located_at'           => $data['located_at'] ?? null,
+    //                 'hoarding_visibility'  => $data['hoarding_visibility'] ?? null,
+    //                 'visibility_details'   => $data['visibility_details'] ?? null,
+    //             ];
+
+    //             $screen = $this->repo->updateStep2($screen, $update);
+
+    //             if (!empty($brandLogoFiles)) {
+    //                 $this->repo->storeBrandLogos($screen->id, $brandLogoFiles);
+    //             }
+
+    //             $screen->current_step = 2;
+    //             $screen->save();
+
+    //             return ['success' => true, 'screen' => $screen->fresh(['brandLogos'])];
+    //         } catch (\Throwable $e) {
+    //             Log::error('DOOH step2 failed', ['error' => $e->getMessage()]);
+    //             return ['success' => false, 'errors' => ['step2' => ['Failed to save step 2 settings.']]];
+    //         }
+    //     });
+    //     return DB::transaction(function () use ($screen, $data, $brandLogoFiles) {
+    //         try {
+    //         $update = [
+    //             'nagar_nigam_approved' => isset($data['nagar_nigam_approved']),
+    //             'grace_period'         => isset($data['grace_period']) ? (int)$data['grace_period'] : null,
+    //             'block_dates'          => $data['block_dates'] ?? null,
+    //             'audience_types'       => $data['audience_types'] ?? null,
+    //             'visible_from'         => $data['visible_from'] ?? null,
+    //             'located_at'           => $data['located_at'] ?? null,
+    //             'hoarding_visibility'  => $data['hoarding_visibility'] ?? null,
+    //             'visibility_details'   => $data['visibility_details'] ?? null,
+    //         ];
+
+    //         $screen = $this->repo->updateStep2($screen, $update);
+
+    //         if (!empty($brandLogoFiles)) {
+    //             $this->repo->storeBrandLogos($screen->id, $brandLogoFiles);
+    //         }
+
+    //         $screen->hoarding->current_step = 2;
+    //         $screen->save();
+
+    //         return [
+    //             'success' => true,
+    //             'screen'  => $screen->fresh('brandLogos')
+    //         ];
+    //         } catch (\Throwable $e) {
+    //                     Log::error('DOOH step2 failed', ['error' => $e->getMessage()]);
+    //                     return ['success' => false, 'errors' => ['step2' => ['Failed to save step 2 settings.']]];
+    //                 }
+    //         });
+    // }
+
+    public function storeStep2($screen, array $data, array $brandLogoFiles = []): array
     {
-        // return DB::transaction(function () use ($screen, $data, $brandLogoFiles) {
-        //     try {
-        //         $update = [
-        //             'nagar_nigam_approved' => $data['nagar_nigam_approved'] ?? null,
-        //             'block_dates'          => $data['block_dates'] ?? null,
-        //             'grace_period'         => $data['grace_period'] ?? null,
-        //             'audience_types'       => $data['audience_types'] ?? null,
-        //             'visible_from'         => $data['visible_from'] ?? null,
-        //             'located_at'           => $data['located_at'] ?? null,
-        //             'hoarding_visibility'  => $data['hoarding_visibility'] ?? null,
-        //             'visibility_details'   => $data['visibility_details'] ?? null,
-        //         ];
 
-        //         $screen = $this->repo->updateStep2($screen, $update);
+        // Always update the parent Hoarding model
+        $parentHoarding = method_exists($screen, 'hoarding') && $screen->hoarding ? $screen->hoarding : $screen;
+        $childHoarding = $screen;
+        // 1. Data Transformation (Mapping form inputs to DB columns)
+        $formattedData = $this->mapHoardingStep2Data($data);
 
-        //         if (!empty($brandLogoFiles)) {
-        //             $this->repo->storeBrandLogos($screen->id, $brandLogoFiles);
-        //         }
+        return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles) {
+            // 2. Persist main hoarding data (parent)
+            $updatedHoarding = $this->repo->updateStep2($parentHoarding, $formattedData);
 
-        //         $screen->current_step = 2;
-        //         $screen->save();
-
-        //         return ['success' => true, 'screen' => $screen->fresh(['brandLogos'])];
-        //     } catch (\Throwable $e) {
-        //         Log::error('DOOH step2 failed', ['error' => $e->getMessage()]);
-        //         return ['success' => false, 'errors' => ['step2' => ['Failed to save step 2 settings.']]];
-        //     }
-        // });
-        return DB::transaction(function () use ($screen, $data, $brandLogoFiles) {
-            try {
-            $update = [
-                'nagar_nigam_approved' => isset($data['nagar_nigam_approved']),
-                'grace_period'         => isset($data['grace_period']),
-                'block_dates'          => $data['block_dates'] ?? [],
-                'audience_types'       => $data['audience_types'] ?? [],
-                'visible_from'         => $data['visible_from'] ?? [],
-                'located_at'           => $data['located_at'] ?? [],
-                'hoarding_visibility'  => $data['hoarding_visibility'] ?? null,
-                'visibility_details'   => $data['visibility_details'] ?? [],
-            ];
-
-            $screen = $this->repo->updateStep2($screen, $update);
-
+            // 3. Handle Brand Logos via Repository (child)
             if (!empty($brandLogoFiles)) {
-                $this->repo->storeBrandLogos($screen->id, $brandLogoFiles);
+                $this->repo->storeBrandLogos($childHoarding->id, $brandLogoFiles);
             }
 
-            $screen->hoarding->current_step = 2;
-            $screen->save();
-
             return [
-                'success' => true,
-                'screen'  => $screen->fresh('brandLogos')
+                'success'  => true,
+                'message'  => 'Hoarding details updated successfully.',
+                'hoarding' => $updatedHoarding->fresh('brandLogos')
             ];
-            } catch (\Throwable $e) {
-                        Log::error('DOOH step2 failed', ['error' => $e->getMessage()]);
-                        return ['success' => false, 'errors' => ['step2' => ['Failed to save step 2 settings.']]];
-                    }
-            });
+        });
+    }
+
+
+    /**
+     * Maps incoming request data to database-friendly formats.
+     */
+    protected function mapHoardingStep2Data(array $data): array
+    {
+        // \Log::info('Step2 incoming data', $data);
+        $mapped = [
+            // Legal
+            'nagar_nigam_approved' => (bool) ($data['nagar_nigam_approved'] ?? false),
+            'permit_number'        => $data['permit_number_hidden'] ?? $data['permit_number'] ?? null,
+            'permit_valid_till'    => $data['permit_valid_till_hidden'] ?? $data['permit_valid_till'] ?? null,
+
+            // Audience
+            'expected_footfall'    => (int) ($data['expected_footfall'] ?? 0),
+            'expected_eyeball'     => (int) ($data['expected_eyeball'] ?? 0),
+            'audience_types'       => $data['audience_type'] ?? $data['audience_types'] ?? [],
+
+            // Blocked Dates
+            'block_dates' => $this->parseBlockDates($data['blocked_dates_json'] ?? null),
+
+            // Grace Period
+            'grace_period_days'    => isset($data['needs_grace_period']) && $data['needs_grace_period'] == '1'
+                ? (int) $data['grace_period_days']
+                : 0,
+
+            // Visibility
+            'hoarding_visibility'  => $data['visibility_type'] ?? $data['hoarding_visibility'] ?? null,
+            'visibility_start' => $data['visibility_start'] ?? null,
+            'visibility_end'   => $data['visibility_end'] ?? null,
+            'facing_direction'    => $data['facing_direction'] ?? null,
+            'road_type'           => $data['road_type'] ?? null,
+            'traffic_type'        => $data['traffic_type'] ?? null,
+            'visibility_details'   => $data['visible_from'] ?? null,
+            'located_at'   => $data['located_at'] ?? null,
+        
+            'current_step'         => 2,
+        ];
+        // \Log::info('Step2 mapped data', $mapped);
+        // dd($mapped);
+
+        return $mapped;
+    }
+
+    /**
+     * Parse block dates from JSON or comma-separated string.
+     */
+    protected function parseBlockDates($input)
+    {
+        if (!$input) return null;
+        // Remove extra quotes if present
+        $input = trim($input, '"');
+        // Try JSON decode first
+        $decoded = json_decode($input, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+        // Fallback: comma-separated string
+        $arr = array_map('trim', explode(',', $input));
+        return array_filter($arr);
+    }
+    /**
+     * Helper to safely decode JSON fields.
+     */
+    protected function parseJsonField(?string $json)
+    {
+        if (!$json) return null;
+        $decoded = json_decode($json, true);
+        return is_array($decoded) ? $decoded : null;
     }
 
     
@@ -170,43 +291,58 @@ class DOOHScreenService
     public function storeStep3($screen, array $data)
     {
         return DB::transaction(function () use ($screen, $data) {
-
-            // ---- Screen Pricing ----
-            $graphicsIncluded = isset($data['graphics_included']);
-
-            $update = [
-                'display_price_per_30s' => $data['display_price_per_30s'] ?? null,
+            // ---- DOOHScreen fields ----
+            $screenUpdate = [
+                'price_per_slot' => $data['price_per_slot'] ?? null,
                 'video_length'          => $data['video_length'] ?? null,
-                // 'base_monthly_price'    => $data['base_monthly_price'] ?? null,
-                // 'graphics_included'     => $graphicsIncluded,
-                // 'graphics_price'        => $data['graphics_price'] ?? null,
-                // 'survey_charge'         => $data['survey_charge'] ?? 0,
             ];
+            $screen = $this->repo->updateStep3($screen, $screenUpdate);
 
-            $screen = $this->repo->updateStep3($screen, $update);
-
+            // ---- Hoarding fields ----
+            $parentHoarding = $screen->hoarding;
+            $parentHoarding->base_monthly_price = $data['base_monthly_price'] ?? 0;
+            $parentHoarding->monthly_price = $data['monthly_offered_price'] ?? 0;
+            $parentHoarding->enable_weekly_booking = isset($data['enable_weekly_booking']) ? 1 : 0;
+            $parentHoarding->weekly_price_1 = $data['weekly_price_1'] ?? null;
+            $parentHoarding->weekly_price_2 = $data['weekly_price_2'] ?? null;
+            $parentHoarding->weekly_price_3 = $data['weekly_price_3'] ?? null;
+            $parentHoarding->graphics_included = isset($data['graphics_included']) ? 1 : 0;
+            $parentHoarding->graphics_charge = $data['graphics_charge'] ?? null;
+            $parentHoarding->survey_charge = $data['survey_charge'] ?? null;
+            $parentHoarding->hoarding_visibility = $data['hoarding_visibility'] ?? null;
+            $parentHoarding->current_step = 3;
+            $parentHoarding->status = 'pending_approval';
+            $parentHoarding->save();
             // ---- Slots ----
             if (!empty($data['slots'])) {
                 $this->repo->storeSlots($screen->id, $data['slots']);
             }
 
             // ---- Campaign Packages ----
-            if (!empty($data['offer_name'])) {
+            // Support offers_json (JSON string) from web or API
+            $offers = [];
+            if (!empty($data['offers_json'])) {
+                $offers = json_decode($data['offers_json'], true);
+            }
+            // If not using offers_json, fallback to old array fields
+            if (empty($offers) && !empty($data['offer_name'])) {
+                $count = is_array($data['offer_name']) ? count($data['offer_name']) : 0;
+                for ($i = 0; $i < $count; $i++) {
+                    $offers[] = [
+                        'name' => $data['offer_name'][$i] ?? '',
+                        'duration' => $data['offer_duration'][$i] ?? '',
+                        'unit' => $data['offer_unit'][$i] ?? '',
+                        'discount' => $data['offer_discount'][$i] ?? '',
+                        'end_date' => $data['offer_end_date'][$i] ?? '',
+                        'services' => $data['offer_services'][$i] ?? [],
+                    ];
+                }
+            }
+            if (!empty($offers)) {
+
+                $data['offers'] = $offers;
                 $this->repo->storePackages($screen->id, $data);
             }
-
-            // ---- Finalize ----
-            // ---- Parent updates ----
-            $parentHoarding = $screen->hoarding;
-            $parentHoarding->base_monthly_price = $data['base_monthly_price'] ?? null;
-            $parentHoarding->graphics_included = $graphicsIncluded ?? 0;
-            $parentHoarding->graphics_charge = $data['graphics_price'] ?? null;
-            $parentHoarding->survey_charge = $data['survey_charge'] ?? null;
-
-            $parentHoarding->current_step = 3;
-            $parentHoarding->status = 'pending_approval';
-            $parentHoarding->save();
-
 
             return [
                 'success' => true,
@@ -234,5 +370,107 @@ class DOOHScreenService
             }
         }
         return $packages;
+    }
+
+
+    public function getListing(array $filters = [])
+    {
+        $query = \Modules\DOOH\Models\DOOHScreen::with([
+            'hoarding',
+            'packages',
+            'slots',
+            'brandLogos',
+            'media',
+        ])->where('status', \Modules\DOOH\Models\DOOHScreen::STATUS_ACTIVE);
+
+        if (!empty($filters['vendor_id'])) {
+            $query->whereHas('hoarding', function($q) use ($filters) {
+                $q->where('vendor_id', $filters['vendor_id']);
+            });
+        }
+        if (!empty($filters['city'])) {
+            $query->where('city', $filters['city']);
+        }
+        if (!empty($filters['category'])) {
+            $query->where('category', $filters['category']);
+        }
+
+        $screens = $query->orderByDesc('created_at')->paginate(20);
+
+        $data = $screens->map(function ($screen) {
+            $hoarding = $screen->hoarding;
+            return [
+                'id' => $screen->id,
+                'screen_type' => $screen->screen_type,
+                'width' => $screen->width,
+                'height' => $screen->height,
+                'measurement_unit' => $screen->measurement_unit,
+                'resolution_width' => $screen->resolution_width,
+                'resolution_height' => $screen->resolution_height,
+                'price_per_10_sec_slot' => $screen->price_per_10_sec_slot,
+                'display_price_per_30s' => $screen->display_price_per_30s,
+                'status' => $screen->status,
+                'hoarding' => $hoarding ? [
+                    'id' => $hoarding->id,
+                    'title' => $hoarding->title,
+                    'address' => $hoarding->address,
+                    'city' => $hoarding->city,
+                    'state' => $hoarding->state,
+                    'pincode' => $hoarding->pincode,
+                    'latitude' => $hoarding->latitude,
+                    'longitude' => $hoarding->longitude,
+                    'nagar_nigam_approved' => $hoarding->nagar_nigam_approved,
+                    'permit_number' => $hoarding->permit_number,
+                    'permit_valid_till' => $hoarding->permit_valid_till,
+                    'block_dates' => $hoarding->block_dates,
+                    'audience_types' => $hoarding->audience_types,
+                    'hoarding_visibility' => $hoarding->hoarding_visibility,
+                    'visibility_details' => $hoarding->visibility_details,
+                ] : null,
+                'packages' => $screen->packages->map(function ($pkg) {
+                    return [
+                        'id' => $pkg->id,
+                        'package_name' => $pkg->package_name,
+                        'price_per_month' => $pkg->price_per_month,
+                        'discount_percent' => $pkg->discount_percent,
+                        'services_included' => $pkg->services_included,
+                    ];
+                }),
+                'slots' => $screen->slots->map(function ($slot) {
+                    return [
+                        'id' => $slot->id,
+                        'name' => $slot->name,
+                        'from_time' => $slot->from_time,
+                        'to_time' => $slot->to_time,
+                        'active' => $slot->active,
+                    ];
+                }),
+                'brand_logos' => $screen->brandLogos->map(function ($logo) {
+                    return [
+                        'id' => $logo->id,
+                        'url' => asset('storage/' . $logo->file_path),
+                        'sort_order' => $logo->sort_order,
+                    ];
+                }),
+                'media' => $screen->media->map(function ($m) {
+                    return [
+                        'id' => $m->id,
+                        'url' => asset('storage/' . $m->file_path),
+                        'type' => $m->media_type,
+                    ];
+                }),
+            ];
+        });
+
+        return [
+            'success' => true,
+            'data' => $data,
+            'pagination' => [
+                'current_page' => $screens->currentPage(),
+                'last_page' => $screens->lastPage(),
+                'per_page' => $screens->perPage(),
+                'total' => $screens->total(),
+            ],
+        ];
     }
 }

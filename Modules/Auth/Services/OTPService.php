@@ -5,6 +5,7 @@ namespace Modules\Auth\Services;
 use App\Models\User;
 use Modules\Users\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,8 +14,6 @@ class OTPService
     public function __construct(
         protected UserRepositoryInterface $userRepository
     ) {}
-
-    // Modules/Auth/Services/OTPService.php
 
     public function generateAndSendRegisterOTP(string $identifier): array
     {
@@ -160,15 +159,7 @@ class OTPService
      */
     protected function sendOTP(User $user, string $otp): void
     {
-        // For development, log OTP
-        if (config('app.debug')) {
-            Log::info("OTP for user {$user->id}: {$otp}");
-        }
-
-        // Implement your SMS/Email provider here
-        // Example: Twilio, AWS SNS, or Email notification
         
-        // For phone numbers
         if ($user->phone) {
             // TODO: Implement SMS sending
             // Example: Twilio::sendSMS($user->phone, "Your OOHAPP OTP is: {$otp}");
@@ -261,5 +252,58 @@ class OTPService
         ];
     }
 
-    
+    public function generateAndSendPasswordResetOTP(string $identifier): array
+    {
+        $user = $this->userRepository->findByEmailOrPhone($identifier);
+
+        if (!$user) {
+            return ['success' => false, 'message' => 'User not found'];
+        }
+
+        $otp = $user->generateOTP();
+        $this->sendOTP($user, $otp);
+
+        return [
+            'success' => true,
+            'message' => 'OTP sent',
+        ];
+    }
+
+    public function verifyPasswordResetOTP(string $identifier, string $otp): array
+    {
+        $user = $this->userRepository->findByEmailOrPhone($identifier);
+
+        if (!$user || !$user->isOTPValid($otp)) {
+            return ['success' => false, 'message' => 'Invalid or expired OTP'];
+        }
+
+        // Mark OTP verified flag (temporary)
+        $user->password_reset_verified_at = now();
+        $user->clearOTP();
+        $user->save();
+
+        return ['success' => true];
+    }
+
+    public function resetPassword(string $identifier, string $password): array
+    {
+        $user = $this->userRepository->findByEmailOrPhone($identifier);
+
+        if (!$user || !$user->password_reset_verified_at) {
+            return [
+                'success' => false,
+                'message' => 'OTP verification required',
+            ];
+        }
+
+        $user->update([
+            'password' => Hash::make($password),
+            'password_reset_verified_at' => null,
+        ]);
+
+        // Security: revoke all tokens
+        $user->tokens()->delete();
+
+        return ['success' => true];
+    }
 }

@@ -7,6 +7,12 @@ return [
             'api' => [
                 'title' => 'OOHApp API Documentation',
             ],
+            'urls' => [
+                [
+                    'url' => '/api/documentation/api-docs.json',
+                    'name' => 'OOHApp API'
+                ]
+            ],
 
             'routes' => [
                 /*
@@ -46,7 +52,7 @@ return [
                 'annotations' => [
                     base_path('app/Swagger'),      // If you have custom swagger annotations here        
 
-                    // base_path('app'), // If you have API controllers here
+                    base_path('app/Http/Controllers/Api/'), // If you have API controllers here
                     // base_path('app/Http/Controllers/Auth'),
                     // base_path('Modules'),           // Your modular APIs
                     base_path('Modules'),           // Your modular APIs

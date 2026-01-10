@@ -51,70 +51,222 @@ class EnquiryController extends Controller
     /* =====================================================
      | STORE
      ===================================================== */
+    // public function store(Request $request)
+    // {
+    //     logger('📩 ENQUIRY REQUEST RAW', $request->all());
+
+    //     $validated = $request->validate([
+    //         'hoarding_id' => 'required',
+    //         'hoarding_id.*' => 'exists:hoardings,id',
+
+    //         'package_id' => 'nullable',
+    //         'package_id.*' => 'nullable|exists:hoarding_packages,id',
+
+    //         'package_label' => 'nullable',
+    //         'amount' => 'required',
+    //         'amount.*' => 'numeric|min:0',
+
+    //         'duration_type' => 'required|string',
+    //         'preferred_start_date' => 'required|date',
+    //         'preferred_end_date' => 'nullable|date',
+
+    //         'customer_name' => 'required|string',
+    //         'customer_mobile' => 'nullable|string',
+    //         'customer_email' => 'nullable|email',
+    //         'message' => 'nullable|string',
+    //     ]);
+
+    //     /* =====================================================
+    //     | 🔥 NORMALIZE EVERYTHING TO ARRAY (CORE FIX)
+    //     ===================================================== */
+    //     $hoardingIds = is_array($validated['hoarding_id'])
+    //         ? array_values($validated['hoarding_id'])
+    //         : [$validated['hoarding_id']];
+
+    //     $packageIds = is_array($validated['package_id'] ?? null)
+    //         ? array_values($validated['package_id'])
+    //         : [$validated['package_id'] ?? null];
+
+    //     $packageLabels = is_array($validated['package_label'] ?? null)
+    //         ? array_values($validated['package_label'])
+    //         : [$validated['package_label'] ?? 'Base Price'];
+
+    //     $amounts = is_array($validated['amount'])
+    //         ? array_values($validated['amount'])
+    //         : [$validated['amount']];
+
+    //     logger('🧩 NORMALIZED DATA', compact(
+    //         'hoardingIds', 'packageIds', 'packageLabels', 'amounts'
+    //     ));
+
+    //     return DB::transaction(function () use (
+    //         $validated,
+    //         $hoardingIds,
+    //         $packageIds,
+    //         $packageLabels,
+    //         $amounts
+    //     ) {
+
+    //         logger('🟢 TRANSACTION START');
+
+    //         $user = auth()->user();
+    //         $customerEmail = $validated['customer_email']
+    //             ?? auth()->user()->email
+    //             ?? null;
+
+    //         /* ================= ENQUIRY ================= */
+    //         $enquiry = Enquiry::create([
+    //             'customer_id'    => $user->id,
+    //             'source'         => $user->role ?? 'user',
+    //             'status'         => Enquiry::STATUS_SUBMITTED,
+    //             'customer_note'  => $validated['message'] ?? null,
+    //             'contact_number' => $validated['customer_mobile'],
+    //             'customer_email' => $customerEmail,
+    //         ]);
+
+    //         logger('🧾 ENQUIRY CREATED', ['id' => $enquiry->id]);
+
+    //         /* ================= LOOP ITEMS ================= */
+    //         foreach ($hoardingIds as $index => $hoardingId) {
+
+    //             $packageId    = $packageIds[$index] ?? null;
+    //             $packageLabel = $packageLabels[$index] ?? 'Base Price';
+    //             $amount       = $amounts[$index] ?? 0;
+
+    //             logger('➡️ PROCESS ITEM', compact(
+    //                 'hoardingId','packageId','packageLabel','amount'
+    //             ));
+
+    //             $hoarding = Hoarding::where('id', $hoardingId)
+    //                 ->where('status', 'active')
+    //                 ->firstOrFail();
+
+    //             $startDate = Carbon::parse($validated['preferred_start_date']);
+
+    //             $services = [];
+    //             $endDate = null;
+    //             $expectedDuration = null;
+    //             $packageType = 'base';
+
+    //             /* ================= PACKAGE ================= */
+    //             if (!empty($packageId)) {
+
+    //                 $package = HoardingPackage::findOrFail($packageId);
+
+    //                 $endDate = (clone $startDate)
+    //                     ->addMonths($package->min_booking_duration);
+
+    //                 $expectedDuration =
+    //                     $startDate->diffInDays($endDate) . ' days';
+
+    //                 $serviceNames = is_string($package->services_included)
+    //                     ? json_decode($package->services_included, true)
+    //                     : ($package->services_included ?? []);
+
+    //                 $priceMap = is_string($hoarding->service_prices)
+    //                     ? json_decode($hoarding->service_prices, true)
+    //                     : ($hoarding->service_prices ?? []);
+
+    //                 $services = $this->buildServicesWithPrice(
+    //                     $serviceNames,
+    //                     $priceMap
+    //                 );
+
+    //                 $packageType = 'package';
+
+    //                 logger('📦 PACKAGE APPLIED', ['package_id' => $packageId]);
+
+    //             } else {
+
+    //                 $endDate = !empty($validated['preferred_end_date'])
+    //                     ? Carbon::parse($validated['preferred_end_date'])
+    //                     : (clone $startDate)->addMonth();
+
+    //                 $expectedDuration =
+    //                     $startDate->diffInDays($endDate) . ' days';
+
+    //                 $services = $this->buildBaseOOHServices($hoarding);
+
+    //                 logger('🏷 BASE BOOKING');
+    //             }
+
+    //             /* ================= ENQUIRY ITEM ================= */
+    //             EnquiryItem::create([
+    //                 'enquiry_id'           => $enquiry->id,
+    //                 'hoarding_id'          => $hoarding->id,
+    //                 'hoarding_type'        => $hoarding->hoarding_type,
+
+    //                 'package_id'           => $packageId,
+    //                 'package_type'         => $packageType,
+
+    //                 'preferred_start_date' => $startDate,
+    //                 'preferred_end_date'   => $endDate,
+    //                 'expected_duration'    => $expectedDuration,
+
+    //                 'services' => $services,
+
+    //                 'meta' => [
+    //                     'package_label' => $packageLabel,
+    //                     'amount'        => $amount,
+    //                     'duration_type' => $validated['duration_type'],
+    //                     'customer_name' => $validated['customer_name'],
+    //                     'customer_email' => $customerEmail,
+    //                     'customer_mobile'=> $validated['customer_mobile'],
+    //                 ],
+
+    //                 'status' => EnquiryItem::STATUS_NEW,
+    //             ]);
+
+    //             logger('✅ ENQUIRY ITEM SAVED', ['hoarding_id' => $hoardingId]);
+    //         }
+
+    //         logger('🎉 TRANSACTION COMMIT');
+
+    //         return response()->json([
+    //             'success'    => true,
+    //             'enquiry_id' => $enquiry->id,
+    //             'message'    => 'Enquiry submitted successfully',
+    //         ]);
+    //     });
+    // }
     public function store(Request $request)
     {
-        logger('📩 ENQUIRY REQUEST RAW', $request->all());
+        logger('ENQUIRY REQUEST RAW', $request->all());
 
         $validated = $request->validate([
-            'hoarding_id' => 'required',
-            'hoarding_id.*' => 'exists:hoardings,id',
-
-            'package_id' => 'nullable',
-            'package_id.*' => 'nullable|exists:hoarding_packages,id',
-
-            'package_label' => 'nullable',
-            'amount' => 'required',
-            'amount.*' => 'numeric|min:0',
-
-            'duration_type' => 'required|string',
+            'hoarding_id'          => 'required',
+            'hoarding_id.*'        => 'exists:hoardings,id',
+            'package_id'           => 'nullable',
+            'package_id.*'         => 'nullable|exists:hoarding_packages,id',
+            'package_label'        => 'nullable',
+            'amount'               => 'required',
+            'amount.*'             => 'numeric|min:0',
+            'duration_type'        => 'required|string',
             'preferred_start_date' => 'required|date',
-            'preferred_end_date' => 'nullable|date',
+            'preferred_end_date'   => 'nullable|date',
+            'customer_name'        => 'required|string',
+            'customer_mobile'      => 'nullable|string',
+            'customer_email'       => 'nullable|email',
+            'message'              => 'nullable|string',
 
-            'customer_name' => 'required|string',
-            'customer_mobile' => 'nullable|string',
-            'customer_email' => 'nullable|email',
-            'message' => 'nullable|string',
+            // DOOH-specific fields
+            'video_duration'       => 'nullable|integer|in:15,30',
+            'slots_count'          => 'nullable|integer|min:1',
+            'slot'                 => 'nullable|string',
+            'duration_days'        => 'nullable|integer|min:1',
         ]);
 
-        /* =====================================================
-        | 🔥 NORMALIZE EVERYTHING TO ARRAY (CORE FIX)
-        ===================================================== */
-        $hoardingIds = is_array($validated['hoarding_id'])
-            ? array_values($validated['hoarding_id'])
-            : [$validated['hoarding_id']];
+        // Normalize inputs (Handles both single string or array inputs)
+        $hoardingIds   = (array) ($validated['hoarding_id'] ?? []);
+        $packageIds    = (array) ($validated['package_id'] ?? []);
+        $packageLabels = (array) ($validated['package_label'] ?? []);
+        $amounts       = (array) ($validated['amount'] ?? []);
 
-        $packageIds = is_array($validated['package_id'] ?? null)
-            ? array_values($validated['package_id'])
-            : [$validated['package_id'] ?? null];
-
-        $packageLabels = is_array($validated['package_label'] ?? null)
-            ? array_values($validated['package_label'])
-            : [$validated['package_label'] ?? 'Base Price'];
-
-        $amounts = is_array($validated['amount'])
-            ? array_values($validated['amount'])
-            : [$validated['amount']];
-
-        logger('🧩 NORMALIZED DATA', compact(
-            'hoardingIds', 'packageIds', 'packageLabels', 'amounts'
-        ));
-
-        return DB::transaction(function () use (
-            $validated,
-            $hoardingIds,
-            $packageIds,
-            $packageLabels,
-            $amounts
-        ) {
-
-            logger('🟢 TRANSACTION START');
-
+        return DB::transaction(function () use ($validated, $hoardingIds, $packageIds, $packageLabels, $amounts) {
             $user = auth()->user();
-            $customerEmail = $validated['customer_email']
-                ?? auth()->user()->email
-                ?? null;
+            $customerEmail = $validated['customer_email'] ?? $user->email ?? null;
 
-            /* ================= ENQUIRY ================= */
+            // 1. Create the Main Enquiry Header
             $enquiry = Enquiry::create([
                 'customer_id'    => $user->id,
                 'source'         => $user->role ?? 'user',
@@ -124,112 +276,96 @@ class EnquiryController extends Controller
                 'customer_email' => $customerEmail,
             ]);
 
-            logger('🧾 ENQUIRY CREATED', ['id' => $enquiry->id]);
+            $vendorGroups = []; // Used to group items by vendor to avoid duplicate emails
 
-            /* ================= LOOP ITEMS ================= */
+            // 2. Process each Hoarding Item
             foreach ($hoardingIds as $index => $hoardingId) {
+                $hoarding = Hoarding::with('vendor')->findOrFail($hoardingId);
+                $startDate = Carbon::parse($validated['preferred_start_date']);
 
                 $packageId    = $packageIds[$index] ?? null;
                 $packageLabel = $packageLabels[$index] ?? 'Base Price';
                 $amount       = $amounts[$index] ?? 0;
 
-                logger('➡️ PROCESS ITEM', compact(
-                    'hoardingId','packageId','packageLabel','amount'
-                ));
-
-                $hoarding = Hoarding::where('id', $hoardingId)
-                    ->where('status', 'active')
-                    ->firstOrFail();
-
-                $startDate = Carbon::parse($validated['preferred_start_date']);
-
-                $services = [];
-                $endDate = null;
-                $expectedDuration = null;
-                $packageType = 'base';
-
-                /* ================= PACKAGE ================= */
+                /* --- Handle Package & Duration Logic --- */
                 if (!empty($packageId)) {
-
                     $package = HoardingPackage::findOrFail($packageId);
-
-                    $endDate = (clone $startDate)
-                        ->addMonths($package->min_booking_duration);
-
-                    $expectedDuration =
-                        $startDate->diffInDays($endDate) . ' days';
-
-                    $serviceNames = is_string($package->services_included)
-                        ? json_decode($package->services_included, true)
-                        : ($package->services_included ?? []);
-
-                    $priceMap = is_string($hoarding->service_prices)
-                        ? json_decode($hoarding->service_prices, true)
-                        : ($hoarding->service_prices ?? []);
-
-                    $services = $this->buildServicesWithPrice(
-                        $serviceNames,
-                        $priceMap
-                    );
-
+                    $endDate = (clone $startDate)->addMonths($package->min_booking_duration);
                     $packageType = 'package';
-
-                    logger('📦 PACKAGE APPLIED', ['package_id' => $packageId]);
-
+                    // Industry Detail: Fetch services included in package
+                    $serviceNames = is_string($package->services_included) ? json_decode($package->services_included, true) : ($package->services_included ?? []);
+                    $priceMap = is_string($hoarding->service_prices) ? json_decode($hoarding->service_prices, true) : ($hoarding->service_prices ?? []);
+                    $services = $this->buildServicesWithPrice($serviceNames, $priceMap);
                 } else {
-
-                    $endDate = !empty($validated['preferred_end_date'])
-                        ? Carbon::parse($validated['preferred_end_date'])
-                        : (clone $startDate)->addMonth();
-
-                    $expectedDuration =
-                        $startDate->diffInDays($endDate) . ' days';
-
+                    $endDate = !empty($validated['preferred_end_date']) ? Carbon::parse($validated['preferred_end_date']) : (clone $startDate)->addMonth();
+                    $packageType = 'base';
                     $services = $this->buildBaseOOHServices($hoarding);
+                }
+                $expectedDuration = $startDate->diffInDays($endDate) . ' days';
 
-                    logger('🏷 BASE BOOKING');
+                /* --- Construct Industry-Level Meta --- */
+                $meta = [
+                    'package_label'   => $packageLabel,
+                    'amount'          => $amount,
+                    'duration_type'   => $validated['duration_type'],
+                    'customer_name'   => $validated['customer_name'],
+                    'customer_email'  => $customerEmail,
+                    'customer_mobile' => $validated['customer_mobile'],
+                ];
+
+                // Add DOOH Specs specifically if applicable
+                if ($hoarding->hoarding_type === 'dooh') {
+                    $meta['dooh_specs'] = [
+                        'video_duration' => $validated['video_duration'] ?? 15,
+                        'slots_per_day'  => $validated['slots_count'] ?? 120,
+                        'loop_interval'  => $validated['slot'] ?? 'Standard Loop',
+                        'total_days'     => $validated['duration_days'] ?? $startDate->diffInDays($endDate)
+                    ];
                 }
 
-                /* ================= ENQUIRY ITEM ================= */
-                EnquiryItem::create([
+                // 3. Save the Enquiry Item
+                $enquiryItem = EnquiryItem::create([
                     'enquiry_id'           => $enquiry->id,
                     'hoarding_id'          => $hoarding->id,
                     'hoarding_type'        => $hoarding->hoarding_type,
-
                     'package_id'           => $packageId,
                     'package_type'         => $packageType,
-
                     'preferred_start_date' => $startDate,
                     'preferred_end_date'   => $endDate,
                     'expected_duration'    => $expectedDuration,
-
-                    'services' => $services,
-
-                    'meta' => [
-                        'package_label' => $packageLabel,
-                        'amount'        => $amount,
-                        'duration_type' => $validated['duration_type'],
-                        'customer_name' => $validated['customer_name'],
-                        'customer_email' => $customerEmail,
-                        'customer_mobile'=> $validated['customer_mobile'],
-                    ],
-
-                    'status' => EnquiryItem::STATUS_NEW,
+                    'services'             => $services,
+                    'meta'                 => $meta,
+                    'status'               => EnquiryItem::STATUS_NEW,
                 ]);
 
-                logger('✅ ENQUIRY ITEM SAVED', ['hoarding_id' => $hoardingId]);
+                // Group by Vendor for consolidated notifications
+                if ($hoarding->vendor_id) {
+                    $vendorGroups[$hoarding->vendor_id][] = $enquiryItem;
+                }
             }
 
-            logger('🎉 TRANSACTION COMMIT');
+            // 4. Send Consolidation Notifications
+            foreach ($vendorGroups as $vendorId => $items) {
+                $vendor = \App\Models\User::find($vendorId);
+                if ($vendor) {
+                    // We pass the whole array of items so the vendor gets ONE email listing all hoardings
+                    $vendor->notify(new \Modules\Enquiries\Notifications\VendorEnquiryNotification($enquiry, $items));
+                }
+            }
+
+            // Notify Admin with the full enquiry context
+            $admin = \App\Models\User::where('active_role', 'admin')->first();
+            if ($admin) {
+                $admin->notify(new \Modules\Enquiries\Notifications\AdminEnquiryNotification($enquiry));
+            }
 
             return response()->json([
                 'success'    => true,
                 'enquiry_id' => $enquiry->id,
-                'message'    => 'Enquiry submitted successfully',
+                'message'    => 'Enquiry submitted successfully to vendors',
             ]);
         });
     }
-
 
 
 

@@ -9,6 +9,13 @@ use App\Http\Controllers\Controller;
 use Modules\DOOH\Services\DOOHScreenService;
 use Illuminate\Support\Facades\Auth;
 
+
+/**
+ * @OA\Tag(
+ *     name="DOOH Screens",
+ *     description="DOOH Hoarding APIs"
+ * )
+ */
 class DOOHScreenController extends Controller
 {
     protected $service;
@@ -19,51 +26,167 @@ class DOOHScreenController extends Controller
     }
 
     /**
-     * POST /api/v1/dooh/store
-     * Handles Step 1, 2, and 3
+     * @OA\Post(
+     *   path="/dooh/vendor/create/step-1",
+     *   tags={"DOOH Screens"},
+     *   summary="Create DOOH Screen – Step 1",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\MediaType(
+     *       mediaType="multipart/form-data",
+     *       @OA\Schema(ref="#/components/schemas/DOOHStep1Request")
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Created",
+     *     @OA\JsonContent(ref="#/components/schemas/DOOHScreenResponse")
+     *   )
+     * )
      */
-    public function store(Request $request)
+    public function storeStep1(Request $request): JsonResponse
     {
         $vendor = Auth::user();
-        $step = (int) $request->input('step', 1);
-        $screenId = $request->input('screen_id');
-
-        // No category_id validation needed, category is now a string
-
-        try {
-            switch ($step) {
-                case 1:
-                    $result = $this->service->storeStep1($vendor, $request->all(), $request->file('media', []));
-                    break;
-
-                case 2:
-                    $screen = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
-                        $q->where('vendor_id', $vendor->id);
-                    })->findOrFail($screenId);
-
-                    $result = $this->service->storeStep2($screen, $request->all(), $request->file('brand_logos', []));
-                    break;
-
-                case 3:
-                    $screen = DOOHScreen::where('vendor_id', $vendor->id)->findOrFail($screenId);
-                    $result = $this->service->storeStep3($screen, $request->all());
-                    break;
-
-                default:
-                    return response()->json(['message' => 'Invalid step provided'], 400);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => "Step {$step} saved successfully",
-                'data' => $result['screen']
-            ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
-        }
+        $result = $this->service->storeStep1(
+            $vendor,
+            $request->all(),
+            $request->file('media', [])
+        );
+        return response()->json($result);
     }
+
+    /**
+     * @OA\Post(
+     *   path="/dooh/vendor/{screenId}/step-2",
+     *   tags={"DOOH Screens"},
+     *   summary="DOOH Screen – Step 2",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Parameter(
+     *     name="screenId",
+     *     in="path",
+     *     required=true,
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\MediaType(
+     *       mediaType="multipart/form-data",
+     *       @OA\Schema(ref="#/components/schemas/OOHStep2Request")
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Updated",
+     *     @OA\JsonContent(ref="#/components/schemas/DOOHScreenResponse")
+     *   )
+     * )
+     */
+    public function storeStep2(Request $request, int $screenId): JsonResponse
+    {
+        $screen = DOOHScreen::with('hoarding')->findOrFail($screenId);
+        $result = $this->service->storeStep2(
+            $screen,
+            $request->all(),
+            $request->file('brand_logos', [])
+        );
+        return response()->json($result);
+    }
+
+    /**
+     * @OA\Post(
+     *   path="/dooh/vendor/{screenId}/step-3",
+     *   tags={"DOOH Screens"},
+     *   summary="DOOH Screen – Step 3",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Parameter(
+     *     name="screenId",
+     *     in="path",
+     *     required=true,
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(ref="#/components/schemas/DOOHStep3Request")
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Completed",
+     *     @OA\JsonContent(ref="#/components/schemas/DOOHScreenResponse")
+     *   )
+     * )
+     */
+    public function storeStep3(Request $request, int $screenId): JsonResponse
+    {
+        $screen = DOOHScreen::with('hoarding')->findOrFail($screenId);
+        return response()->json(
+            $this->service->storeStep3($screen, $request->all())
+        );
+    }
+
+    /**
+     * @OA\Get(
+     *   path="/dooh/vendor/screens",
+     *   tags={"DOOH Screens"},
+     *   summary="List Active DOOH Screens",
+     *   @OA\Response(
+     *     response=200,
+     *     description="List",
+     *     @OA\JsonContent(ref="#/components/schemas/DOOHScreenListingResponse")
+     *   )
+     * )
+     */
+    // public function index(Request $request): JsonResponse
+    // {
+    //     return response()->json(
+    //         $this->service->getListing($request->all())
+    //     );
+    // }
+
+    // /**
+    //  * POST /api/v1/dooh/store
+    //  * Handles Step 1, 2, and 3
+    //  */
+    // public function store(Request $request)
+    // {
+    //     $vendor = Auth::user();
+    //     $step = (int) $request->input('step', 1);
+    //     $screenId = $request->input('screen_id');
+
+    //     try {
+    //         switch ($step) {
+    //             case 1:
+    //                 $result = $this->service->storeStep1($vendor, $request->all(), $request->file('media', []));
+    //                 break;
+
+    //             case 2:
+    //                 $screen = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+    //                     $q->where('vendor_id', $vendor->id);
+    //                 })->findOrFail($screenId);
+
+    //                 $result = $this->service->storeStep2($screen, $request->all(), $request->file('brand_logos', []));
+    //                 break;
+
+    //             case 3:
+    //                 $screen = DOOHScreen::where('vendor_id', $vendor->id)->findOrFail($screenId);
+    //                 $result = $this->service->storeStep3($screen, $request->all());
+    //                 break;
+
+    //             default:
+    //                 return response()->json(['message' => 'Invalid step provided'], 400);
+    //         }
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => "Step {$step} saved successfully",
+    //             'data' => $result['screen']
+    //         ], 201);
+    //     } catch (\Illuminate\Validation\ValidationException $e) {
+    //         return response()->json(['errors' => $e->errors()], 422);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['message' => $e->getMessage()], 500);
+    //     }
+    // }
 
     /**
      * GET /api/v1/dooh/draft

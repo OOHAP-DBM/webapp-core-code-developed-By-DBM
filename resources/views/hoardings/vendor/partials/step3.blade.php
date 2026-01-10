@@ -1,200 +1,205 @@
-<div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
-    <div class="flex items-center gap-3 mb-4">
-        <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
-        <h3 class="text-xl font-bold text-gray-800">Rental Offering</h3>
-    </div>
-    <p class="text-xs text-gray-500 mb-8">You can set price weekly rental for your listing</p>
+<div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
+  <div class="md:p-8 space-y-8">
+        <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+            <!-- Hidden input for offers_json -->
+            <input type="hidden" name="offers_json" id="offers_json">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
+                <h3 class="text-xl font-bold text-gray-800">Rental Offering</h3>
+            </div>
+            <p class="text-xs text-gray-500 mb-8">You can set price weekly rental for your listing</p>
 
-    <div class="flex gap-8 border-b border-gray-100 mb-8">
-        <button type="button" class="pb-2 border-b-2 border-[#009A5C] text-[#009A5C] text-sm font-bold uppercase tracking-wider">Weekly</button>
-    </div>
+            <div class="flex gap-8 border-b border-gray-100 mb-8">
+                <button type="button" class="pb-2 border-b-2 border-[#009A5C] text-[#009A5C] text-sm font-bold uppercase tracking-wider">Weekly</button>
+            </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
-        <div class="space-y-2">
-            <label class="text-sm font-semibold text-gray-600">Enable Weekly Booking?</label>
-            <div class="flex items-center gap-4">
-                <input type="checkbox" id="enable_weekly_booking" name="enable_weekly_booking" value="1" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] cursor-pointer">
-                <span class="text-xs text-gray-500">Allow customers to book for weekly durations</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="weekly-prices-section" class="hidden grid-cols-1 md:grid-cols-3 gap-8 mt-6">
-        <div class="space-y-2">
-            <label class="text-sm font-semibold text-gray-600">Price for 1 Week <span class="text-red-500">*</span></label>
-            <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                <input type="number" name="weekly_price_1" placeholder="1 Week Price" class="w-full border border-gray-200 rounded-xl px-8 py-3.5 focus:border-[#009A5C] outline-none">
-            </div>
-        </div>
-        <div class="space-y-2">
-            <label class="text-sm font-semibold text-gray-600">Price for 2 Weeks</label>
-            <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                <input type="number" name="weekly_price_2" placeholder="2 Weeks Price" class="w-full border border-gray-200 rounded-xl px-8 py-3.5 focus:border-[#009A5C] outline-none">
-            </div>
-        </div>
-        <div class="space-y-2">
-            <label class="text-sm font-semibold text-gray-600">Price for 3 Weeks</label>
-            <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                <input type="number" name="weekly_price_3" placeholder="3 Weeks Price" class="w-full border border-gray-200 rounded-xl px-8 py-3.5 focus:border-[#009A5C] outline-none">
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
-    <div class="flex items-center gap-3 mb-4">
-        <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
-        <h3 class="text-xl font-bold text-gray-800">Long term Campaign Packages</h3>
-    </div>
-    <p class="text-xs text-gray-400 mb-8">Create specific inventory bundles (e.g., Annual Bulk Booking)</p>
-
-    <div class="space-y-6">
-        <div id="offers-container" class="space-y-4"></div>
-        <button type="button" id="add-offer-btn" class="bg-[#1A1A1A] text-white px-8 py-3 rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-95 transition-transform flex items-center gap-2 w-fit">
-            <span>+</span> Add Campaign Package
-        </button>
-    </div>
-</div>
-
-<div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
-    <div class="flex items-center gap-3 mb-4">
-        <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
-        <h3 class="text-xl font-bold text-gray-800">Services Includes</h3>
-    </div>
-    <p class="text-xs text-gray-400 mb-8">Set Services provided for free (Yes) or as additional charges (No)</p>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-        <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
-            <div class="flex items-center justify-between">
-                <label class="text-sm font-bold text-gray-700">Graphics Included (Free)?</label>
-                <div class="flex items-center gap-2">
-                    <label class="cursor-pointer">
-                        <input type="radio" name="graphics_included" value="1" class="hidden peer toggle-service" data-target="graphics-box">
-                        <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">Yes</span>
-                    </label>
-                    <label class="cursor-pointer">
-                        <input type="radio" name="graphics_included" value="0" class="hidden peer toggle-service" data-target="graphics-box" checked>
-                        <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">No</span>
-                    </label>
-                </div>
-            </div>
-            <div id="graphics-box" class="transition-all">
-                <label class="text-[10px] font-bold text-gray-400 uppercase">Graphics Charge</label>
-                <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                    <input type="number" name="graphics_charge" placeholder="0.00" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
-                </div>
-            </div>
-        </div>
-
-        <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
-            <div class="flex items-center justify-between">
-                <label class="text-sm font-bold text-gray-700">Printing Included (Free)?</label>
-                <div class="flex items-center gap-2">
-                    <label class="cursor-pointer">
-                        <input type="radio" name="printing_included" value="1" class="hidden peer toggle-service" data-target="printing-box">
-                        <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">Yes</span>
-                    </label>
-                    <label class="cursor-pointer">
-                        <input type="radio" name="printing_included" value="0" class="hidden peer toggle-service" data-target="printing-box" checked>
-                        <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">No</span>
-                    </label>
-                </div>
-            </div>
-            <div id="printing-box" class="space-y-3 transition-all">
-                <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                    <input type="number" name="printing_charge" placeholder="Price" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
-                </div>
-                <select name="printing_material_type" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none bg-white">
-                    <option value="">Select Material</option>
-                    <option value="flex">Flex</option>
-                    <option value="vinyl">Vinyl</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
-            <div class="flex items-center justify-between">
-                <label class="text-sm font-bold text-gray-700">Mounting Included (Free)?</label>
-                <div class="flex items-center gap-2">
-                    <label class="cursor-pointer">
-                        <input type="radio" name="mounting_included" value="1" class="hidden peer toggle-service" data-target="mounting-box">
-                        <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">Yes</span>
-                    </label>
-                    <label class="cursor-pointer">
-                        <input type="radio" name="mounting_included" value="0" class="hidden peer toggle-service" data-target="mounting-box" checked>
-                        <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">No</span>
-                    </label>
-                </div>
-            </div>
-            <div id="mounting-box" class="transition-all">
-                <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                    <input type="number" name="mounting_charge" placeholder="Price" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
-                </div>
-            </div>
-            <div class="flex items-center justify-between mt-20">
-                <label class="text-sm font-bold text-gray-700">Lighting Included (Free)?</label>
-                <div class="flex items-center gap-2">
-                    <label class="cursor-pointer">
-                        <input type="radio" name="lighting_included" value="1" class="hidden peer toggle-service" data-target="lighting-box">
-                        <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">Yes</span>
-                    </label>
-                    <label class="cursor-pointer">
-                        <input type="radio" name="lighting_included" value="0" class="hidden peer toggle-service" data-target="lighting-box" checked>
-                        <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">No</span>
-                    </label>
-                </div>
-            </div>
-            <div id="lighting-box" class="transition-all">
-                <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                    <input type="number" name="lighting_charge" placeholder="Lighting Charge" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
-                </div>
-                <select name="lighting_type" class="w-full border  border-gray-200 rounded-xl px-4 py-3 text-sm outline-none bg-white mt-3">
-                    <option value="">Select Lighting Type</option>
-                    <option value="front-lit">Front-lit</option>
-                    <option value="back-lit">Back-lit</option>
-                    <option value="led">LED</option>
-                    {{-- <option value="none">None</option> --}}
-                </select>
-            </div>
-           
-        </div>
-
-        <div class="bg-gray-50/50 p-6 rounded-2xl border border-dashed border-gray-200 space-y-4">
-            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Fixed Charges</h4>
-            <div class="bg-white border border-gray-100 rounded-[1.5rem] p-8 space-y-8">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div class="space-y-1">
-                        <h4 class="text-sm font-bold text-gray-700">Remounting Service Charge?</h4>
-                        <p class="text-xs text-gray-400">Includes Mounting + Printing</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-gray-600">Enable Weekly Booking?</label>
+                    <div class="flex items-center gap-4">
+                        <input type="checkbox" id="enable_weekly_booking" name="enable_weekly_booking" value="1" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] cursor-pointer">
+                        <span class="text-xs text-gray-500">Allow customers to book for weekly durations</span>
                     </div>
-                    <div class="relative w-full md:w-72">
+                </div>
+            </div>
+
+            <div id="weekly-prices-section" class="hidden grid-cols-1 md:grid-cols-3 gap-8 mt-6">
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-gray-600">Price for 1 Week <span class="text-red-500">*</span></label>
+                    <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                        <input type="number" name="remounting_charge" placeholder="Per remounting charge" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                        <input type="number" name="weekly_price_1" placeholder="1 Week Price" class="w-full border border-gray-200 rounded-xl px-8 py-3.5 focus:border-[#009A5C] outline-none">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-gray-600">Price for 2 Weeks</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                        <input type="number" name="weekly_price_2" placeholder="2 Weeks Price" class="w-full border border-gray-200 rounded-xl px-8 py-3.5 focus:border-[#009A5C] outline-none">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-gray-600">Price for 3 Weeks</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                        <input type="number" name="weekly_price_3" placeholder="3 Weeks Price" class="w-full border border-gray-200 rounded-xl px-8 py-3.5 focus:border-[#009A5C] outline-none">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
+                <h3 class="text-xl font-bold text-gray-800">Long term Campaign Packages</h3>
+            </div>
+            <p class="text-xs text-gray-400 mb-8">Create specific inventory bundles (e.g., Annual Bulk Booking)</p>
+
+            <div class="space-y-6">
+                <div id="offers-container" class="space-y-4"></div>
+                <button type="button" id="add-offer-btn" class="bg-[#1A1A1A] text-white px-8 py-3 rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-95 transition-transform flex items-center gap-2 w-fit">
+                    <span>+</span> Add Campaign Package
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
+                <h3 class="text-xl font-bold text-gray-800">Services Includes</h3>
+            </div>
+            <p class="text-xs text-gray-400 mb-8">Set Services provided for free (Yes) or as additional charges (No)</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <label class="text-sm font-bold text-gray-700">Graphics Included (Free)?</label>
+                        <div class="flex items-center gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="graphics_included" value="1" class="hidden peer toggle-service" data-target="graphics-box">
+                                <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">Yes</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="graphics_included" value="0" class="hidden peer toggle-service" data-target="graphics-box" checked>
+                                <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">No</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="graphics-box" class="transition-all">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase">Graphics Charge</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                            <input type="number" name="graphics_charge" placeholder="0.00" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div class="space-y-1">
-                        <h4 class="text-sm font-bold text-gray-700">Survey Charge?</h4>
-                        <p class="text-xs text-gray-400">One Time Survey Charge</p>
+                <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <label class="text-sm font-bold text-gray-700">Printing Included (Free)?</label>
+                        <div class="flex items-center gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="printing_included" value="1" class="hidden peer toggle-service" data-target="printing-box">
+                                <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">Yes</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="printing_included" value="0" class="hidden peer toggle-service" data-target="printing-box" checked>
+                                <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">No</span>
+                            </label>
+                        </div>
                     </div>
-                    <div class="relative w-full md:w-72">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                        <input type="number" name="survey_charge" placeholder="Per survey charge" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                    <div id="printing-box" class="space-y-3 transition-all">
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                            <input type="number" name="printing_charge" placeholder="Price" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                        </div>
+                        <select name="printing_material_type" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none bg-white">
+                            <option value="">Select Material</option>
+                            <option value="flex">Flex</option>
+                            <option value="vinyl">Vinyl</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <label class="text-sm font-bold text-gray-700">Mounting Included (Free)?</label>
+                        <div class="flex items-center gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="mounting_included" value="1" class="hidden peer toggle-service" data-target="mounting-box">
+                                <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">Yes</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="mounting_included" value="0" class="hidden peer toggle-service" data-target="mounting-box" checked>
+                                <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">No</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="mounting-box" class="transition-all">
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                            <input type="number" name="mounting_charge" placeholder="Price" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mt-20">
+                        <label class="text-sm font-bold text-gray-700">Lighting Included (Free)?</label>
+                        <div class="flex items-center gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="lighting_included" value="1" class="hidden peer toggle-service" data-target="lighting-box">
+                                <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">Yes</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="lighting_included" value="0" class="hidden peer toggle-service" data-target="lighting-box" checked>
+                                <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">No</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="lighting-box" class="transition-all">
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                            <input type="number" name="lighting_charge" placeholder="Lighting Charge" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                        </div>
+                        <select name="lighting_type" class="w-full border  border-gray-200 rounded-xl px-4 py-3 text-sm outline-none bg-white mt-3">
+                            <option value="">Select Lighting Type</option>
+                            <option value="front-lit">Front-lit</option>
+                            <option value="back-lit">Back-lit</option>
+                            <option value="led">LED</option>
+                            {{-- <option value="none">None</option> --}}
+                        </select>
+                    </div>
+                
+                </div>
+
+                <div class="bg-gray-50/50 p-6 rounded-2xl border border-dashed border-gray-200 space-y-4">
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Fixed Charges</h4>
+                    <div class="bg-white border border-gray-100 rounded-[1.5rem] p-8 space-y-8">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="space-y-1">
+                                <h4 class="text-sm font-bold text-gray-700">Remounting Service Charge?</h4>
+                                <p class="text-xs text-gray-400">Includes Mounting + Printing</p>
+                            </div>
+                            <div class="relative w-full md:w-72">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                <input type="number" name="remounting_charge" placeholder="Per remounting charge" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="space-y-1">
+                                <h4 class="text-sm font-bold text-gray-700">Survey Charge?</h4>
+                                <p class="text-xs text-gray-400">One Time Survey Charge</p>
+                            </div>
+                            <div class="relative w-full md:w-72">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                <input type="number" name="survey_charge" placeholder="Per survey charge" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
+ </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Weekly Pricing Toggle
@@ -317,5 +322,33 @@ document.addEventListener('DOMContentLoaded', function() {
         const last = container.lastElementChild;
         last.querySelector('.remove-offer').onclick = () => last.remove();
     });
+
+    // 4. Serialize offers to offers_json before form submit
+    const form = container.closest('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Gather all offer fields
+            const offerNames = form.querySelectorAll('[name^="offer_name["]');
+            const offers = [];
+            offerNames.forEach(input => {
+                const idx = input.name.match(/offer_name\[(.+)\]/)[1];
+                const duration = form.querySelector(`[name="offer_duration[${idx}]"]`);
+                const unit = form.querySelector(`[name="offer_unit[${idx}]"]`);
+                const discount = form.querySelector(`[name="offer_discount[${idx}]"]`);
+                const endDate = form.querySelector(`[name="offer_end_date[${idx}]"]`);
+                const services = Array.from(form.querySelectorAll(`[name="offer_services[${idx}][]"]:checked`)).map(cb => cb.value);
+                offers.push({
+                    name: input.value,
+                    min_booking_duration: duration ? duration.value : '',
+                    duration_unit: unit ? unit.value : '',
+                    discount: discount ? discount.value : '',
+                    end_date: endDate ? endDate.value : '',
+                    services: services
+                });
+            });
+            // Set offers_json
+            document.getElementById('offers_json').value = JSON.stringify(offers);
+        });
+    }
 });
 </script>

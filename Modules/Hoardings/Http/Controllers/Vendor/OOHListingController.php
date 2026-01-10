@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Modules\Hoardings\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
@@ -29,6 +28,7 @@ class OOHListingController extends Controller
      */
     public function create(Request $request): View
     {
+
         $vendor = Auth::user();
         // if (!$vendor->vendor_profile || $vendor->vendor_profile->onboarding_status !== 'approved') {
         //     return redirect()->route('vendor.onboarding.waiting')
@@ -47,18 +47,21 @@ class OOHListingController extends Controller
         if ($draft && $draft->current_step && $step < $draft->current_step) {
             $step = $draft->current_step;
         }
-        if (!$draft && $step === 1) {
-            $hoarding = \App\Models\Hoarding::create([
-                'vendor_id' => $vendor->id,
-                'hoarding_type' => 'ooh',
-                'status' => 'draft',
-                'approval_status' => 'pending',
-                'current_step' => 1,
-            ]);
-            $draft = OOHHoarding::create([
-                'hoarding_id' => $hoarding->id,
-            ]);
-        }
+
+        // if (!$draft && $step === 1) {
+        // dd($step);
+
+        //     $hoarding = \App\Models\Hoarding::create([
+        //         'vendor_id' => $vendor->id,
+        //         'hoarding_type' => 'ooh',
+        //         'status' => 'draft',
+        //         'approval_status' => 'pending',
+        //         'current_step' => 1,
+        //     ]);
+        //     $draft = OOHHoarding::create([
+        //         'hoarding_id' => $hoarding->id,
+        //     ]);
+        // }
 
         // Fetch attributes for form dropdowns
         $attributes = \App\Models\HoardingAttribute::groupedByType();

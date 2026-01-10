@@ -11,7 +11,7 @@ use Modules\Hoardings\Models\OOHHoarding;
 use Modules\Hoardings\Http\Requests\StoreOOHHoardingStep1Request;
 use Modules\Hoardings\Http\Requests\StoreOOHHoardingStep2Request;
 use Modules\Hoardings\Http\Requests\StoreOOHHoardingStep3Request;
-
+use App\Models\Hoarding;    
 
 class OOHListingController extends Controller
 {
@@ -24,7 +24,7 @@ class OOHListingController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/ooh/step-1",
+     *     path="/hoardings/vendor/ooh/step-1",
      *     tags={"OOH Hoardings"},
      *     summary="Create OOH Hoarding - Step 1",
      *     security={{"sanctum":{}}},
@@ -46,7 +46,7 @@ class OOHListingController extends Controller
      */
     public function storeStep1(StoreOOHHoardingStep1Request $request): JsonResponse
     {
-        $vendor = Auth::guard('vendor')->user();
+        $vendor = Auth::user();
         $data = $request->validated();
         $mediaFiles = $request->file('media', []);
         $result = $this->service->storeStep1($vendor, $data, $mediaFiles);
@@ -60,7 +60,7 @@ class OOHListingController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/ooh/step-2/{ooh_id}",
+     *     path="/hoardings/vendor/ooh/step-2/{ooh_id}",
      *     tags={"OOH Hoardings"},
      *     summary="Update OOH Hoarding - Step 2",
      *     security={{"sanctum":{}}},
@@ -86,12 +86,13 @@ class OOHListingController extends Controller
      *     @OA\Response(response=422, description="Validation Error")
      * )
      */
-    public function storeStep2(StoreOOHHoardingStep2Request $request, $ooh_id): JsonResponse
+    public function storeStep2(StoreOOHHoardingStep2Request $request, $parent_id): JsonResponse
     {
-        $ooh = OOHHoarding::findOrFail($ooh_id);
+        $child_hoarding = OOHHoarding::where('hoarding_id', $parent_id)->firstOrFail();
+        
         $data = $request->validated();
         $brandLogoFiles = $request->file('brand_logos', []);
-        $result = $this->service->storeStep2($ooh, $data, $brandLogoFiles);
+        $result = $this->service->storeStep2($child_hoarding, $data, $brandLogoFiles);
 
         return response()->json([
             'success' => true,
@@ -102,7 +103,7 @@ class OOHListingController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/ooh/step-3/{ooh_id}",
+     *     path="/hoardings/vendor/ooh/step-3/{ooh_id}",
      *     tags={"OOH Hoardings"},
      *     summary="Update OOH Hoarding - Step 3",
      *     security={{"sanctum":{}}},
@@ -128,22 +129,21 @@ class OOHListingController extends Controller
      *     @OA\Response(response=422, description="Validation Error")
      * )
      */
-    public function storeStep3(StoreOOHHoardingStep3Request $request, $ooh_id): JsonResponse
+    public function storeStep3(StoreOOHHoardingStep3Request $request, $parent_id): JsonResponse
     {
-        $ooh = OOHHoarding::findOrFail($ooh_id);
+        $child_hoarding = OOHHoarding::where('hoarding_id', $parent_id)->firstOrFail();
         $data = $request->validated();
-        $result = $this->service->storeStep3($ooh, $data);
-
+        $result = $this->service->storeStep3($child_hoarding, $data);
         return response()->json([
             'success' => true,
-            'message' => 'Step 3 completed.',
+            'message' => 'Hoarding submitted for approval',
             'data' => $result,
         ]);
     }
 
     /**
      * @OA\Get(
-     *     path="/api/v1/ooh/draft",
+     *     path="/hoardings/vendor/ooh/draft",
      *     tags={"OOH Hoardings"},
      *     summary="Get vendor's draft hoardings",
      *     security={{"sanctum":{}}},
@@ -174,7 +174,7 @@ class OOHListingController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/ooh/{id}",
+     *     path="/hoardings/vendor/ooh/{id}",
      *     tags={"OOH Hoardings"},
      *     summary="Get OOH Hoarding details",
      *     security={{"sanctum":{}}},

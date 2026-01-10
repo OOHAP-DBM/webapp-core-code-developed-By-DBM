@@ -17,9 +17,9 @@ use OpenApi\Annotations as OA;
  *         "pincode",
  *         "locality",
  *         "state",
- *        "base_monthly_price",
+ *         "base_monthly_price",
  *         "lat",
- *        "lng"
+ *         "lng"
  *     },
  *
  *     @OA\Property(
@@ -109,8 +109,14 @@ use OpenApi\Annotations as OA;
  *         type="number",
  *         format="float",
  *         nullable=true,
- *         example=275000
- *     )
+ *         example=24000
+ *     ),
+ *
+ *      @OA\Property(
+ *                 property="media",
+ *                 type="array",
+ *                 @OA\Items(type="string", format="binary")
+ *             )
  * )
  */
 class OOHStep1Request {}
