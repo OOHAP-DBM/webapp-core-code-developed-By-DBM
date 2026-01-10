@@ -211,10 +211,8 @@
             </div>
         </div>
     </div>
-    @php
-        $dummyImage = asset('images/image.png');
-        $dummyThumbs = [$dummyImage,$dummyImage,$dummyImage,$dummyImage];
-    @endphp
+
+
 @include('search.Map_View')
 @include('search.List_View')
 @include('search.filter_modal')

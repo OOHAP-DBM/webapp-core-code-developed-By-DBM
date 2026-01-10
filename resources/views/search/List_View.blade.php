@@ -6,6 +6,13 @@
             </h2>
 
             @forelse($results as $item)
+               @php
+                    $dummyImage = asset('images/image.png');
+                    if (!empty($item->image_path)) {
+                        $dummyImage = asset('storage/' . ltrim($item->image_path, '/'));
+                    }
+                    $dummyThumbs = [$dummyImage, $dummyImage, $dummyImage, $dummyImage];
+               @endphp
                 <div class="bg-[#f0f0f0] rounded-xl p-5 mb-5 flex flex-col">
                     <div class="flex gap-6 items-stretch flex-1">
 

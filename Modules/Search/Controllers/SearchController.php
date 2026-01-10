@@ -26,6 +26,16 @@ class SearchController extends Controller
                 $join->on('dooh_screens.hoarding_id', '=', 'hoardings.id')
                      ->whereNull('dooh_screens.deleted_at');
             })
+            ->leftJoin('hoarding_media as hm', function ($join) {
+                $join->on('hm.hoarding_id', '=', 'hoardings.id')
+                    ->where('hm.is_primary', 1);
+            })
+            ->leftJoin('media as dm', function ($join) {
+                $join->on('dm.model_id', '=', 'dooh_screens.id')
+                    ->where('dm.model_type', '=', 'Modules\\DOOH\\Models\\DOOHScreen');
+            })
+
+
             ->where('hoardings.status', 'active')
             ->whereNull('hoardings.deleted_at')
             ->select([
@@ -99,6 +109,14 @@ class SearchController extends Controller
                         ELSE hoardings.monthly_price
                     END AS price
                 "),
+                DB::raw("
+                    CASE
+                        WHEN hoardings.hoarding_type = 'ooh'
+                            THEN hm.file_path
+                        ELSE dm.file_name
+                    END AS image_path
+                "),
+
             ]);
         if ($isWeekly) {
             $query->where('hoardings.hoarding_type', 'ooh')

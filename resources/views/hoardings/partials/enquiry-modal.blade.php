@@ -252,7 +252,7 @@
                 </div>
                 {{-- ADD THIS HERE --}}
                {{-- @dump($hoarding->hoarding_type) --}}
-                @if($hoarding->hoarding_type === "dooh")
+            @if(isset($hoarding) && $hoarding->hoarding_type === 'dooh')
                
                 <div id="doohFields" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 p-4 mb-5 bg-green-50 rounded-lg border border-green-100">
                     <div class="sm:col-span-2">

@@ -7,6 +7,13 @@
                  {{-- RIGHT: LISTINGS --}}
                 <div class="w-1/2 overflow-y-auto" style="max-height: 700px;">
                     @forelse($results as $item)
+                       @php
+                            $dummyImage = asset('images/image.png');
+                            if (!empty($item->image_path)) {
+                                $dummyImage = asset('storage/' . ltrim($item->image_path, '/'));
+                            }
+                            $dummyThumbs = [$dummyImage, $dummyImage, $dummyImage, $dummyImage];
+                       @endphp
                         <div class="rounded-lg p-4 mb-4 shadow bg-[#F8F8F8]">
                             <div class="flex gap-3">
                                 {{-- THUMBNAIL --}}

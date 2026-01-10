@@ -15,6 +15,7 @@ use \Modules\DOOH\Models\DOOHScreen;
 use \Modules\Hoardings\Models\OOHHoarding;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Hoardings\Models\HoardingPackage;
+use Modules\Hoardings\Models\HoardingMedia;
 use Modules\Hoardings\Models\HoardingBrandLogo;
 
 class Hoarding extends Model implements HasMedia
@@ -171,6 +172,15 @@ class Hoarding extends Model implements HasMedia
     const STATUS_SUSPENDED        = 'suspended';
 
     /* ===================== RELATIONSHIPS ===================== */
+    public function hoardingMedia()
+    {
+        return $this->hasMany(
+            HoardingMedia::class,
+            'hoarding_id',
+            'id'
+        )->orderBy('is_primary', 'desc')
+        ->orderBy('sort_order');
+    }
 
     public function vendor(): BelongsTo
     {

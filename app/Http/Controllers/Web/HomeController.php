@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Modules\Cart\Services\CartService;
+use App\Models\Testimonial;
+
 
 
 class HomeController extends Controller
@@ -45,7 +47,8 @@ class HomeController extends Controller
         $bestHoardings = Hoarding::where('status', 'active')
             ->with([
                 'vendor',
-                'doohScreen' // 🔥 MUST
+                'hoardingMedia',     
+                'doohScreen.media'
             ])
             ->latest('created_at')
             ->get();
@@ -121,6 +124,19 @@ class HomeController extends Controller
         
         $cartIds = app(CartService::class)
         ->getCartHoardingIds();
+        $testimonialRole = 'customer';
+
+        if (auth()->check() && auth()->user()->active_role === 'vendor') {
+            $testimonialRole = 'vendor';
+        }
+
+        // Fetch approved testimonials only
+        $testimonials = Testimonial::with('user')
+            ->where('role', $testimonialRole)
+            ->where('status', 'approved')
+            ->where('show_on_homepage', true)
+            ->latest()
+            ->get();
        
         // ---------------------------------------------------------------------------
 
@@ -131,6 +147,8 @@ class HomeController extends Controller
             'topCities',
             'userLocation',
             'cartIds',
+            'testimonials',
+            'testimonialRole'
         ));
     }
 

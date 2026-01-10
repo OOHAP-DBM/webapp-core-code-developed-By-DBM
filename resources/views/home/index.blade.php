@@ -132,10 +132,9 @@
 
      <!-- Why Choose OOHAPP -->
     @include('components.customer.cta-section')
-
-     
-   
-
+    @if(isset($testimonials) && $testimonials->count())
+     @include('components.customer.testimonials')
+    @endif
     <!-- Footer -->
     @include('components.customer.footer')
 @endsection
