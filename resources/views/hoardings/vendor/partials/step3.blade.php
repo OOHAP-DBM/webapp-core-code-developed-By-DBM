@@ -1,5 +1,5 @@
 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
-  <div class="p-8 space-y-8">
+  <div class="md:p-8 space-y-8">
         <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
             <!-- Hidden input for offers_json -->
             <input type="hidden" name="offers_json" id="offers_json">

@@ -34,8 +34,8 @@ return new class extends Migration
             $table->string('geolocation_source')->nullable();
 
             /* VISIBILITY */
-            $table->time('visibility_start')->nullable();
-            $table->time('visibility_end')->nullable();
+            $table->string('visibility_start')->nullable();
+            $table->string('visibility_end')->nullable();
             $table->enum('facing_direction', [
                 'north',
                 'south',
