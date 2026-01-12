@@ -54,11 +54,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Register EnquiryService as singleton
-        $this->app->singleton(EnquiryService::class, function ($app) {
-            return new EnquiryService(
-                $app->make(\Modules\Enquiries\Repositories\Contracts\EnquiryRepositoryInterface::class)
-            );
-        });
+        // $this->app->singleton(EnquiryService::class, function ($app) {
+        //     return new EnquiryService(
+        //         $app->make(\Modules\Enquiries\Repositories\Contracts\EnquiryRepositoryInterface::class)
+        //     );
+        // });
 
         // Register OfferService as singleton
         $this->app->singleton(OfferService::class, function ($app) {

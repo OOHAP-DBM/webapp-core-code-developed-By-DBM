@@ -31,8 +31,8 @@ class StoreOOHHoardingStep1Request extends FormRequest
                 'numeric',
                 'lt:base_monthly_price',
             ],
-            // 'media' => 'required|array',
-            // 'media.*' => 'file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/jpg,image/webp|max:5120',
+            'media' => 'required|array',
+            'media.*' => 'file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/jpg,image/webp|max:5120',
         ];
     }
 

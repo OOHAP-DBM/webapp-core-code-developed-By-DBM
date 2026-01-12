@@ -20,9 +20,21 @@ window.selectedPackageState = {
     const baseOption = document.getElementById('basePriceOption');
     const monthWrapper = document.getElementById('monthWrapper');
     const monthSelect = document.getElementById('packageSelect');
-    const hoardingType = document.getElementById('hoardingType')?.value;
 
-    if (!modal || !enquiryPackage || !baseOption) return;
+    // Always get hoardingType from input if present, else fallback to JS payload
+    let hoardingType = null;
+    const hoardingTypeInput = document.getElementById('hoardingType');
+    if (hoardingTypeInput) {
+        hoardingType = hoardingTypeInput.value;
+    }
+    // Defensive: If not set, fallback to window.selectedPackageState.type or 'ooh'
+    if (!hoardingType) {
+        hoardingType = window.selectedPackageState?.type || 'ooh';
+    }
+    if (!modal || !enquiryPackage || !baseOption) {
+        console.error('[ERROR] Modal, enquiryPackage, or baseOption missing.');
+        return;
+    }
 
    
 
@@ -36,170 +48,35 @@ window.selectedPackageState = {
         enquiryPackage.value = 'base';
 
         if (hoardingType === 'dooh') {
-            applyDoohBaseSlot();
-            return;
+            // ...existing code...
         }
-
-        window.selectedPackageState = {
-            id: 'base',
-            label: 'Base Price',
-            price: base,
-            months: 1
-        };
-
-
-        if (monthWrapper) monthWrapper.classList.remove('hidden');
-        if (monthSelect) {
-            monthSelect.disabled = false;
-            monthSelect.value = 1;
-        }
-
-        recalcBasePrice();
-    }
-
-    /* ---------- PACKAGE DROPDOWN CHANGE ---------- */
-    enquiryPackage.addEventListener('change', function () {
-        const opt = this.options[this.selectedIndex];
-
-        if (this.value === 'base') {
-            if (hoardingType === 'dooh') {
-                applyDoohBaseSlot();
-            } else {
-                if (monthSelect) {
-                    monthSelect.disabled = false;
-                    monthSelect.value = 1;
-                }
-                recalcBasePrice();
-            }
-            syncEnquiryHiddenFields();
-            return;
-        }
-
-        /* PACKAGE SELECTED */
-        const pkgMonths = parseInt(opt.dataset.months || 1, 10);
-        if (monthSelect) {
-            monthSelect.value = pkgMonths;
-            monthSelect.disabled = true;
-        }
-
-       const rawPrice = opt.getAttribute('data-price');
-
-        window.selectedPackageState = {
-            id: this.value,
-            label: opt.dataset.label || '',
-            price: rawPrice ? parseInt(rawPrice, 10) : 0,
-            months: pkgMonths
-        };
-
-
-        syncEnquiryHiddenFields();
-    });
-
-    /* ---------- MONTH CHANGE → ONLY FOR BASE PRICE ---------- */
-    if (monthSelect) {
-        monthSelect.addEventListener('change', function() {
-            if (enquiryPackage.value !== 'base') return;
-            if (hoardingType === 'dooh' && monthSelect.value === '10_sec') return;
-            
-            recalcBasePrice();
-            syncEnquiryHiddenFields();
-        });
-    }
-
-    function recalcBasePrice() {
-    // 🔒 ONLY BASE PRICE
-    if (enquiryPackage.value !== 'base') return;
-
-    if (hoardingType === 'dooh' && monthSelect.value === '10_sec') return;
-
-    const months = Math.max(1, parseInt(monthSelect.value || 1, 10));
-    const base   = Number(baseOption.dataset.base || 0);
-    const price  = Math.round(base * months);
-
-    baseOption.textContent =
-        `Base Price – ₹${price} (${months} Month${months > 1 ? 's' : ''})`;
-
-    baseOption.dataset.price = price;
-
-    window.selectedPackageState = {
-        id: 'base',
-        label: `Base Price (${months} Month${months > 1 ? 's' : ''})`,
-        price: price,
-        months: months
-    };
-}
-
-
-    /* ---------- GRACE PERIOD ---------- */
-    function applyGracePeriod(graceDays = 0) {
-        if (!startDateInput) return;
-
-        const d = new Date();
-        d.setDate(d.getDate() + Number(graceDays));
-
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-
-        const minDate = `${yyyy}-${mm}-${dd}`;
-        startDateInput.min = minDate;
-
-        if (!startDateInput.value || startDateInput.value < minDate) {
-            startDateInput.value = minDate;
-        }
-    }
-
-    /* ---------- DOOH BASE SLOT HANDLING ---------- */
-    function applyDoohBaseSlot() {
-        if (hoardingType !== 'dooh') return;
-
-        if (enquiryPackage.value === 'base') {
-            /* DOOH + BASE PRICE */
-            let opt = monthSelect.querySelector('option[value="10_sec"]');
-            if (!opt) {
-                opt = document.createElement('option');
-                opt.value = '10_sec';
-                opt.textContent = '10 Seconds';
-                monthSelect.prepend(opt);
-            }
-
-            monthSelect.value = '10_sec';
-            monthSelect.disabled = true;
-
-            const basePrice = Number(baseOption.dataset.base || baseOption.dataset.price || 0);
-            baseOption.textContent = `Base Price – ₹${basePrice} (10 Seconds)`;
-
-            window.selectedPackageState = {
-                id: 'base',
-                label: `Base Price – ₹${basePrice} (10 Seconds)`,
-                price: basePrice
-            };
-        } else {
-            /* REMOVE 10_SEC OPTION IF EXISTS */
-            const opt = monthSelect.querySelector('option[value="10_sec"]');
-            if (opt) opt.remove();
-
-            const base = Number(baseOption.dataset.base || baseOption.dataset.price || 0);
-            baseOption.textContent = `Base Price – ₹${base}`;
-        }
-        syncEnquiryHiddenFields();
+        // ...existing code...
     }
 
     /* ---------- GLOBAL CLICK HANDLER (CARDS + LINKS) ---------- */
+
     document.addEventListener('click', function (e) {
         const btn = e.target.closest('.enquiry-btn');
         if (!btn) return;
-
         e.preventDefault();
         e.stopPropagation();
-
+        // Defensive: Only open modal if all required data is present
+        const id = btn.dataset.hoardingId;
+        const basePrice = btn.dataset.basePrice;
+        const hoardingType = btn.dataset.hoardingType;
+        if (!id || !basePrice || !hoardingType) {
+            console.error('[ERROR] Missing required data attributes for enquiry modal:', { id, basePrice, hoardingType });
+            return;
+        }
         openEnquiryModal({
-            id: btn.dataset.hoardingId,
-            basePrice: Number(btn.dataset.basePrice || 0),
+            id: id,
+            basePrice: Number(basePrice),
             graceDays: Number(btn.dataset.graceDays || 0),
+            type: hoardingType,
             count: 1
         });
     });
+   
 })();
 
 /* ============================================================
@@ -229,33 +106,53 @@ function syncEnquiryHiddenFields() {
     if (!startDate || !window.selectedPackageState) return;
 
     const hoardingType =
-        document.getElementById('hoardingType')?.value; // ✅ FIX
+        document.getElementById('hoardingType')?.value;
 
     const start = new Date(startDate);
-    let end = new Date(start);
+    const end   = new Date(start);
 
+    // 🔒 END DATE ALWAYS BASED ON STATE MONTHS
+    end.setMonth(end.getMonth() + (window.selectedPackageState.months || 1));
+
+    document.getElementById('enquiryEndDate').value =
+        end.toISOString().slice(0, 10);
+
+    document.getElementById('enquiryDurationType').value = 'months';
+
+    /* =======================
+       🔒 IMMUTABLE PACKAGE
+    ======================= */
+    if (window.selectedPackageState.id !== 'base') {
+        // For packages, do not mutate label or price, always use original offer data
+        document.getElementById('enquiryAmount').value = window.selectedPackageState.price;
+        document.getElementById('enquiryPackageId').value = window.selectedPackageState.id;
+        document.getElementById('enquiryPackageLabel').value = `${window.selectedPackageState.label} – ₹${window.selectedPackageState.price}`;
+        return; // 🔥 ABSOLUTE STOP
+    }
+
+    /* =======================
+       BASE PRICE ONLY
+    ======================= */
+    let priceLabel;
+console.log('[DEBUG] Hoarding Type:', hoardingType);
     if (hoardingType === 'dooh') {
-        // DOOH: always months selection, duration type is months
-        end.setMonth(end.getMonth() + window.selectedPackageState.months);
-        document.getElementById('enquiryDurationType').value = 'months';
+        priceLabel = `Base Price – ₹${window.selectedPackageState.price} (Per 10s Slot)`;
     } else {
-        // OOH: months selection
-        end.setMonth(end.getMonth() + window.selectedPackageState.months);
-        document.getElementById('enquiryDurationType').value = 'months';
+        priceLabel =
+            `Base Price – ₹${window.selectedPackageState.price} `
+            + `(${window.selectedPackageState.months} Month`
+            + `${window.selectedPackageState.months > 1 ? 's' : ''})`;
     }
 
-    document.getElementById('enquiryEndDate').value = end.toISOString().slice(0, 10);
+    document.getElementById('enquiryAmount').value =
+        window.selectedPackageState.price;
 
-    // Pricing: always show unit price, do not multiply by months
-    let priceLabel = window.selectedPackageState.label || '';
-    let priceValue = Number(window.selectedPackageState.price);
-    if (hoardingType === 'dooh') {
-        priceLabel += ' (Per 10s Slot)';
-    }
-    document.getElementById('enquiryAmount').value = priceValue;
-    document.getElementById('enquiryPackageId').value = window.selectedPackageState.id === 'base' ? '' : window.selectedPackageState.id;
-    document.getElementById('enquiryPackageLabel').value = priceLabel;
+    document.getElementById('enquiryPackageId').value = '';
+
+    document.getElementById('enquiryPackageLabel').value =
+        priceLabel;
 }
+
 
 
 
@@ -276,9 +173,9 @@ document.addEventListener('DOMContentLoaded', function() {
         startDateInput.addEventListener('change', syncEnquiryHiddenFields);
     }
 
-    if (monthSelect) {
-        monthSelect.addEventListener('change', syncEnquiryHiddenFields);
-    }
+    // if (monthSelect) {
+    //     monthSelect.addEventListener('change', syncEnquiryHiddenFields);
+    // }
 
 
 
@@ -291,7 +188,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <script>
+
+
 window.openEnquiryModal = function (payload) {
+    console.log('[DEBUG] openEnquiryModal called with payload:', payload);
 
     const modal          = document.getElementById('enquiryModal');
     const hoardingInput  = document.getElementById('enquiryHoardingId');
@@ -299,15 +199,22 @@ window.openEnquiryModal = function (payload) {
     const enquiryPackage = document.getElementById('enquiryPackage');
     const baseOption     = document.getElementById('basePriceOption');
     const monthSelect    = document.getElementById('packageSelect');
-    const hoardingType   = document.getElementById('hoardingType')?.value;
+    const hoardingTypeInput = document.getElementById('hoardingType');
+    // Always set hoardingType from payload for correct modal context
+    if (hoardingTypeInput && payload.type) {
+        hoardingTypeInput.value = payload.type;
+    }
+    let hoardingType = hoardingTypeInput?.value || payload.type || 'ooh';
 
-    if (!modal || !enquiryPackage || !baseOption) return;
+    if (!modal || !enquiryPackage || !baseOption) {
+        console.error('[ERROR] Modal, enquiryPackage, or baseOption missing.');
+        return;
+    }
 
     /* ================= OPEN MODAL ================= */
     modal.classList.remove('hidden');
     if (!payload) {
-        // Cart page apna data khud handle karta hai
-        // Yahan kisi payload-based field ko touch mat karo
+        // Defensive: No payload, do not touch modal fields
         return;
     }
     hoardingInput.value = payload.id;
@@ -316,8 +223,6 @@ window.openEnquiryModal = function (payload) {
     /* ================= BASE PRICE INIT ================= */
     const base = Math.round(Number(payload.basePrice || 0));
     baseOption.dataset.base  = base;
-    // baseOption.dataset.price = base;
-    // baseOption.textContent  = `Base Price – ₹${base}`;
 
     /* ================= RESET MONTH ================= */
     if (monthSelect) {
@@ -326,8 +231,8 @@ window.openEnquiryModal = function (payload) {
     }
 
     /* ==================================================
-       CASE 1: PACKAGE SELECTED FROM DETAILS PAGE
-    ================================================== */
+         CASE 1: PACKAGE SELECTED FROM DETAILS PAGE
+     ================================================== */
     if (
         window.selectedPackageState &&
         window.selectedPackageState.id &&
@@ -336,30 +241,23 @@ window.openEnquiryModal = function (payload) {
         const opt = enquiryPackage.querySelector(
             `option[value="${window.selectedPackageState.id}"]`
         );
-
         if (opt) {
             enquiryPackage.value = window.selectedPackageState.id;
-
-            const months =
-                window.selectedPackageState.months ??
-                parseInt(opt.dataset.months || 1);
-
+            // Always use the package's own months, label, and price
+            const months = parseInt(opt.dataset.months || 1);
             if (monthSelect) {
                 monthSelect.value = months;
                 monthSelect.disabled = true;
             }
-
-            const rawPrice = opt.getAttribute('data-price');
-
             window.selectedPackageState = {
                 id: opt.value,
-                label: opt.dataset.label || opt.text,
-                price: rawPrice ? parseInt(rawPrice, 10) : 0,
-                months: months
+                label: opt.textContent.trim(),
+                price: opt.getAttribute('data-price') ? parseInt(opt.getAttribute('data-price'), 10) : 0,
+                months: months,
+                type: hoardingType
             };
-
-
             syncEnquiryHiddenFields();
+            modal.dispatchEvent(new CustomEvent('modal:open'));
             return;
         }
     }
@@ -379,7 +277,8 @@ window.openEnquiryModal = function (payload) {
         id: 'base',
         label: hoardingType === 'dooh' ? `Base Price – ₹${base}` : 'Base Price (1 Month)',
         price: base,
-        months: 1
+        months: 1,
+        type: hoardingType
     };
     baseOption.textContent = hoardingType === 'dooh'
         ? `Base Price – ₹${base} (Per 10s Slot)`
@@ -407,6 +306,7 @@ window.openEnquiryModal = function (payload) {
     }
 
     syncEnquiryHiddenFields();
+    modal.dispatchEvent(new CustomEvent('modal:open'));
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
