@@ -2,8 +2,8 @@
 
 namespace Modules\Enquiries\Repositories;
 
-use App\Models\Enquiry;
-use App\Models\Hoarding;
+use Modules\Enquiries\Models\Enquiry;
+use App\Models\Hoarding;                    
 use Modules\Enquiries\Repositories\Contracts\EnquiryRepositoryInterface;
 use Illuminate\Support\Collection;
 
@@ -17,6 +17,20 @@ class EnquiryRepository implements EnquiryRepositoryInterface
         return Enquiry::create($data);
     }
 
+
+    public function createHeader(array $data, string $type): Enquiry
+    {
+        $user = auth()->user();
+
+        return Enquiry::create([
+            'customer_id'    => $user->id,
+            'enquiry_type'   => $type,
+            'source'         => $user->role ?? 'user',
+            'status'         => Enquiry::STATUS_SUBMITTED,
+            'customer_note'  => $data['message'] ?? null,
+            'contact_number' => $data['customer_mobile'] ?? null,
+        ]);
+    }
     /**
      * Find enquiry by ID
      */

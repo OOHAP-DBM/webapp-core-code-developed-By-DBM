@@ -21,6 +21,7 @@ class Enquiry extends Model
         'source',
         'status',
         'customer_note',
+        'contact_number',
     ];
 
     /* ===================== CASTS ===================== */
@@ -36,6 +37,9 @@ class Enquiry extends Model
     const STATUS_SUBMITTED = 'submitted';
     const STATUS_RESPONDED = 'responded';
     const STATUS_CANCELLED = 'cancelled';
+    const STATUS_PENDING   = 'pending';
+    const STATUS_ACCEPTED  = 'accepted';
+    const STATUS_REJECTED  = 'rejected';
 
     /* ===================== RELATIONSHIPS ===================== */
 

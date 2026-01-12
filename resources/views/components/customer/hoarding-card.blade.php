@@ -1,6 +1,6 @@
-<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="window.location.href='{{ route('hoardings.show', $hoarding->id) }}';">
+<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer">
     <!-- Image -->
-    <div class="relative h-48 overflow-hidden bg-gray-100">
+    <div class="relative h-48 overflow-hidden bg-gray-100" onclick="window.location.href='{{ route('hoardings.show', $hoarding->id) }}';">
         @php
             $hasImage = false;
             $imageUrl = '';
@@ -70,7 +70,19 @@
                 <h3 class="text-sm font-semibold text-gray-900 mb-0.5 line-clamp-1">
                     {{ $hoarding->title ?? 'Udaipur | Hiramagri Chouraha' }}
                 </h3>
-                <p class="text-xs text-gray-500">OOH - IMT-014eeft</p>
+                <p class="text-xs text-gray-500">
+                    @if(($hoarding->hoarding_type) === 'dooh')
+                        DOOH -
+                        {{ $hoarding->doohScreen->external_screen_id
+                            ?? $hoarding->doohScreen->id
+                            ?? $hoarding->id }}
+                    @else
+                        OOH -
+                        {{ $hoarding->code
+                            ?? $hoarding->slug
+                            ?? 'IMT-' . str_pad($hoarding->id, 6, '0', STR_PAD_LEFT) }}
+                    @endif
+                </p>
             </div>
             <div class="flex items-center ml-2">
                 <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
@@ -82,15 +94,52 @@
 
         <!-- Price -->
         <div class="mb-3">
-            <div class="flex items-baseline">
-                <span class="text-xl font-bold text-gray-900">₹{{ number_format($hoarding->monthly_price ?? 10999, 0) }}</span>
-                <span class="text-sm text-gray-500 ml-1">/Month</span>
-            </div>
-            <div class="flex items-center space-x-2 mt-1">
-                <span class="text-xs text-gray-400 line-through">₹16,999</span>
-                <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">₹3,000 (61%)</span>
-            </div>
+
+            {{-- ================= OOH ================= --}}
+            @if(($hoarding->hoarding_type) === 'ooh')
+
+                <div class="flex items-baseline">
+                    <span class="text-xl font-bold text-gray-900">
+                        ₹{{ number_format($hoarding->monthly_price_display ?? $hoarding->monthly_price ?? 10999, 0) }}
+                    </span>
+                    <span class="text-sm text-gray-500 ml-1">/Month</span>
+                </div>
+
+                <div class="flex items-center space-x-2 mt-1">
+                    <span class="text-xs text-gray-400 line-through">
+                        ₹{{ number_format($hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price ?? 16999, 0) }}
+                    </span>
+
+                    @php
+                        $base = $hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price;
+                        $sale = $hoarding->monthly_price_display ?? $hoarding->monthly_price;
+                    @endphp
+
+                    @if($base && $sale && $base > $sale)
+                        @php
+                            $diff = $base - $sale;
+                            $percent = round(($diff / $base) * 100);
+                        @endphp
+                        <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
+                            {{ $percent }}%
+                        </span>
+                    @endif
+                </div>
+
+            {{-- ================= DOOH ================= --}}
+            @else
+
+                <div class="flex items-baseline">
+                    <span class="text-xl font-bold text-gray-900">
+                        ₹{{ number_format($hoarding->price_per_slot ?? optional($hoarding->doohScreen)->price_per_slot ?? 500, 0) }}
+                    </span>
+                    <span class="text-sm text-gray-500 ml-1">/10 Second Slot</span>
+                </div>
+
+            @endif
+
         </div>
+
 
         <!-- Availability -->
         <p class="text-xs text-gray-600 mb-1">
@@ -110,23 +159,50 @@
                 onclick="event.stopPropagation(); toggleCart(this, {{ $hoarding->id }})"
                 class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded"
             >
-                {{ $isInCart ? 'Remove' : 'Add to Cart' }}
             </button>
 
 
 
 
 
-            <button class="flex-1 py-2 px-3 bg-teal-500 text-white text-sm font-semibold rounded hover:bg-teal-600 transition-colors"
-                onclick="window.location.href='{{ route('hoardings.show', $hoarding->id) }}'">
-                Book Now
+            @auth
+            <button
+                type="button"
+                class="flex-1 py-2 px-3 bg-teal-500 text-white text-sm font-semibold rounded enquiry-btn"
+                data-hoarding-id="{{ $hoarding->id }}"
+                data-grace-days="{{ (int) $hoarding->grace_period_days }}"
+                data-base-price="{{ ($hoarding->hoarding_type === 'dooh')
+                    ? ($hoarding->doohScreen->price_per_slot ?? 0)
+                    : ($hoarding->monthly_price ?? 0)
+                }}"
+                data-hoarding-type="{{ $hoarding->hoarding_type}}"
+            >
+                Enquiry Now
             </button>
+            @else
+            <button
+                type="button"
+                class="flex-1 py-2 px-3 bg-teal-500 text-white text-sm font-semibold rounded"
+                onclick="window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.')"
+            >
+                Enquiry Now
+            </button>
+            @endauth
+
+
+
+
+
+
+
+
+
         </div>
 
 
         <!-- Enquire Link -->
-        <a href="#" class="block text-center text-xs text-teal-600 hover:text-teal-700 font-medium" onclick="event.stopPropagation();">
+        <!-- <a href="#" class="block text-center text-xs text-teal-600 hover:text-teal-700 font-medium" onclick="event.stopPropagation();">
             Enquire Now
-        </a>
+        </a> -->
     </div>
 </div>

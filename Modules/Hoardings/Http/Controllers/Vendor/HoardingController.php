@@ -316,5 +316,7 @@ class HoardingController extends Controller
 
         return back()->with('success', 'Hoarding status updated successfully.');
     }
+
+    
 }
 

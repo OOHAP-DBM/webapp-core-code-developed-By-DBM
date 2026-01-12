@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Modules\Hoardings\Services\HoardingService;
 use Illuminate\Support\Facades\Validator;
+use App\Models\HoardingAttribute;
+use App\Models\Hoarding;
+use Illuminate\Container\Attributes\Log;
 
 class HoardingController extends Controller
 {
@@ -156,6 +159,125 @@ class HoardingController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Hoarding deleted successfully.',
+        ]);
+    }
+
+
+    /**
+     * @OA\Get(
+     *     path="/hoardings/categories",
+     *     summary="Get all hoarding categories set by admin",
+     *     tags={"Vendor Hoardings"},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *
+     *             @OA\Property(
+     *                 property="categories",
+     *                 type="array",
+     *
+     *                 @OA\Items(
+     *                     type="object",
+     *
+     *                     @OA\Property(
+     *                         property="type",
+     *                         type="string",
+     *                         example="category"
+     *                     ),
+     *
+     *                     @OA\Property(
+     *                         property="label",
+     *                         type="string",
+     *                         example="Unipole"
+     *                     ),
+     *
+     *                     @OA\Property(
+     *                         property="value",
+     *                         type="string",
+     *                         example="unipole"
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function getCategories()
+    {
+        $categories = HoardingAttribute::where('type', 'category')
+            ->where('is_active', '1')
+            ->get(['type', 'label', 'value']);
+
+        return response()->json([
+            'categories' => $categories
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/hoardings/vendor/draft",
+     *     tags={"Vendor Hoardings"},
+     *     summary="Get vendor's draft hoardings",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Drafts fetched successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=true
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Draft hoardings fetched."
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(type="object")
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     )
+     * )
+     */
+
+    public function getDrafts(Request $request): JsonResponse
+    {
+        \Log::info('Fetching draft hoardings for vendor', ['user_id' => $request->user()->id]);
+        $user = $request->user(); // authenticated via sanctum
+
+        // Safety check (role-based access)
+        if (! $user->hasRole('vendor')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        $drafts = Hoarding::where('vendor_id', $user->id)
+            ->where('status', 'draft')
+            ->get();
+
+        \Log::info('Draft Hoardings fetched', ['count' => $drafts->count()]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Draft hoardings fetched.',
+            'data' => $drafts,
         ]);
     }
 }

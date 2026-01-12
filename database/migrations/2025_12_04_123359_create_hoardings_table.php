@@ -34,8 +34,8 @@ return new class extends Migration
             $table->string('geolocation_source')->nullable();
 
             /* VISIBILITY */
-            $table->time('visibility_start')->nullable();
-            $table->time('visibility_end')->nullable();
+            $table->string('visibility_start')->nullable();
+            $table->string('visibility_end')->nullable();
             $table->enum('facing_direction', [
                 'north',
                 'south',
@@ -74,7 +74,7 @@ return new class extends Migration
 
             /* BOOKING RULES */
             $table->unsignedInteger('grace_period_days')->default(0);
-            $table->unsignedInteger('min_booking_months')->default(1);
+            $table->unsignedInteger('min_booking_duration')->default(1);
             $table->unsignedInteger('max_booking_months')->nullable();
             $table->date('available_from')->nullable();
             $table->date('available_to')->nullable();

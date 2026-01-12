@@ -230,5 +230,5 @@
 }
 
 .cart-btn.remove {
-    @apply bg-red-400 text-white hover:bg-red-500;
+    @apply border border-gray-300   text-red-400 hover:text-red-500;
 }

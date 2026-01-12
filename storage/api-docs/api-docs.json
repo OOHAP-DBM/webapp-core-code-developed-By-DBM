@@ -323,6 +323,129 @@
                 ]
             }
         },
+        "/auth/password/forgot": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Send OTP for forgot password",
+                "operationId": "0f1a0f58dfda4dca7d06311ecf05eee3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "identifier"
+                                ],
+                                "properties": {
+                                    "identifier": {
+                                        "type": "string",
+                                        "example": "test@email.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP sent successfully"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            }
+        },
+        "/auth/password/verify-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify OTP for password reset",
+                "operationId": "35100bc98d24cc1239a29322c377913f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "identifier",
+                                    "otp"
+                                ],
+                                "properties": {
+                                    "identifier": {
+                                        "type": "string",
+                                        "example": "test@email.com"
+                                    },
+                                    "otp": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP verified"
+                    },
+                    "422": {
+                        "description": "Invalid or expired OTP"
+                    }
+                }
+            }
+        },
+        "/auth/password/reset": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reset password after OTP verification",
+                "operationId": "8f0b2d1ca86d6e8fd6046aea8a35f6c5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "identifier",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "identifier": {
+                                        "type": "string",
+                                        "example": "test@email.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "NewPass@123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "NewPass@123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset successful"
+                    },
+                    "403": {
+                        "description": "OTP not verified"
+                    }
+                }
+            }
+        },
         "/auth/vendor/onboarding/send-otp": {
             "post": {
                 "tags": [
@@ -602,6 +725,222 @@
                 ]
             }
         },
+        "/dooh/vendor/create/step-1": {
+            "post": {
+                "tags": [
+                    "DOOH Screens"
+                ],
+                "summary": "Create DOOH Screen – Step 1",
+                "operationId": "c2a30e16b18e66b3f004492508f8c72e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DOOHStep1Request"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DOOHScreenResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/dooh/vendor/{screenId}/step-2": {
+            "post": {
+                "tags": [
+                    "DOOH Screens"
+                ],
+                "summary": "DOOH Screen – Step 2",
+                "operationId": "8d3c37ca8b101639679b05cd3ebf13eb",
+                "parameters": [
+                    {
+                        "name": "screenId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OOHStep2Request"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DOOHScreenResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/dooh/vendor/{screenId}/step-3": {
+            "post": {
+                "tags": [
+                    "DOOH Screens"
+                ],
+                "summary": "DOOH Screen – Step 3",
+                "operationId": "6f37f0f1f4601de1d3ac0928b4f07771",
+                "parameters": [
+                    {
+                        "name": "screenId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DOOHStep3Request"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Completed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DOOHScreenResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/hoardings/categories": {
+            "get": {
+                "tags": [
+                    "Vendor Hoardings"
+                ],
+                "summary": "Get all hoarding categories",
+                "operationId": "60b89867a22149f48ce88fbd889425f4",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "categories": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "example": "category"
+                                                    },
+                                                    "label": {
+                                                        "type": "string",
+                                                        "example": "Unipole"
+                                                    },
+                                                    "value": {
+                                                        "type": "string",
+                                                        "example": "unipole"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/hoardings/vendor/draft": {
+            "get": {
+                "tags": [
+                    "Vendor Hoardings"
+                ],
+                "summary": "Get vendor's draft hoardings",
+                "operationId": "f28e0c79e64ab5f3aa7a883f581c910e",
+                "responses": {
+                    "200": {
+                        "description": "Drafts fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Draft hoardings fetched."
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/hoardings/vendor/ooh/step-1": {
             "post": {
                 "tags": [
@@ -772,46 +1111,6 @@
                 ]
             }
         },
-        "/hoardings/vendor/ooh/draft": {
-            "get": {
-                "tags": [
-                    "OOH Hoardings"
-                ],
-                "summary": "Get vendor's draft hoardings",
-                "operationId": "8092488e1157f7837593cafc06a57667",
-                "responses": {
-                    "200": {
-                        "description": "Drafts",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
         "/hoardings/vendor/ooh/{id}": {
             "get": {
                 "tags": [
@@ -861,10 +1160,703 @@
                     }
                 ]
             }
+        },
+        "/customer/profile": {
+            "get": {
+                "tags": [
+                    "Customer Profile"
+                ],
+                "summary": "Get logged-in customer profile",
+                "operationId": "231917ad4cfcf6c9170a989c317da60a",
+                "responses": {
+                    "200": {
+                        "description": "Profile fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/CustomerProfile"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Customer Profile"
+                ],
+                "summary": "Update customer profile",
+                "operationId": "b52d68300d186925574e6652ad6da63f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "phone"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Rahul Sharma"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "rahul@example.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "9876543210"
+                                    },
+                                    "company_name": {
+                                        "type": "string",
+                                        "example": "OOH Media Pvt Ltd"
+                                    },
+                                    "gstin": {
+                                        "type": "string",
+                                        "example": "09ABCDE1234F1Z5"
+                                    },
+                                    "avatar": {
+                                        "description": "Profile image (jpg, png, webp)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/CustomerProfile"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Email or phone not verified"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/customer/profile/avatar": {
+            "delete": {
+                "tags": [
+                    "Customer Profile"
+                ],
+                "summary": "Remove customer avatar",
+                "operationId": "9e5db4de44d4c379ceddc8912c449c1f",
+                "responses": {
+                    "200": {
+                        "description": "Avatar removed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Avatar removed successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Unable to remove avatar"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/customer/profile/change-password": {
+            "post": {
+                "tags": [
+                    "Customer Profile"
+                ],
+                "summary": "Change account password",
+                "operationId": "1c9f67dbc7bd9c386a82e26f31a9e3ce",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "new_password",
+                                    "new_password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string",
+                                        "example": "OldPass@123"
+                                    },
+                                    "new_password": {
+                                        "type": "string",
+                                        "example": "NewPass@123"
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string",
+                                        "example": "NewPass@123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password changed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Password changed successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid current password"
+                    },
+                    "500": {
+                        "description": "Unable to change password"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/customer/profile/send-otp": {
+            "post": {
+                "tags": [
+                    "Customer Profile"
+                ],
+                "summary": "Send OTP to email or phone",
+                "operationId": "4c64b3036ff472419f6edb9a2cb1fde4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "identifier"
+                                ],
+                                "properties": {
+                                    "identifier": {
+                                        "type": "string",
+                                        "example": "rahul@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP sent successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid identifier"
+                    },
+                    "500": {
+                        "description": "Unable to send OTP"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/customer/profile/verify-otp": {
+            "post": {
+                "tags": [
+                    "Customer Profile"
+                ],
+                "summary": "Verify OTP for email or phone",
+                "operationId": "ffed25e2afb31d6618c9213288354962",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "identifier",
+                                    "otp"
+                                ],
+                                "properties": {
+                                    "identifier": {
+                                        "type": "string",
+                                        "example": "rahul@example.com"
+                                    },
+                                    "otp": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP verified successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Verified successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid or expired OTP"
+                    },
+                    "500": {
+                        "description": "OTP verification failed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
         "schemas": {
+            "CustomerProfile": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 12
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Rahul Sharma"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "rahul@example.com"
+                    },
+                    "email_verified": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "9876543210"
+                    },
+                    "phone_verified": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "avatar": {
+                        "type": "string",
+                        "example": "https://app.com/storage/media/users/avatars/12/avatar.png"
+                    },
+                    "company_name": {
+                        "type": "string",
+                        "example": "OOH Media Pvt Ltd"
+                    },
+                    "gstin": {
+                        "type": "string",
+                        "example": "09ABCDE1234F1Z5"
+                    }
+                },
+                "type": "object"
+            },
+            "DOOHScreenResponse": {
+                "title": "DOOH Screen Response",
+                "description": "The response object returned after a successful screen update",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Screen updated successfully"
+                    },
+                    "data": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "price_per_slot": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 150
+                            },
+                            "video_length": {
+                                "type": "integer",
+                                "example": 15
+                            },
+                            "base_monthly_price": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 250000
+                            },
+                            "enable_weekly_booking": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "slots": {
+                                "type": "array",
+                                "items": {
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "example": "Morning"
+                                        },
+                                        "start_time": {
+                                            "type": "string",
+                                            "example": "8:00 AM"
+                                        },
+                                        "end_time": {
+                                            "type": "string",
+                                            "example": "12:00 PM"
+                                        },
+                                        "active": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "offers": {
+                                "type": "array",
+                                "items": {
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "example": "Festival"
+                                        },
+                                        "discount": {
+                                            "type": "integer",
+                                            "example": 10
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2026-01-09T10:00:00Z"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2026-01-09T12:30:00Z"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "DOOHStep1Request": {
+                "required": [
+                    "category",
+                    "screen_type",
+                    "measurement_unit",
+                    "width",
+                    "height",
+                    "resolution_type",
+                    "address",
+                    "locality",
+                    "pincode",
+                    "lat",
+                    "lng",
+                    "price_per_10_sec_slot",
+                    "price_per_30_sec_slot",
+                    "media"
+                ],
+                "properties": {
+                    "category": {
+                        "type": "string"
+                    },
+                    "screen_type": {
+                        "type": "string",
+                        "enum": [
+                            "LED",
+                            "LCD"
+                        ]
+                    },
+                    "measurement_unit": {
+                        "type": "string",
+                        "enum": [
+                            "sqft",
+                            "sqm"
+                        ]
+                    },
+                    "width": {
+                        "type": "number",
+                        "example": 500
+                    },
+                    "height": {
+                        "type": "number",
+                        "example": 300
+                    },
+                    "resolution_type": {
+                        "type": "string",
+                        "example": "1920x1080"
+                    },
+                    "resolution_width": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "resolution_height": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "locality": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "state": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "pincode": {
+                        "type": "string"
+                    },
+                    "landmarks": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "lat": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "lng": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "geotag": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "price_per_10_sec_slot": {
+                        "type": "number"
+                    },
+                    "price_per_30_sec_slot": {
+                        "type": "number"
+                    },
+                    "media": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "DOOHStep3Request": {
+                "properties": {
+                    "price_per_slot": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 150
+                    },
+                    "video_length": {
+                        "type": "integer",
+                        "enum": [
+                            15,
+                            30
+                        ],
+                        "example": 15
+                    },
+                    "base_monthly_price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 250000
+                    },
+                    "monthly_offered_price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 230000,
+                        "nullable": true
+                    },
+                    "enable_weekly_booking": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "weekly_price_1": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 80000,
+                        "nullable": true
+                    },
+                    "weekly_price_2": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 150000,
+                        "nullable": true
+                    },
+                    "weekly_price_3": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 210000,
+                        "nullable": true
+                    },
+                    "slots": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "example": "Morning"
+                                },
+                                "start_time": {
+                                    "type": "string",
+                                    "example": "8:00 AM"
+                                },
+                                "end_time": {
+                                    "type": "string",
+                                    "example": "12:00 PM"
+                                },
+                                "active": {
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "offers_json": {
+                        "description": "JSON-encoded array of campaign packages. Each package object should have: name, min_booking_duration, duration_unit, discount, end_date, services.",
+                        "type": "string",
+                        "example": "[{name: 'Annual Bulk', min_booking_duration: 12, duration_unit: 'months', discount: 10, end_date: '2026-12-31', services: ['printing','mounting']}]"
+                    },
+                    "graphics_included": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "graphics_charge": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 5000,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "OOHStep1Request": {
                 "required": [
                     "category",
@@ -965,7 +1957,7 @@
                     },
                     "permit_number": {
                         "type": "string",
-                        "example": "NGM-2024-4567",
+                        "example": "NN-DEL-2024-8891",
                         "nullable": true
                     },
                     "permit_valid_till": {
@@ -974,30 +1966,16 @@
                         "example": "2026-12-31",
                         "nullable": true
                     },
-                    "expected_footfall": {
-                        "type": "integer",
-                        "example": 50000
-                    },
-                    "expected_eyeball": {
-                        "type": "integer",
-                        "example": 150000
-                    },
-                    "audience_types": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "example": [
-                            "daily commuters",
-                            "office crowd"
-                        ]
+                    "block_dates": {
+                        "type": "boolean",
+                        "example": false
                     },
                     "blocked_dates_json": {
-                        "type": "string",
-                        "example": [
-                            "2026-01-10",
-                            "2026-01-15"
-                        ],
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "2026-01-15"
+                        },
                         "nullable": true
                     },
                     "needs_grace_period": {
@@ -1006,53 +1984,57 @@
                     },
                     "grace_period_days": {
                         "type": "integer",
-                        "example": 7
-                    },
-                    "visibility_type": {
-                        "type": "string",
-                        "example": "one_way"
-                    },
-                    "visibility_start": {
-                        "type": "string",
-                        "example": "GT Road",
+                        "example": 5,
                         "nullable": true
                     },
-                    "visibility_end": {
-                        "type": "string",
-                        "example": "Central Mall",
+                    "expected_footfall": {
+                        "type": "integer",
+                        "example": 1000,
                         "nullable": true
                     },
-                    "facing_direction": {
-                        "type": "string",
-                        "example": "north"
+                    "expected_eyeball": {
+                        "type": "integer",
+                        "example": 5000,
+                        "nullable": true
                     },
-                    "road_type": {
-                        "type": "string",
-                        "example": "highway"
-                    },
-                    "traffic_type": {
-                        "type": "string",
-                        "example": "vehicular"
+                    "audience_type": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "Students"
+                        }
                     },
                     "visible_from": {
                         "type": "array",
                         "items": {
-                            "type": "string"
-                        },
-                        "example": [
-                            "metro station",
-                            "signal"
-                        ]
+                            "type": "string",
+                            "example": "From Flyover"
+                        }
                     },
                     "located_at": {
                         "type": "array",
                         "items": {
-                            "type": "string"
-                        },
-                        "example": [
-                            "road divider",
-                            "junction"
-                        ]
+                            "type": "string",
+                            "example": "Shopping Mall"
+                        }
+                    },
+                    "visibility_type": {
+                        "type": "string",
+                        "enum": [
+                            "one_way",
+                            "both_side"
+                        ],
+                        "example": "one_way"
+                    },
+                    "visibility_start": {
+                        "type": "string",
+                        "example": "Santacruz",
+                        "nullable": true
+                    },
+                    "visibility_end": {
+                        "type": "string",
+                        "example": "Fun Mall",
+                        "nullable": true
                     },
                     "brand_logos": {
                         "type": "array",
@@ -1177,6 +2159,10 @@
     },
     "tags": [
         {
+            "name": "DOOH Screens",
+            "description": "DOOH Hoarding APIs"
+        },
+        {
             "name": "Authentication",
             "description": "Authentication"
         },
@@ -1185,8 +2171,16 @@
             "description": "Vendor Onboarding"
         },
         {
+            "name": "Vendor Hoardings",
+            "description": "Vendor Hoardings"
+        },
+        {
             "name": "OOH Hoardings",
             "description": "OOH Hoardings"
+        },
+        {
+            "name": "Customer Profile",
+            "description": "Customer Profile"
         }
     ]
 }

@@ -16,6 +16,7 @@ use \Modules\Hoardings\Models\OOHHoarding;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Hoardings\Models\HoardingPackage;
 use Modules\Hoardings\Models\HoardingBrandLogo;
+use Modules\Enquiries\Models\Enquiry;
 
 class Hoarding extends Model implements HasMedia
    
@@ -36,7 +37,7 @@ class Hoarding extends Model implements HasMedia
     protected $priceFields = [
         'base_monthly_price',
         'monthly_price',
-        'weekly_price',
+        'weekly_price_1',
         'commission_percent',
         'graphics_charge',
         'survey_charge',
@@ -88,7 +89,7 @@ class Hoarding extends Model implements HasMedia
         /* Pricing (base only) */
         'base_monthly_price',
         'monthly_price',
-        'weekly_price',
+        'weekly_price_1',
         'enable_weekly_booking',
         'commission_percent',
         'currency',
@@ -99,7 +100,7 @@ class Hoarding extends Model implements HasMedia
 
         /* Booking rules */
         'grace_period_days',
-        'min_booking_months',
+        'min_booking_duration',
         'max_booking_months',
         'available_from',
         'available_to',
@@ -187,6 +188,14 @@ class Hoarding extends Model implements HasMedia
         return $this->hasOne(DOOHScreen::class, 'hoarding_id');
     }
 
+    public function packages()
+    {
+        if ($this->hoarding_type === 'dooh') {
+            return $this->doohScreen?->packages() ?? collect();
+        }
+
+        return $this->oohPackages();
+    }
     /* ===================== SCOPES ===================== */
 
     public function scopeActive($query)
@@ -214,10 +223,22 @@ class Hoarding extends Model implements HasMedia
     {
         return $this->hasMany(Booking::class, 'hoarding_id');
     }
-    public function oohPackages()
+    // public function oohPackages()
+    // {
+    //     return $this->hasMany(HoardingPackage::class);
+    // }
+    /* =======================
+       OOH PACKAGES
+    ======================= */
+    public function oohPackages(): HasMany
     {
-        return $this->hasMany(HoardingPackage::class);
+        return $this->hasMany(
+            HoardingPackage::class,
+            'hoarding_id',
+            'id'
+        );
     }
+
 
     const TYPE_BILLBOARD = 'billboard';
     const TYPE_DIGITAL = 'digital';

@@ -7,6 +7,8 @@ use Modules\Users\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
+
+// UserService for admin/backend operations
 class UserService
 {
     public function __construct(
