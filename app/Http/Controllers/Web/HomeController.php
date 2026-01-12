@@ -124,22 +124,30 @@ class HomeController extends Controller
         
         $cartIds = app(CartService::class)
         ->getCartHoardingIds();
-        $testimonialRole = 'customer';
+       $testimonialRole = 'customer';
 
         if (auth()->check() && auth()->user()->active_role === 'vendor') {
             $testimonialRole = 'vendor';
         }
 
-        // Fetch approved testimonials only
-        $testimonials = Testimonial::with('user')
+        $userCity = null;
+        if (auth()->check()) {
+            $userCity = strtolower(trim(auth()->user()->city ?? ''));
+        }
+        $testimonialsQuery = Testimonial::with('user')
             ->where('role', $testimonialRole)
             ->where('status', 'approved')
-            ->where('show_on_homepage', true)
+            ->where('show_on_homepage', true);
+        if (!empty($userCity)) {
+            $testimonialsQuery->whereHas('user', function ($q) use ($userCity) {
+                $q->whereNotNull('city')
+                ->whereRaw('LOWER(city) != ?', [$userCity]);
+            });
+        }
+        $testimonials = $testimonialsQuery
             ->latest()
             ->get();
        
-        // ---------------------------------------------------------------------------
-
         return view('home.index', compact(
             'stats',
             'bestHoardings',

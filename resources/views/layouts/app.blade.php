@@ -49,7 +49,7 @@
                     btn.textContent = 'Remove';
                     btn.classList.add('remove');
                 } else {
-                    btn.textContent = 'Sort List';
+                    btn.textContent = 'Add to cart';
                     btn.classList.add('add');
                 }
             }

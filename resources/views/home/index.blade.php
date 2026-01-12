@@ -63,6 +63,7 @@
         </div>
         
     </section>
+    @guest
      <!-- Personalized Recommendations CTA -->
       <div class="container mx-auto px-4">
           <hr class="border-gray-200">
@@ -73,7 +74,6 @@
                     See Personalized Recommendations
                 </h3>
 
-                @guest
                     <div class="flex items-center justify-center space-x-4">
                         <a href="{{ route('login') }}"
                         class="px-8 py-3 bg-gray-900 text-white rounded font-semibold hover:bg-gray-800">
@@ -87,12 +87,13 @@
                             Signup
                         </a>
                     </div>
-                @endguest
             </div>
        </section>
        <div class="container mx-auto px-4">
             <hr class="border-gray-200">
        </div>
+    @endguest
+
      <!-- Top DOOH Section -->
     {{-- <section class="py-16 bg-gray-50">
         <div class="container mx-auto px-4">

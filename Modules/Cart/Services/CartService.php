@@ -243,6 +243,41 @@ class CartService
     }
     private function buildCartItem($item)
     {
+         $item->image_url = asset('assets/images/placeholder.jpg');
+
+        // ---------- OOH IMAGE ----------
+        if ($item->hoarding_type === 'ooh') {
+
+            $media = DB::table('hoarding_media')
+                ->where('hoarding_id', $item->hoarding_id)
+                ->orderByDesc('is_primary')
+                ->orderBy('sort_order')
+                ->first();
+
+            if ($media && !empty($media->file_path)) {
+                $item->image_url = asset('storage/' . ltrim($media->file_path, '/'));
+            }
+        }
+
+        // ---------- DOOH IMAGE ----------
+        if ($item->hoarding_type === 'dooh') {
+
+            $screen = DB::table('dooh_screens')
+                ->where('hoarding_id', $item->hoarding_id)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($screen) {
+                $media = DB::table('dooh_screen_media')
+                    ->where('dooh_screen_id', $screen->id)
+                    ->orderBy('sort_order')
+                    ->first();
+
+                if ($media && !empty($media->file_path)) {
+                    $item->image_url = asset('storage/' . ltrim($media->file_path, '/'));
+                }
+            }
+        }
         /* =====================================================
         SIZE
         ===================================================== */

@@ -4,10 +4,12 @@ namespace Modules\Hoardings\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Hoarding;
+use Modules\Mail\HoardingPublishedMail;
 use Modules\DOOH\Models\DOOHScreen;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Mail;
 
 
 class VendorHoardingController extends Controller
@@ -144,6 +146,23 @@ class VendorHoardingController extends Controller
             : 'active';
 
         $hoarding->save();
+
+        // ✅ Send email to vendor when hoarding is published
+        if ($hoarding->status === 'active' && $hoarding->vendor) {
+            try {
+                if (!empty($hoarding->vendor->email)) {
+                    Mail::to($hoarding->vendor->email)->send(
+                        new HoardingPublishedMail($hoarding)
+                    );
+                }
+            } catch (\Throwable $e) {
+                \Log::error('Hoarding published mail failed', [
+                    'hoarding_id' => $hoarding->id,
+                    'vendor_email' => $hoarding->vendor->email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return response()->json([
             'success' => true,

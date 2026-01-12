@@ -251,10 +251,7 @@ html, body {
             <!-- Heading & Info -->
             <h3 class="text-start mb-2">Create a Password</h3>
             <p class="text-start mb-1 small">
-                Password should be minimum 8 character + 1 upper case +
-            </p>
-            <p class="text-start mb-3 small">
-                Lower case + 1 special symbol
+                Password should be minimum 4 character
             </p>
             <form action="{{ route('register.submit') }}"
                 method="POST"
@@ -285,7 +282,6 @@ html, body {
                 <p class="text-start mb-1">
                     Password <span class="text-danger">*</span>
                 </p>
-
                 <div class="mb-2 text-start position-relative">
                     <input type="password"
                         id="password"
@@ -366,7 +362,7 @@ html, body {
         }
 
         function validatePassword(pwd) {
-            return /^(?=.*[a-z])(?=.*\d)[^\s]{8,64}$/.test(pwd);
+            return /^(?=.*[a-z]){4,64}$/.test(pwd);
         }
 
         /* ===================== EMAIL + OTP ===================== */
@@ -506,7 +502,7 @@ html, body {
         password.addEventListener('input', () => {
             clearFieldError(password);
             if (!validatePassword(password.value)) {
-                showFieldError(password, 'Password must be strong (8+, upper, lower, number, symbol)');
+                showFieldError(password, 'Password must be strong');
             }
         });
 

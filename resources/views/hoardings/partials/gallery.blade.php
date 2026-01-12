@@ -20,22 +20,26 @@
     $images = collect();
 
     // ================= OOH =================
-    if ($hoarding->hoarding_type === 'ooh'
-        && $hoarding->hoardingMedia->isNotEmpty()) {
-
+    if (
+        $hoarding->hoarding_type === 'ooh'
+        && $hoarding->hoardingMedia->isNotEmpty()
+    ) {
         $images = $hoarding->hoardingMedia->map(function ($m) {
             return asset('storage/' . $m->file_path);
         });
     }
 
     // ================= DOOH =================
-    elseif ($hoarding->hoarding_type === 'dooh'
+    elseif (
+        $hoarding->hoarding_type === 'dooh'
         && $hoarding->doohScreen
-        && $hoarding->doohScreen->hasMedia()) {
-
-        $images = $hoarding->doohScreen->getMedia()->map(function ($m) {
-            return $m->getUrl();
-        });
+        && $hoarding->doohScreen->media->isNotEmpty()
+    ) {
+        $images = $hoarding->doohScreen->media
+            ->sortBy('sort_order')
+            ->map(function ($m) {
+                return asset('storage/' . $m->file_path);
+            });
     }
 
     // ================= FALLBACK =================
@@ -45,6 +49,7 @@
 
     $mainImage = $images->first();
 @endphp
+
 
 
 <div class="row g-3 mb-4">

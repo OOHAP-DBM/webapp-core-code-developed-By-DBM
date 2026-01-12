@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Modules\Cart\Services\CartService;
 
 class SearchController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, CartService $cartService): View
     {
         $isWeekly = $request->get('duration') === 'weekly';
         $query = DB::table('hoardings')
@@ -25,14 +26,6 @@ class SearchController extends Controller
             ->leftJoin('dooh_screens', function ($join) {
                 $join->on('dooh_screens.hoarding_id', '=', 'hoardings.id')
                      ->whereNull('dooh_screens.deleted_at');
-            })
-            ->leftJoin('hoarding_media as hm', function ($join) {
-                $join->on('hm.hoarding_id', '=', 'hoardings.id')
-                    ->where('hm.is_primary', 1);
-            })
-            ->leftJoin('media as dm', function ($join) {
-                $join->on('dm.model_id', '=', 'dooh_screens.id')
-                    ->where('dm.model_type', '=', 'Modules\\DOOH\\Models\\DOOHScreen');
             })
 
 
@@ -108,13 +101,6 @@ class SearchController extends Controller
                             THEN COALESCE(dooh_screens.price_per_slot, 0)
                         ELSE hoardings.monthly_price
                     END AS price
-                "),
-                DB::raw("
-                    CASE
-                        WHEN hoardings.hoarding_type = 'ooh'
-                            THEN hm.file_path
-                        ELSE dm.file_name
-                    END AS image_path
                 "),
 
             ]);
@@ -214,6 +200,37 @@ class SearchController extends Controller
                 $query->orderByDesc('hoardings.created_at');
         }
         $results = $query->paginate(10)->withQueryString();
-        return view('search.index', compact('results'));
+        $hoardingIds = $results->pluck('id')->toArray();
+
+        $oohImages = DB::table('hoarding_media')
+            ->whereIn('hoarding_id', $hoardingIds)
+            ->orderByDesc('is_primary')
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('hoarding_id');
+
+        $doohImages = DB::table('dooh_screen_media')
+            ->join('dooh_screens', 'dooh_screens.id', '=', 'dooh_screen_media.dooh_screen_id')
+            ->whereIn('dooh_screens.hoarding_id', $hoardingIds)
+            ->orderByDesc('dooh_screen_media.is_primary')
+            ->orderBy('dooh_screen_media.sort_order')
+            ->get()
+            ->groupBy('hoarding_id');
+
+        $results->getCollection()->transform(function ($item) use ($oohImages, $doohImages) {
+            $item->images = $item->hoarding_type === 'ooh'
+                ? ($oohImages[$item->id] ?? collect())
+                : ($doohImages[$item->id] ?? collect());
+
+            return $item;
+        });
+
+        $cartHoardingIds = auth()->check()
+        ? $cartService->getCartHoardingIds()
+        : [];
+        return view('search.index', [
+            'results' => $results,
+            'cartHoardingIds' => $cartHoardingIds,
+        ]);
     }
 }
