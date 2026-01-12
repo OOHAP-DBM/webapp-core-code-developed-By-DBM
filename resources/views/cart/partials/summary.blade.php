@@ -103,6 +103,7 @@
 
     </div>
 </div>
+@include('cart.partials.enquiry-success-modal')
 <script>
 window.enquiryState = {
     items: {} // hoarding_id => { package_id, package_label, price, months }
@@ -303,15 +304,13 @@ function recalculateEnquiryTotal() {
 }
 </script>
 <script>
+
 function submitEnquiryFromCart() {
-
     const items = Object.values(window.enquiryState.items);
-
     if (!items.length) {
         alert('No hoardings selected');
         return;
     }
-
     // Validate campaign date for all hoardings
     let allDatesSelected = true;
     let campaignDates = [];
@@ -328,36 +327,65 @@ function submitEnquiryFromCart() {
         return;
     }
 
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = "{{ route('enquiries.store') }}";
+    // Prepare payload
+    const payload = {
+        _token: '{{ csrf_token() }}',
+        duration_type: 'months',
+        preferred_start_date: '{{ now()->toDateString() }}',
+        customer_name: '{{ auth()->user()->name }}',
+        customer_mobile: '{{ auth()->user()->phone ?? auth()->user()->mobile }}',
+        hoarding_id: [],
+        package_id: [],
+        package_label: [],
+        amount: [],
+        campaign_start_date: [],
+        min_booking_duration: [],
+        months: []
+    };
 
-    let html = `
-        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="duration_type" value="months">
-        <input type="hidden" name="preferred_start_date" value="{{ now()->toDateString() }}">
-        <input type="hidden" name="customer_name" value="{{ auth()->user()->name }}">
-        <input type="hidden" name="customer_mobile" value="{{ auth()->user()->phone ?? auth()->user()->mobile }}">
-    `;
-
-    items.forEach((item, index) => {
-        html += `
-            <input type="hidden" name="hoarding_id[]" value="${item.hoarding_id}">
-            <input type="hidden" name="package_id[]" value="${item.package_id ? item.package_id : ''}">
-            <input type="hidden" name="package_label[]" value="${item.package_label}">
-            <input type="hidden" name="amount[]" value="${item.price * item.months}">
-            <input type="hidden" name="campaign_start_date[]" value="${document.getElementById(`campaign-input-${item.hoarding_id}`).value}">
-        `;
+    items.forEach(item => {
+        payload.hoarding_id.push(item.hoarding_id);
+        payload.package_id.push(item.package_id ? item.package_id : '');
+        payload.package_label.push(item.package_label);
+        payload.amount.push(item.price * item.months);
+        payload.campaign_start_date.push(document.getElementById(`campaign-input-${item.hoarding_id}`).value);
         if (item.package_id) {
-            html += `<input type="hidden" name="min_booking_duration[]" value="${item.months}">`;
+            payload.min_booking_duration.push(item.months);
         } else {
-            html += `<input type="hidden" name="months[]" value="${item.months}">`;
+            payload.months.push(item.months);
         }
     });
 
-    form.innerHTML = html;
-    document.body.appendChild(form);
-    form.submit();
+    // AJAX submission
+    fetch("{{ route('enquiries.store') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showEnquirySuccessModal(data);
+        } else {
+            alert(data.message || 'Enquiry submission failed.');
+        }
+    })
+    .catch(error => {
+        console.error('Enquiry AJAX error:', error);
+        alert('An error occurred while submitting your enquiry.');
+    });
+}
+function showEnquirySuccessModal(data) {
+    // Fill details if needed
+    const detailsDiv = document.getElementById('enquirySuccessDetails');
+    if (detailsDiv) {
+        detailsDiv.innerHTML = data.details || '';
+    }
+    document.getElementById('enquirySuccessModal').classList.remove('hidden');
+    closeEnquiryModal();
 }
 
 function onPackageChange(select, hoardingId) {
