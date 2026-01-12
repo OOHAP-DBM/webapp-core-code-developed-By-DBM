@@ -2,13 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Hoardings\Http\Controllers\Api\Vendor\OOHListingController;
-
+use Modules\Hoardings\Http\Controllers\Api\HoardingAttributeController;
 /**
  * Hoardings API Routes (v1)
  * Base: /api/v1/hoardings
  * 
  * OOH hoarding catalog, search, filters, availability
  */
+
+Route::get('/categories', [Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController::class, 'getCategories']);
+
 
 // Public routes - Browse hoardings
 Route::get('/', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'index']);
@@ -25,11 +28,11 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->prefix('vendor')->group(func
     Route::post('/{id}/media', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'uploadMedia']);
 
     // Vendor-specific: Get all hoardings for authenticated vendor
-    Route::get('/vendor/hoardings', [\Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController::class, 'index']);
+    Route::get('/hoardings', [\Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController::class, 'index']);
     Route::post('ooh/step-1', [OOHListingController::class, 'storeStep1']);
     Route::post('ooh/step-2/{ooh_id}', [OOHListingController::class, 'storeStep2']);
     Route::post('ooh/step-3/{ooh_id}', [OOHListingController::class, 'storeStep3']);
-    Route::get('ooh/draft', [OOHListingController::class, 'getDrafts']);
+    Route::get('/draft', [\Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController::class, 'getDrafts']);
     Route::get('/{id}', [OOHListingController::class, 'show']);
 
 });

@@ -2,7 +2,7 @@
 
 namespace Modules\Enquiries\Repositories\Contracts;
 
-use App\Models\Enquiry;
+use Modules\Enquiries\Models\Enquiry;
 use Illuminate\Support\Collection;
 
 interface EnquiryRepositoryInterface
@@ -10,7 +10,7 @@ interface EnquiryRepositoryInterface
     /**
      * Create a new enquiry
      */
-    public function create(array $data): Enquiry;
+    // public function create(array $data): Enquiry;
 
     /**
      * Find enquiry by ID

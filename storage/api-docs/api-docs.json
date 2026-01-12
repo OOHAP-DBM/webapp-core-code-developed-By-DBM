@@ -853,6 +853,94 @@
                 ]
             }
         },
+        "/hoardings/categories": {
+            "get": {
+                "tags": [
+                    "Vendor Hoardings"
+                ],
+                "summary": "Get all hoarding categories",
+                "operationId": "60b89867a22149f48ce88fbd889425f4",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "categories": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "example": "category"
+                                                    },
+                                                    "label": {
+                                                        "type": "string",
+                                                        "example": "Unipole"
+                                                    },
+                                                    "value": {
+                                                        "type": "string",
+                                                        "example": "unipole"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/hoardings/vendor/draft": {
+            "get": {
+                "tags": [
+                    "Vendor Hoardings"
+                ],
+                "summary": "Get vendor's draft hoardings",
+                "operationId": "f28e0c79e64ab5f3aa7a883f581c910e",
+                "responses": {
+                    "200": {
+                        "description": "Drafts fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Draft hoardings fetched."
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/hoardings/vendor/ooh/step-1": {
             "post": {
                 "tags": [
@@ -1014,46 +1102,6 @@
                     },
                     "422": {
                         "description": "Validation Error"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/hoardings/vendor/ooh/draft": {
-            "get": {
-                "tags": [
-                    "OOH Hoardings"
-                ],
-                "summary": "Get vendor's draft hoardings",
-                "operationId": "8092488e1157f7837593cafc06a57667",
-                "responses": {
-                    "200": {
-                        "description": "Drafts",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
                     }
                 },
                 "security": [
@@ -2121,6 +2169,10 @@
         {
             "name": "Vendor Onboarding",
             "description": "Vendor Onboarding"
+        },
+        {
+            "name": "Vendor Hoardings",
+            "description": "Vendor Hoardings"
         },
         {
             "name": "OOH Hoardings",

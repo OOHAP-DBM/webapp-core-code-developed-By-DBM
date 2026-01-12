@@ -139,14 +139,12 @@ Route::middleware(['auth'])->prefix('auth')->name('auth.')->group(function () {
 // ============================================
 Route::middleware('auth')->group(function () {
     // Enquiries
-    Route::get('/enquiries', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'index'])->name('enquiries.index');
-    Route::get('/enquiries/create', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'create'])->name('enquiries.create');
-    Route::post('/enquiries', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'store'])->name('enquiries.store');
-    Route::get('/enquiries/{id}', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'show'])->name('enquiries.show');
-    Route::post('/enquiries/{id}/cancel', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'cancel'])->name('enquiries.cancel');
-    Route::get('/enquiry/shortlisted', [\App\Http\Controllers\Web\Customer\EnquiryController::class, 'shortlisted']);
-
-
+    Route::get('/enquiries', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('enquiries.index');
+    Route::get('/enquiries/create', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('enquiries.create');
+    Route::post('/enquiries', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'store'])->name('enquiries.store');
+    Route::get('/enquiries/{id}', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'show'])->name('enquiries.show');
+    Route::post('/enquiries/{id}/cancel', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'cancel'])->name('enquiries.cancel');
+    Route::get('/enquiry/shortlisted', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'shortlisted']);
 });
 
 // ============================================

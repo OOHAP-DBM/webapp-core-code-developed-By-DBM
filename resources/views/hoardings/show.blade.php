@@ -149,10 +149,12 @@
             $hoarding->packages->map(fn($p)=>[
                 'id'   => $p->id,
                 'name' => $p->package_name,
-                'price'=> $hoarding->price_type === 'ooh'
-                    ? $p->base_price_per_month * $p->min_booking_duration
+                'price'=> $hoarding->hoarding_type === 'ooh'
+                    ? $p->base_monthly_price * $p->min_booking_duration
                     : $p->slots_per_month
+                    
             ])
+            console.log('[DEBUG] All Packages Data:', $p)
         );
     </script>
 

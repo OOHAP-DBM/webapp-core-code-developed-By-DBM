@@ -27,4 +27,13 @@ class HoardingAttribute extends Model
     {
         return static::active()->get()->groupBy('type');
     }
+
+    
+    public function getCategories()
+    {
+        $categories = HoardingAttribute::where('type', 'category')->get();
+        return response()->json([
+            'categories' => $categories
+        ]);
+    }
 }
