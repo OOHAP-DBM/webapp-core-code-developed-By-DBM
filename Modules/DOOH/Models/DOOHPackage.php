@@ -100,6 +100,22 @@ class DOOHPackage extends Model
         return $this->slots_per_day * 30;
     }
 
+    public function getServicesIncludedAttribute($value)
+    {
+        // Case 1: already correct
+        if (is_array($value)) {
+            return $value;
+        }
+
+        // Case 2: double-encoded JSON
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
+    }
     /**
      * Calculate discounted price for given months
      */

@@ -312,6 +312,22 @@ function submitEnquiryFromCart() {
         return;
     }
 
+    // Validate campaign date for all hoardings
+    let allDatesSelected = true;
+    let campaignDates = [];
+    items.forEach(item => {
+        const dateInput = document.getElementById(`campaign-input-${item.hoarding_id}`);
+        if (!dateInput || !dateInput.value) {
+            allDatesSelected = false;
+        } else {
+            campaignDates.push(dateInput.value);
+        }
+    });
+    if (!allDatesSelected) {
+        alert('Please select campaign start date for all selected hoardings.');
+        return;
+    }
+
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = "{{ route('enquiries.store') }}";
@@ -324,15 +340,20 @@ function submitEnquiryFromCart() {
         <input type="hidden" name="customer_mobile" value="{{ auth()->user()->phone ?? auth()->user()->mobile }}">
     `;
 
-   items.forEach((item, index) => {
-    html += `
-        <input type="hidden" name="hoarding_id[]" value="${item.hoarding_id}">
-        <input type="hidden" name="package_id[]" value="${item.package_id}">
-        <input type="hidden" name="package_label[]" value="${item.package_label}">
-        <input type="hidden" name="amount[]" value="${item.price * item.months}">
-    `;
-});
-
+    items.forEach((item, index) => {
+        html += `
+            <input type="hidden" name="hoarding_id[]" value="${item.hoarding_id}">
+            <input type="hidden" name="package_id[]" value="${item.package_id ? item.package_id : ''}">
+            <input type="hidden" name="package_label[]" value="${item.package_label}">
+            <input type="hidden" name="amount[]" value="${item.price * item.months}">
+            <input type="hidden" name="campaign_start_date[]" value="${document.getElementById(`campaign-input-${item.hoarding_id}`).value}">
+        `;
+        if (item.package_id) {
+            html += `<input type="hidden" name="min_booking_duration[]" value="${item.months}">`;
+        } else {
+            html += `<input type="hidden" name="months[]" value="${item.months}">`;
+        }
+    });
 
     form.innerHTML = html;
     document.body.appendChild(form);

@@ -123,100 +123,19 @@
 
 
            {{-- OFFERS --}}
+           {{-- OFFERS --}}
             @if(!empty($item->packages) && count($item->packages))
                 <div class="mt-4">
                     <p class="text-xs font-medium text-gray-600 mb-2">
                         Available Offers
                     </p>
-
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                         @foreach($item->packages as $pkg)
-
-                           @php
-                            $discountPercent = (float) ($pkg->discount_percent ?? 0);
-                            $durationUnit    = $pkg->duration_unit ?? 'month';
-                            $minDuration     = (int) ($pkg->min_booking_duration ?? 1);
-
-                            // 1️⃣ Unit base price
-                            if ($durationUnit === 'week') {
-                                $unitBasePrice = (float) (
-                                    $item->weekly_price_1
-                                    ?? $item->weekly_price_2
-                                    ?? $item->weekly_price_3
-                                    ?? $item->base_monthly_price
-                                );
-                            } else {
-                                $unitBasePrice = (float) $item->base_monthly_price;
-                            }
-
-                            // 2️⃣ Unit discount
-                            $unitDiscount = ($unitBasePrice * $discountPercent) / 100;
-                            $unitFinal    = $unitBasePrice - $unitDiscount;
-
-                            // 3️⃣ TOTAL prices (🔥 IMPORTANT)
-                            $basePrice   = $unitBasePrice * $minDuration;
-                            $finalPrice  = $unitFinal * $minDuration;
-
-                            // 4️⃣ TOTAL SAVE (🔥 THIS WAS WRONG EARLIER)
-                            $totalSave = $basePrice - $finalPrice;
-                           @endphp
-
-
-
-                            <div
-                                class="relative bg-[#ededed] rounded-lg p-4 cursor-pointer transition
-                                    hover:ring-2 hover:ring-green-400
-                                    package-card-{{ $item->hoarding_id }}"
-                                data-hoarding-id="{{ $item->hoarding_id }}"
-                                data-final-price="{{ $finalPrice }}"
-                                data-base-price="{{ $basePrice }}"
-                                data-package-id="{{ $pkg->id }}"
-                                data-package-name="{{ $pkg->package_name }}"
-
-                                >
-
-                                <div
-                                    class="selected-strip absolute -top-2 left-1/2 -translate-x-1/2
-                                        px-3 py-1 rounded-full bg-green-600 text-white
-                                        text-xs font-semibold shadow-md hidden">
-                                    Selected
-                                </div>
-
-
-                                <p class="text-sm font-semibold mt-1 text-gray-900">
-                                    {{ $pkg->package_name }}
-                                </p>
-
-                                {{-- SERVICES --}}
-                                @if(!empty($pkg->services_included))
-                                    <p class="text-[11px] text-gray-500 mt-0.5">
-                                        {{ is_array($pkg->services_included)
-                                            ? implode(' + ', $pkg->services_included)
-                                            : implode(' + ', json_decode($pkg->services_included, true) ?? []) }}
-                                        included
-                                    </p>
-                                @endif
-
-                                {{-- PRICE --}}
-                                <div class="mt-3 flex items-center justify-between">
-                                    <div>
-                                        <p class="text-xs text-red-500 line-through">
-                                            ₹{{ number_format($basePrice) }}
-                                        </p>
-                                        <p class="text-lg font-semibold text-gray-900">
-                                            ₹{{ number_format($finalPrice) }}
-                                        </p>
-                                    </div>
-
-                                    @if($totalSave > 0)
-                                        <span class="text-[11px] font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">
-                                            SAVE ₹{{ number_format($totalSave) }}
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-
-
+                            @include('cart.partials.offer-card', [
+                                'pkg' => $pkg,
+                                'item' => $item,
+                                'selected' => isset($item->selected_package) && $item->selected_package && $item->selected_package->id == $pkg->id
+                            ])
                         @endforeach
                     </div>
                 </div>

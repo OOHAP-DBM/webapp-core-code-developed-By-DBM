@@ -14,6 +14,7 @@ class CartController extends Controller
      ===================================================== */
     public function index(CartService $cartService)
     {
+        // dd($cartService->getCartForUI());
         return view('cart.index', [
             'items'   => $cartService->getCartForUI(),
             'summary' => $cartService->getCartSummary(),
