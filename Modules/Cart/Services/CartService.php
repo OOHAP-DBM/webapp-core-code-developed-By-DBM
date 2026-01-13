@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class CartService
+ 
 {
     /* =====================================================
      | ADD TO CART
@@ -201,7 +202,7 @@ class CartService
             $item->packages = DB::table('hoarding_packages')
                 ->where('hoarding_id', $item->hoarding_id)
                 ->where('is_active', 1)
-                ->get();
+                ->get(['id', 'package_name', 'discount_percent', 'min_booking_duration', 'duration_unit', 'services_included', ]);
         }
 
         if ($item->hoarding_type === 'dooh') {
@@ -213,7 +214,7 @@ class CartService
                 ? DB::table('dooh_packages')
                     ->where('dooh_screen_id', $screen->id)
                     ->where('is_active', 1)
-                    ->get()
+                    ->get(['id', 'package_name', 'discount_percent', 'min_booking_duration', 'duration_unit', 'services_included', ])
                 : collect();
         }
 
@@ -303,25 +304,21 @@ class CartService
                 ->whereNull('deleted_at')
                 ->first();
 
-            if ($screen && $screen->screen_size) {
+            if ($screen && $screen->width && $screen->height) {
                 $item->size =
-                    $screen->screen_size . ' ' .
-                    ($screen->screen_unit ?? '');
+                    $screen->width . '×' .
+                    $screen->height . ' ' .
+                    ($screen->measurement_unit ?? '');
+            }else{
+                $item->size = $screen->resolution_width . '×' .
+                $screen->resolution_height . ' px';
             }
         }
 
         /* =====================================================
         PACKAGES (FOR DROPDOWN)
         ===================================================== */
-        if ($item->hoarding_type === 'ooh') {
-            $item->packages = DB::table('hoarding_packages')
-                ->where('hoarding_id', $item->hoarding_id)
-                ->where('is_active', 1)
-                ->get();
-        } else {
-            $item->packages = collect();
-        }
-
+        $this->attachPackages($item);
         /* =====================================================
         SELECTED PACKAGE (ONLY FROM CART)
         ===================================================== */
@@ -376,6 +373,7 @@ class CartService
                 ]
                 : null;
         }
+        
 
         /* =====================================================
         PRICE LOGIC (DOOH)
@@ -407,6 +405,19 @@ class CartService
 
         return $item;
     }
-
+    /**
+     * Calculate discounted price for a package
+     * @param float $baseMonthlyPrice
+     * @param float $discountPercent
+     * @return float
+     */
+    public static function calculateDiscountedPrice(float $baseMonthlyPrice, float $discountPercent): float
+    {
+        if ($discountPercent > 0) {
+            $discount = ($baseMonthlyPrice * $discountPercent) / 100;
+            return round($baseMonthlyPrice - $discount, 2);
+        }
+        return round($baseMonthlyPrice, 2);
+    }
 
 }

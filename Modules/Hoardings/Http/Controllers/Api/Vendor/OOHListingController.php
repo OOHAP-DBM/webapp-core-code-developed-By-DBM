@@ -141,77 +141,36 @@ class OOHListingController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/hoardings/vendor/ooh/draft",
-     *     tags={"OOH Hoardings"},
-     *     summary="Get vendor's draft hoardings",
-     *     security={{"sanctum":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Drafts",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean"),
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
-     *         )
-     *     )
-     * )
-     */
-    public function getDrafts(Request $request): JsonResponse
-    {
-        $vendor = Auth::guard('vendor')->user();
-        $drafts = OOHHoarding::whereHas('hoarding', function ($q) use ($vendor) {
-            $q->where('vendor_id', $vendor->id)->where('status', 'draft');
-        })->get();
+    // /**
+    //  * @OA\Get(
+    //  *     path="/hoardings/vendor/ooh/draft",
+    //  *     tags={"OOH Hoardings"},
+    //  *     summary="Get vendor's draft hoardings",
+    //  *     security={{"sanctum":{}}},
+    //  *     @OA\Response(
+    //  *         response=200,
+    //  *         description="Drafts",
+    //  *         @OA\JsonContent(
+    //  *             @OA\Property(property="success", type="boolean"),
+    //  *             @OA\Property(property="message", type="string"),
+    //  *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+    //  *         )
+    //  *     )
+    //  * )
+    //  */
+    // public function getDrafts(Request $request): JsonResponse
+    // {
+    //     $vendor = Auth::guard('vendor')->user();
+    //     $drafts = OOHHoarding::whereHas('hoarding', function ($q) use ($vendor) {
+    //         $q->where('vendor_id', $vendor->id)->where('status', 'draft');
+    //     })->get();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Draft hoardings fetched.',
-            'data' => $drafts,
-        ]);
-    }
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Draft hoardings fetched.',
+    //         'data' => $drafts,
+    //     ]);
+    // }
 
-    /**
-     * @OA\Get(
-     *     path="/hoardings/vendor/ooh/{id}",
-     *     tags={"OOH Hoardings"},
-     *     summary="Get OOH Hoarding details",
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Details",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean"),
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", type="object")
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Not Found")
-     * )
-     */
-    public function show($id): JsonResponse
-    {
-        $ooh = OOHHoarding::with(['hoarding', 'packages', 'brandLogos'])->find($id);
-
-        if (!$ooh) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hoarding not found.',
-                'data' => null,
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Hoarding details fetched.',
-            'data' => $ooh,
-        ]);
-    }
+   
 }

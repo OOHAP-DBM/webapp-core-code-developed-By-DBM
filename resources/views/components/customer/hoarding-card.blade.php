@@ -81,7 +81,7 @@
                     {{ $hoarding->title ?? 'Udaipur | Hiramagri Chouraha' }}
                 </h3>
                 <p class="text-xs text-gray-500">
-                    @if(($hoarding->price_type ?? $hoarding->hoarding_type) === 'dooh')
+                    @if(($hoarding->hoarding_type) === 'dooh')
                         DOOH -
                         {{ $hoarding->doohScreen->external_screen_id
                             ?? $hoarding->doohScreen->id
@@ -106,7 +106,7 @@
         <div class="mb-3">
 
             {{-- ================= OOH ================= --}}
-            @if(($hoarding->price_type ?? $hoarding->hoarding_type) === 'ooh')
+            @if(($hoarding->hoarding_type) === 'ooh')
 
                 <div class="flex items-baseline">
                     <span class="text-xl font-bold text-gray-900">
@@ -195,18 +195,29 @@
 
 
 
+            @auth
             <button
                 type="button"
                 class="flex-1 py-2 px-3 bg-teal-500 text-white text-sm font-semibold rounded enquiry-btn"
                 data-hoarding-id="{{ $hoarding->id }}"
                 data-grace-days="{{ (int) $hoarding->grace_period_days }}"
-                data-base-price="{{ ($hoarding->price_type === 'dooh')
+                data-base-price="{{ ($hoarding->hoarding_type === 'dooh')
                     ? ($hoarding->doohScreen->price_per_slot ?? 0)
                     : ($hoarding->monthly_price ?? 0)
                 }}"
+                data-hoarding-type="{{ $hoarding->hoarding_type}}"
             >
                 Enquiry Now
             </button>
+            @else
+            <button
+                type="button"
+                class="flex-1 py-2 px-3 bg-teal-500 text-white text-sm font-semibold rounded"
+                onclick="window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.')"
+            >
+                Enquiry Now
+            </button>
+            @endauth
 
 
 

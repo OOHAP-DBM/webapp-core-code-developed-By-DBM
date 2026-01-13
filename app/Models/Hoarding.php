@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Hoardings\Models\HoardingPackage;
 use Modules\Hoardings\Models\HoardingMedia;
 use Modules\Hoardings\Models\HoardingBrandLogo;
+use Modules\Enquiries\Models\Enquiry;
 
 class Hoarding extends Model implements HasMedia
    
@@ -197,6 +198,14 @@ class Hoarding extends Model implements HasMedia
         return $this->hasOne(DOOHScreen::class, 'hoarding_id');
     }
 
+    public function packages()
+    {
+        if ($this->hoarding_type === 'dooh') {
+            return $this->doohScreen?->packages() ?? collect();
+        }
+
+        return $this->oohPackages();
+    }
     /* ===================== SCOPES ===================== */
 
     public function scopeActive($query)
@@ -224,10 +233,22 @@ class Hoarding extends Model implements HasMedia
     {
         return $this->hasMany(Booking::class, 'hoarding_id');
     }
-    public function oohPackages()
+    // public function oohPackages()
+    // {
+    //     return $this->hasMany(HoardingPackage::class);
+    // }
+    /* =======================
+       OOH PACKAGES
+    ======================= */
+    public function oohPackages(): HasMany
     {
-        return $this->hasMany(HoardingPackage::class);
+        return $this->hasMany(
+            HoardingPackage::class,
+            'hoarding_id',
+            'id'
+        );
     }
+
 
     const TYPE_BILLBOARD = 'billboard';
     const TYPE_DIGITAL = 'digital';
@@ -369,8 +390,16 @@ class Hoarding extends Model implements HasMedia
 
     public function brandLogos()
     {
-        return $this->hasMany(HoardingBrandLogo::class)
-            ->orderBy('sort_order');
+        if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+            // For DOOH, get brand logos from the child screen
+            return $this->doohScreen->brandLogos()->orderBy('sort_order');
+        }
+        if ($this->hoarding_type === self::TYPE_OOH && $this->ooh) {
+            // For OOH, get brand logos from the child hoarding
+            return $this->ooh->brandLogos()->orderBy('sort_order');
+        }
+        // Fallback: parent-level brand logos
+        return $this->hasMany(HoardingBrandLogo::class)->orderBy('sort_order');
     }
     /**
      * Get hero image URL (with fallback to primary_image column if exists).

@@ -34,7 +34,49 @@
                     <form action="{{ route('customer.enquiries.store') }}" method="POST">
                         @csrf
                         <input type="hidden" name="hoarding_id" value="{{ $hoarding->id ?? request('hoarding_id') }}">
-                        
+
+                        {{-- Package Selection --}}
+                        @if(isset($packages) && $packages->count())
+                        <div class="form-section">
+                            <div class="form-section-title">Select Package (optional)</div>
+                            <select name="package_id[0]" class="form-select" id="package_id_select">
+                                <option value="">No Package (use base pricing)</option>
+                                @foreach($packages as $pkg)
+                                    <option value="{{ $pkg->id }}" data-min-months="{{ $pkg->min_booking_duration }}">
+                                        {{ $pkg->package_name }} ({{ $pkg->min_booking_duration }} months)
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+
+                        {{-- Months Field --}}
+                        <div class="form-section">
+                            <div class="form-section-title">For how many months?</div>
+                            <input type="number" name="months[0]" id="months_field" class="form-control" min="1" value="{{ $monthsField['value'] ?? '' }}" {{ !($monthsField['editable'] ?? true) ? 'readonly disabled' : '' }}>
+                            <small class="text-muted" id="months_hint"></small>
+                        </div>
+
+                        {{-- Pricing Display --}}
+                        <div class="form-section">
+                            <div class="form-section-title">Pricing</div>
+                            <div id="pricing_display">
+                                @if(isset($pricingDisplay))
+                                    @if($pricingDisplay['type'] === 'package')
+                                        <span>{{ $pricingDisplay['text'] }}</span>
+                                    @elseif($pricingDisplay['type'] === 'monthly' || $pricingDisplay['type'] === 'base_monthly')
+                                        <span>₹{{ number_format($pricingDisplay['price']) }} / month</span>
+                                    @elseif($pricingDisplay['type'] === 'slot')
+                                        <span>₹{{ number_format($pricingDisplay['price']) }} per 10-second slot</span>
+                                        <div class="text-xs text-muted">{{ $pricingDisplay['text'] }}</div>
+                                    @else
+                                        <span>{{ $pricingDisplay['text'] }}</span>
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- ...existing code for campaign details and booking period... --}}
                         <div class="form-section">
                             <div class="form-section-title"><i class="bi bi-megaphone me-2"></i>Campaign Details</div>
                             <div class="row g-3">
@@ -48,7 +90,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="form-section">
                             <div class="form-section-title"><i class="bi bi-calendar-range me-2"></i>Booking Period</div>
                             <div class="row g-3">
@@ -66,7 +108,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="d-flex gap-3">
                             <button type="submit" class="btn btn-primary btn-lg px-5">
                                 <i class="bi bi-send me-2"></i>Submit Enquiry

@@ -181,25 +181,38 @@
 
                         >
 
-                        <div
-                            class="selected-strip absolute -top-2 left-1/2 -translate-x-1/2
-                                px-3 py-1 rounded-full bg-green-600 text-white
-                                text-xs font-semibold shadow-md hidden">
-                            Selected
-                        </div>
+           {{-- OFFERS --}}
+           {{-- OFFERS --}}
+            @if(!empty($item->packages) && count($item->packages))
+                <div class="mt-4">
+                    <p class="text-xs font-medium text-gray-600 mb-2">
+                        Available Offers
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        @foreach($item->packages as $pkg)
+                            @include('cart.partials.offer-card', [
+                                'pkg' => $pkg,
+                                'item' => $item,
+                                'selected' => isset($item->selected_package) && $item->selected_package && $item->selected_package->id == $pkg->id
+                            ])
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
+           {{-- PRICE --}}
+            <div class="flex justify-end mt-4 text-right">
 
-                        <p class="text-sm font-semibold mt-1 text-gray-900">
-                            {{ $pkg->package_name }}
-                        </p>
-
-                        {{-- SERVICES --}}
-                        @if(!empty($pkg->services_included))
-                            <p class="text-[11px] text-gray-500 mt-0.5">
-                                {{ is_array($pkg->services_included)
-                                    ? implode(' + ', $pkg->services_included)
-                                    : implode(' + ', json_decode($pkg->services_included, true) ?? []) }}
-                                included
+                {{-- OOH --}}
+                @if($item->hoarding_type === 'ooh')
+                    <div>
+                        @if($item->base_monthly_price > $item->monthly_price)
+                            <p
+                                id="base-price-{{ $item->hoarding_id }}"
+                                data-base-price="{{ $item->base_monthly_price }}"
+                                class="text-sm text-gray-400 line-through {{ $item->base_monthly_price > $item->monthly_price ? '' : 'hidden' }}"
+                              >
+                                ₹{{ number_format($item->base_monthly_price) }}
                             </p>
                         @endif
 

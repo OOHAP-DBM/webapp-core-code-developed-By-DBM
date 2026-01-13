@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Hoarding;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Hoardings\Models\OOHHoarding;
 
 class HoardingPackage extends Model
 {
@@ -47,9 +49,11 @@ class HoardingPackage extends Model
      | Relationships
      |---------------------------------------------*/
 
-    public function hoarding()
+
+    // The hoarding_id column stores the OOH hoarding's id (from ooh_hoardings table)
+    public function oohHoarding(): BelongsTo
     {
-        return $this->belongsTo(Hoarding::class);
+        return $this->belongsTo(OOHHoarding::class, 'hoarding_id', 'id');
     }
 
     public function vendor()
@@ -95,4 +99,7 @@ class HoardingPackage extends Model
 
         return $this->base_price_per_month;
     }
+
+
+   
 }

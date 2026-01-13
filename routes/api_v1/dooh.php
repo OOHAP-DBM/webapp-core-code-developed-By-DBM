@@ -42,7 +42,7 @@ Route::middleware(['auth:sanctum', 'role:customer'])->prefix('customer')->group(
 // ============================================
 // VENDOR ROUTES
 // ============================================
-Route::middleware(['auth:sanctum', 'role:vendor'])->prefix('vendor')->group(function () {
+Route::middleware(['auth:sanctum', 'role:vendor', 'vendor.approved'])->prefix('vendor')->group(function () {
 
     Route::post('/create/step-1', [DOOHScreenController::class, 'storeStep1'])
         ->name('vendor.dooh.step1.store');

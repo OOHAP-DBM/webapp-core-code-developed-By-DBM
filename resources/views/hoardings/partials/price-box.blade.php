@@ -1,6 +1,6 @@
 <div class="w-full max-w-sm">
 
-@if($hoarding->price_type === 'ooh')
+@if($hoarding->hoarding_type === 'ooh')
     {{-- OOH BASE PRICE --}}
 <div>
     <div class="text-xl font-bold">
@@ -108,17 +108,22 @@
     <button class="w-full bg-green-500 text-white py-3 rounded-md text-sm font-semibold">
         Sort list
     </button>
+
     <a href="javascript:void(0)"
-    onclick="openEnquiryModal({
-            id: {{ $hoarding->id }},
-            basePrice: {{ ($hoarding->price_type === 'dooh')
-                ? ($hoarding->doohScreen->price_per_slot ?? 0)
-                : ($hoarding->monthly_price ?? 0)
-            }},
-            graceDays: {{ (int) $hoarding->grace_period_days }},
-            count: 1
-    })"
-    class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium">
+       class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium"
+       data-hoarding-id="{{ $hoarding->id }}"
+    data-hoarding-type="{{ $hoarding->hoarding_type ?? 'ooh' }}"
+       data-base-price="{{ $hoarding->hoarding_type === 'dooh' ? ($hoarding->doohScreen->price_per_slot ?? 0) : ($hoarding->monthly_price ?? 0) }}"
+       data-grace-days="{{ (int) $hoarding->grace_period_days }}"
+       data-count="1"
+       onclick="openEnquiryModal({
+           id: this.getAttribute('data-hoarding-id'),
+           basePrice: this.getAttribute('data-base-price'),
+           hoardingType: this.getAttribute('data-hoarding-type'),
+           graceDays: this.getAttribute('data-grace-days'),
+           count: this.getAttribute('data-count')
+       })"
+    >
         Enquire Now
     </a>
 
