@@ -22,10 +22,9 @@
     </div>
 
     <div class="bg-white px-6 py-5">
-        <div class="flex items-center space-x-3">
-            <div
-                    class="w-14 h-14 rounded-full border border-gray-300 overflow-hidden flex items-center justify-center bg-gray-100"
-                >
+         <div class="px-3 py-2 rounded-lg {{ request()->routeIs('vendor.profile.*') ? 'bg-[#00995c] text-white' : '' }}">
+            <a href="{{ route('vendor.profile.edit') }}" class="flex items-center space-x-3">
+                <div class="w-14 h-14 rounded-full border {{ request()->routeIs('vendor.profile.*') ? 'border-white' : 'border-gray-300' }} overflow-hidden flex items-center justify-center {{ request()->routeIs('vendor.profile.*') ? 'bg-opacity-20 bg-white' : 'bg-gray-100' }}">
                     @if(auth()->user()->avatar)
                         <img
                             src="{{ str_starts_with(auth()->user()->avatar, 'http')
@@ -37,7 +36,7 @@
                     @else
                         {{-- Default User Icon --}}
                         <svg
-                            class="w-14 h-14 text-gray-400"
+                            class="w-14 h-14 {{ request()->routeIs('vendor.profile.*') ? 'stroke-gray-400' : 'stroke-gray-400' }}"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -52,34 +51,34 @@
                         </svg>
                     @endif
                 </div>
-            <div>
-                <p class="flex items-center gap-3 text-sm font-medium text-gray-900">
-                    {{ Auth::user()->name }}
-                    <span class="cursor-pointer">
+                <div>
+                    <p class="flex items-center gap-3 text-sm font-medium {{ request()->routeIs('vendor.profile.*') ? 'text-white' : 'text-gray-900' }}">
+                        {{ Auth::user()->name }}
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="{{ request()->routeIs('vendor.profile.*') ? 'stroke-white' : '' }}"
+                        >
                             <path d="M6.07692 7H5.38462C5.01739 7 4.66521 7.14588 4.40554 7.40554
                                     C4.14588 7.66521 4 8.01739 4 8.38462V14.6154
                                     C4 14.9826 4.14588 15.3348 4.40554 15.5945
                                     C4.66521 15.8541 5.01739 16 5.38462 16H11.6154
                                     C11.9826 16 12.3348 15.8541 12.5945 15.5945
                                     C12.8541 15.3348 13 14.9826 13 14.6154V13.9231"
-                                stroke="#1E1B18" stroke-linecap="round" stroke-linejoin="round"/>
+                                stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M12.6666 5.33339L14.6666 7.33337M15.5899 6.39005
                                     C15.8525 6.12749 16 5.77138 16 5.40006
                                     C16 5.02874 15.8525 4.67263 15.5899 4.41007
                                     C15.3274 4.14751 14.9713 4 14.5999 4
                                     C14.2286 4 13.8725 4.14751 13.61 4.41007
                                     L8 10V12H9.99998L15.5899 6.39005Z"
-                                stroke="#1E1B18" stroke-linecap="round" stroke-linejoin="round"/>
+                                stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                    </span>
-                </p>
-                <p class="text-xs text-yellow-600">
-                    Vendor
-                </p>
-
-            </div>
+                    </p>
+                    <p class="text-xs {{ request()->routeIs('vendor.profile.*') ? 'text-white text-opacity-80' : 'text-yellow-600' }}">
+                        Vendor
+                    </p>
+                </div>
+            </a>
         </div>
 
         <hr class="mt-5 border-gray-200">
