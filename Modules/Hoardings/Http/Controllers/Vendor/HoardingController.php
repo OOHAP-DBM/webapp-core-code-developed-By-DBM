@@ -33,13 +33,6 @@ class HoardingController extends Controller
      */
     public function showTypeSelection(Request $request)
     {
-        $user = Auth::user();
-        $vendorProfile = $user->vendor_profile ?? null;
-        // if (!$vendorProfile || $vendorProfile->onboarding_status !== 'approved') {
-        //     // Block access if not approved
-        //     return Redirect::route('vendor.dashboard')
-        //         ->with('error', 'Your vendor onboarding is under review. You can add hoardings only after approval.');
-        // }
         // Sidebar highlight: 'add-hoardings' (passed to view)
         return view('hoardings.vendor.add_type_selection', [
             'sidebarActive' => 'add-hoardings',
@@ -316,5 +309,6 @@ class HoardingController extends Controller
 
         return back()->with('success', 'Hoarding status updated successfully.');
     }
-}
 
+    
+}

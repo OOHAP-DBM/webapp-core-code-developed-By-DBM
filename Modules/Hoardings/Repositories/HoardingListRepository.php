@@ -166,7 +166,7 @@ class HoardingListRepository
 
     public function storePackages($hoardingId, array $data)
     {
-        dd($data);
+        // dd($data);
         // Find the child OOHHoarding for this parent hoarding
         $oohHoarding = \Modules\Hoardings\Models\OOHHoarding::where('hoarding_id', $hoardingId)->first();
         $childHoardingId = $oohHoarding ? $oohHoarding->id : null;

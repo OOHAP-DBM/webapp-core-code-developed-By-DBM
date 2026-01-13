@@ -130,23 +130,102 @@ class HomeController extends Controller
             $testimonialRole = 'vendor';
         }
 
-        $userCity = null;
-        if (auth()->check()) {
-            $userCity = strtolower(trim(auth()->user()->city ?? ''));
-        }
-        $testimonialsQuery = Testimonial::with('user')
-            ->where('role', $testimonialRole)
-            ->where('status', 'approved')
-            ->where('show_on_homepage', true);
-        if (!empty($userCity)) {
-            $testimonialsQuery->whereHas('user', function ($q) use ($userCity) {
-                $q->whereNotNull('city')
-                ->whereRaw('LOWER(city) != ?', [$userCity]);
-            });
-        }
-        $testimonials = $testimonialsQuery
-            ->latest()
-            ->get();
+        // Static testimonials with Indian people images - completely without database
+        $staticTestimonials = [
+            // Customer testimonials
+            (object) [
+                'id' => 1,
+                'user' => (object) [
+                    'name' => 'Rajesh Kumar',
+                    'avatar' => 'https://i.pravatar.cc/150?img=1'
+                ],
+                'role' => 'customer',
+                'message' => 'Outstanding platform for outdoor advertising! Found the perfect hoarding location for my business within minutes. Highly recommended!',
+                'rating' => 5,
+                'status' => 'approved',
+                'show_on_homepage' => true,
+            ],
+            (object) [
+                'id' => 2,
+                'user' => (object) [
+                    'name' => 'Priya Singh',
+                    'avatar' => ''
+                ],
+                'role' => 'customer',
+                'message' => 'Best investment I made for my campaign. The process is transparent and customer support is exceptional.',
+                'rating' => 5,
+                'status' => 'approved',
+                'show_on_homepage' => true,
+            ],
+            (object) [
+                'id' => 3,
+                'user' => (object) [
+                    'name' => 'Amit Patel',
+                    'avatar' => 'https://i.pravatar.cc/150?img=3'
+                ],
+                'role' => 'customer',
+                'message' => 'Easy booking, great rates, and excellent visibility. My ROI exceeded expectations.',
+                'rating' => 4,
+                'status' => 'approved',
+                'show_on_homepage' => true,
+            ],
+            (object) [
+                'id' => 4,
+                'user' => (object) [
+                    'name' => 'Neha Sharma',
+                    'avatar' => ''
+                ],
+                'role' => 'customer',
+                'message' => 'Professional team and seamless experience. Would definitely use this platform again for future campaigns.',
+                'rating' => 5,
+                'status' => 'approved',
+                'show_on_homepage' => true,
+            ],
+            // Vendor testimonials
+            (object) [
+                'id' => 5,
+                'user' => (object) [
+                    'name' => 'Vikram Advertising',
+                    'avatar' => 'https://i.pravatar.cc/150?img=12'
+                ],
+                'role' => 'vendor',
+                'message' => 'Great platform to monetize our hoardings. The payment system is reliable and transparent.',
+                'rating' => 5,
+                'status' => 'approved',
+                'show_on_homepage' => true,
+            ],
+            (object) [
+                'id' => 6,
+                'user' => (object) [
+                    'name' => 'Anjali Gupta',
+                    'avatar' => ''
+                ],
+                'role' => 'vendor',
+                'message' => 'Increased our revenue significantly. The dashboard is user-friendly and reporting is accurate.',
+                'rating' => 4,
+                'status' => 'approved',
+                'show_on_homepage' => true,
+            ],
+            (object) [
+                'id' => 7,
+                'user' => (object) [
+                    'name' => 'Deepak Singh',
+                    'avatar' => 'https://i.pravatar.cc/150?img=5'
+                ],
+                'role' => 'vendor',
+                'message' => 'Professional platform with excellent support team. Booking management has never been easier.',
+                'rating' => 5,
+                'status' => 'approved',
+                'show_on_homepage' => true,
+            ],
+        ];
+
+        // Filter static testimonials based on role and conditions
+        $testimonials = collect($staticTestimonials)->filter(function ($item) use ($testimonialRole) {
+            return $item->role === $testimonialRole && 
+                   $item->status === 'approved' && 
+                   $item->show_on_homepage === true;
+        })->values();
        
         return view('home.index', compact(
             'stats',

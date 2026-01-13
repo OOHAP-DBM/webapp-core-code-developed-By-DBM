@@ -17,10 +17,10 @@ class PageController extends Controller
     public function about()
     {
         // Single About page content
-        $about = AboutPage::first(); // ek hi row hogi
+        $about = AboutPage::first() ?? null; // ek hi row hogi
 
         // Leaders list (ordered)
-        $leaders = AboutLeader::orderBy('sort_order')->get();
+        $leaders = AboutLeader::orderBy('sort_order')->get() ?? collect();
 
         return view('pages.about', compact('about', 'leaders'));
     }
@@ -41,22 +41,25 @@ class PageController extends Controller
 
     public function disclaimer()
     {
+        $data = Disclaimer::where('is_active', 1)->first();
         return view('pages.disclaimer', [
-            'data' => Disclaimer::where('is_active', 1)->first()
+            'data' => $data ?? null
         ]);
     }
 
     public function privacy()
     {
+        $data = PrivacyPolicy::where('is_active', 1)->first();
         return view('pages.privacy', [
-            'data' => PrivacyPolicy::where('is_active', 1)->first()
+            'data' => $data ?? null
         ]);
     }
 
     public function refund()
     {
+        $data = CancellationRefundPolicy::where('is_active', 1)->first();
         return view('pages.refund', [
-            'data' => CancellationRefundPolicy::where('is_active', 1)->first()
+            'data' => $data ?? null
         ]);
     }
 }

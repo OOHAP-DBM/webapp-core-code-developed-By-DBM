@@ -362,7 +362,7 @@ html, body {
         }
 
         function validatePassword(pwd) {
-            return /^(?=.*[a-z]){4,64}$/.test(pwd);
+            return pwd.length >= 4;
         }
 
         /* ===================== EMAIL + OTP ===================== */

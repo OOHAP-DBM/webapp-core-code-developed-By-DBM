@@ -140,22 +140,11 @@
                             @endauth
                         </div>
 
-                        {{-- LINKS --}}
-                        <div class="py-2 text-sm">
 
-                            <!-- <a href="javascript:void(0)"
-                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                My Booking
-                            </a>
-
-                            <a href="javascript:void(0)"
-                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                Enquiry
-                            </a> -->
 
                             @auth
                                 <a href="{{ $dashboardUrl }}"
-                                class="flex items-center font-semibold justify-between px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                class="flex items-center font-semibold justify-between px-4 pt-2 text-gray-700 hover:bg-gray-100">
                                     Dashboard
                                 </a>
                                 <!-- <a href="javascript:void(0)"
@@ -194,6 +183,18 @@
                                     Subscription
                                 </a> -->
                             @endauth
+                                                   {{-- LINKS --}}
+                        <div class="py-2 text-sm">
+<!-- 
+                            <a href="javascript:void(0)"
+                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                My Booking
+                            </a> -->
+
+                            <!-- <a href="javascript:void(0)"
+                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                Enquiry
+                            </a> -->
 
                             <!-- <a href="javascript:void(0)"
                             class="block px-4 py-2 text-gray-700 hover:bg-gray-100">

@@ -14,6 +14,7 @@ return new class extends Migration {
 
             $table->string('section_title')->nullable(); // About OOHAPP
             $table->longText('section_content')->nullable();
+            $table->string('section_image')->nullable();
 
             $table->string('hero_image')->nullable();
             $table->timestamps();

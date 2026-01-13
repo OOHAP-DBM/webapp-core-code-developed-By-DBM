@@ -30,6 +30,13 @@ class DatabaseSeeder extends Seeder
            
             SettingsSeeder::class,
             HoardingAttributesSeeder::class,
+            TermsAndConditionsSeeder::class,
+            FAQSeeder::class,
+            DisclaimerSeeder::class,
+            PrivacyPolicySeeder::class,
+            CancellationRefundPolicySeeder::class,
+            AboutPageSeeder::class,
+            AboutLeaderSeeder::class,
         ]);
     }
 }
