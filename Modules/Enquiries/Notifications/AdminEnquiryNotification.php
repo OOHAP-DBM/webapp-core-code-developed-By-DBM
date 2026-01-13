@@ -30,7 +30,7 @@ class AdminEnquiryNotification extends Notification
             ->subject('PLATFORM ALERT: New Lead Generated #' . $this->enquiry->id)
             ->greeting('Hello Admin,')
             ->line('A new multi-item enquiry has been generated on the platform.')
-            ->line('**Client:** ' . $this->enquiry->meta['customer_name'] ?? 'N/A')
+            ->line('**Client:** ' . (is_array($this->enquiry->meta) && isset($this->enquiry->meta['customer_name']) ? $this->enquiry->meta['customer_name'] : 'N/A'))
             ->line('**Total Hoardings:** ' . $totalItems)
             ->line('**Total Potential Value:** ' . number_format($this->enquiry->items->sum(fn($i) => $i->meta['amount'] ?? 0), 2))
             ->action('Review in Admin Panel', url('/admin/enquiries/' . $this->enquiry->id))
