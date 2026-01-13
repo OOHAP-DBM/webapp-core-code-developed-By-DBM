@@ -112,8 +112,8 @@ class Hoarding_old extends Model implements HasMedia
         'is_featured' => 'boolean',
         'valid_till' => 'date',
         'last_booked_at' => 'datetime',
-        'visibility_start' => 'datetime:H:i',
-        'visibility_end' => 'datetime:H:i',
+        'visibility_start' => 'string',
+        'visibility_end' => 'string',
     ];
     /**
      * Hoarding types

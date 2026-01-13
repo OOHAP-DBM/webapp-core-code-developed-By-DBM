@@ -32,8 +32,9 @@ Route::middleware(['throttle:otp'])->group(function () {
 });
 
 // Password reset (to be implemented)
-// Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-// Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
+Route::post('/password/verify-otp', [AuthController::class, 'verifyForgotPasswordOTP']);
+Route::post('/password/reset', [AuthController::class, 'resetPassword']);
 
 // Protected routes
 Route::middleware(['auth:sanctum', 'throttle:authenticated'])->group(function () {

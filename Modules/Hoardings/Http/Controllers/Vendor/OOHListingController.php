@@ -126,21 +126,21 @@ class OOHListingController extends Controller
      * GET /api/v1/dooh/draft
      * Resumes existing draft for the vendor
      */
-    public function getDraft()
-    {
-        $draft = OOHHoarding::with(['media', 'brandLogos', 'slots', 'packages'])
-            ->whereHas('hoarding', function ($q) {
-                $q->where('vendor_id', Auth::id());
-            })
-            ->where('status', OOHHoarding::STATUS_DRAFT)
-            ->latest()
-            ->first();
+    // public function getDraft()
+    // {
+    //     $draft = OOHHoarding::with(['media', 'brandLogos', 'slots', 'packages'])
+    //         ->whereHas('hoarding', function ($q) {
+    //             $q->where('vendor_id', Auth::id());
+    //         })
+    //         ->where('status', OOHHoarding::STATUS_DRAFT)
+    //         ->latest()
+    //         ->first();
 
 
-        if (!$draft) {
-            return response()->json(['message' => 'No active draft found'], 404);
-        }
+    //     if (!$draft) {
+    //         return response()->json(['message' => 'No active draft found'], 404);
+    //     }
 
-        return response()->json(['data' => $draft]);
-    }
+    //     return response()->json(['data' => $draft]);
+    // }
 }

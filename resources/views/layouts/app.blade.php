@@ -47,7 +47,7 @@
                     btn.textContent = 'Remove';
                     btn.classList.add('remove');
                 } else {
-                    btn.textContent = 'Sort List';
+                    btn.textContent = 'Add to Cart';
                     btn.classList.add('add');
                 }
             }

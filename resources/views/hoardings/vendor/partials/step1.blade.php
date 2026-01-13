@@ -120,113 +120,115 @@
         </div>
       </div>
 
-      <!-- Geotag & Location Section -->
-      <div class="mt-8 bg-[#FBFBFB] rounded-3xl border border-gray-100 p-6 md:p-8 space-y-6">
+      <!-- Location Verification Section -->
+        <div class="mt-8 bg-[#FBFBFB] rounded-3xl border border-gray-100 p-5 sm:p-6 md:p-8 space-y-6">
 
-        <!-- Section Header -->
-        <div class="flex items-center justify-between">
-          <h3 class="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
-            <span class="w-2 h-2 bg-[#009A5C] rounded-full"></span>
-            Geotag & Location
-          </h3>
+          <!-- Section Header -->
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+                <span class="w-2 h-2 bg-[#009A5C] rounded-full"></span>
+                Location Verification
+              </h3>
+              <p class="text-xs sm:text-sm text-gray-500 mt-1 max-w-md">
+                Confirm the exact physical location of your hoarding using the map.
+                This helps customers and admins verify visibility and accuracy.
+              </p>
+            </div>
 
-          <button
-            type="button"
-            id="geotagBtn"
-            class="inline-flex items-center gap-2 bg-[#009A5C] text-white text-xs md:text-sm font-bold px-4 md:px-6 py-2.5 rounded-xl shadow-sm hover:bg-green-700 active:scale-95 transition">
-            📍 Confirm Location
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-          <div class="space-y-1">
-            <label class="text-sm font-bold text-gray-700 flex items-center gap-1">
-              Geotag URL
-              <span class="w-4 h-4 bg-[#009A5C] text-white rounded flex items-center justify-center text-[10px]">✓</span>
-            </label>
-            <input
-              type="url"
-              name="geotag"
-              id="geotag"
-              value="http://geotag.oohapp.com"
-              class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white text-gray-600 focus:border-[#009A5C] outline-none"
-            />
-            <p class="text-[11px] text-gray-400">Optional • Internal verification</p>
-            <div id="location-error" class="text-xs text-red-500 hidden"></div>
+            <!-- Mobile-first confirm button -->
+            <button
+              type="button"
+              id="geotagBtn"
+              class="w-full sm:w-auto inline-flex justify-center items-center gap-2
+                    bg-[#009A5C] text-white text-sm font-bold
+                    px-4 sm:px-6 py-3 rounded-xl
+                    shadow-sm hover:bg-green-700 active:scale-95 transition">
+              📍 Confirm Location
+            </button>
           </div>
 
-          <div class="space-y-1">
-            <label class="text-sm font-bold text-gray-700 flex items-center gap-1">
-              Latitude <span class="text-red-500">*</span>
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </label>
-            <input
-              type="text"
-              name="lat"
-              id="lat"
-              readonly 
-              required
-              placeholder="Click 'Confirm Location'"
-              class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 font-mono focus:ring-0 cursor-not-allowed"
-            />
-            <p class="text-[11px] text-gray-400">Mandatory • From map pin</p>
+          <div id="location-error" class="text-xs text-red-500 hidden"></div>
+
+          <!-- Coordinates -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+
+            <div class="space-y-1">
+              <label class="text-sm font-bold text-gray-700">
+                Latitude <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="lat"
+                id="lat"
+                readonly
+                required
+                placeholder="Auto-filled after confirmation"
+                class="w-full bg-gray-50 border border-gray-200 rounded-xl
+                      px-4 py-3 text-sm font-mono text-gray-900
+                      cursor-not-allowed"
+              />
+              <p class="text-[11px] text-gray-400">
+                Mandatory • Locked after confirmation
+              </p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-bold text-gray-700">
+                Longitude <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="lng"
+                id="lng"
+                readonly
+                required
+                placeholder="Auto-filled after confirmation"
+                class="w-full bg-gray-50 border border-gray-200 rounded-xl
+                      px-4 py-3 text-sm font-mono text-gray-900
+                      cursor-not-allowed"
+              />
+              <p class="text-[11px] text-gray-400">
+                Mandatory • Locked after confirmation
+              </p>
+            </div>
+
           </div>
 
-          <div class="space-y-1">
-            <label class="text-sm font-bold text-gray-700 flex items-center gap-1">
-              Longitude <span class="text-red-500">*</span>
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </label>
-            <input
-              type="text"
-              name="lng"
-              id="lng"
-              readonly 
-              required
-              placeholder="Click 'Confirm Location'"
-              class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 font-mono focus:ring-0 cursor-not-allowed"
-            />
-            <p class="text-[11px] text-gray-400">Mandatory • From map pin</p>
+          <!-- Success State -->
+          <div
+            id="geotagSuccess"
+            class="hidden flex items-center gap-2
+                  bg-green-50 border border-green-200
+                  text-green-700 text-sm
+                  px-4 py-3 rounded-xl">
+            <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L9 13.414l4.707-4.707z"
+                clip-rule="evenodd" />
+            </svg>
+            <span>Location confirmed and locked</span>
           </div>
 
-        </div>
+          <!-- Map Preview -->
+          <div class="space-y-2">
+            <label class="text-sm font-bold text-gray-700">
+              Map Preview
+            </label>
 
-        <!-- Success State -->
-        <div
-          id="geotagSuccess"
-          class="hidden flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-2.5 rounded-xl">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L9 13.414l4.707-4.707z"
-              clip-rule="evenodd" />
-          </svg>
-          Location confirmed successfully
-        </div>
+            <div class="relative rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <div id="map" class="w-full h-[300px] sm:h-[320px]"></div>
 
-        <!-- Map Preview -->
-        <div class="space-y-2">
-          <label class="text-sm font-bold text-gray-700">
-            Location Preview
-          </label>
-
-          <div class="relative rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-            <div id="map" class="w-full h-[260px] md:h-[320px]"></div>
-
-            <div class="absolute bottom-2 right-2 bg-white/90 backdrop-blur text-xs text-gray-600 px-3 py-1 rounded-lg shadow">
-              Drag pin to fine-tune
+              <div class="absolute bottom-2 right-2
+                          bg-white/90 backdrop-blur
+                          text-xs text-gray-600
+                          px-3 py-1 rounded-lg shadow">
+                Drag pin to adjust
+              </div>
             </div>
           </div>
+
         </div>
-
-      </div>
-
 
     </div>
       <!-- Pricing Details -->

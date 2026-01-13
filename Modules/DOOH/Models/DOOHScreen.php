@@ -151,6 +151,10 @@ class DOOHScreen extends Model
     {
         return $this->hasMany(DOOHPackage::class, 'dooh_screen_id');
     }
+    public function doohPackages(): HasMany
+    {
+        return $this->hasMany(DOOHPackage::class, 'dooh_screen_id');
+    }
 
     public function bookings(): HasMany
     {
@@ -162,6 +166,10 @@ class DOOHScreen extends Model
         return $this->hasMany(DOOHScreenMedia::class, 'dooh_screen_id');
     }
     public function brandLogos(): HasMany
+    {
+        return $this->hasMany(DOOHScreenBrandLogo::class, 'dooh_screen_id');
+    }
+    public function doohBrandLogos(): HasMany
     {
         return $this->hasMany(DOOHScreenBrandLogo::class, 'dooh_screen_id');
     }

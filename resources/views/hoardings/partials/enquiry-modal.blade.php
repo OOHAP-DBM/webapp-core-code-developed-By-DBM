@@ -1,59 +1,58 @@
 <style>
-/* ================= MODAL BACKDROP ================= */
-#enquiryModal {
-    background: rgba(0,0,0,0.35);
-}
+    #enquiryModal {
+        background: rgba(0,0,0,0.35);
+    }
 
-/* ================= CARD ================= */
-#enquiryModal .modal-card {
-    background:#F6FAF8;
-}
-
-/* ================= INPUTS ================= */
-.enquiry-input{
-    width:100%;
-    margin-top:6px;
-    border:1px solid #E5E7EB;
-    border-radius:8px;
-    padding: 14px 14px;
-    font-size:14px;
-    background:#fff;
-    color:#111827;
-}
-
-.enquiry-input::placeholder{
-    color:#9CA3AF;
-}
-
-.enquiry-input:focus{
-    border-color:#2F5D46;
-    box-shadow:0 0 0 1px #2F5D46;
-    outline:none;
-}
-
-.enquiry-input[readonly],
-.enquiry-input:disabled{
-    background:#F3F4F6;
-    color:#6B7280;
-}
-</style>
-
-<style>
-/* ===== Mobile full screen modal ===== */
-@media (max-width: 640px) {
-
+    /* ================= CARD ================= */
     #enquiryModal .modal-card {
-        width: 100%;
-        height: 100%;
-        max-height: 100vh;
-        border-radius: 0;
+        background:#F6FAF8;
     }
 
-    #enquiryModal .modal-card form {
-        height: 100%;
+    /* ================= INPUTS ================= */
+    .enquiry-input{
+        width:100%;
+        margin-top:6px;
+        border:1px solid #E5E7EB;
+        border-radius:8px;
+        padding: 14px 14px;
+        font-size:14px;
+        background:#fff;
+        color:#111827;
     }
-}
+
+    .enquiry-input::placeholder{
+        color:#9CA3AF;
+    }
+
+    .enquiry-input:focus{
+        border-color:#2F5D46;
+        box-shadow:0 0 0 1px #2F5D46;
+        outline:none;
+    }
+
+    .enquiry-input[readonly],
+    .enquiry-input:disabled{
+        background:#F3F4F6;
+        color:#6B7280;
+    }
+
+    /* ===== Mobile full screen modal ===== */
+    @media (max-width: 640px) {
+
+        #enquiryModal .modal-card {
+            width: 100%;
+            height: 100%;
+            max-height: 100vh;
+            border-radius: 0;
+        }
+
+        #enquiryModal .modal-card form {
+            height: 100%;
+        }
+    }
 </style>
+
+
 <style>
 /* ================= MOBILE ONLY STABILITY FIX ================= */
 @media (max-width: 640px) {
@@ -90,9 +89,10 @@
 
 
 @php
-    $modalHoarding = $hoarding ?? null;
-    $packages = $modalHoarding?->packages ?? collect();
-    $priceType = $modalHoarding?->price_type ?? null;
+    // Only use $hoarding if it is set and not on homepage
+    // $modalHoarding is only used for SSR fallback. All dynamic data should be set by JS.
+    $modalHoarding = null;
+    $packages = collect();
 @endphp
 
 {{-- ================= ENQUIRY MODAL ================= --}}
@@ -123,7 +123,8 @@
               action="{{ route('enquiries.store') }}"
               method="POST"
               class="flex flex-col overflow-hidden">
-            @csrf
+                        @csrf
+                      
 
             {{-- BODY --}}
             <div class="flex-1 overflow-y-auto px-6 py-6 space-y-5 text-sm">
@@ -135,9 +136,9 @@
                 <input type="hidden" id="enquiryAmount" name="amount">
                 <input type="hidden" id="enquiryDurationType" name="duration_type" value="months">
                 <input type="hidden" id="enquiryEndDate" name="preferred_end_date">
-                <input type="hidden" id="hoardingType" value="{{ $modalHoarding?->price_type }}">
+                <input type="hidden" id="enquiryMonths" name="months[]">
 
-
+                <input type="hidden" id="hoardingType" value="{{ $modalHoarding?->hoarding_type }}">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
 
                     <div>
@@ -151,6 +152,7 @@
                                >
                     </div>
 
+
                     <div>
                         <label class="font-medium">Email</label>
                         <input id="enquiryEmail"
@@ -159,24 +161,25 @@
                                class="enquiry-input"
                                placeholder="Enter email address"
                                value="{{ auth()->check() ? auth()->user()->email : '' }}"
-                               readonly
-                               >
+                        >
                     </div>
 
                     <div>
                         <label class="font-medium">Mobile *</label>
                         <div class="flex gap-3 items-center">
                             <input id="enquiryMobile"
-                                   name="customer_mobile"
-                                   class="enquiry-input"
-                                   placeholder="Enter mobile number"
-                                   required>
+                                name="customer_mobile"
+                                class="enquiry-input"
+                                placeholder="Enter mobile number"
+                                value="{{ auth()->check() ? auth()->user()->phone : '' }}"
+                                required>
                         </div>
                     </div>
 
+
                     <div>
                         <label class="font-medium">
-                            When you want to start the booking? *
+                            When you want to start the campaign? *
                         </label>
                         <input type="date"
                                name="preferred_start_date"
@@ -214,17 +217,43 @@
                         <option value="base" id="basePriceOption">
                             Base Price
                         </option>
+                            {{-- Always render available packages if present --}}
+                            @if($packages && $packages->count())
+                                @foreach($packages as $pkg)
+                                    @php
+                                        $finalPrice = 0;
+                                        $discountPercent = (int) ($pkg->discount_percent ?? 0);
+                                        if ($pkg->type === 'ooh' || ($hoarding->hoarding_type ?? '') === 'ooh') {
+                                            $monthly  = (int) ($hoarding->monthly_price ?? 0);
+                                            $base = $monthly;
+                                            $discountAmount = ($base * $discountPercent) / 100;
+                                            $finalPrice = max(0, round($base - $discountAmount));
+                                        } else {
+                                            $finalPrice = (int) ($pkg->slots_per_month ?? 0);
+                                        }
+                                    @endphp
+                                    <option value="{{ $pkg->id }}"
+                                            data-label="{{ $pkg->package_name }}"
+                                            data-price="{{ $finalPrice }}"
+                                            data-months="{{ $pkg->min_booking_duration ?? 1 }}">
+                                        {{ $pkg->package_name }}
+                                        ({{ $pkg->min_booking_duration }} {{ $pkg->duration_unit }})
+                                        – ₹{{ number_format($finalPrice) }}
+                                        @if($discountPercent > 0)
+                                            &nbsp;&nbsp; [{{ $discountPercent }}% OFF]
+                                        @endif
+                                    </option>
+                                @endforeach
+                            @endif
 
                         @foreach($packages as $pkg)
                             @php
                                 $finalPrice = 0;
                                 $discountPercent = (int) ($pkg->discount_percent ?? 0);
 
-                                if (($hoarding->price_type ?? null) === 'ooh') {
+                                if ($hoarding->hoarding_type  === 'ooh') {
                                     $monthly  = (int) ($hoarding->monthly_price ?? 0);
-                                    $months   = (int) ($pkg->min_booking_duration ?? 1);
-
-                                    $base = $monthly * $months;
+                                    $base = $monthly;
                                     $discountAmount = ($base * $discountPercent) / 100;
                                     $finalPrice = max(0, round($base - $discountAmount));
                                 } else {
@@ -247,10 +276,32 @@
                             </option>
                         @endforeach
 
-
+                        
 
                     </select>
                     
+                </div>
+                {{-- ADD THIS HERE --}}
+               {{-- @dump($hoarding->hoarding_type) --}}
+                <div id="doohFields" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 p-4 mb-5 bg-green-50 rounded-lg border border-green-100" style="display:none;">
+                    <div class="sm:col-span-2">
+                        <p class="text-[#2F5D46] font-bold mb-1">Digital Ad Settings</p>
+                        <hr class="border-green-200 mb-3">
+                    </div>
+                    <div>
+                        <label class="font-medium text-gray-700">Video Duration (Seconds) *</label>
+                        <select name="video_duration" class="enquiry-input">
+                            <option value="15">15 Seconds</option>
+                            <option value="30">30 Seconds</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-medium text-gray-700">Required Slots per day *</label>
+                        <input type="number" name="slots_count" class="enquiry-input" placeholder="e.g. 120" value="120" min="1">
+                    </div>
+                </div>
+                <div id="doohNote" class="p-3 bg-blue-50 border border-blue-100 rounded-lg" style="display:none;">
+                    <p class="text-blue-700 text-xs italic font-medium">Digital Note: This hoarding uses ad-loop slots. Final pricing depends on loop frequency.</p>
                 </div>
 
                 <div>
@@ -258,7 +309,7 @@
                     <textarea id="enquiryMessage"
                               name="message"
                               class="enquiry-input h-40 resize-none"
-                              placeholder="Write here..."></textarea>
+                              placeholder="Any specific campaign requirements, target audience, or other details.."></textarea>
                 </div>
 
             </div>
@@ -277,3 +328,104 @@
 
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var email = document.getElementById('enquiryEmail');
+        var phone = document.getElementById('enquiryMobile');
+        var user = {
+            email: '{{ auth()->check() ? auth()->user()->email : '' }}',
+            phone: '{{ auth()->check() ? auth()->user()->phone : '' }}'
+        };
+        // If both email and phone exist, make email readonly
+        if (user.email && user.phone) {
+            email.readOnly = true;
+            phone.readOnly = false;
+        } else if (user.email) {
+            email.readOnly = true;
+            phone.readOnly = false;
+        } else if (user.phone) {
+            phone.readOnly = true;
+            email.readOnly = false;
+        } else {
+            email.readOnly = false;
+            phone.readOnly = false;
+        }
+
+            // Show/hide Digital Ad Settings based on hoardingType
+            function toggleDoohFields() {
+                var hoardingType = document.getElementById('hoardingType')?.value;
+                var doohFields = document.getElementById('doohFields');
+                var doohNote = document.getElementById('doohNote');
+                if (hoardingType === 'dooh') {
+                    if (doohFields) doohFields.style.display = '';
+                    if (doohNote) doohNote.style.display = '';
+                } else {
+                    if (doohFields) doohFields.style.display = 'none';
+                    if (doohNote) doohNote.style.display = 'none';
+                }
+            }
+            // Initial call
+            toggleDoohFields();
+            // Also call when modal opens (in case hoardingType changes dynamically)
+            document.getElementById('enquiryModal').addEventListener('modal:open', toggleDoohFields);
+            // Or poll for changes if needed
+            document.getElementById('hoardingType')?.addEventListener('change', toggleDoohFields);
+
+            // Robust validation before submit
+            document.getElementById('enquiryForm').addEventListener('submit', function(e) {
+                var hoardingType = document.getElementById('hoardingType')?.value;
+                var name = document.getElementById('enquiryName')?.value.trim();
+                var email = document.getElementById('enquiryEmail')?.value.trim();
+                var mobile = document.getElementById('enquiryMobile')?.value.trim();
+                var startDate = document.getElementById('enquiryStartDate')?.value;
+                var videoDuration = document.querySelector('select[name="video_duration"]')?.value;
+                var slotsCount = document.querySelector('input[name="slots_count"]')?.value;
+                var packageSelect = document.getElementById('enquiryPackage');
+                var monthsSelect = document.getElementById('packageSelect');
+                var errorMsg = '';
+                if (!name) errorMsg += 'Full Name is required.\n';
+                if (!email) errorMsg += 'Email is required.\n';
+                if (!mobile) errorMsg += 'Mobile is required.\n';
+                if (!startDate) errorMsg += 'Start Date is required.\n';
+                if (hoardingType === 'dooh') {
+                    if (!videoDuration) errorMsg += 'Video Duration is required.\n';
+                    if (!slotsCount) errorMsg += 'Slots Count is required.\n';
+                }
+                // If no package is available, set package_id to null and set months
+                if (!packageSelect || packageSelect.options.length <= 1 || packageSelect.value === 'base' || !packageSelect.value) {
+                    document.getElementById('enquiryPackageId').value = '';
+                    if (monthsSelect) {
+                        document.getElementById('enquiryMonths').value = monthsSelect.value;
+                    }
+                } else {
+                    document.getElementById('enquiryMonths').value = '';
+                }
+                if (errorMsg) {
+                    e.preventDefault();
+                    alert(errorMsg);
+                    return false;
+                }
+            });
+
+        // Show/hide Digital Ad Settings based on hoardingType
+        function toggleDoohFields() {
+            var hoardingType = document.getElementById('hoardingType')?.value;
+            var doohFields = document.getElementById('doohFields');
+            var doohNote = document.getElementById('doohNote');
+            if (hoardingType === 'dooh') {
+                if (doohFields) doohFields.style.display = '';
+                if (doohNote) doohNote.style.display = '';
+            } else {
+                if (doohFields) doohFields.style.display = 'none';
+                if (doohNote) doohNote.style.display = 'none';
+            }
+        }
+        // Initial call
+        toggleDoohFields();
+        // Also call when modal opens (in case hoardingType changes dynamically)
+        document.getElementById('enquiryModal').addEventListener('modal:open', toggleDoohFields);
+        // Or poll for changes if needed
+        document.getElementById('hoardingType')?.addEventListener('change', toggleDoohFields);
+    });
+</script>

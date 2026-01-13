@@ -660,7 +660,7 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             required={"identifier","otp"},
      *             @OA\Property(property="identifier", type="string", example="test@email.com"),
-     *             @OA\Property(property="otp", type="string", example="123456")
+     *             @OA\Property(property="otp", type="string", example="1234")
      *         )
      *     ),
      *
@@ -672,7 +672,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'identifier' => 'required|string',
-            'otp' => 'required|digits:6',
+            'otp' => 'required|digits:4',
         ]);
 
         $result = $this->otpService->verifyPasswordResetOTP(

@@ -2,67 +2,144 @@
 
 namespace Modules\Enquiries\Services;
 
-use App\Models\Enquiry;
+use Modules\Enquiries\Models\Enquiry;
 use App\Models\Hoarding;
 use Modules\Enquiries\Repositories\Contracts\EnquiryRepositoryInterface;
 use Modules\Enquiries\Events\EnquiryCreated;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Enquiries\Repositories\EnquiryRepository;
+use Modules\Enquiries\Repositories\EnquiryItemRepository;
+use Modules\Enquiries\Services\EnquiryItemService;
+use Modules\Enquiries\Services\EnquiryNotificationService;
+use Illuminate\Http\Request;
+
 
 class EnquiryService
 {
-    protected EnquiryRepositoryInterface $repository;
-
-    public function __construct(EnquiryRepositoryInterface $repository)
-    {
-        $this->repository = $repository;
+    public function __construct(
+        protected EnquiryRepositoryInterface $repository,
+        protected EnquiryRepository $enquiryRepo,
+        protected EnquiryItemRepository $itemRepo,
+        protected EnquiryItemService $itemService,
+        protected EnquiryNotificationService $notificationService,
+        protected  ServiceBuilderService $serviceBuilder
+    ) {
+        $this->serviceBuilder = $serviceBuilder;
     }
 
     /**
      * Create a new enquiry with hoarding snapshot
      */
-    public function createEnquiry(array $data): Enquiry
+    public function createEnquiry(Request $request)
     {
-        // Get the hoarding
-        $hoarding = Hoarding::findOrFail($data['hoarding_id']);
+        if (!\Illuminate\Support\Facades\Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Please login to raise an enquiry.'
+            ], 401);
+        }
 
-        // Capture snapshot of hoarding at enquiry time
-        $snapshot = [
-            'hoarding_title' => $hoarding->title,
-            'hoarding_type' => $hoarding->type,
-            'price' => $hoarding->price,
-            'weekly_price' => $hoarding->weekly_price,
-            'allows_weekly_booking' => $hoarding->allows_weekly_booking,
-            'status' => $hoarding->status,
-            'location' => $hoarding->location,
-            'lat' => $hoarding->lat,
-            'lng' => $hoarding->lng,
-            'width' => $hoarding->width,
-            'height' => $hoarding->height,
-            'vendor_name' => $hoarding->vendor->name ?? null,
-            'vendor_email' => $hoarding->vendor->email ?? null,
-        ];
-
-        $data['snapshot'] = $snapshot;
-        $data['customer_id'] = $data['customer_id'] ?? Auth::id();
-        $data['status'] = Enquiry::STATUS_PENDING;
-
-        DB::beginTransaction();
         try {
-            $enquiry = $this->repository->create($data);
-
-            // Dispatch event
-            event(new EnquiryCreated($enquiry));
-
-            DB::commit();
-            return $enquiry;
-        } catch (\Exception $e) {
-            DB::rollBack();
+            $data = $this->validate($request);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Enquiry Validation Error', [
+                'errors' => $e->errors(),
+                'input' => $request->all()
+            ]);
             throw $e;
         }
+        $hoardingIds = (array) $data['hoarding_id'];
+        $enquiryType = count($hoardingIds) > 1 ? 'multiple' : 'single';
+
+        return DB::transaction(function () use ($data, $hoardingIds, $enquiryType) {
+            $enquiry = $this->enquiryRepo->createHeader($data, $enquiryType);
+            $vendorGroups = $this->itemService->handle(
+                $enquiry,
+                $hoardingIds,
+                $data
+            );
+            $this->notificationService->notifyAll($enquiry, $vendorGroups);
+            return response()->json([
+                'success' => true,
+                'enquiry_id' => $enquiry->id,
+                'message' => 'Enquiry submitted successfully'
+            ]);
+        });
     }
 
+    private function validate(Request $request): array
+    {
+        $rules = [
+            'hoarding_id' => 'required',
+            'hoarding_id.*' => 'exists:hoardings,id',
+            'package_id' => 'nullable',
+            'package_id.*' => 'nullable', // Custom validation below
+            'months' => 'nullable|array',
+            'months.*' => 'nullable|integer|min:1',
+            'package_label' => 'nullable',
+            'amount' => 'required',
+            'amount.*' => 'numeric|min:0',
+            'duration_type' => 'required|string',
+            'preferred_start_date' => 'required|date',
+            'preferred_end_date' => 'nullable|date',
+            'customer_name' => 'required|string',
+            'customer_mobile' => 'nullable|string',
+            'customer_email' => 'nullable|email',
+            'message' => 'nullable|string',
+            // DOOH
+            'video_duration' => 'nullable|integer|in:15,30',
+            'slots_count' => 'nullable|integer|min:1',
+            'slot' => 'nullable|string',
+            'duration_days' => 'nullable|integer|min:1',
+        ];
+        $validated = $request->validate($rules);
+
+        // Custom validation for package_id and months
+        $hoardingIds = (array) ($validated['hoarding_id'] ?? []);
+        $packageIds = (array) ($validated['package_id'] ?? []);
+        $monthsArr = (array) ($validated['months'] ?? []);
+
+        foreach ($hoardingIds as $index => $hoardingId) {
+            $packageId = $packageIds[$index] ?? null;
+            $months = $monthsArr[$index] ?? null;
+            $hoarding = \App\Models\Hoarding::with('doohScreen')->find($hoardingId);
+            if (!$hoarding) {
+                throw new \Illuminate\Validation\ValidationException('Invalid hoarding selected.');
+            }
+            if ($packageId) {
+                // Validate package belongs to hoarding
+                if ($hoarding->hoarding_type === 'dooh') {
+                    $package = \Modules\DOOH\Models\DOOHPackage::where('id', $packageId)
+                        ->where('dooh_screen_id', $hoarding->doohScreen->id ?? null)
+                        ->first();
+                } else {
+                    $package = \Modules\Hoardings\Models\HoardingPackage::where('id', $packageId)
+                        ->where('hoarding_id', $hoarding->id)
+                        ->first();
+                }
+                if (!$package) {
+                    // If no package is available, allow null
+                    continue;
+                }
+                // months must equal min_booking_duration
+                if ($months !== null && $months != $package->min_booking_duration) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'months' => ['Months must match the package minimum booking duration.']
+                    ]);
+                }
+            } else {
+                // No package selected, months is required
+                if (!$months || !is_numeric($months) || $months < 1) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'months' => ['Months is required when no package is selected.']
+                    ]);
+                }
+            }
+        }
+        return $validated;
+    }
     /**
      * Get enquiry by ID
      */
