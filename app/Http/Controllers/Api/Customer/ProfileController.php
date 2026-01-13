@@ -44,7 +44,7 @@ class ProfileController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/customer/profile",
+     *     path="/profile/customer/show",
      *     tags={"Customer Profile"},
      *     summary="Get logged-in customer profile",
      *     security={{"sanctum":{}}},
@@ -79,7 +79,7 @@ class ProfileController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/customer/profile",
+     *     path="/profile/customer/update",
      *     tags={"Customer Profile"},
      *     summary="Update customer profile",
      *     security={{"sanctum":{}}},
@@ -163,7 +163,7 @@ class ProfileController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/customer/profile/avatar",
+     *     path="/profile/avatar",
      *     tags={"Customer Profile"},
      *     summary="Remove customer avatar",
      *     security={{"sanctum":{}}},
@@ -212,7 +212,7 @@ class ProfileController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/customer/profile/change-password",
+     *     path="/profile/change-password",
      *     tags={"Customer Profile"},
      *     summary="Change account password",
      *     security={{"sanctum":{}}},
@@ -278,7 +278,7 @@ class ProfileController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/customer/profile/send-otp",
+     *     path="/profile/send-otp",
      *     tags={"Customer Profile"},
      *     summary="Send OTP to email or phone",
      *     security={{"sanctum":{}}},
@@ -332,7 +332,7 @@ class ProfileController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/customer/profile/verify-otp",
+     *     path="/profile/verify-otp",
      *     tags={"Customer Profile"},
      *     summary="Verify OTP for email or phone",
      *     security={{"sanctum":{}}},
