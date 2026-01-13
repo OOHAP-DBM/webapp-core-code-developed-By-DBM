@@ -1,32 +1,42 @@
-<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer">
+<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col h-full" onclick="window.location.href='{{ route('hoardings.show', $hoarding->id) }}';">
     <!-- Image -->
-    <div class="relative h-48 overflow-hidden bg-gray-100" onclick="window.location.href='{{ route('hoardings.show', $hoarding->id) }}';">
-        @php
-            $hasImage = false;
-            $imageUrl = '';
-            
-            if (is_callable([$hoarding, 'hasMedia']) && $hoarding->hasMedia('images')) {
-                $hasImage = true;
-                $imageUrl = $hoarding->getFirstMediaUrl('images');
-            } elseif (isset($hoarding->image)) {
-                $hasImage = true;
-                $imageUrl = $hoarding->image;
+    <div class="relative h-48 overflow-hidden bg-gray-100">
+    @php
+        $imageUrl = null;
+
+        if ($hoarding->hoarding_type === 'ooh'
+            && $hoarding->hoardingMedia->isNotEmpty()) {
+
+            $imageUrl = asset(
+                'storage/' . $hoarding->hoardingMedia->first()->file_path
+            );
+        }
+
+        if (
+                $hoarding->hoarding_type === 'dooh'
+                && $hoarding->doohScreen
+                && $hoarding->doohScreen->media->isNotEmpty()
+            ) {
+                $imageUrl = asset(
+                    'storage/' . $hoarding->doohScreen->media
+                        ->sortBy('sort_order')
+                        ->first()
+                        ->file_path
+                );
             }
         @endphp
-        
-        @if($hasImage)
-            <img 
-                src="{{ $imageUrl }}" 
-                alt="{{ $hoarding->title }}"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            >
-        @else
-            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-            </div>
-        @endif
+
+    @if($imageUrl)
+        <img src="{{ $imageUrl }}"
+            class="w-full h-full object-cover">
+    @else
+        <div class="w-full h-full flex items-center justify-center bg-gray-200">
+            No Image {{ $hoarding->id }} | {{ $hoarding->hoarding_type }}
+        </div>
+    @endif
+
+
+
         
         <!-- Recommended Badge -->
         <div class="absolute top-3 left-3">
@@ -38,34 +48,34 @@
         <!-- Top Right Icons -->
         <div class="absolute top-3 right-3 flex items-center space-x-2">
             <!-- Bookmark Icon -->
-            <button class="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors" onclick="event.stopPropagation();">
+            <!-- <button class="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors" onclick="event.stopPropagation();">
                 <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
                 </svg>
-            </button>
+            </button> -->
             <!-- Info Icon -->
-            <button class="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors" onclick="event.stopPropagation();">
+            <!-- <button class="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors" onclick="event.stopPropagation();">
                 <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-            </button>
+            </button> -->
         </div>
 
         <!-- View Icon (bottom-left) -->
-        <div class="absolute bottom-3 left-3">
+        <!-- <div class="absolute bottom-3 left-3">
             <div class="w-8 h-8 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center">
                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
             </div>
-        </div>
+        </div> -->
     </div>
 
     <!-- Content -->
-    <div class="p-4">
+    <div class="p-4 flex flex-col flex-grow">
         <!-- Location with Rating -->
-        <div class="flex items-start justify-between mb-2">
+        <div class="flex items-center space-x-2 mb-2">
             <div class="flex-1">
                 <h3 class="text-sm font-semibold text-gray-900 mb-0.5 line-clamp-1">
                     {{ $hoarding->title ?? 'Udaipur | Hiramagri Chouraha' }}
@@ -141,14 +151,34 @@
         </div>
 
 
-        <!-- Availability -->
+        @php
+            use Carbon\Carbon;
+        @endphp
+
         <p class="text-xs text-gray-600 mb-1">
-            Hoarding Available from December 25
+            @if($hoarding->available_from && Carbon::parse($hoarding->available_from)->isFuture())
+                Hoarding Available from
+                {{ Carbon::parse($hoarding->available_from)->format('F d, Y') }}
+            @else
+                Hoarding Available Now
+            @endif
         </p>
-        <p class="text-xs text-teal-600 font-medium mb-3">3 Packages Available</p>
+
+        @php
+            $packageCount = 0;
+            if(($hoarding->price_type ?? $hoarding->hoarding_type) === 'ooh') {
+                $packageCount = $hoarding->oohPackages()->count();
+            }
+        @endphp
+
+        @if($packageCount > 0)
+            <p class="text-xs text-teal-600 font-medium mb-3">{{ $packageCount }} {{ Str::plural('Package', $packageCount) }} Available</p>
+        @else
+            <p class="text-xs text-gray-500 font-medium mb-3">No packages are in this hoarding</p>
+        @endif
 
         <!-- Action Buttons -->
-        <div class="flex items-center space-x-2 mb-2">
+        <div class="flex items-center space-x-2 mb-2 mt-auto">
             @php
                 $isInCart = in_array($hoarding->id, $cartIds ?? []);
             @endphp

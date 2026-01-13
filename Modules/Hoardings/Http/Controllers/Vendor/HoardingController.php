@@ -312,4 +312,3 @@ class HoardingController extends Controller
 
     
 }
-

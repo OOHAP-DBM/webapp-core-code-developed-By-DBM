@@ -87,15 +87,15 @@
 
     <nav class="px-4 pb-4">
         <div class="space-y-1">
-            <a href="{{ route('vendor.dashboard') }}" class="flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.dashboard') ? 'bg-[#00995c]/10 text-[#00995c]' : 'text-gray-700 hover:bg-gray-50' }}">
+            <a href="{{ route('vendor.dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.dashboard') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="4" width="7" height="7" rx="1.5" fill="#1E1B18"/>
+                <rect x="4" y="4" width="7" height="7" rx="1.5" fill="currentColor"/>
                 <path opacity="0.3" d="M9.5 13C10.3284 13 11 13.6716 11 14.5V18.5C11 19.3284 10.3284 20 9.5 20H5.5C4.67157 20 4 19.3284 4 18.5V14.5C4 13.6716 4.67157 13 5.5 13H9.5ZM18.5 13C19.3284 13 20 13.6716 20 14.5V18.5C20 19.3284 19.3284 20 18.5 20H14.5C13.6716 20 13 19.3284 13 18.5V14.5C13 13.6716 13.6716 13 14.5 13H18.5ZM18.5 4C19.3284 4 20 4.67157 20 5.5V9.5C20 10.3284 19.3284 11 18.5 11H14.5C13.6716 11 13 10.3284 13 9.5V5.5C13 4.67157 13.6716 4 14.5 4H18.5Z" fill="#1E1B18"/>
                 </svg>
                 Dashboard
             </a>
             {{-- My Orders Dropdown --}}
-            <div x-data="{ open: false }" class="space-y-1">
+            <!-- <div x-data="{ open: false }" class="space-y-1">
 
                 {{-- Parent --}}
                 <button
@@ -103,7 +103,7 @@
                     @click="open = !open"
                     class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
                         text-gray-700 hover:bg-gray-50"
-                >
+                 >
                     <div class="flex items-center gap-3">
                         {{-- SVG Icon --}}
                         <svg width="21" height="24" viewBox="0 0 21 24" fill="none"
@@ -155,12 +155,12 @@
                         - Cancelled Orders
                     </a>
                 </div>
-            </div>
+            </div> -->
 
 
             {{-- My Hoardings Dropdown --}}
             <div
-                x-data="{ open: false }"
+                x-data="{ open: @if(request()->routeIs('vendor.hoardings.*')) true @else false @endif }"
                 class="space-y-1"
             >
                 {{-- Parent --}}
@@ -168,7 +168,7 @@
                     type="button"
                     @click="open = !open"
                     class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
-                           text-gray-700 hover:bg-gray-50"
+                           {{ request()->routeIs('vendor.hoardings.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
                 >
                     <div class="flex items-center gap-3 ">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -248,34 +248,32 @@
                 >
                     <a
                         href="{{ route('vendor.hoardings.myHoardings') }}"
-                        class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
+                        class="block px-6 py-2 text-sm rounded-md {{ request()->routeIs('vendor.hoardings.myHoardings') ? 'bg-[#00995c] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
                     >
                         - My Hoardings
                     </a>
 
+                    @if(auth()->user() && auth()->user()->hasRole('vendor'))
                     <a
-                        @if(auth()->user() && auth()->user()->hasRole('vendor'))
-                        <a
-                            href="{{ route('vendor.hoardings.add') }}"
-                            class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50 {{ request()->routeIs('vendor.hoardings.add') || request()->is('vendor/hoardings/add') || request()->is('vendor/hoardings*') ? 'bg-gray-100 font-semibold' : '' }}"
-                        >
-                            <span class="inline-flex items-center gap-2">
-                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                                Add Hoardings
-                            </span>
-                        </a>
-                        @endif
+                        href="{{ route('vendor.hoardings.add') }}"
+                        class="block px-6 py-2 text-sm rounded-md {{ request()->routeIs('vendor.hoardings.add') || request()->is('vendor/hoardings/add') || request()->is('vendor/hoardings*') ? 'bg-[#00995c] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="inline-flex items-center gap-2">
+                            - Add Hoardings
+                        </span>
+                    </a>
+                    @endif
 
-                    <a
+                    <!-- <a
                         href=""
                         class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
                     >
                         - Category
-                    </a>
+                    </a> -->
                 </div>
             </div>
 
-            <a href="" class=" gap-3 flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.message.*') ? 'bg-[#00995c]/10 text-[#00995c]' : 'text-gray-700 hover:bg-gray-50' }}">
+            <!-- <a href="" class=" gap-3 flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.message.*') ? 'bg-[#00995c]/10 text-[#00995c]' : 'text-gray-700 hover:bg-gray-50' }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clip-path="url(#clip0_1077_4841)">
                 <path d="M9.23077 0C4.19723 0 0 3.46154 0 7.84615C0 10.0892 1.22769 12.0443 2.97138 13.4714C2.85879 14.2297 2.55051 14.9455 2.07692 15.5483C1.88365 15.7957 1.68168 16.0361 1.47138 16.2692C1.36252 16.384 1.26571 16.5095 1.18246 16.644C1.12985 16.7298 1.04769 16.8258 1.00985 17.0197C0.971077 17.2126 1.02369 17.5302 1.18246 17.7692L1.29785 17.9714L1.52862 18.0868C2.33631 18.4902 3.20862 18.4191 4.00985 18.2022C4.81015 17.9843 5.58 17.6114 6.31754 17.2209C7.05415 16.8314 7.75477 16.4234 8.30769 16.1252C8.38523 16.0837 8.43508 16.0735 8.50985 16.0385C9.96554 18.0397 12.6314 19.3846 15.6055 19.3846C15.6342 19.3883 15.6609 19.3846 15.6923 19.3846C16.8923 19.3846 20.7692 23.3483 23.0769 21.7791C23.1692 21.4108 21.048 20.4868 20.9418 17.7406C22.7483 16.464 23.9142 14.5652 23.9142 12.4615C23.9142 9.34892 21.444 6.77723 18.1449 5.856C17.1009 2.45908 13.4714 0 9.23077 0ZM9.23077 1.84615C13.428 1.84615 16.6154 4.66154 16.6154 7.84615C16.6154 11.0308 13.428 13.8462 9.23077 13.8462C8.48123 13.8462 8.05108 14.1526 7.44185 14.4812C6.83262 14.8089 6.13385 15.216 5.45169 15.5769C4.86092 15.8889 4.29785 16.1289 3.77908 16.2978C4.284 15.5686 4.81108 14.6095 4.90338 13.2692L4.93292 12.7495L4.5 12.4329C2.85508 11.28 1.84615 9.62123 1.84615 7.84615C1.84615 4.66154 5.03354 1.84615 9.23077 1.84615Z" fill="#949291"/>
@@ -287,13 +285,14 @@
                 </defs>
                 </svg>
                 Messenger
-            </a>
+            </a> -->
 
             {{-- My Portal Toggle --}}
-            <div
+{{--       
+         <div
                 x-data="{ enabled: false }"
                 class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 gap-3"
-            >
+                >
                 <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g style="mix-blend-mode:multiply">
@@ -359,19 +358,19 @@
                         :class="enabled ? 'translate-x-4' : 'translate-x-1'"
                     ></span>
                 </button>
-            </div>
+        </div> --}}
 
             {{-- Earning Dashboard Dropdown --}}
-            <div
-                x-data="{ open: false }"
+            <!-- <div
+                x-data="{ open: @if(request()->routeIs('vendor.earning.*') || request()->routeIs('vendor.dashboard.*')) true @else false @endif }"
                 class="space-y-1"
-            >
+              >
                 {{-- Parent --}}
                 <button
                     type="button"
                     @click="open = !open"
                     class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
-                           text-gray-700 hover:bg-gray-50"
+                           {{ request()->routeIs('vendor.earning.*') || request()->routeIs('vendor.dashboard.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
                 >
                     <div class="flex items-center gap-3">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -397,36 +396,36 @@
                 </button>
 
                 {{-- Children --}}
-                <div
+            <div
                     x-show="open"
                     x-collapse
                     x-cloak
                     class="space-y-1"
-                >
+                    >
                     <a
                         href=""
-                        class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
+                        class="block px-6 py-2 text-sm rounded-md {{ request()->routeIs('vendor.earning.overview') ? 'bg-[#00995c] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
                     >
                         - Overview
                     </a>
 
                     <a
                         href=""
-                        class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
+                        class="block px-6 py-2 text-sm rounded-md {{ request()->routeIs('vendor.earning.monthly') ? 'bg-[#00995c] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
                     >
                         - Monthly Earnings
                     </a>
 
                     <a
                         href=""
-                        class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
+                        class="block px-6 py-2 text-sm rounded-md {{ request()->routeIs('vendor.earning.payout') ? 'bg-[#00995c] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
                     >
                         - Payout History
                     </a>
                 </div>
-            </div>
+            </div> -->
 
-            <hr class="mt-5 border-gray-200">
+            <!-- <hr class="mt-5 border-gray-200">
             <p class="text-center font-semibold text-gray-500 text-xs uppercase tracking-wide my-3">
                 POS & bookings
             </p>
@@ -442,13 +441,13 @@
                 <path d="M14.275 17.25L17.75 13.8L16.7 12.75L14.275 15.125L13.3 14.15L12.25 15.225L14.275 17.25ZM3 6H15V4H3V6ZM15 20C13.6167 20 12.4377 19.5123 11.463 18.537C10.4883 17.5617 10.0007 16.3827 10 15C10 13.6167 10.4877 12.4377 11.463 11.463C12.4383 10.4883 13.6173 10.0007 15 10C16.3833 10 17.5627 10.4877 18.538 11.463C19.5133 12.4383 20.0007 13.6173 20 15C20 16.3833 19.5123 17.5627 18.537 18.538C17.5617 19.5133 16.3827 20.0007 15 20ZM0 19V2C0 1.45 0.196 0.979333 0.588 0.588C0.98 0.196667 1.45067 0.000666667 2 0H16C16.55 0 17.021 0.196 17.413 0.588C17.805 0.98 18.0007 1.45067 18 2V8.675C17.6833 8.525 17.3583 8.4 17.025 8.3C16.6917 8.2 16.35 8.125 16 8.075V2H2V16.05H8.075C8.15833 16.5667 8.28767 17.0583 8.463 17.525C8.63833 17.9917 8.86733 18.4333 9.15 18.85L9 19L7.5 17.5L6 19L4.5 17.5L3 19L1.5 17.5L0 19ZM3 14H8.075C8.125 13.65 8.2 13.3083 8.3 12.975C8.4 12.6417 8.525 12.3167 8.675 12H3V14ZM3 10H10.1C10.7333 9.38333 11.471 8.89567 12.313 8.537C13.155 8.17833 14.0507 7.99933 15 8H3V10Z" fill="#949291"/>
                 </svg>
                 Book Now
-            </a>
+            </a> -->
 
             {{-- POS Booking Dropdown --}}
-            <div
+            <!-- <div
                 x-data="{ open: false }"
                 class="space-y-1"
-            >
+                 >
                 {{-- Parent --}}
                 <button
                     type="button"
@@ -507,13 +506,13 @@
                         - Booking History
                     </a>
                 </div>
-            </div>
+            </div> -->
 
             {{-- POS Customers Dropdown --}}
-            <div
+            <!-- <div
                 x-data="{ open: false }"
                 class="space-y-1"
-            >
+                >
                 {{-- Parent --}}
                 <button
                     type="button"
@@ -572,9 +571,9 @@
                         - Customer History
                     </a>
                 </div>
-            </div>
+            </div> -->
 
-            <a href="" class=" gap-3 flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.transactions.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+            <!-- <a href="" class=" gap-3 flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.transactions.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M14.275 17.25L17.75 13.8L16.7 12.75L14.275 15.125L13.3 14.15L12.25 15.225L14.275 17.25ZM3 6H15V4H3V6ZM15 20C13.6167 20 12.4377 19.5123 11.463 18.537C10.4883 17.5617 10.0007 16.3827 10 15C10 13.6167 10.4877 12.4377 11.463 11.463C12.4383 10.4883 13.6173 10.0007 15 10C16.3833 10 17.5627 10.4877 18.538 11.463C19.5133 12.4383 20.0007 13.6173 20 15C20 16.3833 19.5123 17.5627 18.537 18.538C17.5617 19.5133 16.3827 20.0007 15 20ZM0 19V2C0 1.45 0.196 0.979333 0.588 0.588C0.98 0.196667 1.45067 0.000666667 2 0H16C16.55 0 17.021 0.196 17.413 0.588C17.805 0.98 18.0007 1.45067 18 2V8.675C17.6833 8.525 17.3583 8.4 17.025 8.3C16.6917 8.2 16.35 8.125 16 8.075V2H2V16.05H8.075C8.15833 16.5667 8.28767 17.0583 8.463 17.525C8.63833 17.9917 8.86733 18.4333 9.15 18.85L9 19L7.5 17.5L6 19L4.5 17.5L3 19L1.5 17.5L0 19ZM3 14H8.075C8.125 13.65 8.2 13.3083 8.3 12.975C8.4 12.6417 8.525 12.3167 8.675 12H3V14ZM3 10H10.1C10.7333 9.38333 11.471 8.89567 12.313 8.537C13.155 8.17833 14.0507 7.99933 15 8H3V10Z" fill="#949291"/>
             </svg>
@@ -583,13 +582,13 @@
                     <hr class="mt-5 border-gray-200">
                     <p class="text-center font-semibold text-gray-500 text-xs uppercase tracking-wide my-3">
                         PEOPLES
-                    </p>
+                    </p> -->
 
 {{-- My Staff Dropdown --}}
-<div
+<!-- <div
     x-data="{ open: false }"
     class="space-y-1"
->
+    >
     {{-- Parent --}}
     <button
         type="button"
@@ -648,14 +647,13 @@
             - Staff Roles
         </a>
     </div>
-</div>
-
+</div> -->
 
 {{-- Graphics Designer Dropdown --}}
-<div
+<!-- <div
     x-data="{ open: false }"
     class="space-y-1"
->
+    >
     {{-- Parent --}}
     <button
         type="button"
@@ -714,12 +712,12 @@
             - Assigned Designs
         </a>
     </div>
-</div>
+</div> -->
 {{-- Printer Dropdown --}}
-<div
+<!-- <div
     x-data="{ open: false }"
     class="space-y-1"
->
+    >
     {{-- Parent --}}
     <button
         type="button"
@@ -778,12 +776,12 @@
             - Print Jobs
         </a>
     </div>
-</div>
+</div> -->
 {{-- Munter Dropdown --}}
-<div
+<!-- <div
     x-data="{ open: false }"
     class="space-y-1"
->
+    >
     {{-- Parent --}}
     <button
         type="button"
@@ -842,12 +840,12 @@
             - Installation History
         </a>
     </div>
-</div>
+</div> -->
 {{-- Surveyor Dropdown --}}
-<div
+<!-- <div
     x-data="{ open: false }"
     class="space-y-1"
->
+    >
     {{-- Parent --}}
     <button
         type="button"
@@ -906,33 +904,33 @@
             - Survey Reports
         </a>
     </div>
-</div>
+</div> -->
 
 
-<hr class="mt-5 border-gray-200">
+<!-- <hr class="mt-5 border-gray-200"> -->
 
-
+<!-- 
             <a href="" class="gap-3 flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.appointments.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 11H9V13H7V11ZM7 15H9V17H7V15ZM11 11H13V13H11V11ZM11 15H13V17H11V15ZM15 11H17V13H15V11ZM15 15H17V17H15V15Z" fill="#1E1B18"/>
-            <path d="M5 22H19C20.103 22 21 21.103 21 20V6C21 4.897 20.103 4 19 4H17V2H15V4H9V2H7V4H5C3.897 4 3 4.897 3 6V20C3 21.103 3.897 22 5 22ZM19 8L19.001 20H5V8H19Z" fill="#949291"/>
-            </svg>
-                Appointments
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 11H9V13H7V11ZM7 15H9V17H7V15ZM11 11H13V13H11V11ZM11 15H13V17H11V15ZM15 11H17V13H15V11ZM15 15H17V17H15V15Z" fill="#1E1B18"/>
+                <path d="M5 22H19C20.103 22 21 21.103 21 20V6C21 4.897 20.103 4 19 4H17V2H15V4H9V2H7V4H5C3.897 4 3 4.897 3 6V20C3 21.103 3.897 22 5 22ZM19 8L19.001 20H5V8H19Z" fill="#949291"/>
+                </svg>
+                    Appointments
             </a>
             <a href="" class=" gap-3 flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.subscriptions.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
-            <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M11 4H0V6H11V4ZM11 0H0V2H11V0ZM0 10H7V8H0V10ZM18.5 5.5L20 7L13 14L8.5 9.5L10 8L13 11L18.5 5.5Z" fill="#949291"/>
-            </svg>
-                Subscriptions
-            </a>
+                <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11 4H0V6H11V4ZM11 0H0V2H11V0ZM0 10H7V8H0V10ZM18.5 5.5L20 7L13 14L8.5 9.5L10 8L13 11L18.5 5.5Z" fill="#949291"/>
+                </svg>
+                    Subscriptions
+            </a> -->
 
 
 
 {{-- Settings Dropdown --}}
-<div
+<!-- <div
     x-data="{ open: false }"
     class="space-y-1"
->
+    >
     {{-- Parent --}}
     <button
         type="button"
@@ -1000,7 +998,7 @@
             - System Preferences
         </a>
     </div>
-</div>
+</div> -->
 
 {{-- Logout --}}
 <form method="POST" action="{{ route('logout') }}">

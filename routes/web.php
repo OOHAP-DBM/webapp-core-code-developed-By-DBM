@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Web\PageController;
 use Modules\Auth\Http\Controllers\OnboardingController;
 use App\Http\Controllers\Web\Customer\ProfileController;
 use Modules\Search\Controllers\SearchController;
@@ -53,6 +54,13 @@ Route::post('/api/map/search', [\App\Http\Controllers\MapSearchController::class
 Route::post('/api/map/search/geojson', [\App\Http\Controllers\MapSearchController::class, 'searchGeoJSON'])->name('api.map.search.geojson');
 Route::get('/api/map/nearby', [\App\Http\Controllers\MapSearchController::class, 'nearby'])->name('api.map.nearby');
 Route::get('/api/map/autocomplete', [\App\Http\Controllers\MapSearchController::class, 'autocomplete'])->name('api.map.autocomplete');
+
+Route::get('/about-us', [PageController::class, 'about'])->name('about');
+Route::get('/faqs', [PageController::class, 'faqs'])->name('faqs');
+Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('terms');
+Route::get('/legal-disclaimer', [PageController::class, 'disclaimer'])->name('disclaimer');
+Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy');
+Route::get('/refund-cancellation-policy', [PageController::class, 'refund'])->name('refund');
 
 // ============================================
 // AUTH ROUTES (PROMPT 112 - Role-Based Auth)
@@ -874,4 +882,8 @@ Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->grou
     Route::get('/profile', [\App\Http\Controllers\Web\Staff\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Web\Staff\ProfileController::class, 'update'])->name('profile.update');
 });
+
+    Route::get('/coming-soon', function () {
+        return view('pages.coming-soon');
+    })->name('coming-soon');
 

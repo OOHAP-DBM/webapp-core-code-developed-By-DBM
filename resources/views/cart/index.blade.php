@@ -10,7 +10,7 @@
 
     {{-- Breadcrumb --}}
     <p class="text-xs text-gray-400 mb-3">
-        Home / OOH / Shortlisted Hoardings
+        Home / Shortlisted Hoardings
     </p>
 
     {{-- Heading --}}
@@ -23,19 +23,42 @@
 
     {{-- MAIN CONTENT (NO PAGE SCROLL) --}}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 overflow-hidden">
+        @if($items->count() > 0)
+            <div class="lg:col-span-8 h-full overflow-y-auto pr-2">
+                @include('cart.partials.list', ['items' => $items])
+            </div>
+            <div class="lg:col-span-4 h-full">
+                <div class="sticky top-6">
+                    @include('cart.partials.summary')
+                </div>
+            </div>
+        @else
+<div class="col-span-full flex-1 flex items-center justify-center text-center px-6 -mt-16">
+            <div class="max-w-md">
 
-        {{-- LEFT : CART LIST (SCROLL ONLY HERE) --}}
-        <div class="lg:col-span-8 h-full overflow-y-auto pr-2">
-            @include('cart.partials.list', ['items' => $items])
-        </div>
+                <div class="text-6xl mb-4">🛒</div>
 
-        {{-- RIGHT : SUMMARY (FIXED / NO SCROLL) --}}
-        <div class="lg:col-span-4 h-full">
-            <div class="sticky top-6">
-                @include('cart.partials.summary')
+                <h2 class="text-xl font-semibold text-gray-900 mb-2">
+                    Your shortlist is empty
+                </h2>
+
+                <p class="text-sm text-gray-500 mb-6">
+                    You haven’t shortlisted any hoardings yet.<br>
+                    Start exploring and add hoardings to compare & book.
+                </p>
+
+                <a href="{{ route('search') }}"
+                   class="inline-flex items-center gap-2
+                          bg-gray-900 text-white
+                          px-6 py-3 rounded-lg
+                          text-sm font-medium
+                          hover:bg-gray-800 transition">
+                    Browse Hoardings
+                </a>
+
             </div>
         </div>
-
+        @endif
     </div>
     <script>
 (function () {

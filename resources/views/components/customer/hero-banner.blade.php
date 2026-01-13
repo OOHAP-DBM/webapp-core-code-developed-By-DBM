@@ -27,10 +27,10 @@
                 </div>
             @else
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <a href="{{ route('hoardings.index') }}" class="inline-flex items-center justify-center px-6 py-3 bg-teal-500 text-white rounded-md font-semibold hover:bg-teal-600 transition-colors">
+                    <a href="{{ route('search') }}" class="inline-flex items-center justify-center px-6 py-3 bg-teal-500 text-white rounded-md font-semibold hover:bg-teal-600 transition-colors">
                         Explore Hoardings
                     </a>
-                    <a href="{{ route('dooh.index') }}" class="inline-flex items-center justify-center px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-md font-semibold hover:bg-white/20 transition-colors">
+                    <a href="{{ route('search', ['type' => 'dooh']) }}" class="inline-flex items-center justify-center px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-md font-semibold hover:bg-white/20 transition-colors">
                         Browse DOOH
                     </a>
                 </div>
