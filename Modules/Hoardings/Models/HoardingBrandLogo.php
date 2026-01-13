@@ -5,6 +5,8 @@ namespace Modules\Hoardings\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Hoarding;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Hoardings\Models\OOHHoarding;
 
 class HoardingBrandLogo extends Model
 {
@@ -16,9 +18,9 @@ class HoardingBrandLogo extends Model
         'sort_order',
     ];
 
-    public function hoarding()
+    public function oohHoarding(): BelongsTo
     {
-        return $this->belongsTo(Hoarding::class);
+        return $this->belongsTo(OOHHoarding::class, 'hoarding_id', 'id');
     }
     public function brandable()
     {

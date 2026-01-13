@@ -55,7 +55,8 @@ class EnquiryItemService
             }
 
             // Calculate end date
-            $endDate = (clone $startDate)->addMonths($months);
+            $monthsInt = is_array($months) ? (int)($months[$index] ?? $months[0]) : (int)$months;
+            $endDate = (clone $startDate)->addMonths($monthsInt);
 
             // Build services
             if ($package) {

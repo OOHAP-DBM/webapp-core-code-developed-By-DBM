@@ -201,10 +201,10 @@ window.openEnquiryModal = function (payload) {
     const monthSelect    = document.getElementById('packageSelect');
     const hoardingTypeInput = document.getElementById('hoardingType');
     // Always set hoardingType from payload for correct modal context
-    if (hoardingTypeInput && payload.type) {
-        hoardingTypeInput.value = payload.type;
-    }
-    let hoardingType = hoardingTypeInput?.value || payload.type || 'ooh';
+    // if (hoardingTypeInput && payload.type) {
+    //     hoardingTypeInput.value = payload.type;
+    // }
+    let hoardingType = hoardingTypeInput?.value || 'ooh';
 
     if (!modal || !enquiryPackage || !baseOption) {
         console.error('[ERROR] Modal, enquiryPackage, or baseOption missing.');

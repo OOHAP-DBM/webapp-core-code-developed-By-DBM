@@ -124,7 +124,7 @@
               method="POST"
               class="flex flex-col overflow-hidden">
                         @csrf
-                        autocomplete="off">
+                      
 
             {{-- BODY --}}
             <div class="flex-1 overflow-y-auto px-6 py-6 space-y-5 text-sm">
@@ -136,6 +136,7 @@
                 <input type="hidden" id="enquiryAmount" name="amount">
                 <input type="hidden" id="enquiryDurationType" name="duration_type" value="months">
                 <input type="hidden" id="enquiryEndDate" name="preferred_end_date">
+                <input type="hidden" id="enquiryMonths" name="months[]">
 
                 <input type="hidden" id="hoardingType" value="{{ $modalHoarding?->hoarding_type }}">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
@@ -381,6 +382,7 @@
                 var videoDuration = document.querySelector('select[name="video_duration"]')?.value;
                 var slotsCount = document.querySelector('input[name="slots_count"]')?.value;
                 var packageSelect = document.getElementById('enquiryPackage');
+                var monthsSelect = document.getElementById('packageSelect');
                 var errorMsg = '';
                 if (!name) errorMsg += 'Full Name is required.\n';
                 if (!email) errorMsg += 'Email is required.\n';
@@ -390,9 +392,14 @@
                     if (!videoDuration) errorMsg += 'Video Duration is required.\n';
                     if (!slotsCount) errorMsg += 'Slots Count is required.\n';
                 }
-                // If no package is available, set package_id to null
-                if (!packageSelect || packageSelect.options.length <= 1) {
+                // If no package is available, set package_id to null and set months
+                if (!packageSelect || packageSelect.options.length <= 1 || packageSelect.value === 'base' || !packageSelect.value) {
                     document.getElementById('enquiryPackageId').value = '';
+                    if (monthsSelect) {
+                        document.getElementById('enquiryMonths').value = monthsSelect.value;
+                    }
+                } else {
+                    document.getElementById('enquiryMonths').value = '';
                 }
                 if (errorMsg) {
                     e.preventDefault();

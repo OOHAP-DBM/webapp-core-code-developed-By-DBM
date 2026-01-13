@@ -313,181 +313,184 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
     // Dashboard (PROMPT 26)
     Route::get('/dashboard', [\App\Http\Controllers\Vendor\DashboardController::class, 'index'])->name('dashboard');
+    Route::middleware(['vendor.approved'])->group(function () {
+      // Hoardings Management
+        Route::get('hoardings/add', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'showTypeSelection'])->name('hoardings.add');
+        Route::post('hoardings/select-type', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'handleTypeSelection'])->name('hoardings.select-type');
 
-    // Hoardings Management
-    Route::get('hoardings/add', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'showTypeSelection'])->name('hoardings.add');
-    Route::post('hoardings/select-type', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'handleTypeSelection'])->name('hoardings.select-type');
-
-    Route::resource('hoardings', \App\Http\Controllers\Web\Vendor\HoardingController::class);
-     
-    // Vendor DOOH Creation (Figma-accurate, onboarding enforced)
-
-    // Multi-step DOOH wizard
-    Route::get('dooh/create', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'create'])->name('dooh.create');
-    Route::post('dooh/store', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'store'])->name('dooh.store');
-
-    // Hoarding Media Management (PROMPT 59)
-    Route::prefix('hoardings/{hoarding}/media')->name('hoardings.media.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'index'])->name('index');
-        Route::post('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadHero'])->name('upload-hero');
-        Route::post('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadNight'])->name('upload-night');
-        Route::post('/gallery', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadGallery'])->name('upload-gallery');
-        Route::post('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadSizeOverlay'])->name('upload-size-overlay');
-        Route::delete('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteHero'])->name('delete-hero');
-        Route::delete('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteNight'])->name('delete-night');
-        Route::delete('/gallery/{mediaId}', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteGalleryImage'])->name('delete-gallery');
-        Route::delete('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteSizeOverlay'])->name('delete-size-overlay');
-        Route::post('/gallery/reorder', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'reorderGallery'])->name('reorder-gallery');
-        Route::get('/stats', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'stats'])->name('stats');
-    });
-    
-    // DOOH Management
-    // Route::resource('dooh', \App\Http\Controllers\Web\Vendor\DOOHController::class);
-    
-    // Enquiries (received)
-    Route::get('/enquiries', [\App\Http\Controllers\Web\Vendor\EnquiryController::class, 'index'])->name('enquiries.index');
-    Route::get('/enquiries/{id}', [\App\Http\Controllers\Web\Vendor\EnquiryController::class, 'show'])->name('enquiries.show');
-    Route::post('/enquiries/{id}/respond', [\App\Http\Controllers\Web\Vendor\EnquiryController::class, 'respond'])->name('enquiries.respond');
-    
-    // Offers
-    Route::get('/offers', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'index'])->name('offers.index');
-    Route::get('/offers/create', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'create'])->name('offers.create');
-    Route::post('/offers', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'store'])->name('offers.store');
-    Route::get('/offers/{id}', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'show'])->name('offers.show');
-    
-    // Quotations
-    Route::get('/quotations', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'index'])->name('quotations.index');
-    Route::get('/quotations/create', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'create'])->name('quotations.create');
-    Route::post('/quotations', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'store'])->name('quotations.store');
-    Route::get('/quotations/{id}', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'show'])->name('quotations.show');
-    
-    // Threads
-    Route::get('/threads', [\App\Http\Controllers\Vendor\ThreadController::class, 'index'])->name('threads.index');
-    Route::get('/threads/{id}', [\App\Http\Controllers\Vendor\ThreadController::class, 'show'])->name('threads.show');
-    Route::post('/threads/{id}/send-message', [\App\Http\Controllers\Vendor\ThreadController::class, 'sendMessage'])->name('threads.send-message');
-    Route::post('/threads/{id}/mark-read', [\App\Http\Controllers\Vendor\ThreadController::class, 'markAsRead'])->name('threads.mark-read');
-    Route::post('/threads/{id}/archive', [\App\Http\Controllers\Vendor\ThreadController::class, 'archive'])->name('threads.archive');
-    Route::get('/threads/unread-count', [\App\Http\Controllers\Vendor\ThreadController::class, 'unreadCount'])->name('threads.unread-count');
-    
-    // Listings Management (PROMPT 26)
-    Route::get('/my-hoardings', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'myHoardings'])->name('hoardings.myHoardings');
-    Route::post('hoardings/{id}/toggle', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'toggleStatus'])->name('hoardings.toggle');
-    Route::get('/hoardings/create', [Modules\Hoardings\Http\Controllers\Vendor\OOHListingController::class, 'create'])->name('hoardings.create');
-    Route::post('/hoardings/store', [Modules\Hoardings\Http\Controllers\Vendor\OOHListingController::class, 'store'])->name('hoarding.store');
-
-    Route::post('/my-hoardings', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'store'])->name('my-hoardings.store');
-    Route::get('/my-hoardings/{id}/edit', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'edit'])->name('my-hoardings.edit');
-    Route::put('/my-hoardings/{id}', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])->name('my-hoardings.update');
-    Route::delete('/my-hoardings/{id}', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'destroy'])->name('my-hoardings.destroy');
-    Route::get('/my-hoardings/bulk-update', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'bulkUpdate'])->name('my-hoardings.bulk-update');
-    Route::post('/my-hoardings/bulk-update-submit', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'bulkUpdateSubmit'])->name('my-hoardings.bulk-update-submit');
-    
-    // Bookings Management (PROMPT 48 - Enhanced)
-    Route::prefix('bookings')->name('bookings.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Vendor\BookingController::class, 'index'])->name('index');
-        Route::get('/new', [\App\Http\Controllers\Vendor\BookingController::class, 'newBookings'])->name('new');
-        Route::get('/ongoing', [\App\Http\Controllers\Vendor\BookingController::class, 'ongoingBookings'])->name('ongoing');
-        Route::get('/completed', [\App\Http\Controllers\Vendor\BookingController::class, 'completedBookings'])->name('completed');
-        Route::get('/cancelled', [\App\Http\Controllers\Vendor\BookingController::class, 'cancelledBookings'])->name('cancelled');
-        Route::get('/{id}', [\App\Http\Controllers\Vendor\BookingController::class, 'show'])->name('show');
-        Route::post('/{id}/confirm', [\App\Http\Controllers\Vendor\BookingController::class, 'confirm'])->name('confirm');
-        Route::post('/{id}/cancel', [\App\Http\Controllers\Vendor\BookingController::class, 'cancel'])->name('cancel');
-        Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\BookingController::class, 'updateStatus'])->name('update-status');
-    });
-    Route::post('/bookings/{id}/approve-pod', [\App\Http\Controllers\Web\Vendor\BookingController::class, 'approvePOD'])->name('bookings.approve-pod');
-    
-    // Booking Pipeline Board (PROMPT 111 - Kanban View)
-    Route::prefix('pipeline')->name('pipeline.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'index'])->name('index');
-        Route::get('/data', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'getData'])->name('data');
-        Route::post('/move', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'moveBooking'])->name('move');
-        Route::get('/booking/{id}', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'getBookingDetails'])->name('booking');
-        Route::get('/stats', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'getStats'])->name('stats');
-        Route::post('/bulk-move', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'bulkMove'])->name('bulk-move');
-        Route::get('/export', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'export'])->name('export');
-    });
-    
-    // Hoarding Availability Calendar (PROMPT 49)
-    Route::get('/hoarding/{id}/calendar', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'show'])->name('hoarding.calendar');
-    Route::get('/hoarding/{id}/calendar/data', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'getCalendarData'])->name('hoarding.calendar.data');
-    Route::get('/hoarding/{id}/calendar/stats', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'getStats'])->name('hoarding.calendar.stats');
-    
-    // Task Management (PROMPT 26)
-    Route::get('/tasks', [\App\Http\Controllers\Vendor\TaskController::class, 'index'])->name('tasks.index');
-    Route::post('/tasks', [\App\Http\Controllers\Vendor\TaskController::class, 'store'])->name('tasks.store');
-    Route::get('/tasks/{id}', [\App\Http\Controllers\Vendor\TaskController::class, 'show'])->name('tasks.show');
-    Route::post('/tasks/{id}/start', [\App\Http\Controllers\Vendor\TaskController::class, 'start'])->name('tasks.start');
-    Route::post('/tasks/{id}/complete', [\App\Http\Controllers\Vendor\TaskController::class, 'complete'])->name('tasks.complete');
-    Route::post('/tasks/{id}/update-progress', [\App\Http\Controllers\Vendor\TaskController::class, 'updateProgress'])->name('tasks.update-progress');
-    Route::delete('/tasks/{id}', [\App\Http\Controllers\Vendor\TaskController::class, 'destroy'])->name('tasks.destroy');
-    
-    // Payouts (PROMPT 26 - Basic)
-    Route::get('/payouts-old', [\App\Http\Controllers\Vendor\PayoutController::class, 'index'])->name('payouts-old.index');
-    Route::post('/payouts/request', [\App\Http\Controllers\Vendor\PayoutController::class, 'request'])->name('payouts-old.request');
-    Route::get('/payouts-old/{id}', [\App\Http\Controllers\Vendor\PayoutController::class, 'show'])->name('payouts-old.show');
-    Route::post('/payouts/update-bank', [\App\Http\Controllers\Vendor\PayoutController::class, 'updateBank'])->name('payouts.update-bank');
-    
-    // Payout Request System (PROMPT 58 - Advanced)
-    Route::prefix('payouts')->name('payouts.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'create'])->name('create');
-        Route::post('/preview', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'preview'])->name('preview');
-        Route::post('/', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'store'])->name('store');
-        Route::get('/{payoutRequest}', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'show'])->name('show');
-        Route::post('/{payoutRequest}/submit', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'submit'])->name('submit');
-        Route::post('/{payoutRequest}/cancel', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'cancel'])->name('cancel');
-        Route::get('/{payoutRequest}/download-receipt', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'downloadReceipt'])->name('download-receipt');
-    });
-    
-    // Staff Management
-    Route::resource('staff', \App\Http\Controllers\Web\Vendor\StaffController::class);
-    
-    // KYC
-    Route::get('/kyc', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.index');
-    Route::get('/kyc/submit', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.submit');
-    
-    // POS/Billing (PROMPT 26)
-    Route::prefix('pos')->name('pos.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Vendor\POSController::class, 'index'])->name('index');
-        Route::post('/store', [\App\Http\Controllers\Vendor\POSController::class, 'store'])->name('store');
-        Route::get('/history', [\App\Http\Controllers\Vendor\POSController::class, 'history'])->name('history');
-        Route::get('/{id}', [\App\Http\Controllers\Vendor\POSController::class, 'show'])->name('show');
-        Route::get('/{id}/preview', [\App\Http\Controllers\Vendor\POSController::class, 'preview'])->name('preview');
-        Route::get('/{id}/download', [\App\Http\Controllers\Vendor\POSController::class, 'download'])->name('download');
-        Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\POSController::class, 'updateStatus'])->name('update-status');
+        Route::resource('hoardings', \App\Http\Controllers\Web\Vendor\HoardingController::class);
         
-        // Legacy routes
-        Route::get('/dashboard', function () {
-            return view('vendor.pos.dashboard');
-        })->name('dashboard');
-        Route::get('/create', function () {
-            return view('vendor.pos.create');
-        })->name('create');
-        Route::get('/list', function () {
-            return view('vendor.pos.list');
-        })->name('list');
-        Route::get('/bookings/{id}', function ($id) {
-            return view('vendor.pos.show', compact('id'));
-        })->name('bookings.show');
-    });
+        // Vendor DOOH Creation (Figma-accurate, onboarding enforced)
+
+        // Multi-step DOOH wizard
+        Route::get('dooh/create', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'create'])->name('dooh.create');
+        Route::post('dooh/store', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'store'])->name('dooh.store');
+
+        // Hoarding Media Management (PROMPT 59)
+        Route::prefix('hoardings/{hoarding}/media')->name('hoardings.media.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'index'])->name('index');
+            Route::post('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadHero'])->name('upload-hero');
+            Route::post('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadNight'])->name('upload-night');
+            Route::post('/gallery', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadGallery'])->name('upload-gallery');
+            Route::post('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadSizeOverlay'])->name('upload-size-overlay');
+            Route::delete('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteHero'])->name('delete-hero');
+            Route::delete('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteNight'])->name('delete-night');
+            Route::delete('/gallery/{mediaId}', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteGalleryImage'])->name('delete-gallery');
+            Route::delete('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteSizeOverlay'])->name('delete-size-overlay');
+            Route::post('/gallery/reorder', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'reorderGallery'])->name('reorder-gallery');
+            Route::get('/stats', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'stats'])->name('stats');
+        });
+        
+        // DOOH Management
+        // Route::resource('dooh', \App\Http\Controllers\Web\Vendor\DOOHController::class);
+        
+        // Enquiries (received)
+        Route::get('/enquiries', [\App\Http\Controllers\Web\Vendor\EnquiryController::class, 'index'])->name('enquiries.index');
+        Route::get('/enquiries/{id}', [\App\Http\Controllers\Web\Vendor\EnquiryController::class, 'show'])->name('enquiries.show');
+        Route::post('/enquiries/{id}/respond', [\App\Http\Controllers\Web\Vendor\EnquiryController::class, 'respond'])->name('enquiries.respond');
+        
+        // Offers
+        Route::get('/offers', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'index'])->name('offers.index');
+        Route::get('/offers/create', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'create'])->name('offers.create');
+        Route::post('/offers', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'store'])->name('offers.store');
+        Route::get('/offers/{id}', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'show'])->name('offers.show');
+        
+        // Quotations
+        Route::get('/quotations', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'index'])->name('quotations.index');
+        Route::get('/quotations/create', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'create'])->name('quotations.create');
+        Route::post('/quotations', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'store'])->name('quotations.store');
+        Route::get('/quotations/{id}', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'show'])->name('quotations.show');
+        
+        // Threads
+        Route::get('/threads', [\App\Http\Controllers\Vendor\ThreadController::class, 'index'])->name('threads.index');
+        Route::get('/threads/{id}', [\App\Http\Controllers\Vendor\ThreadController::class, 'show'])->name('threads.show');
+        Route::post('/threads/{id}/send-message', [\App\Http\Controllers\Vendor\ThreadController::class, 'sendMessage'])->name('threads.send-message');
+        Route::post('/threads/{id}/mark-read', [\App\Http\Controllers\Vendor\ThreadController::class, 'markAsRead'])->name('threads.mark-read');
+        Route::post('/threads/{id}/archive', [\App\Http\Controllers\Vendor\ThreadController::class, 'archive'])->name('threads.archive');
+        Route::get('/threads/unread-count', [\App\Http\Controllers\Vendor\ThreadController::class, 'unreadCount'])->name('threads.unread-count');
+        
+        // Listings Management (PROMPT 26)
+        Route::get('/my-hoardings', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'myHoardings'])->name('hoardings.myHoardings');
+        Route::post('hoardings/{id}/toggle', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'toggleStatus'])->name('hoardings.toggle');
+        Route::get('/hoardings/create', [Modules\Hoardings\Http\Controllers\Vendor\OOHListingController::class, 'create'])->name('hoardings.create');
+        Route::post('/hoardings/store', [Modules\Hoardings\Http\Controllers\Vendor\OOHListingController::class, 'store'])->name('hoarding.store');
+
+        Route::post('/my-hoardings', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'store'])->name('my-hoardings.store');
+        Route::get('/my-hoardings/{id}/edit', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'edit'])->name('my-hoardings.edit');
+        Route::put('/my-hoardings/{id}', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])->name('my-hoardings.update');
+        Route::delete('/my-hoardings/{id}', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'destroy'])->name('my-hoardings.destroy');
+        Route::get('/my-hoardings/bulk-update', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'bulkUpdate'])->name('my-hoardings.bulk-update');
+        Route::post('/my-hoardings/bulk-update-submit', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'bulkUpdateSubmit'])->name('my-hoardings.bulk-update-submit');
+        
+        // Bookings Management (PROMPT 48 - Enhanced)
+        Route::prefix('bookings')->name('bookings.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Vendor\BookingController::class, 'index'])->name('index');
+            Route::get('/new', [\App\Http\Controllers\Vendor\BookingController::class, 'newBookings'])->name('new');
+            Route::get('/ongoing', [\App\Http\Controllers\Vendor\BookingController::class, 'ongoingBookings'])->name('ongoing');
+            Route::get('/completed', [\App\Http\Controllers\Vendor\BookingController::class, 'completedBookings'])->name('completed');
+            Route::get('/cancelled', [\App\Http\Controllers\Vendor\BookingController::class, 'cancelledBookings'])->name('cancelled');
+            Route::get('/{id}', [\App\Http\Controllers\Vendor\BookingController::class, 'show'])->name('show');
+            Route::post('/{id}/confirm', [\App\Http\Controllers\Vendor\BookingController::class, 'confirm'])->name('confirm');
+            Route::post('/{id}/cancel', [\App\Http\Controllers\Vendor\BookingController::class, 'cancel'])->name('cancel');
+            Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\BookingController::class, 'updateStatus'])->name('update-status');
+        });
+        Route::post('/bookings/{id}/approve-pod', [\App\Http\Controllers\Web\Vendor\BookingController::class, 'approvePOD'])->name('bookings.approve-pod');
+        
+        // Booking Pipeline Board (PROMPT 111 - Kanban View)
+        Route::prefix('pipeline')->name('pipeline.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'index'])->name('index');
+            Route::get('/data', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'getData'])->name('data');
+            Route::post('/move', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'moveBooking'])->name('move');
+            Route::get('/booking/{id}', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'getBookingDetails'])->name('booking');
+            Route::get('/stats', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'getStats'])->name('stats');
+            Route::post('/bulk-move', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'bulkMove'])->name('bulk-move');
+            Route::get('/export', [\App\Http\Controllers\Vendor\BookingPipelineController::class, 'export'])->name('export');
+        });
+        
+        // Hoarding Availability Calendar (PROMPT 49)
+        Route::get('/hoarding/{id}/calendar', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'show'])->name('hoarding.calendar');
+        Route::get('/hoarding/{id}/calendar/data', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'getCalendarData'])->name('hoarding.calendar.data');
+        Route::get('/hoarding/{id}/calendar/stats', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'getStats'])->name('hoarding.calendar.stats');
+        
+        // Task Management (PROMPT 26)
+        Route::get('/tasks', [\App\Http\Controllers\Vendor\TaskController::class, 'index'])->name('tasks.index');
+        Route::post('/tasks', [\App\Http\Controllers\Vendor\TaskController::class, 'store'])->name('tasks.store');
+        Route::get('/tasks/{id}', [\App\Http\Controllers\Vendor\TaskController::class, 'show'])->name('tasks.show');
+        Route::post('/tasks/{id}/start', [\App\Http\Controllers\Vendor\TaskController::class, 'start'])->name('tasks.start');
+        Route::post('/tasks/{id}/complete', [\App\Http\Controllers\Vendor\TaskController::class, 'complete'])->name('tasks.complete');
+        Route::post('/tasks/{id}/update-progress', [\App\Http\Controllers\Vendor\TaskController::class, 'updateProgress'])->name('tasks.update-progress');
+        Route::delete('/tasks/{id}', [\App\Http\Controllers\Vendor\TaskController::class, 'destroy'])->name('tasks.destroy');
+        
+        // Payouts (PROMPT 26 - Basic)
+        Route::get('/payouts-old', [\App\Http\Controllers\Vendor\PayoutController::class, 'index'])->name('payouts-old.index');
+        Route::post('/payouts/request', [\App\Http\Controllers\Vendor\PayoutController::class, 'request'])->name('payouts-old.request');
+        Route::get('/payouts-old/{id}', [\App\Http\Controllers\Vendor\PayoutController::class, 'show'])->name('payouts-old.show');
+        Route::post('/payouts/update-bank', [\App\Http\Controllers\Vendor\PayoutController::class, 'updateBank'])->name('payouts.update-bank');
+        
+        // Payout Request System (PROMPT 58 - Advanced)
+        Route::prefix('payouts')->name('payouts.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'create'])->name('create');
+            Route::post('/preview', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'preview'])->name('preview');
+            Route::post('/', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'store'])->name('store');
+            Route::get('/{payoutRequest}', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'show'])->name('show');
+            Route::post('/{payoutRequest}/submit', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'submit'])->name('submit');
+            Route::post('/{payoutRequest}/cancel', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'cancel'])->name('cancel');
+            Route::get('/{payoutRequest}/download-receipt', [\App\Http\Controllers\Vendor\PayoutRequestController::class, 'downloadReceipt'])->name('download-receipt');
+        });
+        
+        // Staff Management
+        Route::resource('staff', \App\Http\Controllers\Web\Vendor\StaffController::class);
+        
+        // KYC
+        Route::get('/kyc', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.index');
+        Route::get('/kyc/submit', [\App\Http\Controllers\Web\Vendor\VendorKYCWebController::class, 'showSubmitForm'])->name('kyc.submit');
+        
+        // POS/Billing (PROMPT 26)
+        Route::prefix('pos')->name('pos.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Vendor\POSController::class, 'index'])->name('index');
+            Route::post('/store', [\App\Http\Controllers\Vendor\POSController::class, 'store'])->name('store');
+            Route::get('/history', [\App\Http\Controllers\Vendor\POSController::class, 'history'])->name('history');
+            Route::get('/{id}', [\App\Http\Controllers\Vendor\POSController::class, 'show'])->name('show');
+            Route::get('/{id}/preview', [\App\Http\Controllers\Vendor\POSController::class, 'preview'])->name('preview');
+            Route::get('/{id}/download', [\App\Http\Controllers\Vendor\POSController::class, 'download'])->name('download');
+            Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\POSController::class, 'updateStatus'])->name('update-status');
+            
+            // Legacy routes
+            Route::get('/dashboard', function () {
+                return view('vendor.pos.dashboard');
+            })->name('dashboard');
+            Route::get('/create', function () {
+                return view('vendor.pos.create');
+            })->name('create');
+            Route::get('/list', function () {
+                return view('vendor.pos.list');
+            })->name('list');
+            Route::get('/bookings/{id}', function ($id) {
+                return view('vendor.pos.show', compact('id'));
+            })->name('bookings.show');
+        });
+        
+        // Reports
+        Route::get('/reports', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'index'])->name('reports.index');
+        
+        // Cancellation Policies (PROMPT 71)
+        Route::prefix('cancellation-policies')->name('cancellation-policies.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'update'])->name('update');
+            Route::delete('/{id}', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/toggle-status', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'toggleStatus'])->name('toggle-status');
+            Route::post('/preview-refund', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'previewRefund'])->name('preview-refund');
+        });
+        Route::get('/reports/revenue', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'revenue'])->name('reports.revenue');
     
-    // Reports
-    Route::get('/reports', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'index'])->name('reports.index');
-    
-    // Cancellation Policies (PROMPT 71)
-    Route::prefix('cancellation-policies')->name('cancellation-policies.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'store'])->name('store');
-        Route::get('/{id}/edit', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/toggle-status', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'toggleStatus'])->name('toggle-status');
-        Route::post('/preview-refund', [\App\Http\Controllers\Vendor\CancellationPolicyController::class, 'previewRefund'])->name('preview-refund');
-    });
-    Route::get('/reports/revenue', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'revenue'])->name('reports.revenue');
+    }); // End of vendor.approved middleware group
     
     // Profile
+
     Route::get('/profile', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'update'])->name('profile.update');
 });
