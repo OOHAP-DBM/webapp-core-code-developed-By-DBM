@@ -69,6 +69,61 @@ class HoardingController extends Controller
     // }
 
     /**
+     * @OA\Get(
+     *     path="/hoardings/vendor",
+     *     tags={"Vendor Hoardings"},
+     *     summary="Get all hoardings for the authenticated vendor on search/filter",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=20)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of hoardings for the authenticated vendor",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="current_page", type="integer"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Hoarding")),
+     *             @OA\Property(property="first_page_url", type="string"),
+     *             @OA\Property(property="from", type="integer"),
+     *             @OA\Property(property="last_page", type="integer"),
+     *             @OA\Property(property="last_page_url", type="string"),
+     *             @OA\Property(property="next_page_url", type="string"),
+     *             @OA\Property(property="path", type="string"),
+     *             @OA\Property(property="per_page", type="integer"),
+     *             @OA\Property(property="prev_page_url", type="string"),
+     *             @OA\Property(property="to", type="integer"),
+     *             @OA\Property(property="total", type="integer")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     */
+    /**
      * Get all hoardings for the authenticated vendor (API)
      */
     public function index(Request $request)
@@ -106,6 +161,30 @@ class HoardingController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/hoardings/vendor/{id}",
+     *     tags={" Vendor Hoardings"},
+     *     summary="Get  Vendor  Hoardingdetails by hoarding id",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Details",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean"),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Not Found")
+     * )
+     */
     /**
      * Display the specified hoarding.
      *
@@ -278,6 +357,102 @@ class HoardingController extends Controller
             'success' => true,
             'message' => 'Draft hoardings fetched.',
             'data' => $drafts,
+        ]);
+    }
+
+
+    /**
+     * @OA\Get(
+     *     path="/hoardings/vendor/all/{vendor_id}",
+     *     tags={"Vendor Hoardings"},
+     *     summary="Get all hoardings for a vendor",
+     *     description="Returns all hoardings (OOH/DOOH) for a vendor with packages and brand logos.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="vendor_id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Vendor hoardings fetched",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Vendor hoardings fetched."),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer"),
+     *                     @OA\Property(property="title", type="string"),
+     *                     @OA\Property(property="hoarding_type", type="string"),
+     *                     @OA\Property(property="ooh", type="object", nullable=true),
+     *                     @OA\Property(property="doohScreen", type="object", nullable=true),
+     *                     @OA\Property(property="packages", type="array", @OA\Items(type="object")),
+     *                     @OA\Property(property="brandLogos", type="array", @OA\Items(type="object")),
+     *                     @OA\Property(property="vendor", type="object")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="No hoardings found")
+     * )
+     */
+
+    public function showAllHoarding(int $vendorId): JsonResponse
+    {
+        $hoardings = Hoarding::with([
+            'ooh.oohPackages',
+            'ooh.oohBrandLogos',
+            'doohScreen.doohPackages',
+            'doohScreen.doohBrandLogos',
+            'vendor',
+        ])
+            ->where('vendor_id', $vendorId)
+            ->get();
+
+        if ($hoardings->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hoardings found for this vendor.',
+                'data' => [],
+            ], 404);
+        }
+
+        $data = $hoardings->map(function ($hoarding) {
+
+            $packages = [];
+            $brandLogos = [];
+
+            if ($hoarding->hoarding_type === 'ooh' && $hoarding->ooh) {
+                $packages = $hoarding->ooh->oohPackages;
+                $brandLogos = $hoarding->ooh->oohBrandLogos;
+            }
+
+            if ($hoarding->hoarding_type === 'dooh' && $hoarding->doohScreen) {
+                $packages = $hoarding->doohScreen->doohPackages;
+                $brandLogos = $hoarding->doohScreen->doohBrandLogos;
+            }
+
+            return [
+                'id' => $hoarding->id,
+                'title' => $hoarding->title,
+                'hoarding_type' => $hoarding->hoarding_type,
+                'ooh' => $hoarding->ooh,
+                'doohScreen' => $hoarding->doohScreen,
+                'packages' => $packages,
+                'brandLogos' => $brandLogos,
+                'vendor' => $hoarding->vendor,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Vendor hoardings fetched.',
+            'data' => $data,
         ]);
     }
 }

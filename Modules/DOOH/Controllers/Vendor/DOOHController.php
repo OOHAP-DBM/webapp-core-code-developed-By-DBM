@@ -31,11 +31,6 @@ class DOOHController extends Controller
     public function create(Request $request): View
     {
         $vendor = Auth::user();
-        // if (!$vendor->vendor_profile || $vendor->vendor_profile->onboarding_status !== 'approved') {
-        //     return redirect()->route('vendor.onboarding.waiting')
-        //         ->with('error', 'Your vendor onboarding is under review. You can add DOOH screens only after approval.');
-        // }
-
         $step = (int) $request->query('step', 1);
         $step = max(1, min(3, $step));
 

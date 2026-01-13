@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Hoarding;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Hoardings\Models\HoardingBrandLogo;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class OOHHoarding extends Model
 {
@@ -111,10 +112,21 @@ class OOHHoarding extends Model
         );
     }
 
-    public function brandLogos(): HasMany
+    public function oohPackages(): HasMany
     {
-        // Replace 'HoardingBrandLogo' with your actual Model name for logos
-        // and ensure the foreign key matches your table (e.g., hoarding_id)
-        return $this->hasMany(HoardingBrandLogo::class, 'hoarding_id');
+        return $this->hasMany(
+            \Modules\Hoardings\Models\HoardingPackage::class,
+            'hoarding_id', // foreign key on hoarding_packages table
+            'id'           // local key on ooh_hoardings table
+        );
+    }
+
+    public function oohBrandLogos(): HasMany
+    {
+        return $this->hasMany(
+            HoardingBrandLogo::class,
+            'hoarding_id', // foreign key on hoarding_brand_logos table
+            'id'           // local key on ooh_hoardings table
+        );
     }
 }

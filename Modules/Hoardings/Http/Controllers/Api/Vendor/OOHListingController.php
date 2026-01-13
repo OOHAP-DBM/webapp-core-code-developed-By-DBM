@@ -172,46 +172,5 @@ class OOHListingController extends Controller
     //     ]);
     // }
 
-    /**
-     * @OA\Get(
-     *     path="/hoardings/vendor/ooh/{id}",
-     *     tags={"OOH Hoardings"},
-     *     summary="Get OOH Hoarding details",
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Details",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean"),
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", type="object")
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Not Found")
-     * )
-     */
-    public function show($id): JsonResponse
-    {
-        $ooh = OOHHoarding::with(['hoarding', 'packages', 'brandLogos'])->find($id);
-
-        if (!$ooh) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hoarding not found.',
-                'data' => null,
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Hoarding details fetched.',
-            'data' => $ooh,
-        ]);
-    }
+   
 }
