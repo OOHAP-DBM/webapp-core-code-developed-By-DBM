@@ -27,12 +27,19 @@
                 <div class="w-14 h-14 rounded-full border {{ request()->routeIs('vendor.profile.*') ? 'border-white' : 'border-gray-300' }} overflow-hidden flex items-center justify-center {{ request()->routeIs('vendor.profile.*') ? 'bg-opacity-20 bg-white' : 'bg-gray-100' }}">
                     @if(auth()->user()->avatar)
                         <img
-                            src="{{ str_starts_with(auth()->user()->avatar, 'http')
-                                ? auth()->user()->avatar
-                                : asset('storage/' . ltrim(auth()->user()->avatar, '/')) }}"
+                            src="{{ route('vendor.view-avatar', auth()->user()->id) }}?t={{ time() }}"
                             alt="Profile Image"
                             class="w-full h-full object-cover block"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
                         >
+                        <svg
+                            class="w-14 h-14 stroke-gray-400 hidden"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
                     @else
                         {{-- Default User Icon --}}
                         <svg

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Vendor;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -51,6 +52,10 @@ class ProfileController extends Controller
 
             'address'  => $this->updateAddress($request, $vendor),
 
+            'password' => $this->updatePassword($request, $user),
+
+            'remove-avatar' => $this->removeAvatar($user),
+
             'delete'   => $this->deleteAccount($user),
 
             default    => abort(400, 'Invalid profile section'),
@@ -68,20 +73,51 @@ class ProfileController extends Controller
             'name'   => 'required|string|max:255',
             'email'  => 'nullable|required_without:phone|email|unique:users,email,' . $user->id,
             'phone'  => 'nullable|required_without:email|string|max:20',
-            'avatar' => 'nullable|image|max:2048',
+            'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:5120',
         ]);
 
         if ($request->hasFile('avatar')) {
-            if ($user->avatar) {
-                Storage::disk('private')->delete($user->avatar);
-            }
+            try {
+                // Delete old avatar if exists
+                if ($user->avatar && Storage::disk('private')->exists($user->avatar)) {
+                    Storage::disk('private')->delete($user->avatar);
+                }
 
-            $bucket = str_pad((int)($user->id / 100), 2, '0', STR_PAD_LEFT);
-            $data['avatar'] = $request->file('avatar')
-                ->store("media/users/avatars/{$bucket}/{$user->id}", 'private');
+                // Create bucket directory (00, 01, 02... based on user ID)
+                $bucket = str_pad((int)($user->id / 100), 2, '0', STR_PAD_LEFT);
+                $avatarPath = "media/users/avatars/{$bucket}/{$user->id}";
+                
+                // Store the file
+                $fileName = time() . '.' . $request->file('avatar')->getClientOriginalExtension();
+                $storedPath = Storage::disk('private')->putFileAs($avatarPath, $request->file('avatar'), $fileName);
+                
+                if ($storedPath) {
+                    $data['avatar'] = $storedPath;
+                }
+            } catch (\Exception $e) {
+                return back()->withErrors(['avatar' => 'Failed to upload avatar: ' . $e->getMessage()]);
+            }
         }
 
         $user->update($data);
+    }
+
+    /* ======================
+     | REMOVE AVATAR
+     ====================== */
+    protected function removeAvatar($user)
+    {
+        if ($user->avatar) {
+            try {
+                if (Storage::disk('private')->exists($user->avatar)) {
+                    Storage::disk('private')->delete($user->avatar);
+                }
+            } catch (\Exception $e) {
+                // Continue even if file deletion fails
+            }
+            
+            $user->update(['avatar' => null]);
+        }
     }
 
     /* ======================
@@ -220,6 +256,57 @@ class ProfileController extends Controller
         
         return back()->with('success', 'Your account has been deleted successfully.');
     }
+
+    /* ======================
+     | PASSWORD
+     ====================== */
+    protected function updatePassword(Request $request, $user)
+    {
+        $request->validate([
+            'current_password' => 'required|string|min:4',
+            'password'         => 'required|string|min:4|confirmed',
+        ]);
+
+        // Verify current password
+        if (!password_verify($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect']);
+        }
+
+        // Update password and set status to active
+        $user->update([
+            'password' => bcrypt($request->password),
+            'status' => 'active'
+        ]);
+    }
+
+    public function viewAvatar($userId)
+    {
+        $authUser = Auth::user();
+        
+        // Only allow user to view their own avatar or admins to view any
+        if ($authUser->id != $userId && !$authUser->hasRole('admin')) {
+            abort(403);
+        }
+
+        $user = User::find($userId);
+
+        if (!$user || !$user->avatar) {
+            abort(404);
+        }
+
+        try {
+            return response()->file(
+                Storage::disk('private')->path($user->avatar),
+                [
+                    'Content-Type' => 'image/jpeg',
+                    'Cache-Control' => 'private, max-age=3600',
+                ]
+            );
+        } catch (\Exception $e) {
+            abort(404);
+        }
+    }
+
     public function viewPan($vendorId)
     {
         $user = Auth::user();
