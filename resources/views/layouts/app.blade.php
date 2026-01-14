@@ -90,10 +90,16 @@
 
                     if (data.status === 'login_required') {
                         Swal.fire({
+                            toast: true,
+                            position: 'top-end',
                             icon: 'warning',
-                            title: 'Login required',
-                            text: data.message
+                            title: data.message,
+                            showConfirmButton: false,
+                            timer: 1400
                         });
+                        setTimeout(() => {
+                            window.location.href = '/login?message=' + encodeURIComponent(data.message);
+                        }, 800);
                         return;
                     }
 

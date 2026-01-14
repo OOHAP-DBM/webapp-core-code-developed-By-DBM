@@ -26,6 +26,13 @@ class CartController extends Controller
      ===================================================== */
     public function add(Request $request, CartService $cartService)
     {
+        if (!auth()->check()) {
+            return response()->json([
+                'status'  => 'login_required',
+                'message' => 'Please login to add items to cart',
+            ], 401);
+        }
+
         $data = $request->validate([
             'hoarding_id'    => 'required|integer',
             'package_id'     => 'nullable|integer',
@@ -46,6 +53,13 @@ class CartController extends Controller
      ===================================================== */
     public function remove(Request $request, CartService $cartService)
     {
+        if (!auth()->check()) {
+            return response()->json([
+                'status'  => 'login_required',
+                'message' => 'Please login to remove items from cart',
+            ], 401);
+        }
+
         $data = $request->validate([
             'hoarding_id' => 'required|integer',
         ]);

@@ -37,8 +37,8 @@ Route::prefix('vendor/dooh')->middleware(['auth', 'vendor'])->name('vendor.dooh.
     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
     Route::put('{id}', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'update'])->name('update');
 });
-Route::post('/cart/add', [CartController::class,'add'])->middleware('auth')->name('cart.add');
-Route::post('/cart/remove', [CartController::class, 'remove'])->middleware('auth')->name('cart.remove');
+Route::post('/cart/add', [CartController::class,'add'])->name('cart.add');
+Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/select-package', [CartController::class, 'selectPackage'])->name('cart.selectPackage');
 Route::get('/cart', [\Modules\Cart\Controllers\Web\CartController::class, 'index'])->middleware('auth')->name('cart.index');
 Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');

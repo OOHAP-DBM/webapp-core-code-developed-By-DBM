@@ -66,8 +66,8 @@ class ProfileController extends Controller
     {
         $data = $request->validate([
             'name'   => 'required|string|max:255',
-            'email'  => 'required|email|unique:users,email,' . $user->id,
-            'phone'  => 'nullable|string|max:20',
+            'email'  => 'nullable|required_without:phone|email|unique:users,email,' . $user->id,
+            'phone'  => 'nullable|required_without:email|string|max:20',
             'avatar' => 'nullable|image|max:2048',
         ]);
 
@@ -76,8 +76,9 @@ class ProfileController extends Controller
                 Storage::disk('private')->delete($user->avatar);
             }
 
+            $bucket = str_pad((int)($user->id / 100), 2, '0', STR_PAD_LEFT);
             $data['avatar'] = $request->file('avatar')
-                ->store("media/users/avatars/{$user->id}", 'private');
+                ->store("media/users/avatars/{$bucket}/{$user->id}", 'private');
         }
 
         $user->update($data);
@@ -116,8 +117,9 @@ class ProfileController extends Controller
                 Storage::disk('private')->delete($vendor->pan_card_document);
             }
 
+            $bucket = str_pad((int)($vendor->id / 100), 2, '0', STR_PAD_LEFT);
             $vendor->pan_card_document = $request->file('pan_file')
-                ->store("media/vendors/documents/{$vendor->id}", 'private');
+                ->store("media/vendors/documents/{$bucket}/{$vendor->id}", 'private');
         }
 
         /* =========================
@@ -145,8 +147,9 @@ class ProfileController extends Controller
             Storage::disk('private')->delete($vendor->pan_card_document);
         }
 
+        $bucket = str_pad((int)($vendor->id / 100), 2, '0', STR_PAD_LEFT);
         $path = $request->file('pan_file')->store(
-            "media/vendors/documents/{$vendor->id}",
+            "media/vendors/documents/{$bucket}/{$vendor->id}",
             'private'
         );
 
@@ -176,6 +179,8 @@ class ProfileController extends Controller
      ====================== */
     protected function updateAddress(Request $request, $vendor)
     {
+        $user = Auth::user();
+
         $data = $request->validate([
             'registered_address' => 'required|string',
             'city'               => 'required|string',
@@ -184,7 +189,18 @@ class ProfileController extends Controller
             'country'            => 'required|string',
         ]);
 
-        $vendor->update($data);
+        // Country is stored on users table
+        $user->update([
+            'country' => $data['country'],
+        ]);
+
+        // Rest of the address data is stored on vendor profile
+        $vendor->update([
+            'registered_address' => $data['registered_address'],
+            'city'               => $data['city'],
+            'state'              => $data['state'],
+            'pincode'            => $data['pincode'],
+        ]);
     }
 
     /* ======================
@@ -192,8 +208,17 @@ class ProfileController extends Controller
      ====================== */
     protected function deleteAccount($user)
     {
-        Auth::logout();
+        // Soft delete the user account
         $user->delete();
+        
+        // Also soft delete the vendor profile if using SoftDeletes
+        if ($user->vendorProfile) {
+            $user->vendorProfile->delete();
+        }
+        
+        Auth::logout();
+        
+        return back()->with('success', 'Your account has been deleted successfully.');
     }
     public function viewPan($vendorId)
     {
