@@ -3,305 +3,269 @@
 @section('title', 'Enquiry Details')
 
 @section('content')
-<div class="container py-5">
-    <!-- Back Button -->
-    <div class="mb-4">
-        <a href="{{ route('customer.enquiries.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-2"></i>Back to Enquiries
-        </a>
+<div class="px-6 py-6 bg-white">
+
+    {{-- ===== HEADER SECTION ===== --}}
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white mb-6">
+        <div>
+            <h2 class="text-base font-semibold text-gray-900">
+                Enquiry ID
+                <span class="text-green-600">{{ 'ENQ' . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}</span>
+            </h2>
+            <p class="text-xs text-gray-500">Details of enquiry and vendor responses</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <a href="{{ route('customer.enquiries.index') }}" class="px-5 py-2 bg-gray-200 text-sm rounded hover:bg-gray-300 transition-colors">
+                Back to List
+            </a>
+        </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Left Column: Hoarding Details -->
-        <div class="col-lg-8">
-            <!-- Enquiry Status Card -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="mb-0">Enquiry #{{ $enquiry->id }}</h4>
-                        <span class="badge 
-                            @if($enquiry->status === 'pending') bg-warning text-dark
-                            @elseif($enquiry->status === 'quoted') bg-info
-                            @elseif($enquiry->status === 'accepted') bg-success
-                            @elseif($enquiry->status === 'rejected') bg-danger
-                            @else bg-secondary
-                            @endif fs-6">
-                            {{ ucfirst($enquiry->status) }}
+    {{-- ===== MAIN CONTENT ===== --}}
+    <div class="space-y-6">
+
+        {{-- ===== TOP INFO SECTION: 3 Columns ===== --}}
+        <div class="grid grid-cols-12 gap-8">
+
+            {{-- Column 1: Vendor Details (Multiple vendors if applicable) --}}
+            <div class="col-span-4">
+                <h3 class="text-sm font-semibold mb-4">Vendor Details</h3>
+                @php
+                    $vendors = $enquiry->items->map(function($item) {
+                        return optional($item->hoarding)->vendor;
+                    })->filter()->unique('id')->values();
+                @endphp
+                <div class="space-y-3 text-xs">
+                    @forelse($vendors as $vendor)
+                        <div class=" pb-3 mb-3">
+                            <div>Name : <span class="font-medium">{{ $vendor->name ?? 'N/A' }}</span></div>
+                            <div>Business Name : <span>{{ $vendor->company_name ?? 'N/A' }}</span></div>
+                            <div>GSTIN : <span>{{ $vendor->gstin ?? 'N/A' }}</span></div>
+                            <div>Mobile : <span>{{ $vendor->phone ?? 'N/A' }}</span></div>
+                            <div>Email : <span>{{ $vendor->email ?? 'N/A' }}</span></div>
+                            <div>Address : <span>{{ $vendor->address ?? 'N/A' }}</span></div>
+                        </div>
+                    @empty
+                        <span class="text-gray-400">No vendors found</span>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- Column 2: Enquiry Details --}}
+            <div class="col-span-4">
+                <h3 class="text-sm font-semibold mb-4">Enquiry Details</h3>
+                <div class="space-y-3 text-xs">
+                    <div>Enquiry ID : <span class="font-medium">{{ 'ENQ' . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}</span></div>
+                    <div>Status : <span class="font-medium">
+                        @if($enquiry->status === 'submitted')
+                            <span class="text-blue-600">Waiting for Response</span>
+                        @elseif($enquiry->status === 'responded')
+                            <span class="text-orange-600">Offers Received</span>
+                        @elseif($enquiry->status === 'accepted')
+                            <span class="text-green-600">Accepted</span>
+                        @elseif($enquiry->status === 'rejected')
+                            <span class="text-red-600">Rejected</span>
+                        @else
+                            {{ ucwords(str_replace('_', ' ', $enquiry->status)) }}
+                        @endif
+                    </span></div>
+                    <div>Total Hoardings : <span class="font-medium">{{ $enquiry->items->count() }}</span></div>
+                    <div>Total Vendors : <span class="font-medium">{{ $vendors->count() }}</span></div>
+                    @if($enquiry->customer_note)
+                        <div>Requirement : <span class="italic text-gray-700">{{ $enquiry->customer_note }}</span></div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Column 3: Submitted Date --}}
+            <div class="col-span-4">
+                <h3 class="text-sm font-semibold mb-4">Submitted On</h3>
+                <div>
+                    <span class="text-lg font-semibold leading-none">{{ $enquiry->created_at->format('d') }}</span>
+                    <span class="text-sm text-gray-500 block">{{ $enquiry->created_at->format('M, y') }}</span>
+                </div>
+                <div class="mt-4 text-xs text-gray-500">
+                    <div>Last Updated: {{ $enquiry->updated_at->format('d M, y H:i') }}</div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ===== HOARDINGS/ITEMS SECTION ===== --}}
+        <div>
+            <h3 class="text-sm font-semibold mb-4">
+                Hoardings in Enquiry ({{ $enquiry->items->count() }})
+            </h3>
+
+            {{-- Group items by type --}}
+            @php
+                $groupedItems = $enquiry->items->groupBy('hoarding_type');
+            @endphp
+
+            @forelse($groupedItems as $type => $items)
+                <div class="mb-8">
+                    
+                    {{-- Group Header --}}
+                    <div class="flex items-center justify-between bg-gray-100 px-4 py-2 rounded text-sm font-semibold border border-gray-300 mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-900">{{ strtoupper($type) }}</span>
+                            <span class="text-gray-500 font-normal text-xs">({{ $items->count() }} items)</span>
+                        </div>
+                        <span class="text-xs text-gray-500 font-normal">
+                            @if(strtoupper($type) === 'OOH')
+                                Selected hoardings for your enquiry
+                            @else
+                                Selected Digital Screens for your enquiry
+                            @endif
                         </span>
                     </div>
-                    <p class="text-muted small mb-0">
-                        <i class="bi bi-clock me-1"></i>
-                        Created {{ \Carbon\Carbon::parse($enquiry->created_at)->format('d M Y, h:i A') }}
-                    </p>
-                </div>
-            </div>
 
-            <!-- Hoarding Details Card -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Hoarding Details</h5>
-                    
-                    <!-- Hoarding Image -->
-                    @if($enquiry->hoarding->image)
-                        <img src="{{ asset('storage/' . $enquiry->hoarding->image) }}" 
-                             alt="{{ $enquiry->hoarding->title }}" 
-                             class="img-fluid rounded mb-3" 
-                             style="width: 100%; max-height: 300px; object-fit: cover;">
-                    @else
-                        <div class="bg-gradient rounded d-flex align-items-center justify-content-center mb-3" 
-                             style="height: 300px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <i class="bi bi-image text-white" style="font-size: 4rem;"></i>
-                        </div>
-                    @endif
-
-                    <h4 class="mb-2">{{ $enquiry->hoarding->title }}</h4>
-                    
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center text-muted">
-                                <i class="bi bi-geo-alt me-2"></i>
-                                <span>{{ $enquiry->hoarding->address }}, {{ $enquiry->hoarding->city }}, {{ $enquiry->hoarding->state }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center text-muted">
-                                <i class="bi bi-tag me-2"></i>
-                                <span>{{ ucfirst($enquiry->hoarding->type) }} - {{ $enquiry->hoarding->illumination ? 'Illuminated' : 'Non-Illuminated' }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center text-muted">
-                                <i class="bi bi-arrows-angle-expand me-2"></i>
-                                <span>{{ $enquiry->hoarding->width }}ft × {{ $enquiry->hoarding->height }}ft</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center text-primary fw-bold">
-                                <i class="bi bi-currency-rupee me-2"></i>
-                                <span>₹{{ number_format($enquiry->hoarding->price_per_month, 0) }}/month</span>
-                            </div>
-                        </div>
+                    {{-- TABLE LAYOUT --}}
+                    <div class="overflow-x-auto border border-gray-200 rounded">
+                        <table class="w-full text-xs">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="hidden md:table-cell px-4 py-3 text-left font-semibold text-gray-700">Sn.</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">
+                                        @if(strtoupper($type) === 'OOH')
+                                            Hoarding
+                                        @else
+                                            Screen
+                                        @endif
+                                    </th>
+                                    <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Selected Package</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700">Vendor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($items as $index => $item)
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        {{-- Serial --}}
+                                        <td class="hidden md:table-cell px-4 py-3 text-gray-600 font-medium">
+                                            {{ $index + 1 }}
+                                        </td>
+                                        
+                                        {{-- Image & Details --}}
+                                        <td class="px-4 py-3 flex gap-3">
+                                            <div class="w-14 h-14 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                                                @if($item->image_url)
+                                                    <img
+                                                        src="{{ $item->image_url }}"
+                                                        class="w-full h-full object-cover"
+                                                        alt="Hoarding"
+                                                    >
+                                                @else
+                                                    <div class="w-full h-full bg-gray-300 flex items-center justify-center text-[9px] text-gray-500">
+                                                        No Image
+                                                    </div>
+                                                @endif
+                                            </div>                                              
+                                            <div>
+                                                <p class="font-medium text-gray-900">{{ $item->hoarding->title ?? 'N/A' }}</p>
+                                                <p class="text-gray-500">{{ $item->hoarding->locality ?? 'N/A' }}</p>
+                                                <p class="text-gray-500">{{ $item->hoarding->size ?? '' }}</p>
+                                            </div>
+                                        </td>
+                                        
+                                        {{-- Package --}}
+                                        <td class="hidden lg:table-cell px-4 py-3">
+                                            <div class="space-y-1">
+                                                <p class="font-medium text-gray-900">
+                                                    <span>{{ $item->expected_duration ?? '-' }} months</span>
+                                                </p>
+                                            </div>
+                                        </td>
+                                        
+                                        {{-- Vendor --}}
+                                        <td class="px-4 py-3 text-right text-gray-900 font-medium">
+                                            <span>{{ optional($item->hoarding->vendor)->name ?? 'N/A' }}</span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-6 text-center text-gray-500">
+                                            No items found
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
 
-                    <a href="{{ route('customer.search') }}?hoarding={{ $enquiry->hoarding->id }}" 
-                       class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-eye me-1"></i>View Full Details
-                    </a>
                 </div>
-            </div>
-
-            <!-- Enquiry Message -->
-            @if($enquiry->message)
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Your Message</h5>
-                        <p class="mb-0">{{ $enquiry->message }}</p>
-                    </div>
+            @empty
+                <div class="border border-gray-200 rounded p-6 text-center text-gray-500">
+                    No hoardings in this enquiry
                 </div>
-            @endif
+            @endforelse
+        </div>
 
-            <!-- Vendor Response / Quotation -->
-            @if($enquiry->status === 'quoted' && isset($enquiry->quotation))
-                <div class="card shadow-sm border-0 border-start border-4 border-info">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title mb-0">
-                                <i class="bi bi-file-text-fill text-info me-2"></i>Quotation Received
-                            </h5>
-                            <span class="badge bg-info">New</span>
-                        </div>
-                        
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <p class="text-muted small mb-1">Quoted Amount</p>
-                                <h4 class="text-primary mb-0">₹{{ number_format($enquiry->quotation->total_amount, 2) }}</h4>
-                            </div>
-                            <div class="col-md-6">
-                                <p class="text-muted small mb-1">Validity</p>
-                                <p class="mb-0">
-                                    Valid until {{ \Carbon\Carbon::parse($enquiry->quotation->valid_until)->format('d M Y') }}
-                                </p>
-                            </div>
-                        </div>
+        {{-- ===== VENDOR OFFERS SECTION ===== --}}
+        <div class="mt-8">
+            <h3 class="text-sm font-semibold mb-4">
+                Offers Received ({{ $enquiry->offers->count() }})
+            </h3>
 
-                        @if($enquiry->quotation->notes)
-                            <div class="alert alert-light mb-3">
-                                <strong>Vendor Notes:</strong><br>
-                                {{ $enquiry->quotation->notes }}
-                            </div>
-                        @endif
-
-                        <a href="{{ route('customer.quotations.show', $enquiry->quotation->id) }}" 
-                           class="btn btn-info text-white">
-                            <i class="bi bi-file-text me-2"></i>View Full Quotation
-                        </a>
-                    </div>
+            @if($enquiry->offers->count() > 0)
+                <div class="overflow-x-auto border border-gray-200 rounded">
+                    <table class="w-full text-xs">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Sn.</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Vendor</th>
+                                <th class="px-4 py-3 text-center font-semibold text-gray-700">Offer Items</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($enquiry->offers as $index => $offer)
+                                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="px-4 py-3 text-gray-600 font-medium">{{ $index + 1 }}</td>
+                                    <td class="px-4 py-3 font-medium text-gray-900">
+                                        {{ $offer->vendor->name ?? 'N/A' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="text-gray-900 font-semibold">{{ $offer->items->count() ?? 0 }}</span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-block px-2 py-1 rounded text-xs font-semibold
+                                            @if($offer->status === 'pending')
+                                                bg-blue-100 text-blue-700
+                                            @elseif($offer->status === 'accepted')
+                                                bg-green-100 text-green-700
+                                            @elseif($offer->status === 'rejected')
+                                                bg-red-100 text-red-700
+                                            @else
+                                                bg-gray-100 text-gray-700
+                                            @endif
+                                        ">
+                                            {{ ucfirst(str_replace('_', ' ', $offer->status)) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-gray-500">
+                                        {{ $offer->created_at->format('d M, y') }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-4 py-6 text-center text-gray-500">
+                                        No offers received yet
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-            @endif
-
-            <!-- Rejection Reason -->
-            @if($enquiry->status === 'rejected')
-                <div class="card shadow-sm border-0 border-start border-4 border-danger">
-                    <div class="card-body">
-                        <h5 class="card-title text-danger mb-3">
-                            <i class="bi bi-x-circle-fill me-2"></i>Enquiry Rejected
-                        </h5>
-                        @if($enquiry->rejection_reason)
-                            <p class="mb-3">{{ $enquiry->rejection_reason }}</p>
-                        @else
-                            <p class="mb-3">The vendor has declined this enquiry. Please contact support for more details.</p>
-                        @endif
-                        <a href="{{ route('customer.search') }}" class="btn btn-primary">
-                            <i class="bi bi-search me-2"></i>Find Another Hoarding
-                        </a>
-                    </div>
+            @else
+                <div class="border border-gray-200 rounded p-6 text-center text-gray-500">
+                    <p>No offers received for this enquiry yet</p>
                 </div>
             @endif
         </div>
 
-        <!-- Right Column: Summary & Actions -->
-        <div class="col-lg-4">
-            <!-- Booking Period Card -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Booking Period</h5>
-                    
-                    <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
-                        <div class="me-3">
-                            <i class="bi bi-calendar-check text-primary" style="font-size: 2rem;"></i>
-                        </div>
-                        <div>
-                            <p class="text-muted small mb-0">Start Date</p>
-                            <p class="mb-0 fw-bold">{{ \Carbon\Carbon::parse($enquiry->start_date)->format('d M Y') }}</p>
-                        </div>
-                    </div>
-
-                    <div class="d-flex align-items-center">
-                        <div class="me-3">
-                            <i class="bi bi-calendar-x text-danger" style="font-size: 2rem;"></i>
-                        </div>
-                        <div>
-                            <p class="text-muted small mb-0">End Date</p>
-                            <p class="mb-0 fw-bold">{{ \Carbon\Carbon::parse($enquiry->end_date)->format('d M Y') }}</p>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-light mt-3 mb-0">
-                        <i class="bi bi-clock me-2"></i>
-                        <strong>{{ \Carbon\Carbon::parse($enquiry->start_date)->diffInDays(\Carbon\Carbon::parse($enquiry->end_date)) }} days</strong>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Vendor Information -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Vendor Information</h5>
-                    
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
-                             style="width: 50px; height: 50px;">
-                            <i class="bi bi-building"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-0">{{ $enquiry->hoarding->vendor->name ?? 'N/A' }}</h6>
-                            <p class="text-muted small mb-0">Vendor</p>
-                        </div>
-                    </div>
-
-                    @if(isset($enquiry->hoarding->vendor->email))
-                        <p class="small mb-2">
-                            <i class="bi bi-envelope me-2"></i>
-                            {{ $enquiry->hoarding->vendor->email }}
-                        </p>
-                    @endif
-
-                    @if(isset($enquiry->hoarding->vendor->phone))
-                        <p class="small mb-0">
-                            <i class="bi bi-telephone me-2"></i>
-                            {{ $enquiry->hoarding->vendor->phone }}
-                        </p>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Actions Card -->
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Actions</h5>
-
-                    @if($enquiry->status === 'pending')
-                        <div class="alert alert-warning">
-                            <i class="bi bi-hourglass-split me-2"></i>
-                            Waiting for vendor response...
-                        </div>
-                        <button class="btn btn-outline-danger btn-sm w-100" onclick="cancelEnquiry()">
-                            <i class="bi bi-x-circle me-2"></i>Cancel Enquiry
-                        </button>
-                    @elseif($enquiry->status === 'quoted')
-                        <a href="{{ route('customer.quotations.show', $enquiry->quotation->id ?? '#') }}" 
-                           class="btn btn-primary w-100 mb-2">
-                            <i class="bi bi-file-text me-2"></i>Review Quotation
-                        </a>
-                    @elseif($enquiry->status === 'accepted')
-                        <div class="alert alert-success">
-                            <i class="bi bi-check-circle me-2"></i>
-                            Booking created successfully!
-                        </div>
-                        <a href="{{ route('customer.orders.index') }}" class="btn btn-success w-100">
-                            <i class="bi bi-receipt me-2"></i>View My Bookings
-                        </a>
-                    @endif
-
-                    <button class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="contactSupport()">
-                        <i class="bi bi-headset me-2"></i>Contact Support
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
+
 </div>
 
-<script>
-function cancelEnquiry() {
-    if (confirm('Are you sure you want to cancel this enquiry?')) {
-        fetch(`/api/v1/customer/enquiries/{{ $enquiry->id }}/cancel`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Enquiry cancelled successfully');
-                window.location.reload();
-            } else {
-                alert('Failed to cancel enquiry');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred');
-        });
-    }
-}
-
-function contactSupport() {
-    alert('Support contact feature coming soon!');
-    // Redirect to support page or open chat
-}
-</script>
-
-<style>
-.bg-gradient {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.border-4 {
-    border-width: 4px !important;
-}
-</style>
 @endsection
