@@ -200,66 +200,181 @@ class DOOHController extends Controller
     /**
      * Show the form for editing the specified DOOH screen.
      */
-    public function edit($id)
+    // public function edit($id)
+    // {
+    //     $vendor = Auth::user();
+    //     $screen = DOOHScreen::where('id', $id)
+    //         ->whereHas('hoarding', function ($q) use ($vendor) {
+    //             $q->where('vendor_id', $vendor->id);
+    //         })->firstOrFail();
+    //     // Fetch attributes for dropdowns if needed
+    //     $attributes = \App\Models\HoardingAttribute::groupedByType();
+    //     return view('dooh.vendor.edit', [
+    //         'screen' => $screen,
+    //         'attributes' => $attributes,
+    //     ]);
+    // }
+
+    /**
+     * Update the specified DOOH screen in storage.
+     */
+    // public function update(Request $request, $id)
+    // {
+    //     $vendor = Auth::user();
+    //     $screen = DOOHScreen::where('id', $id)
+    //         ->whereHas('hoarding', function ($q) use ($vendor) {
+    //             $q->where('vendor_id', $vendor->id);
+    //         })->firstOrFail();
+
+    //     $validated = $request->validate([
+    //         'title' => 'required|string|max:255',
+    //         'description' => 'required|string',
+    //         'price_per_month' => 'required|numeric|min:0',
+    //         // Add other validation rules as needed
+    //         'primary_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+    //         'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+    //     ]);
+
+    //     // Handle primary image update
+    //     if ($request->hasFile('primary_image')) {
+    //         if ($screen->primary_image) {
+    //             \Storage::disk('public')->delete($screen->primary_image);
+    //         }
+    //         $validated['primary_image'] = $request->file('primary_image')->store('dooh/screens', 'public');
+    //     }
+
+    //     // Handle gallery images update (optional, simplistic: remove all, add new)
+    //     if ($request->hasFile('gallery_images')) {
+    //         foreach ($screen->galleryImages as $image) {
+    //             \Storage::disk('public')->delete($image->image_path);
+    //             $image->delete();
+    //         }
+    //         foreach ($request->file('gallery_images') as $file) {
+    //             $screen->galleryImages()->create([
+    //                 'image_path' => $file->store('dooh/screens/gallery', 'public'),
+    //             ]);
+    //         }
+    //     }
+
+    //     $screen->update($validated);
+
+    //     return redirect()
+    //         ->route('hoardings.vendor.index')
+    //         ->with('success', 'DOOH screen updated successfully!');
+    // }
+
+
+   
+    /**
+     * Edit DOOH Screen (Multi-step)
+     */
+    public function edit(Request $request, $id): View|RedirectResponse
     {
         $vendor = Auth::user();
-        $screen = DOOHScreen::where('id', $id)
-            ->whereHas('hoarding', function ($q) use ($vendor) {
-                $q->where('vendor_id', $vendor->id);
-            })->firstOrFail();
-        // Fetch attributes for dropdowns if needed
+        $step = (int) $request->query('step', 1);
+        $step = max(1, min(3, $step));
+
+        // Find the DOOH screen belonging to this vendor
+        $screen = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+            $q->where('vendor_id', $vendor->id);
+        })->findOrFail($id);
+
+        $hoarding = $screen->hoarding;
+
+        // If hoarding is not DOOH type, redirect to OOH edit
+        if ($hoarding->hoarding_type !== 'dooh') {
+            return redirect()->route('vendor.hoardings.edit', ['id' => $hoarding->ooh->id, 'step' => $step])
+                ->with('info', 'Redirected to OOH edit page.');
+        }
+
+        // Fetch attributes for form dropdowns
         $attributes = \App\Models\HoardingAttribute::groupedByType();
+
         return view('dooh.vendor.edit', [
+            'step' => $step,
             'screen' => $screen,
+            'hoarding' => $hoarding,
             'attributes' => $attributes,
         ]);
     }
 
     /**
-     * Update the specified DOOH screen in storage.
+     * Update DOOH Screen (Multi-step)
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, \Modules\DOOH\Services\DOOHScreenService $service): RedirectResponse
     {
         $vendor = Auth::user();
-        $screen = DOOHScreen::where('id', $id)
-            ->whereHas('hoarding', function ($q) use ($vendor) {
-                $q->where('vendor_id', $vendor->id);
-            })->firstOrFail();
+        $step = (int) $request->input('step', 1);
+        $step = max(1, min(3, $step));
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'price_per_month' => 'required|numeric|min:0',
-            // Add other validation rules as needed
-            'primary_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
-            'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
-        ]);
+        // Find the DOOH screen
+        $screen = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+            $q->where('vendor_id', $vendor->id);
+        })->findOrFail($id);
 
-        // Handle primary image update
-        if ($request->hasFile('primary_image')) {
-            if ($screen->primary_image) {
-                \Storage::disk('public')->delete($screen->primary_image);
-            }
-            $validated['primary_image'] = $request->file('primary_image')->store('dooh/screens', 'public');
+        $hoarding = $screen->hoarding;
+
+        // Ensure it's DOOH type
+        if ($hoarding->hoarding_type !== 'dooh') {
+            return redirect()->route('vendor.hoardings.edit', $hoarding->ooh->id)
+                ->with('error', 'This is an OOH hoarding. Please use OOH edit.');
         }
 
-        // Handle gallery images update (optional, simplistic: remove all, add new)
-        if ($request->hasFile('gallery_images')) {
-            foreach ($screen->galleryImages as $image) {
-                \Storage::disk('public')->delete($image->image_path);
-                $image->delete();
+        try {
+            switch ($step) {
+                case 1:
+                    $mediaFiles = $request->file('media', []);
+                    $result = $service->updateStep1($screen, $request->all(), $mediaFiles);
+                    break;
+
+                case 2:
+                    $brandLogoFiles = $request->file('brand_logos', []);
+                    $result = $service->storeStep2($screen, $request->all(), $brandLogoFiles);
+                    break;
+
+                case 3:
+                    $result = $service->updateStep3($screen, $request->all());
+                    break;
+
+                default:
+                    return redirect()->back()->withErrors(['step' => 'Invalid step number']);
             }
-            foreach ($request->file('gallery_images') as $file) {
-                $screen->galleryImages()->create([
-                    'image_path' => $file->store('dooh/screens/gallery', 'public'),
-                ]);
+
+            if (!$result['success']) {
+                return redirect()->back()
+                    ->withErrors($result['errors'] ?? ['error' => 'Update failed'])
+                    ->withInput();
             }
+
+            // Navigate to next step or finish
+            if ($request->has('save_and_next') && $step < 3) {
+                return redirect()->route('vendor.dooh.edit', ['id' => $id, 'step' => $step + 1])
+                    ->with('success', "Step {$step} updated! Continue to Step " . ($step + 1));
+            }
+
+            // Mark as completed on step 3
+            if ($step === 3) {
+                if ($hoarding->status === 'draft' || $hoarding->approval_status === 'pending') {
+                    $hoarding->update([
+                        'status' => 'pending_approval',
+                        'approval_status' => 'pending',
+                        'current_step' => null,
+                    ]);
+                }
+            }
+
+            return redirect()->route('vendor.hoardings.myHoardings')
+                ->with('success', 'DOOH Screen updated successfully!');
+
+        } catch (\Exception $e) {
+            \Log::error('DOOH Update Failed', [
+                'step' => $step,
+                'screen_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return redirect()->back()
+                ->withErrors(['message' => 'Update failed: ' . $e->getMessage()])
+                ->withInput();
         }
-
-        $screen->update($validated);
-
-        return redirect()
-            ->route('hoardings.vendor.index')
-            ->with('success', 'DOOH screen updated successfully!');
     }
 }

@@ -104,55 +104,114 @@ class HoardingController extends Controller
         return view('vendor.listings.index', compact('listings', 'cities'));
     }
 
+    /**
+     * Unified edit entry point - automatically routes to correct controller based on hoarding_type
+     * GET /vendor/hoardings/{id}/edit
+     */
     public function edit($id)
     {
         $vendor = Auth::user();
-        $listing = $vendor->hoardings()->findOrFail($id);
 
-        return view('hoardings.vendor.edit', compact('listing'));
-    }
+        // Find the hoarding and verify ownership
+        $hoarding = $vendor->hoardings()->findOrFail($id);
 
-    public function update(Request $request, $id)
-    {
-        $vendor = Auth::user();
-        $listing = $vendor->hoardings()->findOrFail($id);
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'price_per_month' => 'required|numeric|min:0',
-            // Add other validation rules as needed
-            'primary_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
-            'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+        // Log the edit access attempt
+        \Log::info('Vendor accessing hoarding edit', [
+            'vendor_id' => $vendor->id,
+            'hoarding_id' => $hoarding->id,
+            'hoarding_type' => $hoarding->hoarding_type,
+            'status' => $hoarding->status
         ]);
+       
+        // Route to appropriate controller based on hoarding_type
+        switch (strtolower($hoarding->hoarding_type)) {
+          
+            case 'ooh':
+                // Get the OOH hoarding child record
+                $oohHoarding = $hoarding->oohHoarding;
+                // dd($oohHoarding);
 
-        // Handle primary image update
-        if ($request->hasFile('primary_image')) {
-            if ($listing->primary_image) {
-                \Storage::disk('public')->delete($listing->primary_image);
-            }
-            $validated['primary_image'] = $request->file('primary_image')->store('hoardings', 'public');
-        }
+                if (!$oohHoarding) {
+                    return redirect()
+                        ->route('vendor.hoardings.myHoardings')
+                        ->with('error', 'OOH hoarding data not found. Please contact support.');
+                }
 
-        // Handle gallery images update (optional, simplistic: remove all, add new)
-        if ($request->hasFile('gallery_images')) {
-            foreach ($listing->galleryImages as $image) {
-                \Storage::disk('public')->delete($image->image_path);
-                $image->delete();
-            }
-            foreach ($request->file('gallery_images') as $file) {
-                $listing->galleryImages()->create([
-                    'image_path' => $file->store('hoardings/gallery', 'public'),
+                // Redirect to OOH-specific edit with step parameter if present
+                return redirect()->route('vendor.edit.ooh', [
+                    'id' => $oohHoarding->id,
+                    'step' => request('step', 1)
                 ]);
-            }
+
+            case 'dooh':
+                // Get the DOOH screen child record
+                $doohScreen = $hoarding->doohScreen;
+
+                if (!$doohScreen) {
+                    return redirect()
+                        ->route('vendor.hoardings.myHoardings')
+                        ->with('error', 'DOOH screen data not found. Please contact support.');
+                }
+
+                // Redirect to DOOH-specific edit with step parameter if present
+                return redirect()->route('vendor.dooh.edit', [
+                    'id' => $doohScreen->id,
+                    'step' => request('step', 1)
+                ]);
+
+            default:
+                \Log::error('Unknown hoarding type in edit', [
+                    'hoarding_id' => $hoarding->id,
+                    'type' => $hoarding->hoarding_type
+                ]);
+
+                return redirect()
+                    ->route('vendor.hoardings.myHoardings')
+                    ->with('error', 'Invalid hoarding type. Please contact support.');
         }
-
-        $listing->update($validated);
-
-        return redirect()
-            ->route('hoardings.vendor.index')
-            ->with('success', 'Listing updated successfully!');
     }
+
+    // public function update(Request $request, $id)
+    // {
+    //     $vendor = Auth::user();
+    //     $listing = $vendor->hoardings()->findOrFail($id);
+
+    //     $validated = $request->validate([
+    //         // 'title' => 'required|string|max:255',
+    //         // 'description' => 'required|string',
+    //         'base_monthly_price' => 'required|numeric|min:0',
+    //         // Add other validation rules as needed
+    //         'primary_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+    //         'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+    //     ]);
+
+    //     // Handle primary image update
+    //     if ($request->hasFile('primary_image')) {
+    //         if ($listing->primary_image) {
+    //             \Storage::disk('public')->delete($listing->primary_image);
+    //         }
+    //         $validated['primary_image'] = $request->file('primary_image')->store('hoardings', 'public');
+    //     }
+
+    //     // Handle gallery images update (optional, simplistic: remove all, add new)
+    //     if ($request->hasFile('gallery_images')) {
+    //         foreach ($listing->galleryImages as $image) {
+    //             \Storage::disk('public')->delete($image->image_path);
+    //             $image->delete();
+    //         }
+    //         foreach ($request->file('gallery_images') as $file) {
+    //             $listing->galleryImages()->create([
+    //                 'image_path' => $file->store('hoardings/gallery', 'public'),
+    //             ]);
+    //         }
+    //     }
+
+    //     $listing->update($validated);
+
+    //     return redirect()
+    //         ->route('hoardings.vendor.index')
+    //         ->with('success', 'Listing updated successfully!');
+    // }
 
     public function destroy($id)
     {
@@ -178,7 +237,7 @@ class HoardingController extends Controller
         $vendor = Auth::user();
 
         $listings = $vendor->hoardings()
-            ->select('id', 'title', 'city', 'state', 'price_per_month', 'status')
+            ->select('id', 'title', 'city', 'state', 'base_monthly_price', 'status')
             ->get();
 
         $cities = $vendor->hoardings()
@@ -226,24 +285,24 @@ class HoardingController extends Controller
             $priceValue = $request->price_value;
 
             if ($priceMethod === 'fixed') {
-                $updateData['price_per_month'] = $priceValue;
+                $updateData['base_monthly_price'] = $priceValue;
             } else {
                 // For percentage/amount changes, need to update individually
                 $listings = $query->get();
                 foreach ($listings as $listing) {
-                    $newPrice = $listing->price_per_month;
+                    $newPrice = $listing->base_monthly_price;
 
                     if ($priceMethod === 'increase_percent') {
-                        $newPrice = $listing->price_per_month * (1 + $priceValue / 100);
+                        $newPrice = $listing->base_monthly_price * (1 + $priceValue / 100);
                     } elseif ($priceMethod === 'decrease_percent') {
-                        $newPrice = $listing->price_per_month * (1 - $priceValue / 100);
+                        $newPrice = $listing->base_monthly_price * (1 - $priceValue / 100);
                     } elseif ($priceMethod === 'increase_amount') {
-                        $newPrice = $listing->price_per_month + $priceValue;
+                        $newPrice = $listing->base_monthly_price + $priceValue;
                     } elseif ($priceMethod === 'decrease_amount') {
-                        $newPrice = $listing->price_per_month - $priceValue;
+                        $newPrice = $listing->base_monthly_price - $priceValue;
                     }
 
-                    $listing->update(['price_per_month' => max(0, $newPrice)]);
+                    $listing->update(['base_monthly_price' => max(0, $newPrice)]);
                 }
             }
         }
@@ -354,6 +413,8 @@ class HoardingController extends Controller
         }
         return view('hoardings.vendor.completion', ['hoardings' => $data]);
     }
+
+
 
     
 }

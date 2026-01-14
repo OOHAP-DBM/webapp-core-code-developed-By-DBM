@@ -1,3 +1,4 @@
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -26,7 +27,9 @@
             <option value="">Select Category</option>
             @if(isset($attributes['category']))
               @foreach($attributes['category'] as $cat)
-                <option value="{{ $cat->value }}">{{ $cat->value }}</option>
+                <option value="{{ $cat->value }}" {{ old('category', $draft->hoarding->category ?? '') == $cat->value ? 'selected' : '' }}>
+                  {{ $cat->value }}
+                </option>
               @endforeach
             @endif
           </select>
@@ -39,29 +42,36 @@
         <div class="grid grid-cols-4 gap-4 items-end">
           <!-- Unit -->
           <div class="space-y-1">
-            <label class="text-xs font-bold text-gray-500 ">Unit</label>
+            <label class="text-xs font-bold text-gray-500">Unit</label>
             <select id="unit" name="measurement_unit" required class="w-full bg-white border border-gray-200 rounded-lg px-3 py-3 outline-none">
-              <option value="sqft">Sqft</option>
-              <option value="sqm">Sqm</option>
+              <option value="sqft" {{ old('measurement_unit', $draft->measurement_unit ?? 'sqft') == 'sqft' ? 'selected' : '' }}>Sqft</option>
+              <option value="sqm" {{ old('measurement_unit', $draft->measurement_unit ?? 'sqft') == 'sqm' ? 'selected' : '' }}>Sqm</option>
             </select>
           </div>
 
           <!-- Width -->
           <div class="space-y-1">
-            <label class="text-xs font-bold text-gray-500"> Width <span class="text-red-500">*</span></label>
-            <input type="number" id="width" name="width" placeholder="500" required class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
+            <label class="text-xs font-bold text-gray-500">Width <span class="text-red-500">*</span></label>
+            <input type="number" id="width" name="width" placeholder="500" required 
+              value="{{ old('width', $draft->width ?? '') }}"
+              class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
           </div>
 
           <!-- Height -->
           <div class="space-y-1">
-            <label class="text-xs font-bold text-gray-500"> Height <span class="text-red-500">*</span></label>
-            <input type="number" id="height" name="height" placeholder="300" required class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
+            <label class="text-xs font-bold text-gray-500">Height <span class="text-red-500">*</span></label>
+            <input type="number" id="height" name="height" 
+              value="{{ old('height', $draft->height ?? '') }}" 
+              placeholder="300" required 
+              class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
           </div>
 
-          <!-- Size Preview -->
+          <!-- Size Preview (READ-ONLY, NO NAME) -->
           <div class="space-y-1">
             <label class="text-xs font-bold text-gray-500">Size Preview</label>
-            <input type="text" id="sizePreview" value="0 x 0 sq.ft" readonly class="w-full bg-[#E5E9F2] border-none rounded-lg px-3 py-3 text-gray-700 font-medium outline-none">
+            <input type="text" id="sizePreview" readonly 
+              placeholder="Auto-calculated"
+              class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-3 cursor-not-allowed text-gray-600">
           </div>
         </div>
       </div>
@@ -78,210 +88,209 @@
         <div class="space-y-2">
           <label class="text-sm font-bold text-gray-700">Hoarding Address <span class="text-red-500">*</span></label>
           <input type="text" name="address" placeholder="Opposite Ram Dharam Kanta B43 Sector 7" required 
+            value="{{ old('address', $draft->hoarding->address ?? '') }}"
             class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
         </div>
 
         <div class="space-y-2">
           <label class="text-sm font-bold text-gray-700">Pincode <span class="text-red-500">*</span></label>
-          <input type="text" name="pincode" placeholder="226010" required 
+          <input type="text" name="pincode" 
+            value="{{ old('pincode', $draft->hoarding->pincode ?? '') }}" 
+            placeholder="226010" required 
             class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
         </div>
 
         <div class="space-y-2">
           <label class="text-sm font-bold text-gray-700">Locality <span class="text-red-500">*</span></label>
-          <input type="text" name="locality" placeholder="e.g. Indira Nagar" required 
+          <input type="text" name="locality" 
+            value="{{ old('locality', $draft->hoarding->locality ?? '') }}" 
+            placeholder="e.g. Indira Nagar" required 
             class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-2">
             <label class="text-sm font-bold text-gray-700">City</label>
-            <input type="text" name="city" placeholder="Lucknow" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+            <input type="text" name="city" 
+              value="{{ old('city', $draft->hoarding->city ?? '') }}" 
+              placeholder="Lucknow" 
+              class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
           </div>
           <div class="space-y-2">
             <label class="text-sm font-bold text-gray-700">State</label>
-            <input type="text" name="state" placeholder="Uttar Pradesh" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+            <input type="text" name="state" 
+              value="{{ old('state', $draft->hoarding->state ?? '') }}" 
+              placeholder="Uttar Pradesh" 
+              class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
           </div>
         </div>
       </div>
 
       <div class="mt-8 space-y-4">
-            <!-- Nearby Landmarks -->
-        <div class="mt-8 space-y-4">
-          <div class="flex items-center justify-between">
-            <label class="text-sm font-bold text-gray-700">Nearby Landmarks</label>
-            <button type="button" id="addLandmarkBtn" class="bg-[#1A1A1A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-all">
-              + Add another landmark
-            </button>
-          </div>
-          <div class="space-y-3" id="landmarksContainer">
-            <input type="text" name="landmarks[]" placeholder="Opposite Ram Dharam Kanta" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
-          </div>
+        <!-- Nearby Landmarks -->
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-bold text-gray-700">Nearby Landmarks</label>
+          <button type="button" id="addLandmarkBtn" class="bg-[#1A1A1A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-all">
+            + Add another landmark
+          </button>
+        </div>
+        <div class="space-y-3" id="landmarksContainer">
+          @php
+            $landmarks = old('landmarks', isset($draft->hoarding->landmarks) ? (is_array($draft->hoarding->landmarks) ? $draft->hoarding->landmarks : json_decode($draft->hoarding->landmarks, true)) : []);
+            if (empty($landmarks)) $landmarks = [''];
+          @endphp
+          @foreach($landmarks as $index => $landmark)
+            <input type="text" name="landmarks[]" 
+              value="{{ $landmark }}" 
+              placeholder="Opposite Ram Dharam Kanta" 
+              class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+          @endforeach
         </div>
       </div>
 
       <!-- Location Verification Section -->
-        <div class="mt-8 bg-[#FBFBFB] rounded-3xl border border-gray-100 p-5 sm:p-6 md:p-8 space-y-6">
-
-          <!-- Section Header -->
-          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div>
-              <h3 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
-                <span class="w-2 h-2 bg-[#009A5C] rounded-full"></span>
-                Location Verification
-              </h3>
-              <p class="text-xs sm:text-sm text-gray-500 mt-1 max-w-md">
-                Confirm the exact physical location of your hoarding using the map.
-                This helps customers and admins verify visibility and accuracy.
-              </p>
-            </div>
-
-            <!-- Mobile-first confirm button -->
-            <button
-              type="button"
-              id="geotagBtn"
-              class="w-full sm:w-auto inline-flex justify-center items-center gap-2
-                    bg-[#009A5C] text-white text-sm font-bold
-                    px-4 sm:px-6 py-3 rounded-xl
-                    shadow-sm hover:bg-green-700 active:scale-95 transition">
-              📍 Confirm Location
-            </button>
+      <div class="mt-8 bg-[#FBFBFB] rounded-3xl border border-gray-100 p-5 sm:p-6 md:p-8 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+              <span class="w-2 h-2 bg-[#009A5C] rounded-full"></span>
+              Location Verification
+            </h3>
+            <p class="text-xs sm:text-sm text-gray-500 mt-1 max-w-md">
+              Confirm the exact physical location of your hoarding using the map.
+            </p>
           </div>
 
-          <div id="location-error" class="text-xs text-red-500 hidden"></div>
-
-          <!-- Coordinates -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-
-            <div class="space-y-1">
-              <label class="text-sm font-bold text-gray-700">
-                Latitude <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="lat"
-                id="lat"
-                readonly
-                required
-                placeholder="Auto-filled after confirmation"
-                class="w-full bg-gray-50 border border-gray-200 rounded-xl
-                      px-4 py-3 text-sm font-mono text-gray-900
-                      cursor-not-allowed"
-              />
-              <p class="text-[11px] text-gray-400">
-                Mandatory • Locked after confirmation
-              </p>
-            </div>
-
-            <div class="space-y-1">
-              <label class="text-sm font-bold text-gray-700">
-                Longitude <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="lng"
-                id="lng"
-                readonly
-                required
-                placeholder="Auto-filled after confirmation"
-                class="w-full bg-gray-50 border border-gray-200 rounded-xl
-                      px-4 py-3 text-sm font-mono text-gray-900
-                      cursor-not-allowed"
-              />
-              <p class="text-[11px] text-gray-400">
-                Mandatory • Locked after confirmation
-              </p>
-            </div>
-
-          </div>
-
-          <!-- Success State -->
-          <div
-            id="geotagSuccess"
-            class="hidden flex items-center gap-2
-                  bg-green-50 border border-green-200
-                  text-green-700 text-sm
-                  px-4 py-3 rounded-xl">
-            <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L9 13.414l4.707-4.707z"
-                clip-rule="evenodd" />
-            </svg>
-            <span>Location confirmed and locked</span>
-          </div>
-
-          <!-- Map Preview -->
-          <div class="space-y-2">
-            <label class="text-sm font-bold text-gray-700">
-              Map Preview
-            </label>
-
-            <div class="relative rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-              <div id="map" class="w-full h-[300px] sm:h-[320px]"></div>
-
-              <div class="absolute bottom-2 right-2
-                          bg-white/90 backdrop-blur
-                          text-xs text-gray-600
-                          px-3 py-1 rounded-lg shadow">
-                Drag pin to adjust
-              </div>
-            </div>
-          </div>
-
+          <button
+            type="button"
+            id="geotagBtn"
+            class="w-full sm:w-auto inline-flex justify-center items-center gap-2
+                  bg-[#009A5C] text-white text-sm font-bold
+                  px-4 sm:px-6 py-3 rounded-xl
+                  shadow-sm hover:bg-green-700 active:scale-95 transition">
+            📍 Confirm Location
+          </button>
         </div>
 
+        <div id="location-error" class="text-xs text-red-500 hidden"></div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+          <div class="space-y-1">
+            <label class="text-sm font-bold text-gray-700">
+              Latitude <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="lat"
+              id="lat"
+              readonly
+              required
+              value="{{ old('lat', $draft->hoarding->latitude ?? '') }}"
+              placeholder="Auto-filled after confirmation"
+              class="w-full bg-gray-50 border border-gray-200 rounded-xl
+                    px-4 py-3 text-sm font-mono text-gray-900
+                    cursor-not-allowed"
+            />
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-sm font-bold text-gray-700">
+              Longitude <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="lng"
+              id="lng"
+              readonly
+              required
+              value="{{ old('lng', $draft->hoarding->longitude ?? '') }}" 
+              placeholder="Auto-filled after confirmation"
+              class="w-full bg-gray-50 border border-gray-200 rounded-xl
+                    px-4 py-3 text-sm font-mono text-gray-900
+                    cursor-not-allowed"
+            />
+          </div>
+        </div>
+
+        <div
+          id="geotagSuccess"
+          class="hidden flex items-center gap-2
+                bg-green-50 border border-green-200
+                text-green-700 text-sm
+                px-4 py-3 rounded-xl">
+          <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L9 13.414l4.707-4.707z"
+              clip-rule="evenodd" />
+          </svg>
+          <span>Location confirmed and locked</span>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-bold text-gray-700">Map Preview</label>
+          <div class="relative rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            <div id="map" class="w-full h-[300px] sm:h-[320px]"></div>
+            <div class="absolute bottom-2 right-2
+                        bg-white/90 backdrop-blur
+                        text-xs text-gray-600
+                        px-3 py-1 rounded-lg shadow">
+              Drag pin to adjust
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-      <!-- Pricing Details -->
-      <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-        <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
+
+    <!-- Pricing Details -->
+    <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+      <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
         <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
         Pricing<span class="text-red-500 ml-1">*</span>
-        </h3>
+      </h3>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            <!-- Monthly Base Price -->
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700">
-                    Monthly Base Price (₹) <span class="text-red-500">*</span>
-                </label>
-                <input
-                    type="number"
-                    name="base_monthly_price"
-                    min="1"
-                    step="0.01"
-                    required
-                    placeholder="e.g. 50,000"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-3
-                          focus:border-[#009A5C] outline-none transition-all"
-                />
-                <p class="text-xs text-gray-400">
-                    Standard monthly hoarding price (before discount)
-                </p>
-            </div>
-
-            <!-- Monthly Offer Price -->
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700">
-                    Monthly Offer Price (₹)
-                </label>
-                <input
-                    type="number"
-                    name="monthly_price"
-                    min="1"
-                    step="0.01"
-                    placeholder="e.g. 42,000"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-3
-                          focus:border-[#009A5C] outline-none transition-all"
-                />
-                <p class="text-xs text-gray-400">
-                    Discounted price (optional)
-                </p>
-            </div>
-
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Monthly Base Price -->
+        <div class="space-y-2">
+          <label class="text-sm font-bold text-gray-700">
+            Monthly Base Price (₹) <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            name="base_monthly_price"
+            value="{{ old('base_monthly_price', $draft->hoarding->base_monthly_price ?? '') }}"
+            min="1"
+            step="0.01"
+            required
+            placeholder="e.g. 50,000"
+            class="w-full border border-gray-200 rounded-xl px-4 py-3
+                  focus:border-[#009A5C] outline-none transition-all"
+          />
+          <p class="text-xs text-gray-400">
+            Standard monthly hoarding price (before discount)
+          </p>
         </div>
 
+        <!-- Monthly Offer Price -->
+        <div class="space-y-2">
+          <label class="text-sm font-bold text-gray-700">
+            Monthly Offer Price (₹)
+          </label>
+          <input
+            type="number"
+            name="monthly_price"
+            min="1"
+            step="0.01"
+            value="{{ old('monthly_price', $draft->hoarding->monthly_price ?? '') }}"
+            placeholder="Optional discounted price"
+            class="w-full border border-gray-200 rounded-xl px-4 py-3
+                  focus:border-[#009A5C] outline-none transition-all"
+          />
+          <p class="text-xs text-gray-400">
+            Discounted price (optional)
+          </p>
+        </div>
       </div>
+    </div>
 
     <!-- Upload Hoarding Media -->
     <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
@@ -291,8 +300,23 @@
       </h3>
       <p class="text-sm text-gray-400 mb-6">High quality photos increase booking chances by 40%.</p>
 
+      @if(isset($draft) && $draft->hoarding && $draft->hoarding->getMedia('hoarding_media')->count() > 0)
+        <div class="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <h4 class="text-sm font-bold text-blue-900 mb-3">Existing Media:</h4>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            @foreach($draft->hoarding->getMedia('hoarding_media') as $media)
+              <img src="{{ $media->getUrl('thumb') }}" alt="Hoarding" class="w-full h-24 object-cover rounded-lg border border-blue-300">
+            @endforeach
+          </div>
+          <p class="text-xs text-blue-700 mt-3">Upload new images to replace existing media (optional during edit)</p>
+        </div>
+      @endif
+
       <div class="relative group border-2 border-dashed border-[#E5E7EB] rounded-2xl p-12 bg-[#FBFBFB] hover:bg-green-50/30 hover:border-[#009A5C] transition-all flex flex-col items-center justify-center">
-        <input type="file" id="mediaUpload" name="media[]" multiple required accept="image/jpeg,image/png,image/jpg,image/webp" class="absolute inset-0 opacity-0 cursor-pointer">
+        <input type="file" id="mediaUpload" name="media[]" multiple 
+          {{ !isset($draft) || !$draft->hoarding || $draft->hoarding->getMedia('hoarding_media')->count() == 0 ? 'required' : '' }}
+          accept="image/jpeg,image/png,image/jpg,image/webp" 
+          class="absolute inset-0 opacity-0 cursor-pointer">
         <div class="w-16 h-16 bg-white shadow-sm rounded-2xl flex items-center justify-center mb-4 text-[#009A5C] group-hover:scale-110 transition-transform">
           <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -302,60 +326,60 @@
         </div>
         <p class="text-base font-bold text-gray-700">Drop your images here, or <span class="text-[#009A5C]">browse</span></p>
         <p class="text-xs text-gray-400 mt-2">Supports: JPG, JPEG, PNG, WEBP (Max 5MB per image)</p>
-
-        <!-- File Preview -->
         <ul id="filePreview" class="mt-4 text-sm text-gray-600 space-y-1"></ul>
       </div>
     </div>
   </div>
-
 </div>
-<script>
-/* ===============================
-   MAP + GEOCODING (FIXED)
-================================ */
 
+<script>
+/* MAP + GEOCODING */
 let map, marker;
 
-// Inputs
 const addressInput  = document.querySelector('input[name="address"]');
 const localityInput = document.querySelector('input[name="locality"]');
 const cityInput     = document.querySelector('input[name="city"]');
 const stateInput    = document.querySelector('input[name="state"]');
 const pincodeInput  = document.querySelector('input[name="pincode"]');
-
 const latInput   = document.getElementById('lat');
 const lngInput   = document.getElementById('lng');
 const errorBox   = document.getElementById('location-error');
 const geotagBtn  = document.getElementById('geotagBtn');
 
-// Default India view
 const INDIA_CENTER = [20.5937, 78.9629];
 
-// Init map
 map = L.map('map').setView(INDIA_CENTER, 5);
-
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap'
 }).addTo(map);
 
-// Init marker
 marker = L.marker(INDIA_CENTER, { draggable: true }).addTo(map);
 
-// Marker drag → update lat/lng
 marker.on('dragend', () => {
   const pos = marker.getLatLng();
   latInput.value = pos.lat.toFixed(6);
   lngInput.value = pos.lng.toFixed(6);
 });
 
-// Clear previous lat/lng
-function resetLatLng() {
-  latInput.value = '';
-  lngInput.value = '';
-}
+// Restore map if lat/lng exist
+document.addEventListener('DOMContentLoaded', function() {
+  const savedLat = latInput.value;
+  const savedLng = lngInput.value;
+  
+  if (savedLat && savedLng) {
+    const lat = parseFloat(savedLat);
+    const lng = parseFloat(savedLng);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      map.setView([lat, lng], 15);
+      marker.setLatLng([lat, lng]);
+      document.getElementById('geotagSuccess').classList.remove('hidden');
+    }
+  }
+  
+  // Auto-calculate size preview
+  updateSizePreview();
+});
 
-// Build strict address string
 function buildAddress() {
   return [
     localityInput.value,
@@ -366,23 +390,18 @@ function buildAddress() {
   ].filter(Boolean).join(', ');
 }
 
-// Show error
 function showError(msg) {
   errorBox.textContent = msg;
   errorBox.classList.remove('hidden');
 }
 
-// Hide error
 function hideError() {
   errorBox.textContent = '';
   errorBox.classList.add('hidden');
 }
 
-// MAIN GEOCODE FUNCTION (FIXED)
 async function geocodeAddress() {
-  resetLatLng();
   hideError();
-
   const address = buildAddress();
 
   if (address.length < 10) {
@@ -390,19 +409,10 @@ async function geocodeAddress() {
     return;
   }
 
-  const url =
-    `https://nominatim.openstreetmap.org/search` +
-    `?format=json` +
-    `&addressdetails=1` +
-    `&limit=1` +
-    `&countrycodes=in` +
-    `&q=${encodeURIComponent(address)}`;
+  const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=in&q=${encodeURIComponent(address)}`;
 
   try {
-    const res = await fetch(url, {
-      headers: { 'Accept': 'application/json' }
-    });
-
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
     const data = await res.json();
 
     if (!data.length) {
@@ -411,205 +421,72 @@ async function geocodeAddress() {
     }
 
     const result = data[0];
-
-    // 🚨 STATE VALIDATION (prevents Wadgaon)
-    if (
-      result.address?.state &&
-      !result.address.state.toLowerCase().includes('uttar pradesh')
-    ) {
-      showError('Geocode mismatch. Please refine address.');
-      return;
-    }
-
     const lat = parseFloat(result.lat);
     const lng = parseFloat(result.lon);
 
     latInput.value = lat.toFixed(6);
     lngInput.value = lng.toFixed(6);
-
     map.setView([lat, lng], 15);
-
     marker.setLatLng([lat, lng]);
-    // ✅ MARK LOCATION AS CONFIRMED
-    isLocationConfirmed = true;
-
-    // Show success UI
     document.getElementById('geotagSuccess').classList.remove('hidden');
-
   } catch (e) {
     showError('Unable to fetch location. Try again.');
   }
 }
 
-// Explicit geotag action (BEST PRACTICE)
 geotagBtn.addEventListener('click', geocodeAddress);
-</script>
 
+// Size Preview
+const widthInput = document.getElementById('width');
+const heightInput = document.getElementById('height');
+const unitSelect = document.getElementById('unit');
+const sizePreview = document.getElementById('sizePreview');
 
- 
+function updateSizePreview() {
+  const width = widthInput.value || 0;
+  const height = heightInput.value || 0;
+  const unit = unitSelect.value === 'sqft' ? 'sq.ft' : 'sq.m';
+  sizePreview.value = `${width} x ${height} ${unit}`;
+}
 
-<script>
+widthInput.addEventListener('input', updateSizePreview);
+heightInput.addEventListener('input', updateSizePreview);
+unitSelect.addEventListener('change', updateSizePreview);
 
-  // Dynamic Size Preview
-  const widthInput = document.getElementById('width');
-  const heightInput = document.getElementById('height');
-  const unitSelect = document.getElementById('unit');
-  const sizePreview = document.getElementById('sizePreview');
+// File Preview
+const mediaInput = document.getElementById('mediaUpload');
+const filePreview = document.getElementById('filePreview');
 
-  function updateSizePreview() {
-    const width = widthInput.value || 0;
-    const height = heightInput.value || 0;
-    const unit = unitSelect.value === 'sqft' ? 'sq.ft' : 'sq.m';
-    sizePreview.value = `${width} x ${height} ${unit}`;
-  }
-
-  widthInput.addEventListener('input', updateSizePreview);
-  heightInput.addEventListener('input', updateSizePreview);
-  unitSelect.addEventListener('change', updateSizePreview);
-
-  // Upload File Preview
-  const mediaInput = document.getElementById('mediaUpload');
-  const filePreview = document.getElementById('filePreview');
-
-  // Image preview: always shows only currently selected files (not cumulative)
-  mediaInput.addEventListener('change', (e) => {
-    const files = Array.from(e.target.files);
-    filePreview.innerHTML = '';
-    files.forEach(file => {
-      if (!file.type.match(/^image\/(jpeg|png|jpg|webp)$/)) {
-        const li = document.createElement('li');
-        li.className = 'text-red-500';
-        li.textContent = `${file.name} is not a supported image format.`;
-        filePreview.appendChild(li);
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        const li = document.createElement('li');
-        li.className = 'text-red-500';
-        li.textContent = `${file.name} exceeds 5MB size limit.`;
-        filePreview.appendChild(li);
-        return;
-      }
+mediaInput.addEventListener('change', (e) => {
+  const files = Array.from(e.target.files);
+  filePreview.innerHTML = '';
+  files.forEach(file => {
+    if (!file.type.match(/^image\/(jpeg|png|jpg|webp)$/)) {
       const li = document.createElement('li');
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(file);
-      img.className = 'inline-block w-16 h-16 object-cover rounded-lg mr-2 border border-gray-200';
-      img.onload = function() { URL.revokeObjectURL(this.src); };
-      li.appendChild(img);
-      li.appendChild(document.createTextNode(file.name));
+      li.className = 'text-red-500';
+      li.textContent = `${file.name} is not a supported image format.`;
       filePreview.appendChild(li);
-    });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      const li = document.createElement('li');
+      li.className = 'text-red-500';
+      li.textContent = `${file.name} exceeds 5MB size limit.`;
+      filePreview.appendChild(li);
+      return;
+    }
+    const li = document.createElement('li');
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    img.className = 'inline-block w-16 h-16 object-cover rounded-lg mr-2 border border-gray-200';
+    img.onload = function() { URL.revokeObjectURL(this.src); };
+    li.appendChild(img);
+    li.appendChild(document.createTextNode(file.name));
+    filePreview.appendChild(li);
   });
-  // In the Blade view (step1.blade.php), enhance JS for file validation
-
-document.querySelector('form').addEventListener('submit', function(e) {
-  // --- Latitude/Longitude validation ---
-  const latInput = document.getElementById('lat');
-  const lngInput = document.getElementById('lng');
-  let latitude = latInput ? latInput.value.trim() : '';
-  let longitude = lngInput ? lngInput.value.trim() : '';
-  let latNum = parseFloat(latitude);
-  let lngNum = parseFloat(longitude);
-
-  let locError = document.getElementById('location-submit-error');
-  if (!latitude || !longitude || isNaN(latNum) || isNaN(lngNum) || latNum < -90 || latNum > 90 || lngNum < -180 || lngNum > 180) {
-    e.preventDefault();
-    if (!locError) {
-      locError = document.createElement('div');
-      locError.id = 'location-submit-error';
-      locError.className = 'bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl mt-4';
-      document.getElementById('map').parentNode.appendChild(locError);
-    }
-    locError.innerHTML = '📍 Please confirm and select a valid location on map before proceeding.';
-    document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  } else if (locError) {
-    locError.remove();
-  }
-
-  // --- Media validation ---
-  const mediaInput = document.getElementById('mediaUpload');
-  let hasError = false;
-  let errorMsg = '';
-  const files = Array.from(mediaInput.files);
-  if (!files.length) {
-    hasError = true;
-    errorMsg = 'At least one media file is required.';
-  } else {
-    files.forEach(file => {
-      if (!file.type.match(/^image\/(jpeg|png|jpg|webp)$/)) {
-        hasError = true;
-        errorMsg = 'Only JPG, JPEG, PNG, and WEBP images are allowed.';
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        hasError = true;
-        errorMsg = 'Each image must not exceed 5MB.';
-      }
-    });
-  }
-  if (hasError) {
-    e.preventDefault();
-    let error = document.getElementById('media-error');
-    if (!error) {
-      error = document.createElement('div');
-      error.id = 'media-error';
-      error.className = 'text-red-500 text-xs mt-2';
-      mediaInput.parentNode.appendChild(error);
-    }
-    error.textContent = errorMsg;
-    mediaInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-
-  // --- Offer price < base price validation ---
-  const baseInput = document.querySelector('[name="base_monthly_price"]');
-  const offerInput = document.querySelector('[name="monthly_price"]');
-  if (baseInput && offerInput && offerInput.value) {
-    const base = parseFloat(baseInput.value);
-    const offer = parseFloat(offerInput.value);
-    if (!isNaN(base) && !isNaN(offer) && offer >= base) {
-      e.preventDefault();
-      let error = document.getElementById('offer-error');
-      if (!error) {
-        error = document.createElement('div');
-        error.id = 'offer-error';
-        error.className = 'text-red-500 text-xs mt-2';
-        offerInput.parentNode.appendChild(error);
-      }
-      error.textContent = 'Offer price must be less than the base monthly price.';
-      offerInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else {
-      let error = document.getElementById('offer-error');
-      if (error) error.remove();
-    }
-  }
 });
-// --- Instant Offer Price Validation ---
-document.addEventListener('DOMContentLoaded', function() {
-  const baseInput = document.querySelector('[name="base_monthly_price"]');
-  const offerInput = document.querySelector('[name="monthly_price"]');
-  if (baseInput && offerInput) {
-    function validateOffer() {
-      const base = parseFloat(baseInput.value);
-      const offer = parseFloat(offerInput.value);
-      let error = document.getElementById('offer-error');
-      if (!isNaN(base) && !isNaN(offer) && offer >= base) {
-        if (!error) {
-          error = document.createElement('div');
-          error.id = 'offer-error';
-          error.className = 'text-red-500 text-xs mt-2';
-          offerInput.parentNode.appendChild(error);
-        }
-        error.textContent = 'Offer price must be less than the base monthly price.';
-      } else {
-        if (error) error.remove();
-      }
-    }
-    offerInput.addEventListener('input', validateOffer);
-    baseInput.addEventListener('input', validateOffer);
-  }
-});
-// Landmark dynamic addition
+
+// Landmark Addition
 const addLandmarkBtn = document.getElementById('addLandmarkBtn');
 const landmarksContainer = document.getElementById('landmarksContainer');
 
@@ -622,5 +499,16 @@ addLandmarkBtn.addEventListener('click', function() {
   landmarksContainer.appendChild(input);
 });
 
-
+// Form Validation
+document.querySelector('form').addEventListener('submit', function(e) {
+  const latitude = latInput.value.trim();
+  const longitude = lngInput.value.trim();
+  
+  if (!latitude || !longitude) {
+    e.preventDefault();
+    showError('Please confirm location on map before proceeding.');
+    document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+});
 </script>

@@ -68,7 +68,7 @@
                 @endif
 
                 <div class="flex justify-end gap-3 mb-8">
-                    <a href="{{ route('hoardings.index') }}" class="px-5 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">Cancel</a>
+                    <a href="{{  route('vendor.hoardings.myHoardings') }}" class="px-5 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">Cancel</a>
                     <button type="submit" class="px-7 py-2 rounded bg-green-600 text-white font-semibold shadow hover:bg-green-700 transition">
                         @if($step < 3)
                             Next
