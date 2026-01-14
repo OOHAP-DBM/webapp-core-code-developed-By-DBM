@@ -14,39 +14,37 @@ class NewsletterController extends Controller
      */
     public function subscribe(Request $request)
     {
-        // Validate email
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|max:255',
         ]);
 
         if ($validator->fails()) {
-            return back()
-                ->withErrors($validator)
-                ->withInput()
-                ->with('newsletter_error', 'Please enter a valid email address.');
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Please enter a valid email address.'
+            ], 422);
         }
 
         $email = $request->email;
 
         try {
-            // Check if email already exists
+
             if (NewsletterSubscriber::isSubscribed($email)) {
-                return back()
-                    ->with('newsletter_info', 'You are already subscribed to our newsletter!');
+                return response()->json([
+                    'status' => 'info',
+                    'message' => 'You are already subscribed to our newsletter!'
+                ]);
             }
 
-            // Check if email was previously unsubscribed
-            $existingSubscriber = NewsletterSubscriber::where('email', $email)->first();
-            
-            if ($existingSubscriber) {
-                // Re-activate subscription
-                $existingSubscriber->update([
+            $subscriber = NewsletterSubscriber::where('email', $email)->first();
+
+            if ($subscriber) {
+                $subscriber->update([
                     'is_active' => true,
                     'subscribed_at' => now(),
                     'unsubscribed_at' => null,
                 ]);
             } else {
-                // Create new subscriber
                 NewsletterSubscriber::create([
                     'email' => $email,
                     'is_active' => true,
@@ -54,23 +52,23 @@ class NewsletterController extends Controller
                 ]);
             }
 
-            // Log subscription
-            Log::info('Newsletter subscription', ['email' => $email]);
-
-            // Return success message
-            return back()->with('newsletter_success', 'Thank you for subscribing! You will receive our latest offers and updates.');
-
-        } catch (\Exception $e) {
-            Log::error('Newsletter subscription failed', [
-                'email' => $email,
-                'error' => $e->getMessage()
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Thank you for subscribing..!'
             ]);
 
-            return back()
-                ->withInput()
-                ->with('newsletter_error', 'Something went wrong. Please try again later.');
+        } catch (\Exception $e) {
+
+            \Log::error($e);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong. Please try again later.'
+            ], 500);
         }
     }
+
+
 
     /**
      * Unsubscribe from newsletter

@@ -21,7 +21,7 @@
                     <th class="px-4 py-3">Hoarding Title</th>
                     <th class="px-4 py-3">Type</th>
                     <th class="px-4 py-3">Published By</th>
-                    <th class="px-4 py-3">Overall Commission</th>
+                    {{-- <th class="px-4 py-3">Overall Commission</th> --}}
                     <th class="px-4 py-3">Hoarding Commission</th>
                     <th class="px-4 py-3">Location</th>
                     <th class="px-4 py-3 text-center"># of Bookings</th>
@@ -46,7 +46,8 @@
                             ? number_format($hoarding->hoarding_commission, 0) . '%'
                             : '—';
 
-                        $progress = $isActive ? '100% Complete' : '60% Complete';
+                        $progressPercent = $hoarding->completion ?? 0;
+                        $progress = $progressPercent . '% Complete';
                     @endphp
 
                     <tr class="hover:bg-gray-50"
@@ -85,9 +86,9 @@
                         </td>
 
                         {{-- Overall Commission --}}
-                        <td class="px-4 py-3 text-blue-600">
+                        {{-- <td class="px-4 py-3 text-blue-600">
                             {{ $overallCommission }}
-                        </td>
+                        </td> --}}
 
                         {{-- Hoarding Commission --}}
                         <td class="px-4 py-3 text-green-600">

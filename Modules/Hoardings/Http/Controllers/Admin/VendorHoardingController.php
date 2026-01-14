@@ -4,10 +4,12 @@ namespace Modules\Hoardings\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Hoarding;
+use Modules\Mail\HoardingPublishedMail;
 use Modules\DOOH\Models\DOOHScreen;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Mail;
 
 
 class VendorHoardingController extends Controller
@@ -92,20 +94,22 @@ class VendorHoardingController extends Controller
             ->orderBy('id', 'desc')
             ->paginate($perPage);
 
-        // Transform the collection to match your expected UI structure
-        $hoardings->getCollection()->transform(function ($h) {
+
+        $completionService = app(\App\Services\HoardingCompletionService::class);
+        $hoardings->getCollection()->transform(function ($h) use ($completionService) {
             return (object) [
                 'id' => $h->id,
                 'vendor_profile_id' => $h->vendor?->vendorProfile?->id,
                 'title' => $h->title ?? $h->name,
-                'type' => strtoupper($h->hoarding_type), // Result: OOH or DOOH
+                'type' => strtoupper($h->hoarding_type),
                 'vendor' => $h->vendor,
                 'vendor_commission' => $h->vendor?->vendorProfile?->commission_percentage,
                 'hoarding_commission' => $h->commission_percent,
                 'address' => $h->address,
                 'bookings_count' => $h->bookings_count,
                 'status' => $h->status,
-                'source' => $h->hoarding_type, // 'ooh' or 'dooh'
+                'source' => $h->hoarding_type,
+                'completion' => $completionService->calculateCompletion($h),
             ];
         });
 
@@ -145,6 +149,23 @@ class VendorHoardingController extends Controller
 
         $hoarding->save();
 
+        // ✅ Send email to vendor when hoarding is published
+        if ($hoarding->status === 'active' && $hoarding->vendor) {
+            try {
+                if (!empty($hoarding->vendor->email)) {
+                    Mail::to($hoarding->vendor->email)->send(
+                        new HoardingPublishedMail($hoarding)
+                    );
+                }
+            } catch (\Throwable $e) {
+                \Log::error('Hoarding published mail failed', [
+                    'hoarding_id' => $hoarding->id,
+                    'vendor_email' => $hoarding->vendor->email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'status'  => $hoarding->status
@@ -162,6 +183,45 @@ class VendorHoardingController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Hoarding commission saved'
+        ]);
+    }
+
+    /**
+     * Show all hoardings in draft status for admin.
+     */
+    public function drafts(Request $request): View
+    {
+        $perPage = 10;
+        $hoardings = Hoarding::where('status', Hoarding::STATUS_DRAFT)
+            ->whereNotNull('vendor_id')
+            ->with([
+                'vendor:id,name',
+                'vendor.vendorProfile:id,user_id,commission_percentage',
+            ])
+            ->withCount('bookings')
+            ->orderBy('id', 'desc')
+            ->paginate($perPage);
+
+        $completionService = app(\App\Services\HoardingCompletionService::class);
+        $hoardings->getCollection()->transform(function ($h) use ($completionService) {
+            return (object) [
+                'id' => $h->id,
+                'vendor_profile_id' => $h->vendor?->vendorProfile?->id,
+                'title' => $h->title ?? $h->name,
+                'type' => strtoupper($h->hoarding_type),
+                'vendor' => $h->vendor,
+                'vendor_commission' => $h->vendor?->vendorProfile?->commission_percentage,
+                'hoarding_commission' => $h->commission_percent,
+                'address' => $h->address,
+                'bookings_count' => $h->bookings_count,
+                'status' => $h->status,
+                'source' => $h->hoarding_type,
+                'completion' => $completionService->calculateCompletion($h),
+            ];
+        });
+
+        return view('hoardings.admin.draft-hoardings', [
+            'hoardings' => $hoardings
         ]);
     }
 

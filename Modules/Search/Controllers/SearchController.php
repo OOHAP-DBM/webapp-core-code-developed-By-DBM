@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Modules\Cart\Services\CartService;
 
 class SearchController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, CartService $cartService): View
     {
         $isWeekly = $request->get('duration') === 'weekly';
         $query = DB::table('hoardings')
@@ -26,6 +27,8 @@ class SearchController extends Controller
                 $join->on('dooh_screens.hoarding_id', '=', 'hoardings.id')
                      ->whereNull('dooh_screens.deleted_at');
             })
+
+
             ->where('hoardings.status', 'active')
             ->whereNull('hoardings.deleted_at')
             ->select([
@@ -99,6 +102,7 @@ class SearchController extends Controller
                         ELSE hoardings.monthly_price
                     END AS price
                 "),
+
             ]);
         if ($isWeekly) {
             $query->where('hoardings.hoarding_type', 'ooh')
@@ -196,6 +200,37 @@ class SearchController extends Controller
                 $query->orderByDesc('hoardings.created_at');
         }
         $results = $query->paginate(10)->withQueryString();
-        return view('search.index', compact('results'));
+        $hoardingIds = $results->pluck('id')->toArray();
+
+        $oohImages = DB::table('hoarding_media')
+            ->whereIn('hoarding_id', $hoardingIds)
+            ->orderByDesc('is_primary')
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('hoarding_id');
+
+        $doohImages = DB::table('dooh_screen_media')
+            ->join('dooh_screens', 'dooh_screens.id', '=', 'dooh_screen_media.dooh_screen_id')
+            ->whereIn('dooh_screens.hoarding_id', $hoardingIds)
+            ->orderByDesc('dooh_screen_media.is_primary')
+            ->orderBy('dooh_screen_media.sort_order')
+            ->get()
+            ->groupBy('hoarding_id');
+
+        $results->getCollection()->transform(function ($item) use ($oohImages, $doohImages) {
+            $item->images = $item->hoarding_type === 'ooh'
+                ? ($oohImages[$item->id] ?? collect())
+                : ($doohImages[$item->id] ?? collect());
+
+            return $item;
+        });
+
+        $cartHoardingIds = auth()->check()
+        ? $cartService->getCartHoardingIds()
+        : [];
+        return view('search.index', [
+            'results' => $results,
+            'cartHoardingIds' => $cartHoardingIds,
+        ]);
     }
 }

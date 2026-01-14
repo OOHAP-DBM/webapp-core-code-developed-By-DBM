@@ -39,10 +39,6 @@
                     <td>{{ $user->email }}</td>
                 </tr>
                 <tr>
-                    <td><strong>Password</strong></td>
-                    <td>[Your Password]</td>
-                </tr>
-                <tr>
                     <td><strong>Login URL</strong></td>
                     <td><a href="https://staging.oohapp.io/" target="_blank">https://staging.oohapp.io/</a></td>
                 </tr>

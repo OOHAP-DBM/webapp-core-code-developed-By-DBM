@@ -7,25 +7,43 @@
                  {{-- RIGHT: LISTINGS --}}
                 <div class="w-1/2 overflow-y-auto" style="max-height: 700px;">
                     @forelse($results as $item)
+                         @php
+                            $images = collect($item->images ?? []);
+
+                            $primary = $images->firstWhere('is_primary', 1)
+                                ?? $images->first();
+
+                            $hasImage = (bool) $primary;
+
+                            $mainImage = $hasImage
+                                ? asset('storage/' . ltrim($primary->file_path, '/'))
+                                : null;
+
+                            $thumbs = $hasImage
+                                ? $images
+                                    ->where('file_path', '!=', $primary->file_path)
+                                    ->take(4)
+                                : collect();
+                        @endphp
                         <div class="rounded-lg p-4 mb-4 shadow bg-[#F8F8F8]">
                             <div class="flex gap-3">
                                 {{-- THUMBNAIL --}}
                                 <div class="w-50 flex-shrink-0">
                             <div class="relative group">
-                                <img src="{{ $dummyImage }}"
+                                <img src="{{ $mainImage }}"
                                     class="w-full h-30 object-cover rounded-lg">
                                 <!-- RECOMMENDED TAG -->
                                 <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded z-10">
                                     RECOMMENDED
                                 </span>
                                 <!-- SAVE (BOOKMARK) ICON -->
-                                <button
+                                <!-- <button
                                     class="absolute top-2 right-2 z-10
                                         bg-white/90 hover:bg-white
                                         border border-gray-200
-                                        rounded-full p-1.5 shadow">
+                                        rounded-full p-1.5 shadow"> -->
                                     <!-- bookmark svg -->
-                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                    <!-- <svg xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 24 24"
                                         fill="none"
                                         stroke="currentColor"
@@ -34,15 +52,15 @@
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M5 5v14l7-5 7 5V5a2 2 0 00-2-2H7a2 2 0 00-2 2z"/>
                                     </svg>
-                                </button>
+                                </button> -->
                                 <!-- VIEW (EYE) ICON -->
-                                <button
+                                <!-- <button
                                     class="absolute bottom-2 left-2 z-10
                                         bg-white/90 hover:bg-white
                                         border border-gray-200
-                                        rounded-full p-1.5 shadow">
+                                        rounded-full p-1.5 shadow"> -->
                                     <!-- eye svg -->
-                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                    <!-- <svg xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 24 24"
                                         fill="none"
                                         stroke="currentColor"
@@ -56,13 +74,19 @@
                                                 -1.274 4.057-5.065 7-9.542 7
                                                 -4.477 0-8.268-2.943-9.542-7z"/>
                                     </svg>
-                                </button>
+                                </button> -->
                             </div>
                             <div class="flex gap-2 mt-2">
-                                @foreach($dummyThumbs as $thumb)
-                                    <img src="{{ $thumb }}"
-                                        class="w-[44px] h-[48px] object-cover rounded ">
-                                @endforeach
+                                @if($thumbs->isNotEmpty())
+                                    <div class="flex gap-2 mt-2">
+                                        @foreach($thumbs as $thumb)
+                                            <img src="{{ asset('storage/' . ltrim($thumb->file_path, '/')) }}"
+                                                class="w-[44px] h-[48px] object-cover rounded"
+                                                alt="Thumbnail">
+                                        @endforeach
+                                    </div>
+                                @endif
+
                             </div>
                         </div>
                                 

@@ -34,46 +34,8 @@
     @endif
     @php
         /* =========================
-        | DUMMY DATA (FRONTEND ONLY)
+        | DATA PASSED FROM CONTROLLER
         ========================= */
-        $stats = [
-            'earnings' => 51000,
-            'total_hoardings' => 60,
-            'ooh' => 40,
-            'dooh' => 20,
-            'active' => 60,
-            'inactive' => 0,
-            'unsold' => 40,
-            'total_bookings' => 20,
-            'my_orders' => 10,
-            'pos' => 10,
-        ];
-
-        $topHoardings = [
-            ['title'=>'Hazratganj Chauraha','type'=>'OOH','cat'=>'Unipole','loc'=>'Lucknow','size'=>'250×650 Sqft','bookings'=>25,'publisher'=>'Inzamam Syed'],
-            ['title'=>'Hazratganj Chauraha','type'=>'OOH','cat'=>'Unipole','loc'=>'Lucknow','size'=>'250×650 Sqft','bookings'=>20,'publisher'=>'Taha Jamal'],
-            ['title'=>'Hazratganj Chauraha','type'=>'DOOH','cat'=>'Unipole','loc'=>'Lucknow','size'=>'250×650 Sqft','bookings'=>15,'publisher'=>'Abdul Hamid'],
-            ['title'=>'Hazratganj Chauraha','type'=>'OOH','cat'=>'Unipole','loc'=>'Lucknow','size'=>'250×650 Sqft','bookings'=>10,'publisher'=>'Abhishek Kumar'],
-            ['title'=>'Hazratganj Chauraha','type'=>'DOOH','cat'=>'Unipole','loc'=>'Lucknow','size'=>'250×650 Sqft','bookings'=>8,'publisher'=>'Vikas Singh'],
-        ];
-
-        $topCustomers = [
-            ['name'=>'Kenneth Allen','id'=>'OOHAPP1253','by'=>'Admin','bookings'=>20,'amount'=>56000,'loc'=>'Lucknow'],
-            ['name'=>'Kenneth Allen','id'=>'OOHAPP1253','by'=>'Admin','bookings'=>18,'amount'=>44000,'loc'=>'Gonda'],
-            ['name'=>'Kenneth Allen','id'=>'OOHAPP1253','by'=>'Self','bookings'=>16,'amount'=>35000,'loc'=>'Bahraich'],
-            ['name'=>'Kenneth Allen','id'=>'OOHAPP1253','by'=>'Admin','bookings'=>14,'amount'=>28000,'loc'=>'Basti'],
-            ['name'=>'Kenneth Allen','id'=>'OOHAPP1253','by'=>'Admin','bookings'=>10,'amount'=>19000,'loc'=>'Gorakhpur'],
-        ];
-
-        $transactions = collect(range(1,5))->map(fn($i)=>[
-            'id'=>'#11330',
-            'customer'=>'Rhonda Rhodes',
-            'bookings'=>6,
-            'status'=>'PAID',
-            'type'=>'ONLINE',
-            'date'=>'Nov 8, 25 · 6:00 AM',
-            'amount'=>35000
-        ]);
     @endphp
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-6">
@@ -162,7 +124,7 @@
                         <th class="px-6 py-3 text-left">Categories</th>
                         <th class="px-6 py-3 text-left">Hoarding Location</th>
                         <th class="px-6 py-3 text-left">Size</th>
-                        <th class="px-6 py-3 text-left"># Of Bookings</th>
+                        <!-- <th class="px-6 py-3 text-left"># Of Bookings</th> -->
                         <th class="px-6 py-3 text-left">Published By</th>
                     </tr>
                 </thead>
@@ -181,9 +143,9 @@
                         <td class="px-6 py-4 truncate max-w-[160px]">{{ $h['loc'] }}</td>
                         <td class="px-6 py-4">{{ $h['size'] }}</td>
 
-                        <td class="px-6 py-4 text-green-600 font-semibold">
+                        <!-- <td class="px-6 py-4 text-green-600 font-semibold">
                             {{ $h['bookings'] }}
-                        </td>
+                        </td> -->
 
                         <td class="px-6 py-4 text-blue-600 hover:underline cursor-pointer">
                             {{ $h['publisher'] }}
@@ -218,7 +180,7 @@
                         <th class="px-6 py-3 text-left">Customer</th>
                         <th class="px-6 py-3 text-left">Customer ID</th>
                         <th class="px-6 py-3 text-left">Registered By</th>
-                        <th class="px-6 py-3 text-left"># Of Bookings</th>
+                        <!-- <th class="px-6 py-3 text-left"># Of Bookings</th> -->
                         <th class="px-6 py-3 text-left">Total Amount</th>
                         <th class="px-6 py-3 text-left">Location</th>
                     </tr>
@@ -236,9 +198,9 @@
                             By {{ $c['by'] }}
                         </td>
 
-                        <td class="px-6 py-4 text-green-600 font-semibold">
+                        <!-- <td class="px-6 py-4 text-green-600 font-semibold">
                             {{ $c['bookings'] }}
-                        </td>
+                        </td> -->
 
                         <td class="px-6 py-4 text-blue-600 font-semibold">
                             ₹{{ number_format($c['amount']) }}

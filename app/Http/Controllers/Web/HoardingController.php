@@ -41,7 +41,10 @@ class HoardingController extends Controller
      */
     public function show(int $id)
     {
-        $hoarding = $this->hoardingService->getById($id);
+        $hoarding = Hoarding::with([
+        'hoardingMedia',       
+        'doohScreen.media',     
+        ])->findOrFail($id);
 
         if (!$hoarding || !$hoarding->isActive()) {
             abort(404);

@@ -140,21 +140,14 @@
                             @endauth
                         </div>
 
-                        {{-- LINKS --}}
-                        <div class="py-2 text-sm">
 
-                            <a href="javascript:void(0)"
-                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                My Booking
-                            </a>
-
-                            <a href="javascript:void(0)"
-                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                Enquiry
-                            </a>
 
                             @auth
-                                <a href="javascript:void(0)"
+                                <a href="{{ $dashboardUrl }}"
+                                class="flex items-center font-semibold justify-between px-4 pt-2 text-gray-700 hover:bg-gray-100">
+                                    Dashboard
+                                </a>
+                                <!-- <a href="javascript:void(0)"
                                 class="flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-gray-100">
                                     Messenger
                                     <span class="w-2 h-2 bg-green-500 rounded-full"></span>
@@ -188,13 +181,25 @@
                                 <a href="javascript:void(0)"
                                 class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                                     Subscription
-                                </a>
+                                </a> -->
                             @endauth
-
+                                                   {{-- LINKS --}}
+                        <div class="py-2 text-sm">
+<!-- 
                             <a href="javascript:void(0)"
                             class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                My Booking
+                            </a> -->
+
+                            <!-- <a href="javascript:void(0)"
+                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                Enquiry
+                            </a> -->
+
+                            <!-- <a href="javascript:void(0)"
+                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                                 Help Center
-                            </a>
+                            </a> -->
 
                             @auth
                                 <button
@@ -228,6 +233,19 @@
                             <circle cx="9" cy="19" r="1.5" fill="currentColor"/>
                             <circle cx="17" cy="19" r="1.5" fill="currentColor"/>
                         </svg>
+                        @php
+                            $cartCount = 0;
+                            if(auth()->check()) {
+                                $cartCount = \Illuminate\Support\Facades\DB::table('carts')
+                                    ->where('user_id', auth()->id())
+                                    ->count();
+                            }
+                        @endphp
+                        @if($cartCount > 0)
+                            <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                {{ $cartCount }}
+                            </span>
+                        @endif
                     </a>
 
                 <!-- Mobile Menu Button -->

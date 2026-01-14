@@ -1,6 +1,4 @@
 <?php
-
-
 namespace Modules\DOOH\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
@@ -183,6 +181,11 @@ class DOOHController extends Controller
 
             $result = $service->storeStep3($draft, $request->all());
             if ($result['success']) {
+                // Auto-generate SEO title if empty
+                if (empty($draft->hoarding->title)) {
+                    $draft->hoarding->title = $draft->hoarding->generateSeoTitle();
+                    $draft->hoarding->save();
+                }
                 $draft->hoarding->status = Hoarding::STATUS_PENDING_APPROVAL;
                 $draft->hoarding->current_step = 3; // Mark as finished
                 $draft->save();
@@ -192,5 +195,71 @@ class DOOHController extends Controller
             }
             return back()->withErrors($result['errors'])->withInput();
         }
+    }
+
+    /**
+     * Show the form for editing the specified DOOH screen.
+     */
+    public function edit($id)
+    {
+        $vendor = Auth::user();
+        $screen = DOOHScreen::where('id', $id)
+            ->whereHas('hoarding', function ($q) use ($vendor) {
+                $q->where('vendor_id', $vendor->id);
+            })->firstOrFail();
+        // Fetch attributes for dropdowns if needed
+        $attributes = \App\Models\HoardingAttribute::groupedByType();
+        return view('dooh.vendor.edit', [
+            'screen' => $screen,
+            'attributes' => $attributes,
+        ]);
+    }
+
+    /**
+     * Update the specified DOOH screen in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $vendor = Auth::user();
+        $screen = DOOHScreen::where('id', $id)
+            ->whereHas('hoarding', function ($q) use ($vendor) {
+                $q->where('vendor_id', $vendor->id);
+            })->firstOrFail();
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price_per_month' => 'required|numeric|min:0',
+            // Add other validation rules as needed
+            'primary_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+        ]);
+
+        // Handle primary image update
+        if ($request->hasFile('primary_image')) {
+            if ($screen->primary_image) {
+                \Storage::disk('public')->delete($screen->primary_image);
+            }
+            $validated['primary_image'] = $request->file('primary_image')->store('dooh/screens', 'public');
+        }
+
+        // Handle gallery images update (optional, simplistic: remove all, add new)
+        if ($request->hasFile('gallery_images')) {
+            foreach ($screen->galleryImages as $image) {
+                \Storage::disk('public')->delete($image->image_path);
+                $image->delete();
+            }
+            foreach ($request->file('gallery_images') as $file) {
+                $screen->galleryImages()->create([
+                    'image_path' => $file->store('dooh/screens/gallery', 'public'),
+                ]);
+            }
+        }
+
+        $screen->update($validated);
+
+        return redirect()
+            ->route('hoardings.vendor.index')
+            ->with('success', 'DOOH screen updated successfully!');
     }
 }

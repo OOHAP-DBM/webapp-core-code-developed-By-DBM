@@ -143,8 +143,7 @@
 
 @push('scripts')
 
-    {{-- ✅ PACKAGES DATA (JS KO FEED) --}}
-    <script>
+   <script>
         window.allPackages = @json(
             $hoarding->packages->map(fn($p)=>[
                 'id'   => $p->id,
@@ -152,10 +151,9 @@
                 'price'=> $hoarding->hoarding_type === 'ooh'
                     ? $p->base_monthly_price * $p->min_booking_duration
                     : $p->slots_per_month
-                    
             ])
-            console.log('[DEBUG] All Packages Data:', $p)
         );
+        console.log('[DEBUG] All Packages Data:', window.allPackages);
     </script>
 
     {{-- ENQUIRY MODAL JS --}}

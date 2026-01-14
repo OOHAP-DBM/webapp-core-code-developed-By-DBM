@@ -109,13 +109,13 @@
                     </button>
 
 
-                    <a href="#" class="text-blue-500 hover:underline">
+                    {{-- <a href="#" class="text-blue-500 hover:underline">
                         Bookmark
                     </a>
 
                     <a href="#" class="text-blue-500 hover:underline">
                         Share
-                    </a>
+                    </a> --}}
 
                 </div>
             </div>

@@ -18,21 +18,23 @@
             </div>
 
             <div class="py-4 flex flex-col md:flex-row items-center gap-3">
-                <div class="relative flex-1">
+
+                <form method="GET" action="{{ route('vendor.hoardings.myHoardings', ['tab' => $activeTab]) }}" class="relative flex-1 flex items-center">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
-                    <input type="text" placeholder="Search hoardings..." 
+                    <input type="text" name="search" value="{{ request('vendor.hoardings.index') }}" placeholder="Search hoardings..." 
                         class="block w-full pl-9 pr-3 py-2 bg-[#F3F4F6] border-none rounded-md focus:ring-1 focus:ring-emerald-500 text-[13px]">
-                </div>
+                    <button type="submit" class="hidden"></button>
+                </form>
 
                 <div class="flex items-center gap-2">
                     <button class="p-2 bg-[#E6F6F0] text-[#00A86B] rounded-md border border-emerald-50">
                         <i class="fa-solid fa-filter"></i>
                     </button>
-                    <button class="px-10 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px]">
+                    {{-- <button class="px-10 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px]">
                         Export
-                    </button>
+                    </button> --}}
                     <a href="{{ route('vendor.hoardings.create') }}" 
                         class="px-5 py-2 bg-[#0087D1] text-white font-medium rounded-md text-[13px] flex items-center">
                         + Add New Hoarding
@@ -59,9 +61,9 @@
                             <th class="px-4 py-5">Hoarding Title</th>
                             <th class="px-4 py-5">Type</th>
                             <th class="px-4 py-5">Location</th>
-                            @if($activeTab !== 'draft')
+                            <!-- @if($activeTab !== 'draft')
                                 <th class="px-4 py-5"># of Bookings</th>
-                            @endif
+                            @endif -->
                             <th class="px-4 py-5">Status</th>
                             <th class="px-4 py-5 text-center">Action</th>
                         </tr>
@@ -82,11 +84,11 @@
                             <td class="px-4 py-4 uppercase tracking-wide text-gray-500">{{ $hoarding['hoarding_type'] }}</td>
                             <td class="px-4 py-4 text-gray-400 truncate max-w-[180px]">{{ $hoarding['location'] }}</td>
                             
-                            @if($activeTab !== 'draft')
+                            <!-- @if($activeTab !== 'draft')
                             <td class="px-4 py-4 text-gray-500 underline decoration-gray-200">
                                 {{ $hoarding['bookings_count'] ?? '0' }}
                             </td>
-                            @endif
+                            @endif -->
 
                             <td class="px-4 py-4">
                                 @if(!$isPending)
@@ -115,7 +117,7 @@
                                     </button>
 
                                     <div id="menu-{{ $hoarding['id'] }}" 
-                                         class="hidden absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl border border-gray-100 z-[100] overflow-hidden">
+                                         class="hidden absolute right-0 -mt-[70px] w-40 bg-white rounded-lg shadow-xl border border-gray-100 z-[100] overflow-hidden">
                                         <div class="p-1 space-y-1 text-left">
                                             @if($activeTab === 'draft')
                                                 <a href="{{ route('vendor.hoardings.edit', $hoarding['id']) }}" class="flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-gray-600 hover:bg-gray-50 rounded">

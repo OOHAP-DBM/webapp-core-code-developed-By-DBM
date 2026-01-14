@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
+use App\Models\Hoarding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -11,7 +13,9 @@ class DashboardController extends Controller
     public function index()
     {
         $vendor = Auth::user();
+        $userId = $vendor->id;
         $profile = $vendor->vendorProfile;
+        
         // Only allow dashboard if onboarding_status is pending_approval or approved
         if (!$profile || !in_array($profile->onboarding_status, ['pending_approval', 'approved'])) {
             // Redirect to correct onboarding step
@@ -19,78 +23,102 @@ class DashboardController extends Controller
             $routes = [
                 1 => 'vendor.onboarding.contact-details',
                 2 => 'vendor.onboarding.business-info',
-                // 3 => 'vendor.onboarding.kyc-documents',
-                // 4 => 'vendor.onboarding.bank-details',
-                // 5 => 'vendor.onboarding.terms-agreement',
             ];
             $route = $routes[$step] ?? 'vendor.onboarding.contact-details';
             return redirect()->route($route)
                 ->with('info', 'Please complete your vendor onboarding.');
         }
 
-        // ...existing code for dashboard stats and view...
-        // Calculate stats
+        // Get statistics
+        $totalEarnings = Booking::where('vendor_id', $userId)
+            ->where('payment_status', 'paid')
+            ->sum('total_amount') ?? 0;
+
+        $totalHoardings = Hoarding::where('vendor_id', $userId)->count();
+        $oohHoardings = Hoarding::where('vendor_id', $userId)->where('hoarding_type', 'ooh')->count();
+        $doohHoardings = Hoarding::where('vendor_id', $userId)->where('hoarding_type', 'dooh')->count();
+        $activeHoardings = Hoarding::where('vendor_id', $userId)->where('status', 'active')->count();
+        $inactiveHoardings = Hoarding::where('vendor_id', $userId)->where('status', 'inactive')->count();
+        $unsoldHoardings = Hoarding::where('vendor_id', $userId)->where('status', 'draft')->count();
+
+        $totalBookings = Booking::where('vendor_id', $userId)->count();
+        $myOrders = Booking::where('vendor_id', $userId)->count();
+        $posBookings = 0;
+
         $stats = [
-            'total_revenue' => $vendor->bookings()
-                ->where('payment_status', 'paid')
-                ->sum('total_amount'),
-            'revenue_change' => 12.5, // Calculate percentage change
-            'active_bookings' => $vendor->bookings()
-                ->whereIn('status', ['confirmed', 'active'])
-                ->count(),
-            'bookings_change' => 5, // New this week
-            'total_listings' => $vendor->hoardings()->count(),
-            'available_listings' => $vendor->hoardings()
-                ->where('status', 'approved')
-                ->count(),
-            'pending_tasks' => $vendor->tasks()
-                ->whereIn('status', ['pending', 'in_progress'])
-                ->count(),
-            'overdue_tasks' => $vendor->tasks()
-                ->where('due_date', '<', now())
-                ->where('status', '!=', 'completed')
-                ->count(),
+            'earnings' => $totalEarnings,
+            'total_hoardings' => $totalHoardings,
+            'ooh' => $oohHoardings,
+            'dooh' => $doohHoardings,
+            'active' => $activeHoardings,
+            'inactive' => $inactiveHoardings,
+            'unsold' => $unsoldHoardings,
+            'total_bookings' => $totalBookings,
+            'my_orders' => $myOrders,
+            'pos' => $posBookings,
         ];
-        
-        // Revenue chart data (last 7 days)
-        $revenueChartLabels = [];
-        $revenueChartData = [];
-        
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-            $revenueChartLabels[] = $date->format('M d');
-            $revenueChartData[] = $vendor->bookings()
-                ->whereDate('created_at', $date)
-                ->where('payment_status', 'paid')
-                ->sum('total_amount');
-        }
-        
-        // Booking status stats
-        $stats['confirmed_bookings'] = $vendor->bookings()->where('status', 'confirmed')->count();
-        $stats['pending_bookings'] = $vendor->bookings()->where('status', 'pending')->count();
-        $stats['completed_bookings'] = $vendor->bookings()->where('status', 'completed')->count();
-        $stats['cancelled_bookings'] = $vendor->bookings()->where('status', 'cancelled')->count();
-        
-        // Recent bookings
-        $recentBookings = $vendor->bookings()
-            ->with(['customer', 'hoarding'])
-            ->latest()
+
+        // Get top hoardings by bookings
+        $topHoardings = Hoarding::where('vendor_id', $userId)
+            ->withCount('bookings')
+            ->orderBy('bookings_count', 'desc')
             ->take(5)
-            ->get();
-        
-        // Pending tasks
-        $pendingTasks = $vendor->tasks()
-            ->where('status', '!=', 'completed')
-            ->orderBy('due_date', 'asc')
+            ->get()
+            ->map(function($h) {
+                return [
+                    'title' => $h->title,
+                    'type' => strtoupper($h->hoarding_type),
+                    'cat' => $h->category ?? 'N/A',
+                    'loc' => $h->city ?? 'N/A',
+                    'size' => $h->name ?? 'N/A',
+                    'bookings' => $h->bookings_count,
+                    'publisher' => Auth::user()->name ?? 'Unknown',
+                ];
+            })->toArray();
+
+        // Get top customers by amount spent
+        $topCustomers = Booking::where('vendor_id', $userId)
+            ->selectRaw('customer_id, COUNT(*) as bookings, SUM(total_amount) as amount')
+            ->groupBy('customer_id')
+            ->orderBy('amount', 'desc')
             ->take(5)
-            ->get();
-        
+            ->with('customer')
+            ->get()
+            ->map(function($b) {
+                return [
+                    'name' => $b->customer->name ?? 'Unknown',
+                    'id' => $b->customer->id ? 'OOHAPP' . str_pad($b->customer->id, 4, '0', STR_PAD_LEFT) : 'N/A',
+                    'by' => 'System',
+                    'bookings' => $b->bookings,
+                    'amount' => $b->amount ?? 0,
+                    'loc' => $b->customer->state ?? 'N/A',
+                ];
+            })->toArray();
+
+        // Get recent transactions
+        $transactions = Booking::where('vendor_id', $userId)
+            ->with('customer')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function($t) {
+                return [
+                    'id' => '#' . str_pad($t->id, 5, '0', STR_PAD_LEFT),
+                    'customer' => $t->customer->name ?? 'Unknown',
+                    'bookings' => 1,
+                    'status' => strtoupper($t->payment_status ?? 'PENDING'),
+                    'type' => 'ONLINE',
+                    'date' => $t->created_at->format('M d, y · g:i A'),
+                    'amount' => $t->total_amount ?? 0,
+                    'id_numeric' => $t->id,
+                ];
+            })->toArray();
+
         return view('vendor.dashboard', compact(
             'stats',
-            'revenueChartLabels',
-            'revenueChartData',
-            'recentBookings',
-            'pendingTasks'
+            'topHoardings',
+            'topCustomers',
+            'transactions'
         ));
     }
 }

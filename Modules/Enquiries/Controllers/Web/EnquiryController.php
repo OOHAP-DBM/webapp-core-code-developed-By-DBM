@@ -25,7 +25,9 @@ class EnquiryController extends Controller
     public function index(Request $request)
     {
         $query = Enquiry::where('customer_id', Auth::id())
-            ->with(['hoarding', 'quotation'])
+            // ->with(['items.hoarding', 'quotation'])
+            ->with(['items.hoarding'])
+
             ->latest();
 
         if ($request->filled('status')) {

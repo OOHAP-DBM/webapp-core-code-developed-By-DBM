@@ -15,11 +15,12 @@ use \Modules\DOOH\Models\DOOHScreen;
 use \Modules\Hoardings\Models\OOHHoarding;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Hoardings\Models\HoardingPackage;
+use Modules\Hoardings\Models\HoardingMedia;
 use Modules\Hoardings\Models\HoardingBrandLogo;
 use Modules\Enquiries\Models\Enquiry;
 
 class Hoarding extends Model implements HasMedia
-   
+
 {
     use HasFactory, SoftDeletes, HasSnapshots, Auditable, InteractsWithMedia;
 
@@ -172,6 +173,15 @@ class Hoarding extends Model implements HasMedia
     const STATUS_SUSPENDED        = 'suspended';
 
     /* ===================== RELATIONSHIPS ===================== */
+    public function hoardingMedia()
+    {
+        return $this->hasMany(
+            HoardingMedia::class,
+            'hoarding_id',
+            'id'
+        )->orderBy('is_primary', 'desc')
+        ->orderBy('sort_order');
+    }
 
     public function vendor(): BelongsTo
     {
@@ -511,5 +521,94 @@ class Hoarding extends Model implements HasMedia
     public function lightingAttribute()
     {
         return $this->belongsTo(\App\Models\HoardingAttribute::class, 'lighting_id');
+    }
+
+    /**
+     * Generate an SEO-friendly title for this hoarding (OOH or DOOH).
+     * Uses location, type, size, and features.
+     *
+     * @return string
+     */
+    public function generateSeoTitle(): string
+    {
+        // Determine type and child
+        $type = $this->hoarding_type ?? ($this->ooh ? 'ooh' : ($this->doohScreen ? 'dooh' : ''));
+        $child = $type === 'ooh' ? $this->ooh : ($type === 'dooh' ? $this->doohScreen : null);
+
+        // Type label
+        $typeLabel = '';
+        if ($type === 'ooh' && $child) {
+            $typeLabel = ucfirst($child->format ?? 'Billboard');
+        } elseif ($type === 'dooh' && $child) {
+            $typeLabel = $child->screen_type ? ucfirst($child->screen_type) : 'LED Screen';
+        }
+        if (!$typeLabel) {
+            $typeLabel = 'Hoarding';
+        }
+
+        // Location
+        $parts = [];
+        if (!empty($this->locality)) $parts[] = $this->locality;
+        if (!empty($this->city)) $parts[] = $this->city;
+        if (empty($parts) && !empty($this->address)) $parts[] = $this->address;
+        if ($child && !empty($child->landmark)) $parts[] = $child->landmark;
+        $location = implode(', ', $parts);
+
+        // Size
+        $size = '';
+        if ($child && !empty($child->width) && !empty($child->height)) {
+            $unit = $child->unit ?? 'ft';
+            $size = $child->width . 'x' . $child->height . ' ' . $unit;
+        }
+
+        // Features
+        $features = [];
+        if ($child && !empty($child->hoarding_visibility)) {
+            $features[] = ucfirst($child->hoarding_visibility);
+        }
+        if ($child && !empty($child->audience_types)) {
+            $aud = is_array($child->audience_types) ? implode('/', $child->audience_types) : $child->audience_types;
+            $features[] = $aud;
+        }
+        if ($child && !empty($child->main_features)) {
+            $features[] = $child->main_features;
+        }
+
+        // Compose title
+        $title = $typeLabel;
+        if ($location) $title .= ' in ' . $location;
+        if ($size) $title .= ' - ' . $size;
+        if ($features) $title .= ', ' . implode(', ', $features);
+
+        // Add main keywords for SEO
+        if ($type === 'ooh') {
+            $title .= ' | OOH Advertising';
+        } elseif ($type === 'dooh') {
+            $title .= ' | Digital Screen';
+        }
+        if (!empty($this->city)) {
+            $title .= ' | ' . $this->city;
+        }
+
+        // Ensure uniqueness (append id if needed)
+        $existing = self::where('title', $title)->where('id', '!=', $this->id)->exists();
+        if ($existing) {
+            $title .= ' #' . ($this->id ?? uniqid());
+        }
+
+        return $title;
+    }
+
+    /**
+     * Scope a query to search by title, address, city, or description.
+     */
+    public function scopeSearch($query, $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+                ->orWhere('address', 'like', "%{$search}%")
+                ->orWhere('city', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%");
+        });
     }
 }

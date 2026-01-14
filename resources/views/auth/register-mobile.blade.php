@@ -12,6 +12,14 @@ html, body {
     height: 100%;
     overflow: hidden;
 }
+#final-section{
+    margin-left:0!important;
+}
+@media (min-width: 992px) {
+    #final-section {
+        margin-left: -200px !important;
+    }
+}
 .auth-wrapper {
     width: 100vw;
     height: 100vh;
@@ -98,9 +106,16 @@ html, body {
 }
 /* OTP section positioning fix */
 .otp-section {
-    position: relative;
-    top: -150px;
-    left: 0;
+    margin-top:-250px!important;
+}
+.otp-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #d1fae5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* ONLY large screens (lg and above) */
@@ -147,15 +162,7 @@ html, body {
 
         <!-- ================= MOBILE INPUT ================= -->
         <div id="mobile-section">
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $err)
-                            <li>{{ $err }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+           
 
             <h3 class="mb-3 text-center mb-3">Signup</h3>
 
@@ -166,7 +173,7 @@ html, body {
                     placeholder="Mobile Number"
                     maxlength="10">
                 <small class="text-muted">
-                    We will send a 6-digit OTP to your mobile
+                    We will send a 4-digit OTP to your mobile
                 </small>
             </div>
 
@@ -196,6 +203,11 @@ html, body {
 
         <!-- ================= OTP ================= -->
         <div id="otp-section" class="d-none mt-4 otp-section">
+             <div class="mb-3 otp-text">
+                <div class="otp-icon">
+                    <i class="fa-solid fa-envelope text-success fs-3"></i>
+                </div>
+            </div>
           <div id="otpError" class="alert alert-danger d-none mb-2"></div>
             <div class="otp-text">
                 <h6 class="fw-semibold mb-1 fs-4">Verify with OTP</h6>
@@ -210,12 +222,20 @@ html, body {
                 <input class="otp-box form-control" maxlength="1">
                 <input class="otp-box form-control" maxlength="1">
             </div>
+            <div class="otp-text">
+                <small class="text-muted">
+                    Resend OTP in <span class="text-success fw-bold ">00:30</span>
+                </small>
+            </div>
         </div>
 
         <!-- ================= FINAL REGISTER ================= -->
-        <div id="final-section" class="d-none mt-4">
+        <div id="final-section" class="d-none mt-4" style="margin-top:-250px !important;">
 
-            <h5 class="mb-3">Create Password</h5>
+            <h3 class="text-start mb-2">Create a Password</h3>
+            <p class="text-start mb-1 small">
+                Password should be minimum 4 character
+            </p>
 
             <form method="POST"
                 action="{{ route('register.submit') }}"
@@ -229,6 +249,9 @@ html, body {
                 <input type="hidden" name="role" value="{{ session('signup_role') }}">
 
                 <!-- NAME -->
+                 <p class="text-start mb-1">
+                    Name <span class="text-danger">*</span>
+                </p>
                 <div class="mb-2">
                     <input type="text"
                         name="name"
@@ -242,6 +265,9 @@ html, body {
                 </div>
 
                 <!-- PASSWORD -->
+                 <p class="text-start mb-1">
+                    Password <span class="text-danger">*</span>
+                </p>
                 <div class="mb-2 position-relative">
                     <input type="password"
                         id="password"
@@ -249,13 +275,16 @@ html, body {
                         class="form-control"
                         placeholder="Password"
                         autocomplete="new-password"
-                        required>
+                        required >
                     <span class="toggle-password" data-target="password">
                         <i class="fa fa-eye"></i>
                     </span>
                 </div>
 
                 <!-- CONFIRM PASSWORD -->
+                 <p class="text-start mb-1">
+                Confirm Password <span class="text-danger">*</span>
+            </p>
                 <div class="mb-2 position-relative">
                     <input type="password"
                         id="password_confirmation"
@@ -438,9 +467,9 @@ html, body {
                 return;
             }
 
-            if (password.value.length < 8) {
+            if (password.value.length < 4) {
                 e.preventDefault();
-                showError('Password must be at least 8 characters long');
+                showError('Password must be at least 4 characters long');
                 password.focus();
                 return;
             }
