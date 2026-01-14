@@ -108,7 +108,7 @@
     <button class="w-full bg-green-500 text-white py-3 rounded-md text-sm font-semibold">
         Sort list
     </button>
-
+{{-- 
     <a href="javascript:void(0)"
        class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium"
        data-hoarding-id="{{ $hoarding->id }}"
@@ -125,7 +125,30 @@
        })"
     >
         Enquire Now
+    </a> --}}
+    @auth
+    @if(auth()->user()->hasRole('customer'))
+    <a href="javascript:void(0)"
+       class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium enquiry-btn"
+       data-hoarding-id="{{ $hoarding->id }}"
+       data-hoarding-type="{{ $hoarding->hoarding_type ?? 'ooh' }}"
+       data-base-price="{{ $hoarding->hoarding_type === 'dooh' ? ($hoarding->doohScreen->price_per_slot ?? 0) : ($hoarding->monthly_price ?? 0) }}"
+       data-grace-days="{{ (int) $hoarding->grace_period_days }}"
+       data-count="1"
+    >
+        Enquire Now
     </a>
+    @else
+    <span class="mt-3 block text-center text-xs text-gray-400 font-medium cursor-not-allowed" title="Only customers can raise enquiries">
+        Enquire Now (Customers Only)
+    </span>
+    @endif
+@else
+<a href="{{ route('login') }}?intended={{ urlencode(url()->current()) }}" 
+   class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium">
+    Login to Enquire
+</a>
+@endauth
 
 
 

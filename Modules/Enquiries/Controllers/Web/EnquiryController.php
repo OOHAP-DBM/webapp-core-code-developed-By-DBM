@@ -22,8 +22,22 @@ class EnquiryController extends Controller
     /* =====================================================
      | INDEX
      ===================================================== */
+    /**
+     * Apply customer-only middleware to all methods
+     */
+    public function __construct()
+    {
+        $this->middleware(['auth', 'role:customer']);
+    }
+
     public function index(Request $request)
     {
+        if (!auth()->check() || !auth()->user()->hasRole('customer')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only customers can view enquiries.'
+            ], 403);
+        }
         $query = Enquiry::where('customer_id', Auth::id())
             // ->with(['items.hoarding', 'quotation'])
             ->with(['items.hoarding'])
@@ -44,6 +58,18 @@ class EnquiryController extends Controller
      ===================================================== */
     public function create(Request $request)
     {
+        // Role validation (redundant but defensive)
+        if (!auth()->check() || !auth()->user()->hasRole('customer')) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only customers can create enquiries.'
+                ], 403);
+            }
+            return redirect()->route('login')
+                ->with('error', 'Please login as a customer to create an enquiry.');
+        }
+
         \Log::info('Enquiry Create Request', $request->all());
         $hoarding = null;
         $packages = collect();
@@ -105,6 +131,14 @@ class EnquiryController extends Controller
 
     public function store(Request $request, EnquiryService $enquiryService)
     {
+        // 🔒 ENFORCE CUSTOMER ROLE (CRITICAL BACKEND VALIDATION)
+        if (!auth()->check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please login to submit an enquiry.'
+            ], 401);
+        }
+
         \Log::info('Enquiry Store Request in store method', $request->all());
         return $enquiryService->createEnquiry($request);
     }
