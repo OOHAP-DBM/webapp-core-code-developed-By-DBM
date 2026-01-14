@@ -24,7 +24,7 @@
                     {{-- <th class="px-4 py-3">Overall Commission</th> --}}
                     <th class="px-4 py-3">Hoarding Commission</th>
                     <th class="px-4 py-3">Location</th>
-                    <th class="px-4 py-3 text-center"># of Bookings</th>
+                    {{-- <th class="px-4 py-3 text-center"># of Bookings</th> --}}
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3">Hoarding Expire On</th>
                     <th class="px-4 py-3">Progress</th>
@@ -101,9 +101,9 @@
                         </td>
 
                         {{-- Bookings --}}
-                        <td class="px-4 py-3 text-center">
+                        {{-- <td class="px-4 py-3 text-center">
                             {{ $hoarding->bookings_count ?? 0 }}
-                        </td>
+                        </td> --}}
 
                         {{-- Status --}}
                         <td class="px-4 py-3">
@@ -135,11 +135,7 @@
 
                         {{-- Expiry --}}
                         <td class="px-4 py-3 text-xs">
-                            @if($isActive)
-                                <span class="text-gray-600">2 Days left</span>
-                            @else
-                                <span class="text-red-500">Expired</span>
-                            @endif
+                            {{ $hoarding->expiry_date ? $hoarding->expiry_date->format('d M, Y') : '—' }}
                         </td>
 
                         {{-- Progress --}}
@@ -361,7 +357,7 @@
                         return;
                     }
 
-                    fetch(`/admin/vendor-hoardings/${this.hoardingId}/set-commission`, {
+                    fetch(/admin/vendor-hoardings/${this.hoardingId}/set-commission, {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -461,7 +457,7 @@
                         return;
                     }
 
-                    fetch(`/admin/vendors/${this.vendorProfileId}/approve`, {
+                    fetch(/admin/vendors/${this.vendorProfileId}/approve, {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -480,7 +476,7 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Vendor Approved!',
-                            text: `Commission set to ${this.to}%`,
+                            text: Commission set to ${this.to}%,
                             confirmButtonColor: '#16a34a',
                             timer: 2000,
                             showConfirmButton: false
@@ -532,7 +528,7 @@
                         return;
                     }
 
-                    fetch(`/admin/vendor-hoardings/${id}/toggle-status`, {
+                    fetch(/admin/vendor-hoardings/${id}/toggle-status, {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',

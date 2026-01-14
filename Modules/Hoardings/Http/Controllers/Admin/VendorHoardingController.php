@@ -110,6 +110,7 @@ class VendorHoardingController extends Controller
                 'status' => $h->status,
                 'source' => $h->hoarding_type,
                 'completion' => $completionService->calculateCompletion($h),
+                'expiry_date' => $h->permit_valid_till ? \Carbon\Carbon::parse($h->permit_valid_till) : null,
             ];
         });
 

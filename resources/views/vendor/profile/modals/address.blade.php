@@ -76,10 +76,10 @@
                 name="country"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:ring-green-500"
             >
-                <option selected>{{ $vendor->country }}</option>
-                <option>India</option>
-                <option>USA</option>
-                <option>UK</option>
+                <option selected>{{ $user->country ?? 'Select Country' }}</option>
+                <option value="India">India</option>
+                <option value="USA">USA</option>
+                <option value="UK">UK</option>
             </select>
         </div>
     </div>

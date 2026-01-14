@@ -123,7 +123,19 @@
                                                 <a href="{{ route('vendor.hoardings.edit', $hoarding['id']) }}" class="flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-gray-600 hover:bg-gray-50 rounded">
                                                     <i class="fa-solid fa-pen-to-square opacity-60"></i> Edit Draft
                                                 </a>
+                                            @else
+                                                {{-- Toggle Active/Inactive for published hoardings --}}
+                                                @if(!in_array($status, ['pending_approval']))
+                                                    <form action="{{ route('vendor.hoardings.toggle', $hoarding['id']) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium {{ $isActive ? 'text-orange-500 hover:bg-orange-50' : 'text-emerald-600 hover:bg-emerald-50' }} rounded">
+                                                            <i class="fa-solid {{ $isActive ? 'fa-pause-circle' : 'fa-play-circle' }} opacity-60"></i> 
+                                                            {{ $isActive ? 'Hoarding Inactive' : 'Hoarding Active' }}
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             @endif
+
                                             <form action="{{ route('vendor.hoardings.destroy', $hoarding['id']) }}" method="POST">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-red-500 hover:bg-red-50 rounded">

@@ -23,7 +23,7 @@
                 type="text"
                 name="gstin"
                 value="{{ $vendor->gstin }}"
-                class="w-full px-3 py-2 border rounded-md"
+                class="w-full px-3 py-2 border border-gray-200 rounded-md"
             >
         </div>
 
@@ -34,7 +34,7 @@
                 type="text"
                 name="company_name"
                 value="{{ $vendor->company_name }}"
-                class="w-full px-3 py-2 border rounded-md"
+                class="w-full px-3 py-2 border border-gray-200 rounded-md"
             >
         </div>
 
@@ -43,7 +43,7 @@
             <label class="block text-gray-600 mb-1">Business Type</label>
             <select
                 name="company_type"
-                class="w-full px-3 py-2 border rounded-md bg-white"
+                class="w-full px-3 py-2 border border-gray-200 rounded-md bg-white"
             >
                 @foreach($businessTypes as $value => $label)
                     <option value="{{ $value }}"
@@ -61,7 +61,7 @@
                 type="text"
                 name="pan"
                 value="{{ $user->pan }}"
-                class="w-full px-3 py-2 border rounded-md"
+                class="w-full px-3 py-2 border border-gray-200 rounded-md"
             >
         </div>
 

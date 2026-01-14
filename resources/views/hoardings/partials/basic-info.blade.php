@@ -76,10 +76,10 @@
     </div>
 
     {{-- CHAT CTA --}}
-    <button
+    {{-- <button
         class="border border-gray-300 text-sm px-4 py-2 rounded-md text-gray-600 hover:bg-gray-50">
         Chat with Hoarding Owner
-    </button>
+    </button> --}}
 
 </div>
 

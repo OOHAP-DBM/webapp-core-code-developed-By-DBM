@@ -18,7 +18,28 @@
             >Edit</button>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-4 text-sm">
+        <div class="grid md:grid-cols-4 gap-4 text-sm">
+            <div>
+                <div class="flex items-center gap-3 mt-2">
+                    @if(auth()->user()->avatar)
+                        <img
+                            src="{{ route('vendor.view-avatar', auth()->user()->id) }}?t={{ time() }}"
+                            alt="Avatar"
+                            class="w-17 h-17 rounded-full object-cover border border-gray-300"
+                        >
+                        <form action="{{ route('vendor.profile.update') }}" method="POST" class="inline" onsubmit="return confirm('Remove avatar?')">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="section" value="remove-avatar">
+                            <button type="submit" class="text-red-600 text-xs hover:text-red-700 font-medium">
+                                Remove
+                            </button>
+                        </form>
+                    @else
+                        <span class="text-gray-400 text-xs">No avatar</span>
+                    @endif
+                </div>
+            </div>
             <div>
                 <label class="text-gray-500">Full Name</label>
                 <p class="font-medium">{{ auth()->user()->name }}</p>
@@ -27,16 +48,27 @@
                 <label class="text-gray-500">Email Address</label>
                 <p class="font-medium flex items-center gap-1">
                     {{ auth()->user()->email }}
-                    <span class="text-green-600">✔</span>
+                    @if(auth()->user()->email)
+                        <span class="text-green-600">✔</span>
+                    @endif
                 </p>
             </div>
             <div>
                 <label class="text-gray-500">Mobile Number</label>
                 <p class="font-medium flex items-center gap-1">
                         {{ auth()->user()->phone }}
-                    <span class="text-green-600">✔</span>
+                    @if(auth()->user()->phone)
+                        <span class="text-green-600">✔</span>
+                    @endif
                 </p>
             </div>
+        </div>
+
+        <div class="mt-4 text-right">
+            <button
+                @click="showModal = true; modalType = 'change-password'"
+                class="text-blue-600 text-sm"
+            >Change Password</button>
         </div>
     </div>
 
@@ -168,9 +200,9 @@
     <div
         x-show="showModal"
         x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     >
-        <div class="bg-white rounded-xl w-full max-w-lg p-6 relative">
+        <div class="bg-white rounded-xl w-full max-w-lg p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto mx-auto">
 
             <button
                 @click="showModal=false"
@@ -199,6 +231,10 @@
 
             <template x-if="modalType === 'delete'">
                 @include('vendor.profile.modals.delete-account')
+            </template>
+
+            <template x-if="modalType === 'change-password'">
+                @include('vendor.profile.modals.change-password')
             </template>
 
         </div>

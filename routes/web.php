@@ -22,11 +22,8 @@ use Modules\Cart\Controllers\Web\CartController;
 // ============================================
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
-// Customer Enquiries Index Route
-Route::get('/customer/enquiries', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('customer.enquiries.index');
-// Customer Enquiries Create Route
-Route::get('/customer/enquiries/create', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('customer.enquiries.create');
-// OOH Hoarding Vendor Routes
+
+
 Route::prefix('vendor/hoardings')->middleware(['auth', 'vendor'])->name('vendor.hoardings.')->group(function () {
     Route::get('{id}/edit', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'edit'])->name('edit');
     Route::put('{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])->name('update');
@@ -37,8 +34,8 @@ Route::prefix('vendor/dooh')->middleware(['auth', 'vendor'])->name('vendor.dooh.
     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
     Route::put('{id}', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'update'])->name('update');
 });
-Route::post('/cart/add', [CartController::class,'add'])->middleware('auth')->name('cart.add');
-Route::post('/cart/remove', [CartController::class, 'remove'])->middleware('auth')->name('cart.remove');
+Route::post('/cart/add', [CartController::class,'add'])->name('cart.add');
+Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/select-package', [CartController::class, 'selectPackage'])->name('cart.selectPackage');
 Route::get('/cart', [\Modules\Cart\Controllers\Web\CartController::class, 'index'])->middleware('auth')->name('cart.index');
 Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
@@ -162,6 +159,10 @@ Route::middleware(['auth'])->prefix('auth')->name('auth.')->group(function () {
 // ============================================
 Route::middleware('auth')->group(function () {
     // Enquiries
+    Route::get('/customer/enquiries', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('customer.enquiries.index');
+    // Customer Enquiries Create Route
+    Route::get('/customer/enquiries/create', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('customer.enquiries.create');
+    // OOH Hoarding Vendor Routes
     Route::get('/enquiries', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('enquiries.index');
     Route::get('/enquiries/create', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('enquiries.create');
     Route::post('/enquiries', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'store'])->name('enquiries.store');
@@ -513,11 +514,12 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     }); // End of vendor.approved middleware group
     
     // Profile
-
     Route::get('/profile', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::get('/vendor/pan/{vendor}',[\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewPan'])->name('pan.view')->middleware(['auth']);
+    Route::get('/avatar/{user}', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewAvatar'])->name('view-avatar');
+    Route::get('/vendor/pan/{vendor}',[\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewPan'])->name('pan.view');
     Route::put('/profile', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'update'])->name('profile.update');
-});
+
+}); // End of vendor middleware group
 
 // ============================================
 // ADMIN PANEL (Authenticated)

@@ -10,6 +10,14 @@ use Illuminate\View\View;
 class ShortlistController extends Controller
 {
     /**
+     * Ensure only customers can access shortlist
+     */
+    public function __construct()
+    {
+        $this->middleware(['auth', 'role:customer']);
+    }
+
+    /**
      * Display customer's shortlist/wishlist.
      *
      * @return View
@@ -33,7 +41,7 @@ class ShortlistController extends Controller
      */
     public function store(int $hoardingId)
     {
-        auth()->user()->wishlist()->create([
+        auth()->user()->wishlist()->firstOrCreate([
             'hoarding_id' => $hoardingId
         ]);
 
@@ -96,8 +104,8 @@ class ShortlistController extends Controller
         return response()->json([
             'success' => true,
             'action' => $result['action'],
-            'message' => $result['action'] === 'added' 
-                ? 'Added to shortlist' 
+            'message' => $result['action'] === 'added'
+                ? 'Added to shortlist'
                 : 'Removed from shortlist',
             'count' => $result['count'],
             'isWishlisted' => $result['action'] === 'added',
