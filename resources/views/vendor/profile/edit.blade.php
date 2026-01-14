@@ -27,14 +27,18 @@
                 <label class="text-gray-500">Email Address</label>
                 <p class="font-medium flex items-center gap-1">
                     {{ auth()->user()->email }}
-                    <span class="text-green-600">✔</span>
+                    @if(auth()->user()->email)
+                        <span class="text-green-600">✔</span>
+                    @endif
                 </p>
             </div>
             <div>
                 <label class="text-gray-500">Mobile Number</label>
                 <p class="font-medium flex items-center gap-1">
                         {{ auth()->user()->phone }}
-                    <span class="text-green-600">✔</span>
+                    @if(auth()->user()->phone)
+                        <span class="text-green-600">✔</span>
+                    @endif
                 </p>
             </div>
         </div>
@@ -168,9 +172,9 @@
     <div
         x-show="showModal"
         x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     >
-        <div class="bg-white rounded-xl w-full max-w-lg p-6 relative">
+        <div class="bg-white rounded-xl w-full max-w-lg p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto mx-auto">
 
             <button
                 @click="showModal=false"

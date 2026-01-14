@@ -1,4 +1,4 @@
-<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col h-full" onclick="window.location.href='{{ route('hoardings.show', $hoarding->id) }}';">
+<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col h-full" onclick="if(event.target.closest('button') === null) window.location.href='{{ route('hoardings.show', $hoarding->id) }}';">
     <!-- Image -->
     <div class="relative h-48 overflow-hidden bg-gray-100">
     @php
@@ -186,7 +186,7 @@
             <button
                 id="cart-btn-{{ $hoarding->id }}"
                 data-in-cart="{{ $isInCart ? '1' : '0' }}"
-                onclick="event.stopPropagation(); toggleCart(this, {{ $hoarding->id }})"
+                onclick="event.stopPropagation(); event.preventDefault(); toggleCart(this, {{ $hoarding->id }})"
                 class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded"
             >
             </button>
@@ -213,7 +213,7 @@
             <button
                 type="button"
                 class="flex-1 py-2 px-3 bg-teal-500 text-white text-sm font-semibold rounded"
-                onclick="window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.')"
+                onclick="event.stopPropagation(); event.preventDefault(); window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
             >
                 Enquiry Now
             </button>
