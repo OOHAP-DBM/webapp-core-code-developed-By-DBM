@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
 use Modules\Hoardings\Services\HoardingService;
 use App\Models\Hoarding;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Vendor HoardingController
@@ -120,8 +121,31 @@ class HoardingController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'price_per_month' => 'required|numeric|min:0',
-            // Add other validation rules
+            // Add other validation rules as needed
+            'primary_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
+
+        // Handle primary image update
+        if ($request->hasFile('primary_image')) {
+            if ($listing->primary_image) {
+                \Storage::disk('public')->delete($listing->primary_image);
+            }
+            $validated['primary_image'] = $request->file('primary_image')->store('hoardings', 'public');
+        }
+
+        // Handle gallery images update (optional, simplistic: remove all, add new)
+        if ($request->hasFile('gallery_images')) {
+            foreach ($listing->galleryImages as $image) {
+                \Storage::disk('public')->delete($image->image_path);
+                $image->delete();
+            }
+            foreach ($request->file('gallery_images') as $file) {
+                $listing->galleryImages()->create([
+                    'image_path' => $file->store('hoardings/gallery', 'public'),
+                ]);
+            }
+        }
 
         $listing->update($validated);
 
@@ -308,6 +332,27 @@ class HoardingController extends Controller
         $hoarding->save();
 
         return back()->with('success', 'Hoarding status updated successfully.');
+    }
+    /**
+     * Show all hoardings with completion percentage (API or web).
+     */
+    public function indexCompletion()
+    {
+        $vendor = Auth::user();
+        $hoardings = $vendor->hoardings()->with(['ooh.packages', 'ooh.brandLogos', 'doohScreen.packages', 'doohScreen.brandLogos'])->get();
+        $completionService = app(\App\Services\HoardingCompletionService::class);
+        $data = $hoardings->map(function ($hoarding) use ($completionService) {
+            return [
+                'id' => $hoarding->id,
+                'title' => $hoarding->title,
+                'completion' => $completionService->calculateCompletion($hoarding),
+            ];
+        });
+        // Return as JSON for API, or pass to view for web
+        if (request()->wantsJson()) {
+            return response()->json(['data' => $data]);
+        }
+        return view('hoardings.vendor.completion', ['hoardings' => $data]);
     }
 
     

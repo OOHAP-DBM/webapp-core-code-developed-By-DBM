@@ -180,7 +180,10 @@
 
                 <!-- Submenu -->
                 <div x-show="open" x-cloak class="mt-1 space-y-1">
-                    <a class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.my') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
+                    {{-- <a  class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.my') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
+                        <span class="submenu-item-indent">- My Hoardings</span>
+                    </a> --}}
+                    <a href="{{route('admin.my-hoardings')}}" class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.my') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
                         <span class="submenu-item-indent">- My Hoardings</span>
                     </a>
                    <a href="{{ route('admin.vendor-hoardings.index') }}"
@@ -189,7 +192,10 @@
                         <span class="submenu-item-indent">- Vendor's Hoardings</span>
                    </a>
 
-                    <a class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.draft') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
+                    {{-- <a class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.draft') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
+                        <span class="submenu-item-indent">- Hoardings in draft</span>
+                    </a> --}}
+                    <a href="{{route('admin.hoardings.drafts')}}" class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.draft') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
                         <span class="submenu-item-indent">- Hoardings in draft</span>
                     </a>
                     <a class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoarding-attributes.index') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="{{ route('admin.hoarding-attributes.index') }}">

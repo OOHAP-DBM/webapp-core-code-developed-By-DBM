@@ -157,8 +157,57 @@
             </div> -->
 
 
-            {{-- My Hoardings Dropdown --}}
+            {{-- Display Enquiries Dropdown --}}
             <div
+                x-data="{ open: @if(request()->routeIs('vendor.enquiries.*')) true @else false @endif }"
+                class="space-y-1"
+            >
+                {{-- Parent --}}
+                <button
+                    type="button"
+                    @click="open = !open"
+                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
+                           {{ request()->routeIs('vendor.enquiries.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
+                >
+                    <div class="flex items-center gap-3 ">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" fill="#00995c"/>
+                        </svg>
+                        Display Enquiries
+                    </div>
+                    <svg
+                        class="w-4 h-4 transition-transform duration-200"
+                        :class="{ 'rotate-180': open }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 9l-7 7-7-7"
+                        />
+                    </svg>
+                </button>
+
+                {{-- Children --}}
+                <div
+                    x-show="open"
+                    x-collapse
+                    x-cloak
+                    class="space-y-1"
+                >
+                    <a
+                        href="{{ route('vendor.enquiries.index') }}"
+                        class="block px-6 py-2 text-sm rounded-md {{ request()->routeIs('vendor.enquiries.index') ? 'bg-[#00995c] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        - All Enquiries
+                    </a>
+                </div>
+            </div>
+
+             <div
                 x-data="{ open: @if(request()->routeIs('vendor.hoardings.*')) true @else false @endif }"
                 class="space-y-1"
             >
@@ -272,318 +321,7 @@
                 </div>
             </div>
 
-            <!-- <a href="" class=" gap-3 flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.message.*') ? 'bg-[#00995c]/10 text-[#00995c]' : 'text-gray-700 hover:bg-gray-50' }}">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g clip-path="url(#clip0_1077_4841)">
-                <path d="M9.23077 0C4.19723 0 0 3.46154 0 7.84615C0 10.0892 1.22769 12.0443 2.97138 13.4714C2.85879 14.2297 2.55051 14.9455 2.07692 15.5483C1.88365 15.7957 1.68168 16.0361 1.47138 16.2692C1.36252 16.384 1.26571 16.5095 1.18246 16.644C1.12985 16.7298 1.04769 16.8258 1.00985 17.0197C0.971077 17.2126 1.02369 17.5302 1.18246 17.7692L1.29785 17.9714L1.52862 18.0868C2.33631 18.4902 3.20862 18.4191 4.00985 18.2022C4.81015 17.9843 5.58 17.6114 6.31754 17.2209C7.05415 16.8314 7.75477 16.4234 8.30769 16.1252C8.38523 16.0837 8.43508 16.0735 8.50985 16.0385C9.96554 18.0397 12.6314 19.3846 15.6055 19.3846C15.6342 19.3883 15.6609 19.3846 15.6923 19.3846C16.8923 19.3846 20.7692 23.3483 23.0769 21.7791C23.1692 21.4108 21.048 20.4868 20.9418 17.7406C22.7483 16.464 23.9142 14.5652 23.9142 12.4615C23.9142 9.34892 21.444 6.77723 18.1449 5.856C17.1009 2.45908 13.4714 0 9.23077 0ZM9.23077 1.84615C13.428 1.84615 16.6154 4.66154 16.6154 7.84615C16.6154 11.0308 13.428 13.8462 9.23077 13.8462C8.48123 13.8462 8.05108 14.1526 7.44185 14.4812C6.83262 14.8089 6.13385 15.216 5.45169 15.5769C4.86092 15.8889 4.29785 16.1289 3.77908 16.2978C4.284 15.5686 4.81108 14.6095 4.90338 13.2692L4.93292 12.7495L4.5 12.4329C2.85508 11.28 1.84615 9.62123 1.84615 7.84615C1.84615 4.66154 5.03354 1.84615 9.23077 1.84615Z" fill="#949291"/>
-                </g>
-                <defs>
-                <clipPath id="clip0_1077_4841">
-                <rect width="24" height="24" fill="white"/>
-                </clipPath>
-                </defs>
-                </svg>
-                Messenger
-            </a> -->
-
-            {{-- My Portal Toggle --}}
-{{--       
-         <div
-                x-data="{ enabled: false }"
-                class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 gap-3"
-                >
-                <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <g style="mix-blend-mode:multiply">
-                    <path d="M23.7667 18.4194C24.0779 18.2365 24.0779 17.9397 23.7667 17.7569L11.6741 10.6493C11.4993 10.5591 11.3062 10.5121 11.1103 10.5121C10.9143 10.5121 10.7212 10.5591 10.5465 10.6493L5.16357 13.8122L5.69223 14.1236L8.4696 12.4964L20.6351 19.6437L18.0882 21.1384L18.652 21.4272L23.7667 18.4194Z" fill="url(#paint0_linear_1077_4850)"/>
-                    </g>
-                    <g style="mix-blend-mode:multiply">
-                    <path d="M3.30835 14.4359L5.95291 12.8829L17.5885 19.7189L14.9439 21.2731L3.30835 14.4359Z" fill="#D0D0D0"/>
-                    </g>
-                    <path d="M5.68466 0.753037V14.1161L5.15601 13.8048V0.44165L5.68466 0.753037Z" fill="#D0D0D0"/>
-                    <path d="M5.68408 0.755843V14.1189L5.94971 13.9626V0.599487L5.68408 0.755843Z" fill="#B2B2B2"/>
-                    <path d="M2.11914 13.1189V12.8088L13.7547 19.6448V19.9561L2.11914 13.1189Z" fill="#B2B2B2"/>
-                    <path d="M2.11914 12.8089L4.7637 11.2546L16.3993 18.0919L13.7547 19.6448L2.11914 12.8089Z" fill="#D0D0D0"/>
-                    <path d="M16.4008 18.3998L16.3982 18.0884L13.7537 19.6413V19.9527L16.4008 18.3998Z" fill="#8DB3CD"/>
-                    <path d="M4.75903 14.3631L7.4036 12.8088L7.66793 12.9639L5.02336 14.5181L4.75903 14.3631Z" fill="#B2B2B2"/>
-                    <path d="M7.66992 16.0665L10.3145 14.5135L10.5788 14.6686L7.93424 16.2229L7.66992 16.0665Z" fill="#B2B2B2"/>
-                    <path d="M10.8425 17.9316L13.4871 16.3787L13.7514 16.5337L11.1069 18.088L10.8425 17.9316Z" fill="#B2B2B2"/>
-                    <path d="M18.517 7.51839L5.82803 0.0636767C5.52334 -0.123155 4.68609 0.106078 3.6978 0.686449L2.25768 1.53315C1.01157 2.26458 0.00244141 3.27559 0.00244141 3.78573V4.10242L0.262861 3.94739L12.6927 11.2497L18.517 7.51839Z" fill="#949291"/>
-                    <path d="M18.3802 8.21936V21.5825L17.8516 21.2724V7.9093L18.3802 8.21936Z" fill="#B2B2B2"/>
-                    <g style="mix-blend-mode:multiply">
-                    <path d="M17.8835 10.2543L18.2768 10.0211V10.3325L17.8835 10.5657V10.2543Z" fill="#BFD2D8"/>
-                    </g>
-                    <path d="M18.2768 10.0182L17.9825 9.84595L17.8835 9.90557V10.2514L18.2768 10.0182Z" fill="#B2B2B2"/>
-                    <g style="mix-blend-mode:multiply">
-                    <path d="M17.8835 19.0789L18.2768 18.8457V19.1571L17.8835 19.3903V19.0789Z" fill="#BFD2D8"/>
-                    </g>
-                    <path d="M18.2768 18.8478L17.9825 18.6755L17.8835 18.7352V19.081L18.2768 18.8478Z" fill="#718090"/>
-                    <path d="M18.3794 8.21484V21.5779L18.645 21.4216V8.05981L18.3794 8.21484Z" fill="#B2B2B2"/>
-                    <path d="M18.6458 8.06529L18.1172 7.75391L17.8516 7.91026L18.3802 8.22032L18.6458 8.06529Z" fill="#718090"/>
-                    <path d="M12.6937 23.0558L12.165 22.7457V12.1798L12.6937 12.4899V23.0558Z" fill="#D0D0D0"/>
-                    <path d="M12.165 12.1849L17.4542 9.07629L17.9828 9.38768L12.6937 12.4949L12.165 12.1849Z" fill="#D0D0D0"/>
-                    <path d="M17.9844 9.38953V19.9555L12.6953 23.0627V12.4968L17.9844 9.38953Z" fill="#5D5D5D"/>
-                    <path d="M12.9595 22.5937L17.7199 19.7965V9.85339L12.9595 12.6506V22.5937Z" fill="white"/>
-                    <path d="M17.7162 19.7965L17.4519 19.6415V10.0084L17.7162 9.85339V19.7965Z" fill="#5D5D5D"/>
-                    <path d="M17.7199 19.7952L17.4556 19.6401L12.9595 22.2823V22.5923L17.7199 19.7952Z" fill="#5D5D5D"/>
-                    <path d="M18.6459 8.06603V7.75464C18.6459 7.24052 17.6368 7.41676 16.3907 8.15216L14.9505 8.99886C13.7044 9.73029 12.6953 10.7413 12.6953 11.2514V11.5628L18.6459 8.06603Z" fill="#D0D0D0"/>
-                    <path d="M12.6942 11.5655V11.2541L0 3.79675V4.10681L12.6942 11.5655Z" fill="#D0D0D0"/>
-                    <g style="mix-blend-mode:multiply">
-                    <path d="M14.812 23.057L17.8524 21.2709L18.3811 21.5809L15.3407 23.3684L14.812 23.057Z" fill="url(#paint1_linear_1077_4850)"/>
-                    </g>
-                    <defs>
-                    <linearGradient id="paint0_linear_1077_4850" x1="14.5818" y1="10.5121" x2="14.5818" y2="21.4272" gradientUnits="userSpaceOnUse">
-                    <stop/>
-                    <stop offset="1" stop-opacity="0"/>
-                    </linearGradient>
-                    <linearGradient id="paint1_linear_1077_4850" x1="16.5965" y1="21.2709" x2="16.5965" y2="23.3684" gradientUnits="userSpaceOnUse">
-                    <stop/>
-                    <stop offset="1" stop-opacity="0"/>
-                    </linearGradient>
-                    </defs>
-                    </svg>
-                    My Portal
-                </div>
-
-                <!-- Toggle -->
-                <button
-                    type="button"
-                    @click="enabled = !enabled"
-                    class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200"
-                    :class="enabled ? 'bg-green-600' : 'bg-gray-300'"
-                >
-                    <span
-                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200"
-                        :class="enabled ? 'translate-x-4' : 'translate-x-1'"
-                    ></span>
-                </button>
-        </div> --}}
-
-            {{-- Earning Dashboard Dropdown --}}
-            <!-- <div
-                x-data="{ open: @if(request()->routeIs('vendor.earning.*') || request()->routeIs('vendor.dashboard.*')) true @else false @endif }"
-                class="space-y-1"
-              >
-                {{-- Parent --}}
-                <button
-                    type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
-                           {{ request()->routeIs('vendor.earning.*') || request()->routeIs('vendor.dashboard.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
-                >
-                    <div class="flex items-center gap-3">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14.0109 22.8605C13.3125 22.8464 12.8109 22.7105 12.4781 22.4667L7.91715 20.0245L5.38121 16.575C4.84683 15.75 5.22652 14.1563 6.89527 15.1781L8.7234 17.5875C11.0437 19.5886 15.7781 18.6703 13.5328 14.6531C12.4312 12.3281 12.9468 11.1938 14.3671 10.7156L15.014 12.8906C16.1343 15.4125 18.225 15.8672 18.1406 17.9016L23.1656 17.5406L23.1187 22.7948L14.0109 22.8605ZM11.475 18.0141C10.6593 18.0281 9.85777 17.6906 9.27652 17.2031L7.44371 14.7938C7.94527 14.3953 8.45152 14.6109 8.95308 15.0938C9.54371 14.7938 10.0031 15.2578 10.3781 16.1859C10.5328 16.8188 10.7625 17.2641 11.475 18.0141ZM7.74371 13.5141C7.72496 13.5141 7.70152 13.5141 7.68277 13.5094C7.52808 13.4766 7.34527 13.3125 7.2234 12.9375C7.09683 12.5625 7.06871 12.0281 7.18121 11.4563C7.29371 10.8891 7.52808 10.4063 7.79058 10.1063C8.04371 9.81094 8.27808 9.72657 8.43277 9.75938C8.59214 9.78751 8.77027 9.95625 8.89215 10.3266C9.01871 10.7016 9.05152 11.2406 8.93902 11.8078C8.82183 12.3797 8.58746 12.8625 8.32965 13.1578C8.10465 13.4203 7.8984 13.5141 7.74371 13.5141ZM11.6156 8.50782C11.2453 8.50313 10.7812 8.38594 10.3265 8.16563C9.80621 7.90782 9.3984 7.55157 9.17808 7.22344C8.95777 6.90001 8.93902 6.65626 9.00933 6.51094C9.07965 6.37032 9.2859 6.23438 9.67965 6.21563C10.0734 6.19219 10.6031 6.3 11.1234 6.55782C11.6437 6.81563 12.0515 7.16719 12.2718 7.49532C12.4921 7.81876 12.5109 8.06719 12.4406 8.20782C12.3703 8.35313 12.164 8.48438 11.7703 8.50313C11.7187 8.50782 11.6718 8.50782 11.6156 8.50782ZM7.04058 4.02657C6.82027 4.02188 6.61871 3.98907 6.44058 3.93751C6.04215 3.82032 5.81246 3.60938 5.73746 3.36094C5.65777 3.10782 5.73746 2.80782 6.00465 2.48438C6.27652 2.16563 6.73121 1.86094 7.29371 1.69219C7.85152 1.52345 8.39527 1.52813 8.7984 1.65001C9.20152 1.76719 9.43121 1.97813 9.50621 2.22657C9.58121 2.47969 9.50621 2.77969 9.23433 3.10313C8.96715 3.42188 8.51246 3.72657 7.94996 3.89532C7.63121 3.98907 7.32183 4.03126 7.04058 4.02657Z" fill="#949291"/>
-                        </svg>
-                        Earning Dashboard
-                    </div>
-
-                    <svg
-                        class="w-4 h-4 transition-transform duration-200"
-                        :class="{ 'rotate-180': open }"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 9l-7 7-7-7"
-                        />
-                    </svg>
-                </button>
-
-                {{-- Children --}}
-            <div
-                    x-show="open"
-                    x-collapse
-                    x-cloak
-                    class="space-y-1"
-                    >
-                    <a
-                        href=""
-                        class="block px-6 py-2 text-sm rounded-md {{ request()->routeIs('vendor.earning.overview') ? 'bg-[#00995c] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
-                    >
-                        - Overview
-                    </a>
-
-                    <a
-                        href=""
-                        class="block px-6 py-2 text-sm rounded-md {{ request()->routeIs('vendor.earning.monthly') ? 'bg-[#00995c] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
-                    >
-                        - Monthly Earnings
-                    </a>
-
-                    <a
-                        href=""
-                        class="block px-6 py-2 text-sm rounded-md {{ request()->routeIs('vendor.earning.payout') ? 'bg-[#00995c] text-white font-semibold' : 'text-gray-600 hover:bg-gray-50' }}"
-                    >
-                        - Payout History
-                    </a>
-                </div>
-            </div> -->
-
-            <!-- <hr class="mt-5 border-gray-200">
-            <p class="text-center font-semibold text-gray-500 text-xs uppercase tracking-wide my-3">
-                POS & bookings
-            </p>
-
-            <a href="" class=" gap-3 flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.pos.*') ? 'bg-[#00995c]/10 text-[#00995c]' : 'text-gray-700 hover:bg-gray-50' }}">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14.275 17.25L17.75 13.8L16.7 12.75L14.275 15.125L13.3 14.15L12.25 15.225L14.275 17.25ZM3 6H15V4H3V6ZM15 20C13.6167 20 12.4377 19.5123 11.463 18.537C10.4883 17.5617 10.0007 16.3827 10 15C10 13.6167 10.4877 12.4377 11.463 11.463C12.4383 10.4883 13.6173 10.0007 15 10C16.3833 10 17.5627 10.4877 18.538 11.463C19.5133 12.4383 20.0007 13.6173 20 15C20 16.3833 19.5123 17.5627 18.537 18.538C17.5617 19.5133 16.3827 20.0007 15 20ZM0 19V2C0 1.45 0.196 0.979333 0.588 0.588C0.98 0.196667 1.45067 0.000666667 2 0H16C16.55 0 17.021 0.196 17.413 0.588C17.805 0.98 18.0007 1.45067 18 2V8.675C17.6833 8.525 17.3583 8.4 17.025 8.3C16.6917 8.2 16.35 8.125 16 8.075V2H2V16.05H8.075C8.15833 16.5667 8.28767 17.0583 8.463 17.525C8.63833 17.9917 8.86733 18.4333 9.15 18.85L9 19L7.5 17.5L6 19L4.5 17.5L3 19L1.5 17.5L0 19ZM3 14H8.075C8.125 13.65 8.2 13.3083 8.3 12.975C8.4 12.6417 8.525 12.3167 8.675 12H3V14ZM3 10H10.1C10.7333 9.38333 11.471 8.89567 12.313 8.537C13.155 8.17833 14.0507 7.99933 15 8H3V10Z" fill="#949291"/>
-                </svg>
-                POS Dashobard
-            </a>
-            <a href="" class=" gap-3 flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.booknow.*') && !request()->routeIs('vendor.pipeline.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14.275 17.25L17.75 13.8L16.7 12.75L14.275 15.125L13.3 14.15L12.25 15.225L14.275 17.25ZM3 6H15V4H3V6ZM15 20C13.6167 20 12.4377 19.5123 11.463 18.537C10.4883 17.5617 10.0007 16.3827 10 15C10 13.6167 10.4877 12.4377 11.463 11.463C12.4383 10.4883 13.6173 10.0007 15 10C16.3833 10 17.5627 10.4877 18.538 11.463C19.5133 12.4383 20.0007 13.6173 20 15C20 16.3833 19.5123 17.5627 18.537 18.538C17.5617 19.5133 16.3827 20.0007 15 20ZM0 19V2C0 1.45 0.196 0.979333 0.588 0.588C0.98 0.196667 1.45067 0.000666667 2 0H16C16.55 0 17.021 0.196 17.413 0.588C17.805 0.98 18.0007 1.45067 18 2V8.675C17.6833 8.525 17.3583 8.4 17.025 8.3C16.6917 8.2 16.35 8.125 16 8.075V2H2V16.05H8.075C8.15833 16.5667 8.28767 17.0583 8.463 17.525C8.63833 17.9917 8.86733 18.4333 9.15 18.85L9 19L7.5 17.5L6 19L4.5 17.5L3 19L1.5 17.5L0 19ZM3 14H8.075C8.125 13.65 8.2 13.3083 8.3 12.975C8.4 12.6417 8.525 12.3167 8.675 12H3V14ZM3 10H10.1C10.7333 9.38333 11.471 8.89567 12.313 8.537C13.155 8.17833 14.0507 7.99933 15 8H3V10Z" fill="#949291"/>
-                </svg>
-                Book Now
-            </a> -->
-
-            {{-- POS Booking Dropdown --}}
-            <!-- <div
-                x-data="{ open: false }"
-                class="space-y-1"
-                 >
-                {{-- Parent --}}
-                <button
-                    type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
-                           text-gray-700 hover:bg-gray-50"
-                >
-                    <div class="flex items-center gap-3">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14.275 17.25L17.75 13.8L16.7 12.75L14.275 15.125L13.3 14.15L12.25 15.225L14.275 17.25ZM3 6H15V4H3V6ZM15 20C13.6167 20 12.4377 19.5123 11.463 18.537C10.4883 17.5617 10.0007 16.3827 10 15C10 13.6167 10.4877 12.4377 11.463 11.463C12.4383 10.4883 13.6173 10.0007 15 10C16.3833 10 17.5627 10.4877 18.538 11.463C19.5133 12.4383 20.0007 13.6173 20 15C20 16.3833 19.5123 17.5627 18.537 18.538C17.5617 19.5133 16.3827 20.0007 15 20ZM0 19V2C0 1.45 0.196 0.979333 0.588 0.588C0.98 0.196667 1.45067 0.000666667 2 0H16C16.55 0 17.021 0.196 17.413 0.588C17.805 0.98 18.0007 1.45067 18 2V8.675C17.6833 8.525 17.3583 8.4 17.025 8.3C16.6917 8.2 16.35 8.125 16 8.075V2H2V16.05H8.075C8.15833 16.5667 8.28767 17.0583 8.463 17.525C8.63833 17.9917 8.86733 18.4333 9.15 18.85L9 19L7.5 17.5L6 19L4.5 17.5L3 19L1.5 17.5L0 19ZM3 14H8.075C8.125 13.65 8.2 13.3083 8.3 12.975C8.4 12.6417 8.525 12.3167 8.675 12H3V14ZM3 10H10.1C10.7333 9.38333 11.471 8.89567 12.313 8.537C13.155 8.17833 14.0507 7.99933 15 8H3V10Z" fill="#949291"/>
-                        </svg>
-                        POS Booking
-                    </div>
-
-                    <svg
-                        class="w-4 h-4 transition-transform duration-200"
-                        :class="{ 'rotate-180': open }"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 9l-7 7-7-7"
-                        />
-                    </svg>
-                </button>
-
-                {{-- Children --}}
-                <div
-                    x-show="open"
-                    x-collapse
-                    x-cloak
-                    class="space-y-1"
-                >
-                    <a
-                        href=""
-                        class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
-                    >
-                        - All Bookings
-                    </a>
-
-                    <a
-                        href=""
-                        class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
-                    >
-                        - Create Booking
-                    </a>
-
-                    <a
-                        href=""
-                        class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
-                    >
-                        - Booking History
-                    </a>
-                </div>
-            </div> -->
-
-            {{-- POS Customers Dropdown --}}
-            <!-- <div
-                x-data="{ open: false }"
-                class="space-y-1"
-                >
-                {{-- Parent --}}
-                <button
-                    type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
-                           text-gray-700 hover:bg-gray-50"
-                >
-                    <div class=" gap-3 flex items-center">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13.07 10.4101C13.6774 9.56132 14.0041 8.54377 14.0041 7.50005C14.0041 6.45634 13.6774 5.43879 13.07 4.59005C13.6385 4.20201 14.3117 3.99622 15 4.00005C15.9283 4.00005 16.8185 4.3688 17.4749 5.02518C18.1313 5.68156 18.5 6.57179 18.5 7.50005C18.5 8.42831 18.1313 9.31855 17.4749 9.97493C16.8185 10.6313 15.9283 11.0001 15 11.0001C14.3117 11.0039 13.6385 10.7981 13.07 10.4101ZM5.5 7.50005C5.5 6.80782 5.70527 6.13113 6.08986 5.55556C6.47444 4.97998 7.02107 4.53138 7.66061 4.26647C8.30015 4.00157 9.00388 3.93226 9.68282 4.0673C10.3617 4.20235 10.9854 4.5357 11.4749 5.02518C11.9644 5.51466 12.2977 6.1383 12.4327 6.81724C12.5678 7.49617 12.4985 8.1999 12.2336 8.83944C11.9687 9.47899 11.5201 10.0256 10.9445 10.4102C10.3689 10.7948 9.69223 11.0001 9 11.0001C8.07174 11.0001 7.1815 10.6313 6.52513 9.97493C5.86875 9.31855 5.5 8.42831 5.5 7.50005ZM7.5 7.50005C7.5 7.79672 7.58797 8.08673 7.7528 8.33341C7.91762 8.58008 8.15189 8.77234 8.42597 8.88587C8.70006 8.9994 9.00166 9.02911 9.29264 8.97123C9.58361 8.91335 9.85088 8.77049 10.0607 8.56071C10.2704 8.35093 10.4133 8.08366 10.4712 7.79269C10.5291 7.50172 10.4994 7.20012 10.3858 6.92603C10.2723 6.65194 10.08 6.41767 9.83335 6.25285C9.58668 6.08803 9.29667 6.00005 9 6.00005C8.60218 6.00005 8.22064 6.15809 7.93934 6.43939C7.65804 6.7207 7.5 7.10223 7.5 7.50005ZM16 17.0001V19.0001H2V17.0001C2 17.0001 2 13.0001 9 13.0001C16 13.0001 16 17.0001 16 17.0001ZM14 17.0001C13.86 16.2201 12.67 15.0001 9 15.0001C5.33 15.0001 4.07 16.3101 4 17.0001M15.95 13.0001C16.5629 13.4768 17.064 14.0819 17.4182 14.7729C17.7723 15.4639 17.9709 16.2241 18 17.0001V19.0001H22V17.0001C22 17.0001 22 13.3701 15.94 13.0001H15.95Z" fill="#949291"/>
-                        </svg>
-                        POS Customers
-                    </div>
-
-                    <svg
-                        class="w-4 h-4 transition-transform duration-200"
-                        :class="{ 'rotate-180': open }"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 9l-7 7-7-7"
-                        />
-                    </svg>
-                </button>
-
-                {{-- Children --}}
-                <div
-                    x-show="open"
-                    x-collapse
-                    x-cloak
-                    class="space-y-1"
-                >
-                    <a
-                        href=""
-                        class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
-                    >
-                        - All Customers
-                    </a>
-
-                    <a
-                        href=""
-                        class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
-                    >
-                        - Add Customer
-                    </a>
-
-                    <a
-                        href=""
-                        class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
-                    >
-                        - Customer History
-                    </a>
-                </div>
-            </div> -->
-
-            <!-- <a href="" class=" gap-3 flex items-center px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.transactions.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14.275 17.25L17.75 13.8L16.7 12.75L14.275 15.125L13.3 14.15L12.25 15.225L14.275 17.25ZM3 6H15V4H3V6ZM15 20C13.6167 20 12.4377 19.5123 11.463 18.537C10.4883 17.5617 10.0007 16.3827 10 15C10 13.6167 10.4877 12.4377 11.463 11.463C12.4383 10.4883 13.6173 10.0007 15 10C16.3833 10 17.5627 10.4877 18.538 11.463C19.5133 12.4383 20.0007 13.6173 20 15C20 16.3833 19.5123 17.5627 18.537 18.538C17.5617 19.5133 16.3827 20.0007 15 20ZM0 19V2C0 1.45 0.196 0.979333 0.588 0.588C0.98 0.196667 1.45067 0.000666667 2 0H16C16.55 0 17.021 0.196 17.413 0.588C17.805 0.98 18.0007 1.45067 18 2V8.675C17.6833 8.525 17.3583 8.4 17.025 8.3C16.6917 8.2 16.35 8.125 16 8.075V2H2V16.05H8.075C8.15833 16.5667 8.28767 17.0583 8.463 17.525C8.63833 17.9917 8.86733 18.4333 9.15 18.85L9 19L7.5 17.5L6 19L4.5 17.5L3 19L1.5 17.5L0 19ZM3 14H8.075C8.125 13.65 8.2 13.3083 8.3 12.975C8.4 12.6417 8.525 12.3167 8.675 12H3V14ZM3 10H10.1C10.7333 9.38333 11.471 8.89567 12.313 8.537C13.155 8.17833 14.0507 7.99933 15 8H3V10Z" fill="#949291"/>
-            </svg>
-                POS Transactions
-            </a>
-                    <hr class="mt-5 border-gray-200">
-                    <p class="text-center font-semibold text-gray-500 text-xs uppercase tracking-wide my-3">
-                        PEOPLES
-                    </p> -->
-
-{{-- My Staff Dropdown --}}
+            {{-- My Staff Dropdown --}}
 <!-- <div
     x-data="{ open: false }"
     class="space-y-1"

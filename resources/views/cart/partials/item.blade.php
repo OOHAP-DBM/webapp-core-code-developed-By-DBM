@@ -14,11 +14,10 @@
 </style>
 <div class="bg-white border border-gray-200 rounded-xl p-4">
 
-    <div class="flex flex-col sm:flex-col md:flex-row gap-4">
-
+    <div class="flex gap-4">
 
         {{-- IMAGE --}}
-       <div class="w-full h-48 sm:w-full sm:h-48 md:w-40 md:h-35 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+        <div class="w-28 h-20 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
             <img
                 src="{{ $item->image_url ?? 'https://via.placeholder.com/300x200' }}"
                 alt="{{ $item->title }}"
@@ -27,15 +26,13 @@
         </div>
 
         {{-- CONTENT --}}
-        <div class="flex-1 w-full">
-
+        <div class="flex-1">
 
             {{-- HEADER --}}
         <div class="flex justify-between items-start gap-4">
 
             {{-- LEFT CONTENT --}}
-            <div class="flex-1 w-full">
-
+            <div class="flex-1">
 
                 {{-- TITLE --}}
                 <h2 class="text-lg font-semibold text-gray-900 leading-snug">
@@ -43,7 +40,7 @@
                 </h2>
 
                 {{-- LOCATION --}}
-                <p class="text-xs text-gray-600 mt-1 flex flex-wrap gap-x-2">
+                <p class="text-xs text-gray-500 mt-1 flex items-center gap-1">
                     <svg width="10" height="14" viewBox="0 0 10 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9.569 4.7845C9.569 4.15619 9.44525 3.53403 9.2048 2.95355C8.96436 2.37307 8.61194 1.84563 8.16765 1.40135C7.72337 0.957066 7.19593 0.604642 6.61545 0.364198C6.03497 0.123755 5.41281 0 4.7845 0C4.15619 0 3.53403 0.123755 2.95355 0.364198C2.37307 0.604642 1.84563 0.957066 1.40135 1.40135C0.957066 1.84563 0.604642 2.37307 0.364198 2.95355C0.123755 3.53403 -9.36254e-09 4.15619 0 4.7845C0 5.73251 0.279552 6.61423 0.755268 7.35788H0.7498L4.7845 13.67L8.8192 7.35788H8.81442C9.30713 6.59002 9.56904 5.69685 9.569 4.7845ZM4.7845 6.835C4.24067 6.835 3.71912 6.61897 3.33458 6.23442C2.95003 5.84988 2.734 5.32833 2.734 4.7845C2.734 4.24067 2.95003 3.71912 3.33458 3.33458C3.71912 2.95003 4.24067 2.734 4.7845 2.734C5.32833 2.734 5.84988 2.95003 6.23442 3.33458C6.61897 3.71912 6.835 4.24067 6.835 4.7845C6.835 5.32833 6.61897 5.84988 6.23442 6.23442C5.84988 6.61897 5.32833 6.835 4.7845 6.835Z" fill="#E75858"/>
                     </svg>
@@ -63,8 +60,7 @@
                     <span class="font-medium">{{ $item->size }}</span>
                 </p>
                 {{-- CAMPAIGN DATE ROW --}}
-                <div class="mt-3 flex flex-wrap items-center gap-3 text-xs">
-
+                <div class="mt-3 flex items-center gap-3 text-xs">
 
                     {{-- CAMPAIGN DATE (FIGMA EXACT) --}}
                     <div class="relative mt-3">
@@ -113,73 +109,18 @@
                     </button>
 
 
-                    <a href="#" class="text-blue-500 hover:underline">
+                    {{-- <a href="#" class="text-blue-500 hover:underline">
                         Bookmark
                     </a>
 
                     <a href="#" class="text-blue-500 hover:underline">
                         Share
-                    </a>
+                    </a> --}}
 
                 </div>
             </div>
         </div>
-    </div>
-    
-</div>
-     {{-- OFFERS --}}
-    @if(!empty($item->packages) && count($item->packages))
-        <div class="mt-4">
-            <p class="text-xs font-medium text-gray-600 mb-2">
-                Available Offers
-            </p>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-
-                @foreach($item->packages as $pkg)
-
-                    @php
-                    $discountPercent = (float) ($pkg->discount_percent ?? 0);
-                    $durationUnit    = $pkg->duration_unit ?? 'month';
-                    $minDuration     = (int) ($pkg->min_booking_duration ?? 1);
-
-                    // 1️⃣ Unit base price
-                    if ($durationUnit === 'week') {
-                        $unitBasePrice = (float) (
-                            $item->weekly_price_1
-                            ?? $item->weekly_price_2
-                            ?? $item->weekly_price_3
-                            ?? $item->base_monthly_price
-                        );
-                    } else {
-                        $unitBasePrice = (float) $item->base_monthly_price;
-                    }
-
-                    // 2️⃣ Unit discount
-                    $unitDiscount = ($unitBasePrice * $discountPercent) / 100;
-                    $unitFinal    = $unitBasePrice - $unitDiscount;
-
-                    // 3️⃣ TOTAL prices (🔥 IMPORTANT)
-                    $basePrice   = $unitBasePrice * $minDuration;
-                    $finalPrice  = $unitFinal * $minDuration;
-
-                    // 4️⃣ TOTAL SAVE (🔥 THIS WAS WRONG EARLIER)
-                    $totalSave = $basePrice - $finalPrice;
-                    @endphp
-
-
-
-                    <div
-                        class="relative bg-[#ededed] rounded-lg p-4 cursor-pointer transition
-                            hover:ring-2 hover:ring-green-400
-                            package-card-{{ $item->hoarding_id }}"
-                        data-hoarding-id="{{ $item->hoarding_id }}"
-                        data-final-price="{{ $finalPrice }}"
-                        data-base-price="{{ $basePrice }}"
-                        data-package-id="{{ $pkg->id }}"
-                        data-package-name="{{ $pkg->package_name }}"
-
-                        >
 
            {{-- OFFERS --}}
            {{-- OFFERS --}}
@@ -214,66 +155,30 @@
                               >
                                 ₹{{ number_format($item->base_monthly_price) }}
                             </p>
+
                         @endif
-
-                        {{-- PRICE --}}
-                        <div class="mt-3 flex items-center justify-between">
-                            <div>
-                                <p class="text-xs text-red-500 line-through">
-                                    ₹{{ number_format($basePrice) }}
-                                </p>
-                                <p class="text-lg font-semibold text-gray-900">
-                                    ₹{{ number_format($finalPrice) }}
-                                </p>
-                            </div>
-
-                            @if($totalSave > 0)
-                                <span class="text-[11px] font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">
-                                    SAVE ₹{{ number_format($totalSave) }}
-                                </span>
-                            @endif
-                        </div>
+                        <p
+                            id="final-price-{{ $item->hoarding_id }}"
+                            data-default-price="{{ $item->monthly_price }}"
+                            class="text-lg font-semibold text-gray-900"
+                          >                            
+                            ₹{{ number_format($item->monthly_price) }}
+                            <span class="text-sm text-gray-400">/ Month</span>
+                        </p>
                     </div>
+                @endif
 
+                {{-- DOOH --}}
+                @if($item->hoarding_type === 'dooh')
+                    <div>
+                        <p class="text-lg font-semibold text-gray-900">
+                            ₹{{ number_format($item->slot_price) }}
+                            <span class="text-sm text-gray-400">/ Slot</span>
+                        </p>
+                    </div>
+                @endif
 
-                @endforeach
             </div>
         </div>
-    @endif
-    {{-- PRICE --}}
-    <div class="flex justify-end text-right mt-4 md:mt-0">
-        {{-- OOH --}}
-        @if($item->hoarding_type === 'ooh')
-            <div>
-                @if($item->base_monthly_price > $item->monthly_price)
-                    <p
-                        id="base-price-{{ $item->hoarding_id }}"
-                        data-base-price="{{ $item->base_monthly_price }}"
-                        class="text-sm text-gray-400 line-through {{ $item->base_monthly_price > $item->monthly_price ? '' : 'hidden' }}"
-                        >
-                        ₹{{ number_format($item->base_monthly_price) }}
-                    </p>
-
-                @endif
-                <p
-                    id="final-price-{{ $item->hoarding_id }}"
-                    data-default-price="{{ $item->monthly_price }}"
-                    class="text-lg font-semibold text-gray-900"
-                    >                            
-                    ₹{{ number_format($item->monthly_price) }}
-                    <span class="text-sm text-gray-400">/ Month</span>
-                </p>
-            </div>
-        @endif
-
-        {{-- DOOH --}}
-        @if($item->hoarding_type === 'dooh')
-            <div>
-                <p class="text-lg font-semibold text-gray-900">
-                    ₹{{ number_format($item->slot_price) }}
-                    <span class="text-sm text-gray-400">/ Slot</span>
-                </p>
-            </div>
-        @endif
     </div>
 </div>
