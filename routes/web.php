@@ -22,11 +22,8 @@ use Modules\Cart\Controllers\Web\CartController;
 // ============================================
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
-// Customer Enquiries Index Route
-Route::get('/customer/enquiries', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('customer.enquiries.index');
-// Customer Enquiries Create Route
-Route::get('/customer/enquiries/create', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('customer.enquiries.create');
-// OOH Hoarding Vendor Routes
+
+
 Route::prefix('vendor/hoardings')->middleware(['auth', 'vendor'])->name('vendor.hoardings.')->group(function () {
     Route::get('{id}/edit', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'edit'])->name('edit');
     Route::put('{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])->name('update');
@@ -162,6 +159,10 @@ Route::middleware(['auth'])->prefix('auth')->name('auth.')->group(function () {
 // ============================================
 Route::middleware('auth')->group(function () {
     // Enquiries
+    Route::get('/customer/enquiries', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('customer.enquiries.index');
+    // Customer Enquiries Create Route
+    Route::get('/customer/enquiries/create', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('customer.enquiries.create');
+    // OOH Hoarding Vendor Routes
     Route::get('/enquiries', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('enquiries.index');
     Route::get('/enquiries/create', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('enquiries.create');
     Route::post('/enquiries', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'store'])->name('enquiries.store');

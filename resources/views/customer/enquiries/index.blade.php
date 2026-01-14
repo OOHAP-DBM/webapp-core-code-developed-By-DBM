@@ -43,7 +43,7 @@
 
     @if($enquiries->count() > 0)
         <!-- Enquiries List -->
-        <div class="row g-4">
+        {{-- <div class="row g-4">
             @foreach($enquiries as $enquiry)
                 <div class="col-12">
                     <div class="card shadow-sm border-0 h-100 hover-lift">
@@ -137,6 +137,99 @@
                     </div>
                 </div>
             @endforeach
+        </div> --}}
+                <!-- Enquiries List -->
+        <div class="row g-4">
+            @forelse($enquiries as $enquiry)
+                <div class="col-12">
+                    <div class="card shadow-sm border-0 h-100 hover-lift">
+                        <div class="card-body">
+                            <div class="row align-items-center mb-3">
+                                <div class="col-md-8">
+                                    <h5 class="card-title mb-2">
+                                        Enquiry #{{ $enquiry->id }}
+                                        <span class="badge bg-{{ $enquiry->status === 'submitted' ? 'primary' : ($enquiry->status === 'responded' ? 'success' : 'secondary') }} ms-2">
+                                            {{ ucfirst($enquiry->status) }}
+                                        </span>
+                                    </h5>
+                                    <p class="text-muted small mb-0">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        {{ $enquiry->created_at->format('d M, Y') }}
+                                    </p>
+                                </div>
+                                <div class="col-md-4 text-md-end">
+                                    <span class="badge bg-info">
+                                        {{ $enquiry->items->count() }} Hoarding(s)
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Hoarding Items -->
+                            <div class="row g-3">
+                                @foreach($enquiry->items as $item)
+                                    @if($item->hoarding)
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center border rounded p-2">
+                                                <!-- Hoarding Image -->
+                                                <div class="flex-shrink-0 me-3">
+                                                    @if($item->hoarding->primary_image)
+                                                        <img src="{{ asset('storage/' . $item->hoarding->primary_image) }}" 
+                                                             alt="{{ $item->hoarding->title }}" 
+                                                             class="img-fluid rounded" 
+                                                             style="height: 60px; width: 80px; object-fit: cover;">
+                                                    @else
+                                                        <div class="bg-gradient rounded d-flex align-items-center justify-content-center" 
+                                                             style="height: 60px; width: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                                            <i class="bi bi-image text-white"></i>
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                <!-- Hoarding Details -->
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">{{ $item->hoarding->title }}</h6>
+                                                    <p class="text-muted small mb-1">
+                                                        <i class="bi bi-geo-alt"></i>
+                                                        {{ $item->hoarding->city }}, {{ $item->hoarding->state }}
+                                                    </p>
+                                                    @if($item->package_label)
+                                                        <span class="badge bg-light text-dark">{{ $item->package_label }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="mt-3 d-flex gap-2">
+                                <a href="{{ route('customer.enquiries.show', $enquiry->id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                                
+                                @if($enquiry->offers->count() > 0)
+                                    <a href="{{ route('customer.offers.index', ['enquiry_id' => $enquiry->id]) }}" 
+                                       class="btn btn-sm btn-success">
+                                        <i class="bi bi-gift"></i> View Offers ({{ $enquiry->offers->count() }})
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3">No enquiries found.</p>
+                        <a href="{{ route('search') }}" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Search Hoardings
+                        </a>
+                    </div>
+                </div>
+            @endforelse
         </div>
 
         <!-- Pagination -->

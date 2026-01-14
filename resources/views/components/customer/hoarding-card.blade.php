@@ -218,15 +218,6 @@
                 Enquiry Now
             </button>
             @endauth
-
-
-
-
-
-
-
-
-
         </div>
 
 

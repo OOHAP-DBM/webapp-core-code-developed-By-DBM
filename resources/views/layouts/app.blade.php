@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -130,6 +131,164 @@
                 });
             };
 
+        })();
+    </script>
+    {{-- Shortlist/Wishlist Functionality --}}
+    <script>
+        (function () {
+            /* ================================
+            | SHORTLIST MANAGER
+            ================================= */
+            const shortlistManager = {
+                baseUrl: '/customer/shortlist',
+                
+                init() {
+                    this.bindWishlistButtons();
+                    this.updateCount();
+                },
+
+                bindWishlistButtons() {
+                    document.addEventListener('click', (e) => {
+                        const btn = e.target.closest('.btn-wishlist');
+                        if (btn) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const hoardingId = btn.dataset.hoardingId;
+                            if (!hoardingId) {
+                                console.error('No hoarding ID found on button');
+                                return;
+                            }
+                            this.toggle(hoardingId, btn);
+                        }
+                    });
+                },
+
+                async toggle(hoardingId, btn) {
+                    // Check if user is authenticated
+                    @guest
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Login Required',
+                        text: 'Please login to add items to your shortlist',
+                        confirmButtonText: 'Go to Login',
+                        showCancelButton: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "{{ route('login') }}?intended=" + encodeURIComponent(window.location.href);
+                        }
+                    });
+                    return;
+                    @endguest
+
+                    // Check if user is customer
+                    @auth
+                    @if(!auth()->user()->hasRole('customer'))
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Access Denied',
+                        text: 'Only customers can add items to shortlist'
+                    });
+                    return;
+                    @endif
+                    @endauth
+
+                    try {
+                        btn.disabled = true;
+                        const icon = btn.querySelector('i');
+                        
+                        const response = await fetch(`${this.baseUrl}/toggle/${hoardingId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Update button UI
+                            if (data.isWishlisted) {
+                                icon.classList.remove('bi-heart');
+                                icon.classList.add('bi-heart-fill');
+                                btn.classList.add('active');
+                                btn.setAttribute('title', 'Remove from shortlist');
+                            } else {
+                                icon.classList.remove('bi-heart-fill');
+                                icon.classList.add('bi-heart');
+                                btn.classList.remove('active');
+                                btn.setAttribute('title', 'Add to shortlist');
+                            }
+                            
+                            // Update count badge
+                            this.updateCountBadge(data.count);
+                            
+                            // Show toast
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: data.message,
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        } else {
+                            throw new Error(data.message || 'Failed to update shortlist');
+                        }
+                    } catch (error) {
+                        console.error('Error toggling shortlist:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: error.message || 'Failed to update shortlist'
+                        });
+                    } finally {
+                        btn.disabled = false;
+                    }
+                },
+
+                updateCountBadge(count) {
+                    const badges = document.querySelectorAll('.shortlist-count');
+                    badges.forEach(badge => {
+                        badge.textContent = count;
+                        badge.style.display = count > 0 ? 'inline-block' : 'none';
+                    });
+                },
+
+                async updateCount() {
+                    @auth
+                    @if(auth()->user()->hasRole('customer'))
+                    try {
+                        const response = await fetch(`${this.baseUrl}/count`, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            }
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            this.updateCountBadge(data.count);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching shortlist count:', error);
+                    }
+                    @endif
+                    @endauth
+                }
+            };
+
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', () => {
+                shortlistManager.init();
+            });
+
+            // Make it global
+            window.shortlistManager = shortlistManager;
         })();
     </script>
 @include('hoardings.partials.enquiry-modal')
