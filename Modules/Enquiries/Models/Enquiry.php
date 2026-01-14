@@ -64,7 +64,7 @@ class Enquiry extends Model
      */
     public function offers(): HasMany
     {
-        return $this->hasMany(\Modules\Offers\Models\Offer::class);
+        return $this->hasMany(\App\Models\Offer::class);
     }
 
     /**

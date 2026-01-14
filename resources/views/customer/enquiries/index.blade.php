@@ -1,274 +1,174 @@
 @extends('layouts.customer')
 
-@section('title', 'My Enquiries')
+@section('title', 'Enquiry & Offers')
 
 @section('content')
-<div class="container py-5">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-1">My Enquiries</h2>
-            <p class="text-muted mb-0">Track your enquiries and quotations</p>
-        </div>
-        <a href="{{ route('customer.enquiries.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>New Enquiry
-        </a>
-    </div>
+<div x-data="enquiryManager()" class="px-6 py-6 bg-white">
 
-    <!-- Status Filter Pills -->
-    <div class="mb-4">
-        <div class="btn-group" role="group">
-            <a href="{{ route('customer.enquiries.index') }}" 
-               class="btn btn-sm {{ !request('status') ? 'btn-primary' : 'btn-outline-primary' }}">
-                All
-            </a>
-            <a href="{{ route('customer.enquiries.index', ['status' => 'pending']) }}" 
-               class="btn btn-sm {{ request('status') === 'pending' ? 'btn-warning text-white' : 'btn-outline-warning' }}">
-                Pending
-            </a>
-            <a href="{{ route('customer.enquiries.index', ['status' => 'quoted']) }}" 
-               class="btn btn-sm {{ request('status') === 'quoted' ? 'btn-info text-white' : 'btn-outline-info' }}">
-                Quoted
-            </a>
-            <a href="{{ route('customer.enquiries.index', ['status' => 'accepted']) }}" 
-               class="btn btn-sm {{ request('status') === 'accepted' ? 'btn-success text-white' : 'btn-outline-success' }}">
-                Accepted
-            </a>
-            <a href="{{ route('customer.enquiries.index', ['status' => 'rejected']) }}" 
-               class="btn btn-sm {{ request('status') === 'rejected' ? 'btn-danger text-white' : 'btn-outline-danger' }}">
-                Rejected
-            </a>
+    {{-- FILTER BAR --}}
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+        <div class="mb-6">
+            <h1 class="text-lg font-bold text-gray-900">
+                Enquiry & Offers
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+                Track all your enquiries and responses from vendors
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <form method="GET" class="flex items-center gap-2 flex-1 md:flex-none">
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    placeholder="Search vendor by name, email, mobile..."
+                    class="px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 flex-1 md:w-72"
+                >
+                <button
+                    type="submit"
+                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-400 font-medium"
+                >
+                    Filter
+                </button>
+            </form>
         </div>
     </div>
 
-    @if($enquiries->count() > 0)
-        <!-- Enquiries List -->
-        {{-- <div class="row g-4">
-            @foreach($enquiries as $enquiry)
-                <div class="col-12">
-                    <div class="card shadow-sm border-0 h-100 hover-lift">
-                        <div class="card-body">
-                            <div class="row align-items-center">
-                                <!-- Hoarding Image -->
-                                <div class="col-md-2">
-                                    @if($enquiry->hoarding->image)
-                                        <img src="{{ asset('storage/' . $enquiry->hoarding->image) }}" 
-                                             alt="{{ $enquiry->hoarding->title }}" 
-                                             class="img-fluid rounded" 
-                                             style="height: 100px; width: 100%; object-fit: cover;">
+    {{-- TABLE --}}
+    <div class="bg-white border border-gray-200 overflow-x-auto shadow-sm">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Sn #</th>
+                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Enquiry ID</th>
+                    <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs"># of Vendors</th>
+                    <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs"># of Locations</th>
+                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Status</th>
+                    <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">Action</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y divide-gray-200">
+                @forelse($enquiries as $index => $enquiry)
+                    <tr class="hover:bg-gray-50 transition-colors">
+
+                        {{-- SN --}}
+                        <td class="px-4 py-4 text-gray-700">
+                            {{ ($enquiries->currentPage() - 1) * $enquiries->perPage() + $index + 1 }}
+                        </td>
+
+                        {{-- ENQUIRY ID --}}
+                        <td class="px-4 py-4">
+                            <a href="{{ route('customer.enquiries.show', $enquiry->id) }}" class="text-green-600 font-semibold hover:text-green-700 hover:underline">
+                                {{ 'ENQ' . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}
+                            </a>
+                            <div class="text-xs text-gray-500 mt-1">
+                                {{ $enquiry->created_at->format('d M, y') }}
+                            </div>
+                        </td>
+
+                        {{-- # OF VENDORS --}}
+                        <td class="px-4 py-4 text-center">
+                            @php
+                                $vendorCount = $enquiry->items->map(function($item) {
+                                    return optional($item->hoarding)->vendor_id;
+                                })->filter()->unique()->count();
+                            @endphp
+                            <span class="text-gray-900 font-semibold">
+                                {{ $vendorCount }}
+                            </span>
+                        </td>
+
+                        {{-- # OF OFFERS --}}
+                        <!-- <td class="px-4 py-4 text-center">
+                            <span class="text-gray-900 font-semibold">
+                                {{ $enquiry->offers()->count() }}
+                            </span>
+                        </td> -->
+
+                        {{-- # OF LOCATIONS --}}
+                        <td class="px-4 py-4 text-center">
+                            @php
+                                $locationCount = $enquiry->items->flatMap(function($item) {
+                                    $hoarding = optional($item->hoarding);
+                                    $locatedAt = $hoarding->located_at ?? [];
+                                    return is_array($locatedAt) ? $locatedAt : [];
+                                })->unique()->count();
+                            @endphp
+                            <span class="text-gray-900 font-semibold">
+                                {{ $locationCount }}
+                            </span>
+                        </td>
+
+                        {{-- STATUS --}}
+                        <td class="px-4 py-4">
+                            <div class="space-y-1">
+                                <div class="text-xs font-semibold
+                                    @if($enquiry->status === 'submitted')
+                                        text-blue-600
+                                    @elseif($enquiry->status === 'responded')
+                                        text-orange-600
+                                    @elseif($enquiry->status === 'accepted')
+                                        text-green-600
+                                    @elseif($enquiry->status === 'rejected')
+                                        text-red-600
                                     @else
-                                        <div class="bg-gradient rounded d-flex align-items-center justify-content-center" 
-                                             style="height: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                            <i class="bi bi-image text-white" style="font-size: 2rem;"></i>
-                                        </div>
+                                        text-gray-600
+                                    @endif
+                                ">
+                                    @if($enquiry->status === 'submitted')
+                                        Waiting for Response
+                                    @elseif($enquiry->status === 'responded')
+                                        Offers Received
+                                    @elseif($enquiry->status === 'accepted')
+                                        Accepted
+                                    @elseif($enquiry->status === 'rejected')
+                                        Rejected
+                                    @else
+                                        {{ ucwords(str_replace('_', ' ', $enquiry->status)) }}
                                     @endif
                                 </div>
-
-                                <!-- Enquiry Details -->
-                                <div class="col-md-7">
-                                    <div class="d-flex align-items-start justify-content-between mb-2">
-                                        <div>
-                                            <h5 class="mb-1">
-                                                <a href="{{ route('customer.enquiries.show', $enquiry->id) }}" 
-                                                   class="text-decoration-none text-dark">
-                                                    {{ $enquiry->hoarding->title }}
-                                                </a>
-                                            </h5>
-                                            <p class="text-muted small mb-0">
-                                                <i class="bi bi-geo-alt me-1"></i>
-                                                {{ $enquiry->hoarding->city }}, {{ $enquiry->hoarding->state }}
-                                            </p>
-                                        </div>
-                                        <span class="badge 
-                                            @if($enquiry->status === 'pending') bg-warning text-dark
-                                            @elseif($enquiry->status === 'quoted') bg-info
-                                            @elseif($enquiry->status === 'accepted') bg-success
-                                            @elseif($enquiry->status === 'rejected') bg-danger
-                                            @else bg-secondary
-                                            @endif">
-                                            {{ ucfirst($enquiry->status) }}
-                                        </span>
-                                    </div>
-
-                                    <div class="small text-muted mb-2">
-                                        <div class="row g-2">
-                                            <div class="col-auto">
-                                                <i class="bi bi-calendar-event me-1"></i>
-                                                {{ \Carbon\Carbon::parse($enquiry->start_date)->format('d M Y') }} - 
-                                                {{ \Carbon\Carbon::parse($enquiry->end_date)->format('d M Y') }}
-                                            </div>
-                                            <div class="col-auto">
-                                                <i class="bi bi-clock me-1"></i>
-                                                {{ \Carbon\Carbon::parse($enquiry->created_at)->diffForHumans() }}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    @if($enquiry->message)
-                                        <p class="text-muted small mb-0">
-                                            <i class="bi bi-chat-left-text me-1"></i>
-                                            {{ Str::limit($enquiry->message, 80) }}
-                                        </p>
-                                    @endif
-                                </div>
-
-                                <!-- Actions -->
-                                <div class="col-md-3 text-end">
-                                    <a href="{{ route('customer.enquiries.show', $enquiry->id) }}" 
-                                       class="btn btn-outline-primary btn-sm mb-2 w-100">
-                                        <i class="bi bi-eye me-1"></i>View Details
-                                    </a>
-
-                                    @if($enquiry->status === 'quoted')
-                                        <a href="{{ route('customer.quotations.show', $enquiry->quotation->id ?? '#') }}" 
-                                           class="btn btn-primary btn-sm w-100">
-                                            <i class="bi bi-file-text me-1"></i>View Quotation
-                                        </a>
-                                    @endif
-
-                                    @if($enquiry->status === 'accepted')
-                                        <span class="badge bg-success-subtle text-success w-100 py-2">
-                                            <i class="bi bi-check-circle me-1"></i>Booking Created
-                                        </span>
-                                    @endif
+                                <div class="text-xs text-gray-500">
+                                    {{ $enquiry->updated_at->format('d M, y | H:i') }}
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div> --}}
-                <!-- Enquiries List -->
-        <div class="row g-4">
-            @forelse($enquiries as $enquiry)
-                <div class="col-12">
-                    <div class="card shadow-sm border-0 h-100 hover-lift">
-                        <div class="card-body">
-                            <div class="row align-items-center mb-3">
-                                <div class="col-md-8">
-                                    <h5 class="card-title mb-2">
-                                        Enquiry #{{ $enquiry->id }}
-                                        <span class="badge bg-{{ $enquiry->status === 'submitted' ? 'primary' : ($enquiry->status === 'responded' ? 'success' : 'secondary') }} ms-2">
-                                            {{ ucfirst($enquiry->status) }}
-                                        </span>
-                                    </h5>
-                                    <p class="text-muted small mb-0">
-                                        <i class="bi bi-calendar me-1"></i>
-                                        {{ $enquiry->created_at->format('d M, Y') }}
-                                    </p>
-                                </div>
-                                <div class="col-md-4 text-md-end">
-                                    <span class="badge bg-info">
-                                        {{ $enquiry->items->count() }} Hoarding(s)
-                                    </span>
-                                </div>
-                            </div>
+                        </td>
 
-                            <!-- Hoarding Items -->
-                            <div class="row g-3">
-                                @foreach($enquiry->items as $item)
-                                    @if($item->hoarding)
-                                        <div class="col-md-6">
-                                            <div class="d-flex align-items-center border rounded p-2">
-                                                <!-- Hoarding Image -->
-                                                <div class="flex-shrink-0 me-3">
-                                                    @if($item->hoarding->primary_image)
-                                                        <img src="{{ asset('storage/' . $item->hoarding->primary_image) }}" 
-                                                             alt="{{ $item->hoarding->title }}" 
-                                                             class="img-fluid rounded" 
-                                                             style="height: 60px; width: 80px; object-fit: cover;">
-                                                    @else
-                                                        <div class="bg-gradient rounded d-flex align-items-center justify-content-center" 
-                                                             style="height: 60px; width: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                                            <i class="bi bi-image text-white"></i>
-                                                        </div>
-                                                    @endif
-                                                </div>
-
-                                                <!-- Hoarding Details -->
-                                                <div class="flex-grow-1">
-                                                    <h6 class="mb-1">{{ $item->hoarding->title }}</h6>
-                                                    <p class="text-muted small mb-1">
-                                                        <i class="bi bi-geo-alt"></i>
-                                                        {{ $item->hoarding->city }}, {{ $item->hoarding->state }}
-                                                    </p>
-                                                    @if($item->package_label)
-                                                        <span class="badge bg-light text-dark">{{ $item->package_label }}</span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-                                @endforeach
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="mt-3 d-flex gap-2">
-                                <a href="{{ route('customer.enquiries.show', $enquiry->id) }}" 
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i> View Details
+                        {{-- ACTION --}}
+                        <td class="px-4 py-4 text-center">
+                            <div class="flex gap-2 justify-center flex-wrap">
+                                <a href="{{ route('customer.enquiries.show', $enquiry->id) }}"
+                                   class="px-4 py-2 bg-gray-600 text-white text-xs hover:bg-gray-700 font-semibold inline-block whitespace-nowrap transition-colors">
+                                    View Details
                                 </a>
-                                
-                                @if($enquiry->offers->count() > 0)
-                                    <a href="{{ route('customer.offers.index', ['enquiry_id' => $enquiry->id]) }}" 
-                                       class="btn btn-sm btn-success">
-                                        <i class="bi bi-gift"></i> View Offers ({{ $enquiry->offers->count() }})
-                                    </a>
-                                @endif
                             </div>
-                        </div>
-                    </div>
-                </div>
-            @empty
-                <div class="col-12">
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
-                        <p class="text-muted mt-3">No enquiries found.</p>
-                        <a href="{{ route('search') }}" class="btn btn-primary">
-                            <i class="bi bi-search"></i> Search Hoardings
-                        </a>
-                    </div>
-                </div>
-            @endforelse
-        </div>
+                        </td>
 
-        <!-- Pagination -->
-        <div class="mt-4">
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="px-4 py-12 text-center text-gray-500">
+                            <div class="space-y-2">
+                                <p class="font-medium">No enquiries found</p>
+                                <p class="text-xs">You haven't made any enquiries yet</p>
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    {{-- PAGINATION --}}
+    <div class="mt-6 flex items-center justify-between text-sm text-gray-600">
+        <div class="font-medium">
+            Showing {{ $enquiries->firstItem() ?? 0 }} - {{ $enquiries->lastItem() ?? 0 }} of {{ $enquiries->total() }}
+        </div>
+        <div>
             {{ $enquiries->links() }}
         </div>
-    @else
-        <!-- Empty State -->
-        <div class="text-center py-5">
-            <div class="mb-4">
-                <i class="bi bi-inbox" style="font-size: 4rem; color: #ddd;"></i>
-            </div>
-            <h4 class="text-muted mb-3">No Enquiries Found</h4>
-            <p class="text-muted mb-4">
-                @if(request('status'))
-                    No {{ request('status') }} enquiries at the moment.
-                @else
-                    You haven't made any enquiries yet.
-                @endif
-            </p>
-            <a href="{{ route('customer.search') }}" class="btn btn-primary">
-                <i class="bi bi-search me-2"></i>Browse Hoardings
-            </a>
-        </div>
-    @endif
+    </div>
+
 </div>
 
-<style>
-.hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-
-.bg-gradient {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-</style>
 @endsection
