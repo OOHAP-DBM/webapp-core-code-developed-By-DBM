@@ -41,6 +41,7 @@ Route::get('/cart', [\Modules\Cart\Controllers\Web\CartController::class, 'index
 Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
 Route::get('/hoardings/map', [\App\Http\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
 Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
+Route::get('/api/hoardings/{id}/packages', [\App\Http\Controllers\Web\HoardingController::class, 'getPackages'])->name('hoardings.api.packages');
 Route::get('/dooh', [\App\Http\Controllers\Web\DOOHController::class, 'index'])->name('dooh.index');
 Route::get('/dooh/{id}', [\App\Http\Controllers\Web\DOOHController::class, 'show'])->name('dooh.show');
 

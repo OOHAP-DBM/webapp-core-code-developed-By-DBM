@@ -139,7 +139,8 @@ class EnquiryController extends Controller
             ], 401);
         }
 
-        \Log::info('Enquiry Store Request in store method', $request->all());
+        \Log::info('========== ENQUIRY MODAL POST DATA ==========', $request->all());
+        
         return $enquiryService->createEnquiry($request);
     }
     // public function store(Request $request)
