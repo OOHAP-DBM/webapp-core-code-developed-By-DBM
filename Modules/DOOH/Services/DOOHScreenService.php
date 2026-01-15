@@ -43,6 +43,9 @@ class DOOHScreenService
             'resolution_height' => 'required_if:resolution_type,custom|nullable|integer|min:1',
         ]);
 
+        // Ensure mediaFiles is an array
+        $mediaFiles = is_array($mediaFiles) ? $mediaFiles : [];
+        
         if ($validator->fails() || empty($mediaFiles)) {
             $errors = $validator->errors()->toArray();
             if (empty($mediaFiles)) {
@@ -54,7 +57,11 @@ class DOOHScreenService
         return DB::transaction(function () use ($vendor, $data, $mediaFiles) {
             
             $screen = $this->repo->createStep1($vendor, $data);
-            $this->repo->storeMedia($screen->id, $mediaFiles);
+            
+            // Only store media if files are present
+            if (!empty($mediaFiles) && is_array($mediaFiles)) {
+                $this->repo->storeMedia($screen->id, $mediaFiles);
+            }
 
             $screen->hoarding->current_step = 1;
             $screen->save();
@@ -472,5 +479,117 @@ class DOOHScreenService
                 'total' => $screens->total(),
             ],
         ];
+    }
+    /**
+     * Update Step 1 (Basic Info & Media) - Preserves existing media
+     */
+    public function updateStep1($screen, $data, $mediaFiles)
+    {
+        $errors = [];
+
+        // Media validation (only if new files provided)
+        if (!empty($mediaFiles)) {
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+            $maxSize = 5 * 1024 * 1024; // 5MB
+
+            foreach ($mediaFiles as $index => $file) {
+                if (!in_array($file->getMimeType(), $allowedMimes)) {
+                    $errors['media'][] = "File #{$index}: Invalid format.";
+                }
+                if ($file->getSize() > $maxSize) {
+                    $errors['media'][] = "File #{$index}: Exceeds 5MB.";
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return DB::transaction(function () use ($screen, $data, $mediaFiles) {
+            $hoarding = $screen->hoarding;
+
+            // Update parent hoarding
+            $hoarding->update([
+                'title' => $data['title'] ?? $hoarding->title,
+                'category' => $data['category'] ?? $hoarding->category,
+                'address' => $data['address'] ?? $hoarding->address,
+                'locality' => $data['locality'] ?? $hoarding->locality,
+                'city' => $data['city'] ?? $hoarding->city,
+                'state' => $data['state'] ?? $hoarding->state,
+                'pincode' => $data['pincode'] ?? $hoarding->pincode,
+                'lat' => $data['lat'] ?? $hoarding->lat,
+                'lng' => $data['lng'] ?? $hoarding->lng,
+            ]);
+
+            // Normalize resolution
+            $normalized = $this->normalizeResolution($data);
+
+            // Update DOOH screen
+            $screen->update([
+                'screen_type' => $data['screen_type'] ?? $screen->screen_type,
+                'width' => $data['width'] ?? $screen->width,
+                'height' => $data['height'] ?? $screen->height,
+                'measurement_unit' => $data['measurement_unit'] ?? $screen->measurement_unit,
+                'resolution_width' => $normalized['resolution_width'],
+                'resolution_height' => $normalized['resolution_height'],
+                'price_per_slot' => $data['price_per_slot'] ?? $screen->price_per_slot,
+            ]);
+
+            // Handle media - only add new
+            if (!empty($mediaFiles)) {
+                $this->repo->storeMedia($screen->id, $mediaFiles);
+            }
+
+            return ['success' => true, 'screen' => $screen->fresh('media')];
+        });
+    }
+
+    /**
+     * Update Step 3 - Package and pricing updates
+     */
+    public function updateStep3($screen, $data)
+    {
+        return DB::transaction(function () use ($screen, $data) {
+            $hoarding = $screen->hoarding;
+
+            // Update screen-level pricing
+            $screen->update([
+                'price_per_slot' => $data['price_per_slot'] ?? $screen->price_per_slot,
+                // 'price_per_10_sec_slot' => $data['price_per_10_sec_slot'] ?? $screen->price_per_10_sec_slot,
+                // 'minimum_booking_amount' => $data['minimum_booking_amount'] ?? $screen->minimum_booking_amount,
+                'graphics_included' => isset($data['graphics_included']),
+                'graphics_price' => $data['graphics_price'] ?? 0,
+            ]);
+
+            // Update or recreate packages if provided
+            if (!empty($data['offers_json'])) {
+                $offers = json_decode($data['offers_json'], true);
+                if (is_array($offers)) {
+                    // Delete existing packages
+                    $screen->packages()->delete();
+
+                    // Create new packages
+                    foreach ($offers as $offer) {
+                        $screen->packages()->create([
+                            'package_name' => $offer['name'],
+                            'duration' => $offer['duration'],
+                            'duration_unit' => $offer['duration_unit'] ?? 'months',
+                            'discount_percent' => $offer['discount'] ?? 0,
+                            'price_per_month' => $offer['price'] ?? 0,
+                            'is_active' => 1,
+                        ]);
+                    }
+                }
+            }
+
+            // Update slots if provided
+            if (!empty($data['slots'])) {
+                // Implementation similar to storeSlots
+                $this->repo->storeSlots($screen->id, $data['slots']);
+            }
+
+            return ['success' => true, 'screen' => $screen->fresh(['packages', 'slots'])];
+        });
     }
 }

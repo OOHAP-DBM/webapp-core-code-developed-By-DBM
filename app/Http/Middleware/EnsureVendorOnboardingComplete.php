@@ -17,7 +17,7 @@ class EnsureVendorOnboardingComplete
         $user = Auth::user();
 
         // Only apply to vendors
-        if (!$user || !$user->isVendor()) {
+        if (!$user || $user->active_role !== 'vendor') {
             return $next($request);
         }
 

@@ -192,6 +192,10 @@ class Hoarding extends Model implements HasMedia
     {
         return $this->hasOne(OOHHoarding::class, 'hoarding_id');
     }
+    public function oohHoarding(): HasOne
+    {
+        return $this->hasOne(OOHHoarding::class, 'hoarding_id');
+    }
 
     public function doohScreen(): HasOne
     {
