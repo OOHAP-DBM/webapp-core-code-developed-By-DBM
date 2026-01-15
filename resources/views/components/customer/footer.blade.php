@@ -150,15 +150,23 @@
         <div class="border-t border-gray-200 pt-8 mb-8">
             <h3 class="text-gray-900 text-base font-bold mb-6">OOHAPP Hoardings</h3>
                 @php
-                    $cities = [
-                        'Hoardings near me', 'Hoardings in Chandigarh', 'Hoardings in Aligarh', 'Hoardings in Shravasti', 'Hoardings in Shimla',
-                        'Hoardings in Lucknow', 'Hoardings in Nainital', 'Hoardings in Varanasi', 'Hoardings in Sultanpur', 'Hoardings in Darjeeling',
-                        'Hoardings in Noida', 'Hoardings in Hyderabad', 'Hoardings in Firozabad', 'Hoardings in Sitapur', 'Hoardings in Lonavala',
-                        'Hoardings in Noida', 'Hoardings in Jaipur', 'Hoardings in Meerut', 'Hoardings in Barabanki', 'Hoardings in Nainital',
-                        'Hoardings in Agra', 'Hoardings in Kolkata', 'Hoardings in Goa/Panjim', 'Hoardings in Balrampur', 'Hoardings in Haridwar',
-                        'Hoardings in Gurgaon', 'Hoardings in Pune', 'Hoardings in Prayagraj', 'Hoardings in Amritsar', 'Hoardings in Bangalore',
-                        'Hoardings in Mumbai', 'Hoardings in Ajmer', 'Hoardings in Fatehpur sikri', 'Hoardings in Mysore', 'All Cities Hoardings'
-                    ];
+                    // Dynamic city list from active hoardings (top 10 + special entries)
+                    $dynamicCities = \App\Models\Hoarding::select('city')
+                        ->whereNotNull('city')
+                        ->where('city', '!=', '')
+                        ->whereIn('status', ['active', 'booked'])
+                        ->groupBy('city')
+                        ->orderBy('city', 'asc')
+                        ->limit(28)
+                        ->pluck('city')
+                        ->map(fn($city) => 'Hoardings in ' . ucwords(strtolower($city)))
+                        ->toArray();
+                    
+                    // Prepend special links (keep existing behavior)
+                    array_unshift($dynamicCities, 'Hoardings near me');
+                    $dynamicCities[] = 'All Cities Hoardings';
+                    
+                    $cities = $dynamicCities;
                 @endphp
 
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-y-2 text-sm text-gray-600">

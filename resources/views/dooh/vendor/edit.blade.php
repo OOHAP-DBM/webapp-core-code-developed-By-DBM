@@ -15,6 +15,7 @@
             @endphp
             @foreach($steps as $num => $label)
             <div class="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 md:px-6 py-2 {{ $step == $num ? 'bg-[#009A5C] text-white' : 'bg-white text-gray-600' }} transition-all {{ $step > $num ? 'bg-green-100 text-[#009A5C]' : '' }}">
+               
                 <div class="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full {{ $step == $num ? 'bg-white text-[#009A5C]' : 'bg-gray-200 text-gray-600' }} {{ $step > $num ? 'bg-[#009A5C] text-white' : '' }} text-xs sm:text-sm font-bold">
                     @if($step > $num)
                         <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
@@ -41,7 +42,12 @@
             @include('dooh.vendor.partials.step3', ['draft' => $screen, 'parentHoarding' => $screen->hoarding])
         @endif
 
-        <div class="flex flex-col sm:flex-row justify-between gap-2 sm:gap-3 mb-8 w-full">
+        <div class="flex flex-col sm:flex-row justify-between gap-2 sm:gap-3 mb-8 w-full ">
+              <a href="{{ route('vendor.hoardings.myHoardings') }}" 
+               class="px-5 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                Cancel
+            </a>
+            
             @if($step > 1)
             <a href="{{ route('vendor.dooh.edit', ['id' => $screen->id, 'step' => $step - 1]) }}" 
                class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-xl font-bold transition-all text-center">

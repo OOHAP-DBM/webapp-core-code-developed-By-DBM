@@ -16,14 +16,14 @@
                 <label class="text-sm font-bold text-gray-700">Nagar Nigam Approved? <span class="text-red-500">*</span></label>
                 <div class="flex items-center gap-6">
                     <label class="flex items-center cursor-pointer group">
-                      <input type="radio" name="nagar_nigam_approved" value="1" class="hidden peer" id="nagar-yes" {{ old('nagar_nigam_approved', $draft->nagar_nigam_approved ?? 0) == 1 ? 'checked' : '' }}>
+                      <input type="radio" name="nagar_nigam_approved" value="1" class="hidden peer" id="nagar-yes">
                       <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
                         <div class="w-2 h-2 bg-white rounded-full"></div>
                       </div>
                       <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
                     </label>
                     <label class="flex items-center cursor-pointer group">
-                      <input type="radio" name="nagar_nigam_approved" value="0" class="hidden peer" id="nagar-no" {{ old('nagar_nigam_approved', $draft->nagar_nigam_approved ?? 0) == 0 ? 'checked' : '' }}>
+                      <input type="radio" name="nagar_nigam_approved" value="0" class="hidden peer" id="nagar-no" checked>
                       <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
                         <div class="w-2 h-2 bg-white rounded-full"></div>
                       </div>
@@ -33,16 +33,16 @@
                         <div id="nagarModal" class="fixed inset-0 z-50 flex items-center justify-center bg-transparent hidden">
                           <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-xs">
                             <h2 class="text-lg font-bold mb-4 text-gray-800">Enter Permit Details</h2>
-                            <input type="text" id="permitNumberInput" name="permit_number" value="{{ old('permit_number', $draft->permit_number ?? '') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" placeholder="Permit Number">
-                            <input type="date" id="permitValidTillInput" name="permit_valid_till" value="{{ old('permit_valid_till', $draft->permit_valid_till ?? '') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" placeholder="Permit Valid Till">
+                            <input type="text" id="permitNumberInput" name="permit_number" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" placeholder="Permit Number">
+                            <input type="date" id="permitValidTillInput" name="permit_valid_till" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" placeholder="Permit Valid Till">
                             <div class="flex justify-end gap-2">
                               <button type="button" id="nagarCancelBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold">Cancel</button>
                               <button type="button" id="nagarSaveBtn" class="px-4 py-2 rounded-lg bg-[#009A5C] text-white font-semibold">Save</button>
                             </div>
                           </div>
                         </div>
-                        <input type="hidden" name="permit_number_hidden" id="permitNumberHidden" value="{{ old('permit_number_hidden', $draft->permit_number ?? '') }}">
-                        <input type="hidden" name="permit_valid_till_hidden" id="permitValidTillHidden" value="{{ old('permit_valid_till_hidden', $draft->permit_valid_till ?? '') }}">
+                        <input type="hidden" name="permit_number_hidden" id="permitNumberHidden" value="">
+                        <input type="hidden" name="permit_valid_till_hidden" id="permitValidTillHidden" value="">
                 </div>
             </div>
 
@@ -50,14 +50,14 @@
                 <label class="text-sm font-bold text-gray-700">Do you want to block any certain dates?</label>
                 <div class="flex items-center gap-6">
                   <label class="flex items-center cursor-pointer group">
-                    <input type="radio" name="block_dates" value="1" class="hidden peer" id="block-yes" {{ !empty($draft->block_dates) ? 'checked' : '' }}>
+                    <input type="radio" name="block_dates" value="1" class="hidden peer" id="block-yes">
                     <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
                       <div class="w-2 h-2 bg-white rounded-full"></div>
                     </div>
                     <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
                   </label>
                   <label class="flex items-center cursor-pointer group">
-                    <input type="radio" name="block_dates" value="0" class="hidden peer" id="block-no" {{ empty($draft->block_dates) ? 'checked' : '' }}>
+                    <input type="radio" name="block_dates" value="0" class="hidden peer" id="block-no" checked>
                     <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
                       <div class="w-2 h-2 bg-white rounded-full"></div>
                     </div>
@@ -77,20 +77,20 @@
                 </div>
               </div>
             </div>
-            <input type="hidden" name="blocked_dates_json" id="blockedDatesHidden" value='{{ old("blocked_dates_json", $draft->block_dates ?? "") }}'>
+            <input type="hidden" name="blocked_dates_json" id="blockedDatesHidden" value="">
 
             <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100">
                 <label class="text-sm font-bold text-gray-700">Do you need grace period after booking?</label>
                 <div class="flex items-center gap-6">
                   <label class="flex items-center cursor-pointer group">
-                    <input type="radio" name="needs_grace_period" value="1" class="hidden peer" id="grace-yes" {{ !empty($draft->grace_period_days) ? 'checked' : '' }}>
+                    <input type="radio" name="needs_grace_period" value="1" class="hidden peer" id="grace-yes">
                     <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
                       <div class="w-2 h-2 bg-white rounded-full"></div>
                     </div>
                     <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
                   </label>
                   <label class="flex items-center cursor-pointer group">
-                    <input type="radio" name="needs_grace_period" value="0" class="hidden peer" id="grace-no" {{ empty($draft->grace_period_days) ? 'checked' : '' }}>
+                    <input type="radio" name="needs_grace_period" value="0" class="hidden peer" id="grace-no" checked>
                     <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
                       <div class="w-2 h-2 bg-white rounded-full"></div>
                     </div>
@@ -103,14 +103,14 @@
               <div id="graceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-transparent hidden">
                 <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-xs">
                   <h2 class="text-lg font-bold mb-4 text-gray-800">Set Grace Period (in days)</h2>
-                  <input type="number" min="1" max="30" id="gracePeriodInput" value="{{ old('grace_period_days', $draft->grace_period_days ?? '') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" placeholder="Enter number of days">
+                  <input type="number" min="1" max="30" id="gracePeriodInput" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" placeholder="Enter number of days">
                   <div class="flex justify-end gap-2">
                     <button type="button" id="graceCancelBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold">Cancel</button>
                     <button type="button" id="graceSaveBtn" class="px-4 py-2 rounded-lg bg-[#009A5C] text-white font-semibold">Save</button>
                   </div>
                 </div>
               </div>
-              <input type="hidden" name="grace_period_days" id="gracePeriodDaysHidden" value="{{ old('grace_period_days', $draft->grace_period_days ?? '') }}">
+              <input type="hidden" name="grace_period_days" id="gracePeriodDaysHidden" value="">
 
             
         </div>
@@ -130,7 +130,6 @@
                     <label class="text-sm font-bold text-gray-700">Expected Footfall</label>
                     <input type="number" 
                         name="expected_footfall" 
-                        value="{{ old('expected_footfall', $draft->expected_footfall ?? '') }}"
                         placeholder="1000" 
                         class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none transition-all bg-white shadow-inner">
                 </div>
@@ -139,7 +138,6 @@
                     <label class="text-sm font-bold text-gray-700">Expected Eyeball</label>
                     <input type="number" 
                         name="expected_eyeball" 
-                        value="{{ old('expected_eyeball', $draft->expected_eyeball ?? '') }}"
                         placeholder="5000" 
                         class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none transition-all bg-white shadow-inner">
                 </div>
@@ -163,8 +161,7 @@
             @endphp
             @foreach($audiences as $audience)
             <label class="flex items-center space-x-3 cursor-pointer group">
-                <input type="checkbox" name="audience_type[]" value="{{ $audience }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]"
-                    @if($draft && is_array($draft->audience_type) && in_array($audience, $draft->audience_type)) checked @endif>
+                <input type="checkbox" name="audience_type[]" value="{{ $audience }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
                 <span class="text-sm text-gray-600 group-hover:text-gray-900">{{ $audience }}</span>
             </label>
             @endforeach
@@ -203,8 +200,7 @@
                 @php $visibleOptions = ['Metro Ride', 'From Flyover', 'From the road', 'Roof top', 'Wall hanging']; @endphp
                 @foreach($visibleOptions as $option)
                 <label class="flex items-center p-4 border border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-green-50/50 hover:border-[#009A5C] transition-all group">
-                    <input type="checkbox" name="visible_from[]" value="{{ $option }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]"
-                        @if($draft && is_array($draft->visible_from) && in_array($option, $draft->visible_from)) checked @endif>
+                    <input type="checkbox" name="visible_from[]" value="{{ $option }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
                     <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-[#009A5C]">{{ $option }}</span>
                 </label>
                 @endforeach
@@ -217,8 +213,7 @@
                 @php $locationOptions = ['Highway hoarding', 'At Square', 'Shopping Mall', 'Airport', 'Park', 'Main Road', 'Intracity Highway', 'Pause Area']; @endphp
                 @foreach($locationOptions as $loc)
                 <label class="flex items-center space-x-3 cursor-pointer group">
-                    <input type="checkbox" name="located_at[]" value="{{ $loc }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]"
-                        @if($draft && is_array($draft->located_at) && in_array($loc, $draft->located_at)) checked @endif>
+                    <input type="checkbox" name="located_at[]" value="{{ $loc }}" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
                     <span class="text-sm text-gray-600 group-hover:text-gray-900">{{ $loc }}</span>
                 </label>
                 @endforeach
@@ -228,7 +223,7 @@
 
     <!-- Hoardings Visibility -->
     <div 
-      x-data="{ visibility: '{{ old('visibility_type', $draft->visibility_type ?? 'one_way') }}' }"
+      x-data="{ visibility: 'one_way' }"
       class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8"
     >
       <h3 class="text-xl font-bold text-gray-800 mb-8 flex items-center">
@@ -252,7 +247,6 @@
               value="one_way"
               x-model="visibility"
               class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
-              {{ old('visibility_type', $draft->visibility_type ?? 'one_way') == 'one_way' ? 'checked' : '' }}
             >
             <span class="ml-3 text-sm font-bold text-gray-700">
               One Way Visibility
@@ -269,7 +263,6 @@
               <input
                 type="text"
                 name="visibility_start"
-                value="{{ old('visibility_start', $draft->visibility_start ?? '') }}"
                 placeholder="Eg. Santacruz"
                 class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
               >
@@ -279,7 +272,6 @@
               <input
                 type="text"
                 name="visibility_end"
-                value="{{ old('visibility_end', $draft->visibility_end ?? '') }}"
                 placeholder="Eg. Fun Mall"
                 class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
               >
@@ -303,7 +295,6 @@
               value="both_side"
               x-model="visibility"
               class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
-              {{ old('visibility_type', $draft->visibility_type ?? 'one_way') == 'both_side' ? 'checked' : '' }}
             >
             <span class="ml-3 text-sm font-bold text-gray-700">
               Both Side Visibility
@@ -320,7 +311,6 @@
               <input
                 type="text"
                 name="visibility_start"
-                value="{{ old('visibility_start', $draft->visibility_start ?? '') }}"
                 placeholder="Eg. Santacruz"
                 class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
               >
@@ -331,7 +321,6 @@
               <input
                 type="text"
                 name="visibility_end"
-                value="{{ old('visibility_end', $draft->visibility_end ?? '') }}"
                 placeholder="Eg. Fun Mall"
                 class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
               >
@@ -356,11 +345,17 @@
           const graceHidden = document.getElementById('gracePeriodDaysHidden');
 
           if (graceYes && graceModal && graceInput && graceSaveBtn && graceCancelBtn && graceHidden) {
-            // Auto-open modal if data exists (edit mode)
-            if (graceYes.checked && graceHidden.value) {
-              graceModal.classList.remove('hidden');
-            }
-
+            graceYes.addEventListener('change', function() {
+              if (this.checked) {
+                graceModal.classList.remove('hidden');
+                graceInput.value = graceHidden.value || '';
+              }
+            });
+            graceNo.addEventListener('change', function() {
+              if (this.checked) {
+                graceHidden.value = '';
+              }
+            });
             graceSaveBtn.addEventListener('click', function() {
               const val = parseInt(graceInput.value, 10);
               if (!isNaN(val) && val > 0 && val <= 30) {
@@ -392,37 +387,16 @@ const blockHidden = document.getElementById('blockedDatesHidden');
 let blockSelectedDates = [];
 
 if (blockYes && blockModal && blockCalendar && blockSaveBtn && blockCancelBtn && blockHidden) {
-  // Initialize flatpickr calendar first
-  const existingDates = blockHidden.value ? JSON.parse(blockHidden.value) : [];
-  blockSelectedDates = Array.isArray(existingDates) ? existingDates : [];
-  
-  flatpickr(blockCalendar, {
-    mode: 'multiple',
-    dateFormat: 'Y-m-d',
-    minDate: new Date(),
-    defaultDate: blockSelectedDates,
-    disable: [function(date) {
-      return date < new Date().setHours(0,0,0,0);
-    }],
-    onChange: function(selectedDates, dateStrArr) {
-      blockSelectedDates = dateStrArr;
-    }
-  });
-
-  // Auto-open modal if data exists (edit mode)
-  if (blockYes.checked && blockSelectedDates.length > 0) {
-    blockModal.classList.remove('hidden');
-  }
-
   blockYes.addEventListener('change', function() {
     if (this.checked) {
       blockModal.classList.remove('hidden');
+      blockCalendar.value = '';
+      blockSelectedDates = [];
     }
   });
   blockNo.addEventListener('change', function() {
     if (this.checked) {
       blockHidden.value = '';
-      blockSelectedDates = [];
     }
   });
   blockSaveBtn.addEventListener('click', function() {
@@ -439,7 +413,19 @@ if (blockYes && blockModal && blockCalendar && blockSaveBtn && blockCancelBtn &&
     blockYes.checked = false;
     blockNo.checked = true;
     blockHidden.value = '';
-    blockSelectedDates = [];
+  });
+  // Initialize flatpickr calendar
+  flatpickr(blockCalendar, {
+    mode: 'multiple',
+    dateFormat: 'Y-m-d',
+    minDate: new Date(),
+    disable: [function(date) {
+      // Disable all past dates
+      return date < new Date().setHours(0,0,0,0);
+    }],
+    onChange: function(selectedDates, dateStrArr) {
+      blockSelectedDates = dateStrArr;
+    }
   });
 }
 </script>
@@ -457,11 +443,6 @@ if (blockYes && blockModal && blockCalendar && blockSaveBtn && blockCancelBtn &&
     const permitValidTillHidden = document.getElementById('permitValidTillHidden');
 
     if (nagarYes && nagarModal && permitNumberInput && permitValidTillInput && nagarSaveBtn && nagarCancelBtn && permitNumberHidden && permitValidTillHidden) {
-      // Auto-open modal if data exists (edit mode)
-      if (nagarYes.checked && permitNumberHidden.value) {
-        nagarModal.classList.remove('hidden');
-      }
-
       nagarYes.addEventListener('change', function() {
         if (this.checked) {
           nagarModal.classList.remove('hidden');

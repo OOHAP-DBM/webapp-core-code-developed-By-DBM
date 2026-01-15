@@ -43,8 +43,15 @@ class DOOHScreenService
             'resolution_height' => 'required_if:resolution_type,custom|nullable|integer|min:1',
         ]);
 
-        // Ensure mediaFiles is an array
-        $mediaFiles = is_array($mediaFiles) ? $mediaFiles : [];
+        // Normalize mediaFiles to always be an array
+        // Handle cases: array of files, single file, null, or empty
+        if ($mediaFiles instanceof \Illuminate\Http\UploadedFile) {
+            // Single file uploaded - wrap it in an array
+            $mediaFiles = [$mediaFiles];
+        } elseif (!is_array($mediaFiles)) {
+            // Null or other non-array types
+            $mediaFiles = [];
+        }
         
         if ($validator->fails() || empty($mediaFiles)) {
             $errors = $validator->errors()->toArray();
