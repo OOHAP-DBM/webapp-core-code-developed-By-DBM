@@ -13,7 +13,7 @@
                     <label class="text-sm font-semibold text-gray-600">Display Price per slot <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                        <input type="number" name="price_per_slot" placeholder="Enter Price" required class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all">
+                        <input type="number" name="price_per_slot" value="{{ old('price_per_slot', $draft->price_per_slot ?? '') }}" placeholder="Enter Price" required class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all">
                         <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">Times/hr</span>
                     </div>
                 </div>
@@ -21,10 +21,8 @@
                 <div class="space-y-2">
                     <label class="text-sm font-semibold text-gray-600">Video Length <span class="text-red-500">*</span></label>
                     <select name="video_length" required class="w-full border border-gray-200 rounded-xl px-4 py-3.5 focus:border-[#009A5C] outline-none transition-all cursor-pointer">
-                        {{-- <option value="">Select Video Length</option>
-                        <option value="10">10 Seconds</option>--}}
-                        <option value="15">5 Seconds</option> 
-                        <option value="30">15 Seconds</option>
+                        <option value="15" {{ old('video_length', $draft->video_length ?? '') == '15' ? 'selected' : '' }}>5 Seconds</option> 
+                        <option value="30" {{ old('video_length', $draft->video_length ?? '') == '30' ? 'selected' : '' }}>15 Seconds</option>
                     </select>
                 </div>
             </div>
@@ -47,14 +45,14 @@
                     <label class="text-sm font-semibold text-gray-600">Base Monthly Price <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                        <input type="number" name="base_monthly_price" placeholder="Enter base monthly price" required min="1" step="0.01" class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all">
+                        <input type="number" name="base_monthly_price" value="{{ old('base_monthly_price', $draft->base_monthly_price ?? '') }}" placeholder="Enter base monthly price" required min="1" step="0.01" class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all">
                     </div>
                 </div>
                 <div class="space-y-2">
                     <label class="text-sm font-semibold text-gray-600">Monthly Offered Price</label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                        <input type="number" name="monthly_offered_price" placeholder="Enter offered monthly price (if any)" min="1" step="0.01" class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all">
+                        <input type="number" name="monthly_offered_price" value="{{ old('monthly_offered_price', $draft->monthly_offered_price ?? '') }}" placeholder="Enter offered monthly price (if any)" min="1" step="0.01" class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all">
                     </div>
                 </div>
             </div>
@@ -64,7 +62,7 @@
                 <div class="space-y-2">
                     <label class="text-sm font-semibold text-gray-600">Enable Weekly Booking?</label>
                     <div class="flex items-center gap-4">
-                        <input type="checkbox" id="enable_weekly_booking" name="enable_weekly_booking" value="1" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] cursor-pointer">
+                        <input type="checkbox" id="enable_weekly_booking" name="enable_weekly_booking" value="1" {{ !empty($draft->weekly_price_1) ? 'checked' : '' }} class="w-5 h-5 rounded border-gray-300 text-[#009A5C] cursor-pointer">
                         <span class="text-xs text-gray-500">Allow customers to book for weekly durations</span>
                     </div>
                 </div>
@@ -76,7 +74,7 @@
                     </label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
-                        <input type="number" name="weekly_price_1"
+                        <input type="number" name="weekly_price_1" value="{{ old('weekly_price_1', $draft->weekly_price_1 ?? '') }}"
                             class="w-full rounded-xl border border-gray-200 pl-8 py-3.5 text-sm focus:border-[#009A5C] outline-none">
                     </div>
                 </div>
@@ -85,7 +83,7 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-2">2 Weeks Price</label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
-                        <input type="number" name="weekly_price_2"
+                        <input type="number" name="weekly_price_2" value="{{ old('weekly_price_2', $draft->weekly_price_2 ?? '') }}"
                             class="w-full rounded-xl border border-gray-200 pl-8 py-3.5 text-sm focus:border-[#009A5C] outline-none">
                     </div>
                 </div>
@@ -94,7 +92,7 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-2">3 Weeks Price</label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
-                        <input type="number" name="weekly_price_3"
+                        <input type="number" name="weekly_price_3" value="{{ old('weekly_price_3', $draft->weekly_price_3 ?? '') }}"
                             class="w-full rounded-xl border border-gray-200 pl-8 py-3.5 text-sm focus:border-[#009A5C] outline-none">
                     </div>
                 </div>
@@ -143,7 +141,15 @@
 
                         <div class="flex items-center gap-4">
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="slots[{{ $index }}][active]" value="1" class="sr-only peer">
+                                <input type="checkbox" name="slots[{{ $index }}][active]" value="1" class="sr-only peer"
+                                    @if($draft && isset($draft->slots) && is_array($draft->slots))
+                                        @foreach($draft->slots as $existingSlot)
+                                            @if(isset($existingSlot['name']) && $existingSlot['name'] == $slot['name'] && isset($existingSlot['active']) && $existingSlot['active'])
+                                                checked
+                                            @endif
+                                        @endforeach
+                                    @endif
+                                >
                                 <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#009A5C] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
                             </label>
                         </div>
@@ -183,11 +189,11 @@
                         <label class="text-sm font-bold text-gray-700">Graphics Included (Free)?</label>
                         <div class="flex items-center gap-2">
                             <label class="cursor-pointer">
-                                <input type="radio" name="graphics_included" value="1" class="hidden peer toggle-service" data-target="graphics-box">
+                                <input type="radio" name="graphics_included" value="1" class="hidden peer toggle-service" data-target="graphics-box" {{ old('graphics_included', $draft->graphics_included ?? 0) == 1 ? 'checked' : '' }}>
                                 <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">Yes</span>
                             </label>
                             <label class="cursor-pointer">
-                                <input type="radio" name="graphics_included" value="0" class="hidden peer toggle-service" data-target="graphics-box" checked>
+                                <input type="radio" name="graphics_included" value="0" class="hidden peer toggle-service" data-target="graphics-box" {{ old('graphics_included', $draft->graphics_included ?? 0) == 0 ? 'checked' : '' }}>
                                 <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">No</span>
                             </label>
                         </div>
@@ -196,7 +202,7 @@
                         <label class="text-[10px] font-bold text-gray-400 uppercase">Graphics Charge</label>
                         <div class="relative">
                             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                            <input type="number" name="graphics_charge" placeholder="0.00" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                            <input type="number" name="graphics_charge" value="{{ old('graphics_charge', $draft->graphics_charge ?? '') }}" placeholder="0.00" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
                         </div>
                     </div>
                 </div>
@@ -352,6 +358,12 @@
         }
     });
 
+    // Initialize: if weekly data exists, auto-check the checkbox and show section
+    if (enableWeekly?.checked && weeklySection) {
+        weeklySection.classList.remove('hidden');
+        weeklySection.classList.add('grid');
+    }
+
         // 2. Service Toggle Logic (Mounting, Lighting, Printing, Graphics independent)
         const serviceToggles = [
             { name: 'graphics_included', box: 'graphics-box', type: 'all' },
@@ -386,6 +398,69 @@
         // 3. Campaign Packages Logic
         const addBtn = document.getElementById('add-offer-btn');
         const container = document.getElementById('offers-container');
+
+        // Load existing packages from database (edit mode)
+        @if($draft && !empty($draft->packages))
+            const existingPackages = @json($draft->packages);
+            existingPackages.forEach(pkg => {
+                addExistingPackage(pkg);
+            });
+        @endif
+
+        function addExistingPackage(pkg) {
+            const index = Date.now() + Math.random();
+            const html = `
+                <div class="group bg-gray-50/50 rounded-2xl border border-gray-100 p-6 transition-all hover:border-[#009A5C] hover:bg-white">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                        <div class="md:col-span-4 space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Offer Label</label>
+                            <input type="text" class="offer_name w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none" placeholder="e.g. Festival" value="${pkg.name || ''}">
+                        </div>
+                        <div class="md:col-span-3 space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Min. Booking</label>
+                            <div class="flex">
+                                <input type="number" class="offer_duration w-20 border border-gray-200 rounded-l-xl px-4 py-3 text-sm" placeholder="Qty" value="${pkg.duration || ''}">
+                                <select class="offer_unit flex-1 border border-l-0 border-gray-200 rounded-r-xl px-3 py-3 text-sm bg-white">
+                                    <option value="weeks" ${pkg.unit === 'weeks' ? 'selected' : ''}>Weeks</option>
+                                    <option value="months" ${pkg.unit === 'months' ? 'selected' : ''}>Months</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Discount (%)</label>
+                            <div class="relative">
+                                <input type="number" class="offer_discount w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="0" value="${pkg.discount || ''}">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">%</span>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Offer End Date</label>
+                            <input type="date" class="offer_end_date w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none" value="${pkg.end_date || ''}">
+                        </div>
+                        <div class="md:col-span-1 flex justify-center pb-2">
+                            <button type="button" class="remove-offer text-gray-300 hover:text-red-500">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-6 border-t border-gray-100 pt-4">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Included Free Services</label>
+                        <div class="flex flex-wrap gap-4">
+                            ${['Printing', 'Mounting', 'Design', 'Survey'].map(s => {
+                                const checked = pkg.services && pkg.services.includes(s.toLowerCase()) ? 'checked' : '';
+                                return `
+                                    <label class="flex items-center gap-2 text-xs font-semibold text-gray-600">
+                                        <input type="checkbox" class="offer_services accent-[#009A5C]" value="${s.toLowerCase()}" ${checked}> ${s}
+                                    </label>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+            const last = container.lastElementChild;
+            last.querySelector('.remove-offer').onclick = () => last.remove();
+        }
 
         addBtn.addEventListener('click', function() {
             const index = Date.now();

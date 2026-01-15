@@ -60,7 +60,7 @@
     <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
       <div class="flex items-center gap-3 mb-4">
         <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
-        <h3 class="text-xl font-bold text-gray-800">Long term Campaign Packages</h3>
+        <h3 class="text-xl font-bold text-gray-800">Long term Campaign Offer</h3>
       </div>
       <p class="text-xs text-gray-400 mb-8">Create specific inventory bundles (e.g., Annual Bulk Booking)</p>
 
@@ -142,7 +142,7 @@
           @endforeach
         </div>
         <button type="button" id="add-offer-btn" class="bg-[#1A1A1A] text-white px-8 py-3 rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-95 transition-transform flex items-center gap-2 w-fit">
-          <span>+</span> Add Campaign Package
+          <span>+</span> Add Campaign Offer
         </button>
       </div>
     </div>

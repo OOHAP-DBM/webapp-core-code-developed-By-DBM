@@ -273,7 +273,7 @@
         <!-- Monthly Offer Price -->
         <div class="space-y-2">
           <label class="text-sm font-bold text-gray-700">
-            Monthly Offer Price (₹)
+            Monthly Discounted Price (₹)
           </label>
           <input
             type="number"

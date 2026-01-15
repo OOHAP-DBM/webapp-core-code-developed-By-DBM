@@ -1,5 +1,5 @@
 <!-- Step 2: Settings & Attributes -->
-<div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
+{{-- <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6"> --}}
 
   <!-- Body -->
   <div class="md:p-8 space-y-8">
@@ -429,7 +429,7 @@
     </div>
 
   </div>
-</div>
+{{-- </div> --}}
 
 <!-- JavaScript for Modal Interactions -->
 <script>
