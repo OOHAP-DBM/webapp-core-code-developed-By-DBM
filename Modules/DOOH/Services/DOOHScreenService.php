@@ -43,6 +43,9 @@ class DOOHScreenService
             'resolution_height' => 'required_if:resolution_type,custom|nullable|integer|min:1',
         ]);
 
+        // Ensure mediaFiles is an array
+        $mediaFiles = is_array($mediaFiles) ? $mediaFiles : [];
+        
         if ($validator->fails() || empty($mediaFiles)) {
             $errors = $validator->errors()->toArray();
             if (empty($mediaFiles)) {
@@ -54,7 +57,11 @@ class DOOHScreenService
         return DB::transaction(function () use ($vendor, $data, $mediaFiles) {
             
             $screen = $this->repo->createStep1($vendor, $data);
-            $this->repo->storeMedia($screen->id, $mediaFiles);
+            
+            // Only store media if files are present
+            if (!empty($mediaFiles) && is_array($mediaFiles)) {
+                $this->repo->storeMedia($screen->id, $mediaFiles);
+            }
 
             $screen->hoarding->current_step = 1;
             $screen->save();
