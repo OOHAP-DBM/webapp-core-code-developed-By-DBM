@@ -160,6 +160,7 @@ Route::middleware(['auth'])->prefix('auth')->name('auth.')->group(function () {
 Route::middleware('auth')->group(function () {
     // Enquiries
     Route::get('/customer/enquiries', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('customer.enquiries.index');
+    Route::get('/customer/enquiries/{id}', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'show'])->name('customer.enquiries.show');
     // Customer Enquiries Create Route
     Route::get('/customer/enquiries/create', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('customer.enquiries.create');
     // OOH Hoarding Vendor Routes
