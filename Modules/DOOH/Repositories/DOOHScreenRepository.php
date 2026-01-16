@@ -166,6 +166,11 @@ class DOOHScreenRepository
      */
     public function storeMedia(int $screenId, array $mediaFiles): array
     {
+        // Handle empty or null cases
+        if (empty($mediaFiles) || !is_array($mediaFiles)) {
+            return [];
+        }
+        
         $screen = DOOHScreen::findOrFail($screenId);
 
         [$shard1, $shard2] = $this->shardPath($screenId);
@@ -173,6 +178,10 @@ class DOOHScreenRepository
         $savedMedia = [];
 
         foreach ($mediaFiles as $index => $file) {
+            // Skip if not a valid file upload
+            if (!$file || !is_object($file) || !method_exists($file, 'getClientOriginalExtension')) {
+                continue;
+            }
             $uuid = Str::uuid()->toString();
             $ext  = strtolower($file->getClientOriginalExtension());
 

@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Hoardings\Http\Controllers\Api\Vendor\OOHListingController;
 use Modules\Hoardings\Http\Controllers\Api\HoardingAttributeController;
+use Modules\Hoardings\Http\Controllers\Api\HoardingController;
+use Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController as VendorHoardingController;
 /**
  * Hoardings API Routes (v1)
  * Base: /api/v1/hoardings
@@ -11,12 +13,13 @@ use Modules\Hoardings\Http\Controllers\Api\HoardingAttributeController;
  */
 
 Route::get('/categories', [Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController::class, 'getCategories']);
+Route::get('/live-categories', [HoardingController::class, 'getLiveCategories']);
 
 
 // Public routes - Browse hoardings
-Route::get('/', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'index']);
+Route::get('/', [HoardingController::class, 'index']);
 Route::get('/map-pins', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'mapPins']);
-Route::get('/{id}', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'show']);
+Route::get('/{id}', [HoardingController::class, 'show']);
 Route::get('/search', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'search']);
 Route::get('/availability/{id}', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'checkAvailability']);
 

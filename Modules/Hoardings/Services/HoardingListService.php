@@ -261,4 +261,76 @@ class HoardingListService
             return ['success' => true, 'hoarding' => $hoarding->fresh(['packages'])];
         });
     }
+
+
+
+
+    public function updateStep1($hoarding, $oohHoarding, $data, $mediaFiles)
+    {
+        // Backend safety check for offer price
+        $errors = [];
+        if (isset($data['monthly_offer_price']) && isset($data['base_monthly_price'])) {
+            if ($data['monthly_offer_price'] >= $data['base_monthly_price']) {
+                $errors['monthly_offer_price'][] = 'Offer price must be less than base price.';
+            }
+        }
+
+        // Media validation (only if new files provided)
+        if (!empty($mediaFiles)) {
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+            $maxSize = 5 * 1024 * 1024; // 5MB
+
+            foreach ($mediaFiles as $index => $file) {
+                if (!in_array($file->getMimeType(), $allowedMimes)) {
+                    $errors['media'][] = "File #{$index}: Invalid format. Only JPEG, PNG, and WEBP allowed.";
+                }
+                if ($file->getSize() > $maxSize) {
+                    $errors['media'][] = "File #{$index}: Exceeds 5MB size limit.";
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return DB::transaction(function () use ($hoarding, $oohHoarding, $data, $mediaFiles) {
+            // Update parent hoarding
+            $hoarding->update([
+                'title' => $data['title'] ?? $hoarding->title,
+                'category' => $data['category'] ?? $hoarding->category,
+                'address' => $data['address'] ?? $hoarding->address,
+                'locality' => $data['locality'] ?? $hoarding->locality,
+                'city' => $data['city'] ?? $hoarding->city,
+                'state' => $data['state'] ?? $hoarding->state,
+                'pincode' => $data['pincode'] ?? $hoarding->pincode,
+                'lat' => $data['lat'] ?? $hoarding->lat,
+                'lng' => $data['lng'] ?? $hoarding->lng,
+                'landmark' => $data['landmark'] ?? $hoarding->landmark,
+                'monthly_price' => $data['monthly_price'] ?? $hoarding->monthly_price,
+            ]);
+
+            // Update OOH-specific fields
+            $width = floatval($data['width']);
+            $height = floatval($data['height']);
+            $measurement_unit = $data['measurement_unit'] ?? 'sqft';
+            $areaSqft = $measurement_unit === 'sqm'
+                ? round($width * $height * 10.7639, 2)
+                : round($width * $height, 2);
+
+            $oohHoarding->update([
+                'width' => $width,
+                'height' => $height,
+                'measurement_unit' => $measurement_unit,
+                // 'calculated_area_sqft' => $areaSqft,
+            ]);
+
+            // Handle media - only add new, don't delete existing unless specified
+            if (!empty($mediaFiles)) {
+                $this->repo->storeMedia($hoarding->id, $mediaFiles);
+            }
+
+            return ['success' => true, 'hoarding' => $hoarding->fresh('media')];
+        });
+    }
 }

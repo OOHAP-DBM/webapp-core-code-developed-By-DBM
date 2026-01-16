@@ -24,9 +24,9 @@ use OpenApi\Annotations as OA;
  * @OA\Property(property="width", type="number", example=500),
  * @OA\Property(property="height", type="number", example=300),
  *
- * @OA\Property(property="resolution_type", type="string", example="1920x1080"),
- * @OA\Property(property="resolution_width", type="integer", nullable=true),
- * @OA\Property(property="resolution_height", type="integer", nullable=true),
+ * @OA\Property(property="resolution_type", type="string", example="Full HD (1920 × 1080)"),
+ * @OA\Property(property="resolution_width", type="integer", nullable=true, example=1920),
+ * @OA\Property(property="resolution_height", type="integer", nullable=true, example=1080),
  *
  * @OA\Property(property="address", type="string"),
  * @OA\Property(property="locality", type="string"),

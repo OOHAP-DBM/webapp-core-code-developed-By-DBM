@@ -30,15 +30,25 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
      */
     public function getAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->model->with('vendor');
+        $query = $this->model->with([
+            'vendor',
+            'hoardingMedia',
+            'ooh.packages',
+            'doohScreen.media',
+            'doohScreen.packages',
+        ]);
 
         // Apply filters
         if (!empty($filters['vendor_id'])) {
             $query->byVendor($filters['vendor_id']);
         }
 
-        if (!empty($filters['type'])) {
-            $query->byType($filters['type']);
+        if (!empty($filters['hoarding_type'])) {
+            $query->where('hoarding_type', $filters['hoarding_type']);
+        }
+
+        if (!empty($filters['category'])) {
+            $query->where('category', $filters['category']);
         }
 
         if (!empty($filters['status'])) {
@@ -47,6 +57,38 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
             } else {
                 $query->byStatus($filters['status']);
             }
+        }
+
+        if (!empty($filters['city'])) {
+            $query->where('city', 'LIKE', '%' . $filters['city'] . '%');
+        }
+
+        if (!empty($filters['state'])) {
+            $query->where('state', 'LIKE', '%' . $filters['state'] . '%');
+        }
+
+        if (isset($filters['min_price'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('monthly_price', '>=', $filters['min_price'])
+                  ->orWhere(function($sq) use ($filters) {
+                      $sq->whereNull('monthly_price')
+                         ->where('base_monthly_price', '>=', $filters['min_price']);
+                  });
+            });
+        }
+
+        if (isset($filters['max_price'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('monthly_price', '<=', $filters['max_price'])
+                  ->orWhere(function($sq) use ($filters) {
+                      $sq->whereNull('monthly_price')
+                         ->where('base_monthly_price', '<=', $filters['max_price']);
+                  });
+            });
+        }
+
+        if (isset($filters['featured'])) {
+            $query->where('is_featured', filter_var($filters['featured'], FILTER_VALIDATE_BOOLEAN));
         }
 
         if (!empty($filters['search'])) {
@@ -66,7 +108,22 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
         // Sorting
         $sortBy = $filters['sort_by'] ?? 'created_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
-        $query->orderBy($sortBy, $sortOrder);
+        
+        // Map 'price' to monthly_price with fallback to base_monthly_price
+        if ($sortBy === 'price') {
+            $sortBy = 'base_monthly_price';
+        }
+        
+        // Don't add additional orderBy if location-based sorting is already applied
+        if (empty($filters['lat']) || empty($filters['lng'])) {
+            // For price sorting, use COALESCE to handle null monthly_price
+            if ($sortBy === 'base_monthly_price') {
+                $query->orderByRaw("COALESCE(monthly_price, base_monthly_price) {$sortOrder}");
+            } else {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+        }
+        
         return $query->paginate($perPage);
     }
 

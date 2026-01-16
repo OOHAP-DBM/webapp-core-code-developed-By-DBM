@@ -6,6 +6,9 @@ namespace App\Services;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use App\Models\User;
+use App\Models\UserOtp;
+use App\Mail\OtpMail;
 
 class ProfileService
 {
@@ -61,5 +64,136 @@ class ProfileService
             'phone_verified' => (bool) $user->phone_verified_at,
             'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
         ], $extra);
+    }
+
+    const OTP_EXPIRY_MINUTES = 5;
+    const OTP_LENGTH = 4;
+
+    /* ==============================
+     | SEND OTP
+     ============================== */
+    public function send(User $user, string $type, string $value): void
+    {
+        $purpose = "change_{$type}";
+
+        // Rate limit (1 OTP / minute)
+        $recent = UserOtp::where('user_id', $user->id)
+            ->where('purpose', $purpose)
+            ->where('created_at', '>', now()->subMinute())
+            ->exists();
+
+        if ($recent) {
+            abort(429, 'Please wait before requesting another OTP');
+        }
+
+        // Invalidate old OTPs
+        UserOtp::where('user_id', $user->id)
+            ->where('purpose', $purpose)
+            ->delete();
+
+        $otp = random_int(1000, 9999);
+
+        UserOtp::create([
+            'user_id' => $user->id,
+            'identifier' => $value,
+            'purpose' => $purpose,
+            'otp_hash' => (string)$otp,
+            'expires_at' => now()->addMinutes(self::OTP_EXPIRY_MINUTES),
+        ]);
+
+        // Development: Log OTP (remove in production)
+        if (config('app.env') !== 'production') {
+            \Log::info('OTP Generated', [
+                'user_id' => $user->id,
+                'identifier' => $value,
+                'otp' => $otp,
+                'purpose' => $purpose,
+            ]);
+        }
+
+        $this->dispatchOtp($value, $otp);
+    }
+
+    /* ==============================
+     | VERIFY OTP
+     ============================== */
+    public function verify(User $user, string $type, string $value, string $otp): void
+    {
+        $record = UserOtp::where([
+            'user_id' => $user->id,
+            'identifier' => $value,
+            'purpose' => "change_{$type}",
+        ])->first();
+
+        if (!$record) {
+            \Log::warning('OTP verification failed: No record found', [
+                'user_id' => $user->id,
+                'identifier' => $value,
+                'purpose' => "change_{$type}",
+            ]);
+            abort(422, 'Invalid or expired OTP');
+        }
+
+        if ($record->verified_at) {
+            \Log::warning('OTP verification failed: Already verified', [
+                'user_id' => $user->id,
+                'verified_at' => $record->verified_at,
+            ]);
+            abort(422, 'OTP already used');
+        }
+
+        if ($record->isExpired()) {
+            \Log::warning('OTP verification failed: Expired', [
+                'user_id' => $user->id,
+                'expires_at' => $record->expires_at,
+            ]);
+            abort(422, 'OTP has expired');
+        }
+
+        if (!$record->matches($otp)) {
+            \Log::warning('OTP verification failed: Invalid OTP', [
+                'user_id' => $user->id,
+                'provided_otp' => $otp,
+                'provided_otp_type' => gettype($otp),
+                'stored_hash' => $record->otp_hash,
+            ]);
+            abort(422, 'Invalid OTP code');
+        }
+
+        $record->update(['verified_at' => now()]);
+
+        // Apply change
+        if ($type === 'email') {
+            $user->update([
+                'email' => $value,
+                'email_verified_at' => now(),
+            ]);
+        } else {
+            $user->update([
+                'phone' => $value,
+                'phone_verified_at' => now(),
+            ]);
+        }
+
+        // OTP is single-use
+        $record->delete();
+    }
+
+    /* ==============================
+     | DELIVERY
+     ============================== */
+    protected function dispatchOtp(string $identifier, int $otp): void
+    {
+        if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+            Mail::to($identifier)->send(new OtpMail($otp, 'email verification'));
+        } else {
+            // For phone/SMS: Integrate with SMS service provider
+            // Example: Twilio, AWS SNS, or local SMS gateway
+            \Log::info('SMS OTP would be sent', [
+                'phone' => $identifier,
+                'otp' => $otp,
+                'message' => "Your OOHAPP verification code is: {$otp}. Valid for 5 minutes."
+            ]);
+        }
     }
 }

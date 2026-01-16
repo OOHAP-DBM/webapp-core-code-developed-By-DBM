@@ -131,7 +131,7 @@
                             $percent = round(($diff / $base) * 100);
                         @endphp
                         <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
-                            {{ $percent }}%
+                            {{ $percent }}% Off
                         </span>
                     @endif
                 </div>

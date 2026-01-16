@@ -3,6 +3,12 @@
 @section('title', 'My Hoardings')
 
 @section('content')
+<style>
+.hover-primary:hover {
+    color: #0d6efd !important;
+    text-decoration: underline !important;
+}
+</style>
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -116,7 +122,11 @@
                     <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title mb-0">{{ $hoarding->title }}</h5>
+                                <h5 class="card-title mb-0">
+                                    <a href="{{ route('hoardings.show', $hoarding->id) }}" class="text-decoration-none text-dark hover-primary">
+                                        {{ $hoarding->title }}
+                                    </a>
+                                </h5>
                                 <span class="badge 
                                     @if($hoarding->status === 'active') bg-success
                                     @elseif($hoarding->status === 'draft') bg-secondary
