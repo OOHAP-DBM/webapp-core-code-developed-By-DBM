@@ -34,6 +34,8 @@
     .enquiry-input:disabled{
         background:#F3F4F6;
         color:#6B7280;
+        cursor: not-allowed;
+        opacity: 0.7;
     }
 
     /* ===== Mobile full screen modal ===== */
@@ -136,7 +138,9 @@
                 <input type="hidden" id="enquiryAmount" name="amount">
                 <input type="hidden" id="enquiryDurationType" name="duration_type" value="months">
                 <input type="hidden" id="enquiryEndDate" name="preferred_end_date">
-                <input type="hidden" id="enquiryMonths" name="months[]">
+                <input type="hidden" id="enquiryMonths" name="months[]" value="1">
+                <input type="hidden" id="enquiryVideoDuration" name="video_duration_hidden">
+                <input type="hidden" id="enquirySlotsCount" name="slots_count_hidden">
 
                 <input type="hidden" id="hoardingType" value="{{ $modalHoarding?->hoarding_type }}">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
@@ -209,75 +213,15 @@
 
                 {{-- SELECTED OFFER --}}
                 <div>
-                    <label class="font-medium">Selected Offer</label>
+                    <label class="font-medium mb-2">Selected Offer</label>
                     <select id="enquiryPackage"
                             name="selected_package"
-                            class="enquiry-input">
+                            class="enquiry-input w-full">
 
                         <option value="base" id="basePriceOption">
                             Base Price
                         </option>
-                            {{-- Always render available packages if present --}}
-                            @if($packages && $packages->count())
-                                @foreach($packages as $pkg)
-                                    @php
-                                        $finalPrice = 0;
-                                        $discountPercent = (int) ($pkg->discount_percent ?? 0);
-                                        if ($pkg->type === 'ooh' || ($hoarding->hoarding_type ?? '') === 'ooh') {
-                                            $monthly  = (int) ($hoarding->monthly_price ?? 0);
-                                            $base = $monthly;
-                                            $discountAmount = ($base * $discountPercent) / 100;
-                                            $finalPrice = max(0, round($base - $discountAmount));
-                                        } else {
-                                            $finalPrice = (int) ($pkg->slots_per_month ?? 0);
-                                        }
-                                    @endphp
-                                    <option value="{{ $pkg->id }}"
-                                            data-label="{{ $pkg->package_name }}"
-                                            data-price="{{ $finalPrice }}"
-                                            data-months="{{ $pkg->min_booking_duration ?? 1 }}">
-                                        {{ $pkg->package_name }}
-                                        ({{ $pkg->min_booking_duration }} {{ $pkg->duration_unit }})
-                                        – ₹{{ number_format($finalPrice) }}
-                                        @if($discountPercent > 0)
-                                            &nbsp;&nbsp; [{{ $discountPercent }}% OFF]
-                                        @endif
-                                    </option>
-                                @endforeach
-                            @endif
-
-                        @foreach($packages as $pkg)
-                            @php
-                                $finalPrice = 0;
-                                $discountPercent = (int) ($pkg->discount_percent ?? 0);
-
-                                if ($hoarding->hoarding_type  === 'ooh') {
-                                    $monthly  = (int) ($hoarding->monthly_price ?? 0);
-                                    $base = $monthly;
-                                    $discountAmount = ($base * $discountPercent) / 100;
-                                    $finalPrice = max(0, round($base - $discountAmount));
-                                } else {
-                                    $finalPrice = (int) ($pkg->slots_per_month ?? 0);
-                                }
-                            @endphp
-
-                            <option value="{{ $pkg->id }}"
-                                    data-label="{{ $pkg->package_name }}"
-                                    data-price="{{ $finalPrice }}"
-                                    data-months="{{ $pkg->min_booking_duration ?? 1 }}">
-
-                                {{ $pkg->package_name }}
-                                ({{ $pkg->min_booking_duration }} {{ $pkg->duration_unit }})
-                                – ₹{{ number_format($finalPrice) }}
-                                @if($discountPercent > 0)
-                                    &nbsp;&nbsp; [{{ $discountPercent }}% OFF]
-                                @endif
-
-                            </option>
-                        @endforeach
-
-                        
-
+                        {{-- Packages loaded dynamically via JavaScript API --}}
                     </select>
                     
                 </div>
@@ -291,13 +235,14 @@
                     <div>
                         <label class="font-medium text-gray-700">Video Duration (Seconds) *</label>
                         <select name="video_duration" class="enquiry-input">
+                            <option value="">-- Select Duration --</option>
                             <option value="15">15 Seconds</option>
                             <option value="30">30 Seconds</option>
                         </select>
                     </div>
                     <div>
                         <label class="font-medium text-gray-700">Required Slots per day *</label>
-                        <input type="number" name="slots_count" class="enquiry-input" placeholder="e.g. 120" value="120" min="1">
+                        <input type="number" name="slots_count" class="enquiry-input" placeholder="e.g. 120" value="120" min="1" max="10000">
                     </div>
                 </div>
                 <div id="doohNote" class="p-3 bg-blue-50 border border-blue-100 rounded-lg" style="display:none;">
@@ -354,10 +299,11 @@
 
             // Show/hide Digital Ad Settings based on hoardingType
             function toggleDoohFields() {
-                var hoardingType = document.getElementById('hoardingType')?.value;
+                var hoardingType = document.getElementById('hoardingType')?.value || '';
                 var doohFields = document.getElementById('doohFields');
                 var doohNote = document.getElementById('doohNote');
-                if (hoardingType === 'dooh') {
+                // Use lowercase comparison for consistency
+                if (hoardingType.toLowerCase() === 'dooh') {
                     if (doohFields) doohFields.style.display = '';
                     if (doohNote) doohNote.style.display = '';
                 } else {
@@ -374,46 +320,180 @@
 
             // Robust validation before submit
             document.getElementById('enquiryForm').addEventListener('submit', function(e) {
-                var hoardingType = document.getElementById('hoardingType')?.value;
+                // CRITICAL: Sync all fields BEFORE validation
+                syncEnquiryHiddenFields();
+                
+                // CRITICAL: Update hoardingType from window state
+                if (window.selectedPackageState && window.selectedPackageState.type) {
+                    document.getElementById('hoardingType').value = window.selectedPackageState.type;
+                }
+                
+                var hoardingType = document.getElementById('hoardingType')?.value || '';
                 var name = document.getElementById('enquiryName')?.value.trim();
                 var email = document.getElementById('enquiryEmail')?.value.trim();
                 var mobile = document.getElementById('enquiryMobile')?.value.trim();
                 var startDate = document.getElementById('enquiryStartDate')?.value;
-                var videoDuration = document.querySelector('select[name="video_duration"]')?.value;
-                var slotsCount = document.querySelector('input[name="slots_count"]')?.value;
+                
+                // CRITICAL: Read the ACTUAL VISIBLE FORM FIELDS
+                var videoDurationField = document.querySelector('select[name="video_duration"]');
+                var slotsCountField = document.querySelector('input[name="slots_count"]');
+                var videoDuration = videoDurationField ? videoDurationField.value : '';
+                var slotsCount = slotsCountField ? slotsCountField.value : '';
+                
                 var packageSelect = document.getElementById('enquiryPackage');
                 var monthsSelect = document.getElementById('packageSelect');
                 var errorMsg = '';
+                
+                console.log('[DEBUG] ===== FORM SUBMIT START =====');
+                console.log('[DEBUG] hoardingType:', hoardingType);
+                console.log('[DEBUG] videoDuration (from field):', videoDuration);
+                console.log('[DEBUG] slotsCount (from field):', slotsCount);
+                console.log('[DEBUG] videoDurationField exists:', !!videoDurationField);
+                console.log('[DEBUG] slotsCountField exists:', !!slotsCountField);
+                
                 if (!name) errorMsg += 'Full Name is required.\n';
                 if (!email) errorMsg += 'Email is required.\n';
                 if (!mobile) errorMsg += 'Mobile is required.\n';
                 if (!startDate) errorMsg += 'Start Date is required.\n';
-                if (hoardingType === 'dooh') {
-                    if (!videoDuration) errorMsg += 'Video Duration is required.\n';
-                    if (!slotsCount) errorMsg += 'Slots Count is required.\n';
+                
+                // DOOH-specific validation - ONLY if hoarding type is explicitly 'dooh'
+                var isDoohHoarding = hoardingType && hoardingType.toLowerCase() === 'dooh';
+                
+                console.log('[DEBUG] isDoohHoarding:', isDoohHoarding);
+                
+                if (isDoohHoarding) {
+                    console.log('[DEBUG] ✅ DOOH HOARDING DETECTED - Validating DOOH fields');
+                    
+                    // Check if fields are visible (they should be for DOOH)
+                    var doohFieldsDiv = document.getElementById('doohFields');
+                    var isVisible = doohFieldsDiv && doohFieldsDiv.style.display !== 'none';
+                    console.log('[DEBUG] DOOH fields visible:', isVisible);
+                    
+                    // Validate filled values
+                    if (!videoDuration || videoDuration === '') {
+                        errorMsg += 'Video Duration is required.\n';
+                        console.log('[DEBUG] ❌ Video Duration empty');
+                    } else {
+                        console.log('[DEBUG] ✅ Video Duration set to:', videoDuration);
+                    }
+                    
+                    if (!slotsCount || slotsCount === '') {
+                        errorMsg += 'Slots Count is required.\n';
+                        console.log('[DEBUG] ❌ Slots Count empty');
+                    } else {
+                        console.log('[DEBUG] ✅ Slots Count set to:', slotsCount);
+                    }
+                    
+                    // Validate video_duration is ONLY 15 or 30
+                    var videoDurationInt = parseInt(videoDuration);
+                    if (videoDuration && ![15, 30].includes(videoDurationInt)) {
+                        errorMsg += 'Video Duration must be 15 or 30 seconds.\n';
+                        console.log('[DEBUG] ❌ Video Duration invalid:', videoDurationInt);
+                    } else if (videoDuration) {
+                        console.log('[DEBUG] ✅ Video Duration valid:', videoDurationInt);
+                    }
+                    
+                    // Validate slots_count is >= 1
+                    var slotsCountInt = parseInt(slotsCount);
+                    if (slotsCount && slotsCountInt < 1) {
+                        errorMsg += 'Slots Count must be at least 1.\n';
+                        console.log('[DEBUG] ❌ Slots Count invalid:', slotsCountInt);
+                    } else if (slotsCount) {
+                        console.log('[DEBUG] ✅ Slots Count valid:', slotsCountInt);
+                    }
+                } else {
+                    console.log('[DEBUG] ⏭️ OOH HOARDING - Skipping DOOH field validation');
                 }
+                
                 // If no package is available, set package_id to null and set months
-                if (!packageSelect || packageSelect.options.length <= 1 || packageSelect.value === 'base' || !packageSelect.value) {
+                if (!packageSelect || packageSelect.value === 'base' || !packageSelect.value) {
                     document.getElementById('enquiryPackageId').value = '';
-                    if (monthsSelect) {
+                    if (monthsSelect && monthsSelect.value) {
                         document.getElementById('enquiryMonths').value = monthsSelect.value;
+                    } else {
+                        document.getElementById('enquiryMonths').value = '1';
                     }
                 } else {
                     document.getElementById('enquiryMonths').value = '';
                 }
+                
+                // CONDITIONAL: Remove DOOH fields for OOH hoardings BEFORE validation
+                if (hoardingType.toLowerCase() !== 'dooh') {
+                    if (videoDurationField) videoDurationField.removeAttribute('name');
+                    if (slotsCountField) slotsCountField.removeAttribute('name');
+                    console.log('[DEBUG] OOH Hoarding - Removed DOOH field names before submission');
+                }
+                
+                console.log('[DEBUG] ===== VALIDATION RESULT =====');
+                console.log('[DEBUG] errorMsg:', errorMsg ? 'YES - ' + errorMsg : 'NONE');
+                
                 if (errorMsg) {
                     e.preventDefault();
                     alert(errorMsg);
+                    console.log('[DEBUG] ❌ Form submission BLOCKED due to validation errors');
                     return false;
                 }
+                
+                console.log('[DEBUG] ✅ All validation passed, allowing form submission');
+            });
+                
+                // If no package is available, set package_id to null and set months
+                console.log('[DEBUG] packageSelect:', packageSelect);
+                console.log('[DEBUG] packageSelect.value:', packageSelect ? packageSelect.value : 'PACKAGE SELECT IS NULL');
+                console.log('[DEBUG] monthsSelect:', monthsSelect);
+                console.log('[DEBUG] monthsSelect.value:', monthsSelect ? monthsSelect.value : 'MONTHS SELECT IS NULL');
+                
+                // CRITICAL FIX: Check only if package value is 'base' (default/unselected)
+                // Don't check options.length because for OOH with no packages, there's always just 1 option
+                if (!packageSelect || packageSelect.value === 'base' || !packageSelect.value) {
+                    console.log('[DEBUG] ✅ No package selected - setting months field from monthsSelect');
+                    document.getElementById('enquiryPackageId').value = '';
+                    if (monthsSelect && monthsSelect.value) {
+                        document.getElementById('enquiryMonths').value = monthsSelect.value;
+                        console.log('[DEBUG] Set enquiryMonths.value =', monthsSelect.value);
+                    } else {
+                        console.log('[DEBUG] ⚠️ Using default months value of 1');
+                        document.getElementById('enquiryMonths').value = '1';
+                    }
+                } else {
+                    console.log('[DEBUG] ✅ Package selected - no need for months field');
+                    document.getElementById('enquiryMonths').value = '';
+                }
+                
+                // CONDITIONAL: Remove DOOH fields for OOH hoardings BEFORE validation
+                if (hoardingType.toLowerCase() !== 'dooh') {
+                    var videoDurationField = document.querySelector('select[name="video_duration"]');
+                    var slotsCountField = document.querySelector('input[name="slots_count"]');
+                    if (videoDurationField) videoDurationField.removeAttribute('name');
+                    if (slotsCountField) slotsCountField.removeAttribute('name');
+                    console.log('[DEBUG] OOH Hoarding - Removed DOOH field names before submission');
+                }
+                
+                // Log final form data before submission
+                var formData = new FormData(this);
+                console.log('[DEBUG] FINAL FORM DATA before submission:');
+                for (var pair of formData.entries()) {
+                    console.log('  ' + pair[0] + ':', pair[1]);
+                }
+                
+                if (errorMsg) {
+                    e.preventDefault();
+                    alert(errorMsg);
+                    console.log('[DEBUG] ❌ Form submission BLOCKED due to validation errors');
+                    return false;
+                }
+                
+                console.log('[DEBUG] ✅ All validation passed, allowing form submission');
+                // Don't prevent default - let the form submit naturally
             });
 
         // Show/hide Digital Ad Settings based on hoardingType
         function toggleDoohFields() {
-            var hoardingType = document.getElementById('hoardingType')?.value;
+            var hoardingType = document.getElementById('hoardingType')?.value || '';
             var doohFields = document.getElementById('doohFields');
             var doohNote = document.getElementById('doohNote');
-            if (hoardingType === 'dooh') {
+            // Use lowercase comparison for consistency
+            if (hoardingType.toLowerCase() === 'dooh') {
                 if (doohFields) doohFields.style.display = '';
                 if (doohNote) doohNote.style.display = '';
             } else {

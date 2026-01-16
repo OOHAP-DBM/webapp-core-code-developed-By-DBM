@@ -18,7 +18,7 @@
     @stack('styles')
 </head>
 <body class="antialiased">
-    <div id="app" class="min-h-screen bg-gray-50">
+    <div id="app" class="min-h-screen bg-white">
         {{-- <!-- Header -->
         @include('layouts.partials.header') --}}
 

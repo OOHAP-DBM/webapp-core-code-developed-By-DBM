@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use Modules\Hoardings\Services\HoardingService;
 use App\Models\Hoarding;
+use Illuminate\Support\Facades\DB;
 
 class HoardingController extends Controller
 {
@@ -102,8 +103,69 @@ class HoardingController extends Controller
         return view('hoardings.show', compact('hoarding'));
     }
 
+    /**
+     * Get packages by hoarding ID (API endpoint)
+     */
+    public function getPackages(int $id)
+    {
+        try {
+            $hoarding = Hoarding::findOrFail($id);
+            $packages = [];
 
+            if ($hoarding->hoarding_type === 'ooh') {
+                $pkgs = DB::table('hoarding_packages')
+                    ->where('hoarding_id', $id)
+                    ->where('is_active', 1)
+                    ->get();
 
+                $packages = $pkgs->map(function($pkg) use ($hoarding) {
+                    $basePrice = $hoarding->base_monthly_price;  // Use base_monthly_price instead of monthly_price
+                    $discountPercent = (float) ($pkg->discount_percent ?? 0);
+                    $finalPrice = $basePrice - ($basePrice * $discountPercent / 100);
+                    
+                    return [
+                        'id' => $pkg->id,
+                        'name' => $pkg->package_name,
+                        'price' => round($finalPrice, 2),
+                        'discount_percent' => $discountPercent,  // Include discount_percent
+                        'months' => (int) ($pkg->min_booking_duration ?? 1),
+                    ];
+                })->toArray();
+            } 
+            else if ($hoarding->hoarding_type === 'dooh') {
+                $screen = DB::table('dooh_screens')
+                    ->where('hoarding_id', $id)
+                    ->first();
+
+                if ($screen) {
+                    $pkgs = DB::table('dooh_packages')
+                        ->where('dooh_screen_id', $screen->id)
+                        ->where('is_active', 1)
+                        ->get();
+
+                    $packages = $pkgs->map(function($pkg) {
+                        return [
+                            'id' => $pkg->id,
+                            'name' => $pkg->package_name,
+                            'price' => (int) ($pkg->slots_per_month ?? 0),
+                            'discount_percent' => (float) ($pkg->discount_percent ?? 0),  // Include discount_percent
+                            'months' => (int) ($pkg->min_booking_duration ?? 1),
+                        ];
+                    })->toArray();
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'packages' => $packages,
+                'hoarding_type' => $hoarding->hoarding_type,
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Packages API Error', ['hoarding_id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Failed to fetch packages'], 500);
+        }
+    }
 
     /**
      * Display map view with all hoardings.
