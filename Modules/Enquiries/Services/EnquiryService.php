@@ -79,7 +79,7 @@ class EnquiryService
             'months' => 'nullable|array',
             'months.*' => 'nullable|integer|min:1',
             'package_label' => 'nullable',
-            'amount' => 'required',
+            'amount' => 'nullable',  // CHANGED: Made optional (was required)
             'amount.*' => 'numeric|min:0',
             'duration_type' => 'required|string',
             'preferred_start_date' => 'required|date',
@@ -95,6 +95,13 @@ class EnquiryService
             'duration_days' => 'nullable|integer|min:1',
         ];
         $validated = $request->validate($rules);
+
+        // CRITICAL: Log what was validated to catch any issues
+        \Log::info('[ENQUIRY SERVICE] Validation result for DOOH fields:', [
+            'video_duration' => $validated['video_duration'] ?? null,
+            'slots_count' => $validated['slots_count'] ?? null,
+            'hoarding_type' => $validated['hoarding_id'] ?? 'unknown',
+        ]);
 
         // Custom validation for package_id and months
         $hoardingIds = (array) ($validated['hoarding_id'] ?? []);
