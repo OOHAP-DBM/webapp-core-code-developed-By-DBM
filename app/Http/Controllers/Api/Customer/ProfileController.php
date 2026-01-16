@@ -12,6 +12,8 @@ use Illuminate\Validation\Rules\Password;
 use Modules\Auth\Services\OTPService;
 use App\Services\ProfileService;
 use Throwable;
+use App\Models\User;
+
 // Customer Profile Section @Aviral
 
 
@@ -125,17 +127,16 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->email_verified_at || !$user->phone_verified_at) {
+        if (!$user->email_verified_at && !$user->phone_verified_at) {
             return response()->json([
                 'success' => false,
-                'message' => 'Verify email & phone first',
+                'message' => 'Verify either email or phone first',
             ], 403);
         }
 
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,'.$user->id,
-            'phone' => 'required|string|unique:users,phone,'.$user->id,
             'company_name' => 'nullable|string|max:255',
             'gstin' => 'nullable|string|max:255',
             'avatar' => 'nullable|image|max:2048',
@@ -145,8 +146,6 @@ class ProfileController extends Controller
             $data['avatar'] = $service->updateAvatar($user, $request->file('avatar'));
         }
 
-        if ($data['email'] !== $user->email) $data['email_verified_at'] = null;
-        if ($data['phone'] !== $user->phone) $data['phone_verified_at'] = null;
 
         $user->update($data);
 
@@ -279,15 +278,28 @@ class ProfileController extends Controller
     /**
      * @OA\Post(
      *     path="/profile/send-otp",
-     *     tags={"Customer Profile"},
-     *     summary="Send OTP to email or phone",
+     *     tags={"Profile OTP"},
+     *     summary="Send OTP to change email or phone",
+     *     description="Sends a one-time password (OTP) to the provided email or phone number. Requires Bearer authentication.",
      *     security={{"sanctum":{}}},
      *
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"identifier"},
-     *             @OA\Property(property="identifier", type="string", example="rahul@example.com")
+     *             required={"type","value"},
+     *             @OA\Property(
+     *                 property="type",
+     *                 type="string",
+     *                 enum={"email","phone"},
+     *                 example="email",
+     *                 description="Type of identifier to change"
+     *             ),
+     *             @OA\Property(
+     *                 property="value",
+     *                 type="string",
+     *                 example="newuser@example.com",
+     *                 description="New email or phone number"
+     *             )
      *         )
      *     ),
      *
@@ -300,82 +312,148 @@ class ProfileController extends Controller
      *         )
      *     ),
      *
-     *     @OA\Response(response=403, description="Invalid identifier"),
-     *     @OA\Response(response=500, description="Unable to send OTP")
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation or business logic error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Email already taken")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=429,
+     *         description="Too many OTP requests",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Please wait before requesting another OTP")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
      * )
      */
 
-    public function sendOtp(Request $request, OTPService $otpService)
+
+    /* ==============================
+     | SEND OTP
+     ============================== */
+    public function sendOtp(Request $request, ProfileService $service)
     {
-        $request->validate([
-            'identifier' => 'required|string',
+        $data = $request->validate([
+            'type' => 'required|in:email,phone',
+            'value' => 'required|string',
         ]);
 
         $user = $request->user();
 
-        if (!in_array($request->identifier, [$user->email, $user->phone])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid identifier',
-            ], 403);
+        if ($data['type'] === 'email') {
+            if ($data['value'] === $user->email) {
+                return response()->json(['success' => false, 'message' => 'Same email'], 422);
+            }
+            if (User::where('email', $data['value'])->exists()) {
+                return response()->json(['success' => false, 'message' => 'Email already taken'], 422);
+            }
         }
 
-        $result = $otpService->generateAndSendOTP($request->identifier);
+        if ($data['type'] === 'phone') {
+            if ($data['value'] === $user->phone) {
+                return response()->json(['success' => false, 'message' => 'Same phone'], 422);
+            }
+            if (User::where('phone', $data['value'])->exists()) {
+                return response()->json(['success' => false, 'message' => 'Phone already taken'], 422);
+            }
+        }
+
+        $service->send($user, $data['type'], $data['value']);
 
         return response()->json([
-            'success' => $result['success'],
-            'message' => $result['message'],
-        ], $result['success'] ? 200 : 500);
+            'success' => true,
+            'message' => 'OTP sent successfully',
+        ]);
     }
+
 
 
 
     /**
      * @OA\Post(
      *     path="/profile/verify-otp",
-     *     tags={"Customer Profile"},
-     *     summary="Verify OTP for email or phone",
+     *     tags={"Profile OTP"},
+     *     summary="Verify OTP and update email or phone",
+     *     description="Verifies the OTP sent to email or phone and updates the user's profile accordingly.",
      *     security={{"sanctum":{}}},
      *
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"identifier","otp"},
-     *             @OA\Property(property="identifier", type="string", example="rahul@example.com"),
-     *             @OA\Property(property="otp", type="string", example="1234")
+     *             required={"type","value","otp"},
+     *             @OA\Property(
+     *                 property="type",
+     *                 type="string",
+     *                 enum={"email","phone"},
+     *                 example="phone",
+     *                 description="Type of identifier being verified"
+     *             ),
+     *             @OA\Property(
+     *                 property="value",
+     *                 type="string",
+     *                 example="9876543210",
+     *                 description="Email or phone number used for OTP"
+     *             ),
+     *             @OA\Property(
+     *                 property="otp",
+     *                 type="string",
+     *                 example="1234",
+     *                 description="4-digit OTP received by the user"
+     *             )
      *         )
      *     ),
      *
      *     @OA\Response(
      *         response=200,
-     *         description="OTP verified successfully",
+     *         description="OTP verified and profile updated",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Verified successfully")
+     *             @OA\Property(property="message", type="string", example="Email updated successfully")
      *         )
      *     ),
      *
-     *     @OA\Response(response=422, description="Invalid or expired OTP"),
-     *     @OA\Response(response=500, description="OTP verification failed")
+     *     @OA\Response(
+     *         response=422,
+     *         description="Invalid or expired OTP",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Invalid or expired OTP")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
      * )
      */
 
-    public function verifyOtp(Request $request, OTPService $otpService)
+    public function verifyOtp(Request $request, ProfileService $service)
     {
-        $request->validate([
-            'identifier' => 'required|string',
+        $data = $request->validate([
+            'type' => 'required|in:email,phone',
+            'value' => 'required|string',
             'otp' => 'required|digits:4',
         ]);
 
-        $result = $otpService->verifyOTPForLoggedInUser(
-            $request->identifier,
-            $request->otp
+        $service->verify(
+            $request->user(),
+            $data['type'],
+            $data['value'],
+            $data['otp']
         );
 
         return response()->json([
-            'success' => $result['success'],
-            'message' => $result['message'],
-        ], $result['success'] ? 200 : 422);
+            'success' => true,
+            'message' => ucfirst($data['type']) . ' updated successfully',
+        ]);
     }
-
 }

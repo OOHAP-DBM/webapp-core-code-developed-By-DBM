@@ -1,4 +1,4 @@
-<div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
+{{-- <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6"> --}}
   <div class="md:p-8 space-y-8">
     <!-- Weekly Rental -->
     <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
@@ -324,7 +324,7 @@
       </div>
     </div>
   </div>
-</div>
+{{-- </div> --}}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

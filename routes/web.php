@@ -527,6 +527,11 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         });
         Route::get('/reports/revenue', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'revenue'])->name('reports.revenue');
     
+        // Notifications
+        Route::get('/notifications', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'markAsRead'])->name('notifications.read');
+        Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+
     }); // End of vendor.approved middleware group
     
     // Profile
@@ -901,6 +906,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/export', [\App\Http\Controllers\Admin\TaxConfigController::class, 'export'])->name('export');
         Route::get('/reset-defaults', [\App\Http\Controllers\Admin\TaxConfigController::class, 'resetDefaults'])->name('reset-defaults');
     });
+
+    // Notifications
+    Route::get('/notifications', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 });
 
 // ============================================

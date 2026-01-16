@@ -89,7 +89,7 @@ class OOHListingController extends Controller
     public function storeStep2(StoreOOHHoardingStep2Request $request, $parent_id): JsonResponse
     {
         $child_hoarding = OOHHoarding::where('hoarding_id', $parent_id)->firstOrFail();
-        dd($child_hoarding);
+        // dd($child_hoarding);
 
         $data = $request->validated();
         $brandLogoFiles = $request->file('brand_logos', []);
