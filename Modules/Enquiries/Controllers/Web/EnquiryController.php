@@ -23,11 +23,11 @@ class EnquiryController extends Controller
      | INDEX
      ===================================================== */
     /**
-     * Apply customer-only middleware to all methods
+     * Apply customer-only middleware to all methods except store
      */
     public function __construct()
     {
-        $this->middleware(['auth', 'role:customer']);
+        $this->middleware(['auth', 'role:customer'])->except(['store']);
     }
 
     public function index(Request $request)
