@@ -15,6 +15,8 @@ class OTPService
         protected UserRepositoryInterface $userRepository
     ) {}
 
+    const OTP_EXPIRY_MINUTES = 3;
+
     public function generateAndSendRegisterOTP(string $identifier): array
     {
         $user = $this->userRepository->findByEmailOrPhone($identifier);
@@ -305,5 +307,68 @@ class OTPService
         $user->tokens()->delete();
 
         return ['success' => true];
+    }
+
+
+    public function generate(
+        int $userId,
+        string $identifier,
+        string $purpose
+    ): void {
+        // Invalidate previous OTPs for same purpose
+        UserOtp::where([
+            'user_id' => $userId,
+            'purpose' => $purpose,
+        ])->delete();
+
+        $otp = random_int(1000, 9999);
+
+        UserOtp::create([
+            'user_id' => $userId,
+            'identifier' => $identifier,
+            'otp_hash' => Hash::make($otp),
+            'purpose' => $purpose,
+            'expires_at' => now()->addMinutes(self::OTP_EXPIRY_MINUTES),
+        ]);
+
+        $this->sendOTP($identifier, $otp);
+    }
+
+    /* =====================================================
+     | VERIFY OTP
+     ===================================================== */
+    public function verify(
+        int $userId,
+        string $identifier,
+        string $otp,
+        string $purpose
+    ): bool {
+        $record = UserOtp::where([
+            'user_id' => $userId,
+            'identifier' => $identifier,
+            'purpose' => $purpose,
+        ])->first();
+
+        if (!$record) return false;
+        if ($record->verified_at) return false;
+        if ($record->expires_at->isPast()) return false;
+        if (!Hash::check($otp, $record->otp_hash)) return false;
+
+        $record->update(['verified_at' => now()]);
+        return true;
+    }
+
+    /* =====================================================
+     | SEND OTP
+     ===================================================== */
+    protected function sendProfileOTP(string $identifier, int $otp): void
+    {
+        if ($this->isPhoneNumber($identifier)) {
+            // SMS Provider
+            // SMS::send($identifier, "Your OTP is {$otp}");
+        } else {
+            // Email Provider
+            // Mail::to($identifier)->send(new OTPMail($otp));
+        }
     }
 }

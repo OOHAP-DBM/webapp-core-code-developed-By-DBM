@@ -304,6 +304,31 @@ class Hoarding extends Model implements HasMedia
     }
 
     /**
+     * Scope to filter hoardings near a location using Haversine formula.
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param float $latitude
+     * @param float $longitude
+     * @param float $radiusKm
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeNearLocation($query, $latitude, $longitude, $radiusKm = 10)
+    {
+        // Haversine formula to calculate distance
+        // Distance in kilometers
+        $haversine = "(6371 * acos(cos(radians(?)) 
+                     * cos(radians(latitude)) 
+                     * cos(radians(longitude) - radians(?)) 
+                     + sin(radians(?)) 
+                     * sin(radians(latitude))))";
+        
+        return $query
+            ->selectRaw("{$haversine} AS distance", [$latitude, $longitude, $latitude])
+            ->whereRaw("{$haversine} <= ?", [$latitude, $longitude, $latitude, $radiusKm])
+            ->orderBy('distance');
+    }
+
+    /**
      * Check if hoarding supports weekly booking.
      */
     public function supportsWeeklyBooking(): bool

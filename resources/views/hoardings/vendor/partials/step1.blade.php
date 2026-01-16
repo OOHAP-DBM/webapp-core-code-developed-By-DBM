@@ -1,6 +1,6 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
+{{-- <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6"> --}}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <div class="p-8 space-y-8">
     <!-- Hoarding Details -->
@@ -330,7 +330,7 @@
       </div>
     </div>
   </div>
-</div>
+{{-- </div> --}}
 
 <script>
 /* MAP + GEOCODING */
