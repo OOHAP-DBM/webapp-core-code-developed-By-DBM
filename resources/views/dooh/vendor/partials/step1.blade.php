@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
+{{-- <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6"> --}}
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <div class="md:p-8 md:space-y-8">
         <!-- Hoarding Details -->
@@ -59,13 +59,13 @@
               <!-- Width -->
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-500">Screen Width <span class="text-red-500">*</span></label>
-                <input type="number" id="width" name="width" placeholder="500" required class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
+                <input type="number" id="width" name="width" placeholder="eg. 500" required min="1" class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
               </div>
 
               <!-- Height -->
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-500">Screen Height <span class="text-red-500">*</span></label>
-                <input type="number" id="height" name="height" placeholder="300" required class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
+                <input type="number" id="height" name="height" placeholder="eg.300" required min="1" class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
               </div>
 
               <!-- Size Preview -->
@@ -117,13 +117,13 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
             <div class="space-y-2">
               <label class="text-sm font-bold text-gray-700">Hoarding Address <span class="text-red-500">*</span></label>
-              <input type="text" name="address" placeholder="Opposite Ram Dharam Kanta B43 Sector 7" required 
+              <input type="text" name="address" placeholder="eg. Opposite Ram Dharam Kanta B43 Sector 7" required 
                 class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
             </div>
 
             <div class="space-y-2">
               <label class="text-sm font-bold text-gray-700">Pincode <span class="text-red-500">*</span></label>
-              <input type="text" name="pincode" placeholder="226010" required 
+              <input type="text" name="pincode" placeholder="eg. 226010" required 
                 class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
             </div>
 
@@ -135,12 +135,12 @@
 
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700">City</label>
-                <input type="text" name="city" placeholder="Lucknow" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+                <label class="text-sm font-bold text-gray-700">City <span class="text-red-500">*</span></label>
+                <input type="text" name="city" placeholder="eg. Lucknow" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
               </div>
               <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700">State</label>
-                <input type="text" name="state" placeholder="Uttar Pradesh" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+                <label class="text-sm font-bold text-gray-700">State <span class="text-red-500">*</span></label>
+                <input type="text" name="state" placeholder="eg. Uttar Pradesh" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
               </div>
             </div>
           </div>
@@ -155,7 +155,7 @@
                 </button>
               </div>
               <div class="space-y-3" id="landmarksContainer">
-                <input type="text" name="landmarks[]" placeholder="Opposite Ram Dharam Kanta" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+                <input type="text" name="landmarks[]" placeholder="eg. Opposite Ram Dharam Kanta" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
               </div>
             </div>
           </div>
@@ -349,7 +349,7 @@
           </div>
         </div>
     </div>
-</div>
+{{-- </div> --}}
 <script>
 /* ===============================
    MAP + GEOCODING (FIXED)
