@@ -302,7 +302,10 @@ class OOHListingController extends Controller
         ]);
 
         $brandLogoFiles = $request->file('brand_logos', []);
-
+        \Log::info('Step2 parentHoarding', ['id' => $hoarding->id]);
+        \Log::info('Step2 childHoarding', ['id' => $oohHoarding->id]);
+        // Ensure we always use the parent hoarding ID, not a media/child ID
+        // If any brand logo upload logic uses an ID, pass $hoarding->id, not a media ID
         $result = $this->hoardingService->storeStep2($hoarding, $validated, $brandLogoFiles);
 
         if (!$result['success']) {

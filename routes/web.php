@@ -575,6 +575,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/vendor-hoardings/{id}/toggle-status',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'toggleStatus'])->name('vendor-hoardings.toggle-status');
     // save commission
     Route::post('/vendor-hoardings/{id}/set-commission',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'setCommission'])->name('vendor-hoardings.set-commission');
+    // Bulk actions
+    Route::post('/vendor-hoardings/bulk-delete',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkDelete'])->name('vendor-hoardings.bulk-delete');
+    Route::post('/vendor-hoardings/bulk-activate',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkActivate'])->name('vendor-hoardings.bulk-activate');
+    Route::post('/vendor-hoardings/bulk-deactivate',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkDeactivate'])->name('vendor-hoardings.bulk-deactivate');
+    Route::post('/vendor-hoardings/bulk-approve',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkApprove'])->name('vendor-hoardings.bulk-approve');
+    Route::post('/vendor-hoardings/{id}/suspend',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'suspend'])->name('vendor-hoardings.suspend');
     // Admin: View draft hoardings
     Route::get('hoardings/drafts', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'drafts'])->name('hoardings.drafts');
     Route::get('/hoardings', [\Modules\Admin\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');

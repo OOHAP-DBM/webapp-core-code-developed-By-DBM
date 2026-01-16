@@ -129,4 +129,14 @@ class OOHHoarding extends Model
             'id'           // local key on ooh_hoardings table
         );
     }
+
+    public function brandLogos(): HasMany
+    {
+        return $this->hasMany(
+            HoardingBrandLogo::class,
+            'hoarding_id', // foreign key on hoarding_brand_logos table
+            'id'           // local key on ooh_hoardings table
+        );
+    }
+    
 }
