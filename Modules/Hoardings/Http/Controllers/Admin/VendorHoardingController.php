@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 
 class VendorHoardingController extends Controller
@@ -84,16 +85,37 @@ class VendorHoardingController extends Controller
     {
         $perPage = 10;
 
-        // We fetch everything from the single 'hoardings' table
-        $hoardings = Hoarding::whereNotNull('vendor_id')
+        // Build query with filters
+        $query = Hoarding::whereNotNull('vendor_id')
             ->with([
                 'vendor:id,name',
                 'vendor.vendorProfile:id,user_id,commission_percentage',
             ])
-            ->withCount('bookings')
-            ->orderBy('id', 'desc')
-            ->paginate($perPage);
+            ->withCount('bookings');
 
+        // Apply filters
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('type')) {
+            $query->where('hoarding_type', $request->type);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'LIKE', "%{$search}%")
+                  ->orWhere('address', 'LIKE', "%{$search}%")
+                  ->orWhere('city', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('city')) {
+            $query->where('city', 'LIKE', "%{$request->city}%");
+        }
+
+        $hoardings = $query->orderBy('id', 'desc')->paginate($perPage);
 
         $completionService = app(\App\Services\HoardingCompletionService::class);
         $hoardings->getCollection()->transform(function ($h) use ($completionService) {
@@ -159,7 +181,7 @@ class VendorHoardingController extends Controller
                     );
                 }
             } catch (\Throwable $e) {
-                \Log::error('Hoarding published mail failed', [
+                Log::error('Hoarding published mail failed', [
                     'hoarding_id' => $hoarding->id,
                     'vendor_email' => $hoarding->vendor->email,
                     'error' => $e->getMessage(),
@@ -224,6 +246,190 @@ class VendorHoardingController extends Controller
         return view('hoardings.admin.draft-hoardings', [
             'hoardings' => $hoardings
         ]);
+    }
+
+    /**
+     * Bulk delete hoardings
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer|exists:hoardings,id'
+        ]);
+
+        try {
+            $count = Hoarding::whereIn('id', $request->ids)->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} hoarding(s) deleted successfully",
+                'count' => $count
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete hoardings: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk activate hoardings
+     */
+    public function bulkActivate(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer|exists:hoardings,id'
+        ]);
+
+        try {
+            // Check if all hoardings have commission set
+            $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+            $missingCommission = $hoardings->filter(function($h) {
+                return empty($h->commission_percent) || $h->commission_percent == 0;
+            });
+
+            if ($missingCommission->count() > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot activate hoardings without commission. Please set commission first.',
+                    'missing_commission_ids' => $missingCommission->pluck('id')->toArray()
+                ], 422);
+            }
+
+            // Activate all hoardings
+            $count = Hoarding::whereIn('id', $request->ids)
+                ->update(['status' => 'active']);
+
+            // Send emails to vendors
+            foreach ($hoardings as $hoarding) {
+                if ($hoarding->vendor && !empty($hoarding->vendor->email)) {
+                    try {
+                        Mail::to($hoarding->vendor->email)->send(
+                            new HoardingPublishedMail($hoarding)
+                        );
+                    } catch (\Throwable $e) {
+                        Log::error('Hoarding published mail failed', [
+                            'hoarding_id' => $hoarding->id,
+                            'vendor_email' => $hoarding->vendor->email,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} hoarding(s) activated successfully",
+                'count' => $count
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to activate hoardings: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk deactivate hoardings
+     */
+    public function bulkDeactivate(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer|exists:hoardings,id'
+        ]);
+
+        try {
+            $count = Hoarding::whereIn('id', $request->ids)
+                ->update(['status' => 'inactive']);
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} hoarding(s) deactivated successfully",
+                'count' => $count
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to deactivate hoardings: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk approve hoardings (set commission and activate)
+     */
+    public function bulkApprove(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer|exists:hoardings,id',
+            'commission' => 'required|numeric|min:0|max:100'
+        ]);
+
+        try {
+            $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+
+            // Set commission and activate
+            foreach ($hoardings as $hoarding) {
+                $hoarding->commission_percent = $request->commission;
+                $hoarding->status = 'active';
+                $hoarding->save();
+
+                // Send email to vendor
+                if ($hoarding->vendor && !empty($hoarding->vendor->email)) {
+                    try {
+                        Mail::to($hoarding->vendor->email)->send(
+                            new HoardingPublishedMail($hoarding)
+                        );
+                    } catch (\Throwable $e) {
+                        Log::error('Hoarding published mail failed', [
+                            'hoarding_id' => $hoarding->id,
+                            'vendor_email' => $hoarding->vendor->email,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$hoardings->count()} hoarding(s) approved and activated successfully",
+                'count' => $hoardings->count()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to approve hoardings: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Suspend a hoarding
+     */
+    public function suspend($id)
+    {
+        try {
+            $hoarding = Hoarding::findOrFail($id);
+            
+            $hoarding->status = 'suspended';
+            $hoarding->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Hoarding suspended successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to suspend hoarding: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
 

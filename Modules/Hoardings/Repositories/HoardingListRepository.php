@@ -105,17 +105,17 @@ class HoardingListRepository
     //     }
     // }
 
-    public function storeBrandLogos($hoardingId, array $logoFiles): array
+    public function storeBrandLogos($childhoardingId, array $logoFiles): array
     {
-        $hoarding = \App\Models\Hoarding::findOrFail($hoardingId);
+        $hoarding = \Modules\Hoardings\Models\OOHHoarding::findOrFail($childhoardingId);
         $saved = [];
         foreach ($logoFiles as $index => $file) {
             $uuid = \Illuminate\Support\Str::uuid()->toString();
             $ext  = strtolower($file->getClientOriginalExtension());
-            $directory = "oohHoardings/brand_logos/{$hoardingId}";
+            $directory = "oohHoardings/brand_logos/{$childhoardingId}";
             $filename  = "{$uuid}.{$ext}";
             $path = $file->storeAs($directory, $filename, 'public');
-            $saved[] = $hoarding->brandLogos()->create([
+            $saved[] = $hoarding->oohBrandLogos()->create([
                 'file_path'  => $path,
                 'sort_order' => $index,
             ]);
@@ -123,12 +123,56 @@ class HoardingListRepository
         return $saved;
     }
 
-    public function updateStep3($hoarding, array $data)
+    // public function updateStep3($hoarding, array $data)
+    // {
+    //     // Move parent fields to parent hoarding if present
+    //     $parent = $hoarding->hoarding;
+    //     $parentChanged = false;
+    //     // dd($parent);
+    //     if (isset($data['survey_charge'])) {
+    //         $parent->survey_charge = $data['survey_charge'];
+    //         unset($data['survey_charge']);
+    //         $parentChanged = true;
+    //     }
+    //     if (isset($data['graphics_included'])) {
+    //         $parent->graphics_included = $data['graphics_included'];
+    //         unset($data['graphics_included']);
+    //         $parentChanged = true;
+    //     }
+    //     if (isset($data['graphics_charge'])) {
+    //         $parent->graphics_charge = $data['graphics_charge'];
+    //         unset($data['graphics_charge']);
+    //         $parentChanged = true;
+    //     }
+    //     if (isset($data['weekly_price_1'])) {
+    //         $parent->weekly_price_1 = $data['weekly_price_1'];
+    //         $parentChanged = true;
+    //     }
+    //     if (isset($data['weekly_price_2'])) {
+    //         $parent->weekly_price_2 = $data['weekly_price_2'];
+    //         $parentChanged = true;
+    //     }
+    //     if (isset($data['weekly_price_3'])) {
+    //         $parent->weekly_price_3 = $data['weekly_price_3'];
+    //         $parentChanged = true;
+    //     }
+    //     if ($parentChanged) {
+    //         $parent->save();
+    //     }
+    //     $hoarding->fill($data);
+    //     $hoarding->save();
+    //     return $hoarding;
+    // }
+   
+
+    //for update step 3
+    public function updateStep3($oohHoarding, array $data)
     {
-        // Move parent fields to parent hoarding if present
-        $parent = $hoarding->hoarding;
+        // Get the parent hoarding
+        $parent = $oohHoarding->hoarding;
         $parentChanged = false;
-        // dd($parent);
+
+        // Move parent fields to parent hoarding if present
         if (isset($data['survey_charge'])) {
             $parent->survey_charge = $data['survey_charge'];
             unset($data['survey_charge']);
@@ -144,24 +188,36 @@ class HoardingListRepository
             unset($data['graphics_charge']);
             $parentChanged = true;
         }
+        if (isset($data['enable_weekly_booking'])) {
+            $parent->enable_weekly_booking = $data['enable_weekly_booking'];
+            unset($data['enable_weekly_booking']);
+            $parentChanged = true;
+        }
         if (isset($data['weekly_price_1'])) {
             $parent->weekly_price_1 = $data['weekly_price_1'];
+            unset($data['weekly_price_1']);
             $parentChanged = true;
         }
         if (isset($data['weekly_price_2'])) {
             $parent->weekly_price_2 = $data['weekly_price_2'];
+            unset($data['weekly_price_2']);
             $parentChanged = true;
         }
         if (isset($data['weekly_price_3'])) {
             $parent->weekly_price_3 = $data['weekly_price_3'];
+            unset($data['weekly_price_3']);
             $parentChanged = true;
         }
+        
         if ($parentChanged) {
             $parent->save();
         }
-        $hoarding->fill($data);
-        $hoarding->save();
-        return $hoarding;
+
+        // Update child OOHHoarding fields (printing, mounting, lighting, remounting)
+        $oohHoarding->fill($data);
+        $oohHoarding->save();
+        
+        return $oohHoarding;
     }
 
     public function storePackages($hoardingId, array $data)

@@ -1,6 +1,50 @@
-<div class="relative bg-[#ededed] rounded-lg p-4 cursor-pointer transition hover:ring-2 hover:ring-green-400 package-card-{{ $item->hoarding_id }}">
+@php
+    // Calculate prices first
+    if (($item->hoarding_type ?? null) === 'ooh') {
+        $basePrice = $item->base_monthly_price ?? 0;
+    } elseif (($item->hoarding_type ?? null) === 'dooh') {
+        $basePrice = $item->slot_price ?? 0;
+        if ($basePrice == 0) {
+            // Fallback to base_monthly_price if slot_price is 0
+            $basePrice = $item->base_monthly_price ?? 0;
+        }
+    } else {
+        $basePrice = 0;
+    }
+    $discountPercent = $pkg->discount_percent ?? 0;
+    $finalPrice = \Modules\Cart\Services\CartService::calculateDiscountedPrice($basePrice, $discountPercent);
+    $saveAmount = $basePrice - $finalPrice;
+@endphp
+
+<!-- Debug: DOOH package info -->
+@if($item->hoarding_type === 'dooh')
+    <script>
+        console.log(`🔍 DOOH Package Debug:`, {
+            hoardingId: {{ $item->hoarding_id }},
+            packageId: {{ $pkg->id }},
+            slotPrice: {{ $item->slot_price ?? 'null' }},
+            basePrice: {{ $basePrice }},
+            finalPrice: {{ $finalPrice }}
+        });
+    </script>
+@endif
+
+<div 
+    class="relative bg-[#ededed] rounded-lg p-4 cursor-pointer transition hover:ring-2 hover:ring-green-400 package-card-{{ $item->hoarding_id }}"
+    data-hoarding-id="{{ $item->hoarding_id }}"
+    data-package-id="{{ $pkg->id }}"
+    data-package-name="{{ $pkg->package_name }}"
+    data-final-price="{{ $finalPrice }}"
+    data-base-price="{{ $basePrice }}"
+    data-hoarding-type="{{ $item->hoarding_type }}"
+    onclick="handlePackageClick(this)"
+>
     @if(isset($selected) && $selected)
-        <div class="selected-strip absolute -top-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-green-600 text-white text-xs font-semibold shadow-md block">
+        <div class="selected-strip absolute top-0 left-0 right-0 py-1 rounded-t-lg bg-green-600 text-white text-xs font-semibold shadow-md block w-full text-center">
+            Selected
+        </div>
+    @else
+        <div class="selected-strip absolute top-0 left-0 right-0 py-1 rounded-t-lg bg-green-600 text-white text-xs font-semibold shadow-md hidden w-full text-center">
             Selected
         </div>
     @endif
@@ -23,19 +67,6 @@
         </p>
     @endif
 
-    @php
-        // Use correct base price for each hoarding type
-        if (($item->hoarding_type ?? null) === 'ooh') {
-            $basePrice = $item->base_monthly_price ?? 0;
-        } elseif (($item->hoarding_type ?? null) === 'dooh') {
-            $basePrice = $item->slot_price ?? 0;
-        } else {
-            $basePrice = 0;
-        }
-        $discountPercent = $pkg->discount_percent ?? 0;
-        $finalPrice = \Modules\Cart\Services\CartService::calculateDiscountedPrice($basePrice, $discountPercent);
-        $saveAmount = $basePrice - $finalPrice;
-    @endphp
     <div class="mt-3 flex items-center justify-between">
         <div>
             <p class="text-xs text-red-500 line-through">

@@ -159,7 +159,7 @@
 
             <!-- Enquiries -->
             <a
-                href=""
+                href="{{ route('customer.enquiries.index') }}"
                 class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg
                 {{ request()->routeIs('customer.enquiries.*') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50' }}"
             >

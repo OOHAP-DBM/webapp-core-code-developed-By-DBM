@@ -131,7 +131,7 @@
                             $percent = round(($diff / $base) * 100);
                         @endphp
                         <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
-                            {{ $percent }}%
+                            {{ $percent }}% Off
                         </span>
                     @endif
                 </div>
@@ -168,6 +168,11 @@
             $packageCount = 0;
             if(($hoarding->price_type ?? $hoarding->hoarding_type) === 'ooh') {
                 $packageCount = $hoarding->oohPackages()->count();
+            } elseif(($hoarding->price_type ?? $hoarding->hoarding_type) === 'dooh') {
+                // For DOOH, count packages from the doohScreen
+                if($hoarding->doohScreen) {
+                    $packageCount = $hoarding->doohScreen->packages()->count();
+                }
             }
         @endphp
 
@@ -216,7 +221,7 @@
                 onclick="event.stopPropagation(); event.preventDefault(); window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
             >
                 Enquiry Now
-            </button>
+            </button> 
             @endauth
         </div>
 

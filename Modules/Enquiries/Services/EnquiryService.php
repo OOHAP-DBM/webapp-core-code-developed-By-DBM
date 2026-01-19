@@ -14,6 +14,7 @@ use Modules\Enquiries\Repositories\EnquiryItemRepository;
 use Modules\Enquiries\Services\EnquiryItemService;
 use Modules\Enquiries\Services\EnquiryNotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 
 class EnquiryService
@@ -79,7 +80,7 @@ class EnquiryService
             'months' => 'nullable|array',
             'months.*' => 'nullable|integer|min:1',
             'package_label' => 'nullable',
-            'amount' => 'required',
+            'amount' => 'nullable',  // CHANGED: Made optional (was required)
             'amount.*' => 'numeric|min:0',
             'duration_type' => 'required|string',
             'preferred_start_date' => 'required|date',
@@ -96,6 +97,13 @@ class EnquiryService
         ];
         $validated = $request->validate($rules);
 
+        // CRITICAL: Log what was validated to catch any issues
+        \Log::info('[ENQUIRY SERVICE] Validation result for DOOH fields:', [
+            'video_duration' => $validated['video_duration'] ?? null,
+            'slots_count' => $validated['slots_count'] ?? null,
+            'hoarding_type' => $validated['hoarding_id'] ?? 'unknown',
+        ]);
+
         // Custom validation for package_id and months
         $hoardingIds = (array) ($validated['hoarding_id'] ?? []);
         $packageIds = (array) ($validated['package_id'] ?? []);
@@ -106,7 +114,10 @@ class EnquiryService
             $months = $monthsArr[$index] ?? null;
             $hoarding = \App\Models\Hoarding::with('doohScreen')->find($hoardingId);
             if (!$hoarding) {
-                throw new \Illuminate\Validation\ValidationException('Invalid hoarding selected.');
+                // throw new \Illuminate\Validation\ValidationException('Invalid hoarding selected.');
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'hoarding_id' => ['Invalid hoarding selected.'],
+                ]);
             }
             if ($packageId) {
                 // Validate package belongs to hoarding

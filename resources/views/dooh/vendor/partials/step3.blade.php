@@ -1,7 +1,7 @@
 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
     <div class="p-8 space-y-8">
 
-        <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+        {{-- <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
              <div class="flex items-center gap-3 mb-4">
                 <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
                 <h3 class="text-xl font-bold text-gray-800">Slot Pricing</h3>
@@ -21,14 +21,13 @@
                 <div class="space-y-2">
                     <label class="text-sm font-semibold text-gray-600">Video Length <span class="text-red-500">*</span></label>
                     <select name="video_length" required class="w-full border border-gray-200 rounded-xl px-4 py-3.5 focus:border-[#009A5C] outline-none transition-all cursor-pointer">
-                        {{-- <option value="">Select Video Length</option>
-                        <option value="10">10 Seconds</option>--}}
+                      
                         <option value="15">5 Seconds</option> 
                         <option value="30">15 Seconds</option>
                     </select>
                 </div>
             </div>
-        </div>
+        </div> --}}
         <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
@@ -44,10 +43,10 @@
             <!-- Monthly Price Section (default visible) -->
             <div id="monthly-section" class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
                 <div class="space-y-2">
-                    <label class="text-sm font-semibold text-gray-600">Base Monthly Price <span class="text-red-500">*</span></label>
+                    <label class="text-sm font-semibold text-gray-600">Base Monthly Price </label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                        <input type="number" name="base_monthly_price" placeholder="Enter base monthly price" required min="1" step="0.01" class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all">
+                        <input type="number" name="base_monthly_price" placeholder="Enter base monthly price"  min="1" step="0.01" class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all">
                     </div>
                 </div>
                 <div class="space-y-2">

@@ -30,10 +30,10 @@ Route::prefix('vendor/hoardings')->middleware(['auth', 'vendor'])->name('vendor.
     Route::get('completion', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'indexCompletion'])->name('completion');
     Route::get('/', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'index'])->name('index');});
 // DOOH Screen Vendor Routes
-Route::prefix('vendor/dooh')->middleware(['auth', 'vendor'])->name('vendor.dooh.')->group(function () {
-    Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
-    Route::put('{id}', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'update'])->name('update');
-});
+// Route::prefix('vendor/dooh')->middleware(['auth', 'vendor'])->name('vendor.dooh.')->group(function () {
+//     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
+//     Route::put('{id}', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'update'])->name('update');
+// });
 Route::post('/cart/add', [CartController::class,'add'])->name('cart.add');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/select-package', [CartController::class, 'selectPackage'])->name('cart.selectPackage');
@@ -41,6 +41,7 @@ Route::get('/cart', [\Modules\Cart\Controllers\Web\CartController::class, 'index
 Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
 Route::get('/hoardings/map', [\App\Http\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
 Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
+Route::get('/api/hoardings/{id}/packages', [\App\Http\Controllers\Web\HoardingController::class, 'getPackages'])->name('hoardings.api.packages');
 Route::get('/dooh', [\App\Http\Controllers\Web\DOOHController::class, 'index'])->name('dooh.index');
 Route::get('/dooh/{id}', [\App\Http\Controllers\Web\DOOHController::class, 'show'])->name('dooh.show');
 
@@ -160,6 +161,7 @@ Route::middleware(['auth'])->prefix('auth')->name('auth.')->group(function () {
 Route::middleware('auth')->group(function () {
     // Enquiries
     Route::get('/customer/enquiries', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('customer.enquiries.index');
+    Route::get('/customer/enquiries/{id}', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'show'])->name('customer.enquiries.show');
     // Customer Enquiries Create Route
     Route::get('/customer/enquiries/create', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('customer.enquiries.create');
     // OOH Hoarding Vendor Routes
@@ -349,7 +351,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         // Multi-step DOOH wizard
         Route::get('dooh/create', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'create'])->name('dooh.create');
         Route::post('dooh/store', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'store'])->name('dooh.store');
-
+        Route::get('dooh/{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('dooh.edit');
+        Route::put('dooh/{id}', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'update'])->name('dooh.update');
         // Hoarding Media Management (PROMPT 59)
         Route::prefix('hoardings/{hoarding}/media')->name('hoardings.media.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'index'])->name('index');
@@ -398,6 +401,20 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         Route::post('hoardings/{id}/toggle', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'toggleStatus'])->name('hoardings.toggle');
         Route::get('/hoardings/create', [Modules\Hoardings\Http\Controllers\Vendor\OOHListingController::class, 'create'])->name('hoardings.create');
         Route::post('/hoardings/store', [Modules\Hoardings\Http\Controllers\Vendor\OOHListingController::class, 'store'])->name('hoarding.store');
+        Route::get('/hoardings/ooh/{id}/edit', [\Modules\Hoardings\Http\Controllers\Vendor\OOHListingController::class, 'edit'])->name('edit.ooh');
+        Route::put('/hoardings/ooh/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\OOHListingController::class, 'update'])->name('update');
+        Route::get('completion', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'indexCompletion'])->name('completion');
+        Route::get('/', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'index'])->name('index');
+        // Common routes that work for both OOH and DOOH
+        Route::get('/hoardings/{id}/edit', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'edit'])
+            ->name('hoardings.edit'); // Automatically routes to correct type
+
+        Route::put('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])
+            ->name('hoardings.update'); // Automatically routes to correct type
+
+        Route::delete('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'destroy'])
+            ->name('hoardings.destroy');
+
 
         Route::post('/my-hoardings', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'store'])->name('my-hoardings.store');
         Route::get('/my-hoardings/{id}/edit', [Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'edit'])->name('my-hoardings.edit');
@@ -511,6 +528,11 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         });
         Route::get('/reports/revenue', [\App\Http\Controllers\Web\Vendor\ReportController::class, 'revenue'])->name('reports.revenue');
     
+        // Notifications
+        Route::get('/notifications', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'markAsRead'])->name('notifications.read');
+        Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+
     }); // End of vendor.approved middleware group
     
     // Profile
@@ -554,6 +576,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/vendor-hoardings/{id}/toggle-status',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'toggleStatus'])->name('vendor-hoardings.toggle-status');
     // save commission
     Route::post('/vendor-hoardings/{id}/set-commission',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'setCommission'])->name('vendor-hoardings.set-commission');
+    // Bulk actions
+    Route::post('/vendor-hoardings/bulk-delete',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkDelete'])->name('vendor-hoardings.bulk-delete');
+    Route::post('/vendor-hoardings/bulk-activate',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkActivate'])->name('vendor-hoardings.bulk-activate');
+    Route::post('/vendor-hoardings/bulk-deactivate',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkDeactivate'])->name('vendor-hoardings.bulk-deactivate');
+    Route::post('/vendor-hoardings/bulk-approve',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkApprove'])->name('vendor-hoardings.bulk-approve');
+    Route::post('/vendor-hoardings/{id}/suspend',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'suspend'])->name('vendor-hoardings.suspend');
     // Admin: View draft hoardings
     Route::get('hoardings/drafts', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'drafts'])->name('hoardings.drafts');
     Route::get('/hoardings', [\Modules\Admin\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
@@ -885,6 +913,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/export', [\App\Http\Controllers\Admin\TaxConfigController::class, 'export'])->name('export');
         Route::get('/reset-defaults', [\App\Http\Controllers\Admin\TaxConfigController::class, 'resetDefaults'])->name('reset-defaults');
     });
+
+    // Notifications
+    Route::get('/notifications', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 });
 
 // ============================================

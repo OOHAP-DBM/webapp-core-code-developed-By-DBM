@@ -208,12 +208,14 @@ class CartService
         if ($item->hoarding_type === 'dooh') {
             $screen = DB::table('dooh_screens')
                 ->where('hoarding_id', $item->hoarding_id)
+                ->whereNull('deleted_at')
                 ->first();
 
             $item->packages = $screen
                 ? DB::table('dooh_packages')
                     ->where('dooh_screen_id', $screen->id)
                     ->where('is_active', 1)
+                    ->whereNull('deleted_at')
                     ->get(['id', 'package_name', 'discount_percent', 'min_booking_duration', 'duration_unit', 'services_included', ])
                 : collect();
         }
@@ -382,9 +384,10 @@ class CartService
 
             $screen = DB::table('dooh_screens')
                 ->where('hoarding_id', $item->hoarding_id)
+                ->whereNull('deleted_at')
                 ->first();
 
-            $item->slot_price = round(
+            $slotPrice = round(
                 (float) (
                     $screen
                         ? ($screen->display_price_per_30s ?: $screen->price_per_slot)
@@ -393,13 +396,27 @@ class CartService
                 2
             );
 
-            $item->final_price = $item->slot_price;
+            // Set base price same as slot price for package calculations
+            $item->slot_price = $slotPrice;
+            $item->base_monthly_price = $slotPrice;
+            $item->monthly_price = $slotPrice;
+            $item->final_price = $slotPrice;
 
-            // normalize unused fields
-            $item->base_monthly_price = null;
-            $item->monthly_price = null;
+            // Handle selected package with discount
             $item->discounted_monthly_price = null;
             $item->discount_amount = 0;
+
+            if ($item->selected_package) {
+                $discountPercent = (float) ($item->selected_package->discount_percent ?? 0);
+                if ($discountPercent > 0 && $slotPrice > 0) {
+                    $item->discount_amount = round(
+                        ($slotPrice * $discountPercent) / 100,
+                        2
+                    );
+                    $item->final_price = round($slotPrice - $item->discount_amount, 2);
+                }
+            }
+
             $item->package_details = null;
         }
 

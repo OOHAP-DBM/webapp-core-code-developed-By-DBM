@@ -23,11 +23,11 @@ class EnquiryController extends Controller
      | INDEX
      ===================================================== */
     /**
-     * Apply customer-only middleware to all methods
+     * Apply customer-only middleware to all methods except store
      */
     public function __construct()
     {
-        $this->middleware(['auth', 'role:customer']);
+        $this->middleware(['auth', 'role:customer'])->except(['store']);
     }
 
     public function index(Request $request)
@@ -139,7 +139,8 @@ class EnquiryController extends Controller
             ], 401);
         }
 
-        \Log::info('Enquiry Store Request in store method', $request->all());
+        \Log::info('========== ENQUIRY MODAL POST DATA ==========', $request->all());
+        
         return $enquiryService->createEnquiry($request);
     }
     // public function store(Request $request)
@@ -286,13 +287,56 @@ class EnquiryController extends Controller
     /* =====================================================
      | SHOW
      ===================================================== */
-    public function show(int $id)
+    public function show($id)
     {
         $enquiry = Enquiry::where('customer_id', Auth::id())
-            ->with(['hoarding.vendor', 'quotation'])
+            ->with(['items.hoarding.vendor', 'customer', 'offers'])
             ->findOrFail($id);
-
+        
+        $enquiry = $this->enrichEnquiryDataForCustomer($enquiry);
+        
         return view('customer.enquiries.show', compact('enquiry'));
+    }
+
+    /**
+     * Enrich enquiry data with image URLs from media tables
+     */
+    private function enrichEnquiryDataForCustomer($enquiry)
+    {
+        $enquiry->load(['items' => function ($query) {
+            $query->with(['hoarding']);
+        }]);
+
+        foreach ($enquiry->items as $item) {
+            // Get image URL based on hoarding type
+            if ($item->hoarding) {
+                if ($item->hoarding->hoarding_type === 'ooh') {
+                    // OOH: Get from hoarding_media table
+                    $media = DB::table('hoarding_media')
+                        ->where('hoarding_id', $item->hoarding->id)
+                        ->where('is_primary', true)
+                        ->first();
+                    $item->image_url = $media ? asset('storage/' . $media->file_path) : null;
+                } else if ($item->hoarding->hoarding_type === 'dooh') {
+                    // DOOH: Get from dooh_screen_media table via dooh_screen_id on hoarding
+                    if ($item->hoarding->dooh_screen_id) {
+                        $media = DB::table('dooh_screen_media')
+                            ->where('dooh_screen_id', $item->hoarding->dooh_screen_id)
+                            ->where('is_primary', true)
+                            ->first();
+                        $item->image_url = $media ? asset('storage/' . $media->file_path) : null;
+                    } else {
+                        $item->image_url = null;
+                    }
+                } else {
+                    $item->image_url = null;
+                }
+            } else {
+                $item->image_url = null;
+            }
+        }
+
+        return $enquiry;
     }
 
     /* =====================================================
