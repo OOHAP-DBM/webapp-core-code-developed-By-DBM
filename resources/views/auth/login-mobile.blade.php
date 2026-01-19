@@ -162,6 +162,10 @@
                                 <li>{{ $error }}</li>
                             @endforeach
                         </ul>
+
+                        <div class="text-end mt-1">
+                            <a href="{{ route('password.request') }}" class="text-success small">Forgot Password?</a>
+                        </div>
                     </div>
                 @endif
 
@@ -242,8 +246,8 @@
                     </p>
                     <small>
                         By clicking continue button, you agree with the
-                        <a href="#">Terms & Conditions</a> and
-                        <a href="#">Privacy policy</a> of OOHAPP.
+                        <a href="{{ route('terms') }}">Terms & Conditions</a> and
+                        <a href="{{ route('privacy') }}">Privacy policy</a> of OOHAPP.
                     </small>
                 </div>
 

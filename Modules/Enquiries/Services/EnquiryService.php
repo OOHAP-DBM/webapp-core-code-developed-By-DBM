@@ -14,6 +14,7 @@ use Modules\Enquiries\Repositories\EnquiryItemRepository;
 use Modules\Enquiries\Services\EnquiryItemService;
 use Modules\Enquiries\Services\EnquiryNotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 
 class EnquiryService
@@ -113,7 +114,10 @@ class EnquiryService
             $months = $monthsArr[$index] ?? null;
             $hoarding = \App\Models\Hoarding::with('doohScreen')->find($hoardingId);
             if (!$hoarding) {
-                throw new \Illuminate\Validation\ValidationException('Invalid hoarding selected.');
+                // throw new \Illuminate\Validation\ValidationException('Invalid hoarding selected.');
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'hoarding_id' => ['Invalid hoarding selected.'],
+                ]);
             }
             if ($packageId) {
                 // Validate package belongs to hoarding

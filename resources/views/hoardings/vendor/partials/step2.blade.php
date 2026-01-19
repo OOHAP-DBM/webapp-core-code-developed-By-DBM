@@ -132,7 +132,7 @@
               <div id="graceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/20 hidden">
                 <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-xs">
                   <h2 class="text-lg font-bold mb-4 text-gray-800">Set Grace Period (in days)</h2>
-                  <input type="number" min="1" max="30" id="gracePeriodInput" 
+                  <input type="number"  max="30" id="gracePeriodInput" 
                          value="{{ $gracePeriodValue }}"
                          class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" 
                          placeholder="Enter number of days">

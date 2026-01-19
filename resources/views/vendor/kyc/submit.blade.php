@@ -338,7 +338,8 @@
                     <div class="form-check d-inline-block mb-3">
                         <input class="form-check-input" type="checkbox" id="termsAgree" required>
                         <label class="form-check-label" for="termsAgree">
-                            I declare that the information provided is accurate and complete. I understand that providing false information may lead to rejection.
+                            I declare that the information provided is accurate and complete. I understand that providing false information may lead to rejection.<br>
+                            I agree to the <a href="{{ route('terms') }}" target="_blank">Terms & Conditions</a> and <a href="{{ route('privacy') }}" target="_blank">Privacy Policy</a>.
                         </label>
                     </div>
                     

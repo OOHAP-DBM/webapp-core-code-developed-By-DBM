@@ -52,7 +52,7 @@
           <!-- Width -->
           <div class="space-y-1">
             <label class="text-xs font-bold text-gray-500">Width <span class="text-red-500">*</span></label>
-            <input type="number" id="width" name="width" placeholder="500" required 
+            <input type="number" id="width" name="width" placeholder="eg.500" required 
               value="{{ old('width', $draft->width ?? '') }}"
               class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
           </div>
@@ -60,9 +60,8 @@
           <!-- Height -->
           <div class="space-y-1">
             <label class="text-xs font-bold text-gray-500">Height <span class="text-red-500">*</span></label>
-            <input type="number" id="height" name="height" 
+            <input type="number" id="height" name="height" placeholder="eg.300" required 
               value="{{ old('height', $draft->height ?? '') }}" 
-              placeholder="300" required 
               class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
           </div>
 
@@ -87,7 +86,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
         <div class="space-y-2">
           <label class="text-sm font-bold text-gray-700">Hoarding Address <span class="text-red-500">*</span></label>
-          <input type="text" name="address" placeholder="Opposite Ram Dharam Kanta B43 Sector 7" required 
+          <input type="text" name="address" placeholder="eg. Opposite Ram Dharam Kanta B43 Sector 7" required 
             value="{{ old('address', $draft->hoarding->address ?? '') }}"
             class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
         </div>
@@ -96,7 +95,7 @@
           <label class="text-sm font-bold text-gray-700">Pincode <span class="text-red-500">*</span></label>
           <input type="text" name="pincode" 
             value="{{ old('pincode', $draft->hoarding->pincode ?? '') }}" 
-            placeholder="226010" required 
+            placeholder="eg. 226010" required 
             class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
         </div>
 
@@ -104,7 +103,7 @@
           <label class="text-sm font-bold text-gray-700">Locality <span class="text-red-500">*</span></label>
           <input type="text" name="locality" 
             value="{{ old('locality', $draft->hoarding->locality ?? '') }}" 
-            placeholder="e.g. Indira Nagar" required 
+            placeholder="eg. Indira Nagar" required 
             class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
         </div>
 
@@ -113,14 +112,14 @@
             <label class="text-sm font-bold text-gray-700">City</label>
             <input type="text" name="city" 
               value="{{ old('city', $draft->hoarding->city ?? '') }}" 
-              placeholder="Lucknow" 
+              placeholder="eg. Lucknow" 
               class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
           </div>
           <div class="space-y-2">
             <label class="text-sm font-bold text-gray-700">State</label>
             <input type="text" name="state" 
               value="{{ old('state', $draft->hoarding->state ?? '') }}" 
-              placeholder="Uttar Pradesh" 
+              placeholder="eg. Uttar Pradesh" 
               class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
           </div>
         </div>
@@ -142,7 +141,7 @@
           @foreach($landmarks as $index => $landmark)
             <input type="text" name="landmarks[]" 
               value="{{ $landmark }}" 
-              placeholder="Opposite Ram Dharam Kanta" 
+              placeholder="eg. Opposite Ram Dharam Kanta" 
               class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
           @endforeach
         </div>
@@ -302,31 +301,75 @@
 
       @if(isset($draft) && $draft->hoarding && $draft->hoarding->getMedia('hoarding_media')->count() > 0)
         <div class="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <h4 class="text-sm font-bold text-blue-900 mb-3">Existing Media:</h4>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <h4 class="text-sm font-bold text-blue-900 mb-3 flex items-center justify-between">
+            <span>Existing Media ({{ $draft->hoarding->getMedia('hoarding_media')->count() }})</span>
+            <span class="text-xs font-normal text-blue-700">Click × to remove</span>
+          </h4>
+          <div id="existingMediaContainer" class="flex flex-wrap gap-3">
             @foreach($draft->hoarding->getMedia('hoarding_media') as $media)
-              <img src="{{ $media->getUrl('thumb') }}" alt="Hoarding" class="w-full h-24 object-cover rounded-lg border border-blue-300">
+              <div class="relative group" data-media-id="{{ $media->id }}">
+                <img src="{{ $media->getUrl('thumb') }}" alt="Hoarding" 
+                  class="w-24 h-24 object-cover rounded-lg border-2 border-blue-300 shadow-sm">
+                <button type="button" 
+                  onclick="removeExistingMedia({{ $media->id }})"
+                  class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+                <input type="hidden" name="existing_media[]" value="{{ $media->id }}">
+              </div>
             @endforeach
           </div>
-          <p class="text-xs text-blue-700 mt-3">Upload new images to replace existing media (optional during edit)</p>
         </div>
       @endif
 
-      <div class="relative group border-2 border-dashed border-[#E5E7EB] rounded-2xl p-12 bg-[#FBFBFB] hover:bg-green-50/30 hover:border-[#009A5C] transition-all flex flex-col items-center justify-center">
-        <input type="file" id="mediaUpload" name="media[]" multiple 
-          {{ !isset($draft) || !$draft->hoarding || $draft->hoarding->getMedia('hoarding_media')->count() == 0 ? 'required' : '' }}
-          accept="image/jpeg,image/png,image/jpg,image/webp" 
-          class="absolute inset-0 opacity-0 cursor-pointer">
-        <div class="w-16 h-16 bg-white shadow-sm rounded-2xl flex items-center justify-center mb-4 text-[#009A5C] group-hover:scale-110 transition-transform">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-            </path>
-          </svg>
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-gray-600">
+            <span id="existingMediaCount" class="font-bold text-blue-600">{{ isset($draft) && $draft->hoarding ? $draft->hoarding->getMedia('hoarding_media')->count() : 0 }}</span> existing + 
+            <span id="uploadCount" class="font-bold text-[#009A5C]">0</span> new = 
+            <span id="totalCount" class="font-bold">0</span> / 10 total
+          </p>
         </div>
-        <p class="text-base font-bold text-gray-700">Drop your images here, or <span class="text-[#009A5C]">browse</span></p>
-        <p class="text-xs text-gray-400 mt-2">Supports: JPG, JPEG, PNG, WEBP (Max 5MB per image)</p>
-        <ul id="filePreview" class="mt-4 text-sm text-gray-600 space-y-1"></ul>
+
+        @if(isset($draft) && $draft->hoarding && $draft->hoarding->getMedia('hoarding_media')->count() > 0)
+          <div class="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <h4 class="text-sm font-semibold text-blue-900 mb-3">Existing Media (<span id="existingCountLabel">{{ $draft->hoarding->getMedia('hoarding_media')->count() }}</span>):</h4>
+            <div id="existingMediaContainer" class="flex flex-wrap gap-3">
+              @foreach($draft->hoarding->getMedia('hoarding_media') as $media)
+                <div class="relative group" data-media-id="{{ $media->id }}">
+                  <img src="{{ $media->getUrl('thumb') }}" alt="Media" class="w-24 h-24 object-cover rounded-lg border-2 border-blue-300">
+                  <button type="button" onclick="removeExistingMedia({{ $media->id }})" 
+                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                  <input type="hidden" name="existing_media_ids[]" value="{{ $media->id }}">
+                </div>
+              @endforeach
+            </div>
+          </div>
+        @endif
+
+        <div class="relative group border-2 border-dashed border-[#E5E7EB] rounded-2xl p-8 bg-[#FBFBFB] hover:bg-green-50/30 hover:border-[#009A5C] transition-all flex flex-col items-center justify-center">
+          <input type="file" id="mediaUpload" name="media[]" multiple 
+            {{ !isset($draft) || !$draft->hoarding || $draft->hoarding->getMedia('hoarding_media')->count() == 0 ? 'required' : '' }}
+            accept="image/jpeg,image/png,image/jpg,image/webp,video/mp4,video/webm" 
+            class="absolute inset-0 opacity-0 cursor-pointer">
+          <div class="w-16 h-16 bg-white shadow-sm rounded-2xl flex items-center justify-center mb-4 text-[#009A5C] group-hover:scale-110 transition-transform">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+              </path>
+            </svg>
+          </div>
+          <p class="text-base font-bold text-gray-700">Drop your media here, or <span class="text-[#009A5C]">browse</span></p>
+          <p class="text-xs text-gray-400 mt-2">Images: JPG, PNG, WEBP (Max 5MB) • Videos: MP4, WEBM (Max 10MB, 30s)</p>
+        </div>
+
+        <div id="filePreview" class="flex flex-wrap gap-3 mt-4"></div>
       </div>
     </div>
   </div>
@@ -378,6 +421,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Auto-calculate size preview
   updateSizePreview();
+  
+  // Initialize upload count
+  updateUploadCount();
 });
 
 function buildAddress() {
@@ -453,38 +499,276 @@ widthInput.addEventListener('input', updateSizePreview);
 heightInput.addEventListener('input', updateSizePreview);
 unitSelect.addEventListener('change', updateSizePreview);
 
-// File Preview
+/* ===============================================
+   MEDIA UPLOAD WITH VIDEO SUPPORT
+   - Accumulates files using DataTransfer
+   - Supports one-by-one and batch uploads  
+   - Enforces 10-file limit (existing + new)
+   - Video duration validation (max 30s)
+   - Horizontal preview layout with remove buttons
+   =============================================== */
+
 const mediaInput = document.getElementById('mediaUpload');
 const filePreview = document.getElementById('filePreview');
+const uploadCount = document.getElementById('uploadCount');
+const existingMediaCount = document.getElementById('existingMediaCount');
+const slotsAvailable = document.getElementById('slotsAvailable');
 
-mediaInput.addEventListener('change', (e) => {
-  const files = Array.from(e.target.files);
-  filePreview.innerHTML = '';
-  files.forEach(file => {
-    if (!file.type.match(/^image\/(jpeg|png|jpg|webp)$/)) {
-      const li = document.createElement('li');
-      li.className = 'text-red-500';
-      li.textContent = `${file.name} is not a supported image format.`;
-      filePreview.appendChild(li);
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      const li = document.createElement('li');
-      li.className = 'text-red-500';
-      li.textContent = `${file.name} exceeds 5MB size limit.`;
-      filePreview.appendChild(li);
-      return;
-    }
-    const li = document.createElement('li');
-    const img = document.createElement('img');
-    img.src = URL.createObjectURL(file);
-    img.className = 'inline-block w-16 h-16 object-cover rounded-lg mr-2 border border-gray-200';
-    img.onload = function() { URL.revokeObjectURL(this.src); };
-    li.appendChild(img);
-    li.appendChild(document.createTextNode(file.name));
-    filePreview.appendChild(li);
+const MAX_FILES = 10;
+let filesArray = []; // Use regular array instead of DataTransfer for reliability
+let existingCount = existingMediaCount ? parseInt(existingMediaCount.textContent) || 0 : 0;
+
+// Update counters
+function updateUploadCount() {
+  const newFilesCount = filesArray.length;
+  const totalCount = existingCount + newFilesCount;
+  
+  uploadCount.textContent = `${newFilesCount}/${MAX_FILES - existingCount} selected`;
+  
+  if (slotsAvailable) {
+    slotsAvailable.textContent = MAX_FILES - totalCount;
+  }
+  
+  // Disable input if limit reached
+  if (totalCount >= MAX_FILES) {
+    mediaInput.disabled = true;
+    mediaInput.parentElement.classList.add('opacity-50', 'pointer-events-none');
+  } else {
+    mediaInput.disabled = false;
+    mediaInput.parentElement.classList.remove('opacity-50', 'pointer-events-none');
+  }
+}
+
+// Validate video duration
+function validateVideo(file) {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    
+    video.onloadedmetadata = function() {
+      window.URL.revokeObjectURL(video.src);
+      const duration = video.duration;
+      
+      if (duration > 30) {
+        reject(`"${file.name}" exceeds 30 seconds limit (${Math.round(duration)}s detected)`);
+      } else {
+        resolve(true);
+      }
+    };
+    
+    video.onerror = function() {
+      window.URL.revokeObjectURL(video.src);
+      reject(`Cannot validate video "${file.name}"`);
+    };
+    
+    video.src = URL.createObjectURL(file);
   });
+}
+
+// Remove file from array by index
+function removePreviewImage(index) {
+  console.log('Removing file at index:', index, 'Total files before:', filesArray.length);
+  
+  // Remove from array
+  filesArray.splice(index, 1);
+  
+  console.log('Total files after:', filesArray.length);
+  
+  // Sync with input element
+  syncFilesToInput();
+  
+  // Re-render previews
+  renderPreviews();
+}
+
+// Sync filesArray to input element using DataTransfer
+function syncFilesToInput() {
+  const dt = new DataTransfer();
+  filesArray.forEach(file => {
+    dt.items.add(file);
+  });
+  mediaInput.files = dt.files;
+}
+
+// Render all preview thumbnails
+function renderPreviews() {
+  filePreview.innerHTML = '';
+  
+  if (filesArray.length === 0) {
+    updateUploadCount();
+    return;
+  }
+  
+  filesArray.forEach((file, index) => {
+    const isVideo = file.type.startsWith('video/');
+    
+    const div = document.createElement('div');
+    div.className = 'relative group';
+    div.setAttribute('data-file-index', index);
+    
+    // Create media element (video or image)
+    if (isVideo) {
+      const video = document.createElement('video');
+      video.src = URL.createObjectURL(file);
+      video.className = 'w-24 h-24 object-cover rounded-lg border-2 border-gray-200 shadow-sm';
+      video.muted = true;
+      video.preload = 'metadata';
+      
+      // Play icon overlay
+      const playIcon = document.createElement('div');
+      playIcon.className = 'absolute inset-0 flex items-center justify-center pointer-events-none';
+      playIcon.innerHTML = '<svg class="w-8 h-8 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>';
+      
+      div.appendChild(video);
+      div.appendChild(playIcon);
+      
+      video.onloadedmetadata = function() {
+        URL.revokeObjectURL(this.src);
+      };
+    } else {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.className = 'w-24 h-24 object-cover rounded-lg border-2 border-gray-200 shadow-sm';
+      img.onload = function() { 
+        URL.revokeObjectURL(this.src); 
+      };
+      div.appendChild(img);
+    }
+    
+    // Remove button with data attribute
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600';
+    removeBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+    removeBtn.setAttribute('data-index', index);
+    removeBtn.addEventListener('click', function() {
+      const idx = parseInt(this.getAttribute('data-index'));
+      removePreviewImage(idx);
+    });
+    
+    // Filename label
+    const fileName = document.createElement('p');
+    fileName.className = 'text-xs text-gray-500 mt-1 truncate max-w-[96px]';
+    fileName.textContent = file.name;
+    
+    div.appendChild(removeBtn);
+    div.appendChild(fileName);
+    filePreview.appendChild(div);
+  });
+  
+  updateUploadCount();
+}
+
+// Handle file selection (supports one-by-one and batch uploads)
+mediaInput.addEventListener('change', async function(e) {
+  const newFiles = Array.from(e.target.files);
+  let errorMessages = [];
+  
+  console.log('Files selected:', newFiles.length, 'Current files in array:', filesArray.length);
+  
+  // Reset input value FIRST to allow re-selecting same file
+  e.target.value = '';
+  
+  // Check if adding new files exceeds limit
+  const totalAfterAdd = existingCount + filesArray.length + newFiles.length;
+  if (totalAfterAdd > MAX_FILES) {
+    alert(`Cannot add ${newFiles.length} file(s). Maximum ${MAX_FILES} files allowed.\nCurrent: ${existingCount} existing + ${filesArray.length} selected = ${existingCount + filesArray.length}/${MAX_FILES}`);
+    return;
+  }
+  
+  // Validate and add each file
+  for (const file of newFiles) {
+    const isImage = /^image\/(jpeg|png|jpg|webp)$/i.test(file.type);
+    const isVideo = /^video\/(mp4|webm)$/i.test(file.type);
+    
+    // Check format
+    if (!isImage && !isVideo) {
+      errorMessages.push(`"${file.name}" - unsupported format (only JPG, PNG, WEBP, MP4, WEBM)`);
+      continue;
+    }
+    
+    // Check image size
+    if (isImage && file.size > 5 * 1024 * 1024) {
+      errorMessages.push(`"${file.name}" - image exceeds 5MB limit`);
+      continue;
+    }
+    
+    // Check video size
+    if (isVideo && file.size > 10 * 1024 * 1024) {
+      errorMessages.push(`"${file.name}" - video exceeds 10MB limit`);
+      continue;
+    }
+    
+    // Validate video duration
+    if (isVideo) {
+      try {
+        await validateVideo(file);
+      } catch (error) {
+        errorMessages.push(error);
+        continue;
+      }
+    }
+    
+    // Check for duplicates
+    const isDuplicate = filesArray.some(
+      existingFile => existingFile.name === file.name && existingFile.size === file.size
+    );
+    
+    if (isDuplicate) {
+      errorMessages.push(`"${file.name}" - already selected`);
+      continue;
+    }
+    
+    // Add to array (accumulates files)
+    console.log('Adding file to array:', file.name);
+    filesArray.push(file);
+  }
+  
+  console.log('Total files in array after adding:', filesArray.length);
+  
+  // Sync array to input element
+  syncFilesToInput();
+  
+  // Show errors if any
+  if (errorMessages.length > 0) {
+    alert('Some files were not added:\n\n' + errorMessages.join('\n'));
+  }
+  
+  // Render previews
+  renderPreviews();
 });
+
+// Remove existing media function (called from blade template)
+function removeExistingMedia(mediaId) {
+  if (!confirm('Remove this media?')) return;
+  
+  const container = document.querySelector(`div[data-media-id="${mediaId}"]`);
+  if (!container) {
+    console.error('Media container not found:', mediaId);
+    return;
+  }
+  
+  // Remove the container (includes hidden input)
+  container.remove();
+  
+  // Decrement existing count
+  existingCount--;
+  if (existingMediaCount) {
+    existingMediaCount.textContent = existingCount;
+  }
+  
+  // Update counters
+  updateUploadCount();
+  
+  // Hide existing media section if all removed
+  const existingContainer = document.getElementById('existingMediaContainer');
+  if (existingContainer && existingContainer.children.length === 0) {
+    existingContainer.closest('.mb-6').remove();
+  }
+}
+
+// Initialize on page load
+updateUploadCount();
 
 // Landmark Addition
 const addLandmarkBtn = document.getElementById('addLandmarkBtn');

@@ -105,17 +105,17 @@ class HoardingListRepository
     //     }
     // }
 
-    public function storeBrandLogos($hoardingId, array $logoFiles): array
+    public function storeBrandLogos($childhoardingId, array $logoFiles): array
     {
-        $hoarding = \App\Models\Hoarding::findOrFail($hoardingId);
+        $hoarding = \Modules\Hoardings\Models\OOHHoarding::findOrFail($childhoardingId);
         $saved = [];
         foreach ($logoFiles as $index => $file) {
             $uuid = \Illuminate\Support\Str::uuid()->toString();
             $ext  = strtolower($file->getClientOriginalExtension());
-            $directory = "oohHoardings/brand_logos/{$hoardingId}";
+            $directory = "oohHoardings/brand_logos/{$childhoardingId}";
             $filename  = "{$uuid}.{$ext}";
             $path = $file->storeAs($directory, $filename, 'public');
-            $saved[] = $hoarding->brandLogos()->create([
+            $saved[] = $hoarding->oohBrandLogos()->create([
                 'file_path'  => $path,
                 'sort_order' => $index,
             ]);

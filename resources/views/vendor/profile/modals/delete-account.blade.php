@@ -13,7 +13,7 @@
     <ul class="list-disc ml-5 text-gray-600 space-y-1">
         <li>Verification with business owner</li>
         <li>Meeting necessary terms and conditions as per
-            <span class="text-blue-600 cursor-pointer">OOHAPP Privacy Policy</span>
+            <a href="{{ route('privacy') }}" class="text-blue-600 underline" target="_blank">OOHAPP Privacy Policy</a>
         </li>
     </ul>
 
