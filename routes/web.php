@@ -23,6 +23,14 @@ use Modules\Cart\Controllers\Web\CartController;
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 
+// ADMIN POS WEB ROUTES
+Route::prefix('admin/pos')->middleware(['auth', 'role:admin'])->name('admin.pos.')->group(function () {
+    Route::get('/dashboard', [\Modules\POS\Controllers\Web\AdminPosController::class, 'dashboard'])->name('dashboard');
+    Route::get('/bookings', [\Modules\POS\Controllers\Web\AdminPosController::class, 'index'])->name('list');
+    Route::get('/create', [\Modules\POS\Controllers\Web\AdminPosController::class, 'create'])->name('create');
+    // Extend: edit, view, etc. as needed
+});
+
 
 Route::prefix('vendor/hoardings')->middleware(['auth', 'vendor'])->name('vendor.hoardings.')->group(function () {
     Route::get('{id}/edit', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'edit'])->name('edit');
@@ -34,6 +42,7 @@ Route::prefix('vendor/pos')->middleware(['auth', 'vendor'])->name('vendor.pos.')
     Route::get('/dashboard', [\Modules\POS\Controllers\Web\VendorPosController::class, 'dashboard'])->name('dashboard');
     Route::get('/bookings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'index'])->name('list');
     Route::get('/create', [\Modules\POS\Controllers\Web\VendorPosController::class, 'create'])->name('create');
+    Route::get('/bookings/{id}', [\Modules\POS\Controllers\Web\VendorPosController::class, 'show'])->name('show');
     // Extend: edit, view, etc. as needed
 });
 // DOOH Screen Vendor Routes
