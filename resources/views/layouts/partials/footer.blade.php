@@ -26,8 +26,8 @@
                 <ul class="mt-4 space-y-2">
                     <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900">Help Center</a></li>
                     <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900">Contact Us</a></li>
-                    <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900">Terms of Service</a></li>
-                    <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900">Privacy Policy</a></li>
+                    <li><a href="{{ route('terms') }}" class="text-sm text-gray-600 hover:text-gray-900">Terms & Conditions</a></li>
+                    <li><a href="{{ route('privacy') }}" class="text-sm text-gray-600 hover:text-gray-900">Privacy Policy</a></li>
                 </ul>
             </div>
 

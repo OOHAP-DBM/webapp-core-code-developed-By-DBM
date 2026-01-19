@@ -29,6 +29,13 @@ Route::prefix('vendor/hoardings')->middleware(['auth', 'vendor'])->name('vendor.
     Route::put('{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])->name('update');
     Route::get('completion', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'indexCompletion'])->name('completion');
     Route::get('/', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'index'])->name('index');});
+// VENDOR POS WEB ROUTES
+Route::prefix('vendor/pos')->middleware(['auth', 'vendor'])->name('vendor.pos.')->group(function () {
+    Route::get('/dashboard', [\Modules\POS\Controllers\Web\VendorPosController::class, 'dashboard'])->name('dashboard');
+    Route::get('/bookings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'index'])->name('list');
+    Route::get('/create', [\Modules\POS\Controllers\Web\VendorPosController::class, 'create'])->name('create');
+    // Extend: edit, view, etc. as needed
+});
 // DOOH Screen Vendor Routes
 // Route::prefix('vendor/dooh')->middleware(['auth', 'vendor'])->name('vendor.dooh.')->group(function () {
 //     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
@@ -104,8 +111,13 @@ Route::middleware('guest')->group(function () {
     // Route::post('/login/otp/send', [\App\Http\Controllers\Web\Auth\OTPController::class, 'sendOTP'])->name('otp.send');
     // Route::post('/login/otp/verify', [\App\Http\Controllers\Web\Auth\OTPController::class, 'verifyOTP'])->name('otp.verify');
     
-    // Password Reset (Future)
-    // Route::get('/forgot-password', [...])->name('password.request');
+    // Password Reset
+    Route::get('/forgot-password', function() {
+        return view('auth.forgot-password');
+    })->middleware('guest')->name('password.request');
+    Route::post('/forgot-password', [\Modules\Auth\Http\Controllers\ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('guest')->name('password.email');
+    Route::get('/reset-password/{token}', [\Modules\Auth\Http\Controllers\ForgotPasswordController::class, 'showResetForm'])->middleware('guest')->name('password.reset');
+    Route::post('/reset-password', [\Modules\Auth\Http\Controllers\ForgotPasswordController::class, 'reset'])->middleware('guest')->name('password.update');
 });
 
 Route::post('/logout', [Modules\Auth\Http\Controllers\LoginController::class, 'logout'])->name('logout')->middleware('auth');
