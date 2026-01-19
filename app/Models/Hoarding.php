@@ -336,6 +336,7 @@ class Hoarding extends Model implements HasMedia
         return $this->enable_weekly_booking && $this->weekly_price !== null;
     }
 
+
     /**
      * Register media collections for hoarding images.
      */
@@ -416,6 +417,11 @@ class Hoarding extends Model implements HasMedia
             });
     }
 
+
+    public function oohMedia(): HasMany
+    {
+        return $this->hasMany(HoardingMedia::class, 'hoarding_id');
+    }
 
     public function brandLogos()
     {

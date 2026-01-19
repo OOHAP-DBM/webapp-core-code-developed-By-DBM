@@ -205,7 +205,7 @@
                 data.preview.forEach(hoarding => {
                     tbody.innerHTML += `
                         <tr>
-                            <td>${hoarding.title}</td>
+                            <td><a href="/hoardings/${hoarding.id}" target="_blank">${hoarding.title}</a></td>
                             <td>${hoarding.vendor}</td>
                             <td>₹${parseFloat(hoarding.current_monthly_price).toFixed(2)}</td>
                             <td>${hoarding.address.substring(0, 50)}...</td>

@@ -128,7 +128,9 @@
                                                         </div>
                                                     </div>                                              
                                                     <div>
-                                                        <p class="font-medium text-gray-900" x-text="item?.hoarding?.title || 'N/A'"></p>
+                                                        <p class="font-medium text-gray-900">
+                                                            <a :href="item?.hoarding?.id ? '/hoardings/' + item.hoarding.id : '#'" class="text-primary underline" target="_blank" x-text="item?.hoarding?.title || 'N/A'"></a>
+                                                        </p>
                                                         <p class="text-gray-500" x-text="item?.hoarding?.locality || 'N/A'"></p>
                                                         <p class="text-gray-500" x-text="item?.hoarding?.size || ''"></p>
                                                     </div>
@@ -191,7 +193,9 @@
                                                         </div>
                                                     </div>                                              
                                                     <div>
-                                                        <p class="font-medium text-gray-900" x-text="item?.hoarding?.title || 'N/A'"></p>
+                                                        <p class="font-medium text-gray-900">
+                                                            <a :href="item?.hoarding?.id ? '/hoardings/' + item.hoarding.id : '#'" class="text-primary underline" target="_blank" x-text="item?.hoarding?.title || 'N/A'"></a>
+                                                        </p>
                                                         <p class="text-gray-500" x-text="item?.hoarding?.locality || 'N/A'"></p>
                                                         <p class="text-gray-500" x-text="item?.hoarding?.size || ''"></p>
                                                     </div>

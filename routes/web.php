@@ -45,6 +45,7 @@ Route::prefix('vendor/pos')->middleware(['auth', 'vendor'])->name('vendor.pos.')
     Route::get('/bookings/{id}', [\Modules\POS\Controllers\Web\VendorPosController::class, 'show'])->name('show');
     // Extend: edit, view, etc. as needed
 });
+Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
 // DOOH Screen Vendor Routes
 // Route::prefix('vendor/dooh')->middleware(['auth', 'vendor'])->name('vendor.dooh.')->group(function () {
 //     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
@@ -56,7 +57,6 @@ Route::post('/cart/select-package', [CartController::class, 'selectPackage'])->n
 Route::get('/cart', [\Modules\Cart\Controllers\Web\CartController::class, 'index'])->middleware('auth')->name('cart.index');
 Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
 Route::get('/hoardings/map', [\App\Http\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
-Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
 Route::get('/api/hoardings/{id}/packages', [\App\Http\Controllers\Web\HoardingController::class, 'getPackages'])->name('hoardings.api.packages');
 Route::get('/dooh', [\App\Http\Controllers\Web\DOOHController::class, 'index'])->name('dooh.index');
 Route::get('/dooh/{id}', [\App\Http\Controllers\Web\DOOHController::class, 'show'])->name('dooh.show');
@@ -365,7 +365,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         Route::get('hoardings/add', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'showTypeSelection'])->name('hoardings.add');
         Route::post('hoardings/select-type', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'handleTypeSelection'])->name('hoardings.select-type');
 
-        Route::resource('hoardings', \App\Http\Controllers\Web\Vendor\HoardingController::class);
+        // Route::resource('hoardings', \App\Http\Controllers\Web\Vendor\HoardingController::class);
         
         // Vendor DOOH Creation (Figma-accurate, onboarding enforced)
 
@@ -429,7 +429,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         // Common routes that work for both OOH and DOOH
         Route::get('/hoardings/{id}/edit', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'edit'])
             ->name('hoardings.edit'); // Automatically routes to correct type
-
+        Route::get('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'show'])->name('myHoardings.show');
         Route::put('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])
             ->name('hoardings.update'); // Automatically routes to correct type
 

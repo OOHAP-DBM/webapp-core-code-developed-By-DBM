@@ -46,14 +46,14 @@
                     <label class="text-sm font-semibold text-gray-600">Base Monthly Price </label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                        <input type="number" name="base_monthly_price" placeholder="Enter base monthly price"  min="1" step="0.01" class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all">
+                        <input type="number" name="base_monthly_price" placeholder="Enter base monthly price"  min="1" step="0.01" class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all" value="{{ old('base_monthly_price', $doohScreen->base_monthly_price ?? '') }}">
                     </div>
                 </div>
                 <div class="space-y-2">
                     <label class="text-sm font-semibold text-gray-600">Monthly Offered Price</label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                        <input type="number" name="monthly_offered_price" placeholder="Enter offered monthly price (if any)" min="1" step="0.01" class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all">
+                        <input type="number" name="monthly_offered_price" placeholder="Enter offered monthly price (if any)" min="1" step="0.01" class="w-full border border-gray-200 rounded-xl pl-8 pr-20 py-3.5 focus:border-[#009A5C] outline-none transition-all" value="{{ old('monthly_offered_price', $doohScreen->monthly_offered_price ?? '') }}">
                     </div>
                 </div>
             </div>
@@ -63,7 +63,7 @@
                 <div class="space-y-2">
                     <label class="text-sm font-semibold text-gray-600">Enable Weekly Booking?</label>
                     <div class="flex items-center gap-4">
-                        <input type="checkbox" id="enable_weekly_booking" name="enable_weekly_booking" value="1" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] cursor-pointer">
+                        <input type="checkbox" id="enable_weekly_booking" name="enable_weekly_booking" value="1" class="w-5 h-5 rounded border-gray-300 text-[#009A5C] cursor-pointer" {{ old('enable_weekly_booking', $doohScreen->enable_weekly_booking ?? false) ? 'checked' : '' }}>
                         <span class="text-xs text-gray-500">Allow customers to book for weekly durations</span>
                     </div>
                 </div>
@@ -76,7 +76,7 @@
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
                         <input type="number" name="weekly_price_1"
-                            class="w-full rounded-xl border border-gray-200 pl-8 py-3.5 text-sm focus:border-[#009A5C] outline-none">
+                            class="w-full rounded-xl border border-gray-200 pl-8 py-3.5 text-sm focus:border-[#009A5C] outline-none" value="{{ old('weekly_price_1', $doohScreen->weekly_price_1 ?? '') }}">
                     </div>
                 </div>
 
@@ -85,7 +85,7 @@
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
                         <input type="number" name="weekly_price_2"
-                            class="w-full rounded-xl border border-gray-200 pl-8 py-3.5 text-sm focus:border-[#009A5C] outline-none">
+                            class="w-full rounded-xl border border-gray-200 pl-8 py-3.5 text-sm focus:border-[#009A5C] outline-none" value="{{ old('weekly_price_2', $doohScreen->weekly_price_2 ?? '') }}">
                     </div>
                 </div>
 
@@ -94,7 +94,7 @@
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
                         <input type="number" name="weekly_price_3"
-                            class="w-full rounded-xl border border-gray-200 pl-8 py-3.5 text-sm focus:border-[#009A5C] outline-none">
+                            class="w-full rounded-xl border border-gray-200 pl-8 py-3.5 text-sm focus:border-[#009A5C] outline-none" value="{{ old('weekly_price_3', $doohScreen->weekly_price_3 ?? '') }}">
                     </div>
                 </div>
             </div>
@@ -116,38 +116,56 @@
 
             <div id="slots-container" class="space-y-4">
                 @php
-                    $defaultSlots = [
-                        ['name' => 'Early Morning', 'time' => '4:00 AM - 8:00 AM'],
-                        ['name' => 'Morning', 'time' => '8:00 AM - 12:00 PM'],
-                        ['name' => 'Afternoon', 'time' => '12:00 PM - 3:00 PM'],
-                        ['name' => 'Evening', 'time' => '4:00 PM - 8:00 PM'],
-                        ['name' => 'Night', 'time' => '8:00 PM - 12:00 AM'],
-                        ['name' => 'Midnight', 'time' => '12:00 AM - 4:00 AM']
-                    ];
+                    $slots = old('slots', $doohScreen->slots ?? []);
                 @endphp
-
-                @foreach($defaultSlots as $index => $slot)
-                    <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-50 hover:border-gray-200 transition-all">
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-bold text-gray-700">{{ $slot['name'] }}</span>
-                            <span class="text-sm font-bold text-[#0094FF]">{{ $slot['time'] }}</span>
+                @if(!empty($slots))
+                    @foreach($slots as $index => $slot)
+                        <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-50 hover:border-gray-200 transition-all">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold text-gray-700">{{ $slot['name'] }}</span>
+                                <span class="text-sm font-bold text-[#0094FF]">{{ $slot['start_time'] }} - {{ $slot['end_time'] }}</span>
+                            </div>
+                            <input type="hidden" name="slots[{{ $index }}][name]" value="{{ $slot['name'] }}">
+                            <input type="hidden" name="slots[{{ $index }}][start_time]" value="{{ $slot['start_time'] }}">
+                            <input type="hidden" name="slots[{{ $index }}][end_time]" value="{{ $slot['end_time'] }}">
+                            <div class="flex items-center gap-4">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="slots[{{ $index }}][active]" value="1" class="sr-only peer" {{ !empty($slot['active']) ? 'checked' : '' }}>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#009A5C] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                                </label>
+                            </div>
                         </div>
-                        
-                        @php 
-                            $times = explode(' - ', $slot['time']); 
-                        @endphp
-                        <input type="hidden" name="slots[{{ $index }}][name]" value="{{ $slot['name'] }}">
-                        <input type="hidden" name="slots[{{ $index }}][start_time]" value="{{ $times[0] }}">
-                        <input type="hidden" name="slots[{{ $index }}][end_time]" value="{{ $times[1] }}">
-
-                        <div class="flex items-center gap-4">
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="slots[{{ $index }}][active]" value="1" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#009A5C] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
-                            </label>
+                    @endforeach
+                @else
+                    @php
+                        $defaultSlots = [
+                            ['name' => 'Early Morning', 'time' => '4:00 AM - 8:00 AM'],
+                            ['name' => 'Morning', 'time' => '8:00 AM - 12:00 PM'],
+                            ['name' => 'Afternoon', 'time' => '12:00 PM - 3:00 PM'],
+                            ['name' => 'Evening', 'time' => '4:00 PM - 8:00 PM'],
+                            ['name' => 'Night', 'time' => '8:00 PM - 12:00 AM'],
+                            ['name' => 'Midnight', 'time' => '12:00 AM - 4:00 AM']
+                        ];
+                    @endphp
+                    @foreach($defaultSlots as $index => $slot)
+                        @php $times = explode(' - ', $slot['time']); @endphp
+                        <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-50 hover:border-gray-200 transition-all">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold text-gray-700">{{ $slot['name'] }}</span>
+                                <span class="text-sm font-bold text-[#0094FF]">{{ $slot['time'] }}</span>
+                            </div>
+                            <input type="hidden" name="slots[{{ $index }}][name]" value="{{ $slot['name'] }}">
+                            <input type="hidden" name="slots[{{ $index }}][start_time]" value="{{ $times[0] }}">
+                            <input type="hidden" name="slots[{{ $index }}][end_time]" value="{{ $times[1] }}">
+                            <div class="flex items-center gap-4">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="slots[{{ $index }}][active]" value="1" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#009A5C] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                @endif
             </div>
         </div>
 
@@ -425,7 +443,7 @@
                     <div class="mt-6 border-t border-gray-100 pt-4">
                         <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Included Free Services</label>
                         <div class="flex flex-wrap gap-4">
-                            ${['Printing', 'Mounting', 'Design', 'Survey'].map(s => `
+                            ${['Design', 'Survey'].map(s => `
                                 <label class="flex items-center gap-2 text-xs font-semibold text-gray-600">
                                     <input type="checkbox" class="offer_services accent-[#009A5C]" value="${s.toLowerCase()}"> ${s}
                                 </label>

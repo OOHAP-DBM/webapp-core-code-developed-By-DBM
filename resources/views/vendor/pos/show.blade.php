@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class='col-md-6'><strong>Phone:</strong> ${b.customer_phone}</div>
             </div>`;
             html += `<div class='row mb-3'>
-                <div class='col-md-6'><strong>Hoarding:</strong> ${b.hoarding ? b.hoarding.title : 'N/A'}</div>
+                <div class='col-md-6'><strong>Hoarding:</strong> ${b.hoarding ? `<a href='/hoardings/${b.hoarding.id}' target='_blank'>${b.hoarding.title}</a>` : 'N/A'}</div>
                 <div class='col-md-6'><strong>Dates:</strong> ${new Date(b.start_date).toLocaleDateString()} - ${new Date(b.end_date).toLocaleDateString()}</div>
             </div>`;
             html += `<div class='row mb-3'>

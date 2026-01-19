@@ -105,9 +105,13 @@
 
 {{-- FINAL PRICE --}}
 <div class="bg-gray-50 rounded-xl p-4 mt-4">
-    <button class="w-full bg-green-500 text-white py-3 rounded-md text-sm font-semibold">
-        Sort list
-    </button>
+    @auth
+        @if(auth()->user()->hasRole('customer'))
+            <button class="w-full bg-green-500 text-white py-3 rounded-md text-sm font-semibold">
+                Sort list
+            </button>
+        @endif
+    @endauth
 {{-- 
     <a href="javascript:void(0)"
        class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium"

@@ -1,7 +1,20 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 {{-- <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6"> --}}
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    @php
+        $isEdit = isset($draft) && $draft->hoarding_id;
+        $hoarding = $isEdit ? $draft->hoarding : null;
+        $resolutionValue = ($draft?->resolution_width && $draft?->resolution_height)
+            ? $draft->resolution_width.'x'.$draft->resolution_height
+            : '';
+        $landmarks = $hoarding?->landmark
+          ? json_decode($hoarding->landmark, true)
+          : [''];
+          $existingMedia = $draft->media ?? collect();
+    @endphp
+
     <div class="md:p-8 md:space-y-8">
+      {{-- @dump($draft) --}}
         <!-- Hoarding Details -->
         <div class="bg-white rounded-3xl p-8  shadow-sm border border-gray-100">
           <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
@@ -26,7 +39,10 @@
                 <option value="">Select Category</option>
                 @if(isset($attributes['category']))
                   @foreach($attributes['category'] as $cat)
-                    <option value="{{ $cat->value }}">{{ $cat->value }}</option>
+                       <option value="{{ $cat->value }}"
+                          {{ old('category', $screen->hoarding->category ?? '') == $cat->value ? 'selected' : '' }}>
+                          {{ $cat->value }}
+                        </option>
                   @endforeach
                 @endif
               </select>
@@ -37,8 +53,8 @@
               <label class="text-sm font-bold text-gray-700">Screen Type <span class="text-red-500">*</span></label>
               <select name="screen_type" required
                 class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%226b7280%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:20px] bg-[right_1rem_center] bg-no-repeat">
-                <option value="LED">LED</option>
-                <option value="LCD">LCD</option>
+                <option value="LED" {{ old('screen_type', $screen->hoarding->screen_type ?? '') == 'LED' ? 'selected' : '' }}>LED</option>
+                <option value="LCD" {{ old('screen_type', $screen->hoarding->screen_type ?? '') == 'LCD' ? 'selected' : '' }}>LCD</option>
               </select>
             </div>
           </div>
@@ -51,27 +67,27 @@
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-500">Unit</label>
                 <select id="unit" name="measurement_unit" required class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none">
-                  <option value="sqft">Sqft</option>
-                  <option value="sqm">Sqm</option>
+                 <option value="sqft" {{ old('measurement_unit', $draft->measurement_unit ?? '') == 'sqft' ? 'selected' : '' }}>Sqft</option>
+                  <option value="sqm" {{ old('measurement_unit', $draft->measurement_unit ?? '') == 'sqm' ? 'selected' : '' }}>Sqm</option>
                 </select>
               </div>
 
               <!-- Width -->
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-500">Screen Width <span class="text-red-500">*</span></label>
-                <input type="number" id="width" name="width" placeholder="eg. 500" required min="1" class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
+                <input type="number" id="width" name="width"   value="{{ old('width', $draft->width ?? '') }}" required  placeholder="eg. 500" required min="1" class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
               </div>
 
               <!-- Height -->
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-500">Screen Height <span class="text-red-500">*</span></label>
-                <input type="number" id="height" name="height" placeholder="eg.300" required min="1" class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
+                <input type="number" id="height" name="height" value="{{ old('height', $draft->height ?? '') }}" placeholder="eg.300" required min="1" class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
               </div>
 
               <!-- Size Preview -->
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-500">Size Preview</label>
-                <input type="text" id="sizePreview" value="0 x 0 sq.ft" readonly class="w-full bg-[#E5E9F2] border-none rounded-lg px-3 py-3 text-gray-700 font-medium outline-none">
+                <input type="text" id="sizePreview" value=" " readonly class="w-full bg-[#E5E9F2] border-none rounded-lg px-3 py-3 text-gray-700 font-medium outline-none">
               </div>
             </div>
           </div>
@@ -80,24 +96,24 @@
                   Screen Resolution <span class="text-red-500">*</span>
               </label>
 
-              <select id="resolution_type" name="resolution_type" required
-                class="w-full rounded-xl border px-4 py-3">
-                <option value="">Select resolution</option>
-                <option value="1920x1080">Full HD (1920 × 1080)</option>
-                <option value="3840x2160">4K (3840 × 2160)</option>
-                <option value="1280x720">HD (1280 × 720)</option>
-                <option value="custom">Custom</option>
-              </select>
+            <select id="resolution_type" name="resolution_type" required>
+              <option value="">Select resolution</option>
+              <option value="1920x1080" {{ $resolutionValue==='1920x1080'?'selected':'' }}>Full HD(1920x1080)</option>
+              <option value="3840x2160" {{ $resolutionValue==='3840x2160'?'selected':'' }}>4K(3840x2160)</option>
+              <option value="1280x720"  {{ $resolutionValue==='1280x720'?'selected':'' }}>HD(1280x720)</option>
+              <option value="custom"
+                {{ !in_array($resolutionValue,['1920x1080','3840x2160','1280x720']) && $resolutionValue ? 'selected':'' }}>
+                Custom
+              </option>
+            </select>
 
-              <div id="custom_resolution" class="hidden grid grid-cols-2 gap-4">
-                <input type="number" id="custom_width" name="resolution_width"
-                  placeholder="Width (px)"
-                  class="rounded-xl border px-4 py-3">
-
-                <input type="number" id="custom_height" name="resolution_height"
-                  placeholder="Height (px)"
-                  class="rounded-xl border px-4 py-3">
-              </div>
+            <div id="custom_resolution"
+              class="{{ !in_array($resolutionValue,['1920x1080','3840x2160','1280x720']) ? '' : 'hidden' }}">
+              <input type="number" name="resolution_width"
+                value="{{ $draft?->resolution_width }}">
+              <input type="number" name="resolution_height"
+                value="{{ $draft?->resolution_height }}">
+            </div>
 
 
               <p class="text-xs text-gray-500">
@@ -117,30 +133,30 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
             <div class="space-y-2">
               <label class="text-sm font-bold text-gray-700">Hoarding Address <span class="text-red-500">*</span></label>
-              <input type="text" name="address" placeholder="eg. Opposite Ram Dharam Kanta B43 Sector 7" required 
+              <input name="address" value="{{ old('address', $hoarding?->address) }}" required
                 class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
             </div>
 
             <div class="space-y-2">
               <label class="text-sm font-bold text-gray-700">Pincode <span class="text-red-500">*</span></label>
-              <input type="text" name="pincode" placeholder="eg. 226010" required 
+              <input type="text" name="pincode" value="{{ old('pincode', $hoarding?->pincode) }}" placeholder="eg. 226010" required 
                 class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
             </div>
 
             <div class="space-y-2">
               <label class="text-sm font-bold text-gray-700">Locality <span class="text-red-500">*</span></label>
-              <input type="text" name="locality" placeholder="e.g. Indira Nagar" required 
+              <input type="text" name="locality" value="{{ old('locality', $hoarding?->locality) }}" placeholder="e.g. Indira Nagar" required 
                 class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
                 <label class="text-sm font-bold text-gray-700">City <span class="text-red-500">*</span></label>
-                <input type="text" name="city" placeholder="eg. Lucknow" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+                <input type="text" name="city" value="{{ old('city', $hoarding?->city) }}" placeholder="eg. Lucknow" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
               </div>
               <div class="space-y-2">
                 <label class="text-sm font-bold text-gray-700">State <span class="text-red-500">*</span></label>
-                <input type="text" name="state" placeholder="eg. Uttar Pradesh" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+                <input type="text" name="state" value="{{ old('state', $hoarding?->state) }}" placeholder="eg. Uttar Pradesh" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
               </div>
             </div>
           </div>
@@ -155,8 +171,10 @@
                 </button>
               </div>
               <div class="space-y-3" id="landmarksContainer">
-                <input type="text" name="landmarks[]" placeholder="eg. Opposite Ram Dharam Kanta" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
-              </div>
+                  @foreach($landmarks as $lm)
+                    <input type="text" name="landmarks[]" value="{{ $lm }}"
+                      class="w-full border rounded-xl px-4 py-3">
+                  @endforeach
             </div>
           </div>
 
@@ -201,7 +219,7 @@
                 type="text"
                 name="lat"
                 id="lat"
-                readonly
+                value="{{ old('lat', $hoarding?->latitude) }}"
                 required
                 placeholder="Auto-filled after confirmation"
                 class="w-full bg-gray-50 border border-gray-200 rounded-xl
@@ -221,7 +239,7 @@
                 type="text"
                 name="lng"
                 id="lng"
-                readonly
+                value="{{ old('lng', $hoarding?->longitude) }}"
                 required
                 placeholder="Auto-filled after confirmation"
                 class="w-full bg-gray-50 border border-gray-200 rounded-xl
@@ -269,16 +287,17 @@
           </div>
 
         </div>
-
+          </div>
 
 
         </div>
         <!-- Pricing Details -->
-        <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-            <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
-            <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-            Pricing<span class="text-red-500 ml-1">*</span>
+        <div class="bg-white rounded-3xl p-8  shadow-sm border border-gray-100">
+            <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
+              <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+              Pricing
             </h3>
+      
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -293,6 +312,7 @@
                         min="1"
                         step="0.01"
                         required
+                        value="{{ old('price_per_10_sec_slot', $draft?->price_per_10_sec_slot) }}"
                         placeholder="e.g. 50"
                         class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all"
                     />
@@ -312,6 +332,7 @@
                         min="1"
                         step="0.01"
                         required
+                         value="{{ old('price_per_30_sec_slot', $draft?->display_price_per_30s) }}" 
                         placeholder="e.g. 50"
                         class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all"
                     />
@@ -324,31 +345,137 @@
             </div>
         </div>
 
-        <!-- Upload Hoarding Media -->
-        <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-          <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
-            <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-            Upload Hoarding Media <span class="text-red-500 ml-1">*</span>
-          </h3>
-          <p class="text-sm text-gray-400 mb-6">High quality photos increase booking chances by 40%.</p>
+        {{-- DOOH Screen Media Upload Section --}}
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 max-w-full mx-auto">
+            <h3 class="text-lg sm:text-xl font-bold text-[#009A5C] mb-2 flex items-center">
+                <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+                Upload Media<span class="text-red-500 ml-1">*</span>
+            </h3>
+            <p class="text-sm sm:text-base text-gray-500 mb-4">
+                Upload high-quality images or videos (Max 10 files).
+            </p>
 
-          <div class="relative group border-2 border-dashed border-[#E5E7EB] rounded-2xl p-12 bg-[#FBFBFB] hover:bg-green-50/30 hover:border-[#009A5C] transition-all flex flex-col items-center justify-center">
-            <input type="file" id="mediaUpload" name="media[]" multiple required accept="image/jpeg,image/png,image/jpg,image/webp" class="absolute inset-0 opacity-0 cursor-pointer">
-            <div class="w-16 h-16 bg-white shadow-sm rounded-2xl flex items-center justify-center mb-4 text-[#009A5C] group-hover:scale-110 transition-transform">
-              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                </path>
-              </svg>
+            {{-- Existing Media --}}
+            <div class="flex flex-wrap gap-3 mb-4" id="existingMediaPreview">
+                @if(isset($screen) && $screen->media && $screen->media->count())
+                    @foreach($screen->media as $media)
+                        <div class="relative w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden border bg-gray-50 flex-shrink-0">
+                            @if(Str::startsWith($media->media_type, 'image'))
+                                <img src="{{ asset('storage/'.$media->file_path) }}"
+                                    class="w-full h-full object-cover">
+                            @else
+                                <video src="{{ asset('storage/'.$media->file_path) }}"
+                                      class="w-full h-full object-cover" muted></video>
+                            @endif
+
+                            <button type="button"
+                                    onclick="removeExistingMedia({{ $media->id }})"
+                                    class="absolute top-1 right-1 bg-white rounded-full p-1 shadow text-red-600 hover:bg-red-100">
+                                ✕
+                            </button>
+                        </div>
+                    @endforeach
+                @endif
             </div>
-            <p class="text-base font-bold text-gray-700">Drop your images here, or <span class="text-[#009A5C]">browse</span></p>
-            <p class="text-xs text-gray-400 mt-2">Supports: JPG, JPEG, PNG, WEBP (Max 5MB per image)</p>
 
-            <!-- File Preview -->
-            <ul id="filePreview" class="mt-4 text-sm text-gray-600 space-y-1"></ul>
-          </div>
+            <input type="hidden" name="deleted_media_ids" id="deletedMediaIds">
+
+            {{-- New Media Preview --}}
+            <div id="newMediaPreview" class="flex flex-wrap gap-3 mb-4"></div>
+
+            {{-- Styled File Input --}}
+            <label for="mediaInput"
+                  class="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:border-green-500 transition text-sm sm:text-base">
+                <span class="text-gray-600">Choose files</span>
+                <span class="text-gray-400 text-xs sm:text-sm">Browse</span>
+            </label>
+
+            <input
+                id="mediaInput"
+                type="file"
+                name="media[]"
+                multiple
+                accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+                class="hidden"
+                @if(!(isset($screen) && $screen->media && $screen->media->count())) required @endif
+            >
+
+            <p class="text-xs sm:text-sm text-gray-400 mt-2">
+                Supported: JPG, PNG, WEBP, MP4, WEBM • Max 10 files • 5MB each
+            </p>
         </div>
+
+
     </div>
+
+<script>
+// --- DOOH Media Upload/Preview/Remove ---
+let deletedMediaIds = [];
+let newFiles = [];
+const maxFiles = 10;
+const maxFileSize = 5 * 1024 * 1024;
+
+const mediaInput = document.getElementById('mediaInput');
+const newMediaPreview = document.getElementById('newMediaPreview');
+const existingMediaPreview = document.getElementById('existingMediaPreview');
+const deletedMediaIdsInput = document.getElementById('deletedMediaIds');
+
+function renderNewPreviews() {
+  newMediaPreview.innerHTML = '';
+  newFiles.forEach((file, idx) => {
+    const url = URL.createObjectURL(file);
+    let el;
+    if (file.type.startsWith('image')) {
+      el = `<div class='relative w-28 h-28 rounded overflow-hidden border bg-gray-50 flex items-center justify-center'>
+        <img src='${url}' class='object-cover w-full h-full'>
+        <button type='button' class='absolute top-1 right-1 bg-white rounded-full shadow p-1 text-red-600 hover:bg-red-100' onclick='removeNewFile(${idx})' title='Remove'>
+          <svg xmlns='http://www.w3.org/2000/svg' class='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' /></svg>
+        </button>
+      </div>`;
+    } else if (file.type.startsWith('video')) {
+      el = `<div class='relative w-28 h-28 rounded overflow-hidden border bg-gray-50 flex items-center justify-center'>
+        <video src='${url}' controls class='object-cover w-full h-full'></video>
+        <button type='button' class='absolute top-1 right-1 bg-white rounded-full shadow p-1 text-red-600 hover:bg-red-100' onclick='removeNewFile(${idx})' title='Remove'>
+          <svg xmlns='http://www.w3.org/2000/svg' class='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' /></svg>
+        </button>
+      </div>`;
+    }
+    newMediaPreview.insertAdjacentHTML('beforeend', el);
+  });
+}
+
+function removeNewFile(idx) {
+  newFiles.splice(idx, 1);
+  updateInputFiles();
+  renderNewPreviews();
+}
+
+function removeExistingMedia(id) {
+  deletedMediaIds.push(id);
+  deletedMediaIdsInput.value = deletedMediaIds.join(',');
+  const el = existingMediaPreview.querySelector(`[onclick*='removeExistingMedia(${id})']`).parentElement;
+  if (el) el.remove();
+}
+
+function updateInputFiles() {
+  // Sync newFiles to input
+  const dt = new DataTransfer();
+  newFiles.forEach(f => dt.items.add(f));
+  mediaInput.files = dt.files;
+}
+
+mediaInput.addEventListener('change', function(e) {
+  const files = Array.from(e.target.files);
+  for (const file of files) {
+    if (newFiles.length >= maxFiles) break;
+    if (!['image/jpeg','image/png','image/webp','video/mp4','video/webm'].includes(file.type)) continue;
+    if (file.size > maxFileSize) continue;
+    newFiles.push(file);
+  }
+  updateInputFiles();
+  renderNewPreviews();
+});
+</script>
 {{-- </div> --}}
 <script>
 /* ===============================
@@ -688,4 +815,13 @@ resolutionSelect.addEventListener('change', function () {
     }
   }
 });
+</script>
+<script>
+  @if($isEdit && $hoarding?->latitude && $hoarding?->longitude)
+    const editLat = {{ $hoarding->latitude }};
+    const editLng = {{ $hoarding->longitude }};
+    map.setView([editLat, editLng], 15);
+    marker.setLatLng([editLat, editLng]);
+    document.getElementById('geotagSuccess').classList.remove('hidden');
+  @endif
 </script>

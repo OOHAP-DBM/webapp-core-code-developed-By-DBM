@@ -107,7 +107,7 @@ function loadBookings(page = 1) {
                             <strong>${booking.customer_name}</strong><br>
                             <small>${booking.customer_phone}</small>
                         </td>
-                        <td>${booking.hoarding ? booking.hoarding.title : 'N/A'}</td>
+                        <td>${booking.hoarding ? `<a href="/hoardings/${booking.hoarding.id}" target="_blank">${booking.hoarding.title}</a>` : 'N/A'}</td>
                         <td>
                             ${new Date(booking.start_date).toLocaleDateString()}<br>
                             to ${new Date(booking.end_date).toLocaleDateString()}

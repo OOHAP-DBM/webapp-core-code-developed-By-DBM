@@ -563,12 +563,16 @@ class DOOHScreenService
             // Update screen-level pricing
             $screen->update([
                 'price_per_slot' => $data['price_per_slot'] ?? $screen->price_per_slot,
-                // 'price_per_10_sec_slot' => $data['price_per_10_sec_slot'] ?? $screen->price_per_10_sec_slot,
+                'video_length' => $data['video_length'] ?? $screen->video_length,
                 // 'minimum_booking_amount' => $data['minimum_booking_amount'] ?? $screen->minimum_booking_amount,
+          
+            ]);
+            $hoarding->update([
                 'graphics_included' => isset($data['graphics_included']),
                 'graphics_price' => $data['graphics_price'] ?? 0,
-            ]);
 
+            ]);
+          
             // Update or recreate packages if provided
             if (!empty($data['offers_json'])) {
                 $offers = json_decode($data['offers_json'], true);
