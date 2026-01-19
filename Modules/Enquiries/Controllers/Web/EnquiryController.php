@@ -319,10 +319,12 @@ class EnquiryController extends Controller
                     $item->image_url = $media ? asset('storage/' . $media->file_path) : null;
                 } else if ($item->hoarding->hoarding_type === 'dooh') {
                     // DOOH: Get from dooh_screen_media table via dooh_screen_id on hoarding
-                    if ($item->hoarding->dooh_screen_id) {
+                    $doohScreenId = $item->hoarding->dooh_screen_id ?? ($item->hoarding->doohScreen->id ?? null);
+                    if ($doohScreenId) {
                         $media = DB::table('dooh_screen_media')
-                            ->where('dooh_screen_id', $item->hoarding->dooh_screen_id)
-                            ->where('is_primary', true)
+                            ->where('dooh_screen_id', $doohScreenId)
+                            ->orderBy('is_primary', 'desc')
+                            ->orderBy('sort_order', 'asc')
                             ->first();
                         $item->image_url = $media ? asset('storage/' . $media->file_path) : null;
                     } else {
@@ -334,6 +336,32 @@ class EnquiryController extends Controller
             } else {
                 $item->image_url = null;
             }
+            $item->package_name = '-';
+            $item->discount_percent = '-';
+
+            if ($item->hoarding_type === 'ooh' && !empty($item->package_id)) {
+                $package = DB::table('hoarding_packages')
+                    ->where('id', $item->package_id)
+                    ->first();
+
+                if ($package) {
+                    $item->package_name = $package->package_name;
+                    $item->discount_percent = $package->discount_percent;
+                }
+            }
+            if ($item->hoarding_type === 'dooh' && !empty($item->package_id)) {
+                $package = DB::table('dooh_packages')
+                    ->where('id', $item->package_id)
+                    ->first();
+
+                if ($package) {
+                    $item->package_name = $package->package_name;
+                    $item->discount_percent = $package->discount_percent;
+                }
+            }
+
+            // Attach final price using EnquiryPriceCalculator
+            $item->final_price = \App\Services\EnquiryPriceCalculator::calculate($item);
         }
 
         return $enquiry;

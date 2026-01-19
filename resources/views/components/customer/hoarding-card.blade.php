@@ -201,27 +201,27 @@
 
 
             @auth
-            <button
-                type="button"
-                class="flex-1 py-2 px-3 bg-teal-500 text-white text-sm font-semibold rounded enquiry-btn"
-                data-hoarding-id="{{ $hoarding->id }}"
-                data-grace-days="{{ (int) $hoarding->grace_period_days }}"
-                data-base-price="{{ ($hoarding->hoarding_type === 'dooh')
-                    ? ($hoarding->doohScreen->price_per_slot ?? 0)
-                    : ($hoarding->monthly_price ?? 0)
-                }}"
-                data-hoarding-type="{{ $hoarding->hoarding_type}}"
-            >
-                Enquiry Now
-            </button>
+                <button
+                    type="button"
+                    class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn"
+                    data-hoarding-id="{{ $hoarding->id }}"
+                    data-grace-days="{{ (int) $hoarding->grace_period_days }}"
+                    data-base-price="{{ ($hoarding->hoarding_type === 'dooh')
+                        ? ($hoarding->doohScreen->price_per_slot ?? 0)
+                        : ($hoarding->monthly_price ?? 0)
+                    }}"
+                    data-hoarding-type="{{ $hoarding->hoarding_type}}"
+                    >
+                    Enquiry Now
+                </button>
             @else
-            <button
-                type="button"
-                class="flex-1 py-2 px-3 bg-teal-500 text-white text-sm font-semibold rounded"
-                onclick="event.stopPropagation(); event.preventDefault(); window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
-            >
-                Enquiry Now
-            </button> 
+                <button
+                    type="button"
+                    class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded"
+                    onclick="event.stopPropagation(); event.preventDefault(); window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
+                    >
+                    Enquiry Now
+                </button> 
             @endauth
         </div>
 
