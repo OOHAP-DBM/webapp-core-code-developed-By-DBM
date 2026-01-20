@@ -35,118 +35,166 @@
 
     {{-- STATS --}}
     <div class="grid grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-xl">
-            <p class="text-sm text-gray-500">Total Earnings</p>
-            <p class="text-xl font-semibold">₹0</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl">
-            <p class="text-sm text-gray-500">Total Hoardings</p>
-            <p class="text-xl font-semibold">{{ $vendorProfile->total_hoardings ?? 0 }}</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl">
-            <p class="text-sm text-gray-500">Ongoing Orders</p>
-            <p class="text-xl font-semibold">0</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl">
-            <p class="text-sm text-gray-500">Commission</p>
-            <p class="text-xl font-semibold">{{ $vendorProfile->commission_percentage ?? 0 }}%</p>
-        </div>
+        @php
+            $stats = [
+                ['Total Earnings', '₹0'],
+                ['Total Hoardings', $vendorProfile->total_hoardings ?? 0],
+                ['Ongoing Orders', 0],
+                ['Commission', ($vendorProfile->commission_percentage ?? 0) . '%'],
+            ];
+        @endphp
+        @foreach($stats as [$label, $value])
+            <div class="bg-white p-4 rounded-xl">
+                <p class="text-sm text-gray-500">{{ $label }}</p>
+                <p class="text-xl font-semibold">{{ $value }}</p>
+            </div>
+        @endforeach
     </div>
 
     {{-- PERSONAL INFO --}}
-    <div class="bg-white rounded-xl p-6">
-        <h3 class="text-lg font-semibold mb-4">Personal Info</h3>
-        <div class="grid grid-cols-3 gap-6">
+    <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Personal Info</h2>
+            <!-- <button
+                @click="showModal = true; modalType = 'personal'"
+                class="text-blue-600 text-sm"
+            >Edit</button> -->
+        </div>
+        <div class="grid md:grid-cols-4 gap-4 text-sm">
             <div>
-                <label class="text-sm text-gray-500">Full Name</label>
+                <div class="flex items-center gap-3 mt-2">
+                    @if($user->avatar)
+                        <img
+                            src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/')) }}"
+                            alt="Avatar"
+                            class="w-17 h-17 rounded-full object-cover border border-gray-300"
+                        >
+                    @else
+                        <span class="text-gray-400 text-xs">No avatar</span>
+                    @endif
+                </div>
+            </div>
+            <div>
+                <label class="text-gray-500">Full Name</label>
                 <p class="font-medium">{{ $user->name }}</p>
             </div>
             <div>
-                <label class="text-sm text-gray-500">Email Address</label>
-                <p class="font-medium flex items-center gap-2">
+                <label class="text-gray-500">Email Address</label>
+                <p class="font-medium flex items-center gap-1">
                     {{ $user->email }}
-                    @if($user->email_verified_at)
-                        <span class="text-green-500">✔</span>
+                    @if($user->email)
+                        <span class="text-green-600">✔</span>
                     @endif
                 </p>
             </div>
             <div>
-                <label class="text-sm text-gray-500">Mobile Number</label>
-                <p class="font-medium flex items-center gap-2">
-                    {{ $user->phone ?? '-' }}
-                    @if($user->phone_verified_at)
-                        <span class="text-green-500">✔</span>
+                <label class="text-gray-500">Mobile Number</label>
+                <p class="font-medium flex items-center gap-1">
+                    {{ $user->phone }}
+                    @if($user->phone)
+                        <span class="text-green-600">✔</span>
                     @endif
                 </p>
+                <div class="mt-4 text-right">
+            <!-- <button
+                @click="showModal = true; modalType = 'change-password'"
+                class="text-blue-600 text-sm"
+            >Change Password</button> -->
+        </div>
             </div>
+            
         </div>
     </div>
 
-    {{-- REGISTERED BUSINESS --}}
-    <div class="bg-white rounded-xl p-6">
-        <h3 class="text-lg font-semibold mb-4">Registered Business Address</h3>
-        <div class="grid grid-cols-4 gap-6">
+    {{-- BUSINESS DETAILS --}}
+    <div class="bg-white rounded-xl shadow p-6 mt-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Business Details</h2>
+            <!-- <button
+                @click="showModal = true; modalType = 'business'"
+                class="text-blue-600 text-sm"
+            >Edit</button> -->
+        </div>
+        <div class="grid md:grid-cols-4 gap-4 text-sm">
             <div>
-                <label class="text-sm text-gray-500">GSTIN</label>
-                <p class="font-medium">{{ $vendorProfile->gstin ?? '-' }}</p>
+                <label class="text-gray-500">GSTIN</label>
+                <p class="font-medium">{{ $vendorProfile->gstin }}</p>
             </div>
             <div>
-                <label class="text-sm text-gray-500">Business Name</label>
-                <p class="font-medium">{{ $vendorProfile->company_name ?? '-' }}</p>
+                <label class="text-gray-500">Business Name</label>
+                <p class="font-medium">{{ $vendorProfile->company_name }}</p>
             </div>
             <div>
-                <label class="text-sm text-gray-500">Business Type</label>
-                <p class="font-medium">{{ $vendorProfile->company_type ?? '-' }}</p>
+                <label class="text-gray-500">Business Type</label>
+                <p class="font-medium">{{ $vendorProfile->company_type }}</p>
             </div>
             <div>
-                <label class="text-sm text-gray-500">PAN Number</label>
-                <p class="font-medium">{{ $vendorProfile->pan ?? '-' }}</p>
+                <label class="text-gray-500">PAN</label>
+                <p class="font-medium flex items-center gap-2">
+                    {{ $vendorProfile->pan }}
+                </p>
             </div>
         </div>
     </div>
 
     {{-- BANK DETAILS --}}
-    <div class="bg-white rounded-xl p-6">
-        <h3 class="text-lg font-semibold mb-4">Bank Details</h3>
-        <div class="grid grid-cols-4 gap-6">
+    <div class="bg-white rounded-xl shadow p-6 mt-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Bank Details</h2>
+            <!-- <button
+                @click="showModal = true; modalType = 'bank'"
+                class="text-blue-600 text-sm"
+            >Edit</button> -->
+        </div>
+        <div class="grid md:grid-cols-4 gap-4 text-sm">
             <div>
-                <label class="text-sm text-gray-500">Bank Name</label>
-                <p class="font-medium">{{ $vendorProfile->bank_name ?? '-' }}</p>
+                <label class="text-gray-500">Bank Name</label>
+                <p class="font-medium">{{ $vendorProfile->bank_name }}</p>
             </div>
             <div>
-                <label class="text-sm text-gray-500">Account Holder</label>
-                <p class="font-medium">{{ $vendorProfile->account_holder_name ?? '-' }}</p>
+                <label class="text-gray-500">Account Holder</label>
+                <p class="font-medium">{{ $vendorProfile->account_holder_name }}</p>
             </div>
             <div>
-                <label class="text-sm text-gray-500">Account Number</label>
-                <p class="font-medium">{{ $vendorProfile->account_number ?? '-' }}</p>
+                <label class="text-gray-500">Account Number</label>
+                <p class="font-medium">{{ $vendorProfile->account_number }}</p>
             </div>
             <div>
-                <label class="text-sm text-gray-500">IFSC Code</label>
-                <p class="font-medium">{{ $vendorProfile->ifsc_code ?? '-' }}</p>
+                <label class="text-gray-500">IFSC Code</label>
+                <p class="font-medium">{{ $vendorProfile->ifsc_code }}</p>
             </div>
         </div>
     </div>
 
     {{-- ADDRESS --}}
-    <div class="bg-white rounded-xl p-6">
-        <h3 class="text-lg font-semibold mb-4">Address</h3>
-        <div class="grid grid-cols-5 gap-6">
-            <div class="col-span-2">
-                <label class="text-sm text-gray-500">Business Address</label>
-                <p class="font-medium">{{ $vendorProfile->registered_address ?? '-' }}</p>
+    <div class="bg-white rounded-xl shadow p-6 mt-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Registered Business Address</h2>
+            <!-- <button
+                @click="showModal = true; modalType = 'address'"
+                class="text-blue-600 text-sm"
+            >Edit</button> -->
+        </div>
+        <div class="grid md:grid-cols-4 gap-4 text-sm">
+            <div class="md:col-span-4">
+                <label class="text-gray-500">Business Address</label>
+                <p class="font-medium">{{ $vendorProfile->registered_address }}</p>
             </div>
             <div>
-                <label class="text-sm text-gray-500">City</label>
-                <p class="font-medium">{{ $vendorProfile->city ?? '-' }}</p>
+                <label class="text-gray-500">Pincode</label>
+                <p class="font-medium">{{ $vendorProfile->pincode }}</p>
             </div>
             <div>
-                <label class="text-sm text-gray-500">State</label>
-                <p class="font-medium">{{ $vendorProfile->state ?? '-' }}</p>
+                <label class="text-gray-500">City</label>
+                <p class="font-medium">{{ $vendorProfile->city }}</p>
             </div>
             <div>
-                <label class="text-sm text-gray-500">Country</label>
-                <p class="font-medium">India</p>
+                <label class="text-gray-500">State</label>
+                <p class="font-medium">{{ $vendorProfile->state }}</p>
+            </div>
+            <div>
+                <label class="text-gray-500">Country</label>
+                <p class="font-medium">{{ $user->country }}</p>
             </div>
         </div>
     </div>

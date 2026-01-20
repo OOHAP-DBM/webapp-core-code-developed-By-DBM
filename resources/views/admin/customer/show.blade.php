@@ -19,11 +19,31 @@
         <div class="flex gap-6 mt-6">
 
             {{-- Avatar --}}
-            <img
-                src="{{ $user->avatar ?? asset('images/avatar.png') }}"
-                class="w-24 h-24 rounded-full object-cover"
-                alt="Avatar"
-            >
+            <div style="width:56px; height:56px; min-width:56px; min-height:56px; max-width:56px; max-height:56px; border-radius:50%; overflow:hidden; border:1px solid #d1d5db; flex-shrink:0; display:inline-block;">
+                @if($user->avatar)
+                    <img
+                        src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/')) }}"
+                        alt="Profile Image"
+                        class="w-full h-full object-cover block"
+                    >
+                @else
+                    {{-- Default User Icon --}}
+                    <svg
+                        class="w-14 h-14 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804
+                            M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                    </svg>
+                @endif
+            </div>
 
             {{-- Stats --}}
             <div class="flex gap-10 items-center">
@@ -44,52 +64,25 @@
 
         {{-- FORM --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-
-            <div>
-                <label class="text-sm">Full Name</label>
-                <input type="text" value="{{ $user->name }}" class="w-full border rounded px-3 py-2" disabled>
-            </div>
-
-            <div>
-                <label class="text-sm">Mobile Number</label>
-                <input type="text" value="{{ $user->phone }}" class="w-full border rounded px-3 py-2" disabled>
-            </div>
-
-            <div>
-                <label class="text-sm">Email</label>
-                <input type="email" value="{{ $user->email }}" class="w-full border rounded px-3 py-2" disabled>
-            </div>
-
-            <div>
-                <label class="text-sm">Street Address</label>
-                <input type="text" value="{{ $user->address }}" class="w-full border rounded px-3 py-2" disabled>
-            </div>
-
-            <div>
-                <label class="text-sm">Pincode</label>
-                <input type="text" value="{{ $user->pincode }}" class="w-full border rounded px-3 py-2" disabled>
-            </div>
-
-            <div>
-                <label class="text-sm">City</label>
-                <input type="text" value="{{ $user->city }}" class="w-full border rounded px-3 py-2" disabled>
-            </div>
-
-            <div>
-                <label class="text-sm">State</label>
-                <input type="text" value="{{ $user->state }}" class="w-full border rounded px-3 py-2" disabled>
-            </div>
-
-            <div>
-                <label class="text-sm">Country</label>
-                <input type="text" value="{{ $user->country ?? 'India' }}" class="w-full border rounded px-3 py-2" disabled>
-            </div>
-
-            <div>
-                <label class="text-sm">Password</label>
-                <input type="password" value="********" class="w-full border rounded px-3 py-2" disabled>
-            </div>
-
+            @php
+                $fields = [
+                    'Full Name' => $user->name,
+                    'Mobile Number' => $user->phone,
+                    'Email' => $user->email,
+                    'Street Address' => $user->address,
+                    'Pincode' => $user->pincode,
+                    'City' => $user->city,
+                    'State' => $user->state,
+                    'Country' => $user->country ?? 'India',
+                    'Password' => '********',
+                ];
+            @endphp
+            @foreach($fields as $label => $value)
+                <div>
+                    <label class="text-sm">{{ $label }}</label>
+                    <input type="text" value="{{ $value }}" class="w-full border rounded px-3 py-2" disabled>
+                </div>
+            @endforeach
         </div>
     </div>
 

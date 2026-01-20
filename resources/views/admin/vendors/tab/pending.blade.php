@@ -57,11 +57,22 @@
                         <td class="px-4 py-3 text-center">
                             <button
                                 class="bg-[#F59E0B] text-white px-6 py-2 rounded-lg text-sm"
-                                @click="$dispatch('open-vendor-commission', {
-                                    vendorId: {{ $vendor->id }},
-                                    vendorName: '{{ $vendor->user->name }}',
-                                    commission: {{ (float) $vendor->commission_percentage }}
-                                })"
+                                @click="
+                                    let commission = {{ (float) $vendor->commission_percentage ?? 0 }};
+                                    if (!commission || commission == 0) {
+                                        $dispatch('open-vendor-commission', {
+                                            vendorId: {{ $vendor->id }},
+                                            vendorName: '{{ $vendor->user->name }}',
+                                            commission: 0
+                                        });
+                                    } else {
+                                        $dispatch('open-vendor-commission', {
+                                            vendorId: {{ $vendor->id }},
+                                            vendorName: '{{ $vendor->user->name }}',
+                                            commission: commission
+                                        });
+                                    }
+                                "
                             >
                                 Approve
                             </button>

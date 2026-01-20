@@ -96,7 +96,16 @@ class VendorController extends Controller
         // 2️⃣ Vendor profile ko alag variable me le lo (easy blade access)
         $vendorProfile = $user->vendorProfile;
 
-        return view('admin.vendors.show', compact('user', 'vendorProfile'));
+        $businessTypes = [
+            'proprietorship' => 'Proprietorship',
+            'partnership'    => 'Partnership',
+            'private_limited'=> 'Private Limited',
+            'public_limited' => 'Public Limited',
+            'llp'            => 'LLP',
+            'other'          => 'Other',
+        ];
+
+        return view('admin.vendors.show', compact('user', 'vendorProfile', 'businessTypes'));
     }
 
 
