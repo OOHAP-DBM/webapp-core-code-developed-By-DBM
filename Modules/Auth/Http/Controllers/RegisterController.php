@@ -14,6 +14,11 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use App\Notifications\AdminUserRegisteredNotification;
+use App\Notifications\UserWelcomeNotification;
+use App\Notifications\VendorApprovalPendingNotification;
+
+
 
 
 class RegisterController extends Controller
@@ -123,28 +128,62 @@ class RegisterController extends Controller
                     'error' => $e->getMessage(),
                 ]);
             }
+            if ($role === 'customer') {
+
+                // 🔔 Admin notification
+                $admins = User::role('admin')->get();
+                foreach ($admins as $admin) {
+                    $admin->notify(
+                        new AdminUserRegisteredNotification($user, 'customer')
+                    );
+                }
+
+                // 🔔 Customer dashboard notification
+                $user->notify(
+                    new UserWelcomeNotification('customer')
+                );
+            }
+
 
             // Handle vendor-specific setup
+          // Handle vendor-specific setup
             if ($role === 'vendor') {
-                // Create vendor profile with draft status
+
+                // 1️⃣ Create vendor profile
                 VendorProfile::create([
                     'user_id' => $user->id,
                     'onboarding_status' => 'draft',
                     'onboarding_step' => 1,
                 ]);
+                // 3️⃣ Notify admins (approval pending)
+                $admins = User::role('admin')->get();
+                foreach ($admins as $admin) {
+                    $admin->notify(
+                        new VendorApprovalPendingNotification($user)
+                    );
+                }
 
+                // 4️⃣ Notify vendor
+                $user->notify(
+                    new VendorApprovalPendingNotification($user)
+                );
+
+                // 2️⃣ Commit DB changes FIRST
                 DB::commit();
 
-                // Clear session role
+                
+
+                // 5️⃣ Clear session role
                 session()->forget('signup_role');
 
-                // Login the vendor
+                // 6️⃣ Login vendor
                 Auth::login($user);
 
-                // Redirect to vendor onboarding
+                // 7️⃣ Redirect to onboarding
                 return redirect()->route('vendor.onboarding.contact-details')
                     ->with('success', 'Account created! Please complete your vendor onboarding.');
             }
+
 
             // Customer flow
             DB::commit();
