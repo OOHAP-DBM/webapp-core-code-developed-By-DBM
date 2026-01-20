@@ -30,8 +30,11 @@
                             {{ $vendors->firstItem() + $i }}
                         </td>
 
-                        <td class="px-4 py-3 font-medium text-[#2563EB]">
-                            {{ $vendor->user->name ?? '-' }}
+                        <td class="px-4 py-3 font-medium">  
+                            <a href="{{ route('admin.vendors.show', $vendor->user->id) }}"
+                            class="text-[#2563EB] underline hover:text-blue-800">
+                                {{ $vendor->user->name ?? '-' }}
+                            </a>
                         </td>
 
                         <td class="px-4 py-3">

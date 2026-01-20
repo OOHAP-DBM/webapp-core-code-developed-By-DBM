@@ -1,4 +1,5 @@
 <div class="bg-white rounded-xl overflow-hidden">
+{{-- DEBUG --}}
 
     <div class="overflow-x-auto">
         <table class="w-full min-w-[1100px] text-sm">
@@ -29,9 +30,13 @@
                             {{ $vendors->firstItem() + $i }}
                         </td>
 
-                        <td class="px-4 py-3 font-medium text-[#2563EB]">
-                            {{ $vendor->user->name ?? '-' }}
+                        <td class="px-4 py-3 font-medium">  
+                            <a href="{{ route('admin.vendors.show', $vendor->user->id) }}"
+                            class="text-[#2563EB] underline hover:text-blue-800">
+                                {{ $vendor->user->name ?? '-' }}
+                            </a>
                         </td>
+
 
                         <td class="px-4 py-3">
                             {{ $vendor->created_at?->format('M d, Y') }}
@@ -52,11 +57,22 @@
                         <td class="px-4 py-3 text-center">
                             <button
                                 class="bg-[#F59E0B] text-white px-6 py-2 rounded-lg text-sm"
-                                @click="$dispatch('open-vendor-commission', {
-                                    vendorId: {{ $vendor->id }},
-                                    vendorName: '{{ $vendor->user->name }}',
-                                    commission: {{ (float) $vendor->commission_percentage }}
-                                })"
+                                @click="
+                                    let commission = {{ (float) $vendor->commission_percentage ?? 0 }};
+                                    if (!commission || commission == 0) {
+                                        $dispatch('open-vendor-commission', {
+                                            vendorId: {{ $vendor->id }},
+                                            vendorName: '{{ $vendor->user->name }}',
+                                            commission: 0
+                                        });
+                                    } else {
+                                        $dispatch('open-vendor-commission', {
+                                            vendorId: {{ $vendor->id }},
+                                            vendorName: '{{ $vendor->user->name }}',
+                                            commission: commission
+                                        });
+                                    }
+                                "
                             >
                                 Approve
                             </button>

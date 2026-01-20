@@ -54,9 +54,19 @@
                             <td class="px-6 py-4">
                                 <span class="text-[13px] font-bold text-[#10B981]">#CUST-{{ str_pad($customer->id, 4, '0', STR_PAD_LEFT) }}</span>
                             </td>
-                            <td class="px-6 py-4">
-                                <span class="text-[13px] font-bold text-[#1E1B18]">{{ $customer->name }}</span>
+                            <td class="px-6 py-4 text-center">
+                                <a
+                                    href="{{ route('admin.customers.show', $customer->id) }}"
+                                    class="inline-flex items-center justify-center gap-1
+                                        text-[13px] font-bold text-[#2563EB]
+                                        hover:text-blue-800 underline
+                                        transition-all cursor-pointer"
+                                >
+                                    {{ $customer->name }}
+                                </a>
                             </td>
+
+
                             <td class="px-6 py-4 text-[13px] text-[#949291] font-medium">
                                 {{ $customer->email }}
                             </td>

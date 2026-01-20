@@ -88,8 +88,24 @@ class VendorController extends Controller
 
     public function show($id)
     {
-        $vendor = User::role('vendor')->findOrFail($id);
-        return view('admin.vendors.show', compact('vendor'));
+        // 1️⃣ User ko fetch karo (vendor role ke sath)
+        $user = User::role('vendor')
+            ->with('vendorProfile')
+            ->findOrFail($id);
+
+        // 2️⃣ Vendor profile ko alag variable me le lo (easy blade access)
+        $vendorProfile = $user->vendorProfile;
+
+        $businessTypes = [
+            'proprietorship' => 'Proprietorship',
+            'partnership'    => 'Partnership',
+            'private_limited'=> 'Private Limited',
+            'public_limited' => 'Public Limited',
+            'llp'            => 'LLP',
+            'other'          => 'Other',
+        ];
+
+        return view('admin.vendors.show', compact('user', 'vendorProfile', 'businessTypes'));
     }
 
 
@@ -148,6 +164,9 @@ class VendorController extends Controller
 
             if ($profile->user) {
                 $profile->user->update(['status' => 'active']);
+
+                // Send approval notification to vendor
+                $profile->user->notify(new \App\Notifications\VendorApprovedNotification(false));
 
                 // Send approval email to vendor
                 try {

@@ -82,7 +82,9 @@
                 @foreach($items as $item)
                 <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
                     <div class="hoarding-name">
-                        {{ $item->hoarding->title ?? 'Hoarding #' . $item->hoarding_id }}
+                        <a href="{{ route('hoardings.show', $item->hoarding_id) }}" style="color: #FF6B35; text-decoration: underline;">
+                            {{ $item->hoarding->title ?? 'Hoarding #' . $item->hoarding_id }}
+                        </a>
                     </div>
                     <p style="margin: 8px 0; color: #666;">
                         📍 {{ $item->hoarding->location ?? 'Location: N/A' }}

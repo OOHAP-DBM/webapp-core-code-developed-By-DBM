@@ -592,6 +592,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/vendors/{id}/suspend', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'suspend'])->name('vendors.suspend');
         // Customer Management
         Route::get('/customers', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'index'])->name('customers.index');
+        Route::get('/customers/{id}', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'show'])->name('customers.show');
+
     
     // KYC Verification
     Route::get('/kyc', [\Modules\Admin\Controllers\Web\AdminKYCWebController::class, 'index'])->name('kyc.index');

@@ -45,7 +45,9 @@
                 </tr>
                 <tr>
                     <td><strong>Commission Rate</strong></td>
-                    <td><span class="highlight">{{ $commissionPercentage }}%</span></td>
+                    <td><span class="highlight">
+                        {{ env('ADMIN_COMMISSION_PERCENTAGE', 10) }}% - {{ $commissionPercentage }}%
+                    </span></td>
                 </tr>
                 <tr>
                     <td><strong>Status</strong></td>
@@ -70,7 +72,7 @@
             </p>
 
             <h3>Commission Structure:</h3>
-            <p>Your approved commission rate is <span class="highlight">{{ $commissionPercentage }}%</span>. This is the commission you'll earn on successful bookings made through the OOHApp platform.</p>
+            <p>Your approved commission rate is <span class="highlight">{{ env('ADMIN_COMMISSION_PERCENTAGE', 10) }}% - {{ $commissionPercentage }}%</span>. This is the commission you'll earn on successful bookings made through the OOHApp platform.</p>
 
             <p><strong>Need Help?</strong><br>
             If you have any questions or need support, our team is here to help. Reach out to us at <strong>support@oohapp.com</strong> or use the support chat in your dashboard.</p>
