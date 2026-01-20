@@ -57,8 +57,8 @@
 @else
     {{-- DOOH BASE PRICE --}}
 <div class="text-xl font-bold">
-    ₹{{ number_format($hoarding->doohScreen->price_per_10_sec_slot) }}
-    <span class="text-sm text-gray-500">/10 Second Slot</span>
+    ₹{{ number_format($hoarding->doohScreen->price_per_slot) }}
+    <span class="text-sm text-gray-500">/Second </span>
 </div>
     {{-- DOOH PACKAGES (OPTIONAL) --}}
 @if($hoarding->packages->count())
@@ -67,7 +67,7 @@
     @foreach($hoarding->packages as $pkg)
 
             @php
-                $basePrice  = $hoarding->price_per_10_sec_slot * $pkg->min_booking_duration;
+                $basePrice  = $hoarding->price_per_slot * $pkg->min_booking_duration;
                 $discount   = ($basePrice * $pkg->discount_percent) / 100;
                 $finalPrice = $basePrice - $discount;
             @endphp
@@ -136,7 +136,7 @@
        class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium enquiry-btn"
        data-hoarding-id="{{ $hoarding->id }}"
        data-hoarding-type="{{ $hoarding->hoarding_type ?? 'ooh' }}"
-       data-base-price="{{ $hoarding->hoarding_type === 'dooh' ? ($hoarding->doohScreen->price_per_10_sec_slot ?? 0) : ($hoarding->monthly_price ?? 0) }}"
+       data-base-price="{{ $hoarding->hoarding_type === 'dooh' ? ($hoarding->doohScreen->price_per_slot ?? 0) : ($hoarding->monthly_price ?? 0) }}"
        data-grace-days="{{ (int) $hoarding->grace_period_days }}"
        data-count="1"
     >

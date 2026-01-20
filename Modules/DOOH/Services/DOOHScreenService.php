@@ -36,8 +36,8 @@ class DOOHScreenService
             'address'           => 'required|string|max:255',
             'pincode'           => 'required|string|max:20',
             'locality'          => 'required|string|max:100',
-            'price_per_10_sec_slot'    => 'required|numeric|min:1',
-            'price_per_30_sec_slot'    => 'required|numeric|min:1',
+            'price_per_slot'    => 'required|numeric|min:1',
+            // 'price_per_30_sec_slot'    => 'required|numeric|min:1',
             'resolution_type' => 'required|string',
             'resolution_width' => 'required_if:resolution_type,custom|nullable|integer|min:1',
             'resolution_height' => 'required_if:resolution_type,custom|nullable|integer|min:1',
@@ -316,10 +316,10 @@ class DOOHScreenService
             $parentHoarding = $screen->hoarding;
             $parentHoarding->base_monthly_price = $data['base_monthly_price'] ?? 0;
             $parentHoarding->monthly_price = $data['monthly_offered_price'] ?? 0;
-            $parentHoarding->enable_weekly_booking = isset($data['enable_weekly_booking']) ? 1 : 0;
-            $parentHoarding->weekly_price_1 = $data['weekly_price_1'] ?? null;
-            $parentHoarding->weekly_price_2 = $data['weekly_price_2'] ?? null;
-            $parentHoarding->weekly_price_3 = $data['weekly_price_3'] ?? null;
+            // $parentHoarding->enable_weekly_booking = isset($data['enable_weekly_booking']) ? 1 : 0;
+            // $parentHoarding->weekly_price_1 = $data['weekly_price_1'] ?? null;
+            // $parentHoarding->weekly_price_2 = $data['weekly_price_2'] ?? null;
+            // $parentHoarding->weekly_price_3 = $data['weekly_price_3'] ?? null;
             $parentHoarding->graphics_included = isset($data['graphics_included']) ? 1 : 0;
             $parentHoarding->graphics_charge = $data['graphics_charge'] ?? null;
             $parentHoarding->survey_charge = $data['survey_charge'] ?? null;
@@ -421,7 +421,7 @@ class DOOHScreenService
                 'measurement_unit' => $screen->measurement_unit,
                 'resolution_width' => $screen->resolution_width,
                 'resolution_height' => $screen->resolution_height,
-                'price_per_10_sec_slot' => $screen->price_per_10_sec_slot,
+                'price_per_slot' => $screen->price_per_slot,
                 'display_price_per_30s' => $screen->display_price_per_30s,
                 'status' => $screen->status,
                 'hoarding' => $hoarding ? [
@@ -527,6 +527,10 @@ class DOOHScreenService
                 'pincode' => $data['pincode'] ?? $hoarding->pincode,
                 'lat' => $data['lat'] ?? $hoarding->lat,
                 'lng' => $data['lng'] ?? $hoarding->lng,
+                'enable_weekly_booking' => isset($data['enable_weekly_booking']) ? $data['enable_weekly_booking'] : 0,
+                'weekly_price_1' => $data['weekly_price_1'],
+                'weekly_price_2' => $data['weekly_price_2'],
+                'weekly_price_3' => $data['weekly_price_3'],
             ]);
 
             // Normalize resolution
@@ -541,6 +545,7 @@ class DOOHScreenService
                 'resolution_width' => $normalized['resolution_width'],
                 'resolution_height' => $normalized['resolution_height'],
                 'price_per_slot' => $data['price_per_slot'] ?? $screen->price_per_slot,
+             
             ]);
 
             // Handle media - only add new
@@ -570,10 +575,6 @@ class DOOHScreenService
             $hoarding->update([
                 'graphics_included' => isset($data['graphics_included']),
                 'graphics_price' => $data['graphics_price'] ?? 0,
-                'enable_weekly_booking'=>$data['enable_weekly_booking'],
-                'weekly_price_1'=>$data['weekly_price_1'],
-                'weekly_price_2' => $data['weekly_price_2'],
-                'weekly_price_3' => $data['weekly_price_3'],
             ]);
           
             // Update or recreate packages if provided

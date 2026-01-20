@@ -6,6 +6,7 @@ use Modules\Auth\Http\Controllers\OnboardingController;
 use App\Http\Controllers\Web\Customer\ProfileController;
 use Modules\Search\Controllers\SearchController;
 use Modules\Cart\Controllers\Web\CartController;
+use App\Http\Controllers\DirectEnquiryController;
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -22,6 +23,15 @@ use Modules\Cart\Controllers\Web\CartController;
 // ============================================
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+
+// The page where the form lives
+Route::get('/direct-enquiry', function () {
+    return view('frontend.direct_enquiry');
+});
+
+// The submission logic
+Route::post('/direct-enquiry/submit', [DirectEnquiryController::class, 'store'])->name('direct.enquiry.submit');
 
 // ADMIN POS WEB ROUTES
 Route::prefix('admin/pos')->middleware(['auth', 'role:admin'])->name('admin.pos.')->group(function () {

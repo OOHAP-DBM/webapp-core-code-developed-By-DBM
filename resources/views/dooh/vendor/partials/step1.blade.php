@@ -11,6 +11,11 @@
           ? json_decode($hoarding->landmark, true)
           : [''];
           $existingMedia = $draft->media ?? collect();
+       
+          // Ensure we are looking at the hoarding relationship of the screen/draft
+          $source = $draft->hoarding ?? null;
+          $isWeeklyEnabled = old('enable_weekly_booking', $source->enable_weekly_booking ?? false);
+
     @endphp
 
     <div class="md:p-8 md:space-y-8">
@@ -291,60 +296,60 @@
 
 
         </div>
-        <!-- Pricing Details -->
-        <div class="bg-white rounded-3xl p-8  shadow-sm border border-gray-100">
-            <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
+      <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+          <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
               <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
               Pricing
-            </h3>
-      
+          </h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                  <label class="text-sm font-bold text-gray-700">
+                      Price Per sec  (₹) <span class="text-red-500">*</span>
+                  </label>
+                  <input type="number" name="price_per_slot" min="1" step="0.01" required
+                      value="{{ old('price_per_slot', $draft?->price_per_slot) }}"
+                      placeholder="e.g. 50"
+                      class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all" />
+                  <p class="text-xs text-gray-400">Cost per second (recommended for DOOH)</p>
+              </div>
 
-                <!-- Price Per Slot -->
-                <div class="space-y-2">
-                    <label class="text-sm font-bold text-gray-700">
-                        Price Per 10 sec Slot (₹) <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="number"
-                        name="price_per_10_sec_slot"
-                        min="1"
-                        step="0.01"
-                        required
-                        value="{{ old('price_per_10_sec_slot', $draft?->price_per_10_sec_slot) }}"
-                        placeholder="e.g. 50"
-                        class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all"
-                    />
-                    <p class="text-xs text-gray-400">
-                        Cost per 10-second slot (recommended for DOOH)
-                    </p>
-                </div>
+              <div class="space-y-2">
+                  <label class="text-sm font-semibold text-gray-600">Enable Weekly Booking?</label>
+                  <div class="flex items-center gap-4">
+                      {{-- Hidden input handles the "unchecked" state --}}
+                      <input type="hidden" name="enable_weekly_booking" value="0">
+                      <input type="checkbox" id="enable_weekly_booking" name="enable_weekly_booking" value="1" 
+                          class="w-5 h-5 rounded border-gray-300 text-[#009A5C] cursor-pointer" 
+                          {{ $isWeeklyEnabled ? 'checked' : '' }}>
+                      <span class="text-xs text-gray-500">Allow customers to book for weekly durations</span>
+                  </div>
+              </div>
 
-                 <!-- Price Per Slot -->
-                <div class="space-y-2">
-                    <label class="text-sm font-bold text-gray-700">
-                        Price Per 30 sec Slot (₹) <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="number"
-                        name="price_per_30_sec_slot"
-                        min="1"
-                        step="0.01"
-                        required
-                         value="{{ old('price_per_30_sec_slot', $draft?->display_price_per_30s) }}" 
-                        placeholder="e.g. 50"
-                        class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all"
-                    />
-                    <p class="text-xs text-gray-400">
-                        Cost per 30-second slot (recommended for DOOH)
-                    </p>
-                </div>
-            
+              {{-- This section visibility is controlled by PHP on load and JS on change --}}
+              <div id="weekly-section" class="{{ $isWeeklyEnabled ? 'grid' : 'hidden' }} grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                  @foreach(['1', '2', '3'] as $week)
+                      <div class="space-y-2">
+                          <label class="text-sm font-semibold text-gray-700">
+                              Price per sec for {{ $week }} Week Booking 
+                              @if($week == 1)<span class="text-red-500">*</span>@endif
+                          </label>
+                          <div class="relative">
+                              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
+                              <input type="number" 
+                                  name="weekly_price_{{$week}}" 
+                                  id="weekly_price_{{$week}}"
+                                  step="0.01"
+                                  class="w-full rounded-xl border border-gray-200 pl-8 py-3 text-sm focus:border-[#009A5C] outline-none" 
+                                  value="{{ old('weekly_price_'.$week, $source->{"weekly_price_$week"} ?? '') }}"
+                                  {{ $isWeeklyEnabled && $week == 1 ? 'required' : '' }}>
+                          </div>
+                      </div>
+                  @endforeach
+              </div>
+          </div>
 
-            </div>
-        </div>
-
+      </div>
         {{-- DOOH Screen Media Upload Section --}}
         <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 max-w-full mx-auto">
             <h3 class="text-lg sm:text-xl font-bold text-[#009A5C] mb-2 flex items-center">
@@ -622,7 +627,6 @@ geotagBtn.addEventListener('click', geocodeAddress);
   const heightInput = document.getElementById('height');
   const unitSelect = document.getElementById('unit');
   const sizePreview = document.getElementById('sizePreview');
-
   function updateSizePreview() {
     const width = widthInput.value || 0;
     const height = heightInput.value || 0;
@@ -824,4 +828,25 @@ resolutionSelect.addEventListener('change', function () {
     marker.setLatLng([editLat, editLng]);
     document.getElementById('geotagSuccess').classList.remove('hidden');
   @endif
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const weeklyCheckbox = document.getElementById('enable_weekly_booking');
+    const weeklySection = document.getElementById('weekly-section');
+    const week1Input = document.getElementById('weekly_price_1');
+
+    weeklyCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            // Show section and make first week mandatory
+            weeklySection.classList.remove('hidden');
+            weeklySection.classList.add('grid');
+            week1Input.setAttribute('required', 'required');
+        } else {
+            // Hide section and remove mandatory requirement
+            weeklySection.classList.add('hidden');
+            weeklySection.classList.remove('grid');
+            week1Input.removeAttribute('required');
+        }
+    });
+});
 </script>

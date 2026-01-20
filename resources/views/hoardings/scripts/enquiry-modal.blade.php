@@ -538,13 +538,13 @@ window.openEnquiryModal = function (payload) {
     }
     window.selectedPackageState = {
         id: 'base',
-        label: hoardingType === 'dooh' ? `Base Price – ₹${base} (Per 10s Slot)` : `Base Price – ₹${base} (1 Month)`,
+        label: hoardingType === 'dooh' ? `Base Price – ₹${base} (Per Second)` : `Base Price – ₹${base} (1 Month)`,
         price: base,
         months: 1,
         type: hoardingType
     };
     baseOption.textContent = hoardingType === 'dooh'
-        ? `Base Price – ₹${base} (Per 10s Slot)`
+        ? `Base Price – ₹${base} (Per Second)`
         : `Base Price – ₹${base} (1 Month)`;
     /* ================= GRACE PERIOD ================= */
     if (payload.graceDays) {

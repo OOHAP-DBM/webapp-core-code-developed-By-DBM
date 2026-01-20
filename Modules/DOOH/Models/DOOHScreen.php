@@ -48,7 +48,7 @@ class DOOHScreen extends Model
 
         /* Pricing */
         'price_per_slot',
-        'price_per_10_sec_slot',
+        // 'price_per_slot',
         'display_price_per_30s',
         'minimum_booking_amount',
 
@@ -92,7 +92,7 @@ class DOOHScreen extends Model
 
         'price_per_slot' => 'decimal:2',
         'display_price_per_30s' => 'decimal:2',
-        'price_per_10_sec_slot' => 'decimal:2',
+        // 'price_per_slot' => 'decimal:2',
         'minimum_booking_amount' => 'decimal:2',
 
         'base_monthly_price' => 'decimal:2',

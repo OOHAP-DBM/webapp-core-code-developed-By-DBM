@@ -10,7 +10,7 @@
                 $steps = [
                     1 => 'Details',
                     2 => 'Settings',
-                    3 => 'Pricing'
+                    3 => 'Additional'
                 ];
             @endphp
             @foreach($steps as $num => $label)

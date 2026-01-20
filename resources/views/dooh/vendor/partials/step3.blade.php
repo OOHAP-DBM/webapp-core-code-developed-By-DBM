@@ -1,5 +1,5 @@
 <div class="p-8 space-y-8">
-    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+    {{-- <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
         <div class="flex items-center gap-3 mb-4">
             <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
             <h3 class="text-xl font-bold text-gray-800">Rental Offering</h3>
@@ -34,7 +34,7 @@
                 </div>
             @endforeach
         </div>
-    </div>
+    </div> --}}
 
    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
         <div class="flex items-center justify-between mb-8">

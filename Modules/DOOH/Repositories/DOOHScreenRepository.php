@@ -72,8 +72,12 @@ class DOOHScreenRepository
                 'longitude'      => $data['lng'] ?? null,
 
                 // Booking & rules
-                'grace_period_days' => $data['grace_period_days'] ?? 0,
-                'audience_types'    => $data['audience_types'] ?? null,
+                // 'grace_period_days' => $data['grace_period_days'] ?? 0,
+                // 'audience_types'    => $data['audience_types'] ?? null,
+                'enable_weekly_booking' => $data['enable_weekly_booking'],
+                'weekly_price_1' => $data['weekly_price_1'],
+                'weekly_price_2' => $data['weekly_price_2'],
+                'weekly_price_3' => $data['weekly_price_3'],
 
                 'status' => 'draft',
                 'approval_status' => 'pending',
@@ -114,8 +118,9 @@ class DOOHScreenRepository
                 'resolution_width'  => $resWidth,
                 'resolution_height' => $resHeight,
                 'calculated_area_sqft' => $areaSqft,
-                'price_per_10_sec_slot' => $data['price_per_10_sec_slot'],
-                'display_price_per_30s' => $data['price_per_30_sec_slot']?? 0,
+                'price_per_slot' => $data['price_per_slot'],
+                // 'display_price_per_30s' => $data['price_per_30_sec_slot']?? 0,
+              
             ]);
 
         });
