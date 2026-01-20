@@ -55,14 +55,14 @@ class EnquiryPriceCalculator
                 return 0;
             }
 
-            $pricePer10Sec = (float) ($screen->price_per_10_sec_slot ?? 0);
+            $pricePer10Sec = (float) ($screen->price_per_slot ?? 0);
 
             $videoDuration = (int) ($meta['dooh_specs']['video_duration'] ?? 10);
             $slotsPerDay   = (int) ($meta['dooh_specs']['slots_per_day'] ?? 1);
             $totalDays     = (int) ($meta['dooh_specs']['total_days'] ?? 1);
 
             // 🔥 Core DOOH Formula
-            $pricePerSecond = $pricePer10Sec / 10;
+            $pricePerSecond = $pricePer10Sec;
             $pricePerPlay   = $pricePerSecond * $videoDuration;
             $perDayPrice    = $pricePerPlay * $slotsPerDay;
             $basePrice      = $perDayPrice * $totalDays;

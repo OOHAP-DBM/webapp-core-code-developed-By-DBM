@@ -140,9 +140,9 @@
             @else
                 <div class="flex items-baseline">
                     <span class="text-xl font-bold text-gray-900">
-                        ₹{{ number_format($hoarding->doohScreen->price_per_10_sec_slot ?? optional($hoarding->doohScreen)->price_per_10_sec_slot) }}
+                        ₹{{ number_format($hoarding->doohScreen->price_per_slot ?? optional($hoarding->doohScreen)->price_per_slot) }}
                     </span>
-                    <span class="text-sm text-gray-500 ml-1">/10 Second Slot</span>
+                    <span class="text-sm text-gray-500 ml-1">/Second </span>
                 </div>
 
             @endif
@@ -206,7 +206,7 @@
                     data-hoarding-id="{{ $hoarding->id }}"
                     data-grace-days="{{ (int) $hoarding->grace_period_days }}"
                     data-base-price="{{ ($hoarding->hoarding_type === 'dooh')
-                        ? ($hoarding->doohScreen->price_per_10_sec_slot ?? 0)
+                        ? ($hoarding->doohScreen->price_per_slot ?? 0)
                         : ($hoarding->monthly_price ?? 0)
                     }}"
                     data-hoarding-type="{{ $hoarding->hoarding_type}}"

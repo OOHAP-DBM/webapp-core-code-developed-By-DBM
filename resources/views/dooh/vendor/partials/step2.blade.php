@@ -1,7 +1,7 @@
 <!-- Step 2: Settings & Attributes -->
 {{-- <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6"> --}}
 
-    @dump($parentHoarding)
+    {{-- @dump($parentHoarding) --}}
   <!-- Body -->
   <div class="md:p-8 space-y-8">
     <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
@@ -261,7 +261,7 @@
                         is_array($parentHoarding->visibility_details ?? null) 
                             ? $parentHoarding->visibility_details 
                             : (is_string($parentHoarding->visibility_details ?? null) 
-                                ? json_decode($parentHoarding->visibility_details, true) 
+                                ? json_decode($parentHoarding->visible_from, true) 
                                 : []
                             )
                     );
@@ -477,14 +477,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        graceCancelBtn.addEventListener('click', function() {
+        // graceCancelBtn.addEventListener('click', function() {
+        //     graceModal.classList.add('hidden');
+        //     if (!graceHidden.value) {
+        //         graceYes.checked = false;
+        //         graceNo.checked = true;
+        //     }
+        //     graceInput.classList.remove('border-red-500');
+        // });
+        graceCancelBtn.addEventListener('click', function () {
             graceModal.classList.add('hidden');
-            if (!graceHidden.value) {
-                graceYes.checked = false;
-                graceNo.checked = true;
-            }
+
+            // Restore value from hidden field
+            graceInput.value = graceHidden.value || '';
             graceInput.classList.remove('border-red-500');
         });
+
 
         // Prevent form submission if grace period is selected but not filled
         const form = graceYes.closest('form');
@@ -549,10 +557,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         blockCancelBtn.addEventListener('click', function() {
             blockModal.classList.add('hidden');
-            blockYes.checked = false;
-            blockNo.checked = true;
-            blockHidden.value = '[]';
-            blockSelectedDates = [];
+              try {
+                blockSelectedDates = blockHidden.value
+                    ? JSON.parse(blockHidden.value)
+                    : [];
+            } catch {
+                blockSelectedDates = [];
+            }
+
+            blockCalendar.classList.remove('border-red-500');
         });
 
         // Initialize flatpickr calendar
@@ -593,6 +606,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.checked) {
                 permitNumberHidden.value = '';
                 permitValidTillHidden.value = '';
+                permitNumberInput.value = '';
+                permitValidTillInput.value = '';
             }
         });
         
@@ -616,10 +631,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         nagarCancelBtn.addEventListener('click', function() {
             nagarModal.classList.add('hidden');
-            nagarYes.checked = false;
-            nagarNo.checked = true;
-            permitNumberHidden.value = '';
-            permitValidTillHidden.value = '';
+            // nagarYes.checked = false;
+            // nagarNo.checked = true;
+             permitNumberHidden.value = permitNumberHidden.value || '';
+            permitValidTillHidden.value = permitValidTillHidden.value || '';
+
+            // Optionally reset modal inputs to hidden values
+            permitNumberInput.value = permitNumberHidden.value;
+            permitValidTillInput.value = permitValidTillHidden.value;
         });
     }
 });

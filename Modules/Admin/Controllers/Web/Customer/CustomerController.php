@@ -37,4 +37,32 @@ class CustomerController extends Controller
 
         return view('admin.customer.index', compact('customers', 'totalCustomerCount'));
     }
+
+    public function show($id)
+    {
+        // ✅ Customer fetch karo by ID
+        $user = \App\Models\User::where('active_role', 'customer')
+            ->findOrFail($id);
+
+        // ✅ Us customer ki bookings
+        $bookings = \App\Models\Booking::where('customer_id', $user->id)
+            ->latest()
+            ->get();
+
+        // ✅ Stats calculate
+        $stats = [
+            'total'     => $bookings->count(),
+            'active'    => $bookings->where('status', 'active')->count(),
+            'cancelled' => $bookings->where('status', 'cancelled')->count(),
+        ];
+
+        // ✅ Admin view return
+        return view('admin.customer.show', compact(
+            'user',
+            'bookings',
+            'stats'
+        ));
+    }
+
+
 }

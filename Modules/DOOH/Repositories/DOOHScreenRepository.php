@@ -72,8 +72,12 @@ class DOOHScreenRepository
                 'longitude'      => $data['lng'] ?? null,
 
                 // Booking & rules
-                'grace_period_days' => $data['grace_period_days'] ?? 0,
-                'audience_types'    => $data['audience_types'] ?? null,
+                // 'grace_period_days' => $data['grace_period_days'] ?? 0,
+                // 'audience_types'    => $data['audience_types'] ?? null,
+                'enable_weekly_booking' => $data['enable_weekly_booking'],
+                'weekly_price_1' => $data['weekly_price_1'],
+                'weekly_price_2' => $data['weekly_price_2'],
+                'weekly_price_3' => $data['weekly_price_3'],
 
                 'status' => 'draft',
                 'approval_status' => 'pending',
@@ -114,8 +118,9 @@ class DOOHScreenRepository
                 'resolution_width'  => $resWidth,
                 'resolution_height' => $resHeight,
                 'calculated_area_sqft' => $areaSqft,
-                'price_per_10_sec_slot' => $data['price_per_10_sec_slot'],
-                'display_price_per_30s' => $data['price_per_30_sec_slot']?? 0,
+                'price_per_slot' => $data['price_per_slot'],
+                // 'display_price_per_30s' => $data['price_per_30_sec_slot']?? 0,
+              
             ]);
 
         });
@@ -248,6 +253,7 @@ class DOOHScreenRepository
      */
     public function storeSlots(int $screenId, array $slots): array
     {
+        // dd($slots);
         $screen = \Modules\DOOH\Models\DOOHScreen::findOrFail($screenId);
 
         // Delete existing slots to prevent duplicates on update
@@ -256,10 +262,11 @@ class DOOHScreenRepository
         $saved = [];
         foreach ($slots as $details) {
             // Only save if the toggle was turned 'on' (active)
-            if (isset($details['active']) && $details['active'] == '1') {
+            if (isset($details['is_active']) && $details['is_active'] == '1') {
+                
                 $saved[] = \Modules\DOOH\Models\DOOHSlot::create([
                     'dooh_screen_id' => $screenId,
-                    'slot_name'   => $details['name'],
+                    'slot_name'   => $details['slot_name'],
                     'start_time'  => date("H:i:s", strtotime($details['start_time'])),
                     'end_time'    => date("H:i:s", strtotime($details['end_time'])),
                     'status'      => 'available',

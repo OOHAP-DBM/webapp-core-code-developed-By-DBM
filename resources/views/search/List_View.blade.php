@@ -139,7 +139,7 @@
                                 </span>
                                 <span class="text-sm text-gray-500">
                                     @if($item->hoarding_type === 'dooh')
-                                        / 10 Second Slot
+                                        /Second 
                                     @elseif(request('duration') === 'weekly')
                                         /Week
                                     @else

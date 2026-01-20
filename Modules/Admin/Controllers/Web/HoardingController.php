@@ -95,7 +95,7 @@ class HoardingController extends Controller
 
                 // Extract DOOH-specific pricing
                 $hoarding->price_per_slot = $screen->price_per_slot;
-                $hoarding->price_per_10_sec = $screen->price_per_10_sec_slot;
+                $hoarding->price_per_10_sec = $screen->price_per_slot;
                 $hoarding->price_per_30_sec = $screen->display_price_per_30s;
                 $hoarding->minimum_booking_amount = $screen->minimum_booking_amount;
 
