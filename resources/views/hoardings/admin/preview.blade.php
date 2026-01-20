@@ -525,9 +525,9 @@
                         </div>
                     @endif
                     
-                    @if($hoarding->price_per_10_sec)
+                    @if($hoarding->price_per_slot)
                         <div class="mb-2">
-                            <label class="text-xs text-gray-500">10-second slot</label>
+                            <label class="text-xs text-gray-500">second </label>
                             <p class="text-sm font-semibold text-gray-900">₹{{ number_format($hoarding->price_per_10_sec, 2) }}</p>
                         </div>
                     @endif

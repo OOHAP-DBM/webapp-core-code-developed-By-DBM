@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <tr>
                         <td>${booking.invoice_number || 'N/A'}</td>
                         <td>${booking.customer_name}</td>
-                        <td>${booking.hoarding ? booking.hoarding.title : 'N/A'}</td>
+                        <td>${booking.hoarding ? `<a href="/hoardings/${booking.hoarding.id}" target="_blank">${booking.hoarding.title}</a>` : 'N/A'}</td>
                         <td>${new Date(booking.start_date).toLocaleDateString()} - ${new Date(booking.end_date).toLocaleDateString()}</td>
                         <td>₹${parseFloat(booking.total_amount).toLocaleString()}</td>
                         <td><span class="badge bg-${getPaymentStatusColor(booking.payment_status)}">${booking.payment_status}</span></td>

@@ -117,11 +117,11 @@ class EnquiryController extends Controller
                     'price' => $hoarding->base_monthly_price,
                     'text' => 'Base monthly price',
                 ];
-            } elseif ($hoarding->doohScreen && $hoarding->doohScreen->price_per_10_sec_slot) {
+            } elseif ($hoarding->doohScreen && $hoarding->doohScreen->price_per_slot) {
                 $pricingDisplay = [
                     'type' => 'slot',
-                    'price' => $hoarding->doohScreen->price_per_10_sec_slot,
-                    'text' => 'This is price per 10-second slot. Final price depends on slot duration and loop.',
+                    'price' => $hoarding->doohScreen->price_per_slot,
+                    'text' => 'This is price per second . Final price depends on slot duration and loop.',
                 ];
             }
         }

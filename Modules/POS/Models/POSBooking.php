@@ -8,9 +8,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Users\Models\User;
 use Modules\Hoardings\Models\Hoarding;
 
+
+use \App\Traits\Auditable;
+
 class POSBooking extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, Auditable;
+
+    /**
+     * Audit module for logs
+     */
+    protected $auditModule = 'pos';
 
     protected $table = 'pos_bookings';
 

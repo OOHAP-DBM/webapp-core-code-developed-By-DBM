@@ -138,12 +138,11 @@
 
             {{-- ================= DOOH ================= --}}
             @else
-
                 <div class="flex items-baseline">
                     <span class="text-xl font-bold text-gray-900">
-                        ₹{{ number_format($hoarding->price_per_slot ?? optional($hoarding->doohScreen)->price_per_slot ?? 500, 0) }}
+                        ₹{{ number_format($hoarding->doohScreen->price_per_slot ?? optional($hoarding->doohScreen)->price_per_slot) }}
                     </span>
-                    <span class="text-sm text-gray-500 ml-1">/10 Second Slot</span>
+                    <span class="text-sm text-gray-500 ml-1">/Second </span>
                 </div>
 
             @endif
@@ -231,4 +230,6 @@
             Enquire Now
         </a> -->
     </div>
+
 </div>
+

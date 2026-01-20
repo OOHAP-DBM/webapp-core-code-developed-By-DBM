@@ -9,13 +9,16 @@ use Modules\POS\Services\POSBookingService;
 
 class VendorPosController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'role:vendor']);
+    }
+
     /**
      * Show POS bookings list page for vendor
      */
     public function index(Request $request, POSBookingService $service)
     {
-        // Only vendors can access
-        $this->middleware(['auth', 'role:vendor']);
         // Blade view handles API fetch, so just render view
         return view('vendor.pos.list');
     }
@@ -25,7 +28,6 @@ class VendorPosController extends Controller
      */
     public function create(Request $request)
     {
-        $this->middleware(['auth', 'role:vendor']);
         return view('vendor.pos.create');
     }
 
@@ -34,9 +36,15 @@ class VendorPosController extends Controller
      */
     public function dashboard(Request $request)
     {
-        $this->middleware(['auth', 'role:vendor']);
         return view('vendor.pos.dashboard');
     }
 
-    // Add more actions as needed (edit, view, etc.)
+    /**
+     * Show POS booking details page for vendor
+     */
+    public function show($id)
+    {
+        // The view will fetch booking details via API
+        return view('vendor.pos.show', ['bookingId' => $id]);
+    }
 }

@@ -10,7 +10,7 @@
                 $steps = [
                     1 => 'Details',
                     2 => 'Settings',
-                    3 => 'Pricing'
+                    3 => 'Additional'
                 ];
             @endphp
             @foreach($steps as $num => $label)
@@ -35,11 +35,16 @@
         <input type="hidden" name="step" value="{{ $step }}">
 
         @if($step == 1)
-            @include('dooh.vendor.partials.step1', ['draft' => $screen, 'attributes' => $attributes])
+            {{-- @php
+                $relatedMedia = $screen->getMedia('hoarding_media') ?? collect();
+                $screen->related_media = $relatedMedia;
+            @endphp --}}
+
+            @include('dooh.vendor.partials.step1', ['draft' => $screen, 'attributes' => $attributes,'media' => $screen->media])
         @elseif($step == 2)
             @include('dooh.vendor.partials.step2', ['draft' => $screen, 'parentHoarding' => $screen->hoarding])
         @elseif($step == 3)
-            @include('dooh.vendor.partials.step3', ['draft' => $screen, 'parentHoarding' => $screen->hoarding])
+            @include('dooh.vendor.partials.step3', ['draft' => $screen, 'parentHoarding' => $screen->hoarding,'slots'=>$screen->slots,])
         @endif
 
         <div class="flex flex-col sm:flex-row justify-between gap-2 sm:gap-3 mb-8 w-full ">

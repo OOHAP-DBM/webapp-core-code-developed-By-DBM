@@ -328,6 +328,12 @@
                 </div>
             </div>
 
+            {{-- POS (Point of Sale) Link --}}
+{{-- <a href="{{ route('vendor.pos.dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.pos.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-50' }}">
+    <i class="fas fa-cash-register"></i>
+    POS (Point of Sale)
+</a> --}}
+
             {{-- My Staff Dropdown --}}
 <!-- <div
     x-data="{ open: false }"

@@ -520,7 +520,7 @@ function viewBookingDetails(bookingId) {
                         <h6>Hoarding Details</h6>
                         ${booking.hoarding.image_url ? `<img src="${booking.hoarding.image_url}" class="img-fluid rounded mb-2">` : ''}
                         <table class="table table-sm">
-                            <tr><th>Title:</th><td>${booking.hoarding.title}</td></tr>
+                            <tr><th>Title:</th><td><a href="/hoardings/${booking.hoarding.id}" target="_blank">${booking.hoarding.title}</a></td></tr>
                             <tr><th>Location:</th><td>${booking.hoarding.location}</td></tr>
                             <tr><th>City:</th><td>${booking.hoarding.city}</td></tr>
                             <tr><th>Type:</th><td>${booking.hoarding.type}</td></tr>

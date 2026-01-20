@@ -13,7 +13,7 @@ use OpenApi\Annotations as OA;
  * "resolution_type",
  * "address","locality","pincode",
  * "lat","lng",
- * "price_per_10_sec_slot","price_per_30_sec_slot",
+ * "price_per_slot","price_per_30_sec_slot",
  * "media"
  * },
  *
@@ -44,7 +44,7 @@ use OpenApi\Annotations as OA;
  * @OA\Property(property="lng", type="number", format="double"),
  * @OA\Property(property="geotag", type="string", format="uri", nullable=true),
  *
- * @OA\Property(property="price_per_10_sec_slot", type="number"),
+ * @OA\Property(property="price_per_slot", type="number"),
  * @OA\Property(property="price_per_30_sec_slot", type="number"),
  *
  * @OA\Property(
@@ -84,7 +84,7 @@ class DOOHStep1Request {}
 //         'lng' => 'required|numeric|between:-180,180',
 //         'geotag' => 'nullable|url',
 
-//         'price_per_10_sec_slot' => 'required|numeric|min:1',
+//         'price_per_slot' => 'required|numeric|min:1',
 //         'price_per_30_sec_slot' => 'required|numeric|min:1',
 
 //         'media' => 'required|array|min:1',

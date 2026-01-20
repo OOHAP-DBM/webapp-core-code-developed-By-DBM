@@ -224,7 +224,7 @@ function loadEnquiryHoardings() {
                         months = 1;
                         packageId = null;
                         packageLabel = 'Base';
-                        priceLabel = 'per 10 second slot';
+                        priceLabel = 'per  second ';
                     } else {
                         // WITH PACKAGE: Use package monthly logic
                         const basePrice = item.base_monthly_price || item.slot_price || 0;
@@ -407,7 +407,7 @@ function recalculateEnquiryTotal() {
             const hoardingType = row.closest('tr').dataset.hoardingType || 'ooh';
 
             if (rentalCell) {
-                const priceLabel = hoardingType === 'dooh' && !option.value ? 'per 10 second slot' : '/ Month';
+                const priceLabel = hoardingType === 'dooh' && !option.value ? 'per  second ' : '/ Month';
                 rentalCell.innerHTML = `
                     ₹${rowTotal} <span class="price-label text-sm">${priceLabel}</span>
                     <div class="text-xs text-gray-500">
@@ -520,7 +520,7 @@ function onPackageChange(select, hoardingId, hoardingType) {
     // Determine price label based on hoarding type
     let priceLabel = '/ Month';
     if (hoardingType === 'dooh' && !option.value) {
-        priceLabel = 'per 10 second slot';
+        priceLabel = 'per  second';
     }
 
     // 🔥 UPDATE STATE

@@ -414,7 +414,20 @@ class HoardingController extends Controller
         return view('hoardings.vendor.completion', ['hoardings' => $data]);
     }
 
+    /**
+     * Display the specified hoarding.
+     */
+    public function show(int $id)
+    {
 
+        $hoarding = $this->hoardingService->getById($id);
+
+        if (!$hoarding || $hoarding->vendor_id !== auth()->id()) {
+            abort(404);
+        }
+
+        return view('hoardings.vendor.show', compact('hoarding'));
+    }
 
     
 }
