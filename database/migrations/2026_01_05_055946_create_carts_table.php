@@ -22,11 +22,8 @@ return new class extends Migration
                 ->constrained('hoardings')
                 ->cascadeOnDelete();
 
-            // ✅ SELECTED PACKAGE (NEW)
-            $table->foreignId('package_id')
-                ->nullable()
-                ->constrained('hoarding_packages')
-                ->nullOnDelete();
+            // 🔥 SINGLE package_id (NO FK)
+            $table->unsignedBigInteger('package_id')->nullable();
 
             $table->string('package_label')->nullable();
 
@@ -34,7 +31,11 @@ return new class extends Migration
 
             // ek hi hoarding 1 user ke cart me duplicate na ho
             $table->unique(['user_id', 'hoarding_id']);
+
+            // 🔍 Performance ke liye index
+            $table->index('package_id');
         });
+
     }
 
     /**

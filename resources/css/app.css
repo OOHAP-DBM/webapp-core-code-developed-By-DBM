@@ -232,3 +232,29 @@
 .cart-btn.remove {
     @apply border border-gray-300   text-red-400 hover:text-red-500;
 }
+
+.btn-color {
+    background-color: var(--btn-color) !important;
+    color: var(--white) !important;
+    transition: background 0.2s;
+}
+.btn-color:hover {
+    background-color: var(--btn-color-dark) !important;
+}
+.text-btn-color {
+    color: var(--btn-color) !important;
+    transition: color 0.2s;
+}
+.text-btn-color:hover {
+    color: var(--btn-color-dark) !important;
+}
+.theme-gradient {
+    background: linear-gradient(135deg, var(--btn-color), var(--btn-color-dark));
+}
+.theme-gradient-text {
+    background: linear-gradient(90deg, var(--btn-color), var(--btn-color-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}

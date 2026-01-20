@@ -155,15 +155,16 @@
                 <h3 class="text-start">Login to your account</h3>
 
                 @if ($errors->any())
-                    <div class="alert alert-danger text-start">
-                        <ul class="mb-0">
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 px-4 py-3 mb-3 position-relative" style="font-size: 15px;">
+                        <ul class="mb-2 ps-4" style="list-style: disc;">
                             @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
+                                <li class="mb-1">{{ $error }}</li>
                             @endforeach
                         </ul>
-                        <div class="text-end mt-1">
-                            <a href="{{ route('password.request') }}" class="text-success small">Forgot Password?</a>
+                        <div class="text-end mt-2">
+                            <a href="{{ route('password.request') }}" class="text-success small text-decoration-underline">Forgot Password?</a>
                         </div>
+                        <button type="button" class="btn-close position-absolute top-0 end-0 mt-2 me-2" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
 

@@ -59,7 +59,7 @@
                     <div>Enquiry ID : <span class="font-medium">{{ 'ENQ' . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}</span></div>
                     <div>Status : <span class="font-medium">
                         @if($enquiry->status === 'submitted')
-                            <span class="text-blue-600">Waiting for Response</span>
+                            <span class="text-blue-600">Waiting for Vendor Response</span>
                         @elseif($enquiry->status === 'responded')
                             <span class="text-orange-600">Offers Received</span>
                         @elseif($enquiry->status === 'accepted')
@@ -133,8 +133,10 @@
                                             Screen
                                         @endif
                                     </th>
+                                    <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Campain Duration</th>
+                                    <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Campain Start</th>
                                     <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Selected Package</th>
-                                    <th class="px-4 py-3 text-right font-semibold text-gray-700">Vendor</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700">Total Price</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -171,14 +173,35 @@
                                         <td class="hidden lg:table-cell px-4 py-3">
                                             <div class="space-y-1">
                                                 <p class="font-medium text-gray-900">
-                                                    <span>{{ $item->expected_duration ?? '-' }} months</span>
+                                                    <span>{{ $item->expected_duration ?? '-' }}</span>
                                                 </p>
                                             </div>
                                         </td>
+                                        {{-- Package --}}
+                                        <td class="hidden lg:table-cell px-4 py-3">
+                                            <div class="space-y-1">
+                                                <p class="font-medium text-gray-900">
+                                                     <span>{{ \Carbon\Carbon::parse($item->preferred_start_date)->format('d M Y') }}</span>                                                
+                                                </p>
+                                            </div>
+                                        </td>
+                                        {{-- Package --}}
+                                       <td class="hidden lg:table-cell px-4 py-3">
+                                            <div class="space-y-1">
+                                                <p class="font-medium text-gray-900">
+                                                    @if($item->package_name !== '-' && $item->discount_percent !== '-')
+                                                        {{ $item->package_name }} – Offer {{ $item->discount_percent }}% Off
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </p>
+                                            </div>
+                                        </td>
+
                                         
                                         {{-- Vendor --}}
                                         <td class="px-4 py-3 text-right text-gray-900 font-medium">
-                                            <span>{{ optional($item->hoarding->vendor)->name ?? 'N/A' }}</span>
+                                            <span>₹ {{ $item->final_price}}</span>
                                         </td>
                                     </tr>
                                 @empty

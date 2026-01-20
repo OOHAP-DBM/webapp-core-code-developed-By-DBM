@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Modules\Enquiries\Models\Enquiry;
 use App\Models\Offer;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use App\Services\EnquiryPriceCalculator;
 
 class EnquiryController extends Controller
 {
@@ -98,6 +101,31 @@ class EnquiryController extends Controller
                 
                 $item->image_url = $oohMedia ? asset('storage/' . $oohMedia->file_path) : null;
             }
+            $item->package_name = '-';
+            $item->discount_percent = '-';
+            if ($item->hoarding_type === 'ooh' && !empty($item->package_id)) {
+                $package = DB::table('hoarding_packages')
+                    ->where('id', $item->package_id)
+                    ->first();
+
+                if ($package) {
+                    $item->package_name = $package->package_name;
+                    $item->discount_percent = $package->discount_percent;
+                }
+            }
+            if ($item->hoarding_type === 'dooh' && !empty($item->package_id)) {
+                $package = DB::table('dooh_packages')
+                    ->where('id', $item->package_id)
+                    ->first();
+
+                if ($package) {
+                    $item->package_name = $package->package_name;
+                    $item->discount_percent = $package->discount_percent;
+                }
+            }
+            // Final price calculation
+            $item->final_price = \App\Services\EnquiryPriceCalculator::calculate($item);
+
             return $item;
         });
 
