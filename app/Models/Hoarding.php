@@ -646,4 +646,24 @@ class Hoarding extends Model implements HasMedia
                 ->orWhere('description', 'like', "%{$search}%");
         });
     }
+    public function getAudienceTypesAttribute($value)
+    {
+        if (empty($value)) {
+            return [];
+        }
+
+        // Already array
+        if (is_array($value)) {
+            return $value;
+        }
+
+        // JSON string
+        $decoded = json_decode($value, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        // Fallback: comma-separated
+        return array_filter(array_map('trim', explode(',', (string) $value)));
+    }
 }
