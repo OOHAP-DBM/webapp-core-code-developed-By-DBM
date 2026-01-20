@@ -9,12 +9,12 @@
 <div class="space-y-4">
 
     {{-- OFFER TIMER (optional, static for now) --}}
-    <div class="inline-flex items-center gap-2 bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-md">
+    {{-- <div class="inline-flex items-center gap-2 bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-md">
         🔥 Hurry, offers ends in
         <span class="bg-red-600 px-2 py-0.5 rounded text-white">
             07 : 44 : 33
         </span>
-    </div>
+    </div> --}}
 
     {{-- TITLE --}}
     <h2 class="text-lg font-semibold text-gray-900">

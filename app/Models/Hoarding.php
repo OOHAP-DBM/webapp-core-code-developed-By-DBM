@@ -666,4 +666,46 @@ class Hoarding extends Model implements HasMedia
         // Fallback: comma-separated
         return array_filter(array_map('trim', explode(',', (string) $value)));
     }
+
+    public function getDisplayLocationAttribute(): string
+    {
+        $parts = array_filter([
+            $this->locality,
+            $this->landmark ? 'Near ' . $this->landmark : null,
+            $this->city,
+            $this->state,
+            $this->country,
+        ]);
+
+        return implode(', ', $parts);
+    }
+
+    /**
+     * Get formatted size for OOH / DOOH hoarding
+     */
+    public function getDisplaySizeAttribute(): string
+    {
+        // OOH size
+        if ($this->hoarding_type === self::TYPE_OOH && $this->ooh) {
+            if ($this->ooh->width && $this->ooh->height) {
+                $unit = $this->ooh->unit ?? 'ft';
+                return "{$this->ooh->width} x {$this->ooh->height} {$unit}";
+            }
+        }
+
+        // DOOH size
+        if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+            if ($this->doohScreen->width && $this->doohScreen->height) {
+                $unit = $this->doohScreen->unit ?? 'px';
+                return "{$this->doohScreen->width} x {$this->doohScreen->height} {$unit}";
+            }
+
+            // Fallback for DOOH (screen type)
+            if ($this->doohScreen->screen_type) {
+                return strtoupper($this->doohScreen->screen_type);
+            }
+        }
+
+        return '-';
+    }
 }

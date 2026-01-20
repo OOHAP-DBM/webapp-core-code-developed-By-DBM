@@ -17,7 +17,7 @@
                 $permitValidTill = old('permit_valid_till', $parentHoarding->permit_valid_till ?? '');
             @endphp
             <div class="flex items-center justify-between p-4 bg-green-50/30 rounded-2xl border border-green-100/50">
-                <label class="text-sm font-bold text-gray-700">Nagar Nigam Approved? <span class="text-red-500">*</span></label>
+                <label class="text-sm font-bold text-gray-700">Nagar Nigam Approved? </label>
                 <div class="flex items-center gap-6">
                     <label class="flex items-center cursor-pointer group">
                       <input type="radio" name="nagar_nigam_approved" value="1" 

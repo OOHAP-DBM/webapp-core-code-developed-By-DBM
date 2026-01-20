@@ -1,6 +1,7 @@
 <!-- Step 2: Settings & Attributes -->
 {{-- <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6"> --}}
 
+    @dump($parentHoarding)
   <!-- Body -->
   <div class="md:p-8 space-y-8">
     <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
@@ -12,12 +13,12 @@
         <div class="space-y-6">
             <!-- Nagar Nigam Approval -->
             @php
-                $nagarNigamApproved = old('nagar_nigam_approved', $hoarding->nagar_nigam_approved ?? 0);
-                $permitNumber = old('permit_number', $hoarding->permit_number ?? '');
-                $permitValidTill = old('permit_valid_till', $hoarding->permit_valid_till ?? '');
+                $nagarNigamApproved = old('nagar_nigam_approved', $parentHoarding->nagar_nigam_approved ?? 0);
+                $permitNumber = old('permit_number', $parentHoarding->permit_number ?? '');
+                $permitValidTill = old('permit_valid_till', $parentHoarding->permit_valid_till ?? '');
             @endphp
             <div class="flex items-center justify-between p-4 bg-green-50/30 rounded-2xl border border-green-100/50">
-                <label class="text-sm font-bold text-gray-700">Nagar Nigam Approved? <span class="text-red-500">*</span></label>
+                <label class="text-sm font-bold text-gray-700">Nagar Nigam Approved? </label>
                 <div class="flex items-center gap-6">
                     <label class="flex items-center cursor-pointer group">
                       <input type="radio" name="nagar_nigam_approved" value="1" 
@@ -63,8 +64,8 @@
 
             <!-- Block Dates -->
             @php
-                $hasBlockDates = old('block_dates', !empty($hoarding->block_dates ?? null) ? 1 : 0);
-                $existingBlockDates = old('blocked_dates_json', !empty($hoarding->block_dates ?? null) ? json_encode($hoarding->block_dates) : '[]');
+                $hasBlockDates = old('block_dates', !empty($parentHoarding->block_dates ?? null) ? 1 : 0);
+                $existingBlockDates = old('blocked_dates_json', !empty($parentHoarding->block_dates ?? null) ? json_encode($parentHoarding->block_dates) : '[]');
             @endphp
             <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100">
                 <label class="text-sm font-bold text-gray-700">Do you want to block any certain dates?</label>
@@ -103,8 +104,8 @@
 
             <!-- Grace Period -->
             @php
-                $hasGracePeriod = old('needs_grace_period', !empty($hoarding->grace_period_days ?? null) ? 1 : 0);
-                $gracePeriodValue = old('grace_period_days', $hoarding->grace_period_days ?? '');
+                $hasGracePeriod = old('needs_grace_period', !empty($parentHoarding->grace_period_days ?? null) ? 1 : 0);
+                $gracePeriodValue = old('grace_period_days', $parentHoarding->grace_period_days ?? '');
             @endphp
             <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100">
                 <label class="text-sm font-bold text-gray-700">Do you need grace period after booking?</label>
@@ -159,7 +160,7 @@
                     <label class="text-sm font-bold text-gray-700">Expected Footfall</label>
                     <input type="number" 
                         name="expected_footfall" 
-                        value="{{ old('expected_footfall', $hoarding->expected_footfall ?? '') }}"
+                        value="{{ old('expected_footfall', $parentHoarding->expected_footfall ?? '') }}"
                         placeholder="1000" 
                         class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none transition-all bg-white shadow-inner">
                 </div>
@@ -168,7 +169,7 @@
                     <label class="text-sm font-bold text-gray-700">Expected Eyeball</label>
                     <input type="number" 
                         name="expected_eyeball" 
-                        value="{{ old('expected_eyeball', $hoarding->expected_eyeball ?? '') }}"
+                        value="{{ old('expected_eyeball', $parentHoarding->expected_eyeball ?? '') }}"
                         placeholder="5000" 
                         class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none transition-all bg-white shadow-inner">
                 </div>
@@ -191,10 +192,10 @@
                 @php
                     $audiences = ['Political activities', 'Students', 'Luxury consumers', 'Environments freeks', 'Average Class', 'Public', 'Tourism', 'Foodies'];
                     $selectedAudiences = old('audience_type', 
-                        is_array($hoarding->audience_types ?? null) 
-                            ? $hoarding->audience_types 
-                            : (is_string($hoarding->audience_types ?? null) 
-                                ? json_decode($hoarding->audience_types, true) 
+                        is_array($parentHoarding->audience_types ?? null) 
+                            ? $parentHoarding->audience_types 
+                            : (is_string($parentHoarding->audience_types ?? null) 
+                                ? json_decode($parentHoarding->audience_types, true) 
                                 : []
                             )
                     );
@@ -218,9 +219,9 @@
             </div>
             <p class="text-xs text-gray-400 mb-4">Upload up to 10 brand logos.</p>
             
-            @if(isset($hoarding) && $hoarding->hasMedia('brand_logos'))
+            @if(isset($parentHoarding) && $parentHoarding->hasMedia('brand_logos'))
             <div class="mb-4 grid grid-cols-5 gap-4">
-                @foreach($hoarding->getMedia('brand_logos') as $media)
+                @foreach($parentHoarding->getMedia('brand_logos') as $media)
                 <div class="relative group">
                     <img src="{{ $media->getUrl() }}" alt="Brand Logo" class="w-full h-20 object-contain border border-gray-200 rounded-lg p-2">
                     <label class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -257,10 +258,10 @@
                 @php 
                     $visibleOptions = ['Metro Ride', 'From Flyover', 'From the road', 'Roof top', 'Wall hanging']; 
                     $selectedVisible = old('visible_from', 
-                        is_array($hoarding->visible_from ?? null) 
-                            ? $hoarding->visible_from 
-                            : (is_string($hoarding->visible_from ?? null) 
-                                ? json_decode($hoarding->visible_from, true) 
+                        is_array($parentHoarding->visibility_details ?? null) 
+                            ? $parentHoarding->visibility_details 
+                            : (is_string($parentHoarding->visibility_details ?? null) 
+                                ? json_decode($parentHoarding->visibility_details, true) 
                                 : []
                             )
                     );
@@ -283,10 +284,10 @@
                 @php 
                     $locationOptions = ['Highway hoarding', 'At Square', 'Shopping Mall', 'Airport', 'Park', 'Main Road', 'Intracity Highway', 'Pause Area']; 
                     $selectedLocations = old('located_at', 
-                        is_array($hoarding->located_at ?? null) 
-                            ? $hoarding->located_at 
-                            : (is_string($hoarding->located_at ?? null) 
-                                ? json_decode($hoarding->located_at, true) 
+                        is_array($parentHoarding->located_at ?? null) 
+                            ? $parentHoarding->located_at 
+                            : (is_string($parentHoarding->located_at ?? null) 
+                                ? json_decode($parentHoarding->located_at, true) 
                                 : []
                             )
                     );
@@ -305,11 +306,11 @@
 
     <!-- Hoardings Visibility -->
     @php
-        $currentVisibility = old('visibility_type', $hoarding->visibility_type ?? 'one_way');
+        $currentVisibility = old('visibility_type', $parentHoarding->visibility_type ?? 'one_way');
         $visibilityData = old('visibility_data', 
-            is_string($hoarding->visibility_data ?? null) 
-                ? json_decode($hoarding->visibility_data, true) 
-                : ($hoarding->visibility_data ?? [])
+            is_string($parentHoarding->visibility_start ?? null) 
+                ? json_decode($parentHoarding->visibility_start, true) 
+                : ($parentHoarding->visibility_start ?? [])
         );
         $oneWayStart = $visibilityData['one_way']['start'] ?? '';
         $oneWayEnd = $visibilityData['one_way']['end'] ?? '';

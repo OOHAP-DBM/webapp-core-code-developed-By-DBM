@@ -526,41 +526,120 @@ class HoardingService
 
     // Modules/Hoardings/Services/HoardingService.php
 
+    // public function getActiveHoardings(array $params = [])
+    // {
+    //     $perPage = $params['per_page'] ?? 12;
+
+    //     // 1. Fetch Static Hoardings
+    //     $static = Hoarding::where('status', 'active')
+    //         ->with(['vendor', 'media'])
+    //         ->get()
+    //         ->map(function ($item) {
+    //             $item->is_digital = false; // Flag to identify in Blade
+    //             return $item;
+    //         });
+
+    //     // 2. Fetch Digital (DOOH) Hoardings
+    //     $digital = DOOHScreen::where('status', Hoarding::STATUS_ACTIVE)
+    //         ->with(['vendor', 'media'])
+    //         ->get()
+    //         ->map(function ($item) {
+    //             $item->is_digital = true; // Flag to identify in Blade
+    //             return $item;
+    //         });
+
+    //     // 3. Merge and Sort
+    //     $merged = $static->concat($digital)->sortByDesc('created_at');
+
+    //     // 4. Manually Paginate the merged collection
+    //     $currentPage = LengthAwarePaginator::resolveCurrentPage();
+    //     $currentItems = $merged->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+    //     return new LengthAwarePaginator(
+    //         $currentItems,
+    //         $merged->count(),
+    //         $perPage,
+    //         $currentPage,
+    //         ['path' => Request::url(), 'query' => Request::query()]
+    //     );
+    // }
+
     public function getActiveHoardings(array $params = [])
     {
         $perPage = $params['per_page'] ?? 12;
 
-        // 1. Fetch Static Hoardings
-        $static = Hoarding::where('status', 'active')
-            ->with(['vendor', 'media'])
+        /*
+    |--------------------------------------------------------------------------
+    | 1. Fetch ACTIVE STATIC (OOH) hoardings
+    |--------------------------------------------------------------------------
+    */
+        $static = Hoarding::query()
+            ->where('status', Hoarding::STATUS_ACTIVE)
+            ->where('hoarding_type', Hoarding::TYPE_OOH)
+            ->with([
+                'vendor',
+                'media',
+                'ooh',
+            ])
             ->get()
             ->map(function ($item) {
-                $item->is_digital = false; // Flag to identify in Blade
+                $item->is_digital = false; // frontend expects this
                 return $item;
             });
 
-        // 2. Fetch Digital (DOOH) Hoardings
-        $digital = DOOHScreen::where('status', 'active')
-            ->with(['vendor', 'media'])
+        /*
+    |--------------------------------------------------------------------------
+    | 2. Fetch ACTIVE DIGITAL (DOOH) hoardings via parent
+    |--------------------------------------------------------------------------
+    | NOTE:
+    | - status is checked on hoardings
+    | - DOOHScreen has NO status column
+    |--------------------------------------------------------------------------
+    */
+        $digital = Hoarding::query()
+            ->where('status', Hoarding::STATUS_ACTIVE)
+            ->where('hoarding_type', Hoarding::TYPE_DOOH)
+            ->whereHas('doohScreen')
+            ->with([
+                'vendor',
+                'doohScreen.media',
+                'doohScreen.packages',
+            ])
             ->get()
             ->map(function ($item) {
-                $item->is_digital = true; // Flag to identify in Blade
+                $item->is_digital = true; // frontend expects this
                 return $item;
             });
 
-        // 3. Merge and Sort
-        $merged = $static->concat($digital)->sortByDesc('created_at');
+        /*
+    |--------------------------------------------------------------------------
+    | 3. Merge & sort (same behavior as before)
+    |--------------------------------------------------------------------------
+    */
+        $merged = $static
+            ->concat($digital)
+            ->sortByDesc('created_at')
+            ->values();
 
-        // 4. Manually Paginate the merged collection
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $currentItems = $merged->slice(($currentPage - 1) * $perPage, $perPage)->all();
+        /*
+    |--------------------------------------------------------------------------
+    | 4. Manual pagination (UNCHANGED)
+    |--------------------------------------------------------------------------
+    */
+        $currentPage  = LengthAwarePaginator::resolveCurrentPage();
+        $currentItems = $merged
+            ->slice(($currentPage - 1) * $perPage, $perPage)
+            ->values();
 
         return new LengthAwarePaginator(
             $currentItems,
             $merged->count(),
             $perPage,
             $currentPage,
-            ['path' => Request::url(), 'query' => Request::query()]
+            [
+                'path'  => Request::url(),
+                'query' => Request::query(),
+            ]
         );
     }
 

@@ -3,6 +3,12 @@
 
 @section('content')
 <div class="hoarding-wrapper">
+   <a href="{{ url()->previous() == url()->current() ? '#' : url()->previous() }}" 
+       onclick="if(window.history.length > 1) { window.history.back(); return false; }"
+       class="inline-flex items-center gap-2 mb-6 text-sm font-semibold text-gray-500 hover:text-blue-600 transition-colors group">
+        <span class="transform group-hover:-translate-x-1 transition-transform">←</span>
+        Back to Previous
+    </a>
     {{-- Gallery/Media Preview --}}
     @include('hoardings.partials.gallery')
 
