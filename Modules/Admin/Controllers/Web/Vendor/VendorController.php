@@ -156,6 +156,9 @@ class VendorController extends Controller
             if ($profile->user) {
                 $profile->user->update(['status' => 'active']);
 
+                // Send approval notification to vendor
+                $profile->user->notify(new \App\Notifications\VendorApprovedNotification(false));
+
                 // Send approval email to vendor
                 try {
                     \Mail::to($profile->user->email)->send(
