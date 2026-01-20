@@ -117,7 +117,7 @@
                                     @endif
                                 ">
                                     @if($enquiry->status === 'submitted')
-                                        Waiting for Response
+                                        Waiting for Vendor Response
                                     @elseif($enquiry->status === 'responded')
                                         Offers Received
                                     @elseif($enquiry->status === 'accepted')
@@ -138,7 +138,7 @@
                         <td class="px-4 py-4 text-center">
                             <div class="flex gap-2 justify-center flex-wrap">
                                 <a href="{{ route('customer.enquiries.show', $enquiry->id) }}"
-                                   class="px-4 py-2 bg-gray-600 text-white text-xs hover:bg-gray-700 font-semibold inline-block whitespace-nowrap transition-colors">
+                                   class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-xs  font-semibold inline-block whitespace-nowrap transition-colors">
                                     View Details
                                 </a>
                             </div>

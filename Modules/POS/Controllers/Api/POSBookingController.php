@@ -9,6 +9,7 @@ use Modules\POS\Services\POSBookingService;
 use Modules\POS\Models\POSBooking;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 
 class POSBookingController extends Controller
@@ -333,7 +334,7 @@ class POSBookingController extends Controller
             $startDate = $request->get('start_date');
             $endDate = $request->get('end_date');
 
-            $query = \Modules\Hoardings\Models\Hoarding::query()
+            $query = Hoarding::query()
                 ->where('vendor_id', Auth::id())
                 ->where('status', 'approved');
 

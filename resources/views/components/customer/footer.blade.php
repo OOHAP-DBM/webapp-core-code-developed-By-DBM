@@ -31,10 +31,10 @@
 
                         <button 
                             type="submit" 
-                            class="w-full sm:w-auto px-8 py-3 bg-teal-500 text-white 
-                                font-semibold rounded-md hover:bg-teal-600 
+                            class="w-full sm:w-auto px-8 py-3 btn-color 
+                                font-semibold rounded-md 
                                 transition-colors whitespace-nowrap"
-                        >
+                          >
                             Subscribe
                         </button>
                     </form>

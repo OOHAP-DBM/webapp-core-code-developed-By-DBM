@@ -315,6 +315,14 @@ html, body {
                     <i class="fa-solid fa-eye"></i>
                 </span>
             </div>
+
+                <div class="form-check text-start mb-3">
+                    <input class="form-check-input" type="checkbox" id="termsAgree" name="termsAgree" required>
+                    <label class="form-check-label" for="termsAgree">
+                        I agree to the <a href="{{ route('terms') }}" target="_blank">Terms & Conditions</a> and <a href="{{ route('privacy') }}" target="_blank">Privacy Policy</a>.
+                    </label>
+                </div>
+
                 <!-- SUBMIT -->
                 <button type="submit" class="btn btn-continue active w-100">
                     Create Account

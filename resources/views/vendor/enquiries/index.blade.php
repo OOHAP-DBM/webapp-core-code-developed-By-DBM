@@ -148,7 +148,7 @@
                             <div class="flex gap-2 justify-center flex-wrap">
                                 @if($enquiry->status === 'submitted')
                                     <button @click="openModal({{ $enquiry->toJson() }})"
-                                       class="px-4 py-2 bg-gray-600 text-white  text-xs hover:bg-gray-700 font-semibold cursor-pointer whitespace-nowrap">
+                                       class="px-4 py-2 bg-gray-900 text-white  text-xs hover:bg-gray-800 font-semibold cursor-pointer whitespace-nowrap">
                                         View Enquiry
                                     </button>
                                 @elseif($enquiry->status === 'accepted')

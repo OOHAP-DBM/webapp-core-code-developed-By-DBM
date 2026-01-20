@@ -538,8 +538,8 @@
                 <div class="footer-section">
                     <h3>Legal</h3>
                     <ul class="footer-links">
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
+                        <li><a href="{{ route('terms') }}">Terms of Service</a></li>
                         <li><a href="#">Cookie Policy</a></li>
                         <li><a href="#">Contact Us</a></li>
                     </ul>

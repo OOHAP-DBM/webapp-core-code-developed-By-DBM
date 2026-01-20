@@ -7,7 +7,7 @@
     <div class="bg-white w-full max-w-[1280px] max-h-[92vh] rounded shadow-xl flex flex-col" @click.stop>
 
         {{-- ===== HEADER SECTION ===== --}}
-        <div class="flex items-center justify-between px-6 py-4 border-b bg-white">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
             <div>
                 <h2 class="text-base font-semibold text-gray-900">
                     Enquiry ID
@@ -99,8 +99,10 @@
                                         <tr>
                                             <th class="hidden md:table-cell px-4 py-3 text-left font-semibold text-gray-700">Sn.</th>
                                             <th class="px-4 py-3 text-left font-semibold text-gray-700">Hoarding</th>
+                                            <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Campain Duration</th>
+                                            <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Campain Start</th>
                                             <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Selected Package</th>
-                                            <th class="px-4 py-3 text-right font-semibold text-gray-700">Rental</th>
+                                            <th class="px-4 py-3 text-right font-semibold text-gray-700">Total Price</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -136,16 +138,32 @@
                                                 <td class="hidden lg:table-cell px-4 py-3">
                                                     <div class="space-y-1">
                                                         <p class="font-medium text-gray-900">
-                                                            <span x-text="'₹' + (item?.price || '0')"></span> 
-                                                            <span class="text-gray-500 font-normal" x-text="'for ' + (item?.expected_duration || '-') + ' months'"></span>
-                                                            <span class="text-xs text-red-600 font-semibold">Save 30%</span>
+                                                            <span x-text="(item?.expected_duration || '0')"></span>                                                         
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                                <td class="hidden lg:table-cell px-4 py-3">
+                                                    <div class="space-y-1">
+                                                        <p class="font-medium text-gray-900">
+                                                            <span x-text="item?.preferred_start_date ? (new Date(item.preferred_start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })) : 'N/A'"></span>
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                                <td class="hidden lg:table-cell px-4 py-3">
+                                                    <div class="space-y-1">
+                                                        <p class="font-medium text-gray-900"
+                                                        x-text="
+                                                                item?.package_name && item.package_name !== '-' 
+                                                                ? item.package_name + ' – Offer ' + item.discount_percent + '% Off'
+                                                                : '-'
+                                                        ">
                                                         </p>
                                                     </div>
                                                 </td>
                                                 
                                                 {{-- Price --}}
                                                 <td class="px-4 py-3 text-right font-semibold text-gray-900">
-                                                    <span x-text="'₹' + (item?.price || '0')"></span>
+                                                    <span x-text="'₹' + (item?.final_price || '0')"></span>
                                                 </td>
                                             </tr>
                                         </template>
@@ -162,8 +180,10 @@
                                         <tr>
                                             <th class="hidden md:table-cell px-4 py-3 text-left font-semibold text-gray-700">Sn.</th>
                                             <th class="px-4 py-3 text-left font-semibold text-gray-700">Screen</th>
+                                            <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Campain Duration</th>
+                                            <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Selected Start</th>
                                             <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Selected Package</th>
-                                            <th class="px-4 py-3 text-right font-semibold text-gray-700">Rental</th>
+                                            <th class="px-4 py-3 text-right font-semibold text-gray-700">Total Price</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -199,16 +219,33 @@
                                                 <td class="hidden lg:table-cell px-4 py-3">
                                                     <div class="space-y-1">
                                                         <p class="font-medium text-gray-900">
-                                                            <span x-text="'₹' + (item?.price || '0')"></span> 
-                                                            <span class="text-gray-500 font-normal" x-text="'for ' + (item?.expected_duration || '-') + ' months'"></span>
-                                                            <span class="text-xs text-red-600 font-semibold">Save 30%</span>
+                                                            <span x-text="(item?.expected_duration || '0')"></span> 
                                                         </p>
                                                     </div>
                                                 </td>
+                                                <td class="hidden lg:table-cell px-4 py-3">
+                                                    <div class="space-y-1">
+                                                        <p class="font-medium text-gray-900">
+                                                            <span x-text="item?.preferred_start_date ? (new Date(item.preferred_start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })) : 'N/A'"></span>
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                               <td class="hidden lg:table-cell px-4 py-3">
+                                                    <div class="space-y-1">
+                                                        <p class="font-medium text-gray-900"
+                                                        x-text="
+                                                                item?.package_name && item.package_name !== '-' 
+                                                                ? item.package_name + ' – Offer ' + item.discount_percent + '% Off'
+                                                                : '-'
+                                                        ">
+                                                        </p>
+                                                    </div>
+                                                </td>
+
                                                 
                                                 {{-- Price --}}
                                                 <td class="px-4 py-3 text-right font-semibold text-gray-900">
-                                                    <span x-text="'₹' + (item?.price || '0')"></span>
+                                                    <span x-text="'₹' + (item?.final_price || '0')"></span>
                                                 </td>
                                             </tr>
                                         </template>
@@ -224,7 +261,7 @@
         </div>
 
         {{-- ===== FOOTER SECTION ===== --}}
-        <div class="border-t bg-gray-50 px-6 py-4 flex justify-end">
+        <div class="border-t border-gray-200 bg-gray-50 px-6 py-4 flex justify-end">
             <button 
                 @click="closeModal()" 
                 class="px-5 py-2 bg-gray-200 text-sm rounded hover:bg-gray-300"
