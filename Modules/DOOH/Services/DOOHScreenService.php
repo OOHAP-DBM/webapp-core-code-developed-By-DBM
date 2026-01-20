@@ -445,7 +445,7 @@ class DOOHScreenService
                     return [
                         'id' => $pkg->id,
                         'package_name' => $pkg->package_name,
-                        'price_per_month' => $pkg->price_per_month,
+                        // 'price_per_month' => $pkg->price_per_month,
                         'discount_percent' => $pkg->discount_percent,
                         'services_included' => $pkg->services_included,
                     ];
@@ -570,7 +570,10 @@ class DOOHScreenService
             $hoarding->update([
                 'graphics_included' => isset($data['graphics_included']),
                 'graphics_price' => $data['graphics_price'] ?? 0,
-
+                'enable_weekly_booking'=>$data['enable_weekly_booking'],
+                'weekly_price_1'=>$data['weekly_price_1'],
+                'weekly_price_2' => $data['weekly_price_2'],
+                'weekly_price_3' => $data['weekly_price_3'],
             ]);
           
             // Update or recreate packages if provided
@@ -579,15 +582,17 @@ class DOOHScreenService
                 if (is_array($offers)) {
                     // Delete existing packages
                     $screen->packages()->delete();
-
                     // Create new packages
                     foreach ($offers as $offer) {
+
                         $screen->packages()->create([
                             'package_name' => $offer['name'],
                             'duration' => $offer['duration'],
                             'duration_unit' => $offer['duration_unit'] ?? 'months',
                             'discount_percent' => $offer['discount'] ?? 0,
-                            'price_per_month' => $offer['price'] ?? 0,
+                            'slots_per_day'        => 1,
+                            // 'price_per_month' => $offer['price'] ?? 0,
+                            'end_date'=> $offer['end_date'],
                             'is_active' => 1,
                         ]);
                     }

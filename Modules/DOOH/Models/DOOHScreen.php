@@ -155,6 +155,7 @@ class DOOHScreen extends Model
     {
         return $this->hasMany(DOOHPackage::class, 'dooh_screen_id');
     }
+    
 
     public function bookings(): HasMany
     {

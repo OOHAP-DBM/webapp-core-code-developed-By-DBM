@@ -12,6 +12,7 @@ use Modules\DOOH\Models\DOOHScreen;
 use Illuminate\Support\Facades\Request;
 use \Module\Hoardings\Models\HoardingBrandLogo;
 use Modules\Hoardings\Models\HoardingMedia;
+use  Modules\DOOH\Models\DOOHPackage;
 
 class HoardingService
 {
@@ -165,6 +166,7 @@ class HoardingService
      */
     public function storePackages(int $screenId, array $data)
     {
+        // dd("fdfds");
         \Log::info('Package Data Received:', $data);
         // 1. Clear existing packages if you want a fresh sync, 
         // or use IDs to update specific ones. Usually, for this UI, fresh sync is easier.
@@ -183,7 +185,7 @@ class HoardingService
                         'is_active'            => true,
                         // 'package_type'         => 'campaign',
                         // Map other fields as needed
-                        'price_per_month'      => $data['base_monthly_price'] ?? 0,
+                        // 'price_per_month'      => $data['base_monthly_price'] ?? 0,
                         'slots_per_day'        => 1,
                     ]);
                 }

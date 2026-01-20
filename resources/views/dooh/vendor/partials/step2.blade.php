@@ -61,15 +61,6 @@
             </div>
             <input type="hidden" name="permit_number" id="permitNumberHidden" value="{{ $permitNumber }}">
             <input type="hidden" name="permit_valid_till" id="permitValidTillHidden" value="{{ $permitValidTill }}">
-            @if($nagarNigamApproved == 1 && $permitNumber)
-                <div class="mt-2 ml-3 text-xs text-gray-500">
-                    <span class="font-semibold text-gray-700">Permit No:</span> {{ $permitNumber }}
-                    |
-                    <span class="font-semibold text-gray-700">Valid Till:</span>
-                    {{ \Carbon\Carbon::parse($permitValidTill)->format('d M Y') }}
-
-                </div>
-            @endif
 
             <!-- Block Dates -->
             @php

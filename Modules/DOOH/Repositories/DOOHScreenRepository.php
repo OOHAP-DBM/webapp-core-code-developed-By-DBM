@@ -248,6 +248,7 @@ class DOOHScreenRepository
      */
     public function storeSlots(int $screenId, array $slots): array
     {
+        // dd($slots);
         $screen = \Modules\DOOH\Models\DOOHScreen::findOrFail($screenId);
 
         // Delete existing slots to prevent duplicates on update
@@ -256,10 +257,11 @@ class DOOHScreenRepository
         $saved = [];
         foreach ($slots as $details) {
             // Only save if the toggle was turned 'on' (active)
-            if (isset($details['active']) && $details['active'] == '1') {
+            if (isset($details['is_active']) && $details['is_active'] == '1') {
+                
                 $saved[] = \Modules\DOOH\Models\DOOHSlot::create([
                     'dooh_screen_id' => $screenId,
-                    'slot_name'   => $details['name'],
+                    'slot_name'   => $details['slot_name'],
                     'start_time'  => date("H:i:s", strtotime($details['start_time'])),
                     'end_time'    => date("H:i:s", strtotime($details['end_time'])),
                     'status'      => 'available',
