@@ -1,11 +1,3 @@
-@php
-    if(!isset($num1) || !isset($num2)) {
-        $num1 = rand(1, 9);
-        $num2 = rand(1, 9);
-        session(['captcha_answer' => $num1 + $num2]);
-    }
-@endphp
-
 <div id="enquiryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden  p-4">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden max-h-[90vh] overflow-y-auto">
         
@@ -129,7 +121,7 @@ function closeStatusModal() {
     document.getElementById('statusModal').classList.add('hidden');
     // If it was a success, reload the page to refresh captcha
     if (document.getElementById('successIcon').style.display === 'flex') {
-        location.reload();
+       enquiryForm.reset(); 
     }
 }
 
