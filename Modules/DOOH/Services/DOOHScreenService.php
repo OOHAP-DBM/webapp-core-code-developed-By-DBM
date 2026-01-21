@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use \Modules\DOOH\Models\DOOHScreen;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
+use App\Notifications\NewHoardingPendingApprovalNotification;
+
 
 class DOOHScreenService
     /**
@@ -327,6 +330,28 @@ class DOOHScreenService
             $parentHoarding->current_step = 3;
             $parentHoarding->status = 'pending_approval';
             $parentHoarding->save();
+            // 🔔 Notify all admins (DOOH pending approval)
+            try {
+                $admins = User::role(['admin'])->get();
+
+                foreach ($admins as $admin) {
+                    $admin->notify(
+                        new NewHoardingPendingApprovalNotification($parentHoarding)
+                    );
+                }
+
+                Log::info('DOOH pending approval notification sent to admins', [
+                    'hoarding_id' => $parentHoarding->id,
+                    'screen_id'   => $screen->id,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('DOOH pending approval notification failed', [
+                    'hoarding_id' => $parentHoarding->id,
+                    'screen_id'   => $screen->id,
+                    'error'       => $e->getMessage(),
+                ]);
+            }
+
             // ---- Slots ----
             if (!empty($data['slots'])) {
                 $this->repo->storeSlots($screen->id, $data['slots']);

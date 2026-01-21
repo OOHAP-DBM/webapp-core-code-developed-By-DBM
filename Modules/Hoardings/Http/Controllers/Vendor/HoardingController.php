@@ -114,7 +114,6 @@ class HoardingController extends Controller
 
         // Find the hoarding and verify ownership
         $hoarding = $vendor->hoardings()->findOrFail($id);
-
         // Log the edit access attempt
         \Log::info('Vendor accessing hoarding edit', [
             'vendor_id' => $vendor->id,

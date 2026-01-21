@@ -15,7 +15,7 @@ html, body {
 #final-section{
     margin-left:0!important;
 }
-@media (min-width: 992px) {
+@media (min-width: 1400px) {
     #final-section {
         margin-left: -200px !important;
     }
@@ -119,7 +119,7 @@ html, body {
 }
 
 /* ONLY large screens (lg and above) */
-@media (min-width: 992px) {
+@media (min-width: 1400px) {
     .otp-section {
         left: -200px;
     }

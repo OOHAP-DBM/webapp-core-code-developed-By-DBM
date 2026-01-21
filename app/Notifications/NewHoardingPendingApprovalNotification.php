@@ -4,11 +4,9 @@ namespace App\Notifications;
 
 use App\Models\Hoarding;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewHoardingPendingApprovalNotification extends Notification implements ShouldQueue
+class NewHoardingPendingApprovalNotification extends Notification
 {
     use Queueable;
 
@@ -21,29 +19,18 @@ class NewHoardingPendingApprovalNotification extends Notification implements Sho
 
     public function via($notifiable)
     {
-        return ['mail', 'database'];
+        return ['database']; // ✅ ONLY DB
     }
 
-    public function toMail($notifiable)
-    {
-        return (new MailMessage)
-            ->subject('New Hoarding Pending Approval')
-            ->greeting('Hello Admin!')
-            ->line('A new hoarding has been submitted and is pending your approval.')
-            ->line('Title: ' . $this->hoarding->title)
-            ->line('Location: ' . $this->hoarding->address)
-            ->action('Review Hoarding', url('/admin/hoardings/' . $this->hoarding->id))
-            ->line('Please review and approve or reject the listing.');
-    }
-
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
         return [
-            'type' => 'new_hoarding_pending_approval',
+            'type'        => 'new_hoarding_pending_approval',
+            'title'       => 'New Hoarding Pending Approval',
+            'message'     => 'A new vendor hoarding is pending approval.',
             'hoarding_id' => $this->hoarding->id,
-            'title' => $this->hoarding->title,
-            'address' => $this->hoarding->address,
-            'message' => 'A new hoarding is pending approval.',
+            'address'     => $this->hoarding->address,
+            'action_url'  => route('admin.vendor-hoardings.index'),
         ];
     }
 }

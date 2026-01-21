@@ -126,7 +126,7 @@ html, body {
 }
 
 /* ONLY lg and above */
-@media (min-width: 992px) {
+@media (min-width: 1400px) {
     .d-done-box {
         margin-left: -200px !important;
     }

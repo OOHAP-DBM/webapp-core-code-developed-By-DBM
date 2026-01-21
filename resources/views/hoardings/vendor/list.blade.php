@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="bg-[#F8F9FA] min-h-screen pb-12">
-    <div class="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+    <div class="sticky top-0 z-1 bg-white border-b border-gray-100 shadow-sm">
         <div class="max-w-[1600px] mx-auto px-6">
             <div class="flex gap-8">
                 <a href="{{ route('vendor.hoardings.myHoardings', ['tab' => 'all']) }}" 
