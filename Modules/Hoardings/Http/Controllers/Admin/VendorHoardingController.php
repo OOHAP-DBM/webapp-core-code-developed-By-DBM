@@ -11,6 +11,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\HoardingApproved;
+
 
 
 class VendorHoardingController extends Controller
@@ -164,35 +166,74 @@ class VendorHoardingController extends Controller
     // }
     public function toggleStatus(Request $request, $id)
     {
-        $hoarding = Hoarding::findOrFail($id);
+        try {
+            // 👇 vendor eagerly load (IMPORTANT)
+            $hoarding = Hoarding::with('vendor')->findOrFail($id);
 
-        $hoarding->status = $hoarding->status === 'active'
-            ? 'inactive'
-            : 'active';
+            $hoarding->status = $hoarding->status === 'active'
+                ? 'inactive'
+                : 'active';
 
-        $hoarding->save();
+            $hoarding->save();
 
-        // ✅ Send email to vendor when hoarding is published
-        if ($hoarding->status === 'active' && $hoarding->vendor) {
-            try {
-                if (!empty($hoarding->vendor->email)) {
-                    Mail::to($hoarding->vendor->email)->send(
-                        new HoardingPublishedMail($hoarding)
+            // 🔔 DB NOTIFICATION (REGISTER STYLE)
+            if ($hoarding->status === 'active' && $hoarding->vendor) {
+                try {
+                    $hoarding->vendor->notify(
+                        new \App\Notifications\HoardingApproved($hoarding)
                     );
-                }
-            } catch (\Throwable $e) {
-                Log::error('Hoarding published mail failed', [
-                    'hoarding_id' => $hoarding->id,
-                    'vendor_email' => $hoarding->vendor->email,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
 
-        return response()->json([
-            'success' => true,
-            'status'  => $hoarding->status
-        ]);
+                    Log::info('HoardingApproved DB notification sent', [
+                        'hoarding_id' => $hoarding->id,
+                        'vendor_id'   => $hoarding->vendor->id,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error('HoardingApproved DB notification failed', [
+                        'hoarding_id' => $hoarding->id,
+                        'vendor_id'   => optional($hoarding->vendor)->id,
+                        'error'       => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // 📧 MAIL (unchanged, already working)
+            if ($hoarding->status === 'active' && $hoarding->vendor) {
+                try {
+                    if (!empty($hoarding->vendor->email)) {
+                        Mail::to($hoarding->vendor->email)->send(
+                            new HoardingPublishedMail($hoarding)
+                        );
+
+                        Log::info('HoardingPublished mail sent', [
+                            'hoarding_id' => $hoarding->id,
+                            'email'       => $hoarding->vendor->email,
+                        ]);
+                    }
+                } catch (\Throwable $e) {
+                    Log::error('Hoarding published mail failed', [
+                        'hoarding_id' => $hoarding->id,
+                        'vendor_email' => $hoarding->vendor->email,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'status'  => $hoarding->status
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::critical('toggleStatus failed', [
+                'hoarding_id' => $id,
+                'error'       => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong'
+            ], 500);
+        }
     }
     public function setCommission(Request $request, $id)
     {
