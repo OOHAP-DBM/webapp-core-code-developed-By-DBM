@@ -183,13 +183,12 @@
               type="text"
               name="lat"
               id="lat"
-              readonly
+              
               required
               value="{{ old('lat', $draft->hoarding->latitude ?? '') }}"
               placeholder="Auto-filled after confirmation"
-              class="w-full bg-gray-50 border border-gray-200 rounded-xl
-                    px-4 py-3 text-sm font-mono text-gray-900
-                    cursor-not-allowed"
+              class="w-full  border border-gray-200 rounded-xl
+                    px-4 py-3 text-sm font-mono text-gray-900"
             />
           </div>
 
@@ -201,13 +200,12 @@
               type="text"
               name="lng"
               id="lng"
-              readonly
+              
               required
               value="{{ old('lng', $draft->hoarding->longitude ?? '') }}" 
               placeholder="Auto-filled after confirmation"
-              class="w-full bg-gray-50 border border-gray-200 rounded-xl
-                    px-4 py-3 text-sm font-mono text-gray-900
-                    cursor-not-allowed"
+              class="w-full  border border-gray-200 rounded-xl
+                    px-4 py-3 text-sm font-mono text-gray-900"
             />
           </div>
         </div>
