@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\AboutPage;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class AboutPageSeeder extends Seeder
 {
@@ -19,9 +19,17 @@ class AboutPageSeeder extends Seeder
 
         AboutPage::create([
             'hero_title' => 'About OOHAPP',
-            'hero_description' => '<strong>Praveen Kumar Rastogi</strong>, <span style="color: #06b6d4;">Managing Director – OOHAPP</span><br><br>
-<em>He has a wealth of experience in developing and executing successful campaigns in challenging environments. He is a strong leader, with a focus on creating a collaborative and innovative culture. He has a deep understanding of the nuances of the Outdoor Advertising industry, and is comfortable working with clients, partners, and vendors. He is driven by results, and is committed to delivering high-quality work.</em>',
+
+            // ✅ ONLY DESCRIPTION (name/designation removed)
+            'hero_description' => '<em>
+He has a wealth of experience in developing and executing successful campaigns in challenging environments.
+He is a strong leader, with a focus on creating a collaborative and innovative culture.
+He has a deep understanding of the nuances of the Outdoor Advertising industry, and is comfortable working
+with clients, partners, and vendors. He is driven by results, and is committed to delivering high-quality work.
+</em>',
+
             'section_title' => 'About OOHAPP',
+
             'section_content' => <<<'HTML'
 <p>
 Welcome to OOHAPP, your trusted partner in innovative advertising solutions. Established in 2022, we specialize in creating impactful and eye-catching advertisement hoardings that effectively connect brands with their audiences.
@@ -39,6 +47,7 @@ At OOHAPP, we understand the power of first impressions, and we work tirelessly 
 Join us in transforming the way you reach your customers, and let us help you make your message stand out where it matters most.
 </p>
 HTML,
+
             'hero_image' => '/images/about/praveen-kumar-rastogi.jpg',
             'section_image' => '/images/about/office.jpg',
         ]);

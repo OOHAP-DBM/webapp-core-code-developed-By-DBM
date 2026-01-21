@@ -15,7 +15,7 @@ html, body {
 #final-section{
     margin-left:0!important;
 }
-@media (min-width: 992px) {
+@media (min-width: 1400px) {
     #final-section {
         margin-left: -200px !important;
     }
@@ -119,7 +119,7 @@ html, body {
 }
 
 /* ONLY large screens (lg and above) */
-@media (min-width: 992px) {
+@media (min-width: 1400px) {
     .otp-section {
         left: -200px;
     }
@@ -173,7 +173,7 @@ html, body {
                     placeholder="Mobile Number"
                     maxlength="10">
                 <small class="text-muted">
-                    We will send a 4-digit OTP to your mobile
+                    We will send a 4-digit OTP to your mobile number.
                 </small>
             </div>
 
@@ -224,9 +224,21 @@ html, body {
             </div>
             <div class="otp-text">
                 <small class="text-muted">
-                    Resend OTP in <span class="text-success fw-bold ">00:30</span>
+
+                    <span id="resendText">
+                        Resend OTP in
+                        <span id="otpTimer" class="text-success fw-bold">00:30</span>
+                    </span>
+
+                    <a href="javascript:void(0)"
+                    id="resendBtn"
+                    class="text-success fw-bold d-none">
+                        Resend OTP
+                    </a>
+
                 </small>
             </div>
+
         </div>
 
         <!-- ================= FINAL REGISTER ================= -->
@@ -389,6 +401,7 @@ html, body {
 
                 otpMobileText.innerText = '+91 ' + mobileInput.value;
                 otpBoxes[0].focus();
+                startResendTimer();
             })
             .catch(() => showError('Something went wrong. Try again.'));
         });
@@ -498,6 +511,80 @@ html, body {
                 }
             });
         });
+        /* ================= RESEND OTP TIMER ================= */
+
+        let resendInterval = null;
+        let resendSeconds  = 30;
+
+        const resendBtn  = document.getElementById('resendBtn');
+        const resendText = document.getElementById('resendText');
+        const otpTimer   = document.getElementById('otpTimer');
+
+        /* START TIMER */
+        function startResendTimer() {
+
+            if (resendInterval) {
+                clearInterval(resendInterval);
+                resendInterval = null;
+            }
+
+            resendSeconds = 30;
+            updateTimer();
+
+            resendBtn.classList.add('d-none');
+            resendText.classList.remove('d-none');
+
+            resendInterval = setInterval(() => {
+                resendSeconds--;
+                updateTimer();
+
+                if (resendSeconds <= 0) {
+                                clearInterval(resendInterval);
+                                resendInterval = null;
+
+                                resendText.classList.add('d-none');
+                                resendBtn.classList.remove('d-none');
+                            }
+                        }, 1000);
+                    }
+
+                    function updateTimer() {
+                otpTimer.innerText = `00:${resendSeconds < 10 ? '0' + resendSeconds : resendSeconds}`;
+            }
+            /* ================= RESEND OTP CLICK ================= */
+
+            resendBtn.addEventListener('click', () => {
+
+                clearOtpError();
+
+                fetch("{{ route('register.sendPhoneOtp') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        phone: mobileInput.value
+                    })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (!res.success) {
+                        showOtpError(res.message || 'Failed to resend OTP');
+                        return;
+                    }
+
+                    // ✅ Clear old OTP boxes
+                    otpBoxes.forEach(b => b.value = '');
+                    otpBoxes[0].focus();
+
+                    // ✅ Restart timer
+                    startResendTimer();
+                })
+                .catch(() => showOtpError('Failed to resend OTP'));
+            });
+
+
 
     });
 </script>
