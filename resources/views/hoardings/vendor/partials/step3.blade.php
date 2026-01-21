@@ -2,7 +2,6 @@
   <div class="md:p-8 space-y-8">
     <!-- Weekly Rental -->
     <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
-      <input type="hidden" name="offers_json" id="offers_json">
       <div class="flex items-center gap-3 mb-4">
         <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
         <h3 class="text-xl font-bold text-gray-800">Rental Offering</h3>
@@ -55,97 +54,9 @@
         </div>
       </div>
     </div>
-
-    <!-- Campaign Packages -->
-    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
-        <h3 class="text-xl font-bold text-gray-800">Long term Campaign Offer</h3>
-      </div>
-      <p class="text-xs text-gray-400 mb-8">Create specific inventory bundles (e.g., Annual Bulk Booking)</p>
-
-      <div class="space-y-6">
-        <div id="offers-container" class="space-y-4">
-          @php
-            $existingOffers = [];
-            if (old('offers_json')) {
-              $existingOffers = json_decode(old('offers_json'), true) ?? [];
-            } elseif (isset($draft->hoarding) && isset($draft->hoarding->packages) && $draft->hoarding->packages->count() > 0) {
-              foreach ($draft->hoarding->packages as $package) {
-                $existingOffers[] = [
-                  'name' => $package->name,
-                  'min_booking_duration' => $package->duration_value,
-                  'duration_unit' => $package->duration_unit,
-                  'discount' => $package->discount_percentage,
-                  'end_date' => $package->valid_until,
-                  'services' => $package->included_services ? json_decode($package->included_services, true) : []
-                ];
-              }
-            }
-          @endphp
-          
-          @foreach($existingOffers as $index => $offer)
-          <div class="group bg-gray-50/50 rounded-2xl border border-gray-100 p-6 transition-all hover:border-[#009A5C] hover:bg-white">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-              <div class="md:col-span-4 space-y-2">
-                <label class="text-[10px] font-bold text-gray-400 uppercase">Offer Label</label>
-                <input type="text" name="offer_name[{{ $index }}]" placeholder="e.g. Festival" 
-                  value="{{ $offer['name'] ?? '' }}"
-                  class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none">
-              </div>
-              <div class="md:col-span-3 space-y-2">
-                <label class="text-[10px] font-bold text-gray-400 uppercase">Min. Booking</label>
-                <div class="flex">
-                  <input type="number" name="offer_duration[{{ $index }}]" placeholder="Qty" 
-                    value="{{ $offer['min_booking_duration'] ?? '' }}"
-                    class="w-20 border border-gray-200 rounded-l-xl px-4 py-3 text-sm">
-                  <select name="offer_unit[{{ $index }}]" class="flex-1 border border-l-0 border-gray-200 rounded-r-xl px-3 py-3 text-sm bg-white">
-                    <option value="weeks" {{ ($offer['duration_unit'] ?? '') == 'weeks' ? 'selected' : '' }}>Weeks</option>
-                    <option value="months" {{ ($offer['duration_unit'] ?? '') == 'months' ? 'selected' : '' }}>Months</option>
-                  </select>
-                </div>
-              </div>
-              <div class="md:col-span-2 space-y-2">
-                <label class="text-[10px] font-bold text-gray-400 uppercase">Discount (%)</label>
-                <div class="relative">
-                  <input type="number" name="offer_discount[{{ $index }}]" placeholder="0" 
-                    value="{{ $offer['discount'] ?? '' }}"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm">
-                  <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">%</span>
-                </div>
-              </div>
-              <div class="md:col-span-2 space-y-2">
-                <label class="text-[10px] font-bold text-gray-400 uppercase">Offer End Date</label>
-                <input type="date" name="offer_end_date[{{ $index }}]" 
-                  value="{{ $offer['end_date'] ?? '' }}"
-                  class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none">
-              </div>
-              <div class="md:col-span-1 flex justify-center pb-2">
-                <button type="button" class="remove-offer text-gray-300 hover:text-red-500">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/></svg>
-                </button>
-              </div>
-            </div>
-            <div class="mt-6 border-t border-gray-100 pt-4">
-              <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Included Free Services</label>
-              <div class="flex flex-wrap gap-4">
-                @foreach(['Printing', 'Mounting', 'Design', 'Survey'] as $service)
-                <label class="flex items-center gap-2 text-xs font-semibold text-gray-600">
-                  <input type="checkbox" name="offer_services[{{ $index }}][]" value="{{ strtolower($service) }}" 
-                    {{ in_array(strtolower($service), $offer['services'] ?? []) ? 'checked' : '' }}
-                    class="accent-[#009A5C]"> {{ $service }}
-                </label>
-                @endforeach
-              </div>
-            </div>
-          </div>
-          @endforeach
-        </div>
-        <button type="button" id="add-offer-btn" class="bg-[#1A1A1A] text-white px-8 py-3 rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-95 transition-transform flex items-center gap-2 w-fit">
-          <span>+</span> Add Campaign Offer
-        </button>
-      </div>
-    </div>
+       @csrf
+    
+       @include('dooh.vendor.partials.package')
 
     <!-- Services -->
     <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
@@ -374,65 +285,47 @@ document.addEventListener('DOMContentLoaded', function() {
     updateBox(); // Initialize on load
   });
 
-  // Campaign Packages
-  const addBtn = document.getElementById('add-offer-btn');
-  const container = document.getElementById('offers-container');
+  // ======================================================
+// 3. Robust Package Serialization Logic
+// ======================================================
+// Select the specific form or find the closest form to the container
+const offersContainer = document.getElementById('offers-container');
+const offersJsonInput = document.getElementById('offers_json');
+const mainForm = offersContainer ? offersContainer.closest('form') : document.querySelector('form');
 
-  container.querySelectorAll('.remove-offer').forEach(btn => {
-    btn.onclick = () => btn.closest('.group').remove();
-  });
+if (mainForm && offersJsonInput && offersContainer) {
+    // Listen to the submit event
+    mainForm.addEventListener('submit', function (e) {
+        const offers = [];
+        
+        // Find all package groups
+        const groups = offersContainer.querySelectorAll('.group');
+        
+        groups.forEach(group => {
+            const name = group.querySelector('.offer_name')?.value.trim();
+            const duration = group.querySelector('.offer_duration')?.value;
+            const unit = group.querySelector('.offer_unit')?.value;
+            const discount = group.querySelector('.offer_discount')?.value;
+            const endDate = group.querySelector('.offer_end_date')?.value;
 
-  addBtn.addEventListener('click', function() {
-    const index = Date.now();
-    const html = `
-      <div class="group bg-gray-50/50 rounded-2xl border border-gray-100 p-6 transition-all hover:border-[#009A5C] hover:bg-white">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-          <div class="md:col-span-4 space-y-2">
-            <label class="text-[10px] font-bold text-gray-400 uppercase">Offer Label</label>
-            <input type="text" name="offer_name[${index}]" placeholder="e.g. Festival" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none">
-          </div>
-          <div class="md:col-span-3 space-y-2">
-            <label class="text-[10px] font-bold text-gray-400 uppercase">Min. Booking</label>
-            <div class="flex">
-              <input type="number" name="offer_duration[${index}]" placeholder="Qty" class="w-20 border border-gray-200 rounded-l-xl px-4 py-3 text-sm">
-              <select name="offer_unit[${index}]" class="flex-1 border border-l-0 border-gray-200 rounded-r-xl px-3 py-3 text-sm bg-white">
-                <option value="weeks">Weeks</option>
-                <option value="months">Months</option>
-              </select>
-            </div>
-          </div>
-          <div class="md:col-span-2 space-y-2">
-            <label class="text-[10px] font-bold text-gray-400 uppercase">Discount (%)</label>
-            <div class="relative">
-              <input type="number" name="offer_discount[${index}]" placeholder="0" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm">
-              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">%</span>
-            </div>
-          </div>
-          <div class="md:col-span-2 space-y-2">
-            <label class="text-[10px] font-bold text-gray-400 uppercase">Offer End Date</label>
-            <input type="date" name="offer_end_date[${index}]" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none">
-          </div>
-          <div class="md:col-span-1 flex justify-center pb-2">
-            <button type="button" class="remove-offer text-gray-300 hover:text-red-500">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="mt-6 border-t border-gray-100 pt-4">
-          <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Included Free Services</label>
-          <div class="flex flex-wrap gap-4">
-            <label class="flex items-center gap-2 text-xs font-semibold text-gray-600"><input type="checkbox" name="offer_services[${index}][]" value="printing" class="accent-[#009A5C]"> Printing</label>
-            <label class="flex items-center gap-2 text-xs font-semibold text-gray-600"><input type="checkbox" name="offer_services[${index}][]" value="mounting" class="accent-[#009A5C]"> Mounting</label>
-            <label class="flex items-center gap-2 text-xs font-semibold text-gray-600"><input type="checkbox" name="offer_services[${index}][]" value="design" class="accent-[#009A5C]"> Design</label>
-            <label class="flex items-center gap-2 text-xs font-semibold text-gray-600"><input type="checkbox" name="offer_services[${index}][]" value="survey" class="accent-[#009A5C]"> Survey</label>
-          </div>
-        </div>
-      </div>
-    `;
-    container.insertAdjacentHTML('beforeend', html);
-    container.lastElementChild.querySelector('.remove-offer').onclick = function() {
-      this.closest('.group').remove();
-    };
-  });
+            // Only push if there's data
+            if (name || duration) {
+                offers.push({
+                    name: name,
+                    duration: duration,
+                    unit: unit,
+                    discount: discount,
+                    end_date: endDate,
+                });
+            }
+        });
+
+        // Critical: Update the hidden input value
+        offersJsonInput.value = JSON.stringify(offers);
+        
+        // DEBUG: Uncomment the line below to verify before the page reloads
+        console.log('Final JSON to be sent:', offersJsonInput.value);
+    });
+}
 });
 </script>

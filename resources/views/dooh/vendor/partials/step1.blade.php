@@ -227,9 +227,9 @@
                 value="{{ old('lat', $hoarding?->latitude) }}"
                 required
                 placeholder="Auto-filled after confirmation"
-                class="w-full bg-gray-50 border border-gray-200 rounded-xl
+                class="w-full  border border-gray-200 rounded-xl
                       px-4 py-3 text-sm font-mono text-gray-900
-                      cursor-not-allowed"
+                      "
               />
               <p class="text-[11px] text-gray-400">
                 Mandatory • Locked after confirmation
@@ -247,9 +247,9 @@
                 value="{{ old('lng', $hoarding?->longitude) }}"
                 required
                 placeholder="Auto-filled after confirmation"
-                class="w-full bg-gray-50 border border-gray-200 rounded-xl
+                class="w-full  border border-gray-200 rounded-xl
                       px-4 py-3 text-sm font-mono text-gray-900
-                      cursor-not-allowed"
+                     "
               />
               <p class="text-[11px] text-gray-400">
                 Mandatory • Locked after confirmation
@@ -622,21 +622,29 @@ geotagBtn.addEventListener('click', geocodeAddress);
 
 <script>
 
-  // Dynamic Size Preview
-  const widthInput = document.getElementById('width');
-  const heightInput = document.getElementById('height');
-  const unitSelect = document.getElementById('unit');
-  const sizePreview = document.getElementById('sizePreview');
-  function updateSizePreview() {
-    const width = widthInput.value || 0;
-    const height = heightInput.value || 0;
-    const unit = unitSelect.value === 'sqft' ? 'sq.ft' : 'sq.m';
-    sizePreview.value = `${width} x ${height} ${unit}`;
-  }
+// Dynamic Size Preview
+const widthInput = document.getElementById('width');
+const heightInput = document.getElementById('height');
+const unitSelect = document.getElementById('unit');
+const sizePreview = document.getElementById('sizePreview');
 
-  widthInput.addEventListener('input', updateSizePreview);
-  heightInput.addEventListener('input', updateSizePreview);
-  unitSelect.addEventListener('change', updateSizePreview);
+function updateSizePreview() {
+    const width = widthInput.value || '0';
+    const height = heightInput.value || '0';
+    const unit = unitSelect.value === 'sqft' ? 'sq.ft' : 'sq.m';
+    
+    if(sizePreview) {
+        sizePreview.value = `${width} x ${height} ${unit}`;
+    }
+}
+
+// Listeners
+widthInput.addEventListener('input', updateSizePreview);
+heightInput.addEventListener('input', updateSizePreview);
+unitSelect.addEventListener('change', updateSizePreview);
+
+// Run once on load to populate if editing
+updateSizePreview();
 
   // Upload File Preview
   const mediaInput = document.getElementById('mediaUpload');
@@ -780,17 +788,17 @@ document.addEventListener('DOMContentLoaded', function() {
     baseInput.addEventListener('input', validateOffer);
   }
 });
-// Landmark dynamic addition
+// --- Landmark Dynamic Inputs ---
 const addLandmarkBtn = document.getElementById('addLandmarkBtn');
 const landmarksContainer = document.getElementById('landmarksContainer');
 
-addLandmarkBtn.addEventListener('click', function() {
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.name = 'landmarks[]';
-  input.placeholder = 'Enter landmark';
-  input.className = 'w-full border border-gray-200 rounded-xl px-4 py-3 outline-none mt-2';
-  landmarksContainer.appendChild(input);
+addLandmarkBtn.addEventListener('click', () => {
+    const newInput = document.createElement('input');
+    newInput.type = 'text';
+    newInput.name = 'landmarks[]';
+    newInput.className = 'w-full border rounded-xl px-4 py-3 mt-2'; // Added margin top for spacing
+    newInput.placeholder = 'Enter landmark name';
+    landmarksContainer.appendChild(newInput);
 });
 
 

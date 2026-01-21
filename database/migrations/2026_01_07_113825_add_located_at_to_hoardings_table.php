@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::table('hoardings', function (Blueprint $table) {
             $table->json('located_at')->nullable()->after('visibility_details');
         });
-        Schema::table('dooh_screens', function (Blueprint $table) {
-            $table->json('price_per_slot')->nullable()->after('display_price_per_30s');
-        });
+        // Schema::table('dooh_screens', function (Blueprint $table) {
+        //     $table->json('price_per_slot')->nullable()->after('display_price_per_30s');
+        // });
         Schema::table('dooh_screens', function (Blueprint $table) {
             $table->decimal('width', 8, 2)->nullable()->after('screen_type');
             $table->decimal('height', 8, 2)->nullable()->after('width');
@@ -33,7 +33,7 @@ return new class extends Migration
             $table->dropColumn('located_at');
         });
         Schema::table('dooh_screens', function (Blueprint $table) {
-            $table->dropColumn('price_per_slot');
+            // $table->dropColumn('price_per_slot');
             $table->dropColumn('width');
             $table->dropColumn('height');
             $table->dropColumn('measurement_unit');

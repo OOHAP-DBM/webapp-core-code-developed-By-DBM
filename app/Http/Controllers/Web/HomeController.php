@@ -242,53 +242,108 @@ class HomeController extends Controller
     /**
      * Get top cities from hoarding addresses
      */
-    private function getTopCities(): array
+    // private function getTopCities(): array
+    // {
+    //     // For now, return static cities with images
+    //     // In production, this would be extracted from actual data
+    //     return [
+    //         [
+    //             'name' => 'JAIPUR',
+    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Jaipur%')->count(),
+    //             'image' => 'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&h=300&fit=crop'
+    //         ],
+    //         [
+    //             'name' => 'BANGALORE',
+    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Bangalore%')->count(),
+    //             'image' => 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=400&h=300&fit=crop'
+    //         ],
+    //         [
+    //             'name' => 'CHENNAI',
+    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Chennai%')->count(),
+    //             'image' => 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=400&h=300&fit=crop'
+    //         ],
+    //         [
+    //             'name' => 'HYDERABAD',
+    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Hyderabad%')->count(),
+    //             'image' => 'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=400&h=300&fit=crop'
+    //         ],
+    //         [
+    //             'name' => 'MUMBAI',
+    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Mumbai%')->count(),
+    //             'image' => 'https://images.unsplash.com/photo-1566552881560-0be862a7c445?w=400&h=300&fit=crop'
+    //         ],
+    //         [
+    //             'name' => 'DELHI',
+    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Delhi%')->count(),
+    //             'image' => 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400&h=300&fit=crop'
+    //         ],
+    //         [
+    //             'name' => 'KOLKATA',
+    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Kolkata%')->count(),
+    //             'image' => 'https://images.unsplash.com/photo-1558431382-27e303142255?w=400&h=300&fit=crop'
+    //         ],
+    //         [
+    //             'name' => 'PUNE',
+    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Pune%')->count(),
+    //             'image' => 'https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=400&h=300&fit=crop'
+    //         ],
+    //     ];
+    // }
+
+    private function getTopCities(int $limit = 8): array
     {
-        // For now, return static cities with images
-        // In production, this would be extracted from actual data
-        return [
-            [
-                'name' => 'JAIPUR',
-                'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Jaipur%')->count(),
-                'image' => 'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&h=300&fit=crop'
-            ],
-            [
-                'name' => 'BANGALORE',
-                'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Bangalore%')->count(),
-                'image' => 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=400&h=300&fit=crop'
-            ],
-            [
-                'name' => 'CHENNAI',
-                'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Chennai%')->count(),
-                'image' => 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=400&h=300&fit=crop'
-            ],
-            [
-                'name' => 'HYDERABAD',
-                'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Hyderabad%')->count(),
-                'image' => 'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=400&h=300&fit=crop'
-            ],
-            [
-                'name' => 'MUMBAI',
-                'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Mumbai%')->count(),
-                'image' => 'https://images.unsplash.com/photo-1566552881560-0be862a7c445?w=400&h=300&fit=crop'
-            ],
-            [
-                'name' => 'DELHI',
-                'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Delhi%')->count(),
-                'image' => 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400&h=300&fit=crop'
-            ],
-            [
-                'name' => 'KOLKATA',
-                'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Kolkata%')->count(),
-                'image' => 'https://images.unsplash.com/photo-1558431382-27e303142255?w=400&h=300&fit=crop'
-            ],
-            [
-                'name' => 'PUNE',
-                'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Pune%')->count(),
-                'image' => 'https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=400&h=300&fit=crop'
-            ],
-        ];
+        // Step 1: Get city-wise hoarding count
+        $cities = Hoarding::select(
+            DB::raw('UPPER(city) as name'),
+            DB::raw('COUNT(*) as count')
+        )
+            ->where('status', 'active')
+            ->whereNotNull('city')
+            ->groupBy('city')
+            ->orderByDesc('count')
+            ->get();
+
+        // Step 2: Move Lucknow to top if present
+        $cities = $cities->sortByDesc(function ($city) {
+            return $city->name === 'LUCKNOW'
+                ? PHP_INT_MAX
+                : $city->count;
+        });
+
+        // Step 3: Take only top N cities
+        $cities = $cities->take($limit);
+
+        // Step 4: Attach images
+        return $cities->map(function ($city) {
+            return [
+                'name'  => $city->name,
+                'count' => $city->count,
+                'image' => $this->getCityImage($city->name),
+            ];
+        })->values()->toArray();
     }
+
+    private function getCityImage(string $city): string
+    {
+        $images = [
+            'LUCKNOW'    => 'https://images.unsplash.com/photo-1600654449027-1f4d6fded0df?w=400&h=300&fit=crop',
+            'DELHI'      => 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400&h=300&fit=crop',
+            'MUMBAI'     => 'https://images.unsplash.com/photo-1566552881560-0be862a7c445?w=400&h=300&fit=crop',
+            'BANGALORE'  => 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=400&h=300&fit=crop',
+            'CHENNAI'    => 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=400&h=300&fit=crop',
+            'HYDERABAD'  => 'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=400&h=300&fit=crop',
+            'PUNE'       => 'https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=400&h=300&fit=crop',
+            'KOLKATA'    => 'https://images.unsplash.com/photo-1558431382-27e303142255?w=400&h=300&fit=crop',
+            'JAIPUR'     => 'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&h=300&fit=crop',
+        ];
+
+        // Common image for all other cities
+        $defaultImage = 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=400&h=300&fit=crop';
+
+        return $images[$city] ?? $defaultImage;
+    }
+
+
 
     /**
      * Get dummy hoarding data for display when no real data exists

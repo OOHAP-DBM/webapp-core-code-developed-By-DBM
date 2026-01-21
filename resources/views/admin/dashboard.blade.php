@@ -7,7 +7,7 @@
 {{-- ================= HEADER ================= --}}
 <div class="flex justify-between items-center mb-6">
     <h2 class="text-lg text-gray-700">
-        Good Morning,
+        Hii,
         <span class="text-blue-600 font-semibold">
             {{ auth()->user()->name ?? 'Admin' }}
         </span> 👋
