@@ -32,6 +32,7 @@ class DOOHPackage extends Model
         'duration_unit',
         'services_included',
         'custom_fields',
+        'end_date'
     ];
 
     protected $casts = [
@@ -44,6 +45,8 @@ class DOOHPackage extends Model
         'min_booking_duration' => 'integer',
         'services_included' => 'array',
         'custom_fields' => 'array',
+        // 'end_date' => 'date:d-m-Y',
+
     ];
 
     // Package type constants

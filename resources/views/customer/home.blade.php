@@ -94,7 +94,7 @@
     <div class="p-6 bg-gray-50 " id="dashboardApp">
             <!-- TITLE -->
             <h2 class="text-lg text-gray-700 mb-6">
-                Good Morning, <span class="text-blue-600 font-semibold">{{ auth()->user()->name ?? 'Customer' }}</span>!
+                Hii, <span class="text-blue-600 font-semibold">{{ auth()->user()->name ?? 'Customer' }}</span>!
             </h2>
             <!-- STATS -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
