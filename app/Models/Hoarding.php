@@ -39,6 +39,8 @@ class Hoarding extends Model implements HasMedia
         'base_monthly_price',
         'monthly_price',
         'weekly_price_1',
+        'weekly_price_2',
+        'weekly_price_3',
         'commission_percent',
         'graphics_charge',
         'survey_charge',
@@ -91,6 +93,8 @@ class Hoarding extends Model implements HasMedia
         'base_monthly_price',
         'monthly_price',
         'weekly_price_1',
+        'weekly_price_2',
+        'weekly_price_3',
         'enable_weekly_booking',
         'commission_percent',
         'currency',
@@ -336,6 +340,7 @@ class Hoarding extends Model implements HasMedia
         return $this->enable_weekly_booking && $this->weekly_price !== null;
     }
 
+
     /**
      * Register media collections for hoarding images.
      */
@@ -416,6 +421,11 @@ class Hoarding extends Model implements HasMedia
             });
     }
 
+
+    public function oohMedia(): HasMany
+    {
+        return $this->hasMany(HoardingMedia::class, 'hoarding_id');
+    }
 
     public function brandLogos()
     {
@@ -639,5 +649,67 @@ class Hoarding extends Model implements HasMedia
                 ->orWhere('city', 'like', "%{$search}%")
                 ->orWhere('description', 'like', "%{$search}%");
         });
+    }
+    public function getAudienceTypesAttribute($value)
+    {
+        if (empty($value)) {
+            return [];
+        }
+
+        // Already array
+        if (is_array($value)) {
+            return $value;
+        }
+
+        // JSON string
+        $decoded = json_decode($value, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        // Fallback: comma-separated
+        return array_filter(array_map('trim', explode(',', (string) $value)));
+    }
+
+    public function getDisplayLocationAttribute(): string
+    {
+        $parts = array_filter([
+            $this->locality,
+            $this->landmark ? 'Near ' . $this->landmark : null,
+            $this->city,
+            $this->state,
+            $this->country,
+        ]);
+
+        return implode(', ', $parts);
+    }
+
+    /**
+     * Get formatted size for OOH / DOOH hoarding
+     */
+    public function getDisplaySizeAttribute(): string
+    {
+        // OOH size
+        if ($this->hoarding_type === self::TYPE_OOH && $this->ooh) {
+            if ($this->ooh->width && $this->ooh->height) {
+                $unit = $this->ooh->unit ?? 'ft';
+                return "{$this->ooh->width} x {$this->ooh->height} {$unit}";
+            }
+        }
+
+        // DOOH size
+        if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+            if ($this->doohScreen->width && $this->doohScreen->height) {
+                $unit = $this->doohScreen->unit ?? 'px';
+                return "{$this->doohScreen->width} x {$this->doohScreen->height} {$unit}";
+            }
+
+            // Fallback for DOOH (screen type)
+            if ($this->doohScreen->screen_type) {
+                return strtoupper($this->doohScreen->screen_type);
+            }
+        }
+
+        return '-';
     }
 }

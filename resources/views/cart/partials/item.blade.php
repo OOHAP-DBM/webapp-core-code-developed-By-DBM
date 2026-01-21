@@ -142,7 +142,7 @@
                         class="text-lg font-semibold text-gray-900"
                     >
                         ₹{{ number_format($item->slot_price) }}
-                        <span class="text-sm text-gray-400">/ Slot</span>
+                        <span class="text-sm text-gray-400">/ sec  slot</span>
                     </p>
                 </div>
             @endif

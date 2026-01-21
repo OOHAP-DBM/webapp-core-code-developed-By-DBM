@@ -79,7 +79,7 @@
                             <td class="px-6 py-4"><input type="checkbox" class="rounded-sm border-gray-300"></td>
                             <td class="px-4 py-4 text-gray-400 font-medium">{{ sprintf('%02d', $index + 1) }}</td>
                             <td class="px-4 py-4">
-                                <a href="#" class="text-[#00A86B] font-medium hover:underline">{{ $hoarding['title'] }}</a>
+                                <a href="{{ route('vendor.myHoardings.show', $hoarding['id']) }}" target="_blank" class="text-[#00A86B] font-medium hover:underline">{{ $hoarding['title'] }}</a>
                             </td>
                             <td class="px-4 py-4 uppercase tracking-wide text-gray-500">{{ $hoarding['hoarding_type'] }}</td>
                             <td class="px-4 py-4 text-gray-400 truncate max-w-[180px]">{{ $hoarding['location'] }}</td>

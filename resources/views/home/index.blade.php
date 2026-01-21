@@ -8,7 +8,7 @@
 
     <!-- Hero Banner -->
     @include('components.customer.hero-banner')
-
+    @include('home.home_contact_enquiry')
     <!-- Search Section -->
     {{-- @include('components.customer.search-bar') --}}
 

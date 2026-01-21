@@ -67,7 +67,7 @@
                                     @elseif($pricingDisplay['type'] === 'monthly' || $pricingDisplay['type'] === 'base_monthly')
                                         <span>₹{{ number_format($pricingDisplay['price']) }} / month</span>
                                     @elseif($pricingDisplay['type'] === 'slot')
-                                        <span>₹{{ number_format($pricingDisplay['price']) }} per 10-second slot</span>
+                                        <span>₹{{ number_format($pricingDisplay['price']) }} per second </span>
                                         <div class="text-xs text-muted">{{ $pricingDisplay['text'] }}</div>
                                     @else
                                         <span>{{ $pricingDisplay['text'] }}</span>

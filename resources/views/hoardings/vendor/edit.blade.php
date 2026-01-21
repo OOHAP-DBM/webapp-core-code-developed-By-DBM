@@ -61,7 +61,7 @@
         <input type="hidden" name="step" value="{{ $step }}">
 
         @if($step == 1)
-            @include('hoardings.vendor.partials.step1', ['draft' => $listing])
+            @include('hoardings.vendor.partials.step1', ['draft' => $listing,'media' => $hoarding->oohMedia])
         @elseif($step == 2)
             @include('hoardings.vendor.partials.step2', ['draft' => $listing, 'parentHoarding' => $hoarding])
         @elseif($step == 3)

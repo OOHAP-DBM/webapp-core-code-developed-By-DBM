@@ -66,14 +66,16 @@ class DashboardController extends Controller
             ->get()
             ->map(function($h) {
                 return [
+                    'id' => $h->id,
                     'title' => $h->title,
                     'type' => strtoupper($h->hoarding_type),
-                    'cat' => $h->category ?? 'N/A',
-                    'loc' => $h->city ?? 'N/A',
-                    'size' => $h->name ?? 'N/A',
+                    'cat' => $h->category ?? '-',
+                    'loc' => $h->display_location ?? '-',
+                     'size'      => $h->display_size ?? '-', 
                     'bookings' => $h->bookings_count,
-                    'publisher' => Auth::user()->name ?? 'Unknown',
-                ];
+                    'status' => $h->status,
+
+            ];
             })->toArray();
 
         // Get top customers by amount spent

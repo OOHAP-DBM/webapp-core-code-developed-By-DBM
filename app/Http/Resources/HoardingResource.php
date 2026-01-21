@@ -71,7 +71,7 @@ class HoardingResource extends JsonResource
             ];
         } elseif ($this->hoarding_type === 'dooh' && $this->doohScreen) {
             $pricing = [
-                'price_per_10_sec' => $this->doohScreen->price_per_10_sec_slot ? (float) $this->doohScreen->price_per_10_sec_slot : null,
+                'price_per_10_sec' => $this->doohScreen->price_per_slot ? (float) $this->doohScreen->price_per_slot : null,
                 'price_per_30_sec' => $this->doohScreen->display_price_per_30s ? (float) $this->doohScreen->display_price_per_30s : null,
                 // 'minimum_booking' => $this->doohScreen->minimum_booking_amount ? (float) $this->doohScreen->minimum_booking_amount : null,
                 'base_monthly' => $this->base_monthly_price ? (float) $this->base_monthly_price : null,

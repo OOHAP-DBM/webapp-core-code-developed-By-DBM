@@ -40,7 +40,7 @@
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-lg text-gray-700">
-            Good Morning, <span class="text-blue-600 font-semibold">{{ auth()->user()->name ?? 'Vendor' }}</span>!
+            Hii, <span class="text-blue-600 font-semibold">{{ auth()->user()->name ?? 'Vendor' }}</span>!
         </h2>
         <a href="{{ route('vendor.hoardings.create') }}" class="bg-black text-white px-4 py-2 rounded-lg text-sm">+ Add Hoarding</a>
     </div>
@@ -83,12 +83,12 @@
             @endforeach
         </div>
 
-        <div class="text-center mt-4">
+        {{-- <div class="text-center mt-4">
             <button class="text-blue-600 text-sm" style="cursor:pointer;">Show more</button>
-        </div>
+        </div> --}}
     </div>
     <!-- CHARTS -->
-    <div class="bg-white rounded-xl p-6 mb-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+    {{-- <div class="bg-white rounded-xl p-6 mb-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div>
             <h4 class="text-sm font-semibold mb-2">Earning statistics</h4>
             <canvas id="earningChart" height="120"></canvas>
@@ -97,12 +97,15 @@
             <h4 class="text-sm font-semibold mb-2">Booked statistics</h4>
             <canvas id="bookingChart" height="120"></canvas>
         </div>
-    </div>
+    </div> --}}
     <!-- Best Selling Hoardings -->
     <div class="bg-white rounded-xl shadow-sm mb-6">
         <div class="px-6 pt-5 pb-3 flex justify-between items-center">
-            <h4 class="text-sm font-semibold text-gray-800">
+            {{-- <h4 class="text-sm font-semibold text-gray-800">
                 Top 5 Best Selling Hoardings
+            </h4> --}}
+            <h4 class="text-sm font-semibold text-gray-800">
+                Recent Hoardings
             </h4>
             <div class="text-xs text-gray-500 flex items-center gap-1">
                 SORT BY:
@@ -125,7 +128,7 @@
                         <th class="px-6 py-3 text-left">Hoarding Location</th>
                         <th class="px-6 py-3 text-left">Size</th>
                         <!-- <th class="px-6 py-3 text-left"># Of Bookings</th> -->
-                        <th class="px-6 py-3 text-left">Published By</th>
+                        <th class="px-6 py-3 text-left">Status </th>
                     </tr>
                 </thead>
 
@@ -135,7 +138,8 @@
                         <td class="px-6 py-4">{{ sprintf('%02d', $i+1) }}</td>
 
                         <td class="px-6 py-4 font-medium text-gray-800 truncate max-w-[180px]">
-                            {{ $h['title'] }}
+                                <a href="{{ route('vendor.myHoardings.show', $h['id']) }}" target="_blank" class="text-[#00A86B] font-medium hover:underline">{{ $h['title'] }}</a>
+
                         </td>
 
                         <td class="px-6 py-4">{{ $h['type'] }}</td>
@@ -148,7 +152,19 @@
                         </td> -->
 
                         <td class="px-6 py-4 text-blue-600 hover:underline cursor-pointer">
-                            {{ $h['publisher'] }}
+                              @if($h['status'] === 'pending_approval')
+                                <span class="badge bg-warning text-dark">Pending Approval</span>
+                            @elseif($h['status'] === 'active')
+                                <span class="badge bg-success">Approved</span>
+                            @elseif($h['status'] === 'rejected')
+                                <span class="badge bg-danger">Rejected</span>
+                            @elseif($h['status'] === 'inactive')
+                                <span class="badge bg-secondary">Inactive</span>
+                            @elseif($h['status'] === 'draft')
+                                <span class="badge bg-secondary">Draft</span>
+                            @endif
+                               
+                        
                         </td>
                     </tr>
                     @endforeach
@@ -157,7 +173,7 @@
         </div>
     </div>
     <!-- Top 5 Customers -->
-    <div class="bg-white rounded-xl shadow-sm mb-6">
+    {{-- <div class="bg-white rounded-xl shadow-sm mb-6">
         <div class="px-6 pt-5 pb-3 flex justify-between items-center">
             <h4 class="text-sm font-semibold text-gray-800">
                 Top 5 Customers
@@ -212,9 +228,9 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </div> --}}
     <!-- Recent Transactions -->
-    <div class="bg-white rounded-xl shadow-sm">
+    {{-- <div class="bg-white rounded-xl shadow-sm">
         <div class="px-6 pt-5 pb-1 flex justify-between items-center">
             <div>
                 <h4 class="text-sm font-semibold text-gray-800">
@@ -288,7 +304,7 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </div> --}}
 @endsection
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
