@@ -140,20 +140,13 @@
                 <div x-show="open" x-collapse class="space-y-1 mt-1">
                     <a
                         href="{{ route('customer.profile.index') }}"
-                        class="flex items-center gap-3 px-6 py-2 text-sm font-medium rounded-md 
-                        {{ request()->routeIs('customer.profile.index') ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-gray-50' }}"
+                        class="flex items-center gap-3 px-6 py-1 text-sm font-medium rounded-md 
+                        {{ request()->routeIs('customer.profile.index') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50' }}"
                     >
                         <span class="text-xs">•</span>
                         Personal Info
                     </a>
 
-                    <a
-                        href=""
-                        class="flex items-center gap-3 px-6 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50"
-                    >
-                        <span class="text-xs">•</span>
-                        Delete Account
-                    </a>
                 </div>
             </div>
 
