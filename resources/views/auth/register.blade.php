@@ -144,6 +144,20 @@ html, body {
 .toggle-password:hover {
     color: #111827;
 }
+.signup-box {
+    position: relative;
+}
+
+/* OTP error floating only */
+#ajaxError.otp-error {
+    position: absolute;
+    top: 50px;          /* 👈 OTP heading ke niche */
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: 100%;
+    z-index: 50;
+}
 
 </style>
 @endpush
@@ -237,8 +251,17 @@ html, body {
             <!-- RESEND -->
             <div class="otp-text">
                 <small class="text-muted">
-                    Resend OTP in <span class="text-success fw-bold ">00:30</span>
+                    <span id="resendText">
+                        Resend OTP in <span class="text-success fw-bold" id="otpTimer">00:30</span>
+                    </span>
+
+                    <a href="javascript:void(0)"
+                    id="resendBtn"
+                    class="text-success fw-bold d-none">
+                        Resend OTP
+                    </a>
                 </small>
+
             </div>
 
             </div>
@@ -438,6 +461,7 @@ html, body {
                 otpEmailText.innerText = enteredEmail;
                 otpUI.classList.remove('d-none');
                 otpBoxes[0].focus();
+                startResendTimer();
             });
         });
 
@@ -479,7 +503,9 @@ html, body {
             .then(r => r.json())
             .then(res => {
                 if (!res.success) return showGlobalError(res.message);
-
+                errorBox.classList.add('d-none');
+                errorBox.classList.remove('otp-error');
+                errorBox.innerText = '';
                 document.getElementById('otp-section').style.display = 'none';
                 document.getElementById('d-done').style.display = 'block';
                 document.getElementById('finalEmail').value = enteredEmail;
@@ -489,7 +515,16 @@ html, body {
         function showGlobalError(msg) {
             errorBox.innerText = msg || 'Something went wrong';
             errorBox.classList.remove('d-none');
+
+            // ✅ ONLY float error during OTP
+            if (!otpUI.classList.contains('d-none')) {
+                errorBox.classList.add('otp-error');
+            } else {
+                errorBox.classList.remove('otp-error');
+            }
         }
+
+
 
         /* ===================== FINAL FORM ===================== */
 
@@ -545,6 +580,77 @@ html, body {
 
             if (!valid) e.preventDefault();
         });
+        /* ===================== RESEND OTP TIMER ===================== */
+
+let resendInterval = null;
+let resendSeconds = 30;
+
+const resendBtn   = document.getElementById('resendBtn');
+const resendText  = document.getElementById('resendText');
+const otpTimerEl  = document.getElementById('otpTimer');
+
+function startResendTimer() {
+
+    if (resendInterval) {
+        clearInterval(resendInterval);
+        resendInterval = null;
+    }
+
+    resendSeconds = 30;
+
+    resendBtn.classList.add('d-none');
+    resendText.classList.remove('d-none');
+
+    updateTimerText();
+
+    resendInterval = setInterval(() => {
+        resendSeconds--;
+
+        updateTimerText();
+
+        if (resendSeconds <= 0) {
+            clearInterval(resendInterval);
+            resendInterval = null;
+            resendText.classList.add('d-none');
+            resendBtn.classList.remove('d-none');
+        }
+    }, 1000);
+}
+
+function updateTimerText() {
+    const sec = resendSeconds < 10 ? '0' + resendSeconds : resendSeconds;
+    otpTimerEl.innerText = `00:${sec}`;
+}
+
+/* ===================== RESEND OTP CLICK ===================== */
+
+resendBtn.addEventListener('click', function () {
+
+    resendBtn.classList.add('d-none');
+    resendText.classList.remove('d-none');
+
+    fetch("{{ route('register.sendEmailOtp') }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({ email: enteredEmail })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (!res.success) {
+            showGlobalError(res.message || 'Failed to resend OTP');
+            return;
+        }
+
+        otpBoxes.forEach(b => b.value = '');
+        otpBoxes[0].focus();
+
+        startResendTimer();
+    });
+});
+
 
     });
 </script>

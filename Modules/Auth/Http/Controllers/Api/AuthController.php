@@ -737,4 +737,43 @@ class AuthController extends Controller
             'message' => 'Password reset successfully. Please login.',
         ]);
     }
+
+    /**
+     * @OA\Post(
+     *     path="/auth/otp/resend",
+     *     tags={"Authentication"},
+     *     summary="Resend OTP",
+     *     description="Resend OTP for login, register, or forgot password",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"identifier"},
+     *             @OA\Property(property="identifier", type="string", example="+919999999999")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="OTP resent successfully"),
+     *     @OA\Response(response=429, description="Too many requests")
+     * )
+     */
+    public function resendOTP(Request $request): JsonResponse
+    {
+        $request->validate([
+            'identifier' => 'required|string',
+        ]);
+
+        $result = $this->otpService->resendOTP($request->identifier);
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+            ], $result['status'] ?? 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $result['message'],
+        ]);
+    }
+
 }

@@ -9,10 +9,8 @@
 @section('content')
 <div class="container-fluid auth-wrapper">
     <div class="row h-100">
-        <div class="col-md-5 d-none d-md-block auth-left">
-            <a href="{{ route('home') }}">
-                <img src="{{ asset('assets/images/login/login_image.jpeg') }}" alt="OOHAPP">
-            </a>
+        <div class="col-md-5 d-none d-md-block auth-left"
+            onclick="window.location.href='{{ route('home') }}'">
         </div>
         <div class="col-md-7 col-12 auth-right d-flex align-items-center justify-content-center">
     <div class="verify-box text-center">
@@ -132,6 +130,13 @@
 .verify-terms a {
     color: #111;
     font-weight: 500;
+}
+.auth-left {
+    background-image: url('{{ asset("assets/images/login/login_image.jpeg") }}');
+    background-size: cover;
+    background-position: left center; 
+    background-repeat: no-repeat;
+    cursor: pointer;
 }
 
 </style>

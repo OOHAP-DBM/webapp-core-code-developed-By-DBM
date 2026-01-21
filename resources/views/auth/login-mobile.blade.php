@@ -95,6 +95,7 @@
         background: #fff;
         width: 100%;
         margin-bottom: 12px;
+        /* font-weight: 500; */
     }
 
     .footer-text {
@@ -121,7 +122,7 @@
 
         border: 1px solid #d1d5db;
         color: #111827;
-        font-weight: 500;
+        /* font-weight: 500; */
 
         transition: all 0.2s ease;
     }
@@ -156,18 +157,26 @@
                 <h3 class="text-start">Login with Mobile</h3>
 
                 @if ($errors->any())
-                    <div class="alert alert-danger border-0 shadow-sm rounded-3 px-4 py-3 mb-3 position-relative" style="font-size: 15px;">
-                        <ul class="mb-2 ps-4" style="list-style: disc;">
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative" style="font-size:15px;">
+                        <ul class="mb-2 ps-3 ms-0">
                             @foreach ($errors->all() as $error)
                                 <li class="mb-1">{{ $error }}</li>
                             @endforeach
                         </ul>
+
                         <div class="text-end mt-2">
-                            <a href="{{ route('password.request') }}" class="text-success small text-decoration-underline">Forgot Password?</a>
+                            <a href="{{ route('password.request') }}"
+                            class="text-success small text-decoration-underline">
+                            Forgot Password?
+                            </a>
                         </div>
-                        <button type="button" class="btn-close position-absolute top-0 end-0 mt-2 me-2" data-bs-dismiss="alert" aria-label="Close"></button>
+
+                        <button type="button"
+                            class="btn-close position-absolute top-0 end-0 mt-2 me-2"
+                            onclick="this.closest('.alert').remove()">
+                        </button>
                     </div>
-                @endif
+              @endif
 
                 <form method="POST"
                     action="{{ route('login.submit') }}"
@@ -286,7 +295,7 @@
                 btn.disabled = true;
                 btn.classList.remove('active');
             } else {
-                mobileHelp.innerText = 'Looks good';
+                mobileHelp.innerText = '';
                 mobileHelp.classList.remove('text-danger');
                 btn.disabled = false;
                 btn.classList.add('active');
