@@ -66,7 +66,7 @@ class DirectEnquiryController extends Controller
             Mail::to('admin@oohapp.com')->send(new AdminDirectEnquiryMail($enquiry));
 
             // 6. Send Dashboard Notification
-            $admins = User::where('role', 'admin')->get();
+            $admins = User::where('active_role', 'admin')->get();
             Notification::send($admins, new AdminDirectEnquiryNotification($enquiry));
 
             // 7. Success Flow
