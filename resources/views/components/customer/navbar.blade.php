@@ -71,9 +71,11 @@
                                         <p class="text-sm font-semibold">
                                             {{ auth()->user()->name }}
                                         </p>
-                                        <p class="text-xs opacity-80">
-                                            +91{{ auth()->user()->phone ?? '**********' }}
-                                        </p>
+                                        @if(!empty(auth()->user()->phone))
+                                            <p class="text-xs opacity-80">
+                                                +91{{ auth()->user()->phone }}
+                                            </p>
+                                        @endif
                                     </div>
                                 </a>
                             @endauth

@@ -66,6 +66,17 @@ class SearchController extends Controller
                     CASE
                         WHEN hoardings.base_monthly_price IS NOT NULL
                         AND hoardings.base_monthly_price > 0
+
+                        /* 🔒 PRICE MUST BE > 0 (OOH + DOOH) */
+                        AND (
+                            CASE
+                                WHEN hoardings.hoarding_type = 'dooh'
+                                    THEN COALESCE(dooh_screens.price_per_slot, 0)
+                                ELSE hoardings.monthly_price
+                            END
+                        ) > 0
+
+                        /* 🔒 REAL DISCOUNT ONLY */
                         AND (
                             CASE
                                 WHEN hoardings.hoarding_type = 'dooh'
@@ -73,6 +84,7 @@ class SearchController extends Controller
                                 ELSE hoardings.monthly_price
                             END
                         ) < hoardings.base_monthly_price
+
                         THEN ROUND(
                             (
                                 hoardings.base_monthly_price -
@@ -85,9 +97,11 @@ class SearchController extends Controller
                                 )
                             ) / hoardings.base_monthly_price * 100
                         )
+
                         ELSE NULL
                     END AS discount_percent
                 "),
+
                 DB::raw("
                     CASE
                         WHEN hoardings.hoarding_type = 'dooh'

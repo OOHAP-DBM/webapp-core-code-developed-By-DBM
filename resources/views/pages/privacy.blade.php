@@ -28,13 +28,20 @@
 
 @include('components.customer.footer')
 <style>
-        hr {
-    border: none;
-    border-top: 1px solid #e5e7eb; /* Tailwind gray-200 */
-    margin: 24px 0;
-}
-li,p{
-    padding-left:20px;
-}
+    hr {
+        border: none;
+        border-top: 1px solid #e5e7eb;
+        margin: 24px 0;
+    }
+
+    /* All list items get padding */
+    li {
+        padding-left: 20px;
+    }
+
+    /* Paragraphs: skip first 2 <p> */
+    .prose p:nth-of-type(n+3) {
+        padding-left: 20px;
+    }
 </style>
 @endsection

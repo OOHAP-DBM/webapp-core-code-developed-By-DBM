@@ -14,7 +14,7 @@
     </div>
 
     {{-- COUPON --}}
-    <div class="mt-4">
+    <!-- <div class="mt-4">
         <input
             type="text"
             id="coupon-code"
@@ -27,7 +27,7 @@
         >
             Apply
         </button>
-    </div>
+    </div> -->
 
     {{-- TOTAL --}}
     <div class="border-t border-gray-200 mt-4 pt-4 flex justify-between font-semibold">

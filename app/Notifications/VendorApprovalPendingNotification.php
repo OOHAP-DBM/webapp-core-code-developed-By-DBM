@@ -7,7 +7,7 @@ use Illuminate\Notifications\Notification;
 class VendorApprovalPendingNotification extends Notification
 {
     public function __construct(
-        public $vendorUser // 👈 vendor ka User model
+        public $vendorUser
     ) {}
 
     public function via($notifiable): array
@@ -17,15 +17,25 @@ class VendorApprovalPendingNotification extends Notification
 
     public function toDatabase($notifiable): array
     {
-        // If the notifiable is an admin, show the vendor approval page; if vendor, show dashboard
-        $isAdmin = method_exists($notifiable, 'hasRole') && $notifiable->hasRole('admin');
+        $isAdmin = method_exists($notifiable, 'hasRole')
+            && $notifiable->hasRole('admin');
+
+        if ($isAdmin) {
+            // ✅ ADMIN MESSAGE
+            return [
+                'title'       => 'Vendor Approval Pending',
+                'message'     => 'A new vendor has registered and is awaiting approval.',
+                'action_url'  => route('admin.vendors.show', $this->vendorUser->id),
+                'type'        => 'vendor_pending_admin',
+            ];
+        }
+
+        // ✅ VENDOR MESSAGE
         return [
-            'title'   => 'Vendor Approval Pending',
-            'message' => 'A new vendor has registered and is awaiting approval.',
-            'action_url' => $isAdmin
-                ? route('admin.vendors.show', $this->vendorUser->id)
-                : route('vendor.dashboard'),
-            'type' => 'vendor_pending',
+            'title'       => 'Welcome to OOHAPP',
+            'message'     => 'Your vendor profile has been submitted successfully. It is currently under review. Please wait for admin approval.',
+            'action_url'  => route('vendor.dashboard'),
+            'type'        => 'vendor_pending_vendor',
         ];
     }
 }
