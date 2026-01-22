@@ -196,10 +196,10 @@ html, body {
             </a>
 
             <!-- Continue with Google -->
-            <button type="button" class="social-btn google-btn">
+            <!-- <button type="button" class="social-btn google-btn">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
                 <span>Continue with Google</span>
-            </button>
+            </button> -->
             <div class="footer-text fs-6 text-center mt-5 ">
                 Already Have an Account?
                 <a href="{{ route('login') }}" class="text-success fw-bold fs-6">Login</a>
