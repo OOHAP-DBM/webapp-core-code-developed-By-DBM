@@ -29,6 +29,7 @@ Route::middleware(['throttle:otp'])->group(function () {
 
     Route::post('/otp/send', [AuthController::class, 'sendOTP']);
     Route::post('/otp/verify', [AuthController::class, 'verifyOTP']);
+    Route::post('/otp/resend', [AuthController::class, 'resendOTP']);
 });
 
 // Password reset (to be implemented)

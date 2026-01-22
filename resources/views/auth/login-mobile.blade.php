@@ -238,7 +238,7 @@
                 <div class="divider"><span>OR</span></div>
 
                 <a href="{{ route('login') }}" class="social-btn btn border">
-                    <i class="fa-solid fa-envelope me-2"></i>
+                    <i class="fa-regular fa-envelope me-2"></i>
                     Continue with Email
                 </a>
                  <button class="social-btn google-btn">

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Modules\Hoardings\Services\HoardingService;
 use App\Models\Hoarding;
 use Illuminate\Support\Facades\DB;
+use Modules\Cart\Services\CartService;
+use Illuminate\Support\Facades\Auth;
 
 class HoardingController extends Controller
 {
@@ -19,10 +21,16 @@ class HoardingController extends Controller
      *
      * @param HoardingService $hoardingService
      */
-    public function __construct(HoardingService $hoardingService)
-    {
+    protected CartService $cartService;
+
+    public function __construct(
+        HoardingService $hoardingService,
+        CartService $cartService
+    ) {
         $this->hoardingService = $hoardingService;
+        $this->cartService = $cartService;
     }
+
 
     /**
      * Display all hoardings listing
@@ -99,8 +107,14 @@ class HoardingController extends Controller
                 ->orderBy('min_booking_duration')
                 ->get();
         }
+        $isInCart = false;
 
-        return view('hoardings.show', compact('hoarding'));
+        if (Auth::check() && Auth::user()->hasRole('customer')) {
+            $isInCart = $this->cartService->exists($hoarding->id);
+        }
+
+
+        return view('hoardings.show', compact('hoarding', 'isInCart'));
     }
 
     /**

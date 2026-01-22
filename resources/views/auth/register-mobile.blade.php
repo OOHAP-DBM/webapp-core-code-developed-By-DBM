@@ -139,10 +139,10 @@ html, body {
     border-color: #249b69 !important;
 }
 .btn-continue:disabled {
-    background: #e5e7eb !important;
-    color: #9ca3af !important;
+    background: white !important;
+    color: #323335 !important;
     cursor: not-allowed;
-    border-color: #e5e7eb !important;
+    border-color: #323335 !important;
 }
 
 
@@ -190,8 +190,8 @@ html, body {
 
             <!-- Continue with Email -->
             <a href="{{ route('register.form') }}"
-            class="social-btn btn text-decoration-none border border-1">
-                <i class="fa-solid fa-envelope me-2"></i>
+             class="social-btn btn text-decoration-none border border-1">
+                <i class="fa-regular fa-envelope me-2"></i>
                 Continue with Email
             </a>
 
@@ -200,9 +200,15 @@ html, body {
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
                 <span>Continue with Google</span>
             </button>
-            <div class="footer-text fs-6 text-center mt-5 pt-5">
+            <div class="footer-text fs-6 text-center mt-5 ">
                 Already Have an Account?
                 <a href="{{ route('login') }}" class="text-success fw-bold fs-6">Login</a>
+                <br>
+                <small>
+                    By clicking continue button, you agree with the
+                    <a href="{{ route('terms') }}">Terms & Conditions</a> and
+                    <a href="{{ route('privacy') }}">Privacy policy</a> of OOHAPP.
+                </small>
             </div>
             
         </div>
