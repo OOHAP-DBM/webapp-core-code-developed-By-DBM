@@ -15,14 +15,13 @@ class DirectEnquiryController extends Controller
 {
     public function showForm()
     {
-        // Generate a simple math captcha
         $num1 = rand(1, 9);
         $num2 = rand(1, 9);
         Session::put('captcha_answer', $num1 + $num2);
 
-        // Replace 'welcome' with your actual view name
         return view('welcome', compact('num1', 'num2'));
     }
+
 
     /**
      * Handle the form submission
@@ -45,13 +44,6 @@ class DirectEnquiryController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-
-        // 3. Validate Captcha Answer
-        // if ($request->captcha != Session::get('captcha_answer')) {
-        //     return response()->json([
-        //         'errors' => ['captcha' => ['Security answer is incorrect.']]
-        //     ], 422);
-        // }
 
         try {
             // 4. Save to Database
