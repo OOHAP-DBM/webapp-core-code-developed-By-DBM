@@ -216,9 +216,10 @@
                                 autocomplete="new-password"
                                 readonly>
 
-                            <span class="position-absolute top-50 end-0 translate-middle-y me-3"
+                            <span class="position-absolute end-0 me-3"
                                 id="togglePassword"
-                                style="cursor:pointer;">
+                                style="top: 45%; transform: translateY(-70%); cursor: pointer;">
+
                                 <i class="fa-solid fa-eye text-muted"></i>
                             </span>
                             <small>Enter your password</small>

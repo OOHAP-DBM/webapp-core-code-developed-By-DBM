@@ -353,8 +353,37 @@ document.addEventListener('DOMContentLoaded', function() {
      * LOGIC 2: SKIP (Bypass Validation)
      */
     window.skipBusinessInfo = function() {
-        if (!confirm('Are you sure you want to skip? You can provide these details later from your profile settings.')) return;
+    const isMobile = window.innerWidth < 640;
 
+    Swal.fire({
+        title: 'Skip Business Info?',
+        text: 'You can add these details later from your profile.',
+        icon: 'warning',
+
+        // ✅ RESPONSIVE WIDTH (KEY FIX)
+        width: isMobile ? '80%' : '450px',
+
+        padding: '1rem',
+        heightAuto: false,
+
+        showCancelButton: true,
+        confirmButtonColor: '#16a34a',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, Skip',
+        cancelButtonText: 'Cancel',
+
+        // ✅ CLEAN & ORGANIZED UI
+        customClass: {
+            popup: 'rounded-xl',
+            title: 'text-base font-semibold',
+            htmlContainer: 'text-sm',
+            confirmButton: 'px-4 py-2 text-sm',
+            cancelButton: 'px-4 py-2 text-sm'
+        }
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        const skipBtn = document.getElementById('skipBtn');
         skipBtn.disabled = true;
         skipBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> Skipping...';
 
@@ -375,11 +404,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(err => {
-            alert('Error: ' + err.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err.message,
+                width: isMobile ? '80%' : '450px'
+            });
             skipBtn.disabled = false;
             skipBtn.innerText = 'Skip for Now';
         });
-    };
+    });
+};
+
 });
 </script>
 @endpush

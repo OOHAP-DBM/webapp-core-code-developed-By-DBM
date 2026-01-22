@@ -138,6 +138,12 @@ html, body {
     color: #fff !important;
     border-color: #249b69 !important;
 }
+.btn-continue:disabled {
+    background: #e5e7eb !important;
+    color: #9ca3af !important;
+    cursor: not-allowed;
+    border-color: #e5e7eb !important;
+}
 
 
 
@@ -177,7 +183,7 @@ html, body {
                 </small>
             </div>
 
-            <button class="btn btn-continue w-100 mt-3" id="sendOtpBtn">
+            <button class="btn btn-continue w-100 mt-3" id="sendOtpBtn" disabled>
                 Continue
             </button>
             <div class="divider"><span>OR</span></div>
@@ -346,6 +352,25 @@ html, body {
         const nameInput     = document.getElementById('nameInput');
         const password      = document.getElementById('password');
         const confirmPwd    = document.getElementById('password_confirmation');
+        /* ================= MOBILE INPUT VALIDATION ================= */
+
+        function isValidMobile(mobile) {
+            return /^\d{10}$/.test(mobile);
+        }
+
+        // Initially disabled (safety)
+        sendOtpBtn.disabled = true;
+
+        mobileInput.addEventListener('input', () => {
+            const value = mobileInput.value.trim();
+
+            if (isValidMobile(value)) {
+                sendOtpBtn.disabled = false;
+            } else {
+                sendOtpBtn.disabled = true;
+            }
+        });
+
 
         /* ================= ERROR HELPERS ================= */
 

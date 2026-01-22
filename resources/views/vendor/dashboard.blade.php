@@ -40,7 +40,7 @@
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-lg text-gray-700">
-            Hii, <span class="text-blue-600 font-semibold">{{ auth()->user()->name ?? 'Vendor' }}</span>!
+            Good Morning, <span class="text-blue-600 font-semibold">{{ auth()->user()->name ?? 'Vendor' }}</span>!
         </h2>
         <a href="{{ route('vendor.hoardings.create') }}" class="bg-black text-white px-4 py-2 rounded-lg text-sm">+ Add Hoarding</a>
     </div>
