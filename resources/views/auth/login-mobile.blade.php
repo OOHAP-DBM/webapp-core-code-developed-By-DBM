@@ -216,9 +216,10 @@
                                 autocomplete="new-password"
                                 readonly>
 
-                            <span class="position-absolute top-50 end-0 translate-middle-y me-3"
+                            <span class="position-absolute end-0 me-3"
                                 id="togglePassword"
-                                style="cursor:pointer;">
+                                style="top: 45%; transform: translateY(-70%); cursor: pointer;">
+
                                 <i class="fa-solid fa-eye text-muted"></i>
                             </span>
                             <small>Enter your password</small>
@@ -237,15 +238,15 @@
                 <div class="divider"><span>OR</span></div>
 
                 <a href="{{ route('login') }}" class="social-btn btn border">
-                    <i class="fa-solid fa-envelope me-2"></i>
+                    <i class="fa-regular fa-envelope me-2"></i>
                     Continue with Email
                 </a>
-                 <button class="social-btn google-btn">
+                 <!-- <button class="social-btn google-btn">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
                         width="18"
                         class="me-2">
                     Continue with Google
-                </button>
+                </button> -->
 
 
                 <div class="footer-text">

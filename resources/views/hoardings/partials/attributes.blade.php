@@ -3,7 +3,7 @@
     <h3 class="text-base font-semibold mb-4">Hoarding Attributes</h3>
 
     {{-- Visible From --}}
-    <div class="mb-5">
+    <!-- <div class="mb-5">
         <p class="text-sm font-medium mb-2">Visible from</p>
         <div class="flex flex-wrap gap-2">
             @foreach(($hoarding->visible_from ?? []) as $item)
@@ -12,14 +12,23 @@
                 </span>
             @endforeach
         </div>
-    </div>
+    </div> -->
 
     {{-- Located At --}}
     <div class="mb-5">
         <p class="text-sm font-medium mb-1">Located At</p>
+        @php
+            $locatedAt = $hoarding->located_at;
+
+            if (is_string($locatedAt)) {
+                $locatedAt = json_decode($locatedAt, true);
+            }
+        @endphp
+
         <p class="text-sm text-gray-700">
-            {{ is_string($hoarding->located_at) ? $hoarding->located_at : '—' }}
+            {{ !empty($locatedAt) ? implode(' , ', $locatedAt) : '—' }}
         </p>
+
         <p class="text-sm text-gray-500">{{ $hoarding->road_name ?? '' }}</p>
     </div>
 
