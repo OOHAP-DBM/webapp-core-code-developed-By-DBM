@@ -107,10 +107,9 @@
 
             {{-- ================= OOH ================= --}}
             @if(($hoarding->hoarding_type) === 'ooh')
-
                 <div class="flex items-baseline">
                     <span class="text-xl font-bold text-gray-900">
-                        ₹{{ number_format($hoarding->monthly_price_display ?? $hoarding->monthly_price ?? 10999, 0) }}
+                        ₹{{ number_format($hoarding->monthly_price ?? $hoarding->base_monthly_price) }}
                     </span>
                     <span class="text-sm text-gray-500 ml-1">/Month</span>
                 </div>
