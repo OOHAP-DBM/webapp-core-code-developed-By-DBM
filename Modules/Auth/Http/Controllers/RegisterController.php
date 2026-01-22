@@ -235,8 +235,8 @@ class RegisterController extends Controller
                 'message' => 'This email is already registered. Please login instead.',
             ], 422);
         }
-        // $otp = rand(1000, 9999);
-        $otp = 1234;
+        $otp = rand(1000, 9999);
+        // $otp = 1234;
 
         Cache::put('email_otp_' . $request->email, $otp, now()->addMinutes(10));
         // Send OTP via email
@@ -275,8 +275,8 @@ class RegisterController extends Controller
                 ], 422);
             }
         $request->validate(['phone' => 'required']);
-        // $otp = rand(100000, 999999);
-        $otp = 1234;
+        $otp = rand(100000, 999999);
+        // $otp = 1234;
         Cache::put('phone_otp_' . $request->phone, $otp, now()->addMinutes(10));
         // Send OTP via SMS (replace with your SMS gateway logic)
         // Example: Http::post('https://sms-gateway/send', [...]);

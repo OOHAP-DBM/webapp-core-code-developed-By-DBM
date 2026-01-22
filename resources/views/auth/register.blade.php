@@ -207,6 +207,7 @@ html, body {
 
             <a href="{{ route('register.mobile-form')}}"
                 class="social-btn btn border border-1">
+                <i class="fa-solid fa-mobile-screen me-2"></i>
                 Continue with Mobile
             </a>
 
@@ -219,6 +220,12 @@ html, body {
             <div class="footer-text fs-6">
                 Already Have an Account?
                 <a href="{{ route('login') }}" class="text-success fw-bold fs-6">Login</a>
+                <br>
+                <small>
+                    By clicking continue button, you agree with the
+                    <a href="{{ route('terms') }}">Terms & Conditions</a> and
+                    <a href="{{ route('privacy') }}">Privacy policy</a> of OOHAPP.
+                </small>
             </div>
 
             <!-- OTP VERIFY UI (FIGMA STYLE) -->
