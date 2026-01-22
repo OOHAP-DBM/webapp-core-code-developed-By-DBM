@@ -33,7 +33,9 @@
             "Modules\\": "Modules/"
         },
         "files": [
-            "app/Helpers/localization.php"
+            "app/Helpers/localization.php",
+            "app/Helpers/helpers.php"
+
         ]
     },
     "autoload-dev": {
