@@ -18,10 +18,10 @@ Route::get('/live-categories', [HoardingController::class, 'getLiveCategories'])
 
 // Public routes - Browse hoardings
 Route::get('/', [HoardingController::class, 'index']);
-Route::get('/map-pins', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'mapPins']);
+Route::get('/map-pins', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'mapPins']);
 Route::get('/{id}', [HoardingController::class, 'show']);
-Route::get('/search', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'search']);
-Route::get('/availability/{id}', [\Modules\Hoardings\Controllers\Api\HoardingController::class, 'checkAvailability']);
+Route::get('/search', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'search']);
+Route::get('/availability/{id}', [\Modules\Http\Hoardings\Controllers\Api\HoardingController::class, 'checkAvailability']);
 
 // Vendor routes - Manage hoardings
 Route::middleware(['auth:sanctum', 'role:vendor', 'vendor.approved'])->prefix('vendor')->group(function () {
