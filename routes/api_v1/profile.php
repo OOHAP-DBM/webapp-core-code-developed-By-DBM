@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Customer\ProfileController;
-
+use App\Http\Controllers\Api\Vendor\ProfileController as VendorProfileApiController;
 //Customer Profile Crud @Aviral
 Route::middleware(['auth:sanctum', 'throttle:authenticated'])->group(function () {
     Route::delete('/remove-avatar', [ProfileController::class, 'removeAvatar']);
@@ -17,5 +17,13 @@ Route::middleware(['auth:sanctum', 'throttle:authenticated'])->group(function ()
         Route::post('/update', [ProfileController::class, 'update']);
        
         });
+
+    
+
+
+Route::middleware('auth:sanctum')->prefix('vendor')->group(function () {
+    Route::get('/show', [VendorProfileApiController::class, 'show']);
+    Route::post('/update', [VendorProfileApiController::class, 'update']);
+});
    
 });
