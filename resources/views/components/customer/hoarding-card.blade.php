@@ -105,47 +105,49 @@
         <!-- Price -->
         <div class="mb-3">
 
-            {{-- ================= OOH ================= --}}
-            @if(($hoarding->hoarding_type) === 'ooh')
+            @if($hoarding->hoarding_type === 'ooh')
 
-                <div class="flex items-baseline">
-                    <span class="text-xl font-bold text-gray-900">
-                        ₹{{ number_format($hoarding->monthly_price_display ?? $hoarding->monthly_price ?? 10999, 0) }}
-                    </span>
-                    <span class="text-sm text-gray-500 ml-1">/Month</span>
-                </div>
+            @php
+                $base  = $hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price;
+                $sale  = $hoarding->monthly_price_display ?? $hoarding->monthly_price;
+                $hasSale = !empty($sale) && $sale > 0;
+            @endphp
 
+            {{-- MAIN PRICE --}}
+            <div class="flex items-baseline">
+                <span class="text-xl font-bold text-gray-900">
+                    ₹{{ number_format($hasSale ? $sale : $base, 0) }}
+                </span>
+                <span class="text-sm text-gray-500 ml-1">/Month</span>
+            </div>
+
+            {{-- CUT PRICE + DISCOUNT (ONLY IF REAL SALE) --}}
+            @if($hasSale && $base && $base > $sale)
                 <div class="flex items-center space-x-2 mt-1">
                     <span class="text-xs text-gray-400 line-through">
-                        ₹{{ number_format($hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price ?? 16999, 0) }}
+                        ₹{{ number_format($base, 0) }}
                     </span>
 
                     @php
-                        $base = $hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price;
-                        $sale = $hoarding->monthly_price_display ?? $hoarding->monthly_price;
+                        $percent = round((($base - $sale) / $base) * 100);
                     @endphp
 
-                    @if($base && $sale && $base > $sale)
-                        @php
-                            $diff = $base - $sale;
-                            $percent = round(($diff / $base) * 100);
-                        @endphp
-                        <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
-                            {{ $percent }}% Off
-                        </span>
-                    @endif
+                    <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
+                        {{ $percent }}% Off
+                    </span>
                 </div>
+            @endif
 
             {{-- ================= DOOH ================= --}}
             @else
                 <div class="flex items-baseline">
                     <span class="text-xl font-bold text-gray-900">
-                        ₹{{ number_format($hoarding->doohScreen->price_per_slot ?? optional($hoarding->doohScreen)->price_per_slot) }}
+                        ₹{{ number_format(optional($hoarding->doohScreen)->price_per_slot) }}
                     </span>
-                    <span class="text-sm text-gray-500 ml-1">/Second </span>
+                    <span class="text-sm text-gray-500 ml-1">/Second</span>
                 </div>
-
             @endif
+
 
         </div>
 

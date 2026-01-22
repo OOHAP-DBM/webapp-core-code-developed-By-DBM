@@ -135,26 +135,44 @@
                             {{-- PRICE --}}
                             <div class="mt-3">
                                 <span class="text-xl font-bold">
-                                    ₹{{ number_format($item->price) }}
+                                    @if(
+                                        $item->hoarding_type === 'ooh'
+                                        && (empty($item->monthly_price) || $item->monthly_price == 0)
+                                        && !empty($item->base_monthly_price)
+                                    )
+                                        ₹{{ number_format($item->base_monthly_price) }}
+                                    @else
+                                        ₹{{ number_format($item->price) }}
+                                    @endif
                                 </span>
+
                                 <span class="text-sm text-gray-500">
                                     @if($item->hoarding_type === 'dooh')
-                                        /Second 
+                                        /Second
                                     @elseif(request('duration') === 'weekly')
                                         /Week
                                     @else
                                         /Month
                                     @endif
                                 </span>
-
                             </div>
+
 
                             {{-- BASE PRICE (CUT / RED) --}}
                             @if(!empty($item->base_monthly_price) && $item->base_monthly_price > $item->price)
                                 <div class="mt-1">
-                                    <span class="text-xs text-red-500 line-through">
-                                        ₹{{ number_format($item->base_monthly_price) }} 
-                                    </span>
+                                    @if(
+                                        $item->hoarding_type === 'ooh'
+                                        && !empty($item->price)
+                                        && $item->price > 0
+                                        && !empty($item->base_monthly_price)
+                                        && $item->base_monthly_price > $item->price
+                                    )
+                                        <span class="text-xs text-red-500 line-through">
+                                            ₹{{ number_format($item->base_monthly_price) }}
+                                        </span>
+                                    @endif
+
                                     &nbsp;
                                     @if($item->discount_percent)
                                         <span class="bg-green-200 text-xs text-green-700 px-2 py-0.5 rounded">

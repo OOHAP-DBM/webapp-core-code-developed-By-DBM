@@ -2,17 +2,32 @@
 
 @if($hoarding->hoarding_type === 'ooh')
     {{-- OOH BASE PRICE --}}
-<div>
-    <div class="text-xl font-bold">
-        ₹{{ number_format($hoarding->monthly_price) }}/Month
-    </div>
+    @php
+        $monthly = $hoarding->monthly_price;
+        $base    = $hoarding->base_monthly_price;
+    @endphp
 
-    @if($hoarding->base_monthly_price)
-        <div class="text-sm text-gray-400 line-through">
-            ₹{{ number_format($hoarding->base_monthly_price) }}
+    <div>
+        {{-- MAIN PRICE --}}
+        <div class="text-xl font-bold">
+            @if(empty($monthly) || $monthly == 0)
+                ₹{{ number_format($base) }}/Month
+            @else
+                ₹{{ number_format($monthly) }}/Month
+            @endif
         </div>
-    @endif
-</div>
+
+        {{-- CUT PRICE --}}
+        @if(
+            !empty($monthly)
+            && $monthly > 0
+            && !empty($base)
+            && $base > $monthly
+        )
+            <div class="text-sm text-gray-400 line-through">
+                ₹{{ number_format($base) }}
+            </div>
+        @endif
     {{-- OOH PACKAGES (OPTIONAL) --}}
     @if($hoarding->packages->count())
         <p class="mt-4 font-semibold text-sm">Available Packages</p>

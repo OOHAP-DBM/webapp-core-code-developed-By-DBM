@@ -28,13 +28,14 @@
 
 @include('components.customer.footer')
 <style>
-        hr {
-    border: none;
-    border-top: 1px solid #e5e7eb; /* Tailwind gray-200 */
-    margin: 24px 0;
-}
-p{
-    padding-left:20px;
-}
+    hr {
+        border: none;
+        border-top: 1px solid #e5e7eb;
+        margin: 24px 0;
+    }
+
+    .prose p:not(:first-of-type) {
+        padding-left: 20px;
+    }
 </style>
 @endsection
