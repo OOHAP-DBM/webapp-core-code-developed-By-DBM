@@ -315,7 +315,7 @@ class HoardingController extends Controller
      *     path="/hoardings/live-categories",
      *     operationId="getHoardingCategories",
      *     tags={"Hoardings"},
-     *     summary="Get all hoarding categories/types",
+     *     summary="Get all hoarding categories/types(of live hoarding)",
      *     description="Returns a list of available hoarding categories and types for filtering",
      *     @OA\Response(
      *         response=200,
@@ -349,13 +349,13 @@ class HoardingController extends Controller
     {
         $categories = Hoarding::where('status', 'active')
             // ->where('approval_status', 'approved')
-            ->select('type')
+            ->select('hoarding_type')
             ->distinct()
             ->pluck('type')
             ->toArray();
 
         $typesWithCount = Hoarding::where('status', 'active')
-            ->where('approval_status', 'approved')
+            // ->where('approval_status', 'approved')
             ->select('type')
             ->selectRaw('count(*) as count')
             ->groupBy('type')

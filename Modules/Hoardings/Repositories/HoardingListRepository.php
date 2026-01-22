@@ -35,7 +35,7 @@ class HoardingListRepository
             'latitude'              => $data['lat'] ?? null,
             'longitude'              => $data['lng'] ?? null,
             'base_monthly_price'   => $data['base_monthly_price'] ?? 0,
-            'monthly_price'   => $data['monthly_price'] ?? null,
+            'monthly_price'   => $data['monthly_price'] ?? 0,
             'status'           => Hoarding::STATUS_DRAFT,
             'current_step'     => 1,
         ]);
