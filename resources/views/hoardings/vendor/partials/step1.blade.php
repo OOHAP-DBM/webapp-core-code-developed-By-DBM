@@ -268,6 +268,13 @@
           </p>
         </div>
 
+        @php
+          // Get the value from old input or the database
+          $currentMonthlyPrice = old('monthly_price', $draft->hoarding->monthly_price ?? '');
+          
+          // Logic: If the value is 0, treat it as an empty string so the input box stays empty
+          $displayValue = ($currentMonthlyPrice == 0) ? '' : $currentMonthlyPrice;
+        @endphp
         <!-- Monthly Offer Price -->
         <div class="space-y-2">
           <label class="text-sm font-bold text-gray-700">
@@ -278,7 +285,7 @@
             name="monthly_price"
             min="1"
             step="0.01"
-            value="{{ old('monthly_price', $draft->hoarding->monthly_price ?? '') }}"
+            value="{{ $displayValue }}"
             placeholder="Optional discounted price"
             class="w-full border border-gray-200 rounded-xl px-4 py-3
                   focus:border-[#009A5C] outline-none transition-all"
