@@ -1,9 +1,9 @@
 <div class="max-w-7xl mx-auto px-4 py-8 border-t border-gray-300">
 
-    <h3 class="text-lg font-semibold mb-6">Rating & Reviews</h3>
+    <!-- <h3 class="text-lg font-semibold mb-6">Rating & Reviews</h3> -->
 
     {{-- SUMMARY --}}
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+    <!-- <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
 
         <div class="md:col-span-3">
             <div class="flex items-center gap-3">
@@ -37,19 +37,22 @@
             </a>
         </div>
 
-    </div>
+    </div> -->
 
     {{-- SINGLE REVIEW --}}
-    <div class="mt-8 border-t pt-6 border-gray-300">
-        <p class="font-medium">Business Name</p>
-        <p class="text-xs text-gray-500 mb-4">22 Oct, 2025</p>
+    <div class="border-gray-300">
+        <h2>Business Name: {{ $hoarding->vendor->company_name ?? 'N/A' }}</h2>
+        <h2>Vendor Name: {{ $hoarding->vendor->name ?? 'N/A' }}</h2>
+        <p class="text-xs text-gray-500 mb-4">
+            {{ $hoarding->created_at->format('d M, Y') }}
+        </p>
 
-        <div class="flex gap-3">
+        <!-- <div class="flex gap-3">
             @for($i=0;$i<3;$i++)
                 <img src="https://via.placeholder.com/120x90"
                      class="w-32 h-24 object-cover rounded border">
             @endfor
-        </div>
+        </div> -->
     </div>
 
 </div>

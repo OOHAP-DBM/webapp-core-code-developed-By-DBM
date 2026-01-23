@@ -86,23 +86,20 @@
                     },
                     body: JSON.stringify({ hoarding_id: hoardingId })
                 })
-                .then(res => res.json())
-                .then(data => {
+                .then(res => {
 
-                    if (data.status === 'login_required') {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'warning',
-                            title: data.message,
-                            showConfirmButton: false,
-                            timer: 1400
-                        });
-                        setTimeout(() => {
-                            window.location.href = '/login?message=' + encodeURIComponent(data.message);
-                        }, 800);
+                    // ✅ LOGIN REQUIRED — NO JSON PARSING
+                    if (res.status === 401 || res.status === 419) {
+                        window.location.href =
+                            '/login?intended=' + encodeURIComponent(window.location.href);
                         return;
                     }
+
+                    // ✅ NOW SAFE TO PARSE JSON
+                    return res.json();
+                })
+                .then(data => {
+                    if (!data) return;
 
                     applyCartUI(btn, data.in_cart);
 
@@ -114,21 +111,23 @@
                         showConfirmButton: false,
                         timer: 1400
                     });
-                    setTimeout(() => {
-                        window.location.reload(true);
-                    }, 1000);
 
+                    setTimeout(() => location.reload(), 800);
                 })
                 .catch(() => {
                     Swal.fire({
+                        toast: true,
+                        position: 'top-end',
                         icon: 'error',
-                        title: 'Error',
-                        text: 'Something went wrong'
+                        title: 'Server error occurred',
+                        showConfirmButton: false,
+                        timer: 2000
                     });
                 })
                 .finally(() => {
                     btn.disabled = false;
                 });
+
             };
 
         })();

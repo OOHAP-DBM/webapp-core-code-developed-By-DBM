@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Http;
 use App\Notifications\AdminUserRegisteredNotification;
 use App\Notifications\UserWelcomeNotification;
 use App\Notifications\VendorApprovalPendingNotification;
+use Twilio\Rest\Client;
+use Illuminate\Support\Facades\Log;
 
 
 
@@ -238,7 +240,7 @@ class RegisterController extends Controller
         $otp = rand(1000, 9999);
         // $otp = 1234;
 
-        Cache::put('email_otp_' . $request->email, $otp, now()->addMinutes(10));
+        Cache::put('email_otp_' . $request->email, $otp, now()->addMinutes(1));
         // Send OTP via email
         // echo $otp; // For testing purposes
         try {
@@ -268,22 +270,52 @@ class RegisterController extends Controller
 
     public function sendPhoneOtp(Request $request)
     {
-          if (\App\Models\User::where('phone', $request->phone)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This mobile number is already registered. Please login.',
-                ], 422);
-            }
-        $request->validate(['phone' => 'required']);
-        $otp = rand(100000, 999999);
-        // $otp = 1234;
-        Cache::put('phone_otp_' . $request->phone, $otp, now()->addMinutes(10));
-        // Send OTP via SMS (replace with your SMS gateway logic)
-        // Example: Http::post('https://sms-gateway/send', [...]);
-        // For demo:
-        // Log::info(\"Send OTP $otp to phone {$request->phone}\");
-        return response()->json(['success' => true]);
+        if (User::where('phone', $request->phone)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This mobile number is already registered. Please login.',
+            ], 422);
+        }
+
+        $request->validate([
+            'phone' => 'required|digits:10'
+        ]);
+
+        $otp = rand(1000, 9999);
+
+        Cache::put('phone_otp_' . $request->phone, $otp, now()->addMinutes(1));
+
+        try {
+            $twilio = new Client(
+                env('TWILIO_SID'),
+                env('TWILIO_TOKEN')
+            );
+
+            $twilio->messages->create(
+                '+91' . $request->phone, // Indian number
+                [
+                    'from' => env('TWILIO_FROM'),
+                    'body' => "Your OOHAPP OTP is {$otp}. Valid for 1 minutes."
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP sent successfully'
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Twilio OTP failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send OTP. Please try again.'
+            ], 500);
+        }
     }
+
 
     public function verifyPhoneOtp(Request $request)
     {
