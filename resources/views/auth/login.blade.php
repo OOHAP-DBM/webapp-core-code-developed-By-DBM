@@ -235,12 +235,12 @@
                 </a>
 
 
-                <button class="social-btn google-btn">
+                <!-- <button class="social-btn google-btn">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
                         width="18"
                         class="me-2">
                     Continue with Google
-                </button>
+                </button> -->
 
 
                 <div class="footer-text">

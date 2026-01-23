@@ -138,13 +138,13 @@
                                             @endif
 
                                             {{-- Delete option with confirmation --}}
-                                            <form action="{{ route('vendor.hoardings.destroy', $hoarding['id']) }}" method="POST" 
-                                                  onsubmit="return confirm('Are you sure you want to delete this hoarding? This action cannot be undone.');">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-red-500 hover:bg-red-50 rounded">
-                                                    <i class="fa-solid fa-trash-can opacity-60"></i> Delete
-                                                </button>
-                                            </form>
+                                            <button
+                                                type="button"
+                                                onclick="deleteHoarding({{ $hoarding['id'] }})"
+                                                class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-red-500 hover:bg-red-50 rounded">
+                                                <i class="fa-solid fa-trash-can opacity-60"></i> Delete
+                                            </button>
+
                                         </div>
                                     </div>
                                 </div>
@@ -176,6 +176,18 @@
         </div>
     </div>
 </div>
+<style>
+.swal-compact {
+    border-radius: 12px !important;
+}
+
+@media (max-width: 640px) {
+    .swal-compact {
+        width: 90% !important;
+        padding: 1rem !important;
+    }
+}
+</style>
 
 <script>
     function toggleActionMenu(event, menuId) {
@@ -189,5 +201,72 @@
     document.addEventListener('click', () => {
         document.querySelectorAll('[id^="menu-"]').forEach(m => m.classList.add('hidden'));
     });
+</script>
+<script>
+    function deleteHoarding(id) {
+        Swal.fire({
+            title: 'Delete Hoarding?',
+            html: '<p class="text-sm text-gray-600">This action cannot be undone.</p>',
+            icon: 'warning',
+
+            // 🎯 Size control
+            width: '30rem',          // desktop
+            padding: '1.25rem',      // compact height
+            iconColor: '#ef4444',
+
+            // 🎯 Buttons
+            showCancelButton: true,
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#9ca3af',
+
+            // 🎯 Button styling
+            buttonsStyling: true,
+            reverseButtons: true,
+
+            // 🎯 Mobile optimization
+            customClass: {
+                popup: 'swal-compact',
+                title: 'text-base font-semibold',
+                confirmButton: 'px-4 py-2 text-sm',
+                cancelButton: 'px-4 py-2 text-sm'
+            }
+        }).then((result) => {
+
+            if (!result.isConfirmed) return;
+
+            // loader
+            Swal.fire({
+                title: 'Deleting...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch(`/vendor/hoardings/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: 'Hoarding deleted successfully.',
+                        timer: 1800,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+
+                    setTimeout(() => location.reload(), 1800);
+                }
+            });
+        });
+    }
 </script>
 @endsection

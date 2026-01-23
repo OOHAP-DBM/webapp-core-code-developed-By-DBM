@@ -241,4 +241,9 @@
     </div>
 
 </div>
+<style>
+    button{
+        cursor: pointer;
+    }
+</style>
 @endsection

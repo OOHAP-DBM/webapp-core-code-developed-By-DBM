@@ -2,17 +2,32 @@
 
 @if($hoarding->hoarding_type === 'ooh')
     {{-- OOH BASE PRICE --}}
-<div>
-    <div class="text-xl font-bold">
-        ₹{{ number_format($hoarding->monthly_price) }}/Month
-    </div>
+    @php
+        $monthly = $hoarding->monthly_price;
+        $base    = $hoarding->base_monthly_price;
+    @endphp
 
-    @if($hoarding->base_monthly_price)
-        <div class="text-sm text-gray-400 line-through">
-            ₹{{ number_format($hoarding->base_monthly_price) }}
+    <div>
+        {{-- MAIN PRICE --}}
+        <div class="text-xl font-bold">
+            @if(empty($monthly) || $monthly == 0)
+                ₹{{ number_format($base) }}/Month
+            @else
+                ₹{{ number_format($monthly) }}/Month
+            @endif
         </div>
-    @endif
-</div>
+
+        {{-- CUT PRICE --}}
+        @if(
+            !empty($monthly)
+            && $monthly > 0
+            && !empty($base)
+            && $base > $monthly
+        )
+            <div class="text-sm text-gray-400 line-through">
+                ₹{{ number_format($base) }}
+            </div>
+        @endif
     {{-- OOH PACKAGES (OPTIONAL) --}}
     @if($hoarding->packages->count())
         <p class="mt-4 font-semibold text-sm">Available Packages</p>
@@ -106,12 +121,19 @@
 {{-- FINAL PRICE --}}
 <div class="bg-gray-50 rounded-xl p-4 mt-4">
     @auth
-        @if(auth()->user()->hasRole('customer'))
-            <button class="w-full bg-green-500 text-white py-3 rounded-md text-sm font-semibold">
-                Sort list
-            </button>
-        @endif
-    @endauth
+    @if(auth()->user()->hasRole('customer'))
+        <button
+            id="cart-btn-{{ $hoarding->id }}"
+            data-in-cart="{{ $isInCart ? '1' : '0' }}"
+            onclick="event.preventDefault(); toggleCart(this, {{ $hoarding->id }})"
+            class="cart-btn cart-btn--white flex-1 py-2 px-3 text-sm font-semibold rounded w-full
+                {{ $isInCart ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
+            
+            {{ $isInCart ? 'Remove from Cart' : 'Add to Cart' }}
+        </button>
+    @endif
+@endauth
+
 {{-- 
     <a href="javascript:void(0)"
        class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium"
@@ -160,3 +182,16 @@
 </div>
 
 </div>
+<style>
+.cart-btn--white {
+    color: #fff !important;
+    background-color: #22c55e; /* green-500 */
+}
+
+.cart-btn--white:hover {
+    background-color: #16a34a !important; /* green-600 */
+    color: #fff !important;
+}
+
+
+</style>
