@@ -51,6 +51,7 @@ class HoardingController extends Controller
     public function show(int $id)
     {
         $hoarding = Hoarding::with([
+        'vendor',
         'hoardingMedia',       
         'doohScreen.media',     
         ])->findOrFail($id);
