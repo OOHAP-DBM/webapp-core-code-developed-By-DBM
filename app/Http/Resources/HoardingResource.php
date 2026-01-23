@@ -71,15 +71,15 @@ class HoardingResource extends JsonResource
             ];
         } elseif ($this->hoarding_type === 'dooh' && $this->doohScreen) {
             $pricing = [
-                'price_per_10_sec' => $this->doohScreen->price_per_slot ? (float) $this->doohScreen->price_per_slot : null,
-                'price_per_30_sec' => $this->doohScreen->display_price_per_30s ? (float) $this->doohScreen->display_price_per_30s : null,
+                // 'price_per_slot' => $this->doohScreen->price_per_slot ? (float) $this->doohScreen->price_per_slot : null,
+                // 'price_per_30_sec' => $this->doohScreen->display_price_per_30s ? (float) $this->doohScreen->display_price_per_30s : null,
                 // 'minimum_booking' => $this->doohScreen->minimum_booking_amount ? (float) $this->doohScreen->minimum_booking_amount : null,
-                'base_monthly' => $this->base_monthly_price ? (float) $this->base_monthly_price : null,
+                // 'base_monthly' => $this->base_monthly_price ? (float) $this->base_monthly_price : null,
                 'price_per_slot' => $this->doohScreen->price_per_slot ? (float) $this->doohScreen->price_per_slot : null,
-                'monthly' => $this->monthly_price ? (float) $this->monthly_price : null,
+                // 'monthly' => $this->monthly_price ? (float) $this->monthly_price : null,
 
                 'enable_weekly_booking' => (bool) $this->enable_weekly_booking,
-              'weekly_price' => $this->weekly_price_1 ? (float) $this->weekly_price_1 : null,
+                'weekly_price' => $this->weekly_price_1 ? (float) $this->weekly_price_1 : null,
                 'weekly_price_2' => $this->weekly_price_2 ? (float) $this->weekly_price_2 : null,
                 'weekly_price_3' => $this->weekly_price_3 ? (float) $this->weekly_price_3 : null,
 
