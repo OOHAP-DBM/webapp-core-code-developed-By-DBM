@@ -14,7 +14,7 @@ class BookingPipelineController extends Controller
 
     public function __construct(BookingPipelineService $pipelineService)
     {
-        $this->middleware(['auth', 'role:vendor']);
+        $this->middleware(['auth', 'active_role:vendor']);
         $this->pipelineService = $pipelineService;
     }
 

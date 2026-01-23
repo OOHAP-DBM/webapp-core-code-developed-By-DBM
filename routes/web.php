@@ -42,13 +42,13 @@ Route::prefix('admin/pos')->middleware(['auth', 'role:admin'])->name('admin.pos.
 });
 
 
-Route::prefix('vendor/hoardings')->middleware(['auth', 'vendor'])->name('vendor.hoardings.')->group(function () {
+Route::prefix('vendor/hoardings')->middleware(['auth', 'role:vendor'])->name('vendor.hoardings.')->group(function () {
     Route::get('{id}/edit', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'edit'])->name('edit');
     Route::put('{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])->name('update');
     Route::get('completion', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'indexCompletion'])->name('completion');
     Route::get('/', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'index'])->name('index');});
 // VENDOR POS WEB ROUTES
-Route::prefix('vendor/pos')->middleware(['auth', 'vendor'])->name('vendor.pos.')->group(function () {
+Route::prefix('vendor/pos')->middleware(['auth', 'role:vendor'])->name('vendor.pos.')->group(function () {
     Route::get('/dashboard', [\Modules\POS\Controllers\Web\VendorPosController::class, 'dashboard'])->name('dashboard');
     Route::get('/bookings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'index'])->name('list');
     Route::get('/create', [\Modules\POS\Controllers\Web\VendorPosController::class, 'create'])->name('create');
@@ -57,7 +57,7 @@ Route::prefix('vendor/pos')->middleware(['auth', 'vendor'])->name('vendor.pos.')
 });
 Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
 // DOOH Screen Vendor Routes
-// Route::prefix('vendor/dooh')->middleware(['auth', 'vendor'])->name('vendor.dooh.')->group(function () {
+// Route::prefix('vendor/dooh')->middleware(['auth', 'role:vendor'])->name('vendor.dooh.')->group(function () {
 //     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
 //     Route::put('{id}', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'update'])->name('update');
 // });

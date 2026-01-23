@@ -11,7 +11,7 @@ class VendorPosController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:vendor']);
+        $this->middleware(['auth', 'active_role:vendor']);
     }
 
     /**

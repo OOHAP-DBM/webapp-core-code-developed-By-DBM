@@ -3,77 +3,145 @@
 @section('title', 'POS Booking Details')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"><i class="fas fa-file-invoice"></i> POS Booking Details</h4>
+<div class="px-6 py-6">
+    <div class="bg-white rounded-xl shadow border">
+
+        {{-- Header --}}
+        <div class="px-6 py-4 bg-primary text-white rounded-t-xl">
+            <h4 class="text-lg font-semibold flex items-center gap-2">
+                📄 POS Booking Details
+            </h4>
         </div>
-        <div class="card-body">
-            <div id="booking-details">
-                <div class="text-center text-muted">Loading booking details...</div>
+
+        {{-- Body --}}
+        <div class="p-6">
+            <div id="booking-details" class="text-center text-gray-500">
+                Loading booking details...
             </div>
         </div>
+
     </div>
 </div>
+
 <script>
 const bookingId = @json($bookingId);
-document.addEventListener('DOMContentLoaded', function() {
+
+document.addEventListener('DOMContentLoaded', () => {
     fetch(`/api/v1/vendor/pos/bookings/${bookingId}`, {
         headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('token'),
             'Accept': 'application/json'
         }
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            const b = data.data;
-            let html = `<div class='row mb-3'>
-                <div class='col-md-6'><strong>Invoice #:</strong> ${b.invoice_number || 'N/A'}</div>
-                <div class='col-md-6'><strong>Status:</strong> <span class='badge bg-${getStatusColor(b.status)}'>${b.status}</span></div>
-            </div>`;
-            html += `<div class='row mb-3'>
-                <div class='col-md-6'><strong>Customer:</strong> ${b.customer_name}</div>
-                <div class='col-md-6'><strong>Phone:</strong> ${b.customer_phone}</div>
-            </div>`;
-            html += `<div class='row mb-3'>
-                <div class='col-md-6'><strong>Hoarding:</strong> ${b.hoarding ? `<a href='/hoardings/${b.hoarding.id}' target='_blank'>${b.hoarding.title}</a>` : 'N/A'}</div>
-                <div class='col-md-6'><strong>Dates:</strong> ${new Date(b.start_date).toLocaleDateString()} - ${new Date(b.end_date).toLocaleDateString()}</div>
-            </div>`;
-            html += `<div class='row mb-3'>
-                <div class='col-md-6'><strong>Total Amount:</strong> ₹${parseFloat(b.total_amount).toLocaleString()}</div>
-                <div class='col-md-6'><strong>Payment Status:</strong> <span class='badge bg-${getPaymentStatusColor(b.payment_status)}'>${b.payment_status}</span></div>
-            </div>`;
-            html += `<div class='row mb-3'>
-                <div class='col-md-12'><strong>Notes:</strong> ${b.notes || '-'}</div>
-            </div>`;
-            document.getElementById('booking-details').innerHTML = html;
-        } else {
-            document.getElementById('booking-details').innerHTML = `<div class='text-danger'>Booking not found.</div>`;
+        const container = document.getElementById('booking-details');
+
+        if (!data.success) {
+            container.innerHTML = `
+                <div class="text-red-500 font-medium">
+                    Booking not found.
+                </div>`;
+            return;
         }
+
+        const b = data.data;
+
+        container.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <span class="font-semibold">Invoice #:</span>
+                    ${b.invoice_number || 'N/A'}
+                </div>
+
+                <div>
+                    <span class="font-semibold">Status:</span>
+                    <span class="ml-2 px-2 py-1 rounded text-xs font-semibold ${getStatusColor(b.status)}">
+                        ${b.status}
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <span class="font-semibold">Customer:</span>
+                    ${b.customer_name}
+                </div>
+
+                <div>
+                    <span class="font-semibold">Phone:</span>
+                    ${b.customer_phone}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <span class="font-semibold">Hoarding:</span>
+                    ${
+                        b.hoarding
+                        ? `<a href="/hoardings/${b.hoarding.id}" target="_blank"
+                             class="text-primary underline">
+                             ${b.hoarding.title}
+                           </a>`
+                        : 'N/A'
+                    }
+                </div>
+
+                <div>
+                    <span class="font-semibold">Dates:</span>
+                    ${new Date(b.start_date).toLocaleDateString()}
+                    -
+                    ${new Date(b.end_date).toLocaleDateString()}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <span class="font-semibold">Total Amount:</span>
+                    ₹${parseFloat(b.total_amount).toLocaleString()}
+                </div>
+
+                <div>
+                    <span class="font-semibold">Payment Status:</span>
+                    <span class="ml-2 px-2 py-1 rounded text-xs font-semibold ${getPaymentStatusColor(b.payment_status)}">
+                        ${b.payment_status}
+                    </span>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <span class="font-semibold">Notes:</span>
+                <div class="mt-1 text-gray-700">
+                    ${b.notes || '-'}
+                </div>
+            </div>
+        `;
     })
-    .catch(error => {
-        document.getElementById('booking-details').innerHTML = `<div class='text-danger'>Error loading booking details.</div>`;
+    .catch(() => {
+        document.getElementById('booking-details').innerHTML = `
+            <div class="text-red-500 font-medium">
+                Error loading booking details.
+            </div>`;
     });
 });
+
 function getStatusColor(status) {
-    const colors = {
-        'draft': 'secondary',
-        'confirmed': 'success',
-        'active': 'primary',
-        'completed': 'info',
-        'cancelled': 'danger'
-    };
-    return colors[status] || 'secondary';
+    return {
+        draft: 'bg-gray-400 text-white',
+        confirmed: 'bg-green-500 text-white',
+        active: 'bg-blue-500 text-white',
+        completed: 'bg-cyan-500 text-white',
+        cancelled: 'bg-red-500 text-white'
+    }[status] || 'bg-gray-400 text-white';
 }
+
 function getPaymentStatusColor(status) {
-    const colors = {
-        'paid': 'success',
-        'unpaid': 'danger',
-        'partial': 'warning',
-        'credit': 'info'
-    };
-    return colors[status] || 'secondary';
+    return {
+        paid: 'bg-green-500 text-white',
+        unpaid: 'bg-red-500 text-white',
+        partial: 'bg-yellow-500 text-white',
+        credit: 'bg-cyan-500 text-white'
+    }[status] || 'bg-gray-400 text-white';
 }
 </script>
 @endsection
