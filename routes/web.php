@@ -6,7 +6,7 @@ use Modules\Auth\Http\Controllers\OnboardingController;
 use App\Http\Controllers\Web\Customer\ProfileController;
 use Modules\Search\Controllers\SearchController;
 use Modules\Cart\Controllers\Web\CartController;
-use App\Http\Controllers\DirectEnquiryController;
+use Modules\Enquiries\Controllers\Web\DirectEnquiryController;
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
