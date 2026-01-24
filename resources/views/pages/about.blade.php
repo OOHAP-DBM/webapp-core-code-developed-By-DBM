@@ -154,7 +154,6 @@
 
 </div>
 
-@include('components.customer.footer')
 <style>
     .about-text{
         font-family: 'Reenie Beanie';

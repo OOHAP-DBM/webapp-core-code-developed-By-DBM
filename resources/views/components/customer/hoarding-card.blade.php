@@ -98,7 +98,7 @@
                 <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
                     <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
                 </svg>
-                <span class="text-xs font-semibold text-gray-700 ml-1">4.5</span>
+                <span class="text-xs font-semibold text-gray-700 ml-1">0</span>
             </div>
         </div>
 
@@ -118,7 +118,7 @@
                 <span class="text-xl font-bold text-gray-900">
                     ₹{{ number_format($hasSale ? $sale : $base, 0) }}
                 </span>
-                <span class="text-sm text-gray-500 ml-1">/Month</span>
+                <span class="text-lg text-black ml-1">/Month</span>
             </div>
 
             {{-- CUT PRICE + DISCOUNT (ONLY IF REAL SALE) --}}
@@ -144,7 +144,7 @@
                     <span class="text-xl font-bold text-gray-900">
                         ₹{{ number_format(optional($hoarding->doohScreen)->price_per_slot) }}
                     </span>
-                    <span class="text-sm text-gray-500 ml-1">/Second</span>
+                    <span class="text-lg text-black ml-1">/Second</span>
                 </div>
             @endif
 
@@ -180,7 +180,7 @@
         @if($packageCount > 0)
             <p class="text-xs text-teal-600 font-medium mb-3">{{ $packageCount }} {{ Str::plural('Package', $packageCount) }} Available</p>
         @else
-            <p class="text-xs text-gray-500 font-medium mb-3">No packages are in this hoarding</p>
+            <p class="text-xs text-teal-600 font-medium mb-3">No packages are in this hoarding</p>
         @endif
 
         <!-- Action Buttons -->
@@ -209,10 +209,13 @@
                     data-grace-days="{{ (int) $hoarding->grace_period_days }}"
                     data-base-price="{{ ($hoarding->hoarding_type === 'dooh')
                         ? ($hoarding->doohScreen->price_per_slot ?? 0)
-                        : ($hoarding->monthly_price ?? 0)
+                        : ((!empty($hoarding->monthly_price) && $hoarding->monthly_price > 0)
+                            ? $hoarding->monthly_price
+                            : ($hoarding->base_monthly_price ?? 0))
                     }}"
+                    data-base-monthly-price="{{ $hoarding->base_monthly_price ?? 0 }}"
                     data-hoarding-type="{{ $hoarding->hoarding_type}}"
-                    >
+                >
                     Enquiry Now
                 </button>
             @else
@@ -220,18 +223,16 @@
                     type="button"
                     class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded"
                     onclick="event.stopPropagation(); event.preventDefault(); window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
-                    >
+                >
                     Enquiry Now
                 </button> 
             @endauth
         </div>
-
-
         <!-- Enquire Link -->
         <!-- <a href="#" class="block text-center text-xs text-teal-600 hover:text-teal-700 font-medium" onclick="event.stopPropagation();">
             Enquire Now
         </a> -->
-    </div>
+</div>
 
 </div>
 

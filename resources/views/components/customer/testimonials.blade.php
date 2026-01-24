@@ -75,26 +75,32 @@
             {{-- Left Arrow --}}
             <button onclick="prevTestimonial()"
                 class="absolute left-0 top-1/2 -translate-y-1/2
-                       bg-white/80 backdrop-blur shadow-xl
-                       rounded-full w-11 h-11
-                       flex items-center justify-center
-                       text-xl text-gray-700
-                       opacity-0 group-hover:opacity-100
-                       transition">
+                    bg-white/80 backdrop-blur
+                    rounded-full w-11 h-11
+                    flex items-center justify-center
+                    text-xl text-gray-700
+                    opacity-0 group-hover:opacity-100
+                    shadow-[0_6px_18px_rgba(0,0,0,0.35)]
+                    hover:shadow-[0_10px_28px_rgba(0,0,0,0.45)]
+                    transition-all duration-300">
                 ‹
             </button>
+
 
             {{-- Right Arrow --}}
             <button onclick="nextTestimonial()"
                 class="absolute right-0 top-1/2 -translate-y-1/2
-                       bg-white/80 backdrop-blur shadow-xl
-                       rounded-full w-11 h-11
-                       flex items-center justify-center
-                       text-xl text-gray-700
-                       opacity-0 group-hover:opacity-100
-                       transition">
+                    bg-white/80 backdrop-blur
+                    rounded-full w-11 h-11
+                    flex items-center justify-center
+                    text-xl text-gray-700
+                    opacity-0 group-hover:opacity-100
+                    shadow-[0_6px_18px_rgba(0,0,0,0.35)]
+                    hover:shadow-[0_10px_28px_rgba(0,0,0,0.45)]
+                    transition-all duration-300">
                 ›
             </button>
+
 
         </div>
     </div>
@@ -102,61 +108,113 @@
 <script>
     let testimonialIndex = 0;
     let autoInterval;
+
     const track = document.getElementById('testimonialTrack');
-    const slides = [...track.children];
+
+    const getSlides = () => [...track.children];
+
     const visibleSlides = () => {
         if (window.innerWidth >= 1024) return 3;
         if (window.innerWidth >= 768) return 2;
         return 1;
     };
-    slides.slice(0, 3).forEach(slide => {
-        track.appendChild(slide.cloneNode(true));
-    });
-    function slideWidth() {
-        return slides[0].offsetWidth + 24; // gap-6
-    }
-    function updateTestimonial(animate = true) {
-        track.style.transition = animate ? 'transform 0.8s cubic-bezier(.4,0,.2,1)' : 'none';
-        track.style.transform = `translateX(-${testimonialIndex * slideWidth()}px)`;
 
-        [...track.children].forEach((slide, i) => {
-            const card = slide.querySelector('div.relative');
-            const centerIndex = testimonialIndex + Math.floor(visibleSlides() / 2);
+    const slideWidth = () => {
+        const slide = track.children[0];
+        return slide ? slide.offsetWidth + 24 : 0; // gap-6 = 24px
+    };
 
-            if (i === centerIndex) {
+    // 🔁 Clone first slides for infinite effect
+    const initClones = () => {
+        const slides = getSlides();
+        const cloneCount = visibleSlides();
+
+        slides.slice(0, cloneCount).forEach(slide => {
+            track.appendChild(slide.cloneNode(true));
+        });
+    };
+
+    const updateTestimonial = (animate = true) => {
+    const slides = getSlides();
+    const slideW = slideWidth();
+    const containerCenter =
+        (testimonialIndex * slideW) + (slideW * visibleSlides() / 2);
+
+    track.style.transition = animate
+        ? 'transform 0.8s cubic-bezier(.4,0,.2,1)'
+        : 'none';
+
+    track.style.transform = `translateX(-${testimonialIndex * slideW}px)`;
+
+    slides.forEach((slide, i) => {
+        const card = slide.querySelector('div.relative');
+
+        // slide ka center position
+        const slideCenter = (i * slideW) + (slideW / 2);
+
+        // distance from viewport center
+        const distance = Math.abs(slideCenter - containerCenter);
+
+            if (distance < slideW / 2) {
+                // ✅ ONLY TRUE CENTER SLIDE
                 card.classList.add('scale-105', 'opacity-100', 'shadow-2xl');
                 card.classList.remove('scale-95', 'opacity-70');
-            } else {
-                card.classList.remove('scale-105', 'opacity-100', 'shadow-2xl');
-                card.classList.add('scale-95', 'opacity-70');
-            }
-        });
-    }
+                } else {
+                    // ❌ ALL OTHERS NORMAL
+                    card.classList.remove('scale-105', 'opacity-100', 'shadow-2xl');
+                    card.classList.add('scale-95', 'opacity-70');
+                }
+            });
+        };
+
+
     function nextTestimonial() {
         testimonialIndex++;
         updateTestimonial();
 
-        // 🧠 Silent reset
-        if (testimonialIndex >= slides.length) {
+        const total = getSlides().length;
+        const resetPoint = total - visibleSlides();
+
+        if (testimonialIndex >= resetPoint) {
             setTimeout(() => {
                 testimonialIndex = 0;
                 updateTestimonial(false);
             }, 800);
         }
     }
+
+    function prevTestimonial() {
+        if (testimonialIndex === 0) {
+            testimonialIndex = getSlides().length - visibleSlides();
+            updateTestimonial(false);
+        }
+        testimonialIndex--;
+        updateTestimonial();
+    }
+
     function startAutoScroll() {
+        stopAutoScroll();
         autoInterval = setInterval(nextTestimonial, 3500);
     }
+
     function stopAutoScroll() {
         clearInterval(autoInterval);
     }
+
+    // 🧠 Events
     track.parentElement.addEventListener('mouseenter', stopAutoScroll);
     track.parentElement.addEventListener('mouseleave', startAutoScroll);
+
     window.addEventListener('load', () => {
-        updateTestimonial();
+        initClones();
+        updateTestimonial(false);
         startAutoScroll();
     });
-    window.addEventListener('resize', updateTestimonial);
+
+    window.addEventListener('resize', () => {
+        testimonialIndex = 0;
+        updateTestimonial(false);
+    });
 </script>
 
 @endif

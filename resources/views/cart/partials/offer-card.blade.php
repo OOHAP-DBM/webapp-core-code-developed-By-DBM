@@ -1,19 +1,28 @@
 @php
-    // Calculate prices first
+    $duration = $pkg->duration ?? ($pkg->min_booking_duration ?? 1);
+    $discountPercent = $pkg->discount_percent ?? 0;
+
     if (($item->hoarding_type ?? null) === 'ooh') {
         $basePrice = $item->base_monthly_price ?? 0;
+        $totalBase = $basePrice * $duration;
+        $discountAmount = $totalBase * $discountPercent / 100;
+        $finalPrice = $totalBase - $discountAmount;
+        $saveAmount = $discountAmount;
     } elseif (($item->hoarding_type ?? null) === 'dooh') {
         $basePrice = $item->slot_price ?? 0;
         if ($basePrice == 0) {
-            // Fallback to base_monthly_price if slot_price is 0
             $basePrice = $item->base_monthly_price ?? 0;
         }
+        $totalBase = $basePrice;
+        $discountAmount = $totalBase * $discountPercent / 100;
+        $finalPrice = $totalBase - $discountAmount;
+        $saveAmount = $discountAmount;
     } else {
         $basePrice = 0;
+        $totalBase = 0;
+        $finalPrice = 0;
+        $saveAmount = 0;
     }
-    $discountPercent = $pkg->discount_percent ?? 0;
-    $finalPrice = \Modules\Cart\Services\CartService::calculateDiscountedPrice($basePrice, $discountPercent);
-    $saveAmount = $basePrice - $finalPrice;
 @endphp
 
 <!-- Debug: DOOH package info -->

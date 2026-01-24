@@ -130,10 +130,23 @@
                 </p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                     @foreach($item->packages as $pkg)
+                        @php
+                            $duration = $pkg->duration ?? 1;
+                            $percent = $pkg->percent ?? 0;
+                            $basePrice = $item->base_monthly_price ?? 0;
+                            $packagePrice = $basePrice * $duration;
+                            $discountAmount = 0;
+                            if($percent > 0){
+                                $discountAmount = $packagePrice * $percent / 100;
+                                $packagePrice = $packagePrice - $discountAmount;
+                            }
+                        @endphp
                         @include('cart.partials.offer-card', [
                             'pkg' => $pkg,
                             'item' => $item,
-                            'selected' => isset($item->selected_package) && $item->selected_package && $item->selected_package->id == $pkg->id
+                            'selected' => isset($item->selected_package) && $item->selected_package && $item->selected_package->id == $pkg->id,
+                            'packagePrice' => $packagePrice,
+                            'discountAmount' => $discountAmount
                         ])
                     @endforeach
                 </div>
@@ -143,22 +156,28 @@
             {{-- OOH --}}
             @if($item->hoarding_type === 'ooh')
                 <div>
-                    @if($item->base_monthly_price > $item->monthly_price)
+                    @php
+                        $finalPrice = !empty($item->monthly_price) && $item->monthly_price > 0
+                            ? $item->monthly_price
+                            : ($item->base_monthly_price ?? 0);
+                    @endphp
+
+                    @if(!empty($item->base_monthly_price) && $item->base_monthly_price > $finalPrice)
                         <p
                             id="base-price-{{ $item->hoarding_id }}"
                             data-base-price="{{ $item->base_monthly_price }}"
-                            class="text-sm text-gray-400 line-through {{ $item->base_monthly_price > $item->monthly_price ? '' : 'hidden' }}"
-                            >
+                            class="text-sm text-gray-400 line-through"
+                        >
                             ₹{{ number_format($item->base_monthly_price) }}
                         </p>
-
                     @endif
+
                     <p
                         id="final-price-{{ $item->hoarding_id }}"
-                        data-default-price="{{ $item->monthly_price }}"
+                        data-default-price="{{ $finalPrice }}"
                         class="text-lg font-semibold text-gray-900"
-                        >                            
-                        ₹{{ number_format($item->monthly_price) }}
+                    >
+                        ₹{{ number_format($finalPrice) }}
                         <span class="text-sm text-gray-400">/ Month</span>
                     </p>
                 </div>
