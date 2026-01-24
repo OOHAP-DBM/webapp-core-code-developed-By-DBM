@@ -110,10 +110,20 @@
         <div class="relative bg-white w-full max-w-4xl mx-auto mt-8 rounded-xl shadow-xl overflow-hidden">
 
             {{-- HEADER --}}
-            <div class="flex items-center justify-between px-6 py-4 shadow">
-                <h2 class="text-lg font-semibold">Filters</h2>
-                <button type="button" onclick="closeFilterModal()" class="text-xl">&times;</button>
+            <div class="relative flex items-center px-6 py-4 shadow">
+                <h2 class="text-lg font-semibold absolute left-1/2 -translate-x-1/2">
+                    Filters
+                </h2>
+
+                <button
+                    type="button"
+                    onclick="closeFilterModal()"
+                    class="ml-auto text-xl"
+                >
+                    &times;
+                </button>
             </div>
+
 
             {{-- BODY --}}
             <div class="p-6 max-h-[75vh] overflow-y-auto space-y-8">
@@ -300,6 +310,7 @@
                 <section class="space-y-4">
                     <h3 class="text-lg font-semibold">Hoarding Size</h3>
                     <p class="text-sm text-gray-500">Select Hoarding Size</p>
+                    <p>Minimum Size</p>
 
                     {{-- SLIDER --}}
                     <div class="relative mt-6">
@@ -331,7 +342,7 @@
                     {{-- INPUTS --}}
                     <div class="grid grid-cols-2 gap-6 text-sm mt-6">
                         <div>
-                            <label class="block text-gray-500 mb-1">Minimum Size</label>
+                            <label class="block text-gray-500 mb-1">Select Minimum height</label>
                             <input
                                 type="number"
                                 name="min_height"
@@ -343,7 +354,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-gray-500 mb-1">Maximum Size</label>
+                            <label class="block text-gray-500 mb-1">Select Minimum height</label>
                             <input
                                 type="number"
                                 name="max_height"

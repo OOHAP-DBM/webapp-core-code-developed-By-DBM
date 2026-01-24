@@ -1,11 +1,12 @@
- <div id="listView" class="bg-gray-100 min-h-screen">
-        <div class="max-w-[1460px] mx-auto px-6 py-6">
+<div id="listView" class="bg-gray-100 ">
+    <div class="max-w-[1460px] mx-auto px-6 py-6">
 
-            <h2 class="text-sm text-gray-700 mb-4">
+        @if($results->total() > 0)
+            <h2 class="text-lg text-black font-semibold mb-4">
                 {{ $results->total() }} Hoardings in {{ request('location') ?? 'India' }}
             </h2>
 
-            @forelse($results as $item)
+            @foreach($results as $item)
                  @php
                     $images = collect($item->images ?? []);
 
@@ -24,7 +25,9 @@
                             ->take(4)
                         : collect();
                 @endphp
-                <div class="bg-[#f0f0f0] rounded-xl p-5 mb-5 flex flex-col">
+            <div class="bg-[#f0f0f0] rounded-xl p-5 mb-5 flex flex-col cursor-pointer"
+                onclick="if(event.target.closest('button, a') === null)
+                        window.location.href='{{ route('hoardings.show', $item->id) }}';">
                     <div class="flex gap-6 items-stretch flex-1">
 
                         {{-- IMAGE --}}
@@ -146,7 +149,7 @@
                                     @endif
                                 </span>
 
-                                <span class="text-sm text-gray-500">
+                                <span class="text-lg text-black text-bold">
                                     @if($item->hoarding_type === 'dooh')
                                         /Second
                                     @elseif(request('duration') === 'weekly')
@@ -216,25 +219,88 @@
                                     >
                                     </button>
 
-                                    <a class="block text-xs text-yellow-600 mt-1 italic underline whitespace-nowrap text-left">Enquire Now</a>
                                 </div>
                                 <!-- Book Now -->
                                 <div>
-                                    <button class="bg-green-600 text-white px-5 py-2 rounded-md text-sm whitespace-nowrap min-w-[110px]">
-                                        Book Now
+                                 @auth
+                                    <button
+                                        type="button"
+                                        class="inline-flex whitespace-nowrap py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn"
+                                        data-hoarding-id="{{ $item->id }}"
+                                        data-grace-days="{{ isset($item->grace_period_days) ? (int) $item->grace_period_days : 0 }}"
+
+                                        {{-- BASE PRICE (used for dropdown base option) --}}
+                                        data-base-price="{{ ($item->hoarding_type === 'dooh')
+                                            ? ($item->price ?? 0)
+                                            : ((!empty($item->monthly_price) && $item->monthly_price > 0)
+                                                ? $item->monthly_price
+                                                : ($item->base_monthly_price ?? 0))
+                                        }}"
+
+                                        {{-- ALWAYS BASE MONTHLY PRICE (for OOH package discount calc) --}}
+                                        data-base-monthly-price="{{ $item->base_monthly_price ?? 0 }}"
+
+                                        data-hoarding-type="{{ $item->hoarding_type }}"
+                                    >
+                                        Enquiry Now
                                     </button>
+                                @else
+                                    <button
+                                        type="button"
+                                        class="inline-flex whitespace-nowrap py-2 px-3 btn-color text-white text-sm font-semibold rounded"
+                                        onclick="event.stopPropagation(); event.preventDefault();
+                                                window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
+                                    >
+                                        Enquiry Now
+                                    </button>
+                                @endauth
                                 </div>
 
                             </div>
                         </div>
                     </div>
                 </div>
-             @empty
-                <div class="bg-white p-8 text-center text-gray-500 rounded border">
-                    No hoardings found.
-                </div>
-            @endforelse
+             @endforeach
 
-            {{ $results->links() }}
-        </div>
+            @if($results->total() > $results->perPage())
+                <div class="mt-6 flex justify-center">
+                    {{ $results->links() }}
+                </div>
+            @endif
+        @else
+            <div class="bg-white p-8 text-center text-gray-500 rounded border">
+                No hoardings found.
+            </div>
+        @endif
+        @guest
+            <!-- Personalized Recommendations CTA -->
+            <div class="container mx-auto px-4">
+                <hr class="border-gray-200">
+            </div>
+            <section class="py-12 bg-gray-100">
+                    <div class="container mx-auto px-4 text-center">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">
+                            See Personalized Recommendations
+                        </h3>
+
+                            <div class="flex flex-col items-center justify-center space-y-4">
+                                <a href="{{ route('login') }}"
+                                class="px-24 py-3 bg-gray-900 text-white rounded font-semibold hover:bg-gray-800">
+                                    Login
+                                </a>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-gray-500">New on OOHAPP?</span>
+
+                                    <a href="{{ route('register.role-selection') }}"
+                                        class="text-[#008ae0] font-semibold border-b-1 border-[#008ae0] hover:border-[#006bb3] transition">
+                                            Signup
+                                    </a>
+                                </div>
+                            </div>
+                    </div>
+            </section>
+         
+        @endguest
+
+    </div>
 </div>

@@ -5,7 +5,10 @@
 @section('content')
 <div 
     class="max-w-full mx-auto px-2 py-8 space-y-6"
-    x-data="{ showModal: false, modalType: null }"
+    x-data="{
+        showModal: {{ $errors->has('current_password') ? 'true' : 'false' }},
+        modalType: {{ $errors->has('current_password') ? "'change-password'" : 'null' }}
+    }"
 >
 
     {{-- PERSONAL INFO --}}
@@ -233,9 +236,10 @@
                 @include('vendor.profile.modals.delete-account')
             </template>
 
-            <template x-if="modalType === 'change-password'">
+            <template x-if="modalType === 'change-password' || {{ $errors->has('current_password') ? 'true' : 'false' }}">
                 @include('vendor.profile.modals.change-password')
             </template>
+
 
         </div>
     </div>
