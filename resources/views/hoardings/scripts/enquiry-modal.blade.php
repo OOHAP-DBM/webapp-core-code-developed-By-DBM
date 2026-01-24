@@ -103,12 +103,13 @@ window.selectedPackageState = {
 
     document.addEventListener('click', function (e) {
         const btn = e.target.closest('.enquiry-btn');
+        const basePrice = btn.dataset.basePrice; // monthly_price ya base_monthly_price
+        const baseMonthlyPrice = btn.dataset.baseMonthlyPrice; // hamesha base_monthly_price
         if (!btn) return;
         e.preventDefault();
         e.stopPropagation();
         // Defensive: Only open modal if all required data is present
         const id = btn.dataset.hoardingId;
-        const basePrice = btn.dataset.basePrice;
         const hoardingType = btn.dataset.hoardingType;
         if (!id || !basePrice || !hoardingType) {
             console.error('[ERROR] Missing required data attributes for enquiry modal:', { id, basePrice, hoardingType });
@@ -117,6 +118,7 @@ window.selectedPackageState = {
         openEnquiryModal({
             id: id,
             basePrice: Number(basePrice),
+            baseMonthlyPrice: Number(btn.dataset.baseMonthlyPrice || 0), // <-- yeh line honi chahiye
             graceDays: Number(btn.dataset.graceDays || 0),
             type: hoardingType,
             count: 1
@@ -331,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ============================================================
    POPULATE PACKAGE OPTIONS (FROM API) WITH SELECT2
 ============================================================ */
-function populatePackageOptions(selectElement, packages, basePrice, hoardingType) {
+function populatePackageOptions(selectElement, packages, baseMonthlyPrice, hoardingType) {
     console.log('[DEBUG] populatePackageOptions called with packages:', packages);
 
     // Clear all options except the base price option
@@ -345,26 +347,22 @@ function populatePackageOptions(selectElement, packages, basePrice, hoardingType
             const option = document.createElement('option');
             option.value = pkg.id;
             const discountPercent = pkg.discount_percent || 0;
-            const finalPrice = pkg.price || 0;
-            
-            // Format text with HTML for badge (will be rendered by Select2)
-            // For DOOH: Don't show price, only show months and discount
-            // For OOH: Show price with months and discount
-            let optionText = '';
-            if (hoardingType === 'dooh') {
-                optionText = `${pkg.name} for ${pkg.months} Month${pkg.months > 1 ? 's' : ''} <span class="badge">SAVE ${discountPercent}%</span>`;
-            } else {
-                optionText = `${pkg.name} for ${pkg.months} Month${pkg.months > 1 ? 's' : ''} – ₹${number_format(finalPrice)} <span class="badge">SAVE ${discountPercent}%</span>`;
-            }
+            const months = pkg.months || pkg.duration || 1;
+
+            // Sahi calculation for OOH
+            let total = baseMonthlyPrice * months;
+            let discount = (discountPercent > 0) ? (total * discountPercent / 100) : 0;
+            let finalPrice = total - discount;
+
+            let optionText = `${pkg.name} for ${months} Month${months > 1 ? 's' : ''} – ₹${number_format(finalPrice)} <span class="badge">SAVE ${discountPercent}%</span>`;
 
             option.innerHTML = optionText;
-            option.dataset.price = finalPrice;  // CORRECT: Actual price, not discount
+            option.dataset.price = finalPrice;
             option.dataset.label = pkg.name;
-            option.dataset.months = pkg.months;
+            option.dataset.months = months;
             option.dataset.discountPercent = discountPercent;
             option.dataset.isActive = pkg.is_active ? '1' : '0';
             selectElement.appendChild(option);
-            console.log('[DEBUG] Added package option:', {id: pkg.id, name: pkg.name, price: finalPrice, months: pkg.months, discount: discountPercent, type: hoardingType});
         });
     } else {
         console.log('[DEBUG] No packages to display, only base price available');
@@ -450,7 +448,12 @@ window.openEnquiryModal = function (payload) {
                     if (doohNote) doohNote.style.display = 'none';
                 }
                 
-                populatePackageOptions(enquiryPackage, data.packages, payload.basePrice, apiHoardingType);
+                populatePackageOptions(
+                    enquiryPackage,
+                    data.packages,
+                    payload.baseMonthlyPrice || payload.basePrice,
+                    apiHoardingType
+                );
                 
                 // Wait for Select2 to be initialized before proceeding
                 setTimeout(() => {

@@ -82,8 +82,8 @@
                             <span class="text-gray-500">New on OOHAPP?</span>
 
                             <a href="{{ route('register.role-selection') }}"
-                            class="text-btn-color font-semibold transition-colors">
-                                Signup
+                                class="text-[#008ae0] font-semibold border-b-1 border-[#008ae0] hover:border-[#006bb3] transition">
+                                    Signup
                             </a>
                         </div>
                     </div>

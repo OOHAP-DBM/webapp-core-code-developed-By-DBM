@@ -108,7 +108,7 @@
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffc83d" class="w-3 h-3">
                                                 <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2" />
                                             </svg>
-                                            <span>{{ $item->rating ?? 4.5 }}</span>
+                                            <span>{{ $item->rating ?? 0 }}</span>
                                         </span>
                                     </div>
                                     <div class="my-2">
