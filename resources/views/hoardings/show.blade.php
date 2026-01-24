@@ -4,11 +4,10 @@
 @section('content')
 @include('components.customer.navbar')
 <style>
-    /* ===== GLOBAL ===== */
-    body { background:#fff; }
+    
 
     /* ===== WRAPPER ===== */
-    .hoarding-wrapper{
+    #hoarding-wrapper{
         max-width:1500px;
         margin:auto;
         padding:24px 16px;
@@ -111,7 +110,7 @@
 }
 
 </style>
-<div class="hoarding-wrapper">
+<div id="hoarding-wrapper">
 
     @include('hoardings.partials.gallery')
 
@@ -138,7 +137,6 @@
     </div>
 </div>
 
-@include('components.customer.footer')
 @endsection
 
 @push('scripts')

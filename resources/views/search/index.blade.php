@@ -107,6 +107,9 @@
 @extends('layouts.app')
 @section('title', 'Home - Seamless Hoarding Booking')
 @section('content')
+@php
+    $currentView = request('view', 'list');
+@endphp
 @include('components.customer.navbar')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -176,11 +179,28 @@
                 </div>
                 <div class="h-4 w-px bg-gray-300"></div>
                 {{-- Grid / List --}}
-                <div class="flex items-center gap-2 hidden sm:flex hidden md:flex">
-                    <span class="font-medium text-gray-900">Grid view</span>
+                <div class="flex items-center gap-2 hidden sm:flex md:flex">
+                    <a
+                        href="{{ request()->fullUrlWithQuery(['view' => 'list', 'page' => null]) }}"
+                        class="{{ $currentView === 'list'
+                            ? 'font-medium text-gray-900'
+                            : 'text-gray-400' }}"
+                    >
+                        List view
+                    </a>
+
                     <span class="text-gray-400">|</span>
-                    <span class="text-gray-400">List view</span>
+
+                    <a
+                        href="{{ request()->fullUrlWithQuery(['view' => 'grid', 'page' => null]) }}"
+                        class="{{ $currentView === 'grid'
+                            ? 'font-medium text-gray-900'
+                            : 'text-gray-400' }}"
+                    >
+                        Grid view
+                    </a>
                 </div>
+
                 <div class="h-4 w-px bg-gray-300"></div>
                 {{-- Filters --}}
                 <button class="underline underline-offset-4" onclick="openFilterModal()" style="cursor:pointer;">
@@ -212,9 +232,12 @@
         </div>
     </div>
 
-
+@if($currentView === 'grid')
+    @include('search.Grid_View')
+@else
+    @include('search.List_View')
+@endif
 @include('search.Map_View')
-@include('search.List_View')
 @include('search.filter_modal')
 <script>
     window.mapData = [
@@ -228,7 +251,17 @@
             {
                 lat: {{ (float)$item->lat }},
                 lng: {{ (float)$item->lng }},
-                price: {{ (int)($item->price ?? 0) }}
+                price: {{ 
+                    (int)(
+                        ($item->price ?? 0) > 0 
+                            ? $item->price 
+                            : (
+                                ($item->monthly_price ?? 0) > 0 
+                                    ? $item->monthly_price 
+                                    : ($item->base_monthly_price ?? 0)
+                              )
+                    )
+                }}
             },
             @endif
         @endforeach
@@ -360,5 +393,4 @@
         window.location.href = url.toString();
     }
 </script>
-    @include('components.customer.footer')
 @endsection

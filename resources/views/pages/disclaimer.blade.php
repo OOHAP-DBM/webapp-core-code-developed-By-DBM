@@ -26,7 +26,6 @@
 
 </div>
 
-@include('components.customer.footer')
 <style>
     hr {
         border: none;

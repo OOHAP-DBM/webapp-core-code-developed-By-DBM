@@ -303,5 +303,4 @@
 
 </div>
 
-@include('components.customer.footer')
 @endsection

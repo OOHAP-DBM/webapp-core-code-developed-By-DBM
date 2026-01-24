@@ -29,6 +29,8 @@
 
         <!-- Footer -->
         {{-- @include('layouts.partials.footer') --}}
+        @include('components.customer.footer')
+
     </div>
 
     @stack('modals')
