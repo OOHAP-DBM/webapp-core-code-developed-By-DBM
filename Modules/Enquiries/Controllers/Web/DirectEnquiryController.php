@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Modules\Enquiries\Controllers\Web;
 
 use Illuminate\Http\Request;
 use App\Models\DirectEnquiry;

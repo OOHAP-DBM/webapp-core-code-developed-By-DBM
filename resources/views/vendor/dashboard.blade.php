@@ -38,12 +38,22 @@
         ========================= */
     @endphp
     <!-- HEADER -->
-    <div class="flex justify-between items-center mb-6">
+
+       <div class=" flex justify-between items-center  mb-6 px-2"> 
+            <h2 class="font-['Poppins'] font-medium text-[18px] leading-[27px] text-[#464E5F]">
+                {{ \App\Helpers\GreetingHelper::getGreeting() }}, 
+                <span class="text-blue-600 font-semibold">
+                    {{ auth()->user()->name ?? 'Vendor' }}!
+                </span> 
+            </h2>
+            <a href="{{ route('vendor.hoardings.add') }}" class="bg-black text-white px-4 py-2 rounded-lg text-sm">+ Add Hoarding</a>
+        </div>
+    <!-- <div class="mb-6">
         <h2 class="text-lg text-gray-700">
             Good Morning, <span class="text-blue-600 font-semibold">{{ auth()->user()->name ?? 'Vendor' }}</span>!
         </h2>
-        <a href="{{ route('vendor.hoardings.add') }}" class="bg-black text-white px-4 py-2 rounded-lg text-sm">+ Add Hoarding</a>
-    </div>
+        
+    </div> -->
     <!-- STATISTICS -->
     <div class="bg-white rounded-xl shadow p-6 mb-6">
         <h3 class="text-lg font-semibold mb-4">Statistics</h3>

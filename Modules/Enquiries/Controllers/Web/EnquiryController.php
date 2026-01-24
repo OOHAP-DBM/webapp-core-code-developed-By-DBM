@@ -1,6 +1,5 @@
 <?php
 
-namespace App\Http\Controllers\Web\Customer;
 namespace Modules\Enquiries\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Hoarding;

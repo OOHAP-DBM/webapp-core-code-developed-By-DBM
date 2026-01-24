@@ -8,7 +8,6 @@
 
     <!-- Hero Banner -->
     @include('components.customer.hero-banner')
-    @include('home.home_contact_enquiry')
     <!-- Search Section -->
     {{-- @include('components.customer.search-bar') --}}
 
@@ -95,6 +94,8 @@
        </div>
     @endguest
 
+    @include('home.home_contact_enquiry')
+    
      <!-- Top DOOH Section -->
     {{-- <section class="py-16 bg-gray-50">
         <div class="container mx-auto px-4">
