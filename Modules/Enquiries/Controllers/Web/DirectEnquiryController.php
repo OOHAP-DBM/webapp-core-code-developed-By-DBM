@@ -1,101 +1,113 @@
 <?php
+
 namespace Modules\Enquiries\Controllers\Web;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Enquiries\Models\DirectEnquiry;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Modules\Enquiries\Mail\AdminDirectEnquiryMail;
-use App\Notifications\AdminDirectEnquiryNotification;
-use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
+use App\Services\OTPService;
+use Modules\Enquiries\Models\DirectEnquiry;
+use Modules\Enquiries\Mail\AdminDirectEnquiryMail;
 use Modules\Enquiries\Mail\UserDirectEnquiryConfirmation;
+use App\Notifications\AdminDirectEnquiryNotification;
+use App\Models\User;
 
 class DirectEnquiryController extends Controller
 {
-  
-    /**
-     * Regenerate captcha for AJAX
-     */
-    public function regenerateCaptcha(Request $request)
+    public function regenerateCaptcha()
     {
         $num1 = rand(1, 9);
         $num2 = rand(1, 9);
         session(['captcha_answer' => $num1 + $num2]);
-        return response()->json([
-            'num1' => $num1,
-            'num2' => $num2
-        ]);
+        return response()->json(compact('num1','num2'));
     }
-    /**
-     * Handle the form submission
-     */
+
+   public function sendOtp(Request $request, OTPService $otpService)
+    {
+        $request->validate(['identifier' => 'required|string']);
+
+        $identifier = $request->identifier;
+
+        // Create guest user if not logged in
+        $user = Auth::user() ?? User::firstOrCreate(
+            filter_var($identifier, FILTER_VALIDATE_EMAIL) ? ['email' => $identifier] : ['phone' => $identifier],
+            ['status' => 'pending_verification']
+        );
+
+        // Rate limit check
+        $recentOtp = DB::table('user_otps')
+            ->where('identifier', $identifier)
+            ->where('purpose', 'direct_enquiry')
+            ->latest()
+            ->first();
+
+        if ($recentOtp && now()->diffInSeconds($recentOtp->created_at) < 500) {
+            return response()->json(['message' => 'Please wait before requesting another OTP'], 429);
+        }
+
+        $otpService->generate($user->id, $identifier, 'direct_enquiry');
+
+        return response()->json(['success' => true, 'message' => 'OTP sent successfully']);
+    }
+
+
+    public function verifyOtp(Request $request, OTPService $otpService)
+    {
+        $request->validate(['identifier'=>'required|string','otp'=>'required|digits:4']);
+        $user = Auth::user() ?? User::where('email',$request->identifier)->orWhere('phone',$request->identifier)->first();
+        if(!$user) return response()->json(['success'=>false],404);
+
+        $verified = $otpService->verify($user->id,$request->identifier,$request->otp,'direct_enquiry');
+        if(!$verified) return response()->json(['success'=>false,'message'=>'Invalid or expired OTP'],422);
+
+        DirectEnquiry::where(filter_var($request->identifier, FILTER_VALIDATE_EMAIL) ? 'email':'phone',$request->identifier)
+            ->update([filter_var($request->identifier, FILTER_VALIDATE_EMAIL)?'is_email_verified':'is_phone_verified'=>true]);
+
+        return response()->json(['success'=>true]);
+    }
+
     public function store(Request $request)
     {
-            \Log::info("Direct Enquiry Captcha Failed: Expected " . session('captcha_answer') . ", Got " . $request->captcha);
-
-        // 1. Create Validator Instance (Manual instance is required for AJAX)
-        $validator = Validator::make($request->all(), [
-            'name'              => 'required|string|max:255|min:3',
-            'email'             => 'required|email|max:255',
-            'phone'             => 'required|numeric|digits:10',
-            'location_city'     => 'required|string|max:255',
-            'hoarding_type'     => 'required|string',
-            'hoarding_location' => 'required|string',
-            'remarks'           => 'nullable|string|max:1000',
-            'captcha'           => 'required|numeric',
+        $validator = Validator::make($request->all(),[
+            'name'=>'required|min:3',
+            'email'=>'required|email',
+            'phone'=>'required|digits:10',
+            'hoarding_type'=>'required|array|min:1',
+            'remarks'=>'required|min:5',
+            'captcha'=>'required|numeric'
+            
         ]);
 
-        // 2. Return JSON if validation fails (Prevents 302 Redirect)
-        if ($validator->fails()) {
-                    // Log("Direct Enquiry Validation Failed: " . json_encode($validator->errors()));
+        if($validator->fails()) return response()->json(['errors'=>$validator->errors()],422);
 
-                    return response()->json(['errors' => $validator->errors()], 422);
-                }
-            if ((int) $request->captcha !== (int) session('captcha_answer')) {
-            // Session::forget('captcha_answer'); // 🔥 ADD THIS
-
-            return response()->json([
-                'errors' => [
-                    'captcha' => ['Invalid security answer. Please enter the correct answer.']
-                ]
-            ], 422);
+        if((int)$request->captcha !== (int)session('captcha_answer')) {
+            return response()->json(['errors'=>['captcha'=>['Invalid captcha']]],422);
         }
 
-        try {
-            // 4. Save to Database
-            $data = $validator->validated();
-            unset($data['captcha']);
+        // Check OTP
+        $emailVerified = DB::table('user_otps')->where('identifier',$request->email)->where('purpose','direct_enquiry')->whereNotNull('verified_at')->exists();
+        $phoneVerified = DB::table('user_otps')->where('identifier',$request->phone)->where('purpose','direct_enquiry')->whereNotNull('verified_at')->exists();
+        if(!$emailVerified || !$phoneVerified) return response()->json(['errors'=>['otp'=>['Verify email and phone first']]],422);
 
-            // FIX: Assign the result of create() to the variable $enquiry
-            $enquiry = DirectEnquiry::create($data);
-            // Log("Direct Enquiry Cted: ID ");
-            // 5. Send Email
-            // If your SMTP settings in .env are wrong, this is where the 500 error triggers
-            Mail::to($enquiry->email)->queue(new UserDirectEnquiryConfirmation($enquiry));
-            Mail::to('admin@oohapp.com')->queue(new AdminDirectEnquiryMail($enquiry));
+        $data = $validator->validated();
+        $data['hoarding_type'] = implode(',',$data['hoarding_type']);
+        unset($data['captcha']);
 
-            // 6. Send Dashboard Notification
-            $admins = User::where('active_role', 'admin')->get();
-            Notification::send($admins, new AdminDirectEnquiryNotification($enquiry));
+        $enquiry = DirectEnquiry::create([
+            ...$data,
+            'is_email_verified'=>true,
+            'is_phone_verified'=>true
+        ]);
 
-            // 7. Success Flow
-            Session::forget('captcha_answer');
+        Mail::to($enquiry->email)->queue(new UserDirectEnquiryConfirmation($enquiry));
+        Mail::to('admin@oohapp.com')->queue(new AdminDirectEnquiryMail($enquiry));
+        Notification::send(User::where('active_role','admin')->get(), new AdminDirectEnquiryNotification($enquiry));
+        session()->forget('captcha_answer');
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Thank you! Your enquiry has been submitted successfully.'
-            ], 200);
-        } catch (\Exception $e) {
-            // This logs the actual error (e.g., "Undefined variable $enquiry" or "Connection refused")
-            \Log::error("Direct Enquiry Error: " . $e->getMessage());
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Internal Server Error: ' . $e->getMessage() // TEMPORARY: Add $e->getMessage() to see the error in your browser console
-            ], 500);
-        }
+        return response()->json(['success'=>true]);
     }
-    
 }

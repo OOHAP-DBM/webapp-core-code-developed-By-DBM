@@ -24,7 +24,7 @@ use Modules\Enquiries\Controllers\Web\DirectEnquiryController;
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 
-Route::post('/direct-enquiry/captcha', [DirectEnquiryController::class, 'regenerateCaptcha'])->name('direct.enquiry.captcha');
+Route::get('/direct-enquiry/captcha', [DirectEnquiryController::class, 'regenerateCaptcha'])->name('direct.enquiry.captcha');
 
 // The page where the form lives
 Route::get('/direct-enquiry', function () {
@@ -32,6 +32,16 @@ Route::get('/direct-enquiry', function () {
 })->name('direct.enquiry.show.form');
 // Route::get('/direct-enquiry', [DirectEnquiryController::class, 'showForm'])->name('direct.enquiry.show.form');
 // The submission logic
+Route::post('/direct-enquiry/otp/send', [
+    DirectEnquiryController::class,
+    'sendOtp'
+])->name('direct.enquiry.otp.send');
+
+Route::post('/direct-enquiry/otp/verify', [
+    DirectEnquiryController::class,
+    'verifyOtp'
+])->name('direct.enquiry.otp.verify');
+
 Route::post('/direct-enquiry/submit', [DirectEnquiryController::class, 'store'])->name('direct.enquiry.submit');
 
 // ADMIN POS WEB ROUTES

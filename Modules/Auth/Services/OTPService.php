@@ -197,7 +197,7 @@ class OTPService
         }
 
         // Check if OTP was recently sent (rate limiting)
-        if ($user->otp_expires_at && $user->otp_expires_at->isFuture() && $user->otp_expires_at->diffInMinutes(now()) > 8) {
+        if ($user->otp_expires_at && $user->otp_expires_at->isFuture() && $user->otp_expires_at->diffInMinutes(now()) > 500) {
             return [
                 'success' => false,
                 'message' => 'Please wait before requesting a new OTP',
@@ -322,6 +322,8 @@ class OTPService
         ])->delete();
 
         $otp = random_int(1000, 9999);
+        // $otp = 1234; // For testing
+
 
         UserOtp::create([
             'user_id' => $userId,

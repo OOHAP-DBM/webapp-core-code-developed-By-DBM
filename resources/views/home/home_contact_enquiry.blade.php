@@ -1,12 +1,9 @@
-@php
-    $num1 = $num1 ?? rand(1, 9);
-    $num2 = $num2 ?? rand(1, 9);
 
-    session(['captcha_answer' => $num1 + $num2]);
-@endphp
-<div id="directEnquiryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden  p-4">
+<!-- Direct Enquiry Modal -->
+<div id="directEnquiryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden p-4">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden max-h-[90vh] overflow-y-auto">
         
+        <!-- Header -->
         <div class="bg-[#009A5C] p-6 text-white flex justify-between items-center sticky top-0 z-10">
             <div>
                 <h3 class="text-xl font-bold">Direct Enquiry</h3>
@@ -17,287 +14,211 @@
 
         <form id="directEnquiryForm" action="{{ route('direct.enquiry.submit') }}" method="POST" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
             @csrf
+
+            <!-- Full Name -->
             <div>
                 <label class="text-xs font-bold text-gray-500 uppercase">Full Name <span class="text-red-500">*</span></label>
                 <input type="text" name="name" required minlength="3" placeholder="Enter your name"
                     class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C] transition-colors">
             </div>
 
-           <div>
+            <!-- Phone -->
+            <div>
                 <label class="text-xs font-bold text-gray-500 uppercase">Phone Number <span class="text-red-500">*</span></label>
-                <input type="tel" 
-                       name="phone" 
-                       id="phoneInput"
-                       required 
-                       inputmode="numeric"
-                       pattern="[0-9]{10}" 
-                       maxlength="10"
-                       placeholder="10 digit mobile number"
-                       oninput="this.value = this.value.replace(/[^0-9]/g, '');"
-                       class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]">
+                <div class="flex gap-2 items-center">
+                    <input type="tel" id="phoneInput" name="phone" required maxlength="10" placeholder="10 digit mobile number" 
+                        class="flex-1 border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]">
+                    <button type="button" onclick="sendOTP('phone')" class="text-xs px-3 py-1 bg-[#009A5C] text-white rounded">Send OTP</button>
+                </div>
+                <input type="hidden" id="phone_verified" value="0">
             </div>
 
+            <!-- Email -->
             <div class="md:col-span-2">
                 <label class="text-xs font-bold text-gray-500 uppercase">Email Address <span class="text-red-500">*</span></label>
-                <input type="email" name="email" required placeholder="example@domain.com"
-                    class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C] transition-colors">
+                <div class="flex gap-2 items-center">
+                    <input type="email" id="emailInput" name="email" required placeholder="example@domain.com" 
+                        class="flex-1 border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]">
+                    <button type="button" onclick="sendOTP('email')" class="text-xs px-3 py-1 bg-[#009A5C] text-white rounded">Send OTP</button>
+                </div>
+                <input type="hidden" id="email_verified" value="0">
             </div>
 
-            <div>
-                <label class="text-xs font-bold text-gray-500 uppercase">City <span class="text-red-500">*</span></label>
-                <input type="text" name="location_city" required placeholder="e.g. Lucknow"
-                    class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C] transition-colors">
-            </div>
-
-            <div>
-                <label class="text-xs font-bold text-gray-500 uppercase">Hoarding Type</label>
-                <select name="hoarding_type" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C] bg-transparent">
-                    <option value="DOOH">DOOH (Digital)</option>
-                    <option value="Static">OOH (Static Hoarding)</option>
-                </select>
-            </div>
-
+            <!-- Hoarding Type -->
             <div class="md:col-span-2">
-                <label class="text-xs font-bold text-gray-500 uppercase">Preferred Location <span class="text-red-500">*</span></label>
-                <input type="text" name="hoarding_location" required placeholder="Area or Landmark"
-                    class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C] transition-colors">
+                <label class="text-xs font-bold text-gray-500 uppercase">Hoarding Type <span class="text-red-500">*</span></label>
+                <div class="flex gap-4 mt-2">
+                    <label class="inline-flex items-center gap-2">
+                        <input type="checkbox" name="hoarding_type[]" value="DOOH" class="accent-[#009A5C]"> DOOH (Digital)
+                    </label>
+                    <label class="inline-flex items-center gap-2">
+                        <input type="checkbox" name="hoarding_type[]" value="Static" class="accent-[#009A5C]"> OOH (Static Hoarding)
+                    </label>
+                </div>
             </div>
 
+            <!-- Preferred Locations -->
             <div class="md:col-span-2">
-                <label class="text-xs font-bold text-gray-500 uppercase">Your Requirements / Remarks</label>
-                <textarea name="remarks" rows="2" placeholder="Tell us more about your campaign needs..."
+                <label class="text-xs font-bold text-gray-500 uppercase">Preferred Hoarding Locations</label>
+                <div id="locationWrapper" class="flex flex-col gap-2">
+                    <input type="text" name="preferred_locations[]" placeholder="Enter location e.g. Hazratganj"
+                        class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]" />
+                </div>
+                <button type="button" onclick="addAnotherLocation()" class="mt-2 text-[#009A5C] font-semibold hover:underline">+ Add Another Location</button>
+            </div>
+
+            <!-- Remarks -->
+            <div class="md:col-span-2">
+                <label class="text-xs font-bold text-gray-500 uppercase">Your Requirements / Remarks <span class="text-red-500">*</span></label>
+                <textarea name="remarks" rows="2" placeholder="Write your requirements in detail..." required
                     class="w-full border-2 border-gray-50 rounded-xl p-3 mt-1 text-sm outline-none focus:border-[#009A5C] transition-colors"></textarea>
             </div>
 
-            <div class="md:col-span-2 bg-gray-50 p-4 rounded-xl flex items-center justify-between mt-2 border border-gray-100">
-                <span id="captchaText" class="text-sm font-bold text-gray-600 italic">Security Check: {{ $num1 }} + {{ $num2 }} =</span>
-                <input type="number" name="captcha" required class="w-20 p-2 rounded-lg border-2 border-white text-center font-bold focus:border-[#009A5C] outline-none shadow-sm">
+            <!-- Captcha -->
+            <div class="md:col-span-2 flex items-center gap-4">
+                <span id="captchaText" class="font-bold text-lg"></span>
+                <input type="number" name="captcha" required placeholder="Enter captcha"
+                    class="border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C] flex-1">
+                <button type="button" onclick="regenerateCaptcha()" class="text-sm text-[#009A5C] hover:underline">Refresh</button>
             </div>
+          
 
-            <button type="submit" id="submitBtn" class="md:col-span-2 bg-[#009A5C] text-white font-bold py-4 rounded-xl mt-4 shadow-lg active:scale-95 hover:bg-[#007a4a] transition-all">
-                Submit My Requirement
+            <!-- Submit -->
+            <button type="submit" id="submitBtn" disabled
+                class="md:col-span-2 bg-[#009A5C] text-white font-bold py-4 rounded-xl mt-4 shadow-lg disabled:opacity-50 hover:bg-[#007a4a] transition-all">
+                Submit Enquiry
             </button>
         </form>
     </div>
 </div>
 
-
-<div id="statusModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 hidden p-4">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden text-center p-8 transform transition-all">
-        <div id="successIcon" class="hidden mx-auto mb-4 items-center justify-center w-16 h-16 bg-green-100 text-green-500 rounded-full text-3xl">
-            ✓
+<!-- OTP Modal -->
+<div id="otpModal" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 hidden p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden text-center p-6">
+        <h3 class="text-lg font-bold mb-2">Enter OTP</h3>
+        <p class="text-sm text-gray-500 mb-4" id="otpForText"></p>
+        <input type="text" id="otpInput" maxlength="4" placeholder="Enter OTP"
+            class="w-full border px-3 py-2 rounded-xl mb-4 text-center outline-none focus:border-[#009A5C]">
+        <div class="flex gap-2 justify-center mb-4">
+            <button id="verifyOtpBtn" class="bg-[#009A5C] text-white font-bold py-2 px-6 rounded-xl hover:bg-[#007a4a]">Verify</button>
+            <button onclick="closeOtpModal()" class="bg-gray-300 text-gray-700 font-bold py-2 px-6 rounded-xl hover:bg-gray-400">Cancel</button>
         </div>
-        <div id="errorIcon" class="hidden mx-auto mb-4 items-center justify-center w-16 h-16 bg-red-100 text-red-500 rounded-full text-3xl">
-            ✕
-        </div>
-        
-        <h3 id="statusTitle" class="text-xl font-bold text-gray-800 mb-2"></h3>
-        <p id="statusMessage" class="text-sm text-gray-500 mb-6"></p>
-        
-        <button onclick="closeStatusModal()" class="w-full bg-[#009A5C] text-white font-bold py-3 rounded-xl shadow-lg hover:bg-[#007a4a] transition-all">
-            Continue
-        </button>
+        <span id="otpMessage" class="text-sm font-medium"></span>
     </div>
 </div>
 
 <script>
-// Logic to show/hide modals
-function showDirectEnquiryModal() {
-    var modal = document.getElementById('directEnquiryModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-    }
+const phoneInput = document.getElementById('phoneInput');
+const emailInput = document.getElementById('emailInput');
+const phoneVerifiedInput = document.getElementById('phone_verified');
+const emailVerifiedInput = document.getElementById('email_verified');
+const submitBtn = document.getElementById('submitBtn');
+const csrf = '{{ csrf_token() }}';
+let otpCooldown = false;
+let currentOtpType = null;
+let currentIdentifier = null;
+
+// Enable submit only if both verified
+function updateSubmit() {
+    submitBtn.disabled = !(phoneVerifiedInput.value === '1' && emailVerifiedInput.value === '1');
 }
+
+// Add another location
+function addAnotherLocation() {
+    const wrapper = document.getElementById('locationWrapper');
+    const input = document.createElement('input');
+    input.type='text';
+    input.name='preferred_locations[]';
+    input.placeholder='Enter location e.g. Aminabad';
+    input.className='w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]';
+    wrapper.appendChild(input);
+}
+
+// Toggle modal
 function toggleDirectEnquiryModal() {
-    document.getElementById('directEnquiryModal').classList.add('hidden');
-    localStorage.setItem('direct_enquiry_closed_at', Date.now());
+    document.getElementById('directEnquiryModal').classList.toggle('hidden');
 }
 
-function showStatusModal(isSuccess, title, message) {
-    const modal = document.getElementById('statusModal');
-    const sIcon = document.getElementById('successIcon');
-    const eIcon = document.getElementById('errorIcon');
-    // Set content
-    document.getElementById('statusTitle').innerText = title;
-    document.getElementById('statusMessage').innerText = message;
-    // Show correct icon
-    sIcon.style.display = isSuccess ? 'flex' : 'none';
-    eIcon.style.display = isSuccess ? 'none' : 'flex';
-    modal.classList.remove('hidden');
+// Captcha
+function regenerateCaptcha() {
+    fetch('{{ route("direct.enquiry.captcha") }}')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('captchaText').textContent = `${data.num1} + ${data.num2} = ?`;
+        });
 }
 
-function closeStatusModal() {
-    document.getElementById('statusModal').classList.add('hidden');
-    // If it was a success, reload the page to refresh captcha
-    if (document.getElementById('successIcon').style.display === 'flex') {
-       directEnquiryForm.reset(); 
-    }
+// ---------------------------
+// OTP FUNCTIONS
+// ---------------------------
+function showOtpModal(type, identifier) {
+    currentOtpType = type;
+    currentIdentifier = identifier;
+    document.getElementById('otpModal').classList.remove('hidden');
+    document.getElementById('otpInput').value = '';
+    document.getElementById('otpMessage').textContent = '';
+    document.getElementById('otpForText').textContent = 'OTP sent to your ' + (type==='phone' ? 'Phone' : 'Email') + ': ' + identifier;
 }
 
-// Phone Number numeric filter
-document.getElementById('phoneInput')?.addEventListener('input', function(e) {
-    this.value = this.value.replace(/[^0-9]/g, '');
-});
-
-// Auto-show timers
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => { autoShowModal(); }, 600); // 1 min
-    setInterval(() => { autoShowModal(); }, 120000); // 2 mins
-});
-
-function autoShowModal() {
-    const modal = document.getElementById('directEnquiryModal');
-    const lastClosed = localStorage.getItem('direct_enquiry_closed_at');
-    const cooldown = 10 * 60 * 1000;
-    if (modal.classList.contains('hidden')) {
-        if (!lastClosed || (Date.now() - lastClosed) > cooldown) {
-            modal.classList.remove('hidden');
-        }
-    }
+function closeOtpModal() {
+    document.getElementById('otpModal').classList.add('hidden');
+    currentOtpType = null;
+    currentIdentifier = null;
 }
 
-// Form Submission
-// document.getElementById('directEnquiryForm').addEventListener('submit', function(e) {
-//     e.preventDefault();
-//     const btn = document.getElementById('submitBtn');
-//     const originalText = btn.innerText;
-//     btn.disabled = true;
-//     btn.innerText = 'Processing...';
-//     fetch("{{ route('direct.enquiry.submit') }}", {
-//         method: 'POST',
-//         headers: {
-//             'X-CSRF-TOKEN': '{{ csrf_token() }}',
-//             'Accept': 'application/json',
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify(Object.fromEntries(new FormData(this)))
-//     })
-//     .then(async res => {
-//         const data = await res.json();
+// Send OTP
+function sendOTP(type) {
+    let identifier = type==='phone' ? phoneInput.value : emailInput.value;
+    if (!identifier) return alert('Enter ' + type);
+    if (otpCooldown) return alert('Please wait before resending OTP');
 
-//         // VALIDATION ERROR
-//         if (res.status === 422) {
-//             btn.disabled = false;
-//             btn.innerText = originalText;
+    otpCooldown = true;
+    // setTimeout(()=> otpCooldown=false, 60000);
+    setTimeout(()=> otpCooldown=false, 500);
 
-//             const firstError =
-//                 Object.values(data.errors)[0]?.[0] || 'Please check your input details.';
 
-//             showStatusModal(false, 'Validation Error', firstError);
-//             return;
-//         }
-
-//         // SERVER ERROR (500, 503, etc.)
-//         if (!res.ok) {
-//             btn.disabled = false;
-//             btn.innerText = originalText;
-
-//             showStatusModal(false, 'System Error', data.message || 'Something went wrong.');
-//             return;
-//         }
-
-//         // ✅ SUCCESS (200–299 only)
-//         document.getElementById('directEnquiryModal').classList.add('hidden');
-       
-//         showStatusModal(
-//             true,
-//             'Inquiry Sent!',
-//             'Thank you! Our team will contact you shortly regarding your requirements.'
-//         );
-
-//         // ✅ RESET FORM + BUTTON STATE
-//         const form = document.getElementById('directEnquiryForm');
-//         const btn  = document.getElementById('submitBtn');
-
-//         form.reset();
-//         btn.disabled = false;
-//         btn.innerText = 'Submit My Requirement';
-
-//         localStorage.setItem('direct_enquiry_closed_at', Date.now() + 86400000);
-//     })
-
-//     .catch(err => {
-//         btn.disabled = false;
-//         btn.innerText = originalText;
-//         showStatusModal(false, 'System Error', 'Something went wrong. Please try again later.');
-//     });
-// });
-
-document.getElementById('directEnquiryForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const btn = document.getElementById('submitBtn');
-    const originalText = btn.innerText;
-    if (btn.disabled) return;
-    btn.disabled = true;
-    btn.innerText = 'Processing...';
-
-    fetch("{{ route('direct.enquiry.submit') }}", {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(Object.fromEntries(new FormData(this)))
+    fetch('{{ route("direct.enquiry.otp.send") }}', {
+        method:'POST',
+        headers:{'X-CSRF-TOKEN': csrf,'Content-Type':'application/json'},
+        body: JSON.stringify({identifier})
     })
-    .then(async res => {
-        const data = await res.json();
+    .then(res=>res.json())
+    .then(res=>{
+        if(res.success){
+            alert('OTP sent!');
+            showOtpModal(type, identifier);
+        } else alert(res.message || 'Error sending OTP');
+    })
+    .catch(()=>alert('Error sending OTP'));
+}
 
-        // ❌ Validation error (422)
-        if (res.status === 422) {
-            btn.disabled = false;
-            btn.innerText = originalText;
-            const msg = Object.values(data.errors)[0]?.[0] || 'Invalid input.';
-            showStatusModal(false, 'Validation Error', msg);
-            // Refresh captcha on validation error as well
-            refreshDirectEnquiryCaptcha();
+// Verify OTP
+document.getElementById('verifyOtpBtn').addEventListener('click', ()=>{
+    const otp = document.getElementById('otpInput').value;
+    if(!otp) return alert('Enter OTP');
+
+    fetch('{{ route("direct.enquiry.otp.verify") }}',{
+        method:'POST',
+        headers:{'X-CSRF-TOKEN':csrf,'Content-Type':'application/json'},
+        body: JSON.stringify({identifier: currentIdentifier, otp})
+    })
+    .then(res=>res.json())
+    .then(data=>{
+        if(!data.success){
+            document.getElementById('otpMessage').textContent = data.message || 'Invalid OTP';
+            document.getElementById('otpMessage').classList.add('text-red-600');
             return;
         }
 
-        // ❌ Server error
-        if (!res.ok) {
-            btn.disabled = false;
-            btn.innerText = originalText;
-            showStatusModal(false, 'System Error', data.message || 'Something went wrong.');
-            return;
-        }
-
-        // ✅ SUCCESS
-        document.getElementById('directEnquiryModal').classList.add('hidden');
-        showStatusModal(
-            true,
-            'Inquiry Sent!',
-            'Thank you! Our team will contact you shortly.'
-        );
-        this.reset();
-        btn.disabled = false;
-        btn.innerText = originalText;
-        // Refresh captcha after success
-        refreshDirectEnquiryCaptcha();
+        if(currentOtpType==='phone') phoneVerifiedInput.value='1';
+        else emailVerifiedInput.value='1';
+        updateSubmit();
+        closeOtpModal();
+        alert('OTP Verified Successfully!');
     })
-    .catch(() => {
-        btn.disabled = false;
-        btn.innerText = originalText;
-        showStatusModal(false, 'System Error', 'Please try again later.');
-    });
+    .catch(()=>alert('Error verifying OTP'));
 });
 
-function refreshDirectEnquiryCaptcha() {
-    fetch("{{ route('direct.enquiry.captcha') }}", {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json',
-        },
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.num1 !== undefined && data.num2 !== undefined) {
-            document.getElementById('captchaText').textContent = `Security Check: ${data.num1} + ${data.num2} =`;
-            document.querySelector('input[name="captcha"]').value = '';
-        }
-    });
-}
-
+// Initial captcha
+regenerateCaptcha();
 </script>
