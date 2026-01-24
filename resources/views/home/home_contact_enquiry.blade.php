@@ -4,7 +4,7 @@
 
     session(['captcha_answer' => $num1 + $num2]);
 @endphp
-<div id="enquiryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden  p-4">
+<div id="directEnquiryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden  p-4">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden max-h-[90vh] overflow-y-auto">
         
         <div class="bg-[#009A5C] p-6 text-white flex justify-between items-center sticky top-0 z-10">
@@ -12,10 +12,10 @@
                 <h3 class="text-xl font-bold">Direct Enquiry</h3>
                 <p class="text-xs opacity-80">Please fill the details to get a quote.</p>
             </div>
-            <button onclick="toggleEnquiryModal()" class="text-2xl font-light hover:rotate-90 transition-transform">&times;</button>
+            <button onclick="toggleDirectEnquiryModal()" class="text-2xl font-light hover:rotate-90 transition-transform">&times;</button>
         </div>
 
-        <form id="enquiryForm" action="{{ route('direct.enquiry.submit') }}" method="POST" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form id="directEnquiryForm" action="{{ route('direct.enquiry.submit') }}" method="POST" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
             @csrf
             <div>
                 <label class="text-xs font-bold text-gray-500 uppercase">Full Name <span class="text-red-500">*</span></label>
@@ -102,9 +102,9 @@
 
 <script>
 // Logic to show/hide modals
-function toggleEnquiryModal() {
-    document.getElementById('enquiryModal').classList.add('hidden');
-    localStorage.setItem('enquiry_closed_at', Date.now());
+function toggleDirectEnquiryModal() {
+    document.getElementById('directEnquiryModal').classList.add('hidden');
+    localStorage.setItem('direct_enquiry_closed_at', Date.now());
 }
 
 function showStatusModal(isSuccess, title, message) {
@@ -127,7 +127,7 @@ function closeStatusModal() {
     document.getElementById('statusModal').classList.add('hidden');
     // If it was a success, reload the page to refresh captcha
     if (document.getElementById('successIcon').style.display === 'flex') {
-       enquiryForm.reset(); 
+       directEnquiryForm.reset(); 
     }
 }
 
@@ -143,8 +143,8 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function autoShowModal() {
-    const modal = document.getElementById('enquiryModal');
-    const lastClosed = localStorage.getItem('enquiry_closed_at');
+    const modal = document.getElementById('directEnquiryModal');
+    const lastClosed = localStorage.getItem('direct_enquiry_closed_at');
     const cooldown = 10 * 60 * 1000;
 
     if (modal.classList.contains('hidden')) {
@@ -155,7 +155,7 @@ function autoShowModal() {
 }
 
 // Form Submission
-document.getElementById('enquiryForm').addEventListener('submit', function(e) {
+document.getElementById('directEnquiryForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const btn = document.getElementById('submitBtn');
@@ -179,9 +179,9 @@ document.getElementById('enquiryForm').addEventListener('submit', function(e) {
             btn.innerText = originalText;
             showStatusModal(false, 'Validation Error', data.errors.captcha ? data.errors.captcha[0] : 'Please check your input details.');
         } else {
-            document.getElementById('enquiryModal').classList.add('hidden');
+            document.getElementById('directEnquiryModal').classList.add('hidden');
             showStatusModal(true, 'Inquiry Sent!', 'Thank you! Our team will contact you shortly regarding your requirements.');
-            localStorage.setItem('enquiry_closed_at', Date.now() + 86400000); 
+            localStorage.setItem('direct_enquiry_closed_at', Date.now() + 86400000); 
         }
     })
     .catch(err => {
