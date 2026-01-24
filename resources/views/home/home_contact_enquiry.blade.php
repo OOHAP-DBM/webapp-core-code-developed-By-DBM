@@ -70,7 +70,7 @@
             </div>
 
             <div class="md:col-span-2 bg-gray-50 p-4 rounded-xl flex items-center justify-between mt-2 border border-gray-100">
-                <span class="text-sm font-bold text-gray-600 italic">Security Check: {{ $num1 }} + {{ $num2 }} =</span>
+                <span id="captchaText" class="text-sm font-bold text-gray-600 italic">Security Check: {{ $num1 }} + {{ $num2 }} =</span>
                 <input type="number" name="captcha" required class="w-20 p-2 rounded-lg border-2 border-white text-center font-bold focus:border-[#009A5C] outline-none shadow-sm">
             </div>
 
@@ -102,6 +102,12 @@
 
 <script>
 // Logic to show/hide modals
+function showDirectEnquiryModal() {
+    var modal = document.getElementById('directEnquiryModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
 function toggleDirectEnquiryModal() {
     document.getElementById('directEnquiryModal').classList.add('hidden');
     localStorage.setItem('direct_enquiry_closed_at', Date.now());
@@ -111,15 +117,12 @@ function showStatusModal(isSuccess, title, message) {
     const modal = document.getElementById('statusModal');
     const sIcon = document.getElementById('successIcon');
     const eIcon = document.getElementById('errorIcon');
-    
     // Set content
     document.getElementById('statusTitle').innerText = title;
     document.getElementById('statusMessage').innerText = message;
-    
     // Show correct icon
     sIcon.style.display = isSuccess ? 'flex' : 'none';
     eIcon.style.display = isSuccess ? 'none' : 'flex';
-    
     modal.classList.remove('hidden');
 }
 
@@ -146,7 +149,6 @@ function autoShowModal() {
     const modal = document.getElementById('directEnquiryModal');
     const lastClosed = localStorage.getItem('direct_enquiry_closed_at');
     const cooldown = 10 * 60 * 1000;
-
     if (modal.classList.contains('hidden')) {
         if (!lastClosed || (Date.now() - lastClosed) > cooldown) {
             modal.classList.remove('hidden');
@@ -155,11 +157,78 @@ function autoShowModal() {
 }
 
 // Form Submission
-document.getElementById('directEnquiryForm').addEventListener('submit', function(e) {
+// document.getElementById('directEnquiryForm').addEventListener('submit', function(e) {
+//     e.preventDefault();
+//     const btn = document.getElementById('submitBtn');
+//     const originalText = btn.innerText;
+//     btn.disabled = true;
+//     btn.innerText = 'Processing...';
+//     fetch("{{ route('direct.enquiry.submit') }}", {
+//         method: 'POST',
+//         headers: {
+//             'X-CSRF-TOKEN': '{{ csrf_token() }}',
+//             'Accept': 'application/json',
+//             'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify(Object.fromEntries(new FormData(this)))
+//     })
+//     .then(async res => {
+//         const data = await res.json();
+
+//         // VALIDATION ERROR
+//         if (res.status === 422) {
+//             btn.disabled = false;
+//             btn.innerText = originalText;
+
+//             const firstError =
+//                 Object.values(data.errors)[0]?.[0] || 'Please check your input details.';
+
+//             showStatusModal(false, 'Validation Error', firstError);
+//             return;
+//         }
+
+//         // SERVER ERROR (500, 503, etc.)
+//         if (!res.ok) {
+//             btn.disabled = false;
+//             btn.innerText = originalText;
+
+//             showStatusModal(false, 'System Error', data.message || 'Something went wrong.');
+//             return;
+//         }
+
+//         // ✅ SUCCESS (200–299 only)
+//         document.getElementById('directEnquiryModal').classList.add('hidden');
+       
+//         showStatusModal(
+//             true,
+//             'Inquiry Sent!',
+//             'Thank you! Our team will contact you shortly regarding your requirements.'
+//         );
+
+//         // ✅ RESET FORM + BUTTON STATE
+//         const form = document.getElementById('directEnquiryForm');
+//         const btn  = document.getElementById('submitBtn');
+
+//         form.reset();
+//         btn.disabled = false;
+//         btn.innerText = 'Submit My Requirement';
+
+//         localStorage.setItem('direct_enquiry_closed_at', Date.now() + 86400000);
+//     })
+
+//     .catch(err => {
+//         btn.disabled = false;
+//         btn.innerText = originalText;
+//         showStatusModal(false, 'System Error', 'Something went wrong. Please try again later.');
+//     });
+// });
+
+document.getElementById('directEnquiryForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    
+
     const btn = document.getElementById('submitBtn');
     const originalText = btn.innerText;
+    if (btn.disabled) return;
     btn.disabled = true;
     btn.innerText = 'Processing...';
 
@@ -174,20 +243,61 @@ document.getElementById('directEnquiryForm').addEventListener('submit', function
     })
     .then(async res => {
         const data = await res.json();
+
+        // ❌ Validation error (422)
         if (res.status === 422) {
             btn.disabled = false;
             btn.innerText = originalText;
-            showStatusModal(false, 'Validation Error', data.errors.captcha ? data.errors.captcha[0] : 'Please check your input details.');
-        } else {
-            document.getElementById('directEnquiryModal').classList.add('hidden');
-            showStatusModal(true, 'Inquiry Sent!', 'Thank you! Our team will contact you shortly regarding your requirements.');
-            localStorage.setItem('direct_enquiry_closed_at', Date.now() + 86400000); 
+            const msg = Object.values(data.errors)[0]?.[0] || 'Invalid input.';
+            showStatusModal(false, 'Validation Error', msg);
+            // Refresh captcha on validation error as well
+            refreshDirectEnquiryCaptcha();
+            return;
         }
-    })
-    .catch(err => {
+
+        // ❌ Server error
+        if (!res.ok) {
+            btn.disabled = false;
+            btn.innerText = originalText;
+            showStatusModal(false, 'System Error', data.message || 'Something went wrong.');
+            return;
+        }
+
+        // ✅ SUCCESS
+        document.getElementById('directEnquiryModal').classList.add('hidden');
+        showStatusModal(
+            true,
+            'Inquiry Sent!',
+            'Thank you! Our team will contact you shortly.'
+        );
+        this.reset();
         btn.disabled = false;
         btn.innerText = originalText;
-        showStatusModal(false, 'System Error', 'Something went wrong. Please try again later.');
+        // Refresh captcha after success
+        refreshDirectEnquiryCaptcha();
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.innerText = originalText;
+        showStatusModal(false, 'System Error', 'Please try again later.');
     });
 });
+
+function refreshDirectEnquiryCaptcha() {
+    fetch("{{ route('direct.enquiry.captcha') }}", {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.num1 !== undefined && data.num2 !== undefined) {
+            document.getElementById('captchaText').textContent = `Security Check: ${data.num1} + ${data.num2} =`;
+            document.querySelector('input[name="captcha"]').value = '';
+        }
+    });
+}
+
 </script>

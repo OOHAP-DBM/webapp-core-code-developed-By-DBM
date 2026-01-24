@@ -1,33 +1,40 @@
 <?php
-
 namespace Modules\Enquiries\Controllers\Web;
-
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\DirectEnquiry;
+use Modules\Enquiries\Models\DirectEnquiry;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-use App\Mail\AdminDirectEnquiryMail;
+use Modules\Enquiries\Mail\AdminDirectEnquiryMail;
 use App\Notifications\AdminDirectEnquiryNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Modules\Enquiries\Mail\UserDirectEnquiryConfirmation;
+
 class DirectEnquiryController extends Controller
 {
-    public function showForm()
+  
+    /**
+     * Regenerate captcha for AJAX
+     */
+    public function regenerateCaptcha(Request $request)
     {
         $num1 = rand(1, 9);
         $num2 = rand(1, 9);
-        Session::put('captcha_answer', $num1 + $num2);
-
-        return view('welcome', compact('num1', 'num2'));
+        session(['captcha_answer' => $num1 + $num2]);
+        return response()->json([
+            'num1' => $num1,
+            'num2' => $num2
+        ]);
     }
-
-
     /**
      * Handle the form submission
      */
     public function store(Request $request)
     {
+            \Log::info("Direct Enquiry Captcha Failed: Expected " . session('captcha_answer') . ", Got " . $request->captcha);
+
         // 1. Create Validator Instance (Manual instance is required for AJAX)
         $validator = Validator::make($request->all(), [
             'name'              => 'required|string|max:255|min:3',
@@ -42,7 +49,18 @@ class DirectEnquiryController extends Controller
 
         // 2. Return JSON if validation fails (Prevents 302 Redirect)
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+                    // Log("Direct Enquiry Validation Failed: " . json_encode($validator->errors()));
+
+                    return response()->json(['errors' => $validator->errors()], 422);
+                }
+            if ((int) $request->captcha !== (int) session('captcha_answer')) {
+            // Session::forget('captcha_answer'); // 🔥 ADD THIS
+
+            return response()->json([
+                'errors' => [
+                    'captcha' => ['Invalid security answer. Please enter the correct answer.']
+                ]
+            ], 422);
         }
 
         try {
@@ -52,10 +70,11 @@ class DirectEnquiryController extends Controller
 
             // FIX: Assign the result of create() to the variable $enquiry
             $enquiry = DirectEnquiry::create($data);
-
+            // Log("Direct Enquiry Cted: ID ");
             // 5. Send Email
             // If your SMTP settings in .env are wrong, this is where the 500 error triggers
-            Mail::to('admin@oohapp.com')->send(new AdminDirectEnquiryMail($enquiry));
+            Mail::to($enquiry->email)->queue(new UserDirectEnquiryConfirmation($enquiry));
+            Mail::to('admin@oohapp.com')->queue(new AdminDirectEnquiryMail($enquiry));
 
             // 6. Send Dashboard Notification
             $admins = User::where('active_role', 'admin')->get();
