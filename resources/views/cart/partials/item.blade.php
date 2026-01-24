@@ -72,63 +72,46 @@
                                 </button>
 
                                 <div class="relative inline-block">
-                                    <button type="button" class="text-blue-500 hover:underline" onclick="toggleShareMenu(this)">Share</button>
-                                    <div class="cart-share-menu hidden absolute z-10 bg-white border rounded shadow p-2 mt-1 min-w-[180px]">
-                                        <div class="flex flex-col gap-1">
-                                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}" target="_blank" class="text-xs text-blue-700 hover:underline">
-                                                <i class="bi bi-facebook"></i> Facebook
+                                    <button
+                                        type="button"
+                                        class="text-blue-500 hover:underline"
+                                        onclick="toggleShareMenu(this)">
+                                        Share
+                                    </button>
+
+                                    <div class="cart-share-menu hidden absolute z-20 bg-white border rounded-lg shadow-md p-2 mt-1 min-w-[180px]">
+                                        <div class="flex flex-col gap-1 text-xs">
+                                            <a
+                                                href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}"
+                                                target="_blank"
+                                                class="text-blue-700 hover:underline">
+                                                Facebook
                                             </a>
-                                            <a href="https://twitter.com/intent/tweet?url={{ urlencode(route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}&text={{ urlencode($item->title) }}" target="_blank" class="text-xs text-sky-500 hover:underline">
-                                                <i class="bi bi-twitter"></i> Twitter
+
+                                            <a
+                                                href="https://twitter.com/intent/tweet?url={{ urlencode(route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}&text={{ urlencode($item->title) }}"
+                                                target="_blank"
+                                                class="text-sky-500 hover:underline">
+                                                Twitter
                                             </a>
-                                            <a href="https://api.whatsapp.com/send?text={{ urlencode($item->title . ' - ' . route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}" target="_blank" class="text-xs text-green-600 hover:underline">
-                                                <i class="bi bi-whatsapp"></i> WhatsApp
+
+                                            <a
+                                                href="https://api.whatsapp.com/send?text={{ urlencode($item->title . ' - ' . route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}"
+                                                target="_blank"
+                                                class="text-green-600 hover:underline">
+                                                WhatsApp
                                             </a>
-                                            <button type="button" class="text-xs text-gray-700 hover:underline text-left" onclick="copyCartLink('{{ route('hoardings.show', $item->slug ?? $item->hoarding_id) }}')">
-                                                <i class="bi bi-link-45deg"></i> Copy Link
+
+                                            <button
+                                                type="button"
+                                                class="text-gray-700 hover:underline text-left"
+                                                onclick="copyCartLink('{{ route('hoardings.show', $item->slug ?? $item->hoarding_id) }}')">
+                                                Copy Link
                                             </button>
                                         </div>
                                     </div>
                                 </div>
-</div>
-<script>
-function copyCartLink(link) {
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(link).then(function() {
-            alert('Link copied to clipboard!');
-        });
-    } else {
-        // fallback
-        var tempInput = document.createElement('input');
-        tempInput.value = link;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempInput);
-        alert('Link copied to clipboard!');
-    }
-}
 
-function toggleShareMenu(btn) {
-    // Hide any open share menus first
-    document.querySelectorAll('.cart-share-menu').forEach(function(menu) {
-        if (!menu.contains(btn)) menu.classList.add('hidden');
-    });
-    // Toggle this one
-    var menu = btn.nextElementSibling;
-    if (menu) menu.classList.toggle('hidden');
-    // Hide on click outside
-    function handler(e) {
-        if (!menu.contains(e.target) && e.target !== btn) {
-            menu.classList.add('hidden');
-            document.removeEventListener('mousedown', handler);
-        }
-    }
-    setTimeout(function() {
-        document.addEventListener('mousedown', handler);
-    }, 0);
-}
-</script>
 
                             </div>
                         </div>
@@ -204,3 +187,45 @@ function toggleShareMenu(btn) {
 
         </div>
 </div>
+
+<script>
+function copyCartLink(link) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(link).then(() => {
+            alert('Link copied to clipboard!');
+        });
+    } else {
+        const tempInput = document.createElement('input');
+        tempInput.value = link;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        alert('Link copied to clipboard!');
+    }
+}
+
+function toggleShareMenu(btn) {
+    // close all other menus
+    document.querySelectorAll('.cart-share-menu').forEach(menu => {
+        if (menu !== btn.nextElementSibling) {
+            menu.classList.add('hidden');
+        }
+    });
+
+    const menu = btn.nextElementSibling;
+    menu.classList.toggle('hidden');
+
+    // close on outside click
+    function outsideClick(e) {
+        if (!menu.contains(e.target) && e.target !== btn) {
+            menu.classList.add('hidden');
+            document.removeEventListener('mousedown', outsideClick);
+        }
+    }
+
+    setTimeout(() => {
+        document.addEventListener('mousedown', outsideClick);
+    }, 0);
+}
+</script>
