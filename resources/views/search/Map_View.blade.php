@@ -1,6 +1,6 @@
 <div id="mapView" class="bg-white  min-h-screen">
         <div class="max-w-[1460px] mx-auto px-6 py-6">
-            <h2 class="text-sm text-gray-700 mb-4">
+            <h2 class="text-lg text-black font-semibold mb-4">
                 {{ $results->total() }} Hoardings in {{ request('location') ?? 'India' }}
             </h2>
             <div class="map-view-container flex gap-6">

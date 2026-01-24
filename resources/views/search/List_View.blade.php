@@ -272,37 +272,35 @@
                 No hoardings found.
             </div>
         @endif
+        @guest
+            <!-- Personalized Recommendations CTA -->
+            <div class="container mx-auto px-4">
+                <hr class="border-gray-200">
+            </div>
+            <section class="py-12 bg-gray-100">
+                    <div class="container mx-auto px-4 text-center">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">
+                            See Personalized Recommendations
+                        </h3>
+
+                            <div class="flex flex-col items-center justify-center space-y-4">
+                                <a href="{{ route('login') }}"
+                                class="px-24 py-3 bg-gray-900 text-white rounded font-semibold hover:bg-gray-800">
+                                    Login
+                                </a>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-gray-500">New on OOHAPP?</span>
+
+                                    <a href="{{ route('register.role-selection') }}"
+                                        class="text-[#008ae0] font-semibold border-b-1 border-[#008ae0] hover:border-[#006bb3] transition">
+                                            Signup
+                                    </a>
+                                </div>
+                            </div>
+                    </div>
+            </section>
+         
+        @endguest
 
     </div>
 </div>
-@guest
-     <!-- Personalized Recommendations CTA -->
-      <div class="container mx-auto px-4">
-          <hr class="border-gray-200">
-      </div>
-       <section class="py-12 bg-gray-100">
-            <div class="container mx-auto px-4 text-center">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">
-                    See Personalized Recommendations
-                </h3>
-
-                    <div class="flex flex-col items-center justify-center space-y-4">
-                        <a href="{{ route('login') }}"
-                        class="px-24 py-3 bg-gray-900 text-white rounded font-semibold hover:bg-gray-800">
-                            Login
-                        </a>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-gray-500">New on OOHAPP?</span>
-
-                            <a href="{{ route('register.role-selection') }}"
-                                class="text-[#008ae0] font-semibold border-b-1 border-[#008ae0] hover:border-[#006bb3] transition">
-                                    Signup
-                            </a>
-                        </div>
-                    </div>
-            </div>
-       </section>
-       <div class="container mx-auto px-4">
-            <hr class="border-gray-200">
-       </div>
-@endguest
