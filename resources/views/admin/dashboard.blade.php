@@ -27,7 +27,7 @@
 <div class="bg-white rounded-xl shadow p-6 mb-6">
     <h3 class="text-sm font-semibold mb-4">Platform Statistics</h3>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         @php
             $statIcons = [
                 'users' => '
@@ -230,14 +230,28 @@
 
 
         @foreach($stats as [$label, $value, $color,$key])
-            <div class="bg-gray-100 shadow rounded-xl p-4 relative">
+        <div class="relative">
+            <!-- CARD -->
+            <div class="relative z-10 bg-gray-100 shadow rounded-xl p-4">
                 <div class="mb-2">
                     {!! $statIcons[$key] ?? '' !!}
                 </div>
-                <p class="text-2xl font-semibold mt-1">{{ number_format($value) }}</p>
-                <p class="text-xs text-gray-500">{{ $label }}</p>
-                <span class="absolute bottom-0 left-0 w-full h-1 {{ $color }} rounded-b-xl"></span>
+
+                <p class="text-2xl font-semibold mt-1">
+                    {{ number_format($value) }}
+                </p>
+
+                <p class="text-black ">
+                    {{ $label }}
+                </p>
             </div>
+
+            <!-- BOTTOM COLOR STRIP -->
+            <div
+                class="relative z-0 h-2 mx-4  rounded-b-full {{ $color }}">
+            </div>
+        </div>
+
         @endforeach
     </div>
 </div>

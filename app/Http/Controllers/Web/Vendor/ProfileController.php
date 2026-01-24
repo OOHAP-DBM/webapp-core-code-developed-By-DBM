@@ -8,6 +8,10 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use Twilio\Rest\Client;
+use Illuminate\Support\Facades\Log;
 
 
 class ProfileController extends Controller
@@ -35,29 +39,20 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
-        $user   = Auth::user();
-        $vendor = $user->vendorProfile;
-
         $section = $request->input('section');
 
+        if ($section === 'delete') {
+            return $this->deleteAccount($request);
+        }
+
         match ($section) {
-
-            'personal' => $this->updatePersonal($request, $user),
-
-            'business' => $this->updateBusiness($request, $vendor),
-
-            'pan'      => $this->updatePAN($request, $vendor),
-
-            'bank'     => $this->updateBank($request, $vendor),
-
-            'address'  => $this->updateAddress($request, $vendor),
-
-            'password' => $this->updatePassword($request, $user),
-
-            'remove-avatar' => $this->removeAvatar($user),
-
-            'delete'   => $this->deleteAccount($user),
-
+            'personal' => $this->updatePersonal($request, Auth::user()),
+            'business' => $this->updateBusiness($request, Auth::user()->vendorProfile),
+            'pan'      => $this->updatePAN($request, Auth::user()->vendorProfile),
+            'bank'     => $this->updateBank($request, Auth::user()->vendorProfile),
+            'address'  => $this->updateAddress($request, Auth::user()->vendorProfile),
+            'password' => $this->updatePassword($request, Auth::user()),
+            'remove-avatar' => $this->removeAvatar(Auth::user()),
             default    => abort(400, 'Invalid profile section'),
         };
 
@@ -242,19 +237,63 @@ class ProfileController extends Controller
     /* ======================
      | DELETE
      ====================== */
-    protected function deleteAccount($user)
+    protected function deleteAccount(Request $request)
     {
-        // Soft delete the user account
+        $user = Auth::user();
+
+        $emailOtp = $request->email_otp;
+        $phoneOtp = $request->phone_otp;
+
+        // ❌ Dono blank
+        if (!$emailOtp && !$phoneOtp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please enter OTP from email or mobile'
+            ], 422);
+        }
+
+        $emailVerified = false;
+        $phoneVerified = false;
+
+        // ✅ EMAIL OTP CHECK
+        if ($emailOtp) {
+            $cached = Cache::get('delete_email_otp_'.$user->id);
+            if ($cached && $cached == $emailOtp) {
+                $emailVerified = true;
+                Cache::forget('delete_email_otp_'.$user->id);
+            }
+        }
+
+        // ✅ PHONE OTP CHECK
+        if ($phoneOtp) {
+            $cached = Cache::get('delete_phone_otp_'.$user->id);
+            if ($cached && $cached == $phoneOtp) {
+                $phoneVerified = true;
+                Cache::forget('delete_phone_otp_'.$user->id);
+            }
+        }
+
+        // ❌ Dono fail
+        if (!$emailVerified && !$phoneVerified) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid OTP'
+            ], 422);
+        }
+
+        // ✅ SOFT DELETE
         $user->delete();
-        
-        // Also soft delete the vendor profile if using SoftDeletes
         if ($user->vendorProfile) {
             $user->vendorProfile->delete();
         }
-        
+
         Auth::logout();
-        
-        return back()->with('success', 'Your account has been deleted successfully.');
+
+        return response()->json([
+            'success' => true,
+            'title' => 'We’ll miss you 💔',
+            'message' => 'Your account has been deleted successfully.'
+        ]);
     }
 
     /* ======================
@@ -329,5 +368,72 @@ class ProfileController extends Controller
                 'Cache-Control' => 'private, max-age=0, no-cache',
             ]
         );
+    }
+    public function sendDeleteOtp(Request $request)
+    {
+        try {
+            $user = auth()->user();
+
+            $request->validate([
+                'type' => 'required|in:email,phone'
+            ]);
+
+            $otp = rand(1000, 9999);
+
+            if ($request->type === 'email') {
+
+                Cache::put(
+                    'delete_email_otp_'.$user->id,
+                    $otp,
+                    now()->addMinutes(2)
+                );
+
+                Mail::raw(
+                    "Your OOHAPP Delete Account OTP is: {$otp}",
+                    function ($m) use ($user) {
+                        $m->to($user->email)
+                        ->subject('OOHAPP Delete Account OTP');
+                    }
+                );
+            }
+
+            if ($request->type === 'phone') {
+
+                Cache::put(
+                    'delete_phone_otp_'.$user->id,
+                    $otp,
+                    now()->addMinutes(2)
+                );
+
+                // Same Twilio logic as Register
+                $twilio = new Client(
+                    env('TWILIO_SID'),
+                    env('TWILIO_TOKEN')
+                );
+
+                $twilio->messages->create(
+                    '+91'.$user->phone,
+                    [
+                        'from' => env('TWILIO_FROM'),
+                        'body' => "Your OOHAPP Delete Account OTP is {$otp}. Valid for 2 minutes."
+                    ]
+                );
+            }
+
+            return response()->json([
+                'success' => true
+            ]);
+
+        } catch (\Throwable $e) {
+
+            Log::error('Delete OTP failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send OTP'
+            ], 500);
+        }
     }
 }

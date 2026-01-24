@@ -68,10 +68,10 @@
     {{-- RATING (static for now) --}}
     <div class="flex items-center gap-2 text-sm">
         <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded font-medium">
-            ⭐ {{ $hoarding->rating ?? '4.5' }}
+            ⭐ {{ $hoarding->rating ?? '0' }}
         </span>
         <span class="text-gray-500">
-            / {{ $hoarding->reviews_count ?? '335' }} Reviews
+            / {{ $hoarding->reviews_count ?? '0' }} Reviews
         </span>
     </div>
 
