@@ -57,6 +57,11 @@
                 </div>
             </div>
 
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase">Hoarding City </label>
+                <input type="text" name="location_city"  placeholder="e.g. Lucknow"
+                    class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C] transition-colors">
+            </div>
             <!-- Preferred Locations -->
             <div class="md:col-span-2">
                 <label class="text-xs font-bold text-gray-500 uppercase">Preferred Hoarding Locations</label>
@@ -221,4 +226,208 @@ document.getElementById('verifyOtpBtn').addEventListener('click', ()=>{
 
 // Initial captcha
 regenerateCaptcha();
+</script>
+
+
+
+<script>
+// Logic to show/hide modals
+function showDirectEnquiryModal() {
+    var modal = document.getElementById('directEnquiryModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+function toggleDirectEnquiryModal() {
+    document.getElementById('directEnquiryModal').classList.add('hidden');
+    localStorage.setItem('direct_enquiry_closed_at', Date.now());
+}
+
+function showStatusModal(isSuccess, title, message) {
+    const modal = document.getElementById('statusModal');
+    const sIcon = document.getElementById('successIcon');
+    const eIcon = document.getElementById('errorIcon');
+    // Set content
+    document.getElementById('statusTitle').innerText = title;
+    document.getElementById('statusMessage').innerText = message;
+    // Show correct icon
+    sIcon.style.display = isSuccess ? 'flex' : 'none';
+    eIcon.style.display = isSuccess ? 'none' : 'flex';
+    modal.classList.remove('hidden');
+}
+
+function closeStatusModal() {
+    document.getElementById('statusModal').classList.add('hidden');
+    // If it was a success, reload the page to refresh captcha
+    if (document.getElementById('successIcon').style.display === 'flex') {
+       directEnquiryForm.reset(); 
+    }
+}
+
+// Phone Number numeric filter
+document.getElementById('phoneInput')?.addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+
+// Auto-show timers
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => { autoShowModal(); }, 600); // 1 min
+    setInterval(() => { autoShowModal(); }, 120000); // 2 mins
+});
+
+function autoShowModal() {
+    const modal = document.getElementById('directEnquiryModal');
+    const lastClosed = localStorage.getItem('direct_enquiry_closed_at');
+    const cooldown = 10 * 60 * 1000;
+    if (modal.classList.contains('hidden')) {
+        if (!lastClosed || (Date.now() - lastClosed) > cooldown) {
+            modal.classList.remove('hidden');
+        }
+    }
+}
+
+// Form Submission
+// document.getElementById('directEnquiryForm').addEventListener('submit', function(e) {
+//     e.preventDefault();
+//     const btn = document.getElementById('submitBtn');
+//     const originalText = btn.innerText;
+//     btn.disabled = true;
+//     btn.innerText = 'Processing...';
+//     fetch("{{ route('direct.enquiry.submit') }}", {
+//         method: 'POST',
+//         headers: {
+//             'X-CSRF-TOKEN': '{{ csrf_token() }}',
+//             'Accept': 'application/json',
+//             'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify(Object.fromEntries(new FormData(this)))
+//     })
+//     .then(async res => {
+//         const data = await res.json();
+
+//         // VALIDATION ERROR
+//         if (res.status === 422) {
+//             btn.disabled = false;
+//             btn.innerText = originalText;
+
+//             const firstError =
+//                 Object.values(data.errors)[0]?.[0] || 'Please check your input details.';
+
+//             showStatusModal(false, 'Validation Error', firstError);
+//             return;
+//         }
+
+//         // SERVER ERROR (500, 503, etc.)
+//         if (!res.ok) {
+//             btn.disabled = false;
+//             btn.innerText = originalText;
+
+//             showStatusModal(false, 'System Error', data.message || 'Something went wrong.');
+//             return;
+//         }
+
+//         // ✅ SUCCESS (200–299 only)
+//         document.getElementById('directEnquiryModal').classList.add('hidden');
+       
+//         showStatusModal(
+//             true,
+//             'Inquiry Sent!',
+//             'Thank you! Our team will contact you shortly regarding your requirements.'
+//         );
+
+//         // ✅ RESET FORM + BUTTON STATE
+//         const form = document.getElementById('directEnquiryForm');
+//         const btn  = document.getElementById('submitBtn');
+
+//         form.reset();
+//         btn.disabled = false;
+//         btn.innerText = 'Submit My Requirement';
+
+//         localStorage.setItem('direct_enquiry_closed_at', Date.now() + 86400000);
+//     })
+
+//     .catch(err => {
+//         btn.disabled = false;
+//         btn.innerText = originalText;
+//         showStatusModal(false, 'System Error', 'Something went wrong. Please try again later.');
+//     });
+// });
+
+document.getElementById('directEnquiryForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const btn = document.getElementById('submitBtn');
+    const originalText = btn.innerText;
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.innerText = 'Processing...';
+
+    fetch("{{ route('direct.enquiry.submit') }}", {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(Object.fromEntries(new FormData(this)))
+    })
+    .then(async res => {
+        const data = await res.json();
+
+        // ❌ Validation error (422)
+        if (res.status === 422) {
+            btn.disabled = false;
+            btn.innerText = originalText;
+            const msg = Object.values(data.errors)[0]?.[0] || 'Invalid input.';
+            showStatusModal(false, 'Validation Error', msg);
+            // Refresh captcha on validation error as well
+            refreshDirectEnquiryCaptcha();
+            return;
+        }
+
+        // ❌ Server error
+        if (!res.ok) {
+            btn.disabled = false;
+            btn.innerText = originalText;
+            showStatusModal(false, 'System Error', data.message || 'Something went wrong.');
+            return;
+        }
+
+        // ✅ SUCCESS
+        document.getElementById('directEnquiryModal').classList.add('hidden');
+        showStatusModal(
+            true,
+            'Inquiry Sent!',
+            'Thank you! Our team will contact you shortly.'
+        );
+        this.reset();
+        btn.disabled = false;
+        btn.innerText = originalText;
+        // Refresh captcha after success
+        refreshDirectEnquiryCaptcha();
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.innerText = originalText;
+        showStatusModal(false, 'System Error', 'Please try again later.');
+    });
+});
+
+function refreshDirectEnquiryCaptcha() {
+    fetch("{{ route('direct.enquiry.captcha') }}", {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.num1 !== undefined && data.num2 !== undefined) {
+            document.getElementById('captchaText').textContent = Security Check: ${data.num1} + ${data.num2} =;
+            document.querySelector('input[name="captcha"]').value = '';
+        }
+    });
+}
+
 </script>

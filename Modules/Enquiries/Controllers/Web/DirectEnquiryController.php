@@ -78,7 +78,8 @@ class DirectEnquiryController extends Controller
             'phone'=>'required|digits:10',
             'hoarding_type'=>'required|array|min:1',
             'remarks'=>'required|min:5',
-            'captcha'=>'required|numeric'
+            'captcha'=>'required|numeric',
+            'location_city'     => 'string|max:255',
             
         ]);
 
