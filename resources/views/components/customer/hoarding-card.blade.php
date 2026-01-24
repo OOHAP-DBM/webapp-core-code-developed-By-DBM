@@ -118,7 +118,7 @@
                 <span class="text-xl font-bold text-gray-900">
                     ₹{{ number_format($hasSale ? $sale : $base, 0) }}
                 </span>
-                <span class="text-sm text-gray-500 ml-1">/Month</span>
+                <span class="text-lg text-black ml-1">/Month</span>
             </div>
 
             {{-- CUT PRICE + DISCOUNT (ONLY IF REAL SALE) --}}
@@ -144,7 +144,7 @@
                     <span class="text-xl font-bold text-gray-900">
                         ₹{{ number_format(optional($hoarding->doohScreen)->price_per_slot) }}
                     </span>
-                    <span class="text-sm text-gray-500 ml-1">/Second</span>
+                    <span class="text-lg text-black ml-1">/Second</span>
                 </div>
             @endif
 
@@ -180,7 +180,7 @@
         @if($packageCount > 0)
             <p class="text-xs text-teal-600 font-medium mb-3">{{ $packageCount }} {{ Str::plural('Package', $packageCount) }} Available</p>
         @else
-            <p class="text-xs text-gray-500 font-medium mb-3">No packages are in this hoarding</p>
+            <p class="text-xs text-teal-600 font-medium mb-3">No packages are in this hoarding</p>
         @endif
 
         <!-- Action Buttons -->

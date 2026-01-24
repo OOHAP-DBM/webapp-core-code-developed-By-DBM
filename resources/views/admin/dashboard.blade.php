@@ -16,7 +16,7 @@
 
 {{-- ================= STATS ================= --}}
 <div class="bg-white rounded-xl shadow p-6 mb-6">
-    <h3 class="text-sm font-semibold mb-4">Platform Statistics</h3>
+    <h3 class="text-lg font-semibold mb-4">Statistics</h3>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         @php

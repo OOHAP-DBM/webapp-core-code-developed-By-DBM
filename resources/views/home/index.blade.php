@@ -74,18 +74,19 @@
                     See Personalized Recommendations
                 </h3>
 
-                    <div class="flex items-center justify-center space-x-4">
+                    <div class="flex flex-col items-center justify-center space-y-4">
                         <a href="{{ route('login') }}"
-                        class="px-8 py-3 bg-gray-900 text-white rounded font-semibold hover:bg-gray-800">
+                        class="px-24 py-3 bg-gray-900 text-white rounded font-semibold hover:bg-gray-800">
                             Login
                         </a>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-gray-500">New on OOHAPP?</span>
 
-                        <span class="text-gray-500">New on OOHAPP?</span>
-
-                        <a href="{{route('register.role-selection')}}"
+                            <a href="{{ route('register.role-selection') }}"
                             class="text-btn-color font-semibold transition-colors">
                                 Signup
-                        </a>
+                            </a>
+                        </div>
                     </div>
             </div>
        </section>

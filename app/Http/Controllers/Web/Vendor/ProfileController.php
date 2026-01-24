@@ -45,7 +45,7 @@ class ProfileController extends Controller
             return $this->deleteAccount($request);
         }
 
-        match ($section) {
+        $response = match ($section) {
             'personal' => $this->updatePersonal($request, Auth::user()),
             'business' => $this->updateBusiness($request, Auth::user()->vendorProfile),
             'pan'      => $this->updatePAN($request, Auth::user()->vendorProfile),
@@ -56,8 +56,13 @@ class ProfileController extends Controller
             default    => abort(400, 'Invalid profile section'),
         };
 
+        if ($response instanceof \Illuminate\Http\RedirectResponse) {
+            return $response;
+        }
+
         return back()->with('success', 'Profile updated successfully');
     }
+
 
     /* ======================
      | PERSONAL (USER)
@@ -316,6 +321,7 @@ class ProfileController extends Controller
             'password' => bcrypt($request->password),
             'status' => 'active'
         ]);
+        return back()->with('success', 'Password updated successfully');
     }
 
     public function viewAvatar($userId)

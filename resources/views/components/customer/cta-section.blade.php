@@ -55,21 +55,35 @@
             </div>
 
             <!-- Stats Section -->
+             @php
+                $formatCount = function ($count) {
+                    return $count > 100 ? '100+' : $count;
+                };
+            @endphp
+
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white rounded-2xl shadow-xl p-8">
                 <div class="text-center">
-                    <div class="text-4xl font-bold theme-gradient-text">{{ $stats['total_hoardings'] ?? 0 }}+</div>
+                    <div class="text-4xl font-bold theme-gradient-text">
+                        {{ $formatCount($stats['total_hoardings'] ?? 0) }}
+                    </div>
                     <div class="text-sm text-gray-600 font-medium">Hoardings</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-4xl font-bold text-btn-color mb-2">{{ $stats['total_vendors'] ?? 0 }}+</div>
+                    <div class="text-4xl font-bold text-btn-color mb-2">
+                        {{ $formatCount($stats['total_vendors'] ?? 0) }}
+                    </div>
                     <div class="text-sm text-gray-600 font-medium">Vendors</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-4xl font-bold text-btn-color mb-2">{{ $stats['total_bookings'] ?? 0 }}+</div>
+                    <div class="text-4xl font-bold text-btn-color mb-2">
+                        {{ $formatCount($stats['total_bookings'] ?? 0) }}
+                    </div>
                     <div class="text-sm text-gray-600 font-medium">Bookings</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-4xl font-bold text-btn-color">50+</div>
+                    <div class="text-4xl font-bold text-btn-color">
+                        50
+                    </div>
                     <div class="text-sm text-gray-600 font-medium">Cities</div>
                 </div>
             </div>
