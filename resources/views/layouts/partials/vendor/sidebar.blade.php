@@ -346,11 +346,109 @@
                 </div>
             </div>
 
-            <!-- {{-- POS (Point of Sale) Link --}}
-{{-- <a href="{{ route('vendor.pos.dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.pos.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-50' }}">
-    <i class="fas fa-cash-register"></i>
-    POS (Point of Sale)
-</a> --}} -->
+        <div x-data="{ open: true }" class="space-y-2">
+            <!-- Parent -->
+            <button
+                type="button"
+                @click="open = !open"
+                class="
+                    w-full flex items-center justify-between
+                    px-4 py-3
+                    rounded-xl
+                    bg-[#0A9A5C]
+                    text-white
+                "
+            >
+                <!-- Left -->
+                <div class="flex items-center gap-3">
+                    <!-- POS Icon -->
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M4 4h16v16H4z"
+                            stroke="white"
+                            stroke-width="1.5"
+                        />
+                        <path
+                            d="M7 8h10M7 12h10M7 16h6"
+                            stroke="white"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+
+                    <span class="text-sm font-medium">
+                        POS Booking
+                    </span>
+                </div>
+
+                <!-- Arrow -->
+                <svg
+                    class="w-4 h-4 transition-transform duration-200"
+                    :class="{ 'rotate-180': open }"
+                    fill="none"
+                    stroke="white"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                    />
+                </svg>
+            </button>
+
+            <!-- Children -->
+            <div
+                x-show="open"
+                x-collapse
+                x-cloak
+                class="pl-6 space-y-2"
+            >
+                <a
+                    href="#"
+                    class="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
+                >
+                    <span class="opacity-60">–</span> POS Dashboard
+                </a>
+
+                <a
+                    href="#"
+                    class="flex items-center gap-2 text-sm text-[#0A9A5C] font-medium"
+                >
+                    <span>–</span> Create Offer
+                </a>
+
+                <a
+                    href="#"
+                    class="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
+                >
+                    <span class="opacity-60">–</span> Manage Offers
+                </a>
+
+                <a
+                    href="#"
+                    class="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
+                >
+                    <span class="opacity-60">–</span> Create Quotation
+                </a>
+
+                <a
+                    href="#"
+                    class="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
+                >
+                    <span class="opacity-60">–</span> Manage Quotation
+                </a>
+
+                <a
+                    href="#"
+                    class="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
+                >
+                    <span class="opacity-60">–</span> Manage Bookings
+                </a>
+            </div>
+        </div>
+
 
             {{-- My Staff Dropdown --}}
 <!-- <div

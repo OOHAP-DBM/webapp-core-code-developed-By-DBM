@@ -19,7 +19,7 @@ class HoardingMediaController extends Controller
 
     public function __construct(HoardingMediaService $mediaService)
     {
-        $this->middleware(['auth', 'role:vendor']);
+        $this->middleware(['auth', 'active_role:vendor']);
         $this->mediaService = $mediaService;
     }
 
