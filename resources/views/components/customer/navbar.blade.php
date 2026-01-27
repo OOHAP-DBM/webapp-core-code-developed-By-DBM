@@ -259,11 +259,11 @@
             </div>
 
             <!-- TEXT -->
-            <h2 class="text-xl font-semibold mb-2">
+            <h2 class="text-2xl font-semibold mb-2">
                 Comeback Soon!
             </h2>
 
-            <p class="text-gray-500 mb-6">
+            <p class="text-gray-500 text-lg mb-6">
                 Are you sure you want<br>
                 to logout from OOHAPP?
             </p>
@@ -272,7 +272,7 @@
                 <button
                     type="button"
                     onclick="closeLogoutModal()"
-                    class="text-gray-700 font-medium">
+                    class="text-gray-700 font-bold">
                     Cancel
                 </button>
 
@@ -280,7 +280,7 @@
                     @csrf
                     <button
                         type="submit"
-                        class="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-lg">
+                        class="logout-btn font-semibold px-6 py-3 rounded-lg">
                         Yes, Logout
                     </button>
                 </form>

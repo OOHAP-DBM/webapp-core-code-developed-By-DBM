@@ -152,13 +152,15 @@
     margin-left: 25px;
 }
 
-.logout-btn-red {
-    color: #ef4444 !important;
+.logout-btn {
+    color: #ffffff !important;
+    background-color: var(--logout-btn) !important;
+    transition: background 0.2s ease, color 0.2s ease;
 }
 
-.logout-btn-red:hover {
-    background-color: #ef4444 !important;
-    color: #ffffff !important;
+.logout-btn:hover {
+    background-color: #c73f3f !important;
+    transform: scale(1.02);
 }
 
 /* =================================
