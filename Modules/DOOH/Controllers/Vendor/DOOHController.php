@@ -60,22 +60,22 @@ class DOOHController extends Controller
         //     $draft->current_step = 1;
         //     $draft->save();
         // }
-        if (!$draft && $step === 1) {
+        // if (!$draft && $step === 1) {
 
-            $hoarding = \App\Models\Hoarding::create([
-                'vendor_id' => $vendor->id,
-                'hoarding_type' => 'dooh',
-                'status' => 'draft',
-                'approval_status' => 'pending',
-                'current_step' => 1,
-            ]);
+        //     $hoarding = \App\Models\Hoarding::create([
+        //         'vendor_id' => $vendor->id,
+        //         'hoarding_type' => 'dooh',
+        //         'status' => 'draft',
+        //         'approval_status' => 'pending',
+        //         'current_step' => 1,
+        //     ]);
 
-            $draft = DOOHScreen::create([
-                'hoarding_id' => $hoarding->id,
-                // 'status' => DOOHScreen::STATUS_DRAFT,
+        //     $draft = DOOHScreen::create([
+        //         'hoarding_id' => $hoarding->id,
+        //         // 'status' => DOOHScreen::STATUS_DRAFT,
               
-            ]);
-        }
+        //     ]);
+        // }
 
 
         // Fetch attributes for form dropdowns (categories, etc.)

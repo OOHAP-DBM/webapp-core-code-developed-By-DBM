@@ -224,14 +224,14 @@ class HoardingListRepository
     {
         // dd($data);
         // Find the child OOHHoarding for this parent hoarding
-        $oohHoarding = \Modules\Hoardings\Models\OOHHoarding::where('hoarding_id', $hoardingId)->first();
+        $oohHoarding = \Modules\Hoardings\Models\OOHHoarding::where('id', $hoardingId)->first();
         $childHoardingId = $oohHoarding ? $oohHoarding->id : null;
         if (!$childHoardingId) {
             // fallback to parent if not found
             $childHoardingId = $hoardingId;
         }
         HoardingPackage::where('hoarding_id', $childHoardingId)->delete();
-        $parent = \App\Models\Hoarding::find($hoardingId);
+        $parent = \App\Models\Hoarding::find($oohHoarding->hoarding_id);
         // New: handle offers array (from JSON)
         if (isset($data['offers']) && is_array($data['offers'])) {
             foreach ($data['offers'] as $offer) {

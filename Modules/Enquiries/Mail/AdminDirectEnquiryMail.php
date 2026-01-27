@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Mail;
+namespace Modules\Enquiries\Mail;
 
-namespace App\Mail;
 
-use App\Models\DirectEnquiry; // Add this import
+use Modules\Enquiries\Models\DirectEnquiry;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class AdminDirectEnquiryMail extends Mailable
+class AdminDirectEnquiryMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

@@ -162,6 +162,16 @@
     background-color: #c73f3f !important;
     transform: scale(1.02);
 }
+/* ADMIN LOGOUT FIX */
+.sidebar-logout {
+    color: #374151; /* gray-700 */
+}
+
+.sidebar-logout:hover {
+    background-color: #fee2e2 !important; /* red-100 */
+    color: #b91c1c !important;           /* red-700 */
+}
+
 
 /* =================================
    Responsive

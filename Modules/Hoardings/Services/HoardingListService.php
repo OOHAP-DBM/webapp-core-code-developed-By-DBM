@@ -213,18 +213,20 @@ class HoardingListService
      */
     public function storeStep3($hoarding, $data)
     {
-        // dd($data);
         return \DB::transaction(function () use ($hoarding, $data) {
             $hoarding = $this->repo->updateStep3($hoarding, $data);
-            // dd($hoarding);
 
             // Support offers_json (JSON string) from web or API, like DOOH
+
             $offers = [];
             if (!empty($data['offers_json'])) {
+
                 $offers = json_decode($data['offers_json'], true);
             }
+
             // If not using offers_json, fallback to old array fields
             if (empty($offers) && !empty($data['offer_name'])) {
+
                 $count = is_array($data['offer_name']) ? count($data['offer_name']) : 0;
                 for ($i = 0; $i < $count; $i++) {
                     $offers[] = [
@@ -245,6 +247,7 @@ class HoardingListService
 
             // Set parent hoarding status to pending_approval
             $parent = $hoarding->hoarding;
+
            
             if ($parent && $parent->status !== \App\Models\Hoarding::STATUS_PENDING_APPROVAL) {
                 $parent->status = \App\Models\Hoarding::STATUS_PENDING_APPROVAL;

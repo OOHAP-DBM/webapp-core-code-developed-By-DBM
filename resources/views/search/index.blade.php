@@ -103,12 +103,24 @@
         position: relative;
         z-index: 0 !important;
     }
+    .price-badge {
+        background: #1dbf73;
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 2px 6px rgba(0,0,0,.35);
+        white-space: nowrap;
+        display: inline-block;
+        width: auto;
+    }
 </style>
 @extends('layouts.app')
 @section('title', 'Home - Seamless Hoarding Booking')
 @section('content')
 @php
-    $currentView = request('view', 'list');
+    $currentView = request('view', 'grid');
 @endphp
 @include('components.customer.navbar')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -306,28 +318,15 @@
             ) return;
 
             const priceHTML = `
-                <div style="
-                    background:#1dbf73;
-                    color:#fff;
-                    padding:4px 10px;
-                    border-radius:999px;
-                    font-size:12px;
-                    font-weight:600;
-                    box-shadow:0 2px 6px rgba(0,0,0,.35);
-                    white-space:nowrap;
-                ">
-                    ${item.price > 0 
-                        ? `₹${item.price}`
-                        : `${item.price}`
-                    }
+                <div class="price-badge">
+                    ₹${item.price}
                 </div>
-                `;
-
+            `;
 
             const icon = L.divIcon({
                 html: priceHTML,
-                className: '',
-                iconSize: [60, 26]
+                className: '',    
+                iconAnchor: [0, 0] 
             });
 
             L.marker([item.lat, item.lng], { icon }).addTo(map);
@@ -346,17 +345,31 @@
         mapReady = true;
     }
     function toggleMapView() {
-        const mapView  = document.getElementById('mapView');
-        const listView = document.getElementById('listView');
-        const toggle   = document.getElementById('mapViewToggle');
+        const mapView   = document.getElementById('mapView');
+        const listView  = document.getElementById('listView');
+        const gridView  = document.getElementById('gridView');
+        const toggle    = document.getElementById('mapViewToggle');
 
         if (toggle.checked) {
-            mapView.style.display = 'block';
-            listView.style.display = 'none';
+            // 🔒 Map ON → sirf map dikhe
+            if (mapView)  mapView.style.display = 'block';
+            if (listView) listView.style.display = 'none';
+            if (gridView) gridView.style.display = 'none';
+
             setTimeout(initPriceMap, 300);
         } else {
-            mapView.style.display = 'none';
-            listView.style.display = 'block';
+            // 🔓 Map OFF → URL ke hisaab se view dikhe
+            if (mapView) mapView.style.display = 'none';
+
+            const currentView = "{{ $currentView }}"; // list | grid
+
+            if (currentView === 'grid') {
+                if (gridView) gridView.style.display = 'block';
+                if (listView) listView.style.display = 'none';
+            } else {
+                if (listView) listView.style.display = 'block';
+                if (gridView) gridView.style.display = 'none';
+            }
         }
     }
     function openFilterModal() {

@@ -46,5 +46,11 @@ return [
         'base_url' => env('DOOH_API_URL'),
         'key' => env('DOOH_API_KEY'),
     ],
+    'twilio' => [
+        'sid' => env('TWILIO_SID'),
+        'token' => env('TWILIO_TOKEN'),
+        'from' => env('TWILIO_FROM'),
+    ],
+
 
 ];
