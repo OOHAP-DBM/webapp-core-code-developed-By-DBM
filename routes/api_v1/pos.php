@@ -16,6 +16,7 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
     
     // Hoarding Search
     Route::get('/search-hoardings', [POSBookingController::class, 'searchHoardings']);
+    Route::get('/hoardings', [POSBookingController::class, 'getHoardings']);
     
     // Price Calculator
     Route::post('/calculate-price', [POSBookingController::class, 'calculatePrice']);
@@ -25,6 +26,7 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
     Route::post('/bookings', [POSBookingController::class, 'store']);
     Route::get('/bookings/{id}', [POSBookingController::class, 'show']);
     Route::put('/bookings/{id}', [POSBookingController::class, 'update']);
+
     
     // ============================================
     // CRITICAL: Payment Status Management

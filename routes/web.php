@@ -65,6 +65,19 @@ Route::prefix('vendor/pos')->middleware(['auth', 'role:vendor'])->name('vendor.p
     Route::get('/create', [\Modules\POS\Controllers\Web\VendorPosController::class, 'create'])->name('create');
     Route::get('/bookings/{id}', [\Modules\POS\Controllers\Web\VendorPosController::class, 'show'])->name('show');
     Route::get('/customers', [App\Http\Controllers\Vendor\POSController::class, 'customers'])->name('customers');
+    //  Route::get('/dashboard', [VendorPosController::class, 'dashboard'])->name('dashboard');
+    // Route::get('/bookings', [VendorPosController::class, 'index'])->name('list');
+    // Route::get('/create', [VendorPosController::class, 'create'])->name('create');
+    // Route::post('/store', [VendorPosController::class, 'store'])->name('store');
+    // Route::get('/bookings/{id}', [VendorPosController::class, 'show'])->name('show');
+    // Route::post('/bookings/{id}/mark-paid', [VendorPosController::class, 'markPaid'])->name('markPaid');
+    // Route::post('/bookings/{id}/cancel', [VendorPosController::class, 'cancel'])->name('cancel');
+    // Route::post('/bookings/{id}/credit-note', [VendorPosController::class, 'creditNote'])->name('creditNote');
+    // // AJAX helpers
+    // Route::get('/customers/search', [VendorPosController::class, 'searchCustomers'])->name('customers.search');
+    // Route::get('/hoardings/search', [VendorPosController::class, 'searchHoardings'])->name('hoardings.search');
+    // Route::post('/calculate-price', [VendorPosController::class, 'calculatePrice'])->name('calculatePrice');
+    
     // Extend: edit, view, etc. as needed
 });
 Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
