@@ -79,7 +79,7 @@
             <!-- Remarks -->
             <div class="md:col-span-2">
                 <label class="text-xs font-bold text-gray-500 uppercase">Your Requirements / Remarks <span class="text-red-500">*</span></label>
-                <textarea name="remarks" rows="2" placeholder="Write your requirements in detail..." required
+                <textarea name="remarks" rows="2" placeholder="Write your requirements in detail, including what you want, when you want it, your budget, etc." required
                     class="w-full border-2 border-gray-50 rounded-xl p-3 mt-1 text-sm outline-none focus:border-[#009A5C] transition-colors"></textarea>
             </div>
 
