@@ -28,7 +28,8 @@
                 <div class="flex gap-2 items-center">
                     <input type="tel" id="phoneInput" name="phone" required maxlength="10" placeholder="10 digit mobile number" 
                         class="flex-1 border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]">
-                    <button type="button" onclick="sendOTP('phone')" class="text-xs px-3 py-1 bg-[#009A5C] text-white rounded">Send OTP</button>
+                    <button type="button" id="sendPhoneOtpBtn" onclick="sendOTP('phone')" class="text-xs px-3 py-1 bg-[#009A5C] text-white rounded">Send OTP</button>
+                    <span id="phoneVerifiedText" class="hidden text-green-600 text-xs font-semibold ml-2">Verified</span>
                 </div>
                 <input type="hidden" id="phone_verified" value="0">
             </div>
@@ -39,7 +40,8 @@
                 <div class="flex gap-2 items-center">
                     <input type="email" id="emailInput" name="email" required placeholder="example@domain.com" 
                         class="flex-1 border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]">
-                    <button type="button" onclick="sendOTP('email')" class="text-xs px-3 py-1 bg-[#009A5C] text-white rounded">Send OTP</button>
+                    <button type="button" id="sendEmailOtpBtn" onclick="sendOTP('email')" class="text-xs px-3 py-1 bg-[#009A5C] text-white rounded">Send OTP</button>
+                    <span id="emailVerifiedText" class="hidden text-green-600 text-xs font-semibold ml-2">Verified</span>
                 </div>
                 <input type="hidden" id="email_verified" value="0">
             </div>
@@ -126,6 +128,22 @@ let currentIdentifier = null;
 // Enable submit only if both verified
 function updateSubmit() {
     submitBtn.disabled = !(phoneVerifiedInput.value === '1' && emailVerifiedInput.value === '1');
+    // Phone
+    if (phoneVerifiedInput.value === '1') {
+        document.getElementById('sendPhoneOtpBtn').style.display = 'none';
+        document.getElementById('phoneVerifiedText').classList.remove('hidden');
+    } else {
+        document.getElementById('sendPhoneOtpBtn').style.display = '';
+        document.getElementById('phoneVerifiedText').classList.add('hidden');
+    }
+    // Email
+    if (emailVerifiedInput.value === '1') {
+        document.getElementById('sendEmailOtpBtn').style.display = 'none';
+        document.getElementById('emailVerifiedText').classList.remove('hidden');
+    } else {
+        document.getElementById('sendEmailOtpBtn').style.display = '';
+        document.getElementById('emailVerifiedText').classList.add('hidden');
+    }
 }
 
 // Add another location
@@ -273,6 +291,7 @@ document.getElementById('phoneInput')?.addEventListener('input', function(e) {
 window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => { autoShowModal(); }, 600); // 1 min
     setInterval(() => { autoShowModal(); }, 120000); // 2 mins
+    updateSubmit(); // Ensure correct state on load
 });
 
 function autoShowModal() {
