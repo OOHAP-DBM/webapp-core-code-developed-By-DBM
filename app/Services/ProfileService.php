@@ -66,7 +66,7 @@ class ProfileService
         ], $extra);
     }
 
-    const OTP_EXPIRY_MINUTES = 5;
+    const OTP_EXPIRY_MINUTES = 0.5; // 30 seconds for testing
     const OTP_LENGTH = 4;
 
     /* ==============================

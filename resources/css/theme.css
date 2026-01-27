@@ -1,6 +1,6 @@
 /* Central color theme file for OOHAPP */
 :root {
-    --btn-color: #22c55e; /* Main brand color (green) */
+    --btn-color: #14C871; /* Main brand color (green) */
     --btn-color-dark: #16a34a; /* Darker shade for hover */
     --accent-color: #2563eb; /* Example accent color (blue) */
     --danger-color: #ef4444; /* Example danger color (red) */

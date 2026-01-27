@@ -5,10 +5,10 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use App\Models\DirectEnquiry;
+use Modules\Enquiries\Models\DirectEnquiry;
 use Illuminate\Notifications\Notification;
 
-class AdminDirectEnquiryNotification extends Notification
+class AdminDirectEnquiryNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
