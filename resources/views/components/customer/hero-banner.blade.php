@@ -27,7 +27,7 @@
                         href="{{ route('login') }}"
                         class="w-[223px] h-[44px]
                             flex items-center justify-center
-                            bg-[#14C871] hover:bg-[#14C871]
+                            bg-[#2CB67D] hover:bg-[#24a26d]
                             rounded-[6px]
                             font-medium text-[16px] leading-[21px]
                             text-white
@@ -42,7 +42,7 @@
                         onclick="showDirectEnquiryModal()"
                         class="w-[223px] h-[44px]
                             flex items-center justify-center
-                            bg-[#14C871] hover:bg-[#14C871]
+                            bg-[#1B84FF] hover:bg-[#0f6fe0]
                             rounded-[6px]
                             font-medium text-[16px] leading-[21px]
                             text-white
