@@ -1,4 +1,3 @@
-
 <!-- Direct Enquiry Modal -->
 <div id="directEnquiryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden p-4">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden max-h-[90vh] overflow-y-auto">
@@ -139,9 +138,19 @@ function addAnotherLocation() {
     wrapper.appendChild(input);
 }
 
-// Toggle modal
+// Close modal (consistent behavior)
 function toggleDirectEnquiryModal() {
-    document.getElementById('directEnquiryModal').classList.toggle('hidden');
+    const modal = document.getElementById('directEnquiryModal');
+    modal.classList.add('hidden');
+    localStorage.setItem('direct_enquiry_closed_at', Date.now());
+}
+
+// Force show modal (for testing)
+function forceShowDirectEnquiryModal() {
+    localStorage.removeItem('direct_enquiry_closed_at');
+    const modal = document.getElementById('directEnquiryModal');
+    modal.classList.remove('hidden');
+    console.log('Modal force shown');
 }
 
 // Captcha
@@ -238,10 +247,6 @@ function showDirectEnquiryModal() {
         modal.classList.remove('hidden');
     }
 }
-function toggleDirectEnquiryModal() {
-    document.getElementById('directEnquiryModal').classList.add('hidden');
-    localStorage.setItem('direct_enquiry_closed_at', Date.now());
-}
 
 function showStatusModal(isSuccess, title, message) {
     const modal = document.getElementById('statusModal');
@@ -269,20 +274,33 @@ document.getElementById('phoneInput')?.addEventListener('input', function(e) {
     this.value = this.value.replace(/[^0-9]/g, '');
 });
 
-// Auto-show timers
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => { autoShowModal(); }, 600); // 1 min
-    setInterval(() => { autoShowModal(); }, 120000); // 2 mins
-});
-
 function autoShowModal() {
     const modal = document.getElementById('directEnquiryModal');
+    
+    if (!modal) {
+        console.error('Modal element not found!');
+        return;
+    }
+    
     const lastClosed = localStorage.getItem('direct_enquiry_closed_at');
-    const cooldown = 10 * 60 * 1000;
+    const cooldown = 5 * 60 * 1000; // 5 minute cooldown
+    
+    console.log('autoShowModal called. Hidden class:', modal.classList.contains('hidden'));
+    console.log('lastClosed from localStorage:', lastClosed);
+    
+    // Show if: modal is hidden AND (never closed OR cooldown expired)
     if (modal.classList.contains('hidden')) {
-        if (!lastClosed || (Date.now() - lastClosed) > cooldown) {
+        if (!lastClosed) {
+            console.log('Never closed before, showing modal...');
             modal.classList.remove('hidden');
+        } else if (Date.now() - parseInt(lastClosed) > cooldown) {
+            console.log('Cooldown expired, showing modal again...');
+            modal.classList.remove('hidden');
+        } else {
+            console.log('Still in cooldown period');
         }
+    } else {
+        console.log('Modal already visible');
     }
 }
 
@@ -424,10 +442,37 @@ function refreshDirectEnquiryCaptcha() {
     .then(res => res.json())
     .then(data => {
         if (data.num1 !== undefined && data.num2 !== undefined) {
-            document.getElementById('captchaText').textContent = Security Check: ${data.num1} + ${data.num2} =;
+            document.getElementById('captchaText').textContent = `Security Check: ${data.num1} + ${data.num2} = ?`;
             document.querySelector('input[name="captcha"]').value = '';
         }
     });
 }
+
+// ============================================
+// INITIALIZE ON PAGE LOAD
+// ============================================
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeModal);
+} else {
+    // DOM already loaded
+    initializeModal();
+}
+
+function initializeModal() {
+    console.log('Initializing direct enquiry modal...');
+    
+    // Regenerate captcha first
+    regenerateCaptcha();
+    
+    // Check if first visit or cooldown expired
+    setTimeout(() => {
+        autoShowModal();
+    }, 400);
+}
+
+// Set up auto-show interval
+setInterval(() => {
+    autoShowModal();
+}, 180000); // Every 3 minutes
 
 </script>

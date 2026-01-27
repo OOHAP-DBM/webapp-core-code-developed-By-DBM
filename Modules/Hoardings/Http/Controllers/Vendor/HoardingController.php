@@ -428,5 +428,194 @@ class HoardingController extends Controller
         return view('hoardings.vendor.show', compact('hoarding'));
     }
 
+    /**
+     * Preview hoarding before publishing
+     * Vendor can see how the hoarding looks before making it live
+     */
+    public function preview(int $id)
+    {
+        $hoarding = $this->hoardingService->getById($id);
+
+        if (!$hoarding || $hoarding->vendor_id !== auth()->id()) {
+            abort(404);
+        }
+
+        // Only draft and preview hoardings can be previewed
+        if (!in_array($hoarding->status, ['draft', 'preview'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only draft or preview hoardings can be previewed'
+            ], 400);
+        }
+
+        // Move to preview status if in draft
+        if ($hoarding->isDraft()) {
+            $hoarding->moveToPreview();
+        }
+
+        // Generate preview token if not exists
+        if (!$hoarding->preview_token) {
+            $hoarding->generatePreviewToken();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Hoarding moved to preview',
+            'preview_url' => route('hoarding.preview.show', ['token' => $hoarding->preview_token]),
+            'hoarding' => [
+                'id' => $hoarding->id,
+                'title' => $hoarding->title,
+                'status' => $hoarding->status,
+                'preview_token' => $hoarding->preview_token,
+            ]
+        ]);
+    }
+
+    /**
+     * Show public preview of hoarding via token
+     */
+    public function showPreview($token)
+    {
+        $hoarding = Hoarding::where('preview_token', $token)->firstOrFail();
+
+        // Only published and preview hoardings can be viewed via preview token
+        if (!in_array($hoarding->status, ['preview', 'published'])) {
+            abort(403);
+        }
+
+        return view('hoardings.public.preview', compact('hoarding'));
+    }
+
+    /**
+     * Publish hoarding (Auto-approve on publish)
+     * Vendor confirms they want to make hoarding live
+     */
+    public function publish(int $id)
+    {
+        $vendor = Auth::user();
+        $hoarding = $this->hoardingService->getById($id);
+
+        if (!$hoarding || $hoarding->vendor_id !== $vendor->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hoarding not found'
+            ], 404);
+        }
+
+        // Validate vendor has verified email and mobile
+        if (!$vendor->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please verify your email address before publishing',
+                'redirect' => route('vendor.profile.verify-email')
+            ], 422);
+        }
+
+        if (!$vendor->isMobileVerified()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please verify your mobile number before publishing',
+                'redirect' => route('vendor.profile.verify-mobile')
+            ], 422);
+        }
+
+        // Only draft and preview hoardings can be published
+        if (!$hoarding->canBeEdited()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only draft or preview hoardings can be published'
+            ], 400);
+        }
+
+        // Validate hoarding data completeness (optional - add validation as needed)
+        // You can add validation for required fields here
+
+        // Publish the hoarding (auto-approve)
+        try {
+            $hoarding->publish();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Hoarding published successfully and auto-approved',
+                'hoarding' => [
+                    'id' => $hoarding->id,
+                    'title' => $hoarding->title,
+                    'status' => $hoarding->status,
+                    'published_at' => $hoarding->published_at,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Hoarding publish failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to publish hoarding'
+            ], 500);
+        }
+    }
+
+    /**
+     * Edit hoarding
+     * Vendor can edit draft or preview hoardings
+     */
+    public function edit(int $id)
+    {
+        $hoarding = $this->hoardingService->getById($id);
+
+        if (!$hoarding || $hoarding->vendor_id !== auth()->id()) {
+            abort(404);
+        }
+
+        if (!$hoarding->canBeEdited()) {
+            return redirect()->back()->with('error', 'Only draft or preview hoardings can be edited');
+        }
+
+        // Return edit view/form
+        return view('hoardings.vendor.edit', compact('hoarding'));
+    }
+
+    /**
+     * Update hoarding
+     */
+    public function update(Request $request, int $id)
+    {
+        $hoarding = $this->hoardingService->getById($id);
+
+        if (!$hoarding || $hoarding->vendor_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Hoarding not found'], 404);
+        }
+
+        if (!$hoarding->canBeEdited()) {
+            return response()->json(['success' => false, 'message' => 'This hoarding cannot be edited'], 400);
+        }
+
+        try {
+            // Validate and update hoarding
+            $validated = $request->validate([
+                'title' => 'sometimes|string|max:255',
+                'description' => 'sometimes|string',
+                'address' => 'sometimes|string',
+                'city' => 'sometimes|string',
+                'state' => 'sometimes|string',
+                'locality' => 'sometimes|string',
+                'pincode' => 'sometimes|string',
+                // Add other fields as needed
+            ]);
+
+            $hoarding->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Hoarding updated successfully',
+                'hoarding' => $hoarding
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Hoarding update failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update hoarding'
+            ], 500);
+        }
+    }
+
     
 }

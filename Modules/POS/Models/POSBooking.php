@@ -44,8 +44,12 @@ class POSBooking extends Model
         'payment_mode',
         'payment_status',
         'paid_amount',
+        'payment_received_at',
         'payment_reference',
         'payment_notes',
+        'hold_expiry_at',
+        'reminder_count',
+        'last_reminder_at',
         'credit_note_number',
         'credit_note_date',
         'credit_note_due_date',
@@ -61,6 +65,8 @@ class POSBooking extends Model
         'notes',
         'cancellation_reason',
         'confirmed_at',
+        'started_at',
+        'completed_at',
         'cancelled_at',
     ];
 
@@ -79,7 +85,12 @@ class POSBooking extends Model
         'booking_snapshot' => 'array',
         'approved_at' => 'datetime',
         'confirmed_at' => 'datetime',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'hold_expiry_at' => 'datetime',
+        'payment_received_at' => 'datetime',
+        'last_reminder_at' => 'datetime',
     ];
 
     // Status constants

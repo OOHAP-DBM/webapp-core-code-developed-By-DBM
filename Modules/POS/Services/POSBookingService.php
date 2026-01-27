@@ -48,15 +48,33 @@ class POSBookingService
 
             // Note: GST-compliant invoice will be generated after booking creation
 
-            // Credit note handling
+            // Determine payment status and hold expiry based on payment mode
+            $paymentMode = $data['payment_mode'] ?? POSBooking::PAYMENT_MODE_CASH;
+            $paymentStatus = POSBooking::PAYMENT_STATUS_UNPAID;
+            $holdExpiryAt = null;
+            
+            // Set hold expiry for payment modes that require payment
+            $holdDays = 7; // Grace period before auto-release
+            if (in_array($paymentMode, [
+                POSBooking::PAYMENT_MODE_CASH,
+                POSBooking::PAYMENT_MODE_BANK_TRANSFER,
+                POSBooking::PAYMENT_MODE_CHEQUE,
+                'online' // For backward compatibility
+            ])) {
+                $holdExpiryAt = now()->addDays($holdDays);
+            }
+
+            // Credit note handling (no hold, status = credit)
             $creditNoteData = [];
-            if (isset($data['payment_mode']) && $data['payment_mode'] === POSBooking::PAYMENT_MODE_CREDIT_NOTE) {
+            if ($paymentMode === POSBooking::PAYMENT_MODE_CREDIT_NOTE) {
                 $creditNoteDays = $this->getCreditNoteDays();
+                $paymentStatus = POSBooking::PAYMENT_STATUS_CREDIT;
+                $holdExpiryAt = null; // No hold for credit notes
                 $creditNoteData = [
-                    'credit_note_number' => POSBooking::generateCreditNoteNumber(),
+                    'credit_note_number' => $this->generateCreditNoteNumber(),
                     'credit_note_date' => now(),
                     'credit_note_due_date' => now()->addDays($creditNoteDays),
-                    'credit_note_status' => POSBooking::CREDIT_NOTE_STATUS_ACTIVE,
+                    'credit_note_status' => 'active',
                     'payment_status' => POSBooking::PAYMENT_STATUS_CREDIT,
                 ];
             }
@@ -87,7 +105,10 @@ class POSBookingService
                 'end_date' => $data['end_date'],
                 'duration_type' => $data['duration_type'] ?? 'days',
                 'duration_days' => $this->calculateDurationDays($data['start_date'], $data['end_date']),
-                'payment_mode' => $data['payment_mode'] ?? POSBooking::PAYMENT_MODE_CASH,
+                'payment_mode' => $paymentMode,
+                'payment_status' => $paymentStatus,
+                'hold_expiry_at' => $holdExpiryAt,
+                'reminder_count' => 0,
                 'payment_reference' => $data['payment_reference'] ?? null,
                 'payment_notes' => $data['payment_notes'] ?? null,
                 'notes' => $data['notes'] ?? null,
@@ -452,4 +473,140 @@ class POSBookingService
             'credit_notes_value' => $bookings->creditNotes()->sum('total_amount'),
         ];
     }
+
+    /**
+     * CRITICAL: Mark booking payment as received
+     * Transitions unpaid → paid
+     * Clears hold_expiry_at to allow campaign to start
+     */
+    public function markPaymentReceived(POSBooking $booking, float $amount, \Carbon\Carbon $paymentDate, ?string $notes = null): POSBooking
+    {
+        return DB::transaction(function () use ($booking, $amount, $paymentDate, $notes) {
+            // Validate state
+            if (!in_array($booking->payment_status, ['unpaid', 'partial'])) {
+                throw new \Exception('Booking is not in payable state');
+            }
+
+            // Determine if full or partial payment
+            $newStatus = abs($amount - $booking->total_amount) < 0.01 
+                ? POSBooking::PAYMENT_STATUS_PAID 
+                : POSBooking::PAYMENT_STATUS_PARTIAL;
+
+            // Update booking
+            $booking->update([
+                'paid_amount' => $amount,
+                'payment_status' => $newStatus,
+                'payment_received_at' => $paymentDate,
+                'hold_expiry_at' => null, // Clear hold when payment received
+                'reminder_count' => 0,    // Reset reminders
+                'last_reminder_at' => null,
+            ]);
+
+            // Log payment transaction
+            Log::info('Payment marked as received', [
+                'booking_id' => $booking->id,
+                'vendor_id' => $booking->vendor_id,
+                'amount' => $amount,
+                'total' => $booking->total_amount,
+                'status' => $newStatus,
+                'notes' => $notes,
+            ]);
+
+            // TODO: Unblock hoarding inventory (when release logic is added)
+            // $this->releaseHoardingInventory($booking);
+
+            return $booking->fresh();
+        });
+    }
+
+    /**
+     * CRITICAL: Release booking hold (free hoarding, mark as cancelled)
+     * Used for order cancellations or customer rejections
+     * Transitions: unpaid → released
+     */
+    public function releaseBooking(POSBooking $booking, string $reason): POSBooking
+    {
+        return DB::transaction(function () use ($booking, $reason) {
+            // Validate state
+            if ($booking->payment_status !== POSBooking::PAYMENT_STATUS_UNPAID) {
+                throw new \Exception('Can only release unpaid bookings');
+            }
+
+            if (!in_array($booking->status, ['draft', 'confirmed'])) {
+                throw new \Exception('Cannot release started campaigns');
+            }
+
+            // Cancel the booking
+            $booking->update([
+                'status' => POSBooking::STATUS_CANCELLED,
+                'cancelled_at' => now(),
+                'cancellation_reason' => $reason,
+                'hold_expiry_at' => null,
+                'reminder_count' => 0,
+                'last_reminder_at' => null,
+            ]);
+
+            Log::info('Booking released/cancelled', [
+                'booking_id' => $booking->id,
+                'vendor_id' => $booking->vendor_id,
+                'reason' => $reason,
+            ]);
+
+            // TODO: Release hoarding inventory here
+            // $this->releaseHoardingInventory($booking);
+
+            return $booking->fresh();
+        });
+    }
+
+    /**
+     * Helper: Generate credit note number
+     */
+    private function generateCreditNoteNumber(): string
+    {
+        $prefix = 'CN-' . date('Y');
+        $latest = POSBooking::where('credit_note_number', 'like', $prefix . '%')
+            ->latest()
+            ->first();
+
+        $number = 1001; // Start from 1001
+        if ($latest && preg_match('/CN-\d+-(\d+)/', $latest->credit_note_number, $matches)) {
+            $number = (int)$matches[1] + 1;
+        }
+
+        return $prefix . '-' . $number;
+    }
+
+    /**
+     * Helper: Get GST rate from settings
+     */
+    public function getGSTRate(): float
+    {
+        return (float) ($this->settingsService->get('pos_gst_rate') ?? 18);
+    }
+
+    /**
+     * Helper: Check if auto-approval is enabled
+     */
+    private function isAutoApprovalEnabled(): bool
+    {
+        return (bool) $this->settingsService->get('pos_auto_approve', false);
+    }
+
+    /**
+     * Helper: Check if auto-invoice generation is enabled
+     */
+    private function isAutoInvoiceEnabled(): bool
+    {
+        return (bool) $this->settingsService->get('pos_auto_invoice', true);
+    }
+
+    /**
+     * Helper: Get credit note validity days from settings
+     */
+    private function getCreditNoteDays(): int
+    {
+        return (int) ($this->settingsService->get('pos_credit_note_days') ?? 30);
+    }
 }
+

@@ -62,15 +62,40 @@
                         <th class="px-4 py-3 text-left">Amount</th>
                         <th class="px-4 py-3 text-left">Payment</th>
                         <th class="px-4 py-3 text-left">Status</th>
+                        <th class="px-4 py-3 text-left">Hold Expires</th>
                         <th class="px-4 py-3 text-left">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="recent-bookings-body" class="divide-y">
                     <tr>
-                        <td colspan="8" class="px-4 py-6 text-center text-gray-500">
+                        <td colspan="9" class="px-4 py-6 text-center text-gray-500">
                             Loading...
                         </td>
                     </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pending Payments Widget -->
+    <div id="pending-payments-widget" class="bg-white rounded-xl shadow-sm border border-gray-200 hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-yellow-50">
+            <h5 class="text-lg font-semibold text-yellow-800">⏰ Payment Holds Expiring Soon</h5>
+            <p class="text-sm text-yellow-700">Bookings with payment holds that need attention</p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-gray-50 text-gray-600">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Invoice #</th>
+                        <th class="px-4 py-3 text-left">Customer</th>
+                        <th class="px-4 py-3 text-left">Amount</th>
+                        <th class="px-4 py-3 text-left">Hold Expires In</th>
+                        <th class="px-4 py-3 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pending-payments-body" class="divide-y">
                 </tbody>
             </table>
         </div>
@@ -109,6 +134,26 @@ document.addEventListener('DOMContentLoaded', function () {
         if (data.success && data.data.data.length) {
             tbody.innerHTML = '';
             data.data.data.forEach(b => {
+                // Calculate hold expiry display
+                let holdExpiryDisplay = '-';
+                let holdExpiryClass = '';
+                
+                if (b.hold_expiry_at) {
+                    const holdExpiry = new Date(b.hold_expiry_at);
+                    const now = new Date();
+                    const diff = holdExpiry - now;
+
+                    if (diff > 0) {
+                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        holdExpiryDisplay = `In ${days}d ${hours}h`;
+                        holdExpiryClass = diff < (12 * 60 * 60 * 1000) ? 'text-red-600 font-semibold' : 'text-yellow-600';
+                    } else {
+                        holdExpiryDisplay = 'EXPIRED!';
+                        holdExpiryClass = 'text-red-600 font-semibold bg-red-50 px-2 py-1 rounded';
+                    }
+                }
+
                 tbody.innerHTML += `
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3">${b.invoice_number || 'N/A'}</td>
@@ -131,6 +176,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             ${b.status}
                         </span>
                     </td>
+                    <td class="px-4 py-3 ${holdExpiryClass}">
+                        ${holdExpiryDisplay}
+                    </td>
                     <td class="px-4 py-3">
                         <a href="/vendor/pos/bookings/${b.id}"
                            class="text-blue-600 hover:underline text-sm">
@@ -140,9 +188,60 @@ document.addEventListener('DOMContentLoaded', function () {
                 </tr>`;
             });
         } else {
-            tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
         }
     });
+
+    // Load pending payments (bookings with active holds)
+    fetch('/api/v1/vendor/pos/pending-payments', {
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.data.length > 0) {
+            const widget = document.getElementById('pending-payments-widget');
+            const tbody = document.getElementById('pending-payments-body');
+            widget.classList.remove('hidden');
+
+            tbody.innerHTML = '';
+            data.data.forEach(b => {
+                const holdExpiry = new Date(b.hold_expiry_at);
+                const now = new Date();
+                const diff = holdExpiry - now;
+
+                let holdExpiryText = '';
+                let rowClass = '';
+
+                if (diff > 0) {
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    holdExpiryText = `${days}d ${hours}h`;
+                    rowClass = diff < (12 * 60 * 60 * 1000) ? 'bg-red-50' : 'bg-yellow-50';
+                } else {
+                    holdExpiryText = 'EXPIRED - URGENT';
+                    rowClass = 'bg-red-100 border-l-4 border-red-600';
+                }
+
+                tbody.innerHTML += `
+                <tr class="${rowClass}">
+                    <td class="px-4 py-3 font-medium">${b.invoice_number || 'N/A'}</td>
+                    <td class="px-4 py-3">${b.customer_name}</td>
+                    <td class="px-4 py-3 font-semibold">₹${parseFloat(b.total_amount).toLocaleString()}</td>
+                    <td class="px-4 py-3 font-semibold text-red-600">${holdExpiryText}</td>
+                    <td class="px-4 py-3">
+                        <a href="/vendor/pos/bookings/${b.id}"
+                           class="text-blue-600 hover:underline text-sm font-medium">
+                            View & Mark Paid
+                        </a>
+                    </td>
+                </tr>`;
+            });
+        }
+    })
+    .catch(err => console.warn('Could not load pending payments:', err));
 });
 
 function statusBadge(status) {

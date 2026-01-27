@@ -406,7 +406,7 @@
                 class="pl-6 space-y-2"
             >
                 <a
-                    href="#"
+                    href="pos/dashboard"
                     class="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
                 >
                     <span class="opacity-60">–</span> POS Dashboard

@@ -154,15 +154,31 @@ function loadBookings(page = 1) {
                             ${booking.status}
                         </span>
                     </td>
-                    <td class="border px-3 py-2 flex gap-2">
+                    <td class="border px-3 py-2 flex gap-1">
                         <a href="/vendor/pos/bookings/${booking.id}"
                            class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition">
                             View
                         </a>
-                        <a href="/vendor/pos/bookings/${booking.id}/edit"
-                           class="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition">
-                            Edit
-                        </a>
+                        <!-- BACKEND RULE: Only show Edit if status = draft -->
+                        ${booking.status === 'draft' ? `
+                            <a href="/vendor/pos/bookings/${booking.id}/edit"
+                               class="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition">
+                                Edit
+                            </a>
+                        ` : `
+                            <button disabled 
+                                class="text-xs bg-gray-300 text-gray-500 px-2 py-1 rounded cursor-not-allowed"
+                                title="Can only edit draft bookings">
+                                Edit
+                            </button>
+                        `}
+                        <!-- BACKEND RULE: Show Mark Paid if payment_status in [unpaid, partial] AND status != cancelled -->
+                        ${['unpaid', 'partial'].includes(booking.payment_status) && booking.status !== 'cancelled' ? `
+                            <a href="/vendor/pos/bookings/${booking.id}"
+                               class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition">
+                                💰 Pay
+                            </a>
+                        ` : ``}
                     </td>
                 </tr>`;
             });

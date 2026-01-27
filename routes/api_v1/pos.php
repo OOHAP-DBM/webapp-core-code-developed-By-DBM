@@ -26,7 +26,40 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
     Route::get('/bookings/{id}', [POSBookingController::class, 'show']);
     Route::put('/bookings/{id}', [POSBookingController::class, 'update']);
     
-    // Payment Actions
+    // ============================================
+    // CRITICAL: Payment Status Management
+    // ============================================
+    
+    /**
+     * Mark booking payment as received (PENDING → PAID)
+     * POST /api/v1/vendor/pos/bookings/{id}/mark-paid
+     * Body: { amount, payment_date?, notes? }
+     */
+    Route::post('/bookings/{id}/mark-paid', [POSBookingController::class, 'markAsPaid']);
+    
+    /**
+     * Release booking hold (free hoarding, cancel order)
+     * POST /api/v1/vendor/pos/bookings/{id}/release
+     * Body: { reason }
+     */
+    Route::post('/bookings/{id}/release', [POSBookingController::class, 'releaseBooking']);
+    
+    /**
+     * Get all bookings with pending payments (for dashboard)
+     * GET /api/v1/vendor/pos/pending-payments
+     */
+    Route::get('/pending-payments', [POSBookingController::class, 'getPendingPayments']);
+    
+    /**
+     * Send payment reminder for pending booking
+     * POST /api/v1/vendor/pos/bookings/{id}/send-reminder
+     */
+    Route::post('/bookings/{id}/send-reminder', [POSBookingController::class, 'sendReminder']);
+    
+    // ============================================
+    // Legacy Payment Actions (kept for compatibility)
+    // ============================================
+    
     Route::post('/bookings/{id}/mark-cash-collected', [POSBookingController::class, 'markCashCollected']);
     Route::post('/bookings/{id}/convert-to-credit-note', [POSBookingController::class, 'convertToCreditNote']);
     Route::post('/bookings/{id}/cancel-credit-note', [POSBookingController::class, 'cancelCreditNote']);
@@ -34,3 +67,4 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
     // Booking Actions
     Route::post('/bookings/{id}/cancel', [POSBookingController::class, 'cancel']);
 });
+
