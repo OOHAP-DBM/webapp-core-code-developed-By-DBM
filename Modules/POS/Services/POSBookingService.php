@@ -395,10 +395,10 @@ class POSBookingService
     /**
      * Get GST rate (backwards compatible)
      */
-    public function getGSTRate(): float
-    {
-        return $this->taxService->getDefaultTaxRate('booking');
-    }
+    // public function getGSTRate(): float
+    // {
+    //     return $this->taxService->getDefaultTaxRate('booking');
+    // }
 
     /**
      * Check if SMS notification is enabled
@@ -584,29 +584,32 @@ class POSBookingService
     {
         return (float) ($this->settingsService->get('pos_gst_rate') ?? 18);
     }
-
+//    public function getGSTRate(): float
+//     {
+//         return $this->taxService->getDefaultTaxRate('booking');
+//     }
     /**
      * Helper: Check if auto-approval is enabled
      */
-    private function isAutoApprovalEnabled(): bool
-    {
-        return (bool) $this->settingsService->get('pos_auto_approve', false);
-    }
+    // private function isAutoApprovalEnabled(): bool
+    // {
+    //     return (bool) $this->settingsService->get('pos_auto_approve', false);
+    // }
 
     /**
      * Helper: Check if auto-invoice generation is enabled
      */
-    private function isAutoInvoiceEnabled(): bool
-    {
-        return (bool) $this->settingsService->get('pos_auto_invoice', true);
-    }
+    // private function isAutoInvoiceEnabled(): bool
+    // {
+    //     return (bool) $this->settingsService->get('pos_auto_invoice', true);
+    // }
 
     /**
      * Helper: Get credit note validity days from settings
      */
-    private function getCreditNoteDays(): int
-    {
-        return (int) ($this->settingsService->get('pos_credit_note_days') ?? 30);
-    }
+    // private function getCreditNoteDays(): int
+    // {
+    //     return (int) ($this->settingsService->get('pos_credit_note_days') ?? 30);
+    // }
 }
 

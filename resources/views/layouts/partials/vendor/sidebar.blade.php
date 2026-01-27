@@ -346,109 +346,111 @@
                 </div>
             </div>
 
-        <div x-data="{ open: true }" class="space-y-2">
-            <!-- Parent -->
-            <button
-                type="button"
-                @click="open = !open"
-                class="
-                    w-full flex items-center justify-between
-                    px-4 py-3
-                    rounded-xl
-                    bg-[#0A9A5C]
-                    text-white
-                "
-            >
-                <!-- Left -->
-                <div class="flex items-center gap-3">
-                    <!-- POS Icon -->
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path
-                            d="M4 4h16v16H4z"
-                            stroke="white"
-                            stroke-width="1.5"
-                        />
-                        <path
-                            d="M7 8h10M7 12h10M7 16h6"
-                            stroke="white"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                        />
-                    </svg>
-
-                    <span class="text-sm font-medium">
-                        POS Booking
-                    </span>
-                </div>
-
-                <!-- Arrow -->
-                <svg
-                    class="w-4 h-4 transition-transform duration-200"
-                    :class="{ 'rotate-180': open }"
-                    fill="none"
-                    stroke="white"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 9l-7 7-7-7"
-                    />
-                </svg>
-            </button>
-
-            <!-- Children -->
+            {{-- POS & BOOKINGS --}}
             <div
-                x-show="open"
-                x-collapse
-                x-cloak
-                class="pl-6 space-y-2"
+                x-data="{ open: {{ request()->routeIs('vendor.pos.*') ? 'true' : 'false' }} }"
+                class="space-y-1"
             >
-                <a
-                    href="pos/dashboard"
-                    class="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
+                <!-- Parent -->
+                <button
+                    type="button"
+                    @click="open = !open"
+                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
+                    {{ request()->routeIs('vendor.pos.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
                 >
-                    <span class="opacity-60">–</span> POS Dashboard
-                </a>
+                    <div class="flex items-center gap-3">
+                        <!-- POS Icon -->
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <rect x="4" y="4" width="16" height="16" rx="2"
+                                stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 8h10M7 12h10M7 16h6"
+                                stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round"/>
+                        </svg>
 
-                <a
-                    href="#"
-                    class="flex items-center gap-2 text-sm text-[#0A9A5C] font-medium"
-                >
-                    <span>–</span> Create Offer
-                </a>
+                        <span>POS & BOOKINGS</span>
+                    </div>
 
-                <a
-                    href="#"
-                    class="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
-                >
-                    <span class="opacity-60">–</span> Manage Offers
-                </a>
+                    <!-- Arrow -->
+                    <svg
+                        class="w-4 h-4 transition-transform duration-200"
+                        :class="{ 'rotate-180': open }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
 
-                <a
-                    href="#"
-                    class="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
-                >
-                    <span class="opacity-60">–</span> Create Quotation
-                </a>
+                <!-- Children -->
+                <div x-show="open" x-collapse x-cloak class="space-y-1">
 
-                <a
-                    href="#"
-                    class="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
-                >
-                    <span class="opacity-60">–</span> Manage Quotation
-                </a>
+                    <!-- POS Dashboard -->
+                    <a
+                        href="{{ route('vendor.pos.dashboard') }}"
+                        class="flex items-center gap-3 px-6 py-2 text-sm rounded-md
+                        {{ request()->routeIs('vendor.pos.dashboard')
+                            ? 'bg-[#00995c] text-white font-semibold border-l-4 border-dashed border-white'
+                            : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="opacity-60">–</span> POS Dashboard
+                    </a>
 
-                <a
-                    href="#"
-                    class="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
-                >
-                    <span class="opacity-60">–</span> Manage Bookings
-                </a>
+                    <!-- Book Now -->
+                    <a
+                        href="{{ route('vendor.pos.create') }}"
+                        class="flex items-center gap-3 px-6 py-2 text-sm rounded-md
+                        {{ request()->routeIs('vendor.pos.create')
+                            ? 'bg-[#00995c] text-white font-semibold border-l-4 border-dashed border-white'
+                            : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="opacity-60">–</span> Book Now
+                    </a>
+
+                    <!-- POS Booking -->
+                    <a
+                        href="{{ route('vendor.pos.list') }}"
+                        class="flex items-center gap-3 px-6 py-2 text-sm rounded-md
+                        {{ request()->routeIs('vendor.pos.list')
+                            ? 'bg-[#00995c] text-white font-semibold border-l-4 border-dashed border-white'
+                            : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="opacity-60">–</span> POS Booking
+                    </a>
+
+                    <!-- POS Customers -->
+                    <a
+                        href="{{ route('vendor.pos.customers') }}"
+                        class="flex items-center gap-3 px-6 py-2 text-sm rounded-md
+                        {{ request()->routeIs('vendor.pos.customers')
+                            ? 'bg-[#00995c] text-white font-semibold border-l-4 border-dashed border-white'
+                            : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="opacity-60">–</span> POS Customers
+                    </a>
+
+                    <!-- POS Transactions -->
+                    <!-- <a
+                        href=""
+                        class="flex items-center gap-3 px-6 py-2 text-sm rounded-md
+                        {{ request()->routeIs('vendor.pos.transactions')
+                            ? 'bg-[#00995c] text-white font-semibold border-l-4 border-dashed border-white'
+                            : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="opacity-60">–</span> POS Transactions
+                    </a> -->
+
+                </div>
             </div>
-        </div>
 
+
+            <!-- {{-- POS (Point of Sale) Link --}}
+{{-- <a href="{{ route('vendor.pos.dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.pos.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-50' }}">
+    <i class="fas fa-cash-register"></i>
+    POS (Point of Sale)
+</a> --}} -->
 
             {{-- My Staff Dropdown --}}
 <!-- <div

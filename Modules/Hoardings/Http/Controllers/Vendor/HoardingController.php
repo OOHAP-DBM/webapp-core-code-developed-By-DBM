@@ -557,21 +557,21 @@ class HoardingController extends Controller
      * Edit hoarding
      * Vendor can edit draft or preview hoardings
      */
-    public function edit(int $id)
-    {
-        $hoarding = $this->hoardingService->getById($id);
+    // public function edit(int $id)
+    // {
+    //     $hoarding = $this->hoardingService->getById($id);
 
-        if (!$hoarding || $hoarding->vendor_id !== auth()->id()) {
-            abort(404);
-        }
+    //     if (!$hoarding || $hoarding->vendor_id !== auth()->id()) {
+    //         abort(404);
+    //     }
 
-        if (!$hoarding->canBeEdited()) {
-            return redirect()->back()->with('error', 'Only draft or preview hoardings can be edited');
-        }
+    //     if (!$hoarding->canBeEdited()) {
+    //         return redirect()->back()->with('error', 'Only draft or preview hoardings can be edited');
+    //     }
 
-        // Return edit view/form
-        return view('hoardings.vendor.edit', compact('hoarding'));
-    }
+    //     // Return edit view/form
+    //     return view('hoardings.vendor.edit', compact('hoarding'));
+    // }
 
     /**
      * Update hoarding

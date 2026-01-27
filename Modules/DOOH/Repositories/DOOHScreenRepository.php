@@ -302,17 +302,28 @@ class DOOHScreenRepository
         if (isset($data['offers']) && is_array($data['offers'])) {
             foreach ($data['offers'] as $offer) {
                 if (!empty($offer['name'])) {
+                    // Ensure discount_percent is a valid decimal
+                    $discount = $offer['discount_value'] ?? $offer['discount'] ?? 0;
+                    if ($discount === '' || !is_numeric($discount)) {
+                        $discount = 0;
+                    }
+                    // Ensure end_date is null if empty or not a valid date
+                    $endDate = $offer['end_date'] ?? null;
+                    if (empty($endDate) || $endDate === '' || strtolower($endDate) === 'null') {
+                        $endDate = null;
+                    }
                     DOOHPackage::create([
                         'dooh_screen_id'         => $screenId,
                         'package_name'           => $offer['name'],
                         'min_booking_duration'   => $offer['min_booking_duration'] ?? 1,
                         'duration_unit'          => $offer['duration_unit'] ?? 'months',
                         'discount_percent'       => $offer['discount_value'] ?? $offer['discount'] ?? 0.0,
+                        'discount_percent'       => $discount,
                         'is_active'              => $offer['is_active'] ?? true,
                         'slots_per_day'          => 1,
                         'services_included'      => isset($offer['services']) ? json_encode($offer['services']) : null,
                         'custom_fields'          => null,
-                        'end_date'               => $offer['end_date'] ?? null,
+                        'end_date'               => $endDate,
                     ]);
                 }
             }
@@ -320,17 +331,28 @@ class DOOHScreenRepository
             // Legacy: handle old array fields
             foreach ($data['offer_name'] as $index => $name) {
                 if (!empty($name)) {
+                    // Ensure discount_percent is a valid decimal
+                    $discount = $data['offer_discount'][$index] ?? 0;
+                    if ($discount === '' || !is_numeric($discount)) {
+                        $discount = 0;
+                    }
+                    // Ensure end_date is null if empty or not a valid date
+                    $endDate = $data['offer_end_date'][$index] ?? null;
+                    if (empty($endDate) || $endDate === '' || strtolower($endDate) === 'null') {
+                        $endDate = null;
+                    }
                     DOOHPackage::create([
                         'dooh_screen_id'       => $screenId,
                         'package_name'         => $name,
                         'min_booking_duration' => $data['offer_duration'][$index] ?? 1,
                         'duration_unit'        => $data['offer_unit'][$index] ?? 'months',
                         'discount_percent'     => $data['offer_discount'][$index] ?? 0.0,
+                        'discount_percent'     => $discount,
                         'is_active'            => true,
                         'slots_per_day'        => 1,
                         'services_included'    => isset($data['offer_services'][$index]) ? json_encode($data['offer_services'][$index]) : null,
                         'custom_fields'        => null,
-                        'end_date'             => $data['offer_end_date'][$index] ?? null,
+                        'end_date'             => $endDate,
                     ]);
                 }
             }
