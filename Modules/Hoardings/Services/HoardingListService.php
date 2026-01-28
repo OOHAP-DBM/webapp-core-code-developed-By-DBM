@@ -243,6 +243,7 @@ class HoardingListService
 
             // Set parent hoarding status to pending_approval
             $parent = $hoarding->hoarding;
+
            
             if ($parent && $parent->status !== \App\Models\Hoarding::STATUS_PENDING_APPROVAL) {
                 $parent->status = \App\Models\Hoarding::STATUS_PENDING_APPROVAL;

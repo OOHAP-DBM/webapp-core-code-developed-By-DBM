@@ -146,7 +146,6 @@
 <script>
 /* =====================================================
    GLOBAL ELEMENTS & STATE
-===================================================== */
 const phoneInput = document.getElementById('phoneInput');
 const emailInput = document.getElementById('emailInput');
 const phoneVerifiedInput = document.getElementById('phone_verified');
@@ -160,18 +159,6 @@ let currentIdentifier = null;
 
 /* =====================================================
    MODAL LOGIC
-===================================================== */
-function autoShowModal() {
-    const modal = document.getElementById('directEnquiryModal');
-    const lastClosed = localStorage.getItem('direct_enquiry_closed_at');
-    const cooldown = 10 * 60 * 1000; // 10 minutes
-
-    if (!lastClosed || (Date.now() - lastClosed) > cooldown) {
-        modal.classList.remove('hidden');
-    }
-}
-
-function closeDirectEnquiryModal() {
     document.getElementById('directEnquiryModal').classList.add('hidden');
     localStorage.setItem('direct_enquiry_closed_at', Date.now());
 }
@@ -209,47 +196,6 @@ function addAnotherLocation() {
 
 /* =====================================================
    OTP LOGIC
-===================================================== */
-function updateSubmit() {
-    submitBtn.disabled = !(phoneVerifiedInput.value === '1' && emailVerifiedInput.value === '1');
-
-    document.getElementById('sendPhoneOtpBtn').style.display =
-        phoneVerifiedInput.value === '1' ? 'none' : '';
-    document.getElementById('phoneVerifiedText').classList.toggle(
-        'hidden', phoneVerifiedInput.value !== '1'
-    );
-
-    document.getElementById('sendEmailOtpBtn').style.display =
-        emailVerifiedInput.value === '1' ? 'none' : '';
-    document.getElementById('emailVerifiedText').classList.toggle(
-        'hidden', emailVerifiedInput.value !== '1'
-    );
-}
-
-function showOtpModal(type, identifier) {
-    currentOtpType = type;
-    currentIdentifier = identifier;
-    document.getElementById('otpModal').classList.remove('hidden');
-    document.getElementById('otpInput').value = '';
-    document.getElementById('otpMessage').textContent = '';
-    document.getElementById('otpForText').textContent =
-        `OTP sent to your ${type === 'phone' ? 'Phone' : 'Email'}: ${identifier}`;
-}
-
-function closeOtpModal() {
-    document.getElementById('otpModal').classList.add('hidden');
-    currentOtpType = null;
-    currentIdentifier = null;
-}
-
-function sendOTP(type) {
-    const identifier = type === 'phone' ? phoneInput.value : emailInput.value;
-    if (!identifier) return alert(`Enter ${type}`);
-    if (type === 'phone' && identifier.length !== 10) {
-        return alert('Phone number must be exactly 10 digits.');
-    }
-    if (type === 'email' && !/^\S+@\S+\.\S+$/.test(identifier)) {
-        return alert('Enter a valid email address.');
     }
     if (otpCooldown) return Swal.fire({
         icon: 'warning',
@@ -377,18 +323,3 @@ document.getElementById('directEnquiryForm').addEventListener('submit', function
 
 /* =====================================================
    INPUT HELPERS
-===================================================== */
-phoneInput.addEventListener('input', function () {
-    this.value = this.value.replace(/[^0-9]/g, '');
-});
-
-/* =====================================================
-   INIT
-===================================================== */
-window.addEventListener('DOMContentLoaded', () => {
-    regenerateCaptcha();
-    updateSubmit();
-    autoShowModal();
-    setInterval(autoShowModal, 60000); // every 1 minute
-});
-</script>
