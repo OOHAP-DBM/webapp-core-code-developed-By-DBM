@@ -1033,6 +1033,20 @@
             </table>
         </div>
     </div> --}}
+    @if(session('swal_success'))
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        Swal.fire({
+            icon: '{{ session('swal_type', 'success') }}',
+            title: '{{ session('swal_type') === 'warning' ? 'Inactive!' : 'Success!' }}',
+            text: '{{ session('swal_success') }}',
+            showConfirmButton: false,
+            timer: 1800,
+            toast: true,
+            position: 'top-end'
+        });
+    </script>
+@endif
 @endsection
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>

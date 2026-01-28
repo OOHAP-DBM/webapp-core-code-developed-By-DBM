@@ -139,6 +139,4 @@
     @if(isset($testimonials) && $testimonials->count())
      @include('components.customer.testimonials')
     @endif
-    <!-- Footer -->
-    @include('components.customer.footer')
 @endsection

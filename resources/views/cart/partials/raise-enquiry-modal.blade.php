@@ -390,4 +390,7 @@ document.getElementById('raiseEnquiryModal')?.addEventListener('click', function
     0%, 80%, 100% { opacity: 0.2; }
     40% { opacity: 1; }
 }
+#raiseEnquiryModal{
+    background: rgba(0,0,0,0.35);
+}
 </style>
