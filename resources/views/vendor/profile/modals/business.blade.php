@@ -18,7 +18,7 @@
 
         {{-- GSTIN --}}
         <div>
-            <label class="block text-gray-600 mb-1">GSTIN Number</label>
+            <label class="block text-gray-600 mb-1">GSTIN Number<span class="text-red-500">*</span></label>
             <input
                 type="text"
                 name="gstin"
@@ -29,7 +29,7 @@
 
         {{-- Business Name --}}
         <div>
-            <label class="block text-gray-600 mb-1">Business Name</label>
+            <label class="block text-gray-600 mb-1">Business Name<span class="text-red-500">*</span></label>
             <input
                 type="text"
                 name="company_name"
@@ -40,7 +40,7 @@
 
         {{-- Business Type --}}
         <div>
-            <label class="block text-gray-600 mb-1">Business Type</label>
+            <label class="block text-gray-600 mb-1">Business Type<span class="text-red-500">*</span></label>
             <select
                 name="company_type"
                 class="w-full px-3 py-2 border border-gray-200 rounded-md bg-white"
@@ -56,7 +56,7 @@
 
         {{-- PAN NUMBER --}}
         <div>
-            <label class="block text-gray-600 mb-1">PAN Number</label>
+            <label class="block text-gray-600 mb-1">PAN Number<span class="text-red-500">*</span></label>
             <input
                 type="text"
                 name="pan"
@@ -68,14 +68,14 @@
         {{-- PAN FILE UPLOAD --}}
         <div>
             <label class="block text-gray-600 mb-1">
-                Upload PAN Card
+                Upload PAN Card <span class="text-red-500">*</span>
             </label>
 
             <input
                 type="file"
                 name="pan_file"
                 accept=".jpg,.jpeg,.png,.pdf"
-                class="w-full text-sm"
+                class="w-full px-3 py-2 border border-gray-200 rounded-md"
             >
 
             @if($vendor->pan_card_document)

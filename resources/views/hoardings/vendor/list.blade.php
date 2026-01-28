@@ -78,11 +78,19 @@
                         <tr class="hover:bg-[#F0F9FF] border-b border-gray-50 last:border-0 transition-colors">
                             <td class="px-6 py-4"><input type="checkbox" class="rounded-sm border-gray-300"></td>
                             <td class="px-4 py-4 text-gray-400 font-medium">{{ sprintf('%02d', $index + 1) }}</td>
-                            <td class="px-4 py-4">
-                                <a href="{{ route('vendor.myHoardings.show', $hoarding['id']) }}" target="_blank" class="text-[#00A86B] font-medium hover:underline">{{ $hoarding['title'] }}</a>
+                            <td class="px-4 py-4 text-gray-700">
+                                <a href="{{ route('vendor.myHoardings.show', $hoarding['id']) }}"
+                                target="_blank"
+                                class="text-[#00A86B] font-medium hover:underline">
+                                    {{ !empty($hoarding['title']) ? $hoarding['title'] : 'NA' }}
+                                </a>
                             </td>
-                            <td class="px-4 py-4 uppercase tracking-wide text-gray-500">{{ $hoarding['hoarding_type'] }}</td>
-                            <td class="px-4 py-4 text-gray-400 truncate max-w-[180px]">{{ $hoarding['location'] }}</td>
+                            <td class="px-4 py-4 uppercase tracking-wide text-gray-500">
+                                {{ !empty($hoarding['hoarding_type']) ? $hoarding['hoarding_type'] : 'NA' }}
+                            </td>
+                            <td class="px-4 py-4 text-gray-400 truncate max-w-[180px]">
+                                {{ !empty($hoarding['location']) ? $hoarding['location'] : 'NA' }}
+                            </td>
                             
                             @if($activeTab !== 'draft')
                             <td class="px-4 py-4 text-gray-500 underline decoration-gray-200">
@@ -91,23 +99,50 @@
                             @endif
 
                             <td class="px-4 py-4">
-                                @if(!$isPending)
-                                    <form action="{{ route('vendor.hoardings.toggle', $hoarding['id']) }}" method="POST">
-                                        @csrf
-                                        @if($isActive)
-                                            <button type="submit" class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded text-[11px] font-bold uppercase tracking-wider hover:bg-emerald-200 transition-colors">
-                                                Active
-                                            </button>
-                                        @else
-                                            <button type="submit" class="px-3 py-1 bg-gray-100 text-gray-500 rounded text-[11px] font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors">
-                                                Inactive
-                                            </button>
-                                        @endif
-                                    </form>
-                                @else
-                                    <span class="text-orange-500 text-[11px] font-bold uppercase tracking-wider italic">Pending Approval</span>
-                                @endif
-                            </td>
+                            @if(!$isPending)
+                                <form action="{{ route('vendor.hoardings.toggle', $hoarding['id']) }}"
+                                    method="POST"
+                                    class="inline-flex items-center gap-2">
+                                    @csrf
+
+                                    <!-- TOGGLE -->
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                                type="checkbox"
+                                                class="sr-only peer"
+                                                {{ $isActive ? 'checked' : '' }}
+                                                onclick="return confirmToggle(event, this)"
+                                            >
+
+                                        <div class="
+                                            w-9 h-5 bg-gray-300 rounded-full
+                                            peer-checked:bg-emerald-500
+                                            transition-colors
+                                            after:content-['']
+                                            after:absolute after:top-[2px] after:left-[2px]
+                                            after:h-4 after:w-4
+                                            after:bg-white after:rounded-full
+                                            after:transition-all
+                                            peer-checked:after:translate-x-4
+                                        "></div>
+                                    </label>
+
+                                    <!-- STATUS TEXT -->
+                                    <span class="
+                                        text-[11px] font-bold uppercase tracking-wide
+                                        {{ $isActive ? 'text-emerald-600' : 'text-gray-400' }}
+                                    ">
+                                        {{ $isActive ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </form>
+                            @else
+                                <span class="text-orange-500 text-[11px] font-bold uppercase italic">
+                                    Pending Approval
+                                </span>
+                            @endif
+                        </td>
+
+
 
                             <td class="px-4 py-4 text-center">
                                 <div class="relative inline-block text-left">
@@ -187,19 +222,48 @@
         padding: 1rem !important;
     }
 }
+/* CONFIRM BUTTON */
+.swal-btn-confirm {
+    background-color: #00A86B !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    padding: 10px 28px !important;
+    font-weight: 500;
+}
+
+/* CANCEL BUTTON — FIRST IMAGE STYLE */
+.swal-btn-cancel {
+    background-color: #e5e7eb !important; /* light gray */
+    color: #000000 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    padding: 10px 28px !important;
+    font-weight: 500;
+}
+
+/* hover effect (optional but image jaisa) */
+.swal-btn-cancel:hover {
+    background-color: #d1d5db !important;
+}
+
 </style>
 
 <script>
+    function closeAllMenus() {
+        document.querySelectorAll('[id^="menu-"]').forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    }
     function toggleActionMenu(event, menuId) {
         event.stopPropagation();
         const targetMenu = document.getElementById(menuId);
-        document.querySelectorAll('[id^="menu-"]').forEach(el => {
-            if (el.id !== menuId) el.classList.add('hidden');
-        });
+        closeAllMenus(); 
         targetMenu.classList.toggle('hidden');
     }
-    document.addEventListener('click', () => {
-        document.querySelectorAll('[id^="menu-"]').forEach(m => m.classList.add('hidden'));
+    document.addEventListener('click', closeAllMenus);
+    document.addEventListener('scroll', closeAllMenus, {
+        capture: true,
+        passive: true
     });
 </script>
 <script>
@@ -269,4 +333,56 @@
         });
     }
 </script>
+<script>
+function confirmToggle(e, checkbox) {
+    e.preventDefault();
+
+    const form = checkbox.closest('form');
+    const isActiveNow = checkbox.checked;
+
+    Swal.fire({
+        title: isActiveNow ? 'Active Hoarding?' : 'Inactive Hoarding?',
+        html: isActiveNow
+            ? '<p class="text-sm text-gray-600">Are you sure you want to Active this hoarding? It will not be visible to customers until re-activated.</p>'
+            : '<p class="text-sm text-gray-600">Are you sure you want to Inactive this hoarding? It will be visible to customers.</p>',
+        width:'25rem',
+        showCloseButton: true,
+        showCancelButton: true,
+        confirmButtonText: isActiveNow ? 'Active' : 'Inactive',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: isActiveNow ? '#00A86B' : '#ef4444',
+        buttonsStyling: true,
+        customClass: {
+            popup: 'rounded-lg',
+            title: 'text-base font-semibold text-gray-800',
+            confirmButton: 'px-6 py-2 text-sm',
+            cancelButton: 'px-6 py-2 text-sm swal-cancel-black'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Toggle the checkbox state and submit
+            checkbox.checked = !isActiveNow;
+            form.submit();
+        }
+        // If cancelled, do nothing: checkbox remains in its original state, form is not submitted
+    });
+
+    // Always return false to prevent the default checkbox toggle
+    return false;
+}
+</script>
+@if(session('swal_success'))
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        Swal.fire({
+            icon: '{{ session('swal_type', 'success') }}',
+            title: '{{ session('swal_type') === 'warning' ? 'Inactive!' : 'Success!' }}',
+            text: '{{ session('swal_success') }}',
+            showConfirmButton: false,
+            timer: 1800,
+            toast: true,
+            position: 'top-end'
+        });
+    </script>
+@endif
 @endsection

@@ -1,5 +1,5 @@
 <!-- RAISE AN ENQUIRY MODAL -->
-<div id="raiseEnquiryModal" class="hidden fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+<div id="raiseEnquiryModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="relative bg-[#f6fbf8]  shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
 
         <!-- LEFT ACCENT LINE -->
@@ -111,10 +111,23 @@
 
                 <!-- CTA -->
                 <button
+                    id="enquirySubmitBtn"
                     type="submit"
-                    class="w-full py-3 bg-[#2f5d46] text-white font-semibold rounded-md hover:bg-[#274d3b]"
-                >
-                    Enquire Now
+                    class="w-full py-3 bg-[#2f5d46] text-white font-semibold rounded-md hover:bg-[#274d3b] flex items-center justify-center relative overflow-hidden"
+>
+                    <span id="enquiryBtnText" class="flex items-center justify-center w-full h-full">Enquire Now</span>
+                    <span
+                        id="enquiryLoader"
+                        class="hidden absolute inset-0 flex items-center justify-center bg-[#2f5d46] bg-opacity-90"
+                          >
+                        <svg class="w-5 h-5 animate-spin text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                        <span id="enquiryLoaderText" class="ml-1">Loading<span class="dot-one">.</span><span class="dot-two">.</span><span class="dot-three">.</span></span>
+                    </span>
                 </button>
 
             </form>
@@ -199,40 +212,55 @@ function verifyMobile() {
 // Form submission
 document.getElementById('raiseEnquiryForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
+    const submitBtn = document.getElementById('enquirySubmitBtn');
+    const btnText = document.getElementById('enquiryBtnText');
+    const loader = document.getElementById('enquiryLoader');
+
+    // Show loader, hide text, disable button
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    loader.classList.remove('hidden');
+
+    function restoreButton() {
+        submitBtn.disabled = false;
+        btnText.style.display = '';
+        loader.classList.add('hidden');
+    }
+
     const fullName = document.getElementById('enquiry_full_name').value.trim();
     const email = document.getElementById('enquiry_email').value.trim();
     const mobile = document.getElementById('enquiry_mobile').value.trim();
     const campaignDate = document.getElementById('enquiry_campaign_date').value.trim();
-    
+
     // Validation
     if (!fullName) {
-        alert('Please enter your full name');
+        Swal.fire({icon: 'error', title: 'Full Name Required', text: 'Please enter your full name'});
+        restoreButton();
         return;
     }
     if (!email) {
-        alert('Please enter your email');
+        Swal.fire({icon: 'error', title: 'Email Required', text: 'Please enter your email'});
+        restoreButton();
         return;
     }
     if (!mobile) {
-        alert('Please enter your mobile number');
+        Swal.fire({icon: 'error', title: 'Mobile Required', text: 'Please enter your mobile number'});
+        restoreButton();
         return;
     }
     if (!campaignDate) {
-        alert('Please select a campaign start date');
+        Swal.fire({icon: 'error', title: 'Date Required', text: 'Please select a campaign start date'});
+        restoreButton();
         return;
     }
-    
-    // Collect all selected items with their details
+
     const selectedItems = Object.values(window.enquiryState.items);
-    console.log('📋 Selected Items:', selectedItems);
-    
     if (!selectedItems || selectedItems.length === 0) {
-        alert('No hoardings selected');
+        Swal.fire({icon: 'error', title: 'No Hoardings Selected', text: 'No hoardings selected'});
+        restoreButton();
         return;
     }
-    
-    // Format data for existing enquiries.store endpoint
+
     const formData = {
         _token: document.querySelector('meta[name="csrf-token"]').content,
         duration_type: 'months',
@@ -247,8 +275,7 @@ document.getElementById('raiseEnquiryForm').addEventListener('submit', function(
         amount: [],
         months: []
     };
-    
-    // Build arrays for each selected item
+
     selectedItems.forEach(item => {
         formData.hoarding_id.push(item.hoarding_id);
         formData.package_id.push(item.package_id || '');
@@ -256,11 +283,7 @@ document.getElementById('raiseEnquiryForm').addEventListener('submit', function(
         formData.amount.push(item.price);
         formData.months.push(item.months || 1);
     });
-    
-    console.log('📤 Final Form Data:', formData);
-    console.log('🔗 Sending to: /enquiries');
-    
-    // Submit to backend using existing endpoint
+
     fetch('/enquiries', {
         method: 'POST',
         headers: {
@@ -271,8 +294,6 @@ document.getElementById('raiseEnquiryForm').addEventListener('submit', function(
         body: JSON.stringify(formData)
     })
     .then(res => {
-        console.log('Response status:', res.status);
-        console.log('Response headers:', res.headers);
         if (!res.ok) {
             return res.text().then(text => {
                 throw new Error(`HTTP Error ${res.status}: ${text}`);
@@ -281,20 +302,43 @@ document.getElementById('raiseEnquiryForm').addEventListener('submit', function(
         return res.json();
     })
     .then(data => {
-        console.log('✅ Response:', data);
+        restoreButton();
         if (data.success || data.enquiry_id) {
-            alert('✅ Enquiry submitted successfully!');
-            closeRaiseEnquiryModal();
-            window.location.href = '/customer/enquiries';
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Enquiry Submitted Successfully',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                background: '#ffffff',
+                iconColor: '#14c871',
+                customClass: {
+                    popup: 'rounded-lg shadow-lg'
+                }
+            });
+            setTimeout(() => {
+                closeRaiseEnquiryModal();
+                window.location.href = '/customer/enquiries';
+            }, 1500);
         } else {
-            console.error('Error response:', data);
-            alert('❌ Error: ' + (data.message || JSON.stringify(data)));
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'An error occurred. Please try again.',
+                confirmButtonColor: '#2f5d46'
+            });
         }
     })
     .catch(err => {
-        console.error('❌ Full Error:', err.message);
-        console.error('Stack:', err.stack);
-        alert('❌ Error: ' + err.message);
+        restoreButton();
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: err.message,
+            confirmButtonColor: '#2f5d46'
+        });
     });
 });
 
@@ -312,3 +356,38 @@ document.getElementById('raiseEnquiryModal')?.addEventListener('click', function
     }
 });
 </script>
+
+<style>
+#enquirySubmitBtn {
+    position: relative;
+    min-height: 48px;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+#enquiryLoader {
+    position: absolute;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    background: rgba(47, 93, 70, 0.96);
+    z-index: 2;
+}
+
+#enquiryLoaderText {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+}
+.dot-one, .dot-two, .dot-three {
+    opacity: 0.2;
+    animation: blink 1.4s infinite both;
+}
+.dot-two { animation-delay: 0.2s; }
+.dot-three { animation-delay: 0.4s; }
+@keyframes blink {
+    0%, 80%, 100% { opacity: 0.2; }
+    40% { opacity: 1; }
+}
+</style>

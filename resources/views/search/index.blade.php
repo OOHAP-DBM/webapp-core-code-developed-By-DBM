@@ -215,8 +215,25 @@
 
                 <div class="h-4 w-px bg-gray-300"></div>
                 {{-- Filters --}}
-                <button class="underline underline-offset-4" onclick="openFilterModal()" style="cursor:pointer;">
-                    Filters
+                <button
+                    onclick="openFilterModal()"
+                    class="flex items-center gap-1 underline underline-offset-4 text-sm cursor-pointer"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="w-4 h-4"
+                    >
+                        <path d="M3 5h18" />
+                        <path d="M6 12h12" />
+                        <path d="M10 19h4" />
+                    </svg>
+                    <span>Filters</span>
                 </button>
             </div>
             {{-- SORT --}}

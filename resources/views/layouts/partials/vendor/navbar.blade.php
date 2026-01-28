@@ -1,7 +1,7 @@
 {{-- Vendor Navbar --}}
 <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6">
     <div class="flex-1">
-        <h1 class="text-xl font-semibold text-gray-900">@yield('page-title', 'Dashboard')</h1>
+        <h1 class="text-xl font-semibold text-gray-900">@yield('title', 'Dashboard')</h1>
     </div>
 
     <div class="flex items-center space-x-4">

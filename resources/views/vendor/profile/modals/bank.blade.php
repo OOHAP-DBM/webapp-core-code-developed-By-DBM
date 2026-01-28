@@ -19,7 +19,7 @@
 
         {{-- Bank Name --}}
         <div>
-            <label class="block text-gray-600 mb-1">Bank Name</label>
+            <label class="block text-gray-600 mb-1">Bank Name<span class="text-red-500">*</span></label>
             <select
                 name="bank_name"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:ring-green-500"
@@ -34,7 +34,7 @@
 
         {{-- Account Number --}}
         <div>
-            <label class="block text-gray-600 mb-1">Account Number</label>
+            <label class="block text-gray-600 mb-1">Account Number<span class="text-red-500">*</span></label>
             <input
                 type="text"
                 name="account_number"
@@ -45,7 +45,7 @@
 
         {{-- Account Holder Name --}}
         <div>
-            <label class="block text-gray-600 mb-1">Account Holder Name</label>
+            <label class="block text-gray-600 mb-1">Account Holder Name<span class="text-red-500">*</span></label>
             <input
                 type="text"
                 name="account_holder_name"
@@ -56,7 +56,7 @@
 
         {{-- IFSC Code --}}
         <div>
-            <label class="block text-gray-600 mb-1">IFSC Code</label>
+            <label class="block text-gray-600 mb-1">IFSC Code<span class="text-red-500">*</span></label>
             <div class="flex items-center gap-2">
                 <input
                     type="text"
@@ -64,12 +64,6 @@
                     value="{{ $vendor->ifsc_code }}"
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500"
                 >
-                <button
-                    type="button"
-                    class="text-blue-600 text-xs hover:underline"
-                >
-                    Find IFSC code
-                </button>
             </div>
         </div>
 
