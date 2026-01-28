@@ -163,7 +163,7 @@ class HoardingResource extends JsonResource
             'visibility_details' => $this->visibility_details,
             'located_at' => $this->located_at,
             'expected_footfall' => $this->expected_footfall,
-            'expected_eyeballs' => $this->expected_eyeballs,
+            'expected_eyeball' => $this->expected_eyeball,
             'audience_types' => $this->audience_types,
             'is_featured' => (bool) $this->is_featured,
             'is_active' => $this->isActive(),
