@@ -346,20 +346,9 @@ class OOHListingController extends Controller
             'lighting_type' => 'nullable|in:front-lit,back-lit,led,none',
             'remounting_charge' => 'nullable|numeric|min:0',
             'survey_charge' => 'nullable|numeric|min:0',
-            'offer_id' => 'nullable|array',
-            'offer_id.*' => 'nullable|integer',
-            'offer_name' => 'nullable|array',
-            'offer_name.*' => 'nullable|string|max:255',
-            'offer_duration' => 'nullable|array',
-            'offer_duration.*' => 'nullable|integer|min:1',
-            'offer_unit' => 'nullable|array',
-            'offer_unit.*' => 'nullable|in:weeks,months',
-            'offer_discount' => 'nullable|array',
-            'offer_discount.*' => 'nullable|numeric|min:0|max:100',
-            'offer_end_date' => 'nullable|array',
-            'offer_end_date.*' => 'nullable|date|after:today',
-            'offer_services' => 'nullable|array',
+            'offers_json' => 'nullable|json',
         ]);
+        // dd($validated['offers_json']);
 
         // Pass the OOHHoarding (child), not the parent Hoarding
         $result = $this->hoardingService->storeStep3($oohHoarding, $validated);

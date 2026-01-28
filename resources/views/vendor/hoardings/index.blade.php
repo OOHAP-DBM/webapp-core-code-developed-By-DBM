@@ -13,7 +13,7 @@
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">My Hoardings</h1>
-        <a href="{{ route('vendor.hoardings.create') }}" class="btn btn-primary">
+        <a href="{{ route('vendor.hoardings.add') }}" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Add New Hoarding
         </a>
     </div>
@@ -191,7 +191,7 @@
                 <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
                 <h5 class="mt-3">No hoardings found</h5>
                 <p class="text-muted">Start by creating your first hoarding listing.</p>
-                <a href="{{ route('vendor.hoardings.create') }}" class="btn btn-primary">
+                <a href="{{ route('vendor.hoardings.add') }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Add New Hoarding
                 </a>
             </div>
