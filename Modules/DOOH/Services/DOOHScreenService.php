@@ -309,11 +309,11 @@ class DOOHScreenService
     {
         return DB::transaction(function () use ($screen, $data) {
             // ---- DOOHScreen fields ----
-            $screenUpdate = [
-                'price_per_slot' => $data['price_per_slot'] ?? null,
-                'video_length'          => $data['video_length'] ?? null,
-            ];
-            $screen = $this->repo->updateStep3($screen, $screenUpdate);
+            // $screenUpdate = [
+            //     'price_per_slot' => $data['price_per_slot'] ?? null,
+            //     'video_length'          => $data['video_length'] ?? null,
+            // ];
+            // $screen = $this->repo->updateStep3($screen, $screenUpdate);
 
             // ---- Hoarding fields ----
             $parentHoarding = $screen->hoarding;
@@ -356,20 +356,21 @@ class DOOHScreenService
             if (!empty($data['slots'])) {
                 $this->repo->storeSlots($screen->id, $data['slots']);
             }
-
             // ---- Campaign Packages ----
             // Support offers_json (JSON string) from web or API
             $offers = [];
             if (!empty($data['offers_json'])) {
                 $offers = json_decode($data['offers_json'], true);
             }
+
             // If not using offers_json, fallback to old array fields
             if (empty($offers) && !empty($data['offer_name'])) {
+
                 $count = is_array($data['offer_name']) ? count($data['offer_name']) : 0;
                 for ($i = 0; $i < $count; $i++) {
                     $offers[] = [
                         'name' => $data['offer_name'][$i] ?? '',
-                        'duration' => $data['offer_duration'][$i] ?? '',
+                        'duration' => $data['offer_duration'][$i] ?? $data['duration'][$i] ?? '',
                         'unit' => $data['offer_unit'][$i] ?? '',
                         'discount' => $data['offer_discount'][$i] ?? '',
                         'end_date' => $data['offer_end_date'][$i] ?? '',
@@ -378,7 +379,6 @@ class DOOHScreenService
                 }
             }
             if (!empty($offers)) {
-
                 $data['offers'] = $offers;
                 $this->repo->storePackages($screen->id, $data);
             }
@@ -604,29 +604,73 @@ class DOOHScreenService
                 'graphics_price' => $data['graphics_price'] ?? 0,
             ]);
 
+// dd($data);
 
             // Update or recreate packages if provided
+            // if (!empty($data['offers_json'])) {
+            //     $offers = json_decode($data['offers_json'], true);
+            //     if (is_array($offers)) {
+            //         // Delete existing packages
+            //         $screen->packages()->delete();
+            //         // Create new packages
+            //         foreach ($offers as $offer) {
+
+            //             $screen->packages()->create([
+            //                 'package_name' => $offer['name'],
+            //                 'duration' => $offer['duration'],
+            //                 'duration_unit' => $offer['duration_unit'] ?? 'months',
+            //                 'discount_percent' => $offer['discount'] ?? 0,
+            //                 'slots_per_day'        => 1,
+            //                 // 'price_per_month' => $offer['price'] ?? 0,
+            //                'end_date'         => !empty($offer['end_date']) ? $offer['end_date'] : null,
+            //                 'is_active' => 1,
+            //             ]);
+            //         }
+            //     }
+            // }
+// dd($data);
             if (!empty($data['offers_json'])) {
+
                 $offers = json_decode($data['offers_json'], true);
+
                 if (is_array($offers)) {
-                    // Delete existing packages
-                    $screen->packages()->delete();
-                    // Create new packages
+
                     foreach ($offers as $offer) {
 
-                        $screen->packages()->create([
-                            'package_name' => $offer['name'],
-                            'duration' => $offer['duration'],
-                            'duration_unit' => $offer['duration_unit'] ?? 'months',
+                        // Safety check
+                        if (empty($offer['name']) || empty($offer['duration'])) {
+                            continue;
+                        }
+
+                        $payload = [
+                            'package_name'     => $offer['name'],
+                            'min_booking_duration'=> (int) $offer['duration'],   
+                            'duration_unit'    => $offer['duration_unit'] ?? $offer['unit'] ?? 'months',
                             'discount_percent' => $offer['discount'] ?? 0,
-                            'slots_per_day'        => 1,
-                            // 'price_per_month' => $offer['price'] ?? 0,
-                           'end_date'         => !empty($offer['end_date']) ? $offer['end_date'] : null,
-                            'is_active' => 1,
-                        ]);
+                            'slots_per_day'    => 1,
+                            'end_date'         => !empty($offer['end_date']) ? $offer['end_date'] : null,
+                            'services_included' => isset($offer['services']) ? json_encode($offer['services']) : null,
+                            'is_active'        => 1,
+                        ];
+
+                        // 🔁 UPDATE
+                        if (!empty($offer['package_id'])) {
+
+                            $screen->packages()
+                                ->where('id', $offer['package_id'])
+                                ->update($payload);
+
+                        } 
+                        // ➕ CREATE
+                        else {
+
+                            $screen->packages()->create($payload);
+
+                        }
                     }
                 }
             }
+
 
             // Update slots if provided
             if (!empty($data['slots'])) {
