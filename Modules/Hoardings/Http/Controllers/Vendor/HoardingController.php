@@ -348,12 +348,14 @@ class HoardingController extends Controller
         if ($activeTab === 'draft') {
             $data = Hoarding::where('vendor_id', $vendor->id)
                 ->where('status', 'Draft')
-                ->latest()
+                ->orderBy('updated_at', 'desc')
                 ->paginate(10);
         } else {
             $filters = [
                 'vendor_id' => $vendor->id,
-                'status' => ['active', 'inactive', 'pending_approval']
+                'status' => ['active', 'inactive', 'pending_approval'],
+                'order_by' => 'updated_at',
+                'order_dir' => 'desc',
             ];
             // Using your service for published/live hoardings
             $data = $this->hoardingService->getAll($filters, 10);

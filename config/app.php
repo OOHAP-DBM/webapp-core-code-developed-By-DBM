@@ -144,4 +144,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'wait_time' => env('OTP_WAIT_TIME', 60), // default 300 seconds (5 minutes)
+
 ];
