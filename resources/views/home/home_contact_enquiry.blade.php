@@ -268,7 +268,6 @@ document.getElementById('verifyOtpBtn').addEventListener('click', () => {
 
 /* =====================================================
    FORM SUBMIT
-===================================================== */
 document.getElementById('directEnquiryForm').addEventListener('submit', function (e) {
     e.preventDefault();
     if (submitBtn.disabled) return;

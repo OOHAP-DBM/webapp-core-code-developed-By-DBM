@@ -121,6 +121,9 @@ class Hoarding extends Model implements HasMedia
         'current_step',
         'is_featured',
         'located_at',
+        'published_at',
+        'preview_token',
+        'published_by',
 
         /* Analytics */
         'view_count',
@@ -163,6 +166,7 @@ class Hoarding extends Model implements HasMedia
         'view_count' => 'integer',
         'bookings_count' => 'integer',
         'last_booked_at' => 'datetime',
+        'published_at' => 'datetime',
     ];
 
     /* ===================== CONSTANTS ===================== */
@@ -170,11 +174,11 @@ class Hoarding extends Model implements HasMedia
     const TYPE_OOH  = 'ooh';
     const TYPE_DOOH = 'dooh';
 
-    const STATUS_DRAFT            = 'draft';
-    const STATUS_PENDING_APPROVAL = 'pending_approval';
-    const STATUS_ACTIVE           = 'active';
-    const STATUS_INACTIVE         = 'inactive';
-    const STATUS_SUSPENDED        = 'suspended';
+    const STATUS_DRAFT     = 'draft';
+    const STATUS_PREVIEW   = 'preview';
+    const STATUS_PUBLISHED = 'published';
+    const STATUS_INACTIVE  = 'inactive';
+    const STATUS_SUSPENDED = 'suspended';
 
     /* ===================== RELATIONSHIPS ===================== */
     public function hoardingMedia()
@@ -712,4 +716,106 @@ class Hoarding extends Model implements HasMedia
 
         return '-';
     }
+
+    /* ===================== HOARDING STATUS METHODS ===================== */
+
+    /**
+     * Check if hoarding is in draft status
+     */
+    public function isDraft(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    /**
+     * Check if hoarding is in preview status
+     */
+    public function isPreview(): bool
+    {
+        return $this->status === self::STATUS_PREVIEW;
+    }
+
+    /**
+     * Check if hoarding is published
+     */
+    public function isPublished(): bool
+    {
+        return $this->status === self::STATUS_PUBLISHED;
+    }
+
+    /**
+     * Generate preview token for preview link
+     */
+    public function generatePreviewToken(): string
+    {
+        $token = \Illuminate\Support\Str::random(40);
+        $this->update(['preview_token' => $token]);
+        return $token;
+    }
+
+    /**
+     * Move hoarding to preview status
+     */
+    public function moveToPreview(): bool
+    {
+        return $this->update([
+            'status' => self::STATUS_PREVIEW,
+        ]);
+    }
+
+    /**
+     * Publish hoarding (auto-approve)
+     */
+    public function publish(): bool
+    {
+        return $this->update([
+            'status' => self::STATUS_PUBLISHED,
+            'published_at' => now(),
+            'published_by' => auth()->id(),
+            'approved_at' => now(),
+            'verified_at' => now(),
+        ]);
+    }
+
+    /**
+     * Can vendor edit this hoarding
+     */
+    public function canBeEdited(): bool
+    {
+        return in_array($this->status, [
+            self::STATUS_DRAFT,
+            self::STATUS_PREVIEW,
+        ]);
+    }
+
+    /**
+     * Get hoarding status badge
+     */
+    public function getStatusBadge(): string
+    {
+        return match($this->status) {
+            self::STATUS_DRAFT => 'danger',
+            self::STATUS_PREVIEW => 'warning',
+            self::STATUS_PUBLISHED => 'success',
+            self::STATUS_INACTIVE => 'secondary',
+            self::STATUS_SUSPENDED => 'dark',
+            default => 'light',
+        };
+    }
+
+    /**
+     * Get hoarding status label
+     */
+    public function getStatusLabel(): string
+    {
+        return match($this->status) {
+            self::STATUS_DRAFT => 'Draft',
+            self::STATUS_PREVIEW => 'Preview',
+            self::STATUS_PUBLISHED => 'Published',
+            self::STATUS_INACTIVE => 'Inactive',
+            self::STATUS_SUSPENDED => 'Suspended',
+            default => 'Unknown',
+        };
+    }
 }
+

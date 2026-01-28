@@ -348,6 +348,51 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get all emails for vendor
+     */
+    public function vendorEmails(): HasMany
+    {
+        return $this->hasMany(VendorEmail::class, 'user_id');
+    }
+
+    /**
+     * Get primary verified email
+     */
+    public function getPrimaryVerifiedEmail(): ?VendorEmail
+    {
+        return $this->vendorEmails()
+            ->verified()
+            ->where('is_primary', true)
+            ->first();
+    }
+
+    /**
+     * Check if vendor has at least one verified email
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->vendorEmails()
+            ->verified()
+            ->exists();
+    }
+
+    /**
+     * Check if mobile is verified
+     */
+    public function isMobileVerified(): bool
+    {
+        return $this->phone_verified_at !== null;
+    }
+
+    /**
+     * Check if vendor is fully verified (mobile + email)
+     */
+    public function isFullyVerified(): bool
+    {
+        return $this->hasVerifiedEmail() && $this->isMobileVerified();
+    }
+
+    /**
      * Get the vendor's ledger entries
      */
     public function ledgerEntries()

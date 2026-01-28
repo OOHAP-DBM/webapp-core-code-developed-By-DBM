@@ -53,22 +53,36 @@ Route::prefix('admin/pos')->middleware(['auth', 'role:admin'])->name('admin.pos.
 });
 
 
-Route::prefix('vendor/hoardings')->middleware(['auth', 'vendor'])->name('vendor.hoardings.')->group(function () {
+Route::prefix('vendor/hoardings')->middleware(['auth', 'role:vendor'])->name('vendor.hoardings.')->group(function () {
     Route::get('{id}/edit', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'edit'])->name('edit');
     Route::put('{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])->name('update');
     Route::get('completion', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'indexCompletion'])->name('completion');
     Route::get('/', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'index'])->name('index');});
 // VENDOR POS WEB ROUTES
-Route::prefix('vendor/pos')->middleware(['auth', 'vendor'])->name('vendor.pos.')->group(function () {
+Route::prefix('vendor/pos')->middleware(['auth', 'role:vendor'])->name('vendor.pos.')->group(function () {
     Route::get('/dashboard', [\Modules\POS\Controllers\Web\VendorPosController::class, 'dashboard'])->name('dashboard');
     Route::get('/bookings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'index'])->name('list');
     Route::get('/create', [\Modules\POS\Controllers\Web\VendorPosController::class, 'create'])->name('create');
     Route::get('/bookings/{id}', [\Modules\POS\Controllers\Web\VendorPosController::class, 'show'])->name('show');
+    Route::get('/customers', [App\Http\Controllers\Vendor\POSController::class, 'customers'])->name('customers');
+    //  Route::get('/dashboard', [VendorPosController::class, 'dashboard'])->name('dashboard');
+    // Route::get('/bookings', [VendorPosController::class, 'index'])->name('list');
+    // Route::get('/create', [VendorPosController::class, 'create'])->name('create');
+    // Route::post('/store', [VendorPosController::class, 'store'])->name('store');
+    // Route::get('/bookings/{id}', [VendorPosController::class, 'show'])->name('show');
+    // Route::post('/bookings/{id}/mark-paid', [VendorPosController::class, 'markPaid'])->name('markPaid');
+    // Route::post('/bookings/{id}/cancel', [VendorPosController::class, 'cancel'])->name('cancel');
+    // Route::post('/bookings/{id}/credit-note', [VendorPosController::class, 'creditNote'])->name('creditNote');
+    // // AJAX helpers
+    // Route::get('/customers/search', [VendorPosController::class, 'searchCustomers'])->name('customers.search');
+    // Route::get('/hoardings/search', [VendorPosController::class, 'searchHoardings'])->name('hoardings.search');
+    // Route::post('/calculate-price', [VendorPosController::class, 'calculatePrice'])->name('calculatePrice');
+    
     // Extend: edit, view, etc. as needed
 });
 Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
 // DOOH Screen Vendor Routes
-// Route::prefix('vendor/dooh')->middleware(['auth', 'vendor'])->name('vendor.dooh.')->group(function () {
+// Route::prefix('vendor/dooh')->middleware(['auth', 'role:vendor'])->name('vendor.dooh.')->group(function () {
 //     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
 //     Route::put('{id}', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'update'])->name('update');
 // });

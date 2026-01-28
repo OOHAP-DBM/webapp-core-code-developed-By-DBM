@@ -26,7 +26,7 @@ class POSController extends Controller
     public function store(Request $request)
     {
         $vendor = Auth::user();
-        
+
         $validated = $request->validate([
             'customer_id' => 'required|exists:users,id',
             'invoice_number' => 'required|string|unique:invoices',
@@ -175,5 +175,14 @@ class POSController extends Controller
             'success' => true,
             'message' => 'Invoice status updated successfully!',
         ]);
+    }
+
+    /**
+     * Display a listing of POS customers.
+     */
+    public function customers()
+    {
+        $customers = \App\Models\Customer::orderBy('name')->get();
+        return view('vendor.pos.customers', compact('customers'));
     }
 }

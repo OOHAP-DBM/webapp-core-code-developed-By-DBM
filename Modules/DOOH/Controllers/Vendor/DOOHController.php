@@ -47,10 +47,10 @@ class DOOHController extends Controller
 
 
         // If draft exists and current_step is set, resume from there
-        if ($draft && $draft->current_step && $step < $draft->current_step) {
-            // Always resume from last incomplete step
-            $step = $draft->current_step;
-        }
+        // if ($draft && $draft->current_step && $step < $draft->current_step) {
+        //     // Always resume from last incomplete step
+        //     $step = $draft->current_step;
+        // }
 
         // If no draft, create a new one on step 1
         // if (!$draft && $step === 1) {
