@@ -35,7 +35,7 @@
                     {{-- <button class="px-10 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px]">
                         Export
                     </button> --}}
-                    <a href="{{ route('vendor.hoardings.create') }}" 
+                    <a href="{{ route('vendor.hoardings.add') }}" 
                         class="px-5 py-2 bg-[#0087D1] text-white font-medium rounded-md text-[13px] flex items-center">
                         + Add New Hoarding
                     </a>
@@ -61,9 +61,9 @@
                             <th class="px-4 py-5">Hoarding Title</th>
                             <th class="px-4 py-5">Type</th>
                             <th class="px-4 py-5">Location</th>
-                            <!-- @if($activeTab !== 'draft')
-                                <th class="px-4 py-5"># of Bookings</th>
-                            @endif -->
+                            @if($activeTab !== 'draft')
+                            <th class="px-4 py-5">No of Bookings</th>
+                            @endif
                             <th class="px-4 py-5">Status</th>
                             <th class="px-4 py-5 text-center">Action</th>
                         </tr>
@@ -84,11 +84,11 @@
                             <td class="px-4 py-4 uppercase tracking-wide text-gray-500">{{ $hoarding['hoarding_type'] }}</td>
                             <td class="px-4 py-4 text-gray-400 truncate max-w-[180px]">{{ $hoarding['location'] }}</td>
                             
-                            <!-- @if($activeTab !== 'draft')
+                            @if($activeTab !== 'draft')
                             <td class="px-4 py-4 text-gray-500 underline decoration-gray-200">
                                 {{ $hoarding['bookings_count'] ?? '0' }}
                             </td>
-                            @endif -->
+                            @endif
 
                             <td class="px-4 py-4">
                                 @if(!$isPending)

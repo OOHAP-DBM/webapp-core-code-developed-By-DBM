@@ -92,7 +92,14 @@
               <!-- Size Preview -->
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-500">Size Preview</label>
-                <input type="text" id="sizePreview" value=" " readonly class="w-full bg-[#E5E9F2] border-none rounded-lg px-3 py-3 text-gray-700 font-medium outline-none">
+                <input
+                  type="text"
+                  id="sizePreview"
+                  value=""
+                  readonly
+                  class="w-full bg-[#E5E9F2] border-none rounded-lg px-3 py-3 text-gray-700 font-medium outline-none"
+                >
+
               </div>
             </div>
           </div>
@@ -129,173 +136,169 @@
         </div>
 
         <!-- Hoarding Location -->
-        <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-          <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
-            <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-            Hoarding Location
-          </h3>
+        <!-- <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
+                  <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+                  Hoarding Location
+                </h3>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
-            <div class="space-y-2">
-              <label class="text-sm font-bold text-gray-700">Hoarding Address <span class="text-red-500">*</span></label>
-              <input name="address" value="{{ old('address', $hoarding?->address) }}" required
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
-            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+                  <div class="space-y-2">
+                    <label class="text-sm font-bold text-gray-700">Hoarding Address <span class="text-red-500">*</span></label>
+                    <input name="address" value="{{ old('address', $hoarding?->address) }}" required
+                      class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
+                  </div>
 
-            <div class="space-y-2">
-              <label class="text-sm font-bold text-gray-700">Pincode <span class="text-red-500">*</span></label>
-              <input type="text" name="pincode" value="{{ old('pincode', $hoarding?->pincode) }}" placeholder="eg. 226010" required 
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
-            </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-bold text-gray-700">Pincode <span class="text-red-500">*</span></label>
+                    <input type="text" name="pincode" value="{{ old('pincode', $hoarding?->pincode) }}" placeholder="eg. 226010" required 
+                      class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
+                  </div>
 
-            <div class="space-y-2">
-              <label class="text-sm font-bold text-gray-700">Locality <span class="text-red-500">*</span></label>
-              <input type="text" name="locality" value="{{ old('locality', $hoarding?->locality) }}" placeholder="e.g. Indira Nagar" required 
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
-            </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-bold text-gray-700">Locality <span class="text-red-500">*</span></label>
+                    <input type="text" name="locality" value="{{ old('locality', $hoarding?->locality) }}" placeholder="e.g. Indira Nagar" required 
+                      class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
+                  </div>
 
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700">City <span class="text-red-500">*</span></label>
-                <input type="text" name="city" value="{{ old('city', $hoarding?->city) }}" placeholder="eg. Lucknow" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                      <label class="text-sm font-bold text-gray-700">City <span class="text-red-500">*</span></label>
+                      <input type="text" name="city" value="{{ old('city', $hoarding?->city) }}" placeholder="eg. Lucknow" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+                    </div>
+                    <div class="space-y-2">
+                      <label class="text-sm font-bold text-gray-700">State <span class="text-red-500">*</span></label>
+                      <input type="text" name="state" value="{{ old('state', $hoarding?->state) }}" placeholder="eg. Uttar Pradesh" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-8 space-y-4">
+                  <div class="mt-8 space-y-4">
+                    <div class="flex items-center justify-between">
+                      <label class="text-sm font-bold text-gray-700">Nearby Landmarks</label>
+                      <button type="button" id="addLandmarkBtn" class="bg-[#1A1A1A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-all">
+                        + Add another landmark
+                      </button>
+                    </div>
+                    <div class="space-y-3" id="landmarksContainer">
+                        @foreach($landmarks as $lm)
+                          <input type="text" name="landmarks[]" value="{{ $lm }}"
+                            class="w-full border rounded-xl px-4 py-3">
+                        @endforeach
+                  </div>
+                </div>
+
+              <div class="mt-8 bg-[#FBFBFB] rounded-3xl border border-gray-100 p-5 sm:p-6 md:p-8 space-y-6">
+
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div>
+                    <h3 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+                      <span class="w-2 h-2 bg-[#009A5C] rounded-full"></span>
+                      Location Verification
+                    </h3>
+                    <p class="text-xs sm:text-sm text-gray-500 mt-1 max-w-md">
+                      Confirm the exact physical location of your hoarding using the map.
+                      This helps customers and admins verify visibility and accuracy.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    id="geotagBtn"
+                    class="w-full sm:w-auto inline-flex justify-center items-center gap-2
+                          bg-[#009A5C] text-white text-sm font-bold
+                          px-4 sm:px-6 py-3 rounded-xl
+                          shadow-sm hover:bg-green-700 active:scale-95 transition">
+                    📍 Confirm Location
+                  </button>
+                </div>
+
+                <div id="location-error" class="text-xs text-red-500 hidden"></div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+
+                  <div class="space-y-1">
+                    <label class="text-sm font-bold text-gray-700">
+                      Latitude <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="lat"
+                      id="lat"
+                      value="{{ old('lat', $hoarding?->latitude) }}"
+                      required
+                      placeholder="Auto-filled after confirmation"
+                      class="w-full  border border-gray-200 rounded-xl
+                            px-4 py-3 text-sm font-mono text-gray-900
+                            "
+                    />
+                    <p class="text-[11px] text-gray-400">
+                      Mandatory • Locked after confirmation
+                    </p>
+                  </div>
+
+                  <div class="space-y-1">
+                    <label class="text-sm font-bold text-gray-700">
+                      Longitude <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="lng"
+                      id="lng"
+                      value="{{ old('lng', $hoarding?->longitude) }}"
+                      required
+                      placeholder="Auto-filled after confirmation"
+                      class="w-full  border border-gray-200 rounded-xl
+                            px-4 py-3 text-sm font-mono text-gray-900
+                          "
+                    />
+                    <p class="text-[11px] text-gray-400">
+                      Mandatory • Locked after confirmation
+                    </p>
+                  </div>
+
+                </div>
+
+                <div
+                  id="geotagSuccess"
+                  class="hidden flex items-center gap-2
+                        bg-green-50 border border-green-200
+                        text-green-700 text-sm
+                        px-4 py-3 rounded-xl">
+                  <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L9 13.414l4.707-4.707z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  <span>Location confirmed and locked</span>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="text-sm font-bold text-gray-700">
+                    Map Preview
+                  </label>
+
+                  <div class="relative rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+                    <div id="map" class="w-full h-[300px] sm:h-[320px]"></div>
+
+                    <div class="absolute bottom-2 right-2
+                                bg-white/90 backdrop-blur
+                                text-xs text-gray-600
+                                px-3 py-1 rounded-lg shadow">
+                      Drag pin to adjust
+                    </div>
+                  </div>
+                </div>
+
               </div>
-              <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700">State <span class="text-red-500">*</span></label>
-                <input type="text" name="state" value="{{ old('state', $hoarding?->state) }}" placeholder="eg. Uttar Pradesh" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-8 space-y-4">
-                <!-- Nearby Landmarks -->
-            <div class="mt-8 space-y-4">
-              <div class="flex items-center justify-between">
-                <label class="text-sm font-bold text-gray-700">Nearby Landmarks</label>
-                <button type="button" id="addLandmarkBtn" class="bg-[#1A1A1A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-all">
-                  + Add another landmark
-                </button>
-              </div>
-              <div class="space-y-3" id="landmarksContainer">
-                  @foreach($landmarks as $lm)
-                    <input type="text" name="landmarks[]" value="{{ $lm }}"
-                      class="w-full border rounded-xl px-4 py-3">
-                  @endforeach
-            </div>
-          </div>
-
-         <!-- Location Verification Section -->
-        <div class="mt-8 bg-[#FBFBFB] rounded-3xl border border-gray-100 p-5 sm:p-6 md:p-8 space-y-6">
-
-          <!-- Section Header -->
-          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div>
-              <h3 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
-                <span class="w-2 h-2 bg-[#009A5C] rounded-full"></span>
-                Location Verification
-              </h3>
-              <p class="text-xs sm:text-sm text-gray-500 mt-1 max-w-md">
-                Confirm the exact physical location of your hoarding using the map.
-                This helps customers and admins verify visibility and accuracy.
-              </p>
-            </div>
-
-            <!-- Mobile-first confirm button -->
-            <button
-              type="button"
-              id="geotagBtn"
-              class="w-full sm:w-auto inline-flex justify-center items-center gap-2
-                    bg-[#009A5C] text-white text-sm font-bold
-                    px-4 sm:px-6 py-3 rounded-xl
-                    shadow-sm hover:bg-green-700 active:scale-95 transition">
-              📍 Confirm Location
-            </button>
-          </div>
-
-          <div id="location-error" class="text-xs text-red-500 hidden"></div>
-
-          <!-- Coordinates -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-
-            <div class="space-y-1">
-              <label class="text-sm font-bold text-gray-700">
-                Latitude <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="lat"
-                id="lat"
-                value="{{ old('lat', $hoarding?->latitude) }}"
-                required
-                placeholder="Auto-filled after confirmation"
-                class="w-full  border border-gray-200 rounded-xl
-                      px-4 py-3 text-sm font-mono text-gray-900
-                      "
-              />
-              <p class="text-[11px] text-gray-400">
-                Mandatory • Locked after confirmation
-              </p>
-            </div>
-
-            <div class="space-y-1">
-              <label class="text-sm font-bold text-gray-700">
-                Longitude <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="lng"
-                id="lng"
-                value="{{ old('lng', $hoarding?->longitude) }}"
-                required
-                placeholder="Auto-filled after confirmation"
-                class="w-full  border border-gray-200 rounded-xl
-                      px-4 py-3 text-sm font-mono text-gray-900
-                     "
-              />
-              <p class="text-[11px] text-gray-400">
-                Mandatory • Locked after confirmation
-              </p>
-            </div>
-
-          </div>
-
-          <!-- Success State -->
-          <div
-            id="geotagSuccess"
-            class="hidden flex items-center gap-2
-                  bg-green-50 border border-green-200
-                  text-green-700 text-sm
-                  px-4 py-3 rounded-xl">
-            <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L9 13.414l4.707-4.707z"
-                clip-rule="evenodd" />
-            </svg>
-            <span>Location confirmed and locked</span>
-          </div>
-
-          <!-- Map Preview -->
-          <div class="space-y-2">
-            <label class="text-sm font-bold text-gray-700">
-              Map Preview
-            </label>
-
-            <div class="relative rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-              <div id="map" class="w-full h-[300px] sm:h-[320px]"></div>
-
-              <div class="absolute bottom-2 right-2
-                          bg-white/90 backdrop-blur
-                          text-xs text-gray-600
-                          px-3 py-1 rounded-lg shadow">
-                Drag pin to adjust
-              </div>
-            </div>
-          </div>
-
-        </div>
           </div>
 
 
-        </div>
+        </div> -->
+
+     @include('components.hoardings.create.location')
+
       <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
           <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
               <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
@@ -482,170 +485,145 @@ mediaInput.addEventListener('change', function(e) {
 });
 </script>
 {{-- </div> --}}
-<script>
-/* ===============================
-   MAP + GEOCODING (FIXED)
-================================ */
+<!-- <script>
+  /* ===============================
+    MAP + GEOCODING (FIXED)
+  ================================ */
 
-let map, marker;
+  let map, marker;
 
-// Inputs
-const addressInput  = document.querySelector('input[name="address"]');
-const localityInput = document.querySelector('input[name="locality"]');
-const cityInput     = document.querySelector('input[name="city"]');
-const stateInput    = document.querySelector('input[name="state"]');
-const pincodeInput  = document.querySelector('input[name="pincode"]');
+  // Inputs
+  const addressInput  = document.querySelector('input[name="address"]');
+  const localityInput = document.querySelector('input[name="locality"]');
+  const cityInput     = document.querySelector('input[name="city"]');
+  const stateInput    = document.querySelector('input[name="state"]');
+  const pincodeInput  = document.querySelector('input[name="pincode"]');
 
-const latInput   = document.getElementById('lat');
-const lngInput   = document.getElementById('lng');
-const errorBox   = document.getElementById('location-error');
-const geotagBtn  = document.getElementById('geotagBtn');
+  const latInput   = document.getElementById('lat');
+  const lngInput   = document.getElementById('lng');
+  const errorBox   = document.getElementById('location-error');
+  const geotagBtn  = document.getElementById('geotagBtn');
 
-// Default India view
-const INDIA_CENTER = [20.5937, 78.9629];
+  // Default India view
+  const INDIA_CENTER = [20.5937, 78.9629];
 
-// Init map
-map = L.map('map').setView(INDIA_CENTER, 5);
+  // Init map
+  map = L.map('map').setView(INDIA_CENTER, 5);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap'
-}).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
 
-// Init marker
-marker = L.marker(INDIA_CENTER, { draggable: true }).addTo(map);
+  // Init marker
+  marker = L.marker(INDIA_CENTER, { draggable: true }).addTo(map);
 
-// Marker drag → update lat/lng
-marker.on('dragend', () => {
-  const pos = marker.getLatLng();
-  latInput.value = pos.lat.toFixed(6);
-  lngInput.value = pos.lng.toFixed(6);
-});
+  // Marker drag → update lat/lng
+  marker.on('dragend', () => {
+    const pos = marker.getLatLng();
+    latInput.value = pos.lat.toFixed(6);
+    lngInput.value = pos.lng.toFixed(6);
+  });
 
-// Clear previous lat/lng
-function resetLatLng() {
-  latInput.value = '';
-  lngInput.value = '';
-}
-
-// Build strict address string
-function buildAddress() {
-  return [
-    localityInput.value,
-    cityInput.value,
-    stateInput.value,
-    pincodeInput.value,
-    'India'
-  ].filter(Boolean).join(', ');
-}
-
-// Show error
-function showError(msg) {
-  errorBox.textContent = msg;
-  errorBox.classList.remove('hidden');
-}
-
-// Hide error
-function hideError() {
-  errorBox.textContent = '';
-  errorBox.classList.add('hidden');
-}
-
-// MAIN GEOCODE FUNCTION (FIXED)
-async function geocodeAddress() {
-  resetLatLng();
-  hideError();
-
-  const address = buildAddress();
-
-  if (address.length < 10) {
-    showError('Please enter complete address details.');
-    return;
+  // Clear previous lat/lng
+  function resetLatLng() {
+    latInput.value = '';
+    lngInput.value = '';
   }
 
-  const url =
-    `https://nominatim.openstreetmap.org/search` +
-    `?format=json` +
-    `&addressdetails=1` +
-    `&limit=1` +
-    `&countrycodes=in` +
-    `&q=${encodeURIComponent(address)}`;
+  // Build strict address string
+  function buildAddress() {
+    return [
+      localityInput.value,
+      cityInput.value,
+      stateInput.value,
+      pincodeInput.value,
+      'India'
+    ].filter(Boolean).join(', ');
+  }
 
-  try {
-    const res = await fetch(url, {
-      headers: { 'Accept': 'application/json' }
-    });
+  // Show error
+  function showError(msg) {
+    errorBox.textContent = msg;
+    errorBox.classList.remove('hidden');
+  }
 
-    const data = await res.json();
+  // Hide error
+  function hideError() {
+    errorBox.textContent = '';
+    errorBox.classList.add('hidden');
+  }
 
-    if (!data.length) {
-      showError('Location not found. Please refine address.');
+  // MAIN GEOCODE FUNCTION (FIXED)
+  async function geocodeAddress() {
+    resetLatLng();
+    hideError();
+
+    const address = buildAddress();
+
+    if (address.length < 10) {
+      showError('Please enter complete address details.');
       return;
     }
 
-    const result = data[0];
+    const url =
+      `https://nominatim.openstreetmap.org/search` +
+      `?format=json` +
+      `&addressdetails=1` +
+      `&limit=1` +
+      `&countrycodes=in` +
+      `&q=${encodeURIComponent(address)}`;
 
-    // 🚨 STATE VALIDATION (prevents Wadgaon)
-    if (
-      result.address?.state &&
-      !result.address.state.toLowerCase().includes('uttar pradesh')
-    ) {
-      showError('Geocode mismatch. Please refine address.');
-      return;
+    try {
+      const res = await fetch(url, {
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const data = await res.json();
+
+      if (!data.length) {
+        showError('Location not found. Please refine address.');
+        return;
+      }
+
+      const result = data[0];
+
+      // 🚨 STATE VALIDATION (prevents Wadgaon)
+      if (
+        result.address?.state &&
+        !result.address.state.toLowerCase().includes('uttar pradesh')
+      ) {
+        showError('Geocode mismatch. Please refine address.');
+        return;
+      }
+
+      const lat = parseFloat(result.lat);
+      const lng = parseFloat(result.lon);
+
+      latInput.value = lat.toFixed(6);
+      lngInput.value = lng.toFixed(6);
+
+      map.setView([lat, lng], 15);
+
+      marker.setLatLng([lat, lng]);
+      // ✅ MARK LOCATION AS CONFIRMED
+      isLocationConfirmed = true;
+
+      // Show success UI
+      document.getElementById('geotagSuccess').classList.remove('hidden');
+
+    } catch (e) {
+      showError('Unable to fetch location. Try again.');
     }
-
-    const lat = parseFloat(result.lat);
-    const lng = parseFloat(result.lon);
-
-    latInput.value = lat.toFixed(6);
-    lngInput.value = lng.toFixed(6);
-
-    map.setView([lat, lng], 15);
-
-    marker.setLatLng([lat, lng]);
-    // ✅ MARK LOCATION AS CONFIRMED
-    isLocationConfirmed = true;
-
-    // Show success UI
-    document.getElementById('geotagSuccess').classList.remove('hidden');
-
-  } catch (e) {
-    showError('Unable to fetch location. Try again.');
   }
-}
 
-// Explicit geotag action (BEST PRACTICE)
-geotagBtn.addEventListener('click', geocodeAddress);
-</script>
+  // Explicit geotag action (BEST PRACTICE)
+  geotagBtn.addEventListener('click', geocodeAddress);
+</script> -->
 
 
  
 
 <script>
-
-// Dynamic Size Preview
-const widthInput = document.getElementById('width');
-const heightInput = document.getElementById('height');
-const unitSelect = document.getElementById('unit');
-const sizePreview = document.getElementById('sizePreview');
-
-function updateSizePreview() {
-    const width = widthInput.value || '0';
-    const height = heightInput.value || '0';
-    const unit = unitSelect.value === 'sqft' ? 'sq.ft' : 'sq.m';
-    
-    if(sizePreview) {
-        sizePreview.value = `${width} x ${height} ${unit}`;
-    }
-}
-
-// Listeners
-widthInput.addEventListener('input', updateSizePreview);
-heightInput.addEventListener('input', updateSizePreview);
-unitSelect.addEventListener('change', updateSizePreview);
-
-// Run once on load to populate if editing
-updateSizePreview();
-
   // Upload File Preview
   const mediaInput = document.getElementById('mediaUpload');
   const filePreview = document.getElementById('filePreview');
@@ -856,5 +834,36 @@ document.addEventListener('DOMContentLoaded', function() {
             week1Input.removeAttribute('required');
         }
     });
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const widthInput  = document.getElementById('width');
+    const heightInput = document.getElementById('height');
+    const unitSelect  = document.getElementById('unit');
+    const sizePreview = document.getElementById('sizePreview');
+
+    if (!widthInput || !heightInput || !unitSelect || !sizePreview) {
+        console.warn('Size preview elements missing');
+        return;
+    }
+
+    function updateSizePreview() {
+        const width  = widthInput.value || '0';
+        const height = heightInput.value || '0';
+        const unit   = unitSelect.value === 'sqft' ? 'sq.ft' : 'sq.m';
+
+        sizePreview.value = `${width} x ${height} ${unit}`;
+    }
+
+    widthInput.addEventListener('input', updateSizePreview);
+    heightInput.addEventListener('input', updateSizePreview);
+    unitSelect.addEventListener('change', updateSizePreview);
+
+    // Populate on edit / page load
+    updateSizePreview();
 });
 </script>

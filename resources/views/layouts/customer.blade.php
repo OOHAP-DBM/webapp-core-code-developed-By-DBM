@@ -117,5 +117,15 @@
 
 
     @stack('scripts')
+    @include('layouts.partials.logout')
+    <script>
+    function openLogoutModal() {
+        document.getElementById('logoutModal').classList.remove('hidden');
+    }
+
+    function closeLogoutModal() {
+        document.getElementById('logoutModal').classList.add('hidden');
+    }
+</script>
 </body>
 </html>

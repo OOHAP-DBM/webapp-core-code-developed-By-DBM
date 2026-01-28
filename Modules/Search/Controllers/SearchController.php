@@ -111,18 +111,28 @@ class SearchController extends Controller
                 "),
                 DB::raw("
                     CASE
+                        /* WEEKLY MODE */
+                        WHEN '{$request->duration}' = 'weekly'
+                            THEN hoardings.weekly_price_1
+
+                        /* MONTHLY MODE - DOOH */
                         WHEN hoardings.hoarding_type = 'dooh'
                             THEN COALESCE(dooh_screens.price_per_slot, 0)
-                        ELSE hoardings.monthly_price
+
+                        /* MONTHLY MODE - OOH */
+                        WHEN hoardings.monthly_price IS NOT NULL
+                            AND hoardings.monthly_price > 0
+                            THEN hoardings.monthly_price
+
+                        /* FALLBACK */
+                        ELSE hoardings.base_monthly_price
                     END AS price
                 "),
 
             ]);
-        if ($isWeekly) {
-            $query->where('hoardings.hoarding_type', 'ooh')
-                  ->where('hoardings.enable_weekly_booking', 1)
-                  ->whereNotNull('hoardings.weekly_price_1')
-                  ->addSelect(DB::raw('hoardings.weekly_price_1 AS price'));
+        if ($request->duration === 'weekly') {
+            $query->where('hoardings.enable_weekly_booking', 1)
+                ->whereNotNull('hoardings.weekly_price_1');
         }
         if ($request->filled('location')) {
             $loc = strtolower($request->location);

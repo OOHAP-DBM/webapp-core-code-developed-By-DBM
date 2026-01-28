@@ -69,40 +69,32 @@
                             {{-- PRICE --}}
                             <div class="mt-2">
                                 <span class="text-lg font-bold">
-                                    @if(
-                                        $item->hoarding_type === 'ooh'
-                                        && (empty($item->monthly_price) || $item->monthly_price == 0)
-                                        && !empty($item->base_monthly_price)
-                                    )
-                                        ₹{{ number_format($item->base_monthly_price) }}
-                                    @else
-                                        ₹{{ number_format($item->price) }}
-                                    @endif
+                                    ₹{{ number_format($item->price) }}
                                 </span>
 
                                 <span class="text-sm text-black">
-                                    @if($item->hoarding_type === 'dooh')
-                                        /Second
-                                    @elseif(request('duration') === 'weekly')
+                                    @if(request('duration') === 'weekly')
                                         /Week
+                                    @elseif($item->hoarding_type === 'dooh')
+                                        /Second
                                     @else
                                         /Month
                                     @endif
                                 </span>
                             </div>
 
-                            {{-- CUT PRICE + DISCOUNT --}}
-                            @if(!empty($item->base_monthly_price) && $item->base_monthly_price > $item->price)
+                            @if(
+                                request('duration') !== 'weekly'
+                                && $item->hoarding_type === 'ooh'
+                                && !empty($item->monthly_price)
+                                && $item->monthly_price > 0
+                                && !empty($item->base_monthly_price)
+                                && $item->base_monthly_price > $item->monthly_price
+                            )
                                 <div class="text-xs mt-1">
-                                    @if(
-                                        $item->hoarding_type === 'ooh'
-                                        && !empty($item->price)
-                                        && $item->price > 0
-                                    )
-                                        <span class="line-through text-red-500">
-                                            ₹{{ number_format($item->base_monthly_price) }}
-                                        </span>
-                                    @endif
+                                    <span class="line-through text-red-500">
+                                        ₹{{ number_format($item->base_monthly_price) }}
+                                    </span>
 
                                     @if($item->discount_percent)
                                         <span class="ml-1 bg-green-200 text-green-700 px-2 py-0.5 rounded">

@@ -213,38 +213,37 @@ class HoardingListService
      */
     public function storeStep3($hoarding, $data)
     {
-        // dd($data);
         return \DB::transaction(function () use ($hoarding, $data) {
             $hoarding = $this->repo->updateStep3($hoarding, $data);
-            // dd($hoarding);
-
             // Support offers_json (JSON string) from web or API, like DOOH
-            $offers = [];
-            if (!empty($data['offers_json'])) {
-                $offers = json_decode($data['offers_json'], true);
-            }
-            // If not using offers_json, fallback to old array fields
-            if (empty($offers) && !empty($data['offer_name'])) {
-                $count = is_array($data['offer_name']) ? count($data['offer_name']) : 0;
-                for ($i = 0; $i < $count; $i++) {
-                    $offers[] = [
-                        'name' => $data['offer_name'][$i] ?? '',
-                        'min_booking_duration' => $data['offer_duration'][$i] ?? 1,
-                        'duration_unit' => $data['offer_unit'][$i] ?? 'months',
-                        'discount' => $data['offer_discount'][$i] ?? 0,
-                        'start_date' => $data['offer_start_date'][$i] ?? null,
-                        'end_date' => $data['offer_end_date'][$i] ?? null,
-                        'services' => $data['offer_services'][$i] ?? [],
-                    ];
-                }
-            }
-            if (!empty($offers)) {
-                $data['offers'] = $offers;
-                $this->repo->storePackages($hoarding->id, $data);
-            }
+            // $offers = [];
+            // if (!empty($data['offers_json'])) {
+            //     $offers = json_decode($data['offers_json'], true);
+            // }
+            // // If not using offers_json, fallback to old array fields
+            // if (empty($offers) && !empty($data['offer_name'])) {
+            //     $count = is_array($data['offer_name']) ? count($data['offer_name']) : 0;
+            //     for ($i = 0; $i < $count; $i++) {
+            //         $offers[] = [
+            //             'name' => $data['offer_name'][$i] ?? '',
+            //             'min_booking_duration' => $data['offer_duration'][$i] ?? 1,
+            //             'duration_unit' => $data['offer_unit'][$i] ?? 'months',
+            //             'discount' => $data['offer_discount'][$i] ?? 0,
+            //             'start_date' => $data['offer_start_date'][$i] ?? null,
+            //             'end_date' => $data['offer_end_date'][$i] ?? null,
+            //             'services' => $data['offer_services'][$i] ?? [],
+            //         ];
+            //     }
+            // }
+            
+            // if (!empty($offers)) {
+            //     $data['offers'] = $offers;
+            //     $this->repo->storePackages($hoarding->id, $data);
+            // }
 
             // Set parent hoarding status to pending_approval
             $parent = $hoarding->hoarding;
+
            
             if ($parent && $parent->status !== \App\Models\Hoarding::STATUS_PENDING_APPROVAL) {
                 $parent->status = \App\Models\Hoarding::STATUS_PENDING_APPROVAL;

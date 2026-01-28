@@ -76,28 +76,71 @@
     .rating-btn.active svg{
         fill:#fbbf24;
     }
-    input[type=range]{
-        -webkit-appearance:none;
-        appearance:none;
+  
+   
+
+   .range-wrapper {
+        position: relative;
+        height: 32px;
+        margin-top: 16px;
     }
-    input[type=range]::-webkit-slider-thumb{
-        -webkit-appearance:none;
-        height:18px;
-        width:18px;
-        background:#fff;
-        border:2px solid #969696;
-        color: #f5f5f5;
-        border-radius:50%;
-        cursor:pointer;
-        pointer-events:auto;
+
+    .range-base {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 100%;
+        height: 4px;
+        background: #e5e7eb;
+        border-radius: 999px;
+        z-index: 1;
     }
-    input[type=range]::-moz-range-thumb{
-        height:18px;
-        width:18px;
-        background:#fff;
-        border:2px solid #60bf99;
-        border-radius:50%;
-        cursor:pointer;
+
+    #rangeTrack {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 4px;
+        background: #22c55e;
+        border-radius: 999px;
+        z-index: 2;
+        transition: left .15s ease, width .15s ease;
+    }
+
+    input[type=range] {
+        -webkit-appearance: none;
+        appearance: none;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 100%;
+        height: 32px;
+        background: transparent;
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        pointer-events: auto;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border: 2px solid #7a7a7a;
+        border-radius: 50%;
+        cursor: pointer;
+        position: relative;
+        z-index: 10;
+    }
+    .rating-value,
+    .rating-text {
+        color: #6b7280; /* gray */
+        transition: color .2s ease;
+    }
+
+    .rating-btn.active .rating-value,
+    .rating-btn.active .rating-text {
+        color: #fff; /* white */
     }
 </style>
 <form method="GET" action="{{ route('search') }}" id="filterForm">
@@ -154,8 +197,8 @@
                 </section>
 
                 <section class="type-section" data-type="ooh">
-                    <h3 class="font-medium mb-3">Categories (OOH)</h3>
-                    @foreach(['Unipole','Gantry','Bus Shelter','Metro Pillars'] as $cat)
+                    <h3 class="font-medium mb-2">Categories (OOH)</h3>
+                    @foreach(['Unipole','Billboard','Gantry','Bus Shelter','Metro Pillars'] as $cat)
                         <label class="flex gap-2">
                             <input type="checkbox" name="category[]" value="{{ $cat }}">
                             {{ $cat }}
@@ -163,7 +206,7 @@
                     @endforeach
                 </section>
                 <section class="type-section" data-type="dooh">
-                    <h3 class="font-medium mb-3">Digital Categories (DOOH)</h3>
+                    <h3 class="font-medium mb-2">Digital Categories (DOOH)</h3>
                     @foreach(['LED Screens','Digital Standee','Metro Panels'] as $cat)
                         <label class="flex gap-2">
                             <input type="checkbox" name="category[]" value="{{ $cat }}">
@@ -182,9 +225,12 @@
                     </p>
                 <div class="flex gap-3 text-sm">
                     <input type="hidden" name="duration" id="durationInput" value="{{ request('duration','monthly') }}">
-                    <div class="flex gap-3">
-                        <div class="filter-btn active" onclick="setDuration('monthly',this)">Monthly</div>
-                        <div class="filter-btn" onclick="setDuration('weekly',this)">Weekly</div>
+
+                    <div class="filter-btn duration-btn active" onclick="setDuration('monthly',this)">
+                        Monthly
+                    </div>
+                    <div class="filter-btn duration-btn" onclick="setDuration('weekly',this)">
+                        Weekly
                     </div>
                 </div>
 
@@ -193,20 +239,22 @@
                 {{-- PRICE RANGE --}}
                 <section>
                     <h3 class="font-medium mb-1">Price range</h3>
-                    <p class="text-xs text-gray-500 mb-3">
+                    <p class="text-xs text-gray-500 mb-2 ">
                         Select Price Range Monthly, Weekly & Yearly, with Tax & before Tax.
                     </p>
 
-                    <div class="flex items-end gap-[2px] h-16 mb-4">
+                    <!-- <div class="flex items-end gap-[2px] h-16 mb-4">
                         @for($i=1;$i<=40;$i++)
                             <div class="w-full bg-black" style="height: {{ rand(20,60) }}%"></div>
                         @endfor
-                    </div>
+                    </div> -->
 
                     <div class="flex gap-4 ">
                         <input type="number" name="min_price" value="{{ request('min_price') }}"
                             placeholder="Minimum ₹ 2,000"
                             class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm">
+
+                            <span class="text-gray-400 font-semibold">-</span>
 
                         <input type="number" name="max_price" value="{{ request('max_price') }}"
                             placeholder="Maximum ₹ 10,000"
@@ -243,8 +291,8 @@
                         <div
                             class="rating-btn {{ $checked ? 'active' : '' }}"
                             onclick="toggleRating(this)"
-                        >
-                            <span class="{{ $checked ? 'text-white' : 'text-gray-500' }}">
+                             >
+                            <span class="rating-value">
                                 {{ $r }}
                             </span>
 
@@ -252,7 +300,7 @@
                                 <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2" />
                             </svg>
 
-                            <span>Rating</span>
+                            <span class="rating-text">Rating</span>
 
                             <input
                                 type="checkbox"
@@ -262,6 +310,7 @@
                                 {{ $checked ? 'checked' : '' }}
                             >
                         </div>
+
                     @endforeach
                 </div>
                </section>
@@ -289,16 +338,18 @@
                         Average number of peoples roaming near the hoarding.
                     </p>
 
-                    <div class="flex items-end gap-[2px] h-16 mb-4">
+                    <!-- <div class="flex items-end gap-[2px] h-16 mb-4">
                         @for($i=1;$i<=40;$i++)
                             <div class="w-full bg-black" style="height: {{ rand(20,60) }}%"></div>
                         @endfor
-                    </div>
+                    </div> -->
 
                     <div class="flex gap-4">
                         <input type="number" name="min_gazeflow" value="{{ request('min_gazeflow') }}"
                             placeholder="Minimum 100 Daily"
                             class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm">
+                            
+                            <span class="text-gray-400 font-semibold">-</span>
 
                         <input type="number" name="max_gazeflow" value="{{ request('max_gazeflow') }}"
                             placeholder="Maximum 100,000 Daily"
@@ -313,58 +364,69 @@
                     <p>Minimum Size</p>
 
                     {{-- SLIDER --}}
-                    <div class="relative mt-6">
-                        <input
-                            type="range"
-                            min="8"
-                            max="40"
-                            step="1"
-                            id="minRange"
-                            value="{{ request('min_height',12) }}"
-                            class="absolute w-full h-1 bg-transparent appearance-none pointer-events-none"
-                        >
+                    <div class="range-wrapper">
 
-                        <input
-                            type="range"
-                            min="8"
-                            max="40"
-                            step="1"
-                            id="maxRange"
-                            value="{{ request('max_height',16) }}"
-                            class="absolute w-full h-1 bg-transparent appearance-none pointer-events-none"
-                        >
+                    <input
+                        type="range"
+                        min="8"
+                        max="40"
+                        step="1"
+                        id="minRange"
+                        value="{{ request('min_height',12) }}"
+                    >
 
-                        <div class="h-1 bg-gray-200 rounded relative">
-                            <div id="rangeTrack" class="absolute h-1 bg-green-500 rounded"></div>
-                        </div>
+                    <input
+                        type="range"
+                        min="8"
+                        max="40"
+                        step="1"
+                        id="maxRange"
+                        value="{{ request('max_height',16) }}"
+                    >
+
+                    <div class="range-base">
+                        <div id="rangeTrack"></div>
                     </div>
+
+                </div>
+
 
                     {{-- INPUTS --}}
-                    <div class="grid grid-cols-2 gap-6 text-sm mt-6">
-                        <div>
-                            <label class="block text-gray-500 mb-1">Select Minimum height</label>
-                            <input
-                                type="number"
-                                name="min_height"
-                                id="minInput"
-                                value="{{ request('min_height') }}"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2"
-                                placeholder="12 ft"
-                            >
-                        </div>
-
-                        <div>
-                            <label class="block text-gray-500 mb-1">Select Minimum height</label>
-                            <input
-                                type="number"
-                                name="max_height"
-                                id="maxInput"
-                                value="{{ request('max_height') }}"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2"
-                                placeholder="16 ft"
-                            >
-                        </div>
+                    <div class="grid grid-cols-[1fr_auto_1fr] gap-4 text-sm mt-6 items-end">
+    
+                    <!-- MIN -->
+                    <div>
+                        <label class="block text-gray-500 mb-1">Select Minimum height</label>
+                        <input
+                            type="number"
+                            name="min_height"
+                            id="minInput"
+                            value="{{ request('min_height') }}"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2"
+                            placeholder="12 ft"
+                        >
                     </div>
+
+                    <!-- DASH -->
+                    <div class="flex items-center justify-center mb-3 text-gray-400 font-semibold">
+                        -
+                    </div>
+
+                    <!-- MAX -->
+                    <div>
+                        <label class="block text-gray-500 mb-1">Select Maximum height</label>
+                        <input
+                            type="number"
+                            name="max_height"
+                            id="maxInput"
+                            value="{{ request('max_height') }}"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2"
+                            placeholder="16 ft"
+                        >
+                    </div>
+
+                </div>
+
                 </section>
 
 
@@ -390,9 +452,9 @@
 
             {{-- FOOTER --}}
             <div class="flex items-center justify-between px-6 py-4 border border-gray-200">
-                <a href="{{ route('search') }}" class="text-sm text-gray-500 underline">Clear all</a>
+                <a href="{{ route('search') }}" class="text-lg text-black">Clear all</a>
                 <button type="submit"
-                    class="bg-green-600 text-white px-6 py-2 rounded">
+                    class="btn-color text-white px-14 py-2 rounded" style="cursor:pointer;">
                     Apply
                 </button>
             </div>
@@ -401,82 +463,134 @@
     </div>
 </form>
 <script>
-    function setType(type, el = null){
-        document.getElementById('filterType').value = type;
+/* =========================
+   TYPE FILTER (Any / OOH / DOOH)
+========================= */
+function setType(type, el) {
+    document.getElementById('filterType').value = type;
 
-        document.querySelectorAll('.type-btn').forEach(btn=>{
-            btn.classList.remove('active');
-        });
+    // 🔒 sirf TYPE buttons reset honge
+    document.querySelectorAll('.type-btn')
+        .forEach(btn => btn.classList.remove('active'));
 
-        if(el){
-            el.classList.add('active');
-        }else{
-            // default Any Type
-            document.querySelector('.type-btn[data-type="all"]')?.classList.add('active');
-        }
+    el.classList.add('active');
 
-        document.querySelectorAll('.type-section').forEach(sec=>{
-            if(type === '' || sec.dataset.type === type){
-                sec.style.display = 'block';
-            }else{
-                sec.style.display = 'none';
-            }
-        });
-    }
-    function setDuration(val,el){
-        document.getElementById('durationInput').value = val;
-        document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-        el.classList.add('active');
-    }
-    function toggleVendor(el){
-        const cb = el.querySelector('input');
-        cb.checked = !cb.checked;
-        el.classList.toggle('active',cb.checked);
-    }
-    document.addEventListener('DOMContentLoaded',()=>{
-        const type = document.getElementById('filterType').value;
-        setType(type);
+    // categories show / hide
+    document.querySelectorAll('.type-section').forEach(sec => {
+        sec.style.display =
+            (type === '' || sec.dataset.type === type) ? 'block' : 'none';
     });
-    function toggleRating(el){
-        const input = el.querySelector('input');
-        input.checked = !input.checked;
-        el.classList.toggle('active', input.checked);
-    }
-    const minRange = document.getElementById('minRange');
-    const maxRange = document.getElementById('maxRange');
-    const minInput = document.getElementById('minInput');
-    const maxInput = document.getElementById('maxInput');
-    const track = document.getElementById('rangeTrack');
-    function updateTrack(){
-        const min = parseInt(minRange.value);
-        const max = parseInt(maxRange.value);
-        const percentMin = (min / 40) * 100;
-        const percentMax = (max / 40) * 100;
+}
 
-        track.style.left = percentMin + '%';
-        track.style.width = (percentMax - percentMin) + '%';
+/* =========================
+   DURATION FILTER (Monthly / Weekly)
+========================= */
+function setDuration(val, el) {
+    document.getElementById('durationInput').value = val;
+
+    // 🔒 sirf DURATION buttons reset honge
+    document.querySelectorAll('.duration-btn')
+        .forEach(btn => btn.classList.remove('active'));
+
+    el.classList.add('active');
+}
+
+/* =========================
+   VENDOR TOGGLE
+========================= */
+function toggleVendor(el) {
+    const cb = el.querySelector('input');
+    cb.checked = !cb.checked;
+    el.classList.toggle('active', cb.checked);
+}
+
+/* =========================
+   RATING TOGGLE
+========================= */
+function toggleRating(el) {
+    const input = el.querySelector('input');
+    input.checked = !input.checked;
+    el.classList.toggle('active', input.checked);
+}
+
+/* =========================
+   RANGE SLIDER
+========================= */
+const minRange = document.getElementById('minRange');
+const maxRange = document.getElementById('maxRange');
+const minInput = document.getElementById('minInput');
+const maxInput = document.getElementById('maxInput');
+const track = document.getElementById('rangeTrack');
+
+function updateTrack() {
+    const min = +minRange.value;
+    const max = +maxRange.value;
+
+    const minVal = +minRange.min;
+    const maxVal = +minRange.max;
+    const sliderWidth = minRange.offsetWidth;
+    const thumbWidth = 18;
+
+    const minX = ((min - minVal) / (maxVal - minVal)) * (sliderWidth - thumbWidth) + thumbWidth / 2;
+    const maxX = ((max - minVal) / (maxVal - minVal)) * (sliderWidth - thumbWidth) + thumbWidth / 2;
+
+    track.style.left = `${minX}px`;
+    track.style.width = `${maxX - minX}px`;
+}
+
+minRange.addEventListener('input', () => {
+    if (+minRange.value >= +maxRange.value) {
+        minRange.value = maxRange.value - 1;
     }
-    minRange.addEventListener('input',()=>{
-        if(+minRange.value >= +maxRange.value){
-            minRange.value = maxRange.value - 1;
-        }
-        minInput.value = minRange.value;
-        updateTrack();
-    });
-    maxRange.addEventListener('input',()=>{
-        if(+maxRange.value <= +minRange.value){
-            maxRange.value = +minRange.value + 1;
-        }
-        maxInput.value = maxRange.value;
-        updateTrack();
-    });
-    minInput.addEventListener('input',()=>{
-        minRange.value = minInput.value;
-        updateTrack();
-    });
-    maxInput.addEventListener('input',()=>{
-        maxRange.value = maxInput.value;
-        updateTrack();
-    });
+    minInput.value = minRange.value;
     updateTrack();
+});
+
+maxRange.addEventListener('input', () => {
+    if (+maxRange.value <= +minRange.value) {
+        maxRange.value = +minRange.value + 1;
+    }
+    maxInput.value = maxRange.value;
+    updateTrack();
+});
+
+minInput.addEventListener('input', () => {
+    minRange.value = minInput.value;
+    updateTrack();
+});
+
+maxInput.addEventListener('input', () => {
+    maxRange.value = maxInput.value;
+    updateTrack();
+});
+
+/* =========================
+   ON LOAD DEFAULT STATE
+========================= */
+document.addEventListener('DOMContentLoaded', () => {
+
+    /* ---- TYPE DEFAULT ---- */
+    const typeVal = document.getElementById('filterType').value || '';
+    const typeBtn = document.querySelector(
+        `.type-btn[data-type="${typeVal || 'all'}"]`
+    );
+
+    if (typeBtn) {
+        setType(typeVal, typeBtn);
+    }
+
+    /* ---- DURATION DEFAULT ---- */
+    const durationBtn = document.querySelector('.duration-btn.active')
+        || document.querySelector('.duration-btn');
+
+    if (durationBtn) {
+        setDuration(
+            durationBtn.textContent.trim().toLowerCase(),
+            durationBtn
+        );
+    }
+
+    updateTrack();
+});
 </script>
+
