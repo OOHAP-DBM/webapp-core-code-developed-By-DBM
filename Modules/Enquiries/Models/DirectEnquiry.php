@@ -15,10 +15,10 @@ class DirectEnquiry extends Model
         'email',
         'location_city',
         'hoarding_type',
-        'hoarding_location',
+        // 'hoarding_location',
         'preferred_locations',
         'preferred_modes',
-        'best_way_to_connect',
+        // 'best_way_to_connect',
         'is_verified',
         'remarks',
         'is_email_verified',
@@ -33,34 +33,12 @@ class DirectEnquiry extends Model
         'is_verified' => 'boolean',
     ];
 
-    /* ===================== RELATIONSHIPS ===================== */
-
-    /**
-     * Get the vendor (if this enquiry is for a specific vendor)
-     */
-    public function vendor(): BelongsTo
+    public function getPreferredLocationsTextAttribute()
     {
-        return $this->belongsTo(User::class, 'vendor_id');
+        return !empty($this->preferred_locations)
+            ? implode(', ', (array) $this->preferred_locations)
+            : 'Location needs to be discussed';
     }
 
-    /* ===================== SCOPES ===================== */
-
-    /**
-     * Scope to get verified enquiries only
-     */
-    public function scopeVerified($query)
-    {
-        return $query->where('is_email_verified', true)->where('is_phone_verified', true);
-    }
-
-    /* ===================== HELPERS ===================== */
-
-    /**
-     * Check if enquiry is fully verified
-     */
-    public function isFullyVerified(): bool
-    {
-        return $this->is_email_verified && $this->is_phone_verified;
-    }
 }
 

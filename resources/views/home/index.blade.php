@@ -119,9 +119,10 @@
     <!-- Featured Categories -->
     <section class="py-16 bg-white">
         <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Top Spots</h2>
-                <p class="text-gray-600">Explore advertising opportunities in major cities</p>
+            <div class=" mb-12">
+                <!-- <h2 class="text-lg md:text-4xl font-bold text-gray-900 mb-3">Top Spots</h2> -->
+                <h2 class="text-2xl font-bold text-gray-900">Top Spots</h2>
+                <!-- <p class="text-gray-600">Explore advertising opportunities in major cities</p> -->
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

@@ -304,7 +304,7 @@ class DOOHScreenRepository
                 if (!empty($offer['name'])) {
                     // Ensure discount_percent is a valid decimal
                     $discount = $offer['discount_value'] ?? $offer['discount'] ?? 0;
-                    if ($discount === '' || !is_numeric($discount)) {
+                    if ($discount === '') {
                         $discount = 0;
                     }
                     // Ensure end_date is null if empty or not a valid date
@@ -315,10 +315,9 @@ class DOOHScreenRepository
                     DOOHPackage::create([
                         'dooh_screen_id'         => $screenId,
                         'package_name'           => $offer['name'],
-                        'min_booking_duration'   => $offer['min_booking_duration'] ?? 1,
-                        'duration_unit'          => $offer['duration_unit'] ?? 'months',
-                        'discount_percent'       => $offer['discount_value'] ?? $offer['discount'] ?? 0.0,
-                        'discount_percent'       => $discount,
+                        'min_booking_duration'   => $offer['duration'] ?? $offer['min_booking_duration'] ?? 1,
+                        'duration_unit'          => $offer['unit'] ?? $offer['duration_unit'] ?? 'months',
+                        'discount_percent'       => $discount ?? $offer['discount'] ?? 0,
                         'is_active'              => $offer['is_active'] ?? true,
                         'slots_per_day'          => 1,
                         'services_included'      => isset($offer['services']) ? json_encode($offer['services']) : null,
@@ -346,7 +345,6 @@ class DOOHScreenRepository
                         'package_name'         => $name,
                         'min_booking_duration' => $data['offer_duration'][$index] ?? 1,
                         'duration_unit'        => $data['offer_unit'][$index] ?? 'months',
-                        'discount_percent'     => $data['offer_discount'][$index] ?? 0.0,
                         'discount_percent'     => $discount,
                         'is_active'            => true,
                         'slots_per_day'        => 1,

@@ -333,6 +333,7 @@ class DOOHController extends Controller
                     break;
 
                 case 3:
+                    // dd($data = $request->all());
                     $result = $service->updateStep3($screen, $request->all());
                     break;
 
@@ -364,7 +365,7 @@ class DOOHController extends Controller
             }
 
             return redirect()->route('vendor.hoardings.myHoardings')
-                ->with('success', 'DOOH Screen updated successfully!');
+                ->with('success', 'DOOH Screen updated successfully!, Once approved by our team, it will be live on the platform.');
 
         } catch (\Exception $e) {
             \Log::error('DOOH Update Failed', [

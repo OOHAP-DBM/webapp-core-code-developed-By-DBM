@@ -48,13 +48,13 @@
 
         <div class="verify-footer">
             Don’t Have an Account?
-            <a href="">Sign up</a>
+            <a href="{{route('register.role-selection')}}"class="text-success">Sign up</a>
         </div>
 
         <div class="verify-terms">
             By clicking continue button, you agree with the
-            <a href="#">Terms & Conditions</a> and
-            <a href="#">Privacy policy</a> of OOHAPP.
+            <a href="{{ route('terms') }}">Terms & Conditions</a> and
+            <a href="{{ route('privacy') }}">Privacy policy</a> of OOHAPP.
         </div>
 
     </div>
@@ -110,8 +110,8 @@
 /* Footer */
 .verify-footer {
     margin-top: 140px;
-    font-size: 14px;
-    color: #111;
+    font-size: 13px;
+    color: #6b7280;
 }
 
 .verify-footer a {
@@ -128,8 +128,8 @@
 }
 
 .verify-terms a {
-    color: #111;
     font-weight: 500;
+    text-decoration:none;
 }
 .auth-left {
     background-image: url('{{ asset("assets/images/login/login_image.jpeg") }}');

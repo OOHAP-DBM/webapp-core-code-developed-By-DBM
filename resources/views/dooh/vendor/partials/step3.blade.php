@@ -115,7 +115,7 @@
             </button>
         </div>
     </div> --}}
-   @include('dooh.vendor.partials.package')
+     @include('components.hoardings.create.package')
 
 
     <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
