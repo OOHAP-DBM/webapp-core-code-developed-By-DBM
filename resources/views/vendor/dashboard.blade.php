@@ -521,20 +521,62 @@
                             {{ $h['bookings'] }}
                         </td> -->
 
-                        <td class="px-6 py-4 text-blue-600 hover:underline cursor-pointer">
-                              @if($h['status'] === 'pending_approval')
-                                <span class="badge bg-warning text-dark">Pending Approval</span>
-                            @elseif($h['status'] === 'active')
-                                <span class="badge bg-success">Approved</span>
-                            @elseif($h['status'] === 'rejected')
-                                <span class="badge bg-danger">Rejected</span>
-                            @elseif($h['status'] === 'inactive')
-                                <span class="badge bg-secondary">Inactive</span>
-                            @elseif($h['status'] === 'draft')
-                                <span class="badge bg-secondary">Draft</span>
+                        <td class="px-6 py-4">
+                            @php
+                                $status = strtolower($h['status']);
+                                $isActive = in_array($status, ['active', 'published']);
+                                $isPending = $status === 'pending_approval';
+                            @endphp
+
+                            @if(!$isPending && $status !== 'draft')
+                                <form
+                                    action="{{ route('vendor.hoardings.toggle', $h['id']) }}"
+                                    method="POST"
+                                    class="inline-flex items-center gap-2"
+                                >
+                                    @csrf
+
+                                    <!-- TOGGLE -->
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            class="sr-only peer"
+                                            onchange="this.form.submit()"
+                                            {{ $isActive ? 'checked' : '' }}
+                                        >
+
+                                        <div class="
+                                            w-9 h-5 bg-gray-300 rounded-full
+                                            peer-checked:bg-emerald-500
+                                            transition-colors
+                                            after:content-['']
+                                            after:absolute after:top-[2px] after:left-[2px]
+                                            after:h-4 after:w-4
+                                            after:bg-white after:rounded-full
+                                            after:transition-all
+                                            peer-checked:after:translate-x-4
+                                        "></div>
+                                    </label>
+
+                                    <!-- STATUS TEXT -->
+                                    <span class="
+                                        text-[11px] font-bold uppercase tracking-wide
+                                        {{ $isActive ? 'text-emerald-600' : 'text-gray-400' }}
+                                    ">
+                                        {{ $isActive ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </form>
+
+                            @elseif($isPending)
+                                <span class="text-orange-500 text-[11px] font-bold uppercase italic">
+                                    Pending Approval
+                                </span>
+
+                            @elseif($status === 'draft')
+                                <span class="text-gray-400 text-[11px] font-bold uppercase">
+                                    Draft
+                                </span>
                             @endif
-                               
-                        
                         </td>
                     </tr>
                     @endforeach

@@ -203,13 +203,13 @@
     <div
         x-show="showModal"
         x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
     >
-        <div class="bg-white rounded-xl w-full max-w-lg p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto mx-auto">
+        <div class="bg-white w-full max-w-lg rounded-xl p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto mx-auto">
 
             <button
                 @click="showModal=false"
-                class="absolute top-3 right-3 text-gray-400 hover:text-black"
+                class="absolute top-3 right-3 text-gray-700 hover:text-black"
             >✕</button>
 
             <template x-if="modalType === 'personal'">

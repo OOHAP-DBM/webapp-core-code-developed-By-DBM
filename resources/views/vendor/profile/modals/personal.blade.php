@@ -20,7 +20,7 @@
 
         {{-- Avatar Upload --}}
         <div x-data="{ fileName: '' }">
-            <label class="block text-gray-600 mb-2 font-medium">Profile Picture</label>
+            <label class="block text-gray-600 mb-2 font-medium">Profile Picture<span class="text-red-500">*</span></label>
             <div class="flex items-center gap-4">
                 <!-- Avatar Preview -->
                 <div class="relative">
@@ -75,7 +75,7 @@
         {{-- Name --}}
         <div>
             <label class="block text-gray-600 mb-1">
-                Your Name
+                Your Name<span class="text-red-500">*</span>
             </label>
             <input
                 type="text"
@@ -88,7 +88,7 @@
         {{-- Email (Read-only) --}}
         <div>
             <label class="block text-gray-600 mb-1 flex items-center gap-2">
-                Your Email Address
+                Your Email Address 
                 @if(auth()->user()->email)
                     <span class="text-green-600 font-bold text-lg">✓</span>
                 @endif

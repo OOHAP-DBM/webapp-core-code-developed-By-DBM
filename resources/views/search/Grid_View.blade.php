@@ -2,7 +2,7 @@
     <div class="max-w-[1460px] mx-auto px-6 py-6">
 
         @if($results->total() > 0)
-            <h2 class="text-lg text-black  mb-4">
+            <h2 class="text-lg text-black font-semibold mb-4">
                 {{ $results->total() }} Hoardings in {{ request('location') ?? 'India' }}
             </h2>
 
@@ -37,6 +37,13 @@
                             <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded">
                                 RECOMMENDED
                             </span>
+                            <div class="absolute top-3 right-3 flex items-center space-x-2">
+                                <button class="w-8 h-8 bg-[#9e9e9b] backdrop-blur-sm rounded-full flex items-center justify-center " onclick="event.stopPropagation();">
+                                    <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5.5 0.75C2.877 0.75 0.75 3.01 0.75 5.797C0.75 11.375 9.75 17.75 9.75 17.75C9.75 17.75 18.75 11.375 18.75 5.797C18.75 2.344 16.623 0.75 14 0.75C12.14 0.75 10.53 1.886 9.75 3.54C8.97 1.886 7.36 0.75 5.5 0.75Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
 
                         {{-- CONTENT --}}

@@ -57,7 +57,7 @@
             <div>
                 <p class="flex items-center gap-3 text-sm font-medium text-gray-900">
                     {{ Auth::user()->name }}
-                    <span class="cursor-pointer">
+                    <!-- <span class="cursor-pointer">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
                             xmlns="http://www.w3.org/2000/svg">
                             <path d="M6.07692 7H5.38462C5.01739 7 4.66521 7.14588 4.40554 7.40554
@@ -75,7 +75,7 @@
                                     L8 10V12H9.99998L15.5899 6.39005Z"
                                 stroke="#1E1B18" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                    </span>
+                    </span> -->
                 </p>
                 <p class="text-xs text-yellow-600">
                     Member Since {{ Auth::user()->created_at->format('M Y') }}

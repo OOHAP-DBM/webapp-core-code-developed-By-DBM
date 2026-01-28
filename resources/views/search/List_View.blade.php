@@ -40,22 +40,15 @@
                                     RECOMMENDED
                                 </span>
                                 <!-- SAVE (BOOKMARK) ICON -->
-                                <!-- <button
+                                <button
                                     class="absolute top-2 right-2 z-10
-                                        bg-white/90 hover:bg-white
-                                        border border-gray-200
-                                        rounded-full p-1.5 shadow"> -->
-                                    <!-- bookmark svg -->
-                                    <!-- <svg xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        class="w-4 h-4 text-gray-700">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M5 5v14l7-5 7 5V5a2 2 0 00-2-2H7a2 2 0 00-2 2z"/>
+                                        bg-[#9e9e9b]
+                                        rounded-full p-1.5 shadow">
+                                    <!-- wishlist svg -->
+                                    <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5.5 0.75C2.877 0.75 0.75 3.01 0.75 5.797C0.75 11.375 9.75 17.75 9.75 17.75C9.75 17.75 18.75 11.375 18.75 5.797C18.75 2.344 16.623 0.75 14 0.75C12.14 0.75 10.53 1.886 9.75 3.54C8.97 1.886 7.36 0.75 5.5 0.75Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
-                                </button> -->
+                                </button>
                                 <!-- VIEW (EYE) ICON -->
                                 <!-- <button
                                     class="absolute bottom-2 left-2 z-10

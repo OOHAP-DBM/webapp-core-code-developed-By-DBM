@@ -364,11 +364,14 @@ class HoardingController extends Controller
         // 3. Map the data so the Blade file stays clean
         // We use "through" on paginated items to keep pagination links working
         $hoardingList = $data->getCollection()->map(function ($h) {
+            $parts = [];
+            if (!empty($h->locality)) $parts[] = $h->locality;
+            if (!empty($h->city)) $parts[] = $h->city;
             return [
                 'id' => $h->id,
                 'title' => $h->title,
                 'hoarding_type' => $h->hoarding_type,
-                'location' => $h->locality . ', ' . $h->city,
+                'location' => $parts ? implode(', ', $parts) : null,
                 'bookings_count' => $h->bookings_count ?? 0,
                 'status' => ucfirst($h->status === "active" ? 'Published' : $h->status),
             ];
@@ -387,11 +390,22 @@ class HoardingController extends Controller
     {
         $hoarding = Hoarding::where('vendor_id', Auth::id())->findOrFail($id);
 
-        // Toggle logic
-        $hoarding->status = ($hoarding->status === 'active') ? 'inactive' : 'active';
-        $hoarding->save();
+        if ($hoarding->status === 'active') {
+            $hoarding->status = 'inactive';
+            $hoarding->save();
+            $msg = 'Hoarding is now Inactive!';
+            $type = 'warning'; // orange
+        } else {
+            $hoarding->status = 'active';
+            $hoarding->save();
+            $msg = 'Hoarding is now Active!';
+            $type = 'success'; // green
+        }
 
-        return back()->with('success', 'Hoarding status updated successfully.');
+        return back()->with([
+            'swal_success' => $msg,
+            'swal_type' => $type
+        ]);
     }
     /**
      * Show all hoardings with completion percentage (API or web).
@@ -430,5 +444,4 @@ class HoardingController extends Controller
         return view('hoardings.vendor.show', compact('hoarding'));
     }
 
-    
 }

@@ -7,6 +7,7 @@
 
 
     reason: '',
+    otherReason: '',
     emailOtp: '',
     phoneOtp: '',
 
@@ -225,6 +226,20 @@
                         <input type="radio" x-model="reason" value="Other">
                         <span>Some other reason</span>
                     </label>
+                    <!-- OTHER REASON TEXTAREA -->
+                    <div
+                        x-show="reason === 'Other'"
+                        x-transition
+                        class="mt-3"
+                    >
+                        <textarea
+                            x-model="otherReason"
+                            rows="3"
+                            placeholder="Please specify your reason"
+                            class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring"
+                        ></textarea>
+                    </div>
+
                 </div>
             </div>
 
@@ -233,12 +248,14 @@
                 <button
                     type="button"
                     @click="showReasonModal = false; showOtpModal = true"
-                    :disabled="!reason"
+                    :disabled="!reason || (reason === 'Other' && !otherReason)"
                     class="w-full py-2 rounded-md text-white text-sm font-medium
-                           bg-red-500 hover:bg-red-600 disabled:bg-red-300 disabled:cursor-not-allowed"
-                >
+                        bg-red-500 hover:bg-red-600
+                        disabled:bg-red-300 disabled:cursor-not-allowed"
+                    >
                     Continue Delete Account
                 </button>
+
 
                 <button
                     type="button"
@@ -346,7 +363,11 @@
             @method('PUT')
 
             <input type="hidden" name="section" value="delete">
-            <input type="hidden" name="reason" :value="reason">
+            <input
+                type="hidden"
+                name="reason"
+                :value="reason === 'Other' ? otherReason : reason"
+            />
             <input type="hidden" name="email_otp" :value="emailOtp">
             <input type="hidden" name="phone_otp" :value="phoneOtp">
 

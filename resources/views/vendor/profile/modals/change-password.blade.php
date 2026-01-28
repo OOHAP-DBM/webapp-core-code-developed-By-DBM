@@ -20,7 +20,7 @@
 
             {{-- Current Password --}}
             <div>
-                <label class="block text-gray-600 mb-1">Current Password</label>
+                <label class="block text-gray-900 mb-1">Enter old password<span class="text-red-500">*</span></label>
                 <div class="relative flex items-center">
                     <input
                         :type="currentPasswordVisible ? 'text' : 'password'"
@@ -50,7 +50,7 @@
 
             {{-- New Password --}}
             <div>
-                <label class="block text-gray-600 mb-1">New Password</label>
+                <label class="block text-gray-900 mb-1">Enter new password<span class="text-red-500">*</span></label>
                 <div class="relative flex items-center">
                     <input
                         :type="newPasswordVisible ? 'text' : 'password'"
@@ -77,7 +77,7 @@
 
             {{-- Confirm Password --}}
             <div>
-                <label class="block text-gray-600 mb-1">Confirm Password</label>
+                <label class="block text-gray-900 mb-1">Confirm new password<span class="text-red-500">*</span></label>
                 <div class="relative flex items-center">
                     <input
                         :type="confirmPasswordVisible ? 'text' : 'password'"
@@ -113,17 +113,18 @@
             <button
                 type="button"
                 @click="showModal = false"
-                class="px-5 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50"
+                class="w-40 px-5 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50"
             >
                 Cancel
             </button>
 
             <button
                 type="submit"
-                class="px-6 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700"
+                class="w-40 px-5 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700"
             >
                 Update Password
             </button>
+
 
         </div>
 

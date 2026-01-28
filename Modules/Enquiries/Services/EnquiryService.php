@@ -62,6 +62,13 @@ class EnquiryService
                 $data
             );
             $this->notificationService->notifyAll($enquiry, $vendorGroups);
+
+            // Remove hoardings from user's cart after successful enquiry
+            \DB::table('carts')
+                ->where('user_id', auth()->id())
+                ->whereIn('hoarding_id', $hoardingIds)
+                ->delete();
+
             return response()->json([
                 'success' => true,
                 'enquiry_id' => $enquiry->id,
