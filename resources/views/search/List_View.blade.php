@@ -138,22 +138,14 @@
                             {{-- PRICE --}}
                             <div class="mt-3">
                                 <span class="text-xl font-bold">
-                                    @if(
-                                        $item->hoarding_type === 'ooh'
-                                        && (empty($item->monthly_price) || $item->monthly_price == 0)
-                                        && !empty($item->base_monthly_price)
-                                    )
-                                        ₹{{ number_format($item->base_monthly_price) }}
-                                    @else
-                                        ₹{{ number_format($item->price) }}
-                                    @endif
+                                    ₹{{ number_format($item->price) }}
                                 </span>
 
-                                <span class="text-lg text-black text-bold">
-                                    @if($item->hoarding_type === 'dooh')
-                                        /Second
-                                    @elseif(request('duration') === 'weekly')
+                                <span class="text-lg text-black font-bold">
+                                    @if(request('duration') === 'weekly')
                                         /Week
+                                    @elseif($item->hoarding_type === 'dooh')
+                                        /Second
                                     @else
                                         /Month
                                     @endif
@@ -161,29 +153,27 @@
                             </div>
 
 
-                            {{-- BASE PRICE (CUT / RED) --}}
-                            @if(!empty($item->base_monthly_price) && $item->base_monthly_price > $item->price)
+                            @if(
+                                request('duration') !== 'weekly'
+                                && $item->hoarding_type === 'ooh'
+                                && !empty($item->monthly_price)
+                                && $item->monthly_price > 0
+                                && !empty($item->base_monthly_price)
+                                && $item->base_monthly_price > $item->monthly_price
+                            )
                                 <div class="mt-1">
-                                    @if(
-                                        $item->hoarding_type === 'ooh'
-                                        && !empty($item->price)
-                                        && $item->price > 0
-                                        && !empty($item->base_monthly_price)
-                                        && $item->base_monthly_price > $item->price
-                                    )
-                                        <span class="text-xs text-red-500 line-through">
-                                            ₹{{ number_format($item->base_monthly_price) }}
-                                        </span>
-                                    @endif
+                                    <span class="text-xs text-red-500 line-through">
+                                        ₹{{ number_format($item->base_monthly_price) }}
+                                    </span>
 
-                                    &nbsp;
                                     @if($item->discount_percent)
                                         <span class="bg-green-200 text-xs text-green-700 px-2 py-0.5 rounded">
-                                             {{ $item->discount_percent }}% OFF
+                                            {{ $item->discount_percent }}% OFF
                                         </span>
                                     @endif
                                 </div>
                             @endif
+
 
                             {{-- TAX NOTE --}}
                             <p class="text-xs text-gray-500 my-2">
@@ -225,7 +215,9 @@
                                  @auth
                                     <button
                                         type="button"
-                                        class="inline-flex whitespace-nowrap py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn"
+                                        class="inline-flex items-center justify-center text-center
+                                                sm:justify-start
+                                                whitespace-nowrap py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn"
                                         data-hoarding-id="{{ $item->id }}"
                                         data-grace-days="{{ isset($item->grace_period_days) ? (int) $item->grace_period_days : 0 }}"
 
@@ -247,7 +239,7 @@
                                 @else
                                     <button
                                         type="button"
-                                        class="inline-flex whitespace-nowrap py-2 px-3 btn-color text-white text-sm font-semibold rounded"
+                                        class="text-center items-center justify-center inline-flex whitespace-nowrap py-2 px-3 btn-color text-white text-sm font-semibold rounded"
                                         onclick="event.stopPropagation(); event.preventDefault();
                                                 window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
                                     >

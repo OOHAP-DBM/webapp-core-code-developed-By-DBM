@@ -115,36 +115,44 @@
 
             {{-- MAIN PRICE --}}
             <div class="flex items-baseline">
-                <span class="text-xl font-bold text-gray-900">
+                <span class="text-xl font-semibold text-gray-900">
                     ₹{{ number_format($hasSale ? $sale : $base, 0) }}
                 </span>
-                <span class="text-lg text-black ml-1">/Month</span>
+                <span class="text-lg text-black font-bold ml-1">/Month</span>
             </div>
 
             {{-- CUT PRICE + DISCOUNT (ONLY IF REAL SALE) --}}
             @if($hasSale && $base && $base > $sale)
                 <div class="flex items-center space-x-2 mt-1">
-                    <span class="text-xs text-gray-400 line-through">
+                    <span class="text-xs text-red-500 line-through">
                         ₹{{ number_format($base, 0) }}
                     </span>
 
                     @php
-                        $percent = round((($base - $sale) / $base) * 100);
+                        $basePrice = (float) ($base ?? 0);
+                        $salePrice = (float) ($sale ?? 0);
+                        $discountAmount = 0;
+                        if ($basePrice > 0 && $salePrice > 0 && $salePrice < $basePrice) {
+                            $discountAmount = $basePrice - $salePrice;
+                        }
                     @endphp
 
-                    <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
-                        {{ $percent }}% Off
-                    </span>
+
+                    @if($discountAmount > 0)
+                        <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
+                            ₹{{ number_format($discountAmount) }} OFF!
+                        </span>
+                    @endif
                 </div>
             @endif
 
             {{-- ================= DOOH ================= --}}
             @else
                 <div class="flex items-baseline">
-                    <span class="text-xl font-bold text-gray-900">
+                    <span class="text-xl font-semibold text-gray-900">
                         ₹{{ number_format(optional($hoarding->doohScreen)->price_per_slot) }}
                     </span>
-                    <span class="text-lg text-black ml-1">/Second</span>
+                    <span class="text-lg text-black font-bold ml-1">/Second</span>
                 </div>
             @endif
 
