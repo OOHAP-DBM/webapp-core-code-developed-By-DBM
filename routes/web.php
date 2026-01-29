@@ -75,7 +75,7 @@ Route::prefix('vendor/pos')->middleware(['auth', 'role:vendor'])->name('vendor.p
         Route::get('/hoardings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getHoardings'])->name('hoardings');
 
         Route::get('/customers', [\Modules\POS\Controllers\Web\VendorPosController::class, 'searchCustomers'])->name('customers.search');
-
+Route::post('/customers', [\Modules\POS\Controllers\Web\VendorPosController::class, 'createCustomer'])->name('customers.store');
         Route::post('/calculate-price', [\Modules\POS\Controllers\Web\VendorPosController::class, 'calculatePrice'])->name('calculate_price');
 
         Route::post('/bookings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'createBooking'])->name('bookings.create');

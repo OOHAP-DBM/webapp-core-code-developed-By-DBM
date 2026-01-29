@@ -1,932 +1,439 @@
-
 @extends('layouts.vendor')
 
-@section('title', 'Create POS Booking')
+@section('title', 'Create Pos Booking')
 
 @section('content')
-<div class="px-6 py-6">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- LEFT: Main Form -->
+<div class="px-6 py-6 bg-gray-50 min-h-screen">
+    <div id="selection-screen" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
         <div class="lg:col-span-7">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 rounded-t-xl bg-blue-600 text-white">
-                    <h4 class="text-lg font-semibold flex items-center gap-2">
-                        ➕ Create New POS Booking
-                    </h4>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
+                    <h2 class="text-xl font-bold text-gray-800">Create POS Booking</h2>
+                    <span id="booking-date" class="text-xs text-gray-400 font-medium"></span>
                 </div>
+
                 <div class="p-6">
-                    <form id="pos-booking-form" autocomplete="off">
-                        @csrf
-                        <!-- Customer Selection -->
-                        <h5 class="text-md font-semibold mb-4">Customer</h5>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium mb-1">Search or Add Customer *</label>
-                            <input type="text" id="customer-search" name="customer_search" placeholder="Type name, phone, or email..." autocomplete="off"
-                                class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200" required>
-                            <div id="customer-suggestions" class="bg-white border border-gray-200 rounded-lg mt-1 shadow-lg hidden absolute z-50"></div>
-                        </div>
-                        <div id="customer-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Name *</label>
-                                <input type="text" name="customer_name" id="customer_name" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
+                    <div class="mb-8">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Customer Details</label>
+                        
+                        <div id="search-container" class="flex gap-2">
+                            <div class="relative flex-1">
+                                <input type="text" id="customer-search" autocomplete="off" 
+                                    placeholder="Search by name, email, or mobile..." 
+                                    class="w-full rounded-md border-gray-300 focus:ring-green-500 text-sm py-2.5">
+                                <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Phone *</label>
-                                <input type="tel" name="customer_phone" id="customer_phone" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Email</label>
-                                <input type="email" name="customer_email" id="customer_email" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-1">GSTIN</label>
-                                <input type="text" name="customer_gstin" id="customer_gstin" maxlength="15" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium mb-1">Address</label>
-                                <textarea name="customer_address" id="customer_address" rows="2" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200"></textarea>
-                            </div>
-                        </div>
-                        <hr class="my-6">
-                        <!-- Booking Details -->
-                        <h5 class="text-md font-semibold mb-4">Booking Details</h5>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Booking Type *</label>
-                                <select name="booking_type" id="booking_type" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
-                                    <option value="ooh">OOH (Hoarding)</option>
-                                    <option value="dooh">DOOH (Digital)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Selected Hoardings (0) *</label>
-                                <input type="hidden" name="hoarding_ids" id="hoarding_ids" required>
-                                <div id="selected-hoarding-preview" class="mt-1 text-sm max-h-24 overflow-y-auto"></div>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Start Date (DD/MM/YYYY) *</label>
-                                <input type="text" id="start_date" name="start_date" placeholder="DD/MM/YYYY" maxlength="10" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
-                                <small class="text-gray-500 text-xs">Format: DD/MM/YYYY</small>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-1">End Date (DD/MM/YYYY) *</label>
-                                <input type="text" id="end_date" name="end_date" placeholder="DD/MM/YYYY" maxlength="10" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
-                                <small class="text-gray-500 text-xs">Format: DD/MM/YYYY</small>
-                            </div>
-                        </div>
-                        <hr class="my-6">
-                        <!-- Pricing -->
-                        <h5 class="text-md font-semibold mb-4">Pricing</h5>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Base Amount *</label>
-                                <input type="number" step="0.01" id="base-amount" name="base_amount" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Discount Amount</label>
-                                <input type="number" step="0.01" id="discount-amount" name="discount_amount" value="0" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
-                            </div>
-                        </div>
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm mb-6">
-                            <strong>Price Breakdown:</strong><br>
-                            Base Amount: ₹<span id="display-base">0.00</span><br>
-                            Discount: ₹<span id="display-discount">0.00</span><br>
-                            After Discount: ₹<span id="display-after-discount">0.00</span><br>
-                            GST (@<span id="gst-rate">18</span>%): ₹<span id="display-gst">0.00</span><br>
-                            <strong>Total Amount: ₹<span id="display-total">0.00</span></strong>
-                        </div>
-                        <hr class="my-6">
-                        <!-- Payment Details -->
-                        <h5 class="text-md font-semibold mb-4">Payment Details</h5>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Payment Mode *</label>
-                                <select name="payment_mode" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
-                                    <option value="cash">Cash</option>
-                                    <option value="credit_note">Credit Note</option>
-                                    <option value="bank_transfer">Bank Transfer</option>
-                                    <option value="cheque">Cheque</option>
-                                    <option value="online">Online</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Payment Reference</label>
-                                <input type="text" name="payment_reference" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium mb-1">Payment Notes</label>
-                            <textarea name="payment_notes" rows="2" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200"></textarea>
-                        </div>
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium mb-1">Additional Notes</label>
-                            <textarea name="notes" rows="2" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200"></textarea>
-                        </div>
-                        <div id="form-error-container" class="mb-4 hidden">
-                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                                <p class="text-red-700 font-semibold mb-2">⚠️ Form Errors:</p>
-                                <ul id="error-list" class="text-red-600 text-sm space-y-1"></ul>
-                            </div>
-                        </div>
-                        <div id="form-success-container" class="mb-4 hidden">
-                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                                <p id="success-message" class="text-green-700 font-semibold">✅ Booking created successfully!</p>
-                            </div>
-                        </div>
-                        <div class="flex justify-between">
-                            <a href="/vendor/pos/bookings" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">Cancel</a>
-                            <button type="submit" id="submit-btn" class="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 flex items-center gap-2">
-                                <span id="submit-text">💾 Create Booking</span>
-                                <span id="submit-spinner" class="hidden"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></span>
+                            <button type="button" onclick="openCustomerModal()" class="bg-green-600 text-white px-4 rounded-md hover:bg-green-700 transition flex items-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                <span class="ml-1 text-sm font-semibold">New</span>
                             </button>
                         </div>
-                    </form>
+
+                        <div id="customer-selected-card" class="hidden flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-[#2D5A43] rounded-full flex items-center justify-center text-white font-bold text-sm" id="cust-initials">--</div>
+                                <div>
+                                    <h4 id="cust-name" class="font-bold text-gray-800 text-sm leading-tight">Customer Name</h4>
+                                    <p id="cust-details" class="text-xs text-gray-500 mt-0.5">Contact Details</p>
+                                </div>
+                            </div>
+                            <button onclick="clearSelectedCustomer()" class="text-xs font-bold text-red-500 hover:text-red-700 px-3 py-1 border border-red-200 rounded-md bg-white">
+                                Change
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="selection-group">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
+                                <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> OOH (Static)
+                            </h4>
+                            <div class="overflow-hidden border border-gray-100 rounded-xl">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-gray-50 text-gray-500 border-b border-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-3 font-semibold">Hoarding</th>
+                                            <th class="px-4 py-3 font-semibold">Rental/Mo</th>
+                                            <th class="px-4 py-3 font-semibold">Total</th>
+                                            <th class="px-4 py-3 font-semibold text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ooh-selected-list" class="divide-y divide-gray-50 bg-white">
+                                        <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 italic">No static hoardings selected</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="selection-group">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
+                                <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span> Digital (DOOH)
+                            </h4>
+                            <div class="overflow-hidden border border-gray-100 rounded-xl">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-gray-50 text-gray-500 border-b border-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-3 font-semibold">Hoarding</th>
+                                            <th class="px-4 py-3 font-semibold">Slot Info</th>
+                                            <th class="px-4 py-3 font-semibold">Total</th>
+                                            <th class="px-4 py-3 font-semibold text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dooh-selected-list" class="divide-y divide-gray-50 bg-white">
+                                        <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 italic">No digital slots selected</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 mt-12 pt-6 border-t border-gray-100">
+                        <button type="button" onclick="location.reload()" class="px-6 py-3 border border-gray-200 rounded-lg font-bold text-gray-500 hover:bg-gray-50 transition">Reset</button>
+                        <button id="submit-btn" class="flex-1 py-3 bg-[#2D5A43] text-white rounded-lg font-bold shadow-lg shadow-green-900/20 hover:bg-opacity-90 active:scale-[0.98] transition">
+                            Preview & Create Booking (<span id="btn-count">0</span>)
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-        <!-- RIGHT: Hoardings Browser -->
+
         <div class="lg:col-span-5">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 rounded-t-xl bg-cyan-600 text-white flex items-center justify-between">
-                    <h5 class="font-semibold">Browse Hoardings (Select Multiple) ✓</h5>
-                    <input type="text" id="hoarding-search" placeholder="Search hoardings..." class="rounded-lg border border-gray-300 px-2 py-1 text-sm text-black">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6">
+                <div class="p-5 border-b flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800">Inventory Available</h3>
+                    <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-bold" id="available-count">0</span>
                 </div>
-                <div class="p-6">
-                    <div id="hoardings-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
-                    <div id="hoardings-empty" class="text-center text-gray-500 mt-4 hidden">No hoardings found.</div>
+                <div class="p-5">
+                    <div class="relative mb-5">
+                        <input type="text" id="hoarding-search" placeholder="Filter inventory..." 
+                            class="w-full pl-10 rounded-lg border-gray-200 text-sm focus:ring-green-500">
+                        <span class="absolute left-3 top-2.5 text-gray-400 text-lg">🔍</span>
+                    </div>
+                    <div id="hoardings-grid" class="grid grid-cols-2 gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 custom-scrollbar">
+                        </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <div id="preview-screen" class="hidden animate-fade-in">
+        @include('vendor.pos.preview-screen')
+    </div>
 </div>
-<!-- <script>
-    const API_URL = '/api/v1/vendor/pos';
-    const TOKEN = localStorage.getItem('token');
-    consi
-    let gstRate = 18;
-    let hoardings = [];
-    let selectedHoarding = null;
-    let selectedCustomer = null;
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Fetch GST rate
-        try {
-            const response = await fetch(`${API_URL}/settings`, { headers: { 'Authorization': `Bearer ${TOKEN}`, 'Accept': 'application/json' } });
-            if (response.ok) {
-                const data = await response.json();
-                if (data.data && data.data.gst_rate) {
-                    gstRate = parseFloat(data.data.gst_rate);
-                    document.getElementById('gst-rate').textContent = gstRate;
-                }
-            }
-        } catch {}
-        // Load hoardings
-        await loadHoardings();
-        // Attach listeners
-        attachPriceCalculationListeners();
-        document.getElementById('pos-booking-form').addEventListener('submit', handleFormSubmit);
-        document.getElementById('hoarding-search').addEventListener('input', filterHoardings);
-        document.getElementById('customer-search').addEventListener('input', handleCustomerSearch);
-    });
+@include('vendor.pos.customer-modal')
 
-    async function loadHoardings() {
-        const grid = document.getElementById('hoardings-grid');
-        grid.innerHTML = '<div class="col-span-full text-center text-gray-400">Loading hoardings...</div>';
-        try {
-            const res = await fetch('/api/v1/vendor/hoardings', { headers: { 'Authorization': `Bearer ${TOKEN}`, 'Accept': 'application/json' } });
-            const data = await res.json();
-            hoardings = data.data || [];
-            renderHoardings(hoardings);
-        } catch {
-            grid.innerHTML = '<div class="col-span-full text-center text-red-500">Failed to load hoardings.</div>';
-        }
-    }
+<style>
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+    @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .animate-slide-up { animation: slide-up 0.3s ease-out forwards; }
+    .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
 
-    function renderHoardings(list) {
-        const grid = document.getElementById('hoardings-grid');
-        const empty = document.getElementById('hoardings-empty');
-        grid.innerHTML = '';
-        if (!list.length) {
-            empty.classList.remove('hidden');
-            return;
-        }
-        empty.classList.add('hidden');
-        list.forEach(h => {
-            const card = document.createElement('div');
-            card.className = `rounded-lg border p-3 cursor-pointer transition shadow-sm ${selectedHoarding && selectedHoarding.id === h.id ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:shadow-md'}`;
-            card.innerHTML = `
-                <img src="${h.image_url || '/images/hoarding-placeholder.png'}" alt="Hoarding" class="w-full h-32 object-cover rounded mb-2">
-                <div class="font-semibold text-base mb-1">${h.title}</div>
-                <div class="text-xs text-gray-600 mb-1">${h.location_address}</div>
-                <div class="text-xs text-gray-500 mb-1">Size: ${h.size} | Type: ${h.type}</div>
-                <div class="text-sm font-bold text-blue-700">₹${parseFloat(h.price_per_month || 0).toLocaleString('en-IN')}</div>
-            `;
-            card.onclick = () => selectHoarding(h);
-            grid.appendChild(card);
-        });
-    }
-
-    function selectHoarding(h) {
-        selectedHoarding = h;
-        document.getElementById('hoarding_id').value = h.id;
-        renderHoardings(hoardings);
-        document.getElementById('selected-hoarding-preview').innerHTML = `
-            <div class="p-2 border rounded bg-blue-50 mt-1">
-                <div class="font-semibold">${h.title}</div>
-                <div class="text-xs text-gray-600">${h.location_address}</div>
-                <div class="text-xs text-gray-500">Size: ${h.size} | Type: ${h.type}</div>
-                <div class="text-sm font-bold text-blue-700">₹${parseFloat(h.price_per_month || 0).toLocaleString('en-IN')}</div>
-            </div>
-        `;
-        // Optionally update base price
-        if (h.price_per_month) {
-            document.getElementById('base-amount').value = h.price_per_month;
-            calculatePrice();
-        }
-    }
-
-    function filterHoardings(e) {
-        const q = e.target.value.toLowerCase();
-        renderHoardings(hoardings.filter(h => h.title.toLowerCase().includes(q) || (h.location_address && h.location_address.toLowerCase().includes(q))));
-    }
-
-    // Customer Autocomplete
-    let customerSearchTimeout = null;
-    function handleCustomerSearch(e) {
-        const q = e.target.value.trim();
-        const suggestions = document.getElementById('customer-suggestions');
-        if (customerSearchTimeout) clearTimeout(customerSearchTimeout);
-        if (!q) {
-            suggestions.classList.add('hidden');
-            return;
-        }
-        customerSearchTimeout = setTimeout(async () => {
-            try {
-                const res = await fetch(`/api/v1/vendor/customers?search=${encodeURIComponent(q)}`, { headers: { 'Authorization': `Bearer ${TOKEN}`, 'Accept': 'application/json' } });
-                const data = await res.json();
-                if (data.data && data.data.length) {
-                    suggestions.innerHTML = data.data.map(c => `<div class="px-3 py-2 hover:bg-blue-100 cursor-pointer" onclick="selectCustomer(${encodeURIComponent(JSON.stringify(c))})">${c.name} <span class='text-xs text-gray-500'>${c.phone} ${c.email ? '· ' + c.email : ''}</span></div>`).join('');
-                    suggestions.classList.remove('hidden');
-                } else {
-                    suggestions.innerHTML = '<div class="px-3 py-2 text-gray-400">No customers found</div>';
-                    suggestions.classList.remove('hidden');
-                }
-            } catch {
-                suggestions.innerHTML = '<div class="px-3 py-2 text-red-500">Error searching customers</div>';
-                suggestions.classList.remove('hidden');
-            }
-        }, 300);
-    }
-    function selectCustomer(raw) {
-        const c = typeof raw === 'string' ? JSON.parse(decodeURIComponent(raw)) : raw;
-        document.getElementById('customer_name').value = c.name || '';
-        document.getElementById('customer_phone').value = c.phone || '';
-        document.getElementById('customer_email').value = c.email || '';
-        document.getElementById('customer_gstin').value = c.gstin || '';
-        document.getElementById('customer_address').value = c.address || '';
-        document.getElementById('customer-suggestions').classList.add('hidden');
-        selectedCustomer = c;
-    }
-
-    function calculatePrice() {
-        const baseAmount = parseFloat(document.getElementById('base-amount').value) || 0;
-        const discountAmount = parseFloat(document.getElementById('discount-amount').value) || 0;
-        const afterDiscount = Math.max(0, baseAmount - discountAmount);
-        const gstAmount = (afterDiscount * gstRate) / 100;
-        const totalAmount = afterDiscount + gstAmount;
-        document.getElementById('display-base').textContent = baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('display-discount').textContent = discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('display-after-discount').textContent = afterDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('display-gst').textContent = gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('display-total').textContent = totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    function attachPriceCalculationListeners() {
-        document.getElementById('base-amount').addEventListener('input', calculatePrice);
-        document.getElementById('discount-amount').addEventListener('input', calculatePrice);
-        calculatePrice();
-    }
-
-    async function handleFormSubmit(event) {
-        event.preventDefault();
-        if (!TOKEN) {
-            showError(['Session expired. Please log in again.']);
-            return;
-        }
-        clearMessages();
-        const submitBtn = document.getElementById('submit-btn');
-        submitBtn.disabled = true;
-        document.getElementById('submit-text').classList.add('hidden');
-        document.getElementById('submit-spinner').classList.remove('hidden');
-        const formData = new FormData(event.target);
-        // If customer selected, add customer_id
-        if (selectedCustomer && selectedCustomer.id) {
-            formData.append('customer_id', selectedCustomer.id);
-        }
-        const data = Object.fromEntries(formData);
-        try {
-            const response = await fetch(`${API_URL}/bookings`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${TOKEN}`, 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            if (response.status === 422) {
-                const errorData = await response.json();
-                if (errorData.errors) {
-                    const errorMessages = Object.entries(errorData.errors).map(([field, messages]) => `<strong>${field}:</strong> ${messages.join(', ')}`);
-                    showError(errorMessages);
-                    Object.keys(errorData.errors).forEach(field => {
-                        const fieldElement = document.querySelector(`[name="${field}"]`);
-                        if (fieldElement) fieldElement.classList.add('border-red-500', 'border-2');
-                    });
-                }
-            } else if (response.status === 401) {
-                showError(['Session expired. Please log in again.']);
-                setTimeout(() => window.location.href = '/login', 2000);
-            } else if (response.status === 403) {
-                showError(['You do not have permission to create bookings.']);
-            } else if (response.ok || response.status === 201) {
-                const successData = await response.json();
-                showSuccess(`Booking #${successData.data.invoice_number || successData.data.id} created successfully!`);
-                setTimeout(() => { window.location.href = `/vendor/pos/bookings/${successData.data.id}`; }, 2000);
-            } else {
-                const errorData = await response.json();
-                showError([errorData.message || 'An error occurred while creating the booking.']);
-            }
-        } catch (error) {
-            showError(['Network error. Please check your connection and try again.']);
-        } finally {
-            submitBtn.disabled = false;
-            document.getElementById('submit-text').classList.remove('hidden');
-            document.getElementById('submit-spinner').classList.add('hidden');
-        }
-    }
-    function showError(messages) {
-        const container = document.getElementById('form-error-container');
-        const errorList = document.getElementById('error-list');
-        errorList.innerHTML = messages.map(msg => `<li>${msg}</li>`).join('');
-        container.classList.remove('hidden');
-        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-    function showSuccess(message) {
-        const container = document.getElementById('form-success-container');
-        document.getElementById('success-message').textContent = `✅ ${message}`;
-        container.classList.remove('hidden');
-        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-    function clearMessages() {
-        document.getElementById('form-error-container').classList.add('hidden');
-        document.getElementById('form-success-container').classList.add('hidden');
-        document.querySelectorAll('input, select, textarea').forEach(field => { field.classList.remove('border-red-500', 'border-2'); });
-    }
-</script> -->
 <script>
-/**
- * Web POS – Session Auth (Laravel)
- * Using web routes with CSRF protection
- * No tokens, no localStorage, no Bearer headers
- */
-
+/* --- CONFIG & STATE --- */
 const API_URL = '/vendor/pos/api';
-
-let gstRate = 18;
 let hoardings = [];
-let selectedHoardings = new Map(); // Changed to Map for multiple selections
+let selectedHoardings = new Map();
 let selectedCustomer = null;
 
-/* -------------------------------------------------------
-   Helpers
-------------------------------------------------------- */
+const formatINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
 const fetchJSON = async (url, options = {}) => {
     const res = await fetch(url, {
-        credentials: 'same-origin',
-        headers: {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            ...(options.headers || {})
-        },
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' },
         ...options
     });
-
-    if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw { status: res.status, data };
-    }
-
-    return res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw { status: res.status, data };
+    return data;
 };
 
-const normalizeList = (response) => {
-    if (Array.isArray(response.data)) return response.data;
-    if (Array.isArray(response.data?.data)) return response.data.data;
-    return [];
-};
-
-/* -------------------------------------------------------
-   Date Utilities (DD/MM/YYYY Format)
-------------------------------------------------------- */
-
-function isValidDateFormat(dateStr) {
-    // Check format DD/MM/YYYY
-    const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    const match = dateStr.match(regex);
-    if (!match) return false;
-    
-    const day = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10);
-    const year = parseInt(match[3], 10);
-    
-    // Basic validation
-    if (month < 1 || month > 12) return false;
-    if (day < 1 || day > 31) return false;
-    if (year < 1900 || year > 2100) return false;
-    
-    // Create date and validate
-    const date = new Date(year, month - 1, day);
-    return date.getFullYear() === year && 
-           date.getMonth() === month - 1 && 
-           date.getDate() === day;
-}
-
-function convertDateFormat(dateStr, fromFormat, toFormat) {
-    // Convert from DD/MM/YYYY to YYYY-MM-DD
-    const parts = dateStr.split('/');
-    if (parts.length !== 3) return dateStr;
-    
-    const day = parts[0];
-    const month = parts[1];
-    const year = parts[2];
-    
-    if (toFormat === 'yyyy-mm-dd') {
-        return `${year}-${month}-${day}`;
-    }
-    
-    return dateStr;
-}
-
-function formatDateDisplay(date) {
-    // Convert YYYY-MM-DD or Date object to DD/MM/YYYY
-    if (!date) return '';
-    
-    let d;
-    if (typeof date === 'string') {
-        d = new Date(date);
-    } else {
-        d = date;
-    }
-    
-    if (isNaN(d.getTime())) return '';
-    
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    
-    return `${day}/${month}/${year}`;
-}
-
-function initializeDatePickers() {
-    // Load Flatpickr dynamically
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js';
-    script.onload = () => {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css';
-        document.head.appendChild(link);
-
-        // Initialize start date picker
-        flatpickr('#start_date', {
-            mode: 'single',
-            dateFormat: 'd/m/Y',
-            minDate: 'today',
-            placeholder: 'DD/MM/YYYY'
-        });
-
-        // Initialize end date picker
-        flatpickr('#end_date', {
-            mode: 'single',
-            dateFormat: 'd/m/Y',
-            minDate: 'today',
-            placeholder: 'DD/MM/YYYY'
-        });
-    };
-    document.head.appendChild(script);
-}
-
-/* -------------------------------------------------------
-   Init
-------------------------------------------------------- */
-
+/* --- INITIALIZATION --- */
 document.addEventListener('DOMContentLoaded', async () => {
-    // Initialize date pickers with Flatpickr
-    initializeDatePickers();
-
-    await loadSettings();
+    document.getElementById('booking-date').innerText = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     await loadHoardings();
 
-    attachPriceCalculationListeners();
+    document.getElementById('hoarding-search').addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase();
+        renderHoardings(hoardings.filter(h => h.title.toLowerCase().includes(q) || (h.location_address || '').toLowerCase().includes(q)));
+    });
 
-    document.getElementById('pos-booking-form')
-        .addEventListener('submit', handleFormSubmit);
-
-    document.getElementById('hoarding-search')
-        .addEventListener('input', filterHoardings);
-
-    document.getElementById('customer-search')
-        .addEventListener('input', handleCustomerSearch);
+    document.getElementById('customer-search').addEventListener('input', debounce(handleCustomerSearch, 300));
 });
 
-/* -------------------------------------------------------
-   Settings
-------------------------------------------------------- */
+/* --- CUSTOMER LOGIC --- */
+function openCustomerModal() { document.getElementById('customerModal').classList.remove('hidden'); }
+function closeCustomerModal() { document.getElementById('customerModal').classList.add('hidden'); }
 
-async function loadSettings() {
-    try {
-        const res = await fetchJSON(`${API_URL}/settings`);
-        if (res.data?.gst_rate) {
-            gstRate = parseFloat(res.data.gst_rate);
-            document.getElementById('gst-rate').textContent = gstRate;
-        }
-    } catch (_) {}
-}
-
-/* -------------------------------------------------------
-   Hoardings
-------------------------------------------------------- */
-
-async function loadHoardings() {
-    const grid = document.getElementById('hoardings-grid');
-    grid.innerHTML = `<div class="col-span-full text-center text-gray-400">Loading hoardings...</div>`;
-
-    try {
-        const res = await fetchJSON(`${API_URL}/hoardings`);
-        hoardings = normalizeList(res);
-        renderHoardings(hoardings);
-    } catch {
-        grid.innerHTML = `<div class="col-span-full text-center text-red-500">Failed to load hoardings</div>`;
-    }
-}
-
-function renderHoardings(list) {
-    const grid = document.getElementById('hoardings-grid');
-    const empty = document.getElementById('hoardings-empty');
-
-    grid.innerHTML = '';
-
-    if (!list.length) {
-        empty.classList.remove('hidden');
-        return;
-    }
-
-    empty.classList.add('hidden');
-
-    list.forEach(h => {
-        const isSelected = selectedHoardings.has(h.id);
-        const card = document.createElement('div');
-        card.className = `
-            rounded-lg border p-3 cursor-pointer transition
-            ${isSelected
-                ? 'ring-2 ring-green-500 border-green-500 bg-green-50'
-                : 'hover:shadow-md border-gray-200'}
-        `;
-
-        card.innerHTML = `
-            <div class="relative">
-                <img src="${h.image_url || '/images/hoarding-placeholder.png'}"
-                     class="w-full h-32 object-cover rounded mb-2">
-                <div class="absolute top-2 right-2">
-                    <input type="checkbox" class="hoarding-checkbox w-5 h-5 cursor-pointer"
-                           data-id="${h.id}" ${isSelected ? 'checked' : ''}>
-                </div>
-            </div>
-
-            <div class="font-semibold text-sm">${h.title}</div>
-            <div class="text-xs text-gray-600">${h.location_address || ''}</div>
-            <div class="text-xs text-gray-500">Type: ${h.type}</div>
-            <div class="text-sm font-bold text-green-700 mt-1">
-                ₹${Number(h.price_per_month || 0).toLocaleString('en-IN')}/mo
-            </div>
-        `;
-
-        card.onclick = (e) => {
-            if (e.target.type !== 'checkbox') {
-                const checkbox = card.querySelector('.hoarding-checkbox');
-                checkbox.checked = !checkbox.checked;
-                toggleHoarding(h, checkbox.checked);
-            }
-        };
-
-        const checkbox = card.querySelector('.hoarding-checkbox');
-        checkbox.addEventListener('change', (e) => toggleHoarding(h, e.target.checked));
-
-        grid.appendChild(card);
-    });
-}
-
-function toggleHoarding(h, isSelected) {
-    if (isSelected) {
-        selectedHoardings.set(h.id, h);
-    } else {
-        selectedHoardings.delete(h.id);
-    }
-
-    updateSelectedHoardingsDisplay();
-    updateHoardingIdsInput();
-}
-
-function updateSelectedHoardingsDisplay() {
-    const previewDiv = document.getElementById('selected-hoarding-preview');
-    const count = selectedHoardings.size;
-    
-    // Update label count
-    const label = document.querySelector('label[for="selected-hoarding-preview"]');
-    if (label) {
-        label.textContent = `Selected Hoardings (${count}) *`;
-    }
-
-    if (count === 0) {
-        previewDiv.innerHTML = '<div class="text-gray-500 text-xs italic">No hoardings selected</div>';
-        return;
-    }
-
-    let html = '<div class="space-y-2">';
-    let totalPrice = 0;
-    
-    selectedHoardings.forEach((h, id) => {
-        const price = Number(h.price_per_month || 0);
-        totalPrice += price;
-        html += `
-            <div class="p-2 border rounded bg-green-50 flex justify-between items-start">
-                <div class="flex-1">
-                    <div class="font-semibold text-xs">${h.title}</div>
-                    <div class="text-xs text-gray-600">${h.location_address || ''}</div>
-                </div>
-                <button type="button" class="text-red-500 hover:text-red-700 ml-2"
-                        onclick="removeSelectedHoarding(${id})">✕</button>
-            </div>
-        `;
-    });
-    
-    html += `<div class="border-t pt-2 mt-2"><strong class="text-xs">Total: ₹${totalPrice.toLocaleString('en-IN')}</strong></div>`;
-    html += '</div>';
-    
-    previewDiv.innerHTML = html;
-}
-
-function removeSelectedHoarding(hoardingId) {
-    selectedHoardings.delete(hoardingId);
-    updateSelectedHoardingsDisplay();
-    updateHoardingIdsInput();
-    
-    // Uncheck the checkbox
-    const checkbox = document.querySelector(`.hoarding-checkbox[data-id="${hoardingId}"]`);
-    if (checkbox) checkbox.checked = false;
-    
-    // Re-render to update visual state
-    filterHoardings();
-}
-
-function updateHoardingIdsInput() {
-    const ids = Array.from(selectedHoardings.keys()).join(',');
-    document.getElementById('hoarding_ids').value = ids;
-}
-
-function filterHoardings(e) {
-    const q = e?.target?.value?.toLowerCase() || '';
-    const filtered = q 
-        ? hoardings.filter(h =>
-            h.title.toLowerCase().includes(q) ||
-            (h.location_address || '').toLowerCase().includes(q)
-        )
-        : hoardings;
-    
-    renderHoardings(filtered);
-}
-
-/* -------------------------------------------------------
-   Customers
-------------------------------------------------------- */
-
-let customerSearchTimeout = null;
-
-function handleCustomerSearch(e) {
+async function handleCustomerSearch(e) {
     const q = e.target.value.trim();
     const box = document.getElementById('customer-suggestions');
+    if (q.length < 2) { box.classList.add('hidden'); return; }
 
-    clearTimeout(customerSearchTimeout);
-
-    if (!q) {
-        box.classList.add('hidden');
-        return;
-    }
-
-    customerSearchTimeout = setTimeout(async () => {
-        try {
-            const res = await fetchJSON(
-                `${API_URL}/customers?search=${encodeURIComponent(q)}`
-            );
-
-            const customers = normalizeList(res);
-
-            box.innerHTML = customers.length
-                ? customers.map(c => `
-                    <div class="px-3 py-2 hover:bg-blue-100 cursor-pointer"
-                         onclick='selectCustomer(${JSON.stringify(c)})'>
-                        ${c.name}
-                        <span class="text-xs text-gray-500">
-                            ${c.phone} ${c.email ? '· ' + c.email : ''}
-                        </span>
-                    </div>
-                `).join('')
-                : `<div class="px-3 py-2 text-gray-400">No customers found</div>`;
-
-            box.classList.remove('hidden');
-        } catch {
-            box.innerHTML = `<div class="px-3 py-2 text-red-500">Error loading customers</div>`;
-            box.classList.remove('hidden');
-        }
-    }, 300);
+    try {
+        const res = await fetchJSON(`${API_URL}/customers?search=${encodeURIComponent(q)}`);
+        const list = res.data?.data || res.data || [];
+        
+        box.innerHTML = list.length > 0 
+            ? list.map(c => `
+                <div class="px-4 py-3 hover:bg-green-50 cursor-pointer border-b last:border-0" 
+                     onclick='selectCustomer(${JSON.stringify(c).replace(/'/g, "&apos;")})'>
+                    <div class="text-sm font-bold text-gray-800">${c.name}</div>
+                    <div class="text-[10px] text-gray-500">${c.email || 'No Email'} | ${c.phone}</div>
+                </div>`).join('')
+            : `<div class="p-4 text-xs text-gray-400 italic">No customer found.</div>`;
+        box.classList.remove('hidden');
+    } catch (e) { console.error("Search failed", e); }
 }
 
 function selectCustomer(c) {
     selectedCustomer = c;
-
-    document.getElementById('customer_name').value = c.name || '';
-    document.getElementById('customer_phone').value = c.phone || '';
-    document.getElementById('customer_email').value = c.email || '';
-    document.getElementById('customer_gstin').value = c.gstin || '';
-    document.getElementById('customer_address').value = c.address || '';
-
+    document.getElementById('search-container').classList.add('hidden');
+    document.getElementById('customer-selected-card').classList.remove('hidden');
+    document.getElementById('cust-name').innerText = c.name;
+    document.getElementById('cust-details').innerText = `${c.email || ''} | ${c.phone}`;
+    document.getElementById('cust-initials').innerText = c.name.substring(0,2).toUpperCase();
     document.getElementById('customer-suggestions').classList.add('hidden');
 }
 
-/* -------------------------------------------------------
-   Pricing
-------------------------------------------------------- */
-
-function calculatePrice() {
-    const base = +document.getElementById('base-amount').value || 0;
-    const discount = +document.getElementById('discount-amount').value || 0;
-
-    const after = Math.max(0, base - discount);
-    const gst = (after * gstRate) / 100;
-    const total = after + gst;
-
-    document.getElementById('display-base').textContent = base.toFixed(2);
-    document.getElementById('display-discount').textContent = discount.toFixed(2);
-    document.getElementById('display-after-discount').textContent = after.toFixed(2);
-    document.getElementById('display-gst').textContent = gst.toFixed(2);
-    document.getElementById('display-total').textContent = total.toFixed(2);
+function clearSelectedCustomer() {
+    selectedCustomer = null;
+    document.getElementById('search-container').classList.remove('hidden');
+    document.getElementById('customer-selected-card').classList.add('hidden');
+    document.getElementById('customer-search').value = '';
 }
 
-function attachPriceCalculationListeners() {
-    ['base-amount', 'discount-amount'].forEach(id =>
-        document.getElementById(id).addEventListener('input', calculatePrice)
-    );
-    calculatePrice();
-}
-
-/* -------------------------------------------------------
-   Submit
-------------------------------------------------------- */
-
-async function handleFormSubmit(e) {
-    e.preventDefault();
-    clearMessages();
-
-    // Validate at least one hoarding is selected
-    if (selectedHoardings.size === 0) {
-        showError(['Please select at least one hoarding before booking.']);
-        return;
-    }
-
-    // Validate and convert dates
-    const startDateStr = document.getElementById('start_date').value.trim();
-    const endDateStr = document.getElementById('end_date').value.trim();
-    
-    if (!isValidDateFormat(startDateStr)) {
-        showError(['Start date must be in DD/MM/YYYY format (e.g., 29/01/2026)']);
-        return;
-    }
-    
-    if (!isValidDateFormat(endDateStr)) {
-        showError(['End date must be in DD/MM/YYYY format (e.g., 29/01/2026)']);
-        return;
-    }
-
-    // Validate that end date is not before start date
-    const startDate = new Date(convertDateFormat(startDateStr, 'ddmmyyyy', 'yyyy-mm-dd'));
-    const endDate = new Date(convertDateFormat(endDateStr, 'ddmmyyyy', 'yyyy-mm-dd'));
-    
-    if (endDate < startDate) {
-        showError(['End date must be on or after start date']);
-        return;
-    }
-
-    const btn = document.getElementById('submit-btn');
-    btn.disabled = true;
-
-    const formData = Object.fromEntries(new FormData(e.target));
-
-    // Convert dates from DD/MM/YYYY to YYYY-MM-DD format for database storage
-    formData.start_date = convertDateFormat(startDateStr, 'ddmmyyyy', 'yyyy-mm-dd');
-    formData.end_date = convertDateFormat(endDateStr, 'ddmmyyyy', 'yyyy-mm-dd');
-
-    // Ensure hoarding_ids is set from selectedHoardings
-    formData.hoarding_ids = Array.from(selectedHoardings.keys()).join(',');
-
-    if (selectedCustomer?.id) {
-        formData.customer_id = selectedCustomer.id;
-    }
-
+/* --- INVENTORY LOGIC --- */
+async function loadHoardings() {
     try {
-        const res = await fetchJSON(`${API_URL}/bookings`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
+        const res = await fetchJSON(`${API_URL}/hoardings`);
+        hoardings = res.data?.data || res.data || [];
+        renderHoardings(hoardings);
+        document.getElementById('available-count').innerText = hoardings.length;
+    } catch (e) { console.error(e); }
+}
 
-        showSuccess(`Booking #${res.data.invoice_number || res.data.id} created`);
-        setTimeout(() => location.href = `/vendor/pos/bookings/${res.data.id}`, 1500);
+function renderHoardings(list) {
+    const grid = document.getElementById('hoardings-grid');
+    grid.innerHTML = list.map(h => {
+        const sel = selectedHoardings.has(h.id);
+        return `
+            <div class="relative bg-white border rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition-all ${sel ? 'ring-2 ring-[#2D5A43] border-transparent' : 'border-gray-100'}" onclick="toggleHoarding(${h.id})">
+                <img src="${h.image_url || '/placeholder.png'}" class="w-full h-24 object-cover">
+                <div class="p-3">
+                    <h4 class="text-[11px] font-bold text-gray-800 truncate">${h.title}</h4>
+                    <p class="text-[10px] text-gray-400 truncate mb-2">${h.location_address || 'Unknown'}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">${h.type}</span>
+                        <span class="text-[11px] font-black text-gray-700">${formatINR(h.price_per_month)}</span>
+                    </div>
+                </div>
+                ${sel ? `<div class="absolute top-2 right-2 bg-[#2D5A43] text-white p-1 rounded-full shadow-lg"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"/></svg></div>` : ''}
+            </div>`;
+    }).join('');
+}
 
-    } catch (err) {
-        if (err.status === 422) {
-            // Handle unavailability errors
-            if (err.data.unavailable_hoardings) {
-                const messages = [
-                    `<strong style="color: #dc2626;">⚠️ Availability Conflict</strong>`,
-                    err.data.message || 'One or more hoardings are unavailable',
-                    '<br><strong style="margin-top: 8px; display: block;">Unavailable Hoardings:</strong>'
-                ];
-                
-                err.data.unavailable_hoardings.forEach(item => {
-                    const statusLabels = item.reasons.map(reason => {
-                        switch(reason) {
-                            case 'booked': return '📅 Already Booked';
-                            case 'blocked': return '🔒 Maintenance Block';
-                            case 'hold': return '⏸️ Payment Hold';
-                            case 'partial': return '⚠️ Partially Unavailable';
-                            default: return reason;
-                        }
-                    }).join(', ');
-                    
-                    messages.push(
-                        `<div style="margin-top: 8px; padding: 8px; background: #fef2f2; border-left: 3px solid #dc2626; border-radius: 4px;">
-                            <strong>${item.hoarding_name}</strong><br/>
-                            <span style="font-size: 0.875rem; color: #991b1b;">${statusLabels}</span>
-                        </div>`
-                    );
-                });
+function toggleHoarding(id) {
+    if (selectedHoardings.has(id)) selectedHoardings.delete(id);
+    else selectedHoardings.set(id, hoardings.find(i => i.id === id));
+    updateSummary();
+}
 
-                if (err.data.details) {
-                    messages.push(`<div style="margin-top: 8px; padding: 8px; background: #fef2f2; border-left: 3px solid #dc2626; border-radius: 4px; font-size: 0.875rem; color: #991b1b;">${err.data.details}</div>`);
-                }
+/* --- INVENTORY LOGIC UPDATED --- */
+function updateSummary() {
+    renderHoardings(hoardings);
+    const oohTbody = document.getElementById('ooh-selected-list');
+    const doohTbody = document.getElementById('dooh-selected-list');
+    oohTbody.innerHTML = ''; doohTbody.innerHTML = '';
 
-                showErrorHTML(messages);
-            } else if (err.data.errors) {
-                // Handle validation errors
-                showError(Object.entries(err.data.errors)
-                    .map(([k, v]) => `<strong>${k}:</strong> ${v.join(', ')}`));
-            } else {
-                showError([err.data.message || 'An error occurred']);
+    if (selectedHoardings.size === 0) {
+        const empty = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No selections</td></tr>`;
+        oohTbody.innerHTML = empty; doohTbody.innerHTML = empty;
+    } else {
+        selectedHoardings.forEach((h, id) => {
+            const isDooh = h.type.toUpperCase() === 'DOOH';
+            // Default dates if not set: Start today, End in 1 month
+            if(!h.startDate) h.startDate = new Date().toISOString().split('T')[0];
+            if(!h.endDate) {
+                let d = new Date();
+                d.setMonth(d.getMonth() + 1);
+                h.endDate = d.toISOString().split('T')[0];
             }
-        } else {
-            showError(['Something went wrong. Please try again.']);
+
+            const row = `
+                <tr class="group hover:bg-gray-50 transition border-b">
+                    <td class="px-4 py-3">
+                        <div class="text-xs font-bold text-gray-800">${h.title}</div>
+                        <div class="text-[10px] text-gray-400">${h.location_address}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-col gap-1">
+                            <input type="date" value="${h.startDate}" onchange="updateHoardingDate(${id}, 'startDate', this.value)" class="text-[10px] p-1 border rounded w-28">
+                            <input type="date" value="${h.endDate}" onchange="updateHoardingDate(${id}, 'endDate', this.value)" class="text-[10px] p-1 border rounded w-28">
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-gray-600 font-medium">${formatINR(h.price_per_month)}</td>
+                    <td class="px-4 py-3 font-bold text-xs text-[#2D5A43]">${formatINR(h.price_per_month)}</td>
+                    <td class="px-4 py-3 text-right">
+                        <button onclick="toggleHoarding(${h.id})" class="text-gray-300 hover:text-red-500 transition">
+                            <svg class="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </td>
+                </tr>`;
+            if (isDooh) doohTbody.innerHTML += row; else oohTbody.innerHTML += row;
+        });
+    }
+    document.getElementById('btn-count').innerText = selectedHoardings.size;
+}
+
+function updateHoardingDate(id, field, value) {
+    let h = selectedHoardings.get(id);
+    if(h) {
+        h[field] = value;
+        selectedHoardings.set(id, h);
+        
+        // If we are on the preview screen, refresh the totals
+        if (!document.getElementById('preview-screen').classList.contains('hidden')) {
+            populatePreview();
         }
-    } finally {
-        btn.disabled = false;
     }
 }
 
-/* -------------------------------------------------------
-   UI Messages
-------------------------------------------------------- */
+/* --- ENHANCED FILTER LOGIC --- */
+function filterInventory() {
+    const query = document.getElementById('hoarding-search').value.toLowerCase();
+    
+    const filtered = hoardings.filter(h => {
+        const matchesSearch = h.title.toLowerCase().includes(query) || 
+                              (h.location_address || '').toLowerCase().includes(query);
+        return matchesSearch;
+    });
 
-function showError(messages) {
-    const box = document.getElementById('form-error-container');
-    document.getElementById('error-list').innerHTML =
-        messages.map(m => `<li>${m}</li>`).join('');
-    box.classList.remove('hidden');
+    renderHoardings(filtered);
+    document.getElementById('available-count').innerText = filtered.length;
 }
 
-function showErrorHTML(messages) {
-    const box = document.getElementById('form-error-container');
-    document.getElementById('error-list').innerHTML = messages.join('');
-    box.classList.remove('hidden');
+// Hook into existing search input
+document.getElementById('hoarding-search').addEventListener('input', debounce(filterInventory, 200));
+// function updateSummary() {
+//     renderHoardings(hoardings);
+//     const oohTbody = document.getElementById('ooh-selected-list');
+//     const doohTbody = document.getElementById('dooh-selected-list');
+//     oohTbody.innerHTML = ''; doohTbody.innerHTML = '';
+
+//     if (selectedHoardings.size === 0) {
+//         const empty = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 italic">No selections</td></tr>`;
+//         oohTbody.innerHTML = empty; doohTbody.innerHTML = empty;
+//     } else {
+//         selectedHoardings.forEach(h => {
+//             const isDooh = h.type.toUpperCase() === 'DOOH';
+//             const row = `
+//                 <tr class="group hover:bg-gray-50 transition">
+//                     <td class="px-4 py-3">
+//                         <div class="text-xs font-bold text-gray-800">${h.title}</div>
+//                         <div class="text-[10px] text-gray-400">${h.location_address}</div>
+//                     </td>
+//                     <td class="px-4 py-3 text-xs text-gray-600">${isDooh ? 'Standard Slot' : formatINR(h.price_per_month)}</td>
+//                     <td class="px-4 py-3 font-bold text-xs text-gray-800">${formatINR(h.price_per_month)}</td>
+//                     <td class="px-4 py-3 text-right">
+//                         <button onclick="toggleHoarding(${h.id})" class="text-gray-300 hover:text-red-500 transition"><svg class="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+//                     </td>
+//                 </tr>`;
+//             if (isDooh) doohTbody.innerHTML += row; else oohTbody.innerHTML += row;
+//         });
+//     }
+//     document.getElementById('btn-count').innerText = selectedHoardings.size;
+// }
+
+/* --- VIEW SWITCHING & PREVIEW --- */
+document.getElementById('submit-btn').addEventListener('click', () => {
+    if (!selectedCustomer) return alert("Please select a customer first.");
+    if (selectedHoardings.size === 0) return alert("Please select at least one hoarding.");
+    
+    populatePreview();
+    document.getElementById('selection-screen').classList.add('hidden');
+    document.getElementById('preview-screen').classList.remove('hidden');
+    window.scrollTo(0, 0);
+});
+
+function backToSelection() {
+    document.getElementById('preview-screen').classList.add('hidden');
+    document.getElementById('selection-screen').classList.remove('hidden');
 }
 
-function showSuccess(message) {
-    const box = document.getElementById('form-success-container');
-    document.getElementById('success-message').textContent = `✅ ${message}`;
-    box.classList.remove('hidden');
+function populatePreview() {
+    document.getElementById('preview-cust-name').innerText = selectedCustomer.name;
+    document.getElementById('preview-cust-business').innerText = selectedCustomer.business_name || 'N/A';
+    document.getElementById('preview-cust-email').innerText = selectedCustomer.email || 'N/A';
+    document.getElementById('preview-cust-phone').innerText = selectedCustomer.phone;
+
+    const oohTbody = document.getElementById('preview-ooh-list');
+    const doohTbody = document.getElementById('preview-dooh-list');
+    oohTbody.innerHTML = ''; 
+    doohTbody.innerHTML = '';
+
+    let oohTotal = 0, doohTotal = 0, snOoh = 1, snDooh = 1;
+
+    // Added 'id' to the forEach parameters
+    selectedHoardings.forEach((h, id) => {
+        const price = Number(h.price_per_month) || 0;
+        const isDooh = h.type.toUpperCase() === 'DOOH';
+        
+        const row = `
+            <tr class="border-b border-gray-50">
+                <td class="px-4 py-4 text-gray-400 text-xs">${isDooh ? snDooh++ : snOoh++}</td>
+                <td class="px-4 py-4">
+                    <div class="flex items-center gap-3">
+                        <img src="${h.image_url || '/placeholder.png'}" class="w-8 h-8 rounded object-cover border">
+                        <div>
+                            <p class="font-bold text-gray-800 text-xs">${h.title}</p>
+                            <p class="text-[9px] text-gray-400">${h.location_address || ''}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-4 py-4">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-1">
+                             <input type="date" value="${h.startDate}" onchange="updateHoardingDate(${id}, 'startDate', this.value)" class="text-[10px] border rounded px-1 py-0.5 focus:ring-1 focus:ring-green-500 bg-white font-medium">
+                             <span class="text-gray-400">-</span>
+                             <input type="date" value="${h.endDate}" onchange="updateHoardingDate(${id}, 'endDate', this.value)" class="text-[10px] border rounded px-1 py-0.5 focus:ring-1 focus:ring-green-500 bg-white font-medium">
+                        </div>
+                    </div>
+                </td>
+                <td class="px-4 py-4 text-xs font-semibold text-gray-700">${formatINR(price)}</td>
+                <td class="px-4 py-4 text-right font-bold text-[#2D5A43] text-xs">${formatINR(price)}</td>
+            </tr>`;
+
+        if (isDooh) { 
+            doohTbody.innerHTML += row; 
+            doohTotal += price; 
+        } else { 
+            oohTbody.innerHTML += row; 
+            oohTotal += price; 
+        }
+    });
+
+    // Calculations
+    const subTotal = oohTotal + doohTotal;
+    const tax = subTotal * 0.18;
+    
+    // Update Sidebar
+    document.getElementById('side-ooh-total').innerText = formatINR(oohTotal);
+    document.getElementById('side-dooh-total').innerText = formatINR(doohTotal);
+    document.getElementById('side-sub-total').innerText = formatINR(subTotal);
+    document.getElementById('side-tax').innerText = formatINR(tax);
+    document.getElementById('side-grand-total').innerText = formatINR(subTotal + tax);
+    
+    // Update Badge Counts
+    document.querySelectorAll('.ooh-count').forEach(el => el.innerText = `${snOoh - 1} Items`);
+    document.querySelectorAll('.dooh-count').forEach(el => el.innerText = `${snDooh - 1} Items`);
 }
 
-function clearMessages() {
-    document.getElementById('form-error-container').classList.add('hidden');
-    document.getElementById('form-success-container').classList.add('hidden');
-}
+function debounce(fn, t) { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), t); }; }
 </script>
-
 @endsection

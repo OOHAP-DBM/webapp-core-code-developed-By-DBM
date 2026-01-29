@@ -7,6 +7,9 @@ use App\Jobs\CaptureExpiredHoldsJob;
 use App\Services\HoardingBookingService;
 use App\Services\SLATrackingService;
 
+use Modules\POS\Services\PosBookingService;
+use Modules\POS\Jobs\SendPosBookingWhatsappReminderJob;
+
 // ============================================
 // Scheduled Tasks
 // ============================================
@@ -140,3 +143,36 @@ Schedule::command('revenue:generate-snapshots --vendors --locations')
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+
+// protected function schedule(Schedule $schedule)
+// {
+//     $schedule->call(function () {
+
+//         $service = app(PosBookingService::class);
+
+//         $service->getBookingsEligibleForWhatsappReminder()
+//             ->each(fn ($booking) =>
+//                 SendPosBookingWhatsappReminderJob::dispatch($booking->id)
+//             );
+
+//     })->everyThirtyMinutes()->withoutOverlapping();
+// }
+Schedule::call(function () {
+
+    $service = app(PosBookingService::class);
+
+    $service->getBookingsEligibleForWhatsappReminder()
+        ->chunk(100, function ($bookings) {
+        foreach ($bookings as $booking) {
+          Cache::lock("pos-reminder-{$booking->id}", 3600)->get(function () {
+                SendPosBookingWhatsappReminderJob::dispatch($booking->id);
+            });
+        }
+    });
+
+})
+->everyThirtyMinutes()
+->name('pos-booking-whatsapp-reminders')
+->withoutOverlapping(30)
+->onOneServer();

@@ -14,6 +14,7 @@ use Modules\Hoardings\Models\HoardingMedia;
 use Modules\Hoardings\Services\HoardingAvailabilityService;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class VendorPosController extends Controller
 {
@@ -352,15 +353,33 @@ class VendorPosController extends Controller
     public function createBooking(Request $request): JsonResponse
     {
         try {
-            $validated = $request->validate([
-                'hoarding_ids' => 'required|string', // Comma-separated IDs
+            // $validated = $request->validate([
+            //     'hoarding_ids' => 'required|string', // Comma-separated IDs
+            //     'customer_id' => 'nullable|exists:users,id',
+            //     'customer_name' => 'required|string|max:255',
+            //     'customer_phone' => 'required|string|max:20',
+            //     'customer_email' => 'nullable|email|max:255',
+            //     'customer_address' => 'nullable|string|max:500',
+            //     'customer_gstin' => 'nullable|string|max:15',
+            //     'booking_type' => 'required|in:ooh,dooh',
+            //     'start_date' => 'required|date|after_or_equal:today',
+            //     'end_date' => 'required|date|after_or_equal:start_date',
+            //     'base_amount' => 'required|numeric|min:0',
+            //     'discount_amount' => 'nullable|numeric|min:0',
+            //     'payment_mode' => 'required|in:cash,credit_note,bank_transfer,cheque,online',
+            //     'payment_reference' => 'nullable|string|max:255',
+            //     'payment_notes' => 'nullable|string|max:500',
+            //     'notes' => 'nullable|string|max:1000',
+            // ]);
+              $validated = $request->validate([
+                'hoarding_ids' => 'nullable', // Comma-separated IDs
                 'customer_id' => 'nullable|exists:users,id',
-                'customer_name' => 'required|string|max:255',
-                'customer_phone' => 'required|string|max:20',
+                'customer_name' => 'nullable|string|max:255',
+                'customer_phone' => 'nullable|string|max:20',
                 'customer_email' => 'nullable|email|max:255',
                 'customer_address' => 'nullable|string|max:500',
                 'customer_gstin' => 'nullable|string|max:15',
-                'booking_type' => 'required|in:ooh,dooh',
+                'booking_type' => 'nullable|in:ooh,dooh',
                 'start_date' => 'required|date|after_or_equal:today',
                 'end_date' => 'required|date|after_or_equal:start_date',
                 'base_amount' => 'required|numeric|min:0',
@@ -372,7 +391,11 @@ class VendorPosController extends Controller
             ]);
 
             $vendorId = Auth::id();
-            $hoardingIds = array_filter(array_map('intval', explode(',', $validated['hoarding_ids'])));
+            // $hoardingIds = array_filter(array_map('intval', explode(',', $validated['hoarding_ids'])));
+            // Check if it's already an array (from JSON), otherwise explode it
+            $hoardingIds = is_array($request->hoarding_ids) 
+                ? $request->hoarding_ids 
+                : explode(',', $request->hoarding_ids);
 
             if (empty($hoardingIds)) {
                 return response()->json([
@@ -671,5 +694,31 @@ class VendorPosController extends Controller
         }
 
         return implode('. ', $messages) . '.';
+    }
+
+
+    public function createCustomer(Request $request)
+    {
+        // Basic validation
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'required',
+            'password' => 'required|confirmed|min:6',
+        ]);
+
+        // Logic to create customer in your database
+        $customer = \App\Models\User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
+            'active_role' => 'customer', // or whatever your logic is
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $customer
+        ]);
     }
 }

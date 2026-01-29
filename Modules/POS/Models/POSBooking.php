@@ -306,4 +306,59 @@ class POSBooking extends Model
         return $query->where('payment_mode', self::PAYMENT_MODE_CREDIT_NOTE)
             ->where('credit_note_status', self::CREDIT_NOTE_STATUS_ACTIVE);
     }
+
+
+    // ADDITION (STEP 2): Accessors/Mutators for date conversion (UI: DD/MM/YYYY, DB: YYYY-MM-DD)
+    public function getStartDateUiAttribute()
+    {
+        return $this->start_date ? \Carbon\Carbon::parse($this->start_date)->format('d/m/Y') : null;
+    }
+    public function setStartDateUiAttribute($value)
+    {
+        $this->attributes['start_date'] = $value ? \Carbon\Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d') : null;
+    }
+    public function getEndDateUiAttribute()
+    {
+        return $this->end_date ? \Carbon\Carbon::parse($this->end_date)->format('d/m/Y') : null;
+    }
+    public function setEndDateUiAttribute($value)
+    {
+        $this->attributes['end_date'] = $value ? \Carbon\Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d') : null;
+    }
+
+    // ADDITION (STEP 2): Booking status helpers
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+    public function isPendingPayment(): bool
+    {
+        return $this->status === 'pending_payment';
+    }
+    public function isPaid(): bool
+    {
+        return $this->status === 'paid';
+    }
+    public function isReleased(): bool
+    {
+        return $this->status === 'released';
+    }
+
+    public function transitionTo(string $newStatus): bool
+    {
+        $validTransitions = [
+            'draft' => ['pending_payment', 'cancelled'],
+            'pending_payment' => ['paid', 'released', 'cancelled'],
+            'paid' => [],
+            'released' => [],
+            'cancelled' => [],
+        ];
+        if (!isset($validTransitions[$this->status]) || !in_array($newStatus, $validTransitions[$this->status])) {
+            throw new \Exception("Invalid status transition from {$this->status} to {$newStatus}");
+        }
+        $this->status = $newStatus;
+        return $this->save();
+    }
+
+    
 }
