@@ -344,17 +344,23 @@ class HoardingController extends Controller
             return view('hoardings.vendor.empty');
         }
 
-        // 2. Fetch data based on the active tab
+        // 2. Fetch data based on the active tab and search
+        $search = $request->input('search');
         if ($activeTab === 'draft') {
-            $data = Hoarding::where('vendor_id', $vendor->id)
-                ->where('status', 'Draft')
-                ->latest()
-                ->paginate(10);
+            $query = Hoarding::where('vendor_id', $vendor->id)
+                ->where('status', 'Draft');
+            if ($search) {
+                $query->search($search);
+            }
+            $data = $query->latest()->paginate(10);
         } else {
             $filters = [
                 'vendor_id' => $vendor->id,
                 'status' => ['active', 'inactive', 'pending_approval']
             ];
+            if ($search) {
+                $filters['search'] = $search;
+            }
             // Using your service for published/live hoardings
             $data = $this->hoardingService->getAll($filters, 10);
         }

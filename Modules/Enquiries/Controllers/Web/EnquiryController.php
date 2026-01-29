@@ -38,13 +38,26 @@ class EnquiryController extends Controller
             ], 403);
         }
         $query = Enquiry::where('customer_id', Auth::id())
-            // ->with(['items.hoarding', 'quotation'])
             ->with(['items.hoarding'])
-
             ->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('id', 'like', "%$search%")
+                  ->orWhereHas('items.hoarding', function($h) use ($search) {
+                      $h->where('title', 'like', "%$search%")
+                        ->orWhere('city', 'like', "%$search%")
+                        ->orWhere('address', 'like', "%$search%")
+                        ->orWhere('vendor_id', 'like', "%$search%")
+                        ->orWhere('id', 'like', "%$search%")
+                        ;
+                  });
+            });
         }
 
         $enquiries = $query->paginate(10);

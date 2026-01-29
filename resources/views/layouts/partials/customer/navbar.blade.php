@@ -15,7 +15,11 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                 </svg>
-                <span x-show="unreadCount >= 0" x-cloak class="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-red-500"></span>
+                <template x-if="unreadCount > 0">
+                    <span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center min-w-[1.25rem] min-h-[1.25rem]">
+                        <span x-text="unreadCount"></span>
+                    </span>
+                </template>
             </button>
 
             <div x-show="open" 
@@ -62,11 +66,11 @@
 
             <button type="submit"
                     class=" rounded-md text-gray-600">
-                <svg width="42" height="42" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- <svg width="40" height="40" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="42" height="42" rx="21" fill="#F0F0F0"/>
                 <path d="M20 28C24.4183 28 28 24.4183 28 20C28 15.5817 24.4183 12 20 12C15.5817 12 12 15.5817 12 20C12 24.4183 15.5817 28 20 28Z" stroke="#939393" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M29.9984 29.9984L25.6484 25.6484" stroke="#939393" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                </svg> -->
             </button>
         </form>
 
@@ -109,8 +113,10 @@
 
         {{-- Mobile Menu --}}
         <button id="mobile-menu-btn"
-                class="block md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md">
-            ☰
+                class="block md:hidden p-2 -mt-2 text-gray-600 hover:bg-gray-100 rounded-md">
+              <svg class="w-6 h-7" fill="none" stroke="currentColor" viewBox="0 0 19 19">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
         </button>
 
     </div>
