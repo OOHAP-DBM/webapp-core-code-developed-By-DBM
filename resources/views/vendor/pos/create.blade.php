@@ -1,91 +1,95 @@
+
 @extends('layouts.vendor')
 
 @section('title', 'Create POS Booking')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Create New POS Booking</h4>
+<div class="px-6 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- LEFT: Main Form -->
+        <div class="lg:col-span-7">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 rounded-t-xl bg-blue-600 text-white">
+                    <h4 class="text-lg font-semibold flex items-center gap-2">
+                        ➕ Create New POS Booking
+                    </h4>
                 </div>
-                <div class="card-body">
-                    <form id="pos-booking-form">
+                <div class="p-6">
+                    <form id="pos-booking-form" autocomplete="off">
                         @csrf
-                        
-                        <!-- Customer Details -->
-                        <h5 class="mb-3">Customer Details</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Customer Name *</label>
-                                <input type="text" class="form-control" name="customer_name" required>
+                        <!-- Customer Selection -->
+                        <h5 class="text-md font-semibold mb-4">Customer</h5>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-1">Search or Add Customer *</label>
+                            <input type="text" id="customer-search" name="customer_search" placeholder="Type name, phone, or email..." autocomplete="off"
+                                class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200" required>
+                            <div id="customer-suggestions" class="bg-white border border-gray-200 rounded-lg mt-1 shadow-lg hidden absolute z-50"></div>
+                        </div>
+                        <div id="customer-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Name *</label>
+                                <input type="text" name="customer_name" id="customer_name" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Phone *</label>
-                                <input type="tel" class="form-control" name="customer_phone" required>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Phone *</label>
+                                <input type="tel" name="customer_phone" id="customer_phone" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Email</label>
+                                <input type="email" name="customer_email" id="customer_email" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">GSTIN</label>
+                                <input type="text" name="customer_gstin" id="customer_gstin" maxlength="15" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium mb-1">Address</label>
+                                <textarea name="customer_address" id="customer_address" rows="2" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200"></textarea>
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-control" name="customer_email">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">GSTIN</label>
-                                <input type="text" class="form-control" name="customer_gstin" maxlength="15">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Address</label>
-                            <textarea class="form-control" name="customer_address" rows="2"></textarea>
-                        </div>
-
-                        <hr>
-
+                        <hr class="my-6">
                         <!-- Booking Details -->
-                        <h5 class="mb-3">Booking Details</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Booking Type *</label>
-                                <select class="form-select" name="booking_type" required>
+                        <h5 class="text-md font-semibold mb-4">Booking Details</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Booking Type *</label>
+                                <select name="booking_type" id="booking_type" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
                                     <option value="ooh">OOH (Hoarding)</option>
                                     <option value="dooh">DOOH (Digital)</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Select Hoarding *</label>
-                                <select class="form-select" name="hoarding_id" id="hoarding-select" required>
-                                    <option value="">-- Search & Select --</option>
-                                </select>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Selected Hoardings (0) *</label>
+                                <input type="hidden" name="hoarding_ids" id="hoarding_ids" required>
+                                <div id="selected-hoarding-preview" class="mt-1 text-sm max-h-24 overflow-y-auto"></div>
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Start Date *</label>
-                                <input type="date" class="form-control" name="start_date" required>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Start Date (DD/MM/YYYY) *</label>
+                                <input type="text" id="start_date" name="start_date" placeholder="DD/MM/YYYY" maxlength="10" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
+                                <small class="text-gray-500 text-xs">Format: DD/MM/YYYY</small>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">End Date *</label>
-                                <input type="date" class="form-control" name="end_date" required>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">End Date (DD/MM/YYYY) *</label>
+                                <input type="text" id="end_date" name="end_date" placeholder="DD/MM/YYYY" maxlength="10" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
+                                <small class="text-gray-500 text-xs">Format: DD/MM/YYYY</small>
                             </div>
                         </div>
-
-                        <hr>
-
+                        <hr class="my-6">
                         <!-- Pricing -->
-                        <h5 class="mb-3">Pricing</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Base Amount *</label>
-                                <input type="number" class="form-control" name="base_amount" id="base-amount" step="0.01" required>
+                        <h5 class="text-md font-semibold mb-4">Pricing</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Base Amount *</label>
+                                <input type="number" step="0.01" id="base-amount" name="base_amount" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Discount Amount</label>
-                                <input type="number" class="form-control" name="discount_amount" id="discount-amount" step="0.01" value="0">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Discount Amount</label>
+                                <input type="number" step="0.01" id="discount-amount" name="discount_amount" value="0" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
                             </div>
                         </div>
-                        <div class="alert alert-info">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm mb-6">
                             <strong>Price Breakdown:</strong><br>
                             Base Amount: ₹<span id="display-base">0.00</span><br>
                             Discount: ₹<span id="display-discount">0.00</span><br>
@@ -93,15 +97,13 @@
                             GST (@<span id="gst-rate">18</span>%): ₹<span id="display-gst">0.00</span><br>
                             <strong>Total Amount: ₹<span id="display-total">0.00</span></strong>
                         </div>
-
-                        <hr>
-
+                        <hr class="my-6">
                         <!-- Payment Details -->
-                        <h5 class="mb-3">Payment Details</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Payment Mode *</label>
-                                <select class="form-select" name="payment_mode" required>
+                        <h5 class="text-md font-semibold mb-4">Payment Details</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Payment Mode *</label>
+                                <select name="payment_mode" required class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
                                     <option value="cash">Cash</option>
                                     <option value="credit_note">Credit Note</option>
                                     <option value="bank_transfer">Bank Transfer</option>
@@ -109,147 +111,822 @@
                                     <option value="online">Online</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Payment Reference</label>
-                                <input type="text" class="form-control" name="payment_reference">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Payment Reference</label>
+                                <input type="text" name="payment_reference" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200">
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Payment Notes</label>
-                            <textarea class="form-control" name="payment_notes" rows="2"></textarea>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-1">Payment Notes</label>
+                            <textarea name="payment_notes" rows="2" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200"></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Additional Notes</label>
-                            <textarea class="form-control" name="notes" rows="2"></textarea>
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium mb-1">Additional Notes</label>
+                            <textarea name="notes" rows="2" class="w-full rounded-lg border-gray-300 focus:ring focus:ring-blue-200"></textarea>
                         </div>
-
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ route('vendor.pos.dashboard') }}" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-save"></i> Create Booking
+                        <div id="form-error-container" class="mb-4 hidden">
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <p class="text-red-700 font-semibold mb-2">⚠️ Form Errors:</p>
+                                <ul id="error-list" class="text-red-600 text-sm space-y-1"></ul>
+                            </div>
+                        </div>
+                        <div id="form-success-container" class="mb-4 hidden">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <p id="success-message" class="text-green-700 font-semibold">✅ Booking created successfully!</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between">
+                            <a href="/vendor/pos/bookings" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">Cancel</a>
+                            <button type="submit" id="submit-btn" class="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 flex items-center gap-2">
+                                <span id="submit-text">💾 Create Booking</span>
+                                <span id="submit-spinner" class="hidden"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></span>
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-        
-        <!-- Sidebar -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">POS Settings</h5>
+        <!-- RIGHT: Hoardings Browser -->
+        <div class="lg:col-span-5">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 rounded-t-xl bg-cyan-600 text-white flex items-center justify-between">
+                    <h5 class="font-semibold">Browse Hoardings (Select Multiple) ✓</h5>
+                    <input type="text" id="hoarding-search" placeholder="Search hoardings..." class="rounded-lg border border-gray-300 px-2 py-1 text-sm text-black">
                 </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">Auto-Approval: <strong id="auto-approval-status">Loading...</strong></li>
-                        <li class="list-group-item">Auto-Invoice: <strong id="auto-invoice-status">Loading...</strong></li>
-                        <li class="list-group-item">GST Rate: <strong id="gst-rate-display">18%</strong></li>
-                    </ul>
+                <div class="p-6">
+                    <div id="hoardings-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+                    <div id="hoardings-empty" class="text-center text-gray-500 mt-4 hidden">No hoardings found.</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<!-- <script>
+    const API_URL = '/api/v1/vendor/pos';
+    const TOKEN = localStorage.getItem('token');
+    consi
+    let gstRate = 18;
+    let hoardings = [];
+    let selectedHoarding = null;
+    let selectedCustomer = null;
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('pos-booking-form');
-    const baseAmountInput = document.getElementById('base-amount');
-    const discountAmountInput = document.getElementById('discount-amount');
-
-    // Load hoardings
-    loadHoardings();
-
-    // Auto-calculate pricing
-    baseAmountInput.addEventListener('input', calculatePrice);
-    discountAmountInput.addEventListener('input', calculatePrice);
-
-    // Form submission
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        createBooking();
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Fetch GST rate
+        try {
+            const response = await fetch(`${API_URL}/settings`, { headers: { 'Authorization': `Bearer ${TOKEN}`, 'Accept': 'application/json' } });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.data && data.data.gst_rate) {
+                    gstRate = parseFloat(data.data.gst_rate);
+                    document.getElementById('gst-rate').textContent = gstRate;
+                }
+            }
+        } catch {}
+        // Load hoardings
+        await loadHoardings();
+        // Attach listeners
+        attachPriceCalculationListeners();
+        document.getElementById('pos-booking-form').addEventListener('submit', handleFormSubmit);
+        document.getElementById('hoarding-search').addEventListener('input', filterHoardings);
+        document.getElementById('customer-search').addEventListener('input', handleCustomerSearch);
     });
 
-    function loadHoardings() {
-        fetch('/api/v1/vendor/pos/search-hoardings', {
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json'
+    async function loadHoardings() {
+        const grid = document.getElementById('hoardings-grid');
+        grid.innerHTML = '<div class="col-span-full text-center text-gray-400">Loading hoardings...</div>';
+        try {
+            const res = await fetch('/api/v1/vendor/hoardings', { headers: { 'Authorization': `Bearer ${TOKEN}`, 'Accept': 'application/json' } });
+            const data = await res.json();
+            hoardings = data.data || [];
+            renderHoardings(hoardings);
+        } catch {
+            grid.innerHTML = '<div class="col-span-full text-center text-red-500">Failed to load hoardings.</div>';
+        }
+    }
+
+    function renderHoardings(list) {
+        const grid = document.getElementById('hoardings-grid');
+        const empty = document.getElementById('hoardings-empty');
+        grid.innerHTML = '';
+        if (!list.length) {
+            empty.classList.remove('hidden');
+            return;
+        }
+        empty.classList.add('hidden');
+        list.forEach(h => {
+            const card = document.createElement('div');
+            card.className = `rounded-lg border p-3 cursor-pointer transition shadow-sm ${selectedHoarding && selectedHoarding.id === h.id ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : 'hover:shadow-md'}`;
+            card.innerHTML = `
+                <img src="${h.image_url || '/images/hoarding-placeholder.png'}" alt="Hoarding" class="w-full h-32 object-cover rounded mb-2">
+                <div class="font-semibold text-base mb-1">${h.title}</div>
+                <div class="text-xs text-gray-600 mb-1">${h.location_address}</div>
+                <div class="text-xs text-gray-500 mb-1">Size: ${h.size} | Type: ${h.type}</div>
+                <div class="text-sm font-bold text-blue-700">₹${parseFloat(h.price_per_month || 0).toLocaleString('en-IN')}</div>
+            `;
+            card.onclick = () => selectHoarding(h);
+            grid.appendChild(card);
+        });
+    }
+
+    function selectHoarding(h) {
+        selectedHoarding = h;
+        document.getElementById('hoarding_id').value = h.id;
+        renderHoardings(hoardings);
+        document.getElementById('selected-hoarding-preview').innerHTML = `
+            <div class="p-2 border rounded bg-blue-50 mt-1">
+                <div class="font-semibold">${h.title}</div>
+                <div class="text-xs text-gray-600">${h.location_address}</div>
+                <div class="text-xs text-gray-500">Size: ${h.size} | Type: ${h.type}</div>
+                <div class="text-sm font-bold text-blue-700">₹${parseFloat(h.price_per_month || 0).toLocaleString('en-IN')}</div>
+            </div>
+        `;
+        // Optionally update base price
+        if (h.price_per_month) {
+            document.getElementById('base-amount').value = h.price_per_month;
+            calculatePrice();
+        }
+    }
+
+    function filterHoardings(e) {
+        const q = e.target.value.toLowerCase();
+        renderHoardings(hoardings.filter(h => h.title.toLowerCase().includes(q) || (h.location_address && h.location_address.toLowerCase().includes(q))));
+    }
+
+    // Customer Autocomplete
+    let customerSearchTimeout = null;
+    function handleCustomerSearch(e) {
+        const q = e.target.value.trim();
+        const suggestions = document.getElementById('customer-suggestions');
+        if (customerSearchTimeout) clearTimeout(customerSearchTimeout);
+        if (!q) {
+            suggestions.classList.add('hidden');
+            return;
+        }
+        customerSearchTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/v1/vendor/customers?search=${encodeURIComponent(q)}`, { headers: { 'Authorization': `Bearer ${TOKEN}`, 'Accept': 'application/json' } });
+                const data = await res.json();
+                if (data.data && data.data.length) {
+                    suggestions.innerHTML = data.data.map(c => `<div class="px-3 py-2 hover:bg-blue-100 cursor-pointer" onclick="selectCustomer(${encodeURIComponent(JSON.stringify(c))})">${c.name} <span class='text-xs text-gray-500'>${c.phone} ${c.email ? '· ' + c.email : ''}</span></div>`).join('');
+                    suggestions.classList.remove('hidden');
+                } else {
+                    suggestions.innerHTML = '<div class="px-3 py-2 text-gray-400">No customers found</div>';
+                    suggestions.classList.remove('hidden');
+                }
+            } catch {
+                suggestions.innerHTML = '<div class="px-3 py-2 text-red-500">Error searching customers</div>';
+                suggestions.classList.remove('hidden');
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const select = document.getElementById('hoarding-select');
-                data.data.data.forEach(hoarding => {
-                    const option = document.createElement('option');
-                    option.value = hoarding.id;
-                    option.textContent = `${hoarding.title} - ${hoarding.location_city}`;
-                    select.appendChild(option);
-                });
-            }
-        })
-        .catch(error => console.error('Error:', error));
+        }, 300);
+    }
+    function selectCustomer(raw) {
+        const c = typeof raw === 'string' ? JSON.parse(decodeURIComponent(raw)) : raw;
+        document.getElementById('customer_name').value = c.name || '';
+        document.getElementById('customer_phone').value = c.phone || '';
+        document.getElementById('customer_email').value = c.email || '';
+        document.getElementById('customer_gstin').value = c.gstin || '';
+        document.getElementById('customer_address').value = c.address || '';
+        document.getElementById('customer-suggestions').classList.add('hidden');
+        selectedCustomer = c;
     }
 
     function calculatePrice() {
-        const baseAmount = parseFloat(baseAmountInput.value) || 0;
-        const discountAmount = parseFloat(discountAmountInput.value) || 0;
-
-        fetch('/api/v1/vendor/pos/calculate-price', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                base_amount: baseAmount,
-                discount_amount: discountAmount
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('display-base').textContent = data.data.base_amount.toFixed(2);
-                document.getElementById('display-discount').textContent = data.data.discount_amount.toFixed(2);
-                document.getElementById('display-after-discount').textContent = data.data.amount_after_discount.toFixed(2);
-                document.getElementById('display-gst').textContent = data.data.tax_amount.toFixed(2);
-                document.getElementById('display-total').textContent = data.data.total_amount.toFixed(2);
-                document.getElementById('gst-rate').textContent = data.data.gst_rate;
-            }
-        })
-        .catch(error => console.error('Error:', error));
+        const baseAmount = parseFloat(document.getElementById('base-amount').value) || 0;
+        const discountAmount = parseFloat(document.getElementById('discount-amount').value) || 0;
+        const afterDiscount = Math.max(0, baseAmount - discountAmount);
+        const gstAmount = (afterDiscount * gstRate) / 100;
+        const totalAmount = afterDiscount + gstAmount;
+        document.getElementById('display-base').textContent = baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('display-discount').textContent = discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('display-after-discount').textContent = afterDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('display-gst').textContent = gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('display-total').textContent = totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function attachPriceCalculationListeners() {
+        document.getElementById('base-amount').addEventListener('input', calculatePrice);
+        document.getElementById('discount-amount').addEventListener('input', calculatePrice);
+        calculatePrice();
     }
 
-    function createBooking() {
-        const formData = new FormData(form);
+    async function handleFormSubmit(event) {
+        event.preventDefault();
+        if (!TOKEN) {
+            showError(['Session expired. Please log in again.']);
+            return;
+        }
+        clearMessages();
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+        document.getElementById('submit-text').classList.add('hidden');
+        document.getElementById('submit-spinner').classList.remove('hidden');
+        const formData = new FormData(event.target);
+        // If customer selected, add customer_id
+        if (selectedCustomer && selectedCustomer.id) {
+            formData.append('customer_id', selectedCustomer.id);
+        }
         const data = Object.fromEntries(formData);
-
-        fetch('/api/v1/vendor/pos/bookings', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Booking created successfully!');
-                window.location.href = '/vendor/pos/bookings/' + data.data.id;
+        try {
+            const response = await fetch(`${API_URL}/bookings`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${TOKEN}`, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (response.status === 422) {
+                const errorData = await response.json();
+                if (errorData.errors) {
+                    const errorMessages = Object.entries(errorData.errors).map(([field, messages]) => `<strong>${field}:</strong> ${messages.join(', ')}`);
+                    showError(errorMessages);
+                    Object.keys(errorData.errors).forEach(field => {
+                        const fieldElement = document.querySelector(`[name="${field}"]`);
+                        if (fieldElement) fieldElement.classList.add('border-red-500', 'border-2');
+                    });
+                }
+            } else if (response.status === 401) {
+                showError(['Session expired. Please log in again.']);
+                setTimeout(() => window.location.href = '/login', 2000);
+            } else if (response.status === 403) {
+                showError(['You do not have permission to create bookings.']);
+            } else if (response.ok || response.status === 201) {
+                const successData = await response.json();
+                showSuccess(`Booking #${successData.data.invoice_number || successData.data.id} created successfully!`);
+                setTimeout(() => { window.location.href = `/vendor/pos/bookings/${successData.data.id}`; }, 2000);
             } else {
-                alert('Error: ' + data.message);
+                const errorData = await response.json();
+                showError([errorData.message || 'An error occurred while creating the booking.']);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Failed to create booking');
-        });
+        } catch (error) {
+            showError(['Network error. Please check your connection and try again.']);
+        } finally {
+            submitBtn.disabled = false;
+            document.getElementById('submit-text').classList.remove('hidden');
+            document.getElementById('submit-spinner').classList.add('hidden');
+        }
     }
+    function showError(messages) {
+        const container = document.getElementById('form-error-container');
+        const errorList = document.getElementById('error-list');
+        errorList.innerHTML = messages.map(msg => `<li>${msg}</li>`).join('');
+        container.classList.remove('hidden');
+        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    function showSuccess(message) {
+        const container = document.getElementById('form-success-container');
+        document.getElementById('success-message').textContent = `✅ ${message}`;
+        container.classList.remove('hidden');
+        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    function clearMessages() {
+        document.getElementById('form-error-container').classList.add('hidden');
+        document.getElementById('form-success-container').classList.add('hidden');
+        document.querySelectorAll('input, select, textarea').forEach(field => { field.classList.remove('border-red-500', 'border-2'); });
+    }
+</script> -->
+<script>
+/**
+ * Web POS – Session Auth (Laravel)
+ * Using web routes with CSRF protection
+ * No tokens, no localStorage, no Bearer headers
+ */
+
+const API_URL = '/vendor/pos/api';
+
+let gstRate = 18;
+let hoardings = [];
+let selectedHoardings = new Map(); // Changed to Map for multiple selections
+let selectedCustomer = null;
+
+/* -------------------------------------------------------
+   Helpers
+------------------------------------------------------- */
+
+const fetchJSON = async (url, options = {}) => {
+    const res = await fetch(url, {
+        credentials: 'same-origin',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            ...(options.headers || {})
+        },
+        ...options
+    });
+
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw { status: res.status, data };
+    }
+
+    return res.json();
+};
+
+const normalizeList = (response) => {
+    if (Array.isArray(response.data)) return response.data;
+    if (Array.isArray(response.data?.data)) return response.data.data;
+    return [];
+};
+
+/* -------------------------------------------------------
+   Date Utilities (DD/MM/YYYY Format)
+------------------------------------------------------- */
+
+function isValidDateFormat(dateStr) {
+    // Check format DD/MM/YYYY
+    const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    const match = dateStr.match(regex);
+    if (!match) return false;
+    
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10);
+    const year = parseInt(match[3], 10);
+    
+    // Basic validation
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+    if (year < 1900 || year > 2100) return false;
+    
+    // Create date and validate
+    const date = new Date(year, month - 1, day);
+    return date.getFullYear() === year && 
+           date.getMonth() === month - 1 && 
+           date.getDate() === day;
+}
+
+function convertDateFormat(dateStr, fromFormat, toFormat) {
+    // Convert from DD/MM/YYYY to YYYY-MM-DD
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return dateStr;
+    
+    const day = parts[0];
+    const month = parts[1];
+    const year = parts[2];
+    
+    if (toFormat === 'yyyy-mm-dd') {
+        return `${year}-${month}-${day}`;
+    }
+    
+    return dateStr;
+}
+
+function formatDateDisplay(date) {
+    // Convert YYYY-MM-DD or Date object to DD/MM/YYYY
+    if (!date) return '';
+    
+    let d;
+    if (typeof date === 'string') {
+        d = new Date(date);
+    } else {
+        d = date;
+    }
+    
+    if (isNaN(d.getTime())) return '';
+    
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+}
+
+function initializeDatePickers() {
+    // Load Flatpickr dynamically
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js';
+    script.onload = () => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css';
+        document.head.appendChild(link);
+
+        // Initialize start date picker
+        flatpickr('#start_date', {
+            mode: 'single',
+            dateFormat: 'd/m/Y',
+            minDate: 'today',
+            placeholder: 'DD/MM/YYYY'
+        });
+
+        // Initialize end date picker
+        flatpickr('#end_date', {
+            mode: 'single',
+            dateFormat: 'd/m/Y',
+            minDate: 'today',
+            placeholder: 'DD/MM/YYYY'
+        });
+    };
+    document.head.appendChild(script);
+}
+
+/* -------------------------------------------------------
+   Init
+------------------------------------------------------- */
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize date pickers with Flatpickr
+    initializeDatePickers();
+
+    await loadSettings();
+    await loadHoardings();
+
+    attachPriceCalculationListeners();
+
+    document.getElementById('pos-booking-form')
+        .addEventListener('submit', handleFormSubmit);
+
+    document.getElementById('hoarding-search')
+        .addEventListener('input', filterHoardings);
+
+    document.getElementById('customer-search')
+        .addEventListener('input', handleCustomerSearch);
 });
+
+/* -------------------------------------------------------
+   Settings
+------------------------------------------------------- */
+
+async function loadSettings() {
+    try {
+        const res = await fetchJSON(`${API_URL}/settings`);
+        if (res.data?.gst_rate) {
+            gstRate = parseFloat(res.data.gst_rate);
+            document.getElementById('gst-rate').textContent = gstRate;
+        }
+    } catch (_) {}
+}
+
+/* -------------------------------------------------------
+   Hoardings
+------------------------------------------------------- */
+
+async function loadHoardings() {
+    const grid = document.getElementById('hoardings-grid');
+    grid.innerHTML = `<div class="col-span-full text-center text-gray-400">Loading hoardings...</div>`;
+
+    try {
+        const res = await fetchJSON(`${API_URL}/hoardings`);
+        hoardings = normalizeList(res);
+        renderHoardings(hoardings);
+    } catch {
+        grid.innerHTML = `<div class="col-span-full text-center text-red-500">Failed to load hoardings</div>`;
+    }
+}
+
+function renderHoardings(list) {
+    const grid = document.getElementById('hoardings-grid');
+    const empty = document.getElementById('hoardings-empty');
+
+    grid.innerHTML = '';
+
+    if (!list.length) {
+        empty.classList.remove('hidden');
+        return;
+    }
+
+    empty.classList.add('hidden');
+
+    list.forEach(h => {
+        const isSelected = selectedHoardings.has(h.id);
+        const card = document.createElement('div');
+        card.className = `
+            rounded-lg border p-3 cursor-pointer transition
+            ${isSelected
+                ? 'ring-2 ring-green-500 border-green-500 bg-green-50'
+                : 'hover:shadow-md border-gray-200'}
+        `;
+
+        card.innerHTML = `
+            <div class="relative">
+                <img src="${h.image_url || '/images/hoarding-placeholder.png'}"
+                     class="w-full h-32 object-cover rounded mb-2">
+                <div class="absolute top-2 right-2">
+                    <input type="checkbox" class="hoarding-checkbox w-5 h-5 cursor-pointer"
+                           data-id="${h.id}" ${isSelected ? 'checked' : ''}>
+                </div>
+            </div>
+
+            <div class="font-semibold text-sm">${h.title}</div>
+            <div class="text-xs text-gray-600">${h.location_address || ''}</div>
+            <div class="text-xs text-gray-500">Type: ${h.type}</div>
+            <div class="text-sm font-bold text-green-700 mt-1">
+                ₹${Number(h.price_per_month || 0).toLocaleString('en-IN')}/mo
+            </div>
+        `;
+
+        card.onclick = (e) => {
+            if (e.target.type !== 'checkbox') {
+                const checkbox = card.querySelector('.hoarding-checkbox');
+                checkbox.checked = !checkbox.checked;
+                toggleHoarding(h, checkbox.checked);
+            }
+        };
+
+        const checkbox = card.querySelector('.hoarding-checkbox');
+        checkbox.addEventListener('change', (e) => toggleHoarding(h, e.target.checked));
+
+        grid.appendChild(card);
+    });
+}
+
+function toggleHoarding(h, isSelected) {
+    if (isSelected) {
+        selectedHoardings.set(h.id, h);
+    } else {
+        selectedHoardings.delete(h.id);
+    }
+
+    updateSelectedHoardingsDisplay();
+    updateHoardingIdsInput();
+}
+
+function updateSelectedHoardingsDisplay() {
+    const previewDiv = document.getElementById('selected-hoarding-preview');
+    const count = selectedHoardings.size;
+    
+    // Update label count
+    const label = document.querySelector('label[for="selected-hoarding-preview"]');
+    if (label) {
+        label.textContent = `Selected Hoardings (${count}) *`;
+    }
+
+    if (count === 0) {
+        previewDiv.innerHTML = '<div class="text-gray-500 text-xs italic">No hoardings selected</div>';
+        return;
+    }
+
+    let html = '<div class="space-y-2">';
+    let totalPrice = 0;
+    
+    selectedHoardings.forEach((h, id) => {
+        const price = Number(h.price_per_month || 0);
+        totalPrice += price;
+        html += `
+            <div class="p-2 border rounded bg-green-50 flex justify-between items-start">
+                <div class="flex-1">
+                    <div class="font-semibold text-xs">${h.title}</div>
+                    <div class="text-xs text-gray-600">${h.location_address || ''}</div>
+                </div>
+                <button type="button" class="text-red-500 hover:text-red-700 ml-2"
+                        onclick="removeSelectedHoarding(${id})">✕</button>
+            </div>
+        `;
+    });
+    
+    html += `<div class="border-t pt-2 mt-2"><strong class="text-xs">Total: ₹${totalPrice.toLocaleString('en-IN')}</strong></div>`;
+    html += '</div>';
+    
+    previewDiv.innerHTML = html;
+}
+
+function removeSelectedHoarding(hoardingId) {
+    selectedHoardings.delete(hoardingId);
+    updateSelectedHoardingsDisplay();
+    updateHoardingIdsInput();
+    
+    // Uncheck the checkbox
+    const checkbox = document.querySelector(`.hoarding-checkbox[data-id="${hoardingId}"]`);
+    if (checkbox) checkbox.checked = false;
+    
+    // Re-render to update visual state
+    filterHoardings();
+}
+
+function updateHoardingIdsInput() {
+    const ids = Array.from(selectedHoardings.keys()).join(',');
+    document.getElementById('hoarding_ids').value = ids;
+}
+
+function filterHoardings(e) {
+    const q = e?.target?.value?.toLowerCase() || '';
+    const filtered = q 
+        ? hoardings.filter(h =>
+            h.title.toLowerCase().includes(q) ||
+            (h.location_address || '').toLowerCase().includes(q)
+        )
+        : hoardings;
+    
+    renderHoardings(filtered);
+}
+
+/* -------------------------------------------------------
+   Customers
+------------------------------------------------------- */
+
+let customerSearchTimeout = null;
+
+function handleCustomerSearch(e) {
+    const q = e.target.value.trim();
+    const box = document.getElementById('customer-suggestions');
+
+    clearTimeout(customerSearchTimeout);
+
+    if (!q) {
+        box.classList.add('hidden');
+        return;
+    }
+
+    customerSearchTimeout = setTimeout(async () => {
+        try {
+            const res = await fetchJSON(
+                `${API_URL}/customers?search=${encodeURIComponent(q)}`
+            );
+
+            const customers = normalizeList(res);
+
+            box.innerHTML = customers.length
+                ? customers.map(c => `
+                    <div class="px-3 py-2 hover:bg-blue-100 cursor-pointer"
+                         onclick='selectCustomer(${JSON.stringify(c)})'>
+                        ${c.name}
+                        <span class="text-xs text-gray-500">
+                            ${c.phone} ${c.email ? '· ' + c.email : ''}
+                        </span>
+                    </div>
+                `).join('')
+                : `<div class="px-3 py-2 text-gray-400">No customers found</div>`;
+
+            box.classList.remove('hidden');
+        } catch {
+            box.innerHTML = `<div class="px-3 py-2 text-red-500">Error loading customers</div>`;
+            box.classList.remove('hidden');
+        }
+    }, 300);
+}
+
+function selectCustomer(c) {
+    selectedCustomer = c;
+
+    document.getElementById('customer_name').value = c.name || '';
+    document.getElementById('customer_phone').value = c.phone || '';
+    document.getElementById('customer_email').value = c.email || '';
+    document.getElementById('customer_gstin').value = c.gstin || '';
+    document.getElementById('customer_address').value = c.address || '';
+
+    document.getElementById('customer-suggestions').classList.add('hidden');
+}
+
+/* -------------------------------------------------------
+   Pricing
+------------------------------------------------------- */
+
+function calculatePrice() {
+    const base = +document.getElementById('base-amount').value || 0;
+    const discount = +document.getElementById('discount-amount').value || 0;
+
+    const after = Math.max(0, base - discount);
+    const gst = (after * gstRate) / 100;
+    const total = after + gst;
+
+    document.getElementById('display-base').textContent = base.toFixed(2);
+    document.getElementById('display-discount').textContent = discount.toFixed(2);
+    document.getElementById('display-after-discount').textContent = after.toFixed(2);
+    document.getElementById('display-gst').textContent = gst.toFixed(2);
+    document.getElementById('display-total').textContent = total.toFixed(2);
+}
+
+function attachPriceCalculationListeners() {
+    ['base-amount', 'discount-amount'].forEach(id =>
+        document.getElementById(id).addEventListener('input', calculatePrice)
+    );
+    calculatePrice();
+}
+
+/* -------------------------------------------------------
+   Submit
+------------------------------------------------------- */
+
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    clearMessages();
+
+    // Validate at least one hoarding is selected
+    if (selectedHoardings.size === 0) {
+        showError(['Please select at least one hoarding before booking.']);
+        return;
+    }
+
+    // Validate and convert dates
+    const startDateStr = document.getElementById('start_date').value.trim();
+    const endDateStr = document.getElementById('end_date').value.trim();
+    
+    if (!isValidDateFormat(startDateStr)) {
+        showError(['Start date must be in DD/MM/YYYY format (e.g., 29/01/2026)']);
+        return;
+    }
+    
+    if (!isValidDateFormat(endDateStr)) {
+        showError(['End date must be in DD/MM/YYYY format (e.g., 29/01/2026)']);
+        return;
+    }
+
+    // Validate that end date is not before start date
+    const startDate = new Date(convertDateFormat(startDateStr, 'ddmmyyyy', 'yyyy-mm-dd'));
+    const endDate = new Date(convertDateFormat(endDateStr, 'ddmmyyyy', 'yyyy-mm-dd'));
+    
+    if (endDate < startDate) {
+        showError(['End date must be on or after start date']);
+        return;
+    }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+
+    const formData = Object.fromEntries(new FormData(e.target));
+
+    // Convert dates from DD/MM/YYYY to YYYY-MM-DD format for database storage
+    formData.start_date = convertDateFormat(startDateStr, 'ddmmyyyy', 'yyyy-mm-dd');
+    formData.end_date = convertDateFormat(endDateStr, 'ddmmyyyy', 'yyyy-mm-dd');
+
+    // Ensure hoarding_ids is set from selectedHoardings
+    formData.hoarding_ids = Array.from(selectedHoardings.keys()).join(',');
+
+    if (selectedCustomer?.id) {
+        formData.customer_id = selectedCustomer.id;
+    }
+
+    try {
+        const res = await fetchJSON(`${API_URL}/bookings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        showSuccess(`Booking #${res.data.invoice_number || res.data.id} created`);
+        setTimeout(() => location.href = `/vendor/pos/bookings/${res.data.id}`, 1500);
+
+    } catch (err) {
+        if (err.status === 422) {
+            // Handle unavailability errors
+            if (err.data.unavailable_hoardings) {
+                const messages = [
+                    `<strong style="color: #dc2626;">⚠️ Availability Conflict</strong>`,
+                    err.data.message || 'One or more hoardings are unavailable',
+                    '<br><strong style="margin-top: 8px; display: block;">Unavailable Hoardings:</strong>'
+                ];
+                
+                err.data.unavailable_hoardings.forEach(item => {
+                    const statusLabels = item.reasons.map(reason => {
+                        switch(reason) {
+                            case 'booked': return '📅 Already Booked';
+                            case 'blocked': return '🔒 Maintenance Block';
+                            case 'hold': return '⏸️ Payment Hold';
+                            case 'partial': return '⚠️ Partially Unavailable';
+                            default: return reason;
+                        }
+                    }).join(', ');
+                    
+                    messages.push(
+                        `<div style="margin-top: 8px; padding: 8px; background: #fef2f2; border-left: 3px solid #dc2626; border-radius: 4px;">
+                            <strong>${item.hoarding_name}</strong><br/>
+                            <span style="font-size: 0.875rem; color: #991b1b;">${statusLabels}</span>
+                        </div>`
+                    );
+                });
+
+                if (err.data.details) {
+                    messages.push(`<div style="margin-top: 8px; padding: 8px; background: #fef2f2; border-left: 3px solid #dc2626; border-radius: 4px; font-size: 0.875rem; color: #991b1b;">${err.data.details}</div>`);
+                }
+
+                showErrorHTML(messages);
+            } else if (err.data.errors) {
+                // Handle validation errors
+                showError(Object.entries(err.data.errors)
+                    .map(([k, v]) => `<strong>${k}:</strong> ${v.join(', ')}`));
+            } else {
+                showError([err.data.message || 'An error occurred']);
+            }
+        } else {
+            showError(['Something went wrong. Please try again.']);
+        }
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+/* -------------------------------------------------------
+   UI Messages
+------------------------------------------------------- */
+
+function showError(messages) {
+    const box = document.getElementById('form-error-container');
+    document.getElementById('error-list').innerHTML =
+        messages.map(m => `<li>${m}</li>`).join('');
+    box.classList.remove('hidden');
+}
+
+function showErrorHTML(messages) {
+    const box = document.getElementById('form-error-container');
+    document.getElementById('error-list').innerHTML = messages.join('');
+    box.classList.remove('hidden');
+}
+
+function showSuccess(message) {
+    const box = document.getElementById('form-success-container');
+    document.getElementById('success-message').textContent = `✅ ${message}`;
+    box.classList.remove('hidden');
+}
+
+function clearMessages() {
+    document.getElementById('form-error-container').classList.add('hidden');
+    document.getElementById('form-success-container').classList.add('hidden');
+}
 </script>
+
 @endsection

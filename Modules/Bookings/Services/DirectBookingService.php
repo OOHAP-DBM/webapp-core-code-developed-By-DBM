@@ -4,7 +4,7 @@ namespace Modules\Bookings\Services;
 
 use App\Models\Booking;
 use App\Models\User;
-use Modules\Hoardings\Models\Hoarding;
+use App\Models\Hoarding;
 use Modules\Settings\Services\SettingsService;
 use App\Services\TaxService;
 use Illuminate\Support\Facades\DB;

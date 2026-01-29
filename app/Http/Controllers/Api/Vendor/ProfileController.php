@@ -80,7 +80,6 @@ public function update(Request $request, ProfileService $profileService)
     $user = Auth::user();
     $vendor = $user->vendorProfile;
     $section = $request->input('section');
-
     switch ($section) {
         case 'personal':
             $data = $request->only(['name', 'email', 'phone', 'avatar']);

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Users\Models\User;
-use Modules\Hoardings\Models\Hoarding;
+use App\Models\Hoarding;
 
 
 use \App\Traits\Auditable;
@@ -44,8 +44,12 @@ class POSBooking extends Model
         'payment_mode',
         'payment_status',
         'paid_amount',
+         'payment_received_at',
         'payment_reference',
         'payment_notes',
+        'hold_expiry_at',
+        'reminder_count',
+        'last_reminder_at',
         'credit_note_number',
         'credit_note_date',
         'credit_note_due_date',
@@ -61,6 +65,8 @@ class POSBooking extends Model
         'notes',
         'cancellation_reason',
         'confirmed_at',
+        'started_at',
+        'completed_at',
         'cancelled_at',
     ];
 
@@ -80,6 +86,8 @@ class POSBooking extends Model
         'approved_at' => 'datetime',
         'confirmed_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     // Status constants
@@ -130,6 +138,29 @@ class POSBooking extends Model
     {
         return $this->belongsTo(Hoarding::class);
     }
+
+        /**
+     * Get all hoardings linked to this booking
+     */
+    public function hoardings()
+    {
+        return $this->belongsToMany(
+            Hoarding::class,
+            'pos_booking_hoardings',
+            'pos_booking_id',
+            'hoarding_id'
+        )->withPivot(['hoarding_price', 'hoarding_discount', 'hoarding_tax', 'hoarding_total', 'start_date', 'end_date', 'duration_days', 'status'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all booking hoarding records with details
+     */
+    public function bookingHoardings()
+    {
+        return $this->hasMany(POSBookingHoarding::class, 'pos_booking_id');
+    }
+
 
     /**
      * Get the approver

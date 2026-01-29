@@ -3,19 +3,30 @@
 @section('title', 'POS Bookings List')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="card">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="fas fa-list"></i> POS Bookings</h4>
-            <a href="{{ route('vendor.pos.create') }}" class="btn btn-light">
-                <i class="fas fa-plus"></i> New Booking
+<div class="px-6 py-6">
+
+    <div class="bg-white rounded-xl shadow border">
+
+        {{-- Header --}}
+        <div class="flex justify-between items-center px-6 py-4 bg-primary text-white rounded-t-xl">
+            <h4 class="text-lg font-semibold flex items-center gap-2">
+                📋 POS Bookings
+            </h4>
+
+            <a href="{{ route('vendor.pos.create') }}"
+                class="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600 transition">
+                ➕ New Booking
             </a>
+
         </div>
-        <div class="card-body">
-            <!-- Filters -->
-            <div class="row mb-3">
-                <div class="col-md-3">
-                    <select class="form-select" id="filter-status">
+
+        <div class="p-6 space-y-6">
+
+            {{-- Filters --}}
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div class="md:col-span-3">
+                    <select id="filter-status"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none">
                         <option value="">All Status</option>
                         <option value="draft">Draft</option>
                         <option value="confirmed">Confirmed</option>
@@ -24,8 +35,10 @@
                         <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <select class="form-select" id="filter-payment-status">
+
+                <div class="md:col-span-3">
+                    <select id="filter-payment-status"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none">
                         <option value="">All Payment Status</option>
                         <option value="paid">Paid</option>
                         <option value="unpaid">Unpaid</option>
@@ -33,144 +46,228 @@
                         <option value="credit">Credit Note</option>
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <input type="text" class="form-control" id="search-box" placeholder="Search by name, phone, invoice...">
+
+                <div class="md:col-span-4">
+                    <input id="search-box" type="text"
+                        placeholder="Search by name, phone, invoice..."
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none">
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-primary w-100" onclick="loadBookings()">Filter</button>
+
+                <div class="md:col-span-2">
+                    <button onclick="loadBookings()"
+                        class="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition">
+                        Filter
+                    </button>
                 </div>
             </div>
 
-            <!-- Bookings Table -->
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+            {{-- Table --}}
+            <div class="overflow-x-auto border rounded-lg">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-100 text-left">
                         <tr>
-                            <th>Invoice #</th>
-                            <th>Customer</th>
-                            <th>Hoarding</th>
-                            <th>Dates</th>
-                            <th>Amount</th>
-                            <th>Payment</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th class="border px-3 py-2">Invoice #</th>
+                            <th class="border px-3 py-2">Customer</th>
+                            <th class="border px-3 py-2">Hoarding</th>
+                            <th class="border px-3 py-2">Dates</th>
+                            <th class="border px-3 py-2">Amount</th>
+                            <th class="border px-3 py-2">Payment</th>
+                            <th class="border px-3 py-2">Status</th>
+                            <th class="border px-3 py-2">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="bookings-table-body">
                         <tr>
-                            <td colspan="8" class="text-center">Loading...</td>
+                            <td colspan="8" class="text-center py-6 text-gray-500">
+                                Loading...
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Pagination -->
-            <div id="pagination-container"></div>
+            {{-- Pagination --}}
+            <div id="pagination-container" class="mt-6"></div>
+
         </div>
     </div>
 </div>
 
 <script>
+/**
+ * POS Bookings List - Web Session Auth
+ * Uses /vendor/pos/api/bookings endpoint with session auth
+ */
+
 let currentPage = 1;
 
-document.addEventListener('DOMContentLoaded', function() {
-    loadBookings();
-});
+// Helper: Fetch with session auth
+const fetchJSON = async (url) => {
+    const res = await fetch(url, {
+        credentials: 'same-origin',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    });
+
+    if (!res.ok) {
+        throw { status: res.status, message: 'Failed to fetch' };
+    }
+
+    return res.json();
+};
+
+// Helper: Format date to DD/MM/YYYY
+function formatDateDDMMYYYY(dateStr) {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+}
+
+document.addEventListener('DOMContentLoaded', () => loadBookings());
 
 function loadBookings(page = 1) {
     const status = document.getElementById('filter-status').value;
     const paymentStatus = document.getElementById('filter-payment-status').value;
     const search = document.getElementById('search-box').value;
 
-    let url = `/api/v1/vendor/pos/bookings?page=${page}`;
+    let url = `/vendor/pos/api/bookings?page=${page}&per_page=20`;
     if (status) url += `&status=${status}`;
     if (paymentStatus) url += `&payment_status=${paymentStatus}`;
     if (search) url += `&search=${search}`;
 
-    fetch(url, {
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token'),
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success && data.data.data.length > 0) {
+    fetchJSON(url)
+        .then(data => {
             const tbody = document.getElementById('bookings-table-body');
-            tbody.innerHTML = '';
-            
-            data.data.data.forEach(booking => {
-                const row = `
-                    <tr>
-                        <td>${booking.invoice_number || 'N/A'}</td>
-                        <td>
-                            <strong>${booking.customer_name}</strong><br>
-                            <small>${booking.customer_phone}</small>
-                        </td>
-                        <td>${booking.hoarding ? `<a href="/hoardings/${booking.hoarding.id}" target="_blank">${booking.hoarding.title}</a>` : 'N/A'}</td>
-                        <td>
-                            ${new Date(booking.start_date).toLocaleDateString()}<br>
-                            to ${new Date(booking.end_date).toLocaleDateString()}
-                        </td>
-                        <td>₹${parseFloat(booking.total_amount).toLocaleString()}</td>
-                        <td><span class="badge bg-${getPaymentStatusColor(booking.payment_status)}">${booking.payment_status}</span></td>
-                        <td><span class="badge bg-${getStatusColor(booking.status)}">${booking.status}</span></td>
-                        <td>
-                            <a href="/vendor/pos/bookings/${booking.id}" class="btn btn-sm btn-info">View</a>
-                            <a href="/vendor/pos/bookings/${booking.id}/edit" class="btn btn-sm btn-warning">Edit</a>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
+
+            if (data.success && data.data.data.length) {
+                tbody.innerHTML = '';
+
+                data.data.data.forEach(booking => {
+                tbody.innerHTML += `
+                <tr class="hover:bg-gray-50">
+                    <td class="border px-3 py-2">${booking.invoice_number || 'N/A'}</td>
+                    <td class="border px-3 py-2">
+                        <strong>${booking.customer_name}</strong><br>
+                        <span class="text-xs text-gray-500">${booking.customer_phone}</span>
+                    </td>
+                    <td class="border px-3 py-2">
+                        ${booking.hoarding
+                            ? `<a href="/hoardings/${booking.hoarding.id}" target="_blank"
+                                 class="text-primary underline">${booking.hoarding.title}</a>`
+                            : 'N/A'}
+                    </td>
+                    <td class="border px-3 py-2">
+                        ${formatDateDDMMYYYY(booking.start_date)}<br>
+                        <span class="text-xs text-gray-500">
+                            to ${formatDateDDMMYYYY(booking.end_date)}
+                        </span>
+                    </td>
+                    <td class="border px-3 py-2 font-medium">
+                        ₹${parseFloat(booking.total_amount).toLocaleString()}
+                    </td>
+                    <td class="border px-3 py-2">
+                        <span class="px-2 py-1 rounded text-xs font-semibold ${getPaymentStatusColor(booking.payment_status)}">
+                            ${booking.payment_status}
+                        </span>
+                    </td>
+                    <td class="border px-3 py-2">
+                        <span class="px-2 py-1 rounded text-xs font-semibold ${getStatusColor(booking.status)}">
+                            ${booking.status}
+                        </span>
+                    </td>
+                    <td class="border px-3 py-2 flex gap-1">
+                        <a href="/vendor/pos/bookings/${booking.id}"
+                           class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition">
+                            View
+                        </a>
+                        <!-- BACKEND RULE: Only show Edit if status = draft -->
+                        ${booking.status === 'draft' ? `
+                            <a href="/vendor/pos/bookings/${booking.id}/edit"
+                               class="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition">
+                                Edit
+                            </a>
+                        ` : `
+                            <button disabled 
+                                class="text-xs bg-gray-300 text-gray-500 px-2 py-1 rounded cursor-not-allowed"
+                                title="Can only edit draft bookings">
+                                Edit
+                            </button>
+                        `}
+                        <!-- BACKEND RULE: Show Mark Paid if payment_status in [unpaid, partial] AND status != cancelled -->
+                        ${['unpaid', 'partial'].includes(booking.payment_status) && booking.status !== 'cancelled' ? `
+                            <a href="/vendor/pos/bookings/${booking.id}"
+                               class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition">
+                                💰 Pay
+                            </a>
+                        ` : ``}
+                    </td>
+                </tr>`;
             });
 
-            // Handle pagination
             renderPagination(data.data);
         } else {
-            document.getElementById('bookings-table-body').innerHTML = 
-                '<tr><td colspan="8" class="text-center">No bookings found</td></tr>';
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-6 text-gray-500">
+                        No bookings found
+                    </td>
+                </tr>`;
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('bookings-table-body').innerHTML = 
-            '<tr><td colspan="8" class="text-center text-danger">Error loading bookings</td></tr>';
-    });
+        })
+        .catch(err => {
+            console.warn('Error loading bookings:', err);
+            document.getElementById('bookings-table-body').innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-6 text-red-500">
+                        Error loading bookings
+                    </td>
+                </tr>`;
+        });
 }
 
-function renderPagination(paginationData) {
-    const container = document.getElementById('pagination-container');
-    let html = '<nav><ul class="pagination justify-content-center">';
+function renderPagination(pagination) {
+    let html = '<div class="flex justify-center gap-2">';
 
-    for (let i = 1; i <= paginationData.last_page; i++) {
-        html += `<li class="page-item ${i === paginationData.current_page ? 'active' : ''}">
-            <a class="page-link" href="#" onclick="loadBookings(${i}); return false;">${i}</a>
-        </li>`;
+    for (let i = 1; i <= pagination.last_page; i++) {
+        html += `
+            <button onclick="loadBookings(${i})"
+                class="px-3 py-1 rounded border text-sm
+                ${i === pagination.current_page
+                    ? 'bg-primary text-white'
+                    : 'bg-white hover:bg-gray-100'}">
+                ${i}
+            </button>`;
     }
 
-    html += '</ul></nav>';
-    container.innerHTML = html;
+    html += '</div>';
+    document.getElementById('pagination-container').innerHTML = html;
 }
 
 function getStatusColor(status) {
-    const colors = {
-        'draft': 'secondary',
-        'confirmed': 'success',
-        'active': 'primary',
-        'completed': 'info',
-        'cancelled': 'danger'
-    };
-    return colors[status] || 'secondary';
+    return {
+        draft: 'bg-gray-400 text-white',
+        confirmed: 'bg-green-500 text-white',
+        active: 'bg-blue-500 text-white',
+        completed: 'bg-cyan-500 text-white',
+        cancelled: 'bg-red-500 text-white'
+    }[status] || 'bg-gray-400 text-white';
 }
 
 function getPaymentStatusColor(status) {
-    const colors = {
-        'paid': 'success',
-        'unpaid': 'danger',
-        'partial': 'warning',
-        'credit': 'info'
-    };
-    return colors[status] || 'secondary';
+    return {
+        paid: 'bg-green-500 text-white',
+        unpaid: 'bg-red-500 text-white',
+        partial: 'bg-yellow-500 text-white',
+        credit: 'bg-cyan-500 text-white'
+    }[status] || 'bg-gray-400 text-white';
 }
 </script>
 @endsection
