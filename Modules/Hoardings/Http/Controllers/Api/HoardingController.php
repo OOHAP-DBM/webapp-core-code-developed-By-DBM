@@ -376,4 +376,72 @@ class HoardingController extends Controller
             ],
         ]);
     }
+
+
+       /**
+     * @OA\Get(
+     *     path="/hoardings/cities",
+     *     operationId="getHoardingCities",
+     *     tags={"Hoardings"},
+     *     summary="Get cities with active hoardings ordered by count",
+     *     description="Returns a list of cities with the number of active hoardings in each city, ordered by count descending.",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="city", type="string", example="Mumbai"),
+     *                     @OA\Property(property="count", type="integer", example=42)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="No cities found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="No cities found")
+     *         )
+     *     )
+     * )
+     */
+    public function getCitiesWithActiveHoardings(): JsonResponse
+    {
+        $cities = Hoarding::where('status', 'active')
+            ->whereNotNull('city')
+            ->select('city')
+            ->selectRaw('count(*) as count')
+            ->groupBy('city')
+            ->orderByDesc('count')
+            ->get();
+
+        if ($cities->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No cities found',
+            ], 404);
+        }
+
+        $result = $cities->map(function ($cityItem) {
+            $hoardings = Hoarding::where('status', 'active')
+                ->where('city', $cityItem->city)
+                ->get();
+            return [
+                'city' => $cityItem->city,
+                'count' => $cityItem->count,
+                'hoardings' => HoardingResource::collection($hoardings),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $result,
+        ]);
+    }
 }
