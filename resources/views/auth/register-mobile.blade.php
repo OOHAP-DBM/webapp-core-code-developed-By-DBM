@@ -215,12 +215,12 @@ html, body {
 
         <!-- ================= OTP ================= -->
         <div id="otp-section" class="d-none mt-4 otp-section">
+            <div id="otpError" class="alert alert-danger d-none mb-2"></div>
              <div class="mb-3 otp-text">
                 <div class="otp-icon">
                     <i class="fa-solid fa-envelope text-success fs-3"></i>
                 </div>
             </div>
-          <div id="otpError" class="alert alert-danger d-none mb-2"></div>
             <div class="otp-text">
                 <h6 class="fw-semibold mb-1 fs-4">Verify with OTP</h6>
                 <p class="text-muted small mb-3">

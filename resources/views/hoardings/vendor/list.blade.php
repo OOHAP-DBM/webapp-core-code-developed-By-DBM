@@ -24,15 +24,18 @@
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
                     <input type="text" name="search" value="{{ request('vendor.hoardings.index') }}" placeholder="Search hoardings..." 
+                        value="{{ request('search') }}"
                         class="block w-full pl-9 pr-3 py-2 bg-[#F3F4F6] border-none rounded-md focus:ring-1 focus:ring-emerald-500 text-[13px]">
                     <button type="submit" class="hidden"></button>
                 </form>
 
                 <div class="flex items-center gap-2">
                     <button class="p-2 bg-[#E6F6F0] text-[#00A86B] rounded-md border border-emerald-50">
-                        <i class="fa-solid fa-filter"></i>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M18.9132 3.18537C14.3186 2.65548 9.68118 2.65548 5.08664 3.18537C5.0162 3.19371 4.94922 3.22139 4.89269 3.26555C4.83616 3.3097 4.79214 3.3687 4.76524 3.43639C4.73834 3.50408 4.72954 3.57798 4.73976 3.65038C4.74997 3.72278 4.77883 3.79102 4.82332 3.84799L8.88513 9.0297C10.34 10.8857 11.1338 13.2007 11.1337 15.5879V19.0308L12.8661 20.3418V15.5867C12.8663 13.1999 13.66 10.8854 15.1147 9.0297L19.1765 3.84799C19.221 3.79102 19.2498 3.72278 19.2601 3.65038C19.2703 3.57798 19.2615 3.50408 19.2346 3.43639C19.2077 3.3687 19.1637 3.3097 19.1071 3.26555C19.0506 3.22139 18.9836 3.19371 18.9132 3.18537ZM4.89492 1.40848C9.61726 0.86384 14.3837 0.86384 19.106 1.40848C20.776 1.60154 21.581 3.62275 20.5243 4.9718L16.4625 10.1535C15.2566 11.6914 14.5986 13.6096 14.5984 15.5879V22.1055C14.5986 22.2708 14.5543 22.4329 14.4705 22.5738C14.3867 22.7146 14.2667 22.8288 14.1238 22.9035C13.9809 22.9782 13.8207 23.0106 13.6611 22.997C13.5014 22.9834 13.3486 22.9244 13.2195 22.8265L9.75477 20.2047C9.64513 20.1216 9.55601 20.013 9.49461 19.8878C9.43321 19.7625 9.40127 19.6241 9.40137 19.4837V15.5867C9.40137 13.6084 8.74307 11.6909 7.53851 10.1523L3.4767 4.97299C2.41881 3.62394 3.22262 1.60154 4.89492 1.40848Z" fill="#009A5C"/>
+                        </svg>
                     </button>
-                    {{-- <button class="px-10 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px]">
+                    <button class="px-10 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px]">
                         Export
                     </button> --}}
                     <a href="{{ route('vendor.hoardings.add') }}" 
@@ -55,8 +58,10 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-white border-b border-gray-100 text-[10px] font-black text-gray-600 uppercase tracking-widest">
-                            <th class="px-6 py-5 w-12"><input type="checkbox" class="rounded-sm border-gray-300"></th>
+                        <tr class="bg-white border-b border-gray-100 text-[12px] font-black text-gray-600  tracking-widest">
+                            <th class="px-6 py-5 w-12">
+                                <input type="checkbox" id="select-all" class="rounded-sm border-gray-300">
+                            </th>
                             <th class="px-4 py-5">SN</th>
                             <th class="px-4 py-5">Hoarding Title</th>
                             <th class="px-4 py-5">Type</th>
@@ -76,7 +81,7 @@
                             $isPending = $status === 'pending_approval';
                         @endphp
                         <tr class="hover:bg-[#F0F9FF] border-b border-gray-50 last:border-0 transition-colors">
-                            <td class="px-6 py-4"><input type="checkbox" class="rounded-sm border-gray-300"></td>
+                            <td class="px-6 py-4"><input type="checkbox" class="row-checkbox rounded-sm border-gray-300"></td>
                             <td class="px-4 py-4 text-gray-400 font-medium">{{ sprintf('%02d', $index + 1) }}</td>
                             <td class="px-4 py-4 text-gray-700">
                                 <a href="{{ route('vendor.myHoardings.show', $hoarding['id']) }}"
@@ -247,6 +252,40 @@
 }
 
 </style>
+
+<script>
+    // Select/Deselect all checkboxes
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAll = document.getElementById('select-all');
+        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                rowCheckboxes.forEach(cb => {
+                    cb.checked = selectAll.checked;
+                });
+            });
+        }
+
+        // Keep parent in sync if all/none are checked
+        rowCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                const allChecked = Array.from(rowCheckboxes).every(c => c.checked);
+                const noneChecked = Array.from(rowCheckboxes).every(c => !c.checked);
+                if (allChecked) {
+                    selectAll.checked = true;
+                    selectAll.indeterminate = false;
+                } else if (noneChecked) {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = false;
+                } else {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = true;
+                }
+            });
+        });
+    });
+</script>
 
 <script>
     function closeAllMenus() {

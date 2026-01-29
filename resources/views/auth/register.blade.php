@@ -229,15 +229,15 @@ html, body {
             </div>
 
             <!-- OTP VERIFY UI (FIGMA STYLE) -->
-           <div id="otp-ui" class="d-none mt-4 otp-wrapper">
 
+           <div id="otp-ui" class="d-none mt-4 otp-wrapper">
+            <div id="otpErrorInline" class="alert alert-danger d-none mb-2"></div>
             <!-- ICON -->
             <div class="mb-3 otp-text">
                 <div class="otp-icon">
                     <i class="fa-solid fa-envelope text-success fs-3"></i>
                 </div>
             </div>
-
             <!-- TEXT -->
             <div class="otp-text">
                 <h6 class="fw-semibold mb-1 fs-4">Verify with OTP</h6>
@@ -246,7 +246,6 @@ html, body {
                     <strong id="otp-email-text"></strong>
                 </p>
             </div>
-
             <!-- OTP BOXES -->
             <div class="d-flex gap-2 my-3 otp-text">
                 <input class="otp-box" maxlength="1" inputmode="numeric">
@@ -254,23 +253,19 @@ html, body {
                 <input class="otp-box" maxlength="1" inputmode="numeric">
                 <input class="otp-box" maxlength="1" inputmode="numeric">
             </div>
-
             <!-- RESEND -->
             <div class="otp-text">
                 <small class="text-muted">
                     <span id="resendText">
                         Resend OTP in <span class="text-success fw-bold" id="otpTimer">00:30</span>
                     </span>
-
                     <a href="javascript:void(0)"
                     id="resendBtn"
                     class="text-success fw-bold d-none">
                         Resend OTP
                     </a>
                 </small>
-
             </div>
-
             </div>
 
 
@@ -474,18 +469,28 @@ html, body {
 
         /* ===================== OTP ===================== */
 
+        function showOtpInlineError(msg) {
+            const otpError = document.getElementById('otpErrorInline');
+            if (!otpError) return;
+            otpError.innerText = msg || 'Something went wrong';
+            otpError.classList.remove('d-none');
+        }
+        function clearOtpInlineError() {
+            const otpError = document.getElementById('otpErrorInline');
+            if (!otpError) return;
+            otpError.innerText = '';
+            otpError.classList.add('d-none');
+        }
         otpBoxes.forEach((box, index) => {
             box.addEventListener('input', () => {
                 box.value = box.value.replace(/\D/g, '');
-
+                clearOtpInlineError();
                 if (box.value && otpBoxes[index + 1]) {
                     otpBoxes[index + 1].focus();
                 }
-
                 const otp = Array.from(otpBoxes).map(b => b.value).join('');
                 if (otp.length === 4) verifyOtp(otp);
             });
-
             box.addEventListener('keydown', e => {
                 if (e.key === 'Backspace' && !box.value && otpBoxes[index - 1]) {
                     otpBoxes[index - 1].focus();
@@ -494,11 +499,11 @@ html, body {
         });
 
         function verifyOtp(otp) {
+            clearOtpInlineError();
             if (!/^\d{4}$/.test(otp)) {
-                showGlobalError('OTP must be 4 digits');
+                showOtpInlineError('OTP must be 4 digits');
                 return;
             }
-
             fetch("{{ route('register.verifyEmailOtp') }}", {
                 method: "POST",
                 headers: {
@@ -509,7 +514,11 @@ html, body {
             })
             .then(r => r.json())
             .then(res => {
-                if (!res.success) return showGlobalError(res.message);
+                if (!res.success) {
+                    showOtpInlineError(res.message);
+                    return;
+                }
+                clearOtpInlineError();
                 errorBox.classList.add('d-none');
                 errorBox.classList.remove('otp-error');
                 errorBox.innerText = '';
@@ -520,15 +529,14 @@ html, body {
         }
 
         function showGlobalError(msg) {
+            // If OTP UI is visible, show inline error instead
+            if (!otpUI.classList.contains('d-none')) {
+                showOtpInlineError(msg);
+                return;
+            }
             errorBox.innerText = msg || 'Something went wrong';
             errorBox.classList.remove('d-none');
-
-            // ✅ ONLY float error during OTP
-            if (!otpUI.classList.contains('d-none')) {
-                errorBox.classList.add('otp-error');
-            } else {
-                errorBox.classList.remove('otp-error');
-            }
+            errorBox.classList.remove('otp-error');
         }
 
 

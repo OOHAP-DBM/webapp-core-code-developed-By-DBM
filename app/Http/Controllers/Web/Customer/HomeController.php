@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Web\Customer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-
+use Modules\Enquiries\Models\Enquiry;
 class HomeController extends Controller
 {
     /**
@@ -16,7 +16,7 @@ class HomeController extends Controller
     public function index(): View
     {
         $stats = [
-            'total_hoardings' => \App\Models\Hoarding::where('status', 'approved')->count(),
+            'total_hoardings' => \App\Models\Hoarding::where('status', 'active')->count(),
             'cities' => \App\Models\Hoarding::distinct('city')->count('city'),
             'active_vendors' => \App\Models\User::role('vendor')->where('status', 'active')->count(),
             'bookings' => \App\Models\Booking::where('status', 'completed')->count(),
@@ -51,7 +51,16 @@ class HomeController extends Controller
                 ->get();
             }
         }
+        $enquiries = null;
 
-        return view('customer.home', compact('stats', 'featuredHoardings', 'userLocation', 'nearbyHoardings'));
+        if (auth()->check() && auth()->user()->hasRole('customer')) {
+            $enquiries =Enquiry::where('customer_id', auth()->id())
+                ->with(['items.hoarding'])
+                ->latest()
+                ->paginate(10);
+        }
+
+
+        return view('customer.home', compact('stats', 'featuredHoardings', 'userLocation', 'nearbyHoardings','enquiries'));
     }
 }

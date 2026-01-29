@@ -182,9 +182,9 @@
                     </a>
 
                 <!-- Mobile Menu Button -->
-                <button type="button" class="md:hidden text-gray-700" onclick="toggleMobileMenu()">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                <button type="button" class="md:hidden text-gray-700 -mt-1" onclick="toggleMobileMenu()">
+                    <svg class="w-6 h-7" fill="none" stroke="currentColor" viewBox="0 0 19 19">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
             </div>
@@ -211,16 +211,97 @@
         </div>
 
         <!-- Mobile Navigation Menu -->
-        <div id="mobile-menu" class="hidden md:hidden pb-4 border-t border-gray-100 mt-2">
-            <div class="flex flex-col space-y-3 pt-3">
-                <a href="{{ route('hoardings.index') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Hoardings</a>
-                <a href="{{ route('dooh.index') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">DOOH</a>
+        <div id="mobile-menu"
+            class="fixed top-0 left-0 h-full w-72 bg-white shadow-xl
+                    transform -translate-x-full transition-transform duration-300 ease-in-out
+                    z-50 md:hidden">
+
+            <!-- HEADER -->
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+                <a href="{{ route('home') }}" class="flex items-center">
+                    <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHAPP" width="140">
+                </a>
+
+                <button onclick="toggleMobileMenu()"
+                        class="text-gray-500 hover:text-gray-700 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- MENU LINKS -->
+            <div class="flex flex-col px-5 py-4 space-y-2 text-sm">
+
+                <!-- Hoardings -->
+                <a href="{{ route('search') }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-md
+                        text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M3 7h18M3 12h18M3 17h18"/>
+                    </svg>
+                    Hoardings
+                </a>
+
+                <!-- DOOH -->
+                <a href="{{ route('search', ['type' => 'dooh']) }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-md
+                        text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M9 17V7l7 5-7 5z"/>
+                    </svg>
+                    DOOH
+                </a>
+
                 @auth
-                    <a href="" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Saved Items</a>
-                    <a href="{{ url('/dashboard') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Dashboard</a>
+                    <!-- Saved -->
+                    <a href="#"
+                    class="flex items-center gap-3 px-3 py-2 rounded-md
+                            text-gray-700 hover:bg-gray-100 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M5 5v14l7-4 7 4V5z"/>
+                        </svg>
+                        Saved Items
+                    </a>
+
+                    <!-- Dashboard -->
+                    <a href="{{ $dashboardUrl }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-md
+                            text-gray-700 hover:bg-gray-100 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M3 12l2-2 4 4 8-8 4 4"/>
+                        </svg>
+                        Dashboard
+                    </a>
                 @else
-                    <a href="{{ route('login') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Login</a>
-                    <a href="{{ route('register.role-selection') }}" class="text-blue-600 hover:text-blue-700 font-semibold px-2 py-1">Sign Up</a>
+                    <!-- Login -->
+                    <a href="{{ route('login') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-md
+                            text-gray-700 hover:bg-gray-100 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M10 17l5-5-5-5"/>
+                        </svg>
+                        Login
+                    </a>
+
+                    <!-- Signup -->
+                    <a href="{{ route('register.role-selection') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-md
+                            text-blue-600 font-semibold hover:bg-blue-50 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Sign Up
+                    </a>
                 @endauth
             </div>
         </div>
@@ -229,12 +310,21 @@
 
 @push('scripts')
 <script>
-    function toggleMobileMenu() {
-        const menu = document.getElementById('mobile-menu');
-        menu.classList.toggle('hidden');
-    }
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
 
+    if (menu.classList.contains('-translate-x-full')) {
+        menu.classList.remove('-translate-x-full');
+        menu.classList.add('translate-x-0');
+        document.body.style.overflow = 'hidden'; // background lock
+    } else {
+        menu.classList.add('-translate-x-full');
+        menu.classList.remove('translate-x-0');
+        document.body.style.overflow = '';
+    }
+}
 </script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
