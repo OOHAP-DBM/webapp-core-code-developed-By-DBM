@@ -80,8 +80,8 @@
     <!-- Pending Payments Widget -->
     <div id="pending-payments-widget" class="bg-white rounded-xl shadow-sm border border-gray-200 hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-yellow-50">
-            <h5 class="text-lg font-semibold text-yellow-800">⏰ Payment Holds Expiring Soon</h5>
-            <p class="text-sm text-yellow-700">Bookings with payment holds that need attention</p>
+            <h5 class="text-lg font-semibold text-yellow-800">Pending Payment</h5>
+            <p class="text-sm text-yellow-700">Bookings with pending payment that need attention</p>
         </div>
 
         <div class="overflow-x-auto">

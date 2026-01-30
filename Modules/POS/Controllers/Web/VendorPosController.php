@@ -15,7 +15,7 @@ use Modules\Hoardings\Services\HoardingAvailabilityService;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\DB;
 class VendorPosController extends Controller
 {
     protected POSBookingService $posBookingService;
@@ -60,6 +60,9 @@ class VendorPosController extends Controller
      */
     public function show($id)
     {
+        $booking = POSBooking::findOrFail($id);
+        \Log::info($booking);
+
         // The view will fetch booking details via API
         return view('vendor.pos.show', ['bookingId' => $id]);
     }
@@ -164,6 +167,12 @@ class VendorPosController extends Controller
                     // Get image URL based on hoarding type
                     $imageUrl = $this->getHoardingImageUrl($hoarding);
 
+                    // Prefer monthly_price when it's a positive number; otherwise fall back to base_monthly_price
+                    $pricePerMonth = isset($hoarding->monthly_price) ? (float) $hoarding->monthly_price : null;
+                    if (!$pricePerMonth || $pricePerMonth <= 0) {
+                        $pricePerMonth = $hoarding->base_monthly_price ?? 0;
+                    }
+
                     return [
                         'id' => $hoarding->id,
                         'title' => $hoarding->title,
@@ -171,11 +180,16 @@ class VendorPosController extends Controller
                         'location_city' => $hoarding->city,
                         'location_state' => $hoarding->state,
                         'type' => $hoarding->hoarding_type,
-                        'price_per_month' => $hoarding->monthly_price ?? $hoarding->base_monthly_price,
+                        'price_per_month' => $pricePerMonth,
                         'image_url' => $imageUrl,
+                        'is_currently_booked' => $hoarding->bookings()
+                            ->where('start_date', '<=', now())
+                            ->where('end_date', '>=', now())
+                            ->whereIn('status', ['confirmed', 'active'])
+                            ->exists(),
                     ];
                 });
-
+            // Log::info('Hoardings fetched', ['vendor_id' => $vendorId, 'count' => $hoardings->count()]);
             return response()->json([
                 'success' => true,
                 'data' => $hoardings,
@@ -697,28 +711,93 @@ class VendorPosController extends Controller
     }
 
 
+    // public function createCustomer(Request $request)
+    // {
+    //     // Basic validation
+    //     $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|email|unique:users,email',
+    //         'phone' => 'required',
+    //         'password' => 'required|confirmed|min:6',
+    //         'gstin' => 'nullable|string',
+    //         'city' => 'nullable|string',
+    //         'state' => 'nullable|string',
+    //     ]);
+
+    //     // Logic to create customer in your database
+    //     $customer = \App\Models\User::create([
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'phone' => $request->phone,
+    //         'password' => Hash::make($request->password),
+    //         'active_role' => 'customer', // or whatever your logic is
+    //     ]);
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => $customer
+    //     ]);
+    // }
     public function createCustomer(Request $request)
     {
-        // Basic validation
+        // 1. Expanded Validation
         $request->validate([
             'name' => 'required|string|max:255',
+            // 'business_name' => 'nullable|string|max:100',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'required',
+            'phone' => 'required|string|max:20',
             'password' => 'required|confirmed|min:6',
+            'gstin' => 'nullable|string|max:15',
+            'pincode' => 'nullable|string|max:10',
+            'city' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
         ]);
 
-        // Logic to create customer in your database
-        $customer = \App\Models\User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-            'active_role' => 'customer', // or whatever your logic is
-        ]);
+        try {
+            // 2. Start Transaction
+            return DB::transaction(function () use ($request) {
+                
+                // 3. Create the Base User
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'password' => Hash::make($request->password),
+                    'active_role' => 'customer',
+                    'pincode' => $request->pincode,
+                    'gstin' => $request->gstin,
+                    'city' => $request->city,
+                    'state' => $request->state,
+                ]);
+                $user->assignRole('customer');
 
-        return response()->json([
-            'success' => true,
-            'data' => $customer
-        ]);
+                // 4. Create the POS Customer Profile
+                // We combine City, State, and Pincode into the 'address' field 
+                // as per your migration schema
+                $fullAddress = trim("{$request->city}, {$request->state} - {$request->pincode}, {$request->country}", ", -");
+
+                $user->posProfile()->create([
+                    'vendor_id'     => Auth::id(),
+                    'created_by'    => Auth::id(),
+                    'gstin'         => $request->gstin,
+                    'business_name' => $request->business_name,
+                    'address'       => trim("{$request->city}, {$request->state} - {$request->pincode}, {$request->country}", ", -"),
+                ]);
+
+                // 5. Return success response
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Customer created successfully',
+                    'data' => $user
+                ]);
+            });
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

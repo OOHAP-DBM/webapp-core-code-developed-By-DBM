@@ -103,8 +103,7 @@ class POSController extends Controller
         $vendor = Auth::user();
         $invoice = $vendor->invoices()
             ->with(['customer', 'items'])
-            ->findOrFail($id);
-        
+            ->findOrFail($id);        
         return view('vendor.pos.show', compact('invoice'));
     }
     

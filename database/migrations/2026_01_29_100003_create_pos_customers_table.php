@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->string('gstin', 15)->nullable();
             $table->string('address', 500)->nullable();
+            $table->string('business_name', 100)->nullable();
             $table->timestamps();
             $table->unique(['user_id', 'vendor_id']);
         });

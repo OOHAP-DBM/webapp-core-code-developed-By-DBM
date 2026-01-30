@@ -10,6 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Modules\POS\Models\PosCustomer;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -545,6 +546,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isFullyVerified(): bool
     {
         return $this->hasVerifiedEmail() && $this->isMobileVerified();
+    }
+
+     public function posProfile()
+    {
+        return $this->hasOne(PosCustomer::class, 'user_id');
     }
 
 }
