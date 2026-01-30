@@ -15,6 +15,7 @@ use Modules\Enquiries\Mail\AdminDirectEnquiryMail;
 use Modules\Enquiries\Mail\UserDirectEnquiryConfirmation;
 use App\Notifications\AdminDirectEnquiryNotification;
 use App\Models\User;
+use Carbon\Carbon;
 
 class DirectEnquiryController extends Controller
 {
@@ -45,10 +46,17 @@ class DirectEnquiryController extends Controller
             ->latest()
             ->first();
 
-        if ($recentOtp && now()->diffInSeconds($recentOtp->created_at) < 500) {
-            return response()->json(['message' => 'Please wait before requesting another OTP'], 429);
-        }
+        // if ($recentOtp) {
+        //     $createdAt = Carbon::parse($recentOtp->created_at);
 
+        //     $otpWaitTime = config('app.wait_time');
+
+        //     if (now()->diffInSeconds($createdAt) < $otpWaitTime) {
+        //         return response()->json([
+        //             'message' => 'Please wait before requesting another OTP'
+        //         ], 429);
+        //     }
+        // }
         $otpService->generate($user->id, $identifier, 'direct_enquiry');
 
         return response()->json(['success' => true, 'message' => 'OTP sent successfully']);
@@ -73,42 +81,79 @@ class DirectEnquiryController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'name'=>'required|min:3',
-            'email'=>'required|email',
-            'phone'=>'required|digits:10',
-            'hoarding_type'=>'required|array|min:1',
-            'remarks'=>'required|min:5',
-            'captcha'=>'required|numeric',
-            'location_city'     => 'string|max:255',
+            'name'                  => 'required|min:3',
+            'email'                 => 'required|email',
+            'phone'                 => 'required|digits:10',
+            'hoarding_type'         => 'required|array|min:1',
+            'remarks'               => 'required|min:5',
+            'captcha'               => 'required|numeric',
+            'location_city'         => 'nullable|string|max:255',
+            'preferred_locations'   => 'nullable|array',
+            'preferred_modes'       => 'nullable|array',
+            // 'best_way_to_connect'   => 'nullable|string|max:255',
             
         ]);
 
-        if($validator->fails()) return response()->json(['errors'=>$validator->errors()],422);
-
-        if((int)$request->captcha !== (int)session('captcha_answer')) {
-            return response()->json(['errors'=>['captcha'=>['Invalid captcha']]],422);
+           if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Check OTP
-        $emailVerified = DB::table('user_otps')->where('identifier',$request->email)->where('purpose','direct_enquiry')->whereNotNull('verified_at')->exists();
-        $phoneVerified = DB::table('user_otps')->where('identifier',$request->phone)->where('purpose','direct_enquiry')->whereNotNull('verified_at')->exists();
-        if(!$emailVerified || !$phoneVerified) return response()->json(['errors'=>['otp'=>['Verify email and phone first']]],422);
+        if ((int) $request->captcha !== (int) session('captcha_answer')) {
+            return response()->json([
+                'errors' => ['captcha' => ['Invalid captcha']]
+            ], 422);
+        }
+
+        // OTP verification
+        $emailVerified = DB::table('user_otps')
+            ->where('identifier', $request->email)
+            ->where('purpose', 'direct_enquiry')
+            ->whereNotNull('verified_at')
+            ->exists();
+
+        $phoneVerified = DB::table('user_otps')
+            ->where('identifier', $request->phone)
+            ->where('purpose', 'direct_enquiry')
+            ->whereNotNull('verified_at')
+            ->exists();
+
+        if (!$emailVerified || !$phoneVerified) {
+            return response()->json([
+                'errors' => ['otp' => ['Verify email and phone first']]
+            ], 422);
+        }
 
         $data = $validator->validated();
-        $data['hoarding_type'] = implode(',',$data['hoarding_type']);
+
+        $data['hoarding_type'] = implode(',', $data['hoarding_type']);
+
+        // ✅ Location fallback
+        $data['preferred_locations'] =
+            empty(array_filter($request->preferred_locations ?? []))
+                ? ['Location yet to be discussed']
+                : array_values(array_filter($request->preferred_locations));
+        // $data['hoarding_location'] = implode(', ', $request->preferred_locations);
+
         unset($data['captcha']);
 
         $enquiry = DirectEnquiry::create([
             ...$data,
-            'is_email_verified'=>true,
-            'is_phone_verified'=>true
+            // 'hoarding_location' => $data['hoarding_location'],
+            'is_email_verified' => true,
+            'is_phone_verified' => true,
         ]);
 
+        $admins = User::whereIn('active_role', ['admin', 'super_admin'])
+                  ->where('status', 'active')
+                  ->orderBy('name')
+                  ->get();
         Mail::to($enquiry->email)->queue(new UserDirectEnquiryConfirmation($enquiry));
-        Mail::to('admin@oohapp.com')->queue(new AdminDirectEnquiryMail($enquiry));
-        Notification::send(User::where('active_role','admin')->get(), new AdminDirectEnquiryNotification($enquiry));
+        foreach($admins as $admin) {
+            Mail::to($admin->email)->queue(new AdminDirectEnquiryMail($enquiry));
+        }
+        Notification::send($admins, new AdminDirectEnquiryNotification($enquiry));
         session()->forget('captcha_answer');
 
-        return response()->json(['success'=>true]);
+        return response()->json(['success' => true]);
     }
 }

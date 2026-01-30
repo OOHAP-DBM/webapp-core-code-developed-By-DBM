@@ -304,5 +304,31 @@
         document.getElementById('logoutModal').classList.add('hidden');
     }
 </script>
+<script>
+function toggleShortlist(btn) {
+    const hoardingId = btn.dataset.id;
+    if (!hoardingId) return;
+
+    fetch(`/customer/shortlist/toggle/${hoardingId}`, {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": document
+                .querySelector('meta[name="csrf-token"]')
+                .getAttribute("content"),
+            "Accept": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) return;
+
+        // Toggle visual state
+        btn.classList.toggle('is-wishlisted');
+        btn.classList.toggle('bg-[#daf2e7]');
+        btn.classList.toggle('bg-[#9e9e9b]');
+    });
+}
+</script>
+
 </body>
 </html>

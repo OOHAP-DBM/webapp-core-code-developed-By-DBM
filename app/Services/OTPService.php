@@ -35,7 +35,7 @@ class OTPService
 
         // Generate 4-digit OTP
         $otp = random_int(1000, 9999);
-        $otp = 1234; // For testing  
+        // $otp = 1234; // For testing  
 
         \App\Models\UserOtp::create([
             'user_id' => $userId,
@@ -44,6 +44,7 @@ class OTPService
             'purpose' => $purpose,
             'expires_at' => now()->addMinutes(self::OTP_EXPIRY_MINUTES),
         ]);
+ \Log::info("otpis" . $otp);
 
         // Send OTP
         $this->sendOTP($identifier, $otp);
