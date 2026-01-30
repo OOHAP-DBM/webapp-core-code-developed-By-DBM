@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Modules\Cart\Services\CartService;
 
 class ShortlistController extends Controller
 {
@@ -22,15 +23,18 @@ class ShortlistController extends Controller
      *
      * @return View
      */
-    public function index(): View
+    public function index(CartService $cartService): View
     {
+        $cartIds = app(CartService::class)
+        ->getCartHoardingIds();
+        $wishlistCount = auth()->user()->wishlist()->count();
         $wishlist = auth()->user()
             ->wishlist()
             ->with('hoarding')
             ->latest()
             ->paginate(12);
 
-        return view('customer.shortlist', compact('wishlist'));
+        return view('customer.shortlist', compact('wishlist','cartIds','wishlistCount'));
     }
 
     /**

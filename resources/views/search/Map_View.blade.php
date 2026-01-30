@@ -32,43 +32,44 @@
                             <div class="relative group">
                                 <img src="{{ $mainImage }}"
                                     class="w-full h-30 object-cover rounded-lg">
+
                                 <!-- RECOMMENDED TAG -->
                                 <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded z-10">
                                     RECOMMENDED
                                 </span>
+
                                 <!-- SAVE (BOOKMARK) ICON -->
+                                 @php
+                                    $isWishlisted = auth()->check()
+                                        ? auth()->user()->wishlist()->where('hoarding_id', $item->id)->exists()
+                                        : false;
+                                @endphp
+
                                 <button
-                                    class="absolute top-2 right-2 z-10
-                                        bg-[#9e9e9b]
-                                        rounded-full p-1.5 shadow">
-                                    <!-- wishlist svg -->
-                                    <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M5.5 0.75C2.877 0.75 0.75 3.01 0.75 5.797C0.75 11.375 9.75 17.75 9.75 17.75C9.75 17.75 18.75 11.375 18.75 5.797C18.75 2.344 16.623 0.75 14 0.75C12.14 0.75 10.53 1.886 9.75 3.54C8.97 1.886 7.36 0.75 5.5 0.75Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                </button>
-                                <!-- VIEW (EYE) ICON -->
-                                <!-- <button
-                                    class="absolute bottom-2 left-2 z-10
-                                        bg-white/90 hover:bg-white
-                                        border border-gray-200
-                                        rounded-full p-1.5 shadow"> -->
-                                    <!-- eye svg -->
-                                    <!-- <svg xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        class="w-4 h-4 text-gray-700">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M2.458 12C3.732 7.943 7.523 5 12 5
-                                                c4.477 0 8.268 2.943 9.542 7
-                                                -1.274 4.057-5.065 7-9.542 7
-                                                -4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </button> -->
+                                        class="absolute top-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center shortlist-btn
+                                            {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }}"
+                                        data-id="{{ $item->id }}"
+                                        style="cursor:pointer;"
+                                        onclick="event.stopPropagation(); toggleShortlist(this);"
+                                    >
+                                        <svg
+                                            class="wishlist-icon"
+                                            width="20"
+                                            height="19"
+                                            viewBox="0 0 20 19"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path
+                                                d="M5.5 0.75C2.877 0.75 0.75 3.01 0.75 5.797C0.75 11.375 9.75 17.75 9.75 17.75C9.75 17.75 18.75 11.375 18.75 5.797C18.75 2.344 16.623 0.75 14 0.75C12.14 0.75 10.53 1.886 9.75 3.54C8.97 1.886 7.36 0.75 5.5 0.75Z"
+                                                stroke="white"
+                                                stroke-width="1.5"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+                                        </svg>
+                                    </button>
                             </div>
+
                             <div class="flex gap-2 mt-2">
                                 @if($thumbs->isNotEmpty())
                                     <div class="flex gap-2 mt-2">

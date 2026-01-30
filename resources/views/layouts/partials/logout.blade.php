@@ -40,7 +40,7 @@
                     Cancel
                 </button>
 
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout') }}" onsubmit="clearAllSessionBeforeLogout()">
                     @csrf
                     <button
                         type="submit"
@@ -54,3 +54,16 @@
         </div>
     </div>
 </div>
+<script>
+function clearAllSessionBeforeLogout() {
+    sessionStorage.clear();
+    localStorage.clear();
+
+    // optional safety
+    document.cookie.split(";").forEach(c => {
+        document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+}
+</script>

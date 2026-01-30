@@ -1,6 +1,6 @@
 <!-- Direct Enquiry Modal -->
 <div id="directEnquiryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden p-4">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden max-h-[90vh] overflow-y-auto scrollbar-hide">
         
         <!-- Header -->
         <div class="bg-[#009A5C] p-6 text-white flex justify-between items-center sticky top-0 z-10">
@@ -22,12 +22,12 @@
             </div>
 
             <!-- Phone -->
-            <div>
+            <div class="md:col-span-2">
                 <label class="text-xs font-bold text-gray-500 uppercase">Phone Number <span class="text-red-500">*</span></label>
                 <div class="flex gap-2 items-center">
                     <input type="tel" id="phoneInput" name="phone" required maxlength="10" placeholder="10 digit mobile number" 
                         class="flex-1 border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]">
-                    <button type="button" id="sendPhoneOtpBtn" onclick="sendOTP('phone')" class="text-xs px-3 py-1 bg-[#009A5C] text-white rounded">Send OTP</button>
+                    <button type="button" id="sendPhoneOtpBtn" onclick="sendOTP('phone')" class="text-xs px-3 py-1 bg-[#000000] text-white rounded">Send OTP</button>
                     <span id="phoneVerifiedText" class="hidden text-green-600 text-xs font-semibold ml-2">Verified</span>
                 </div>
                 <input type="hidden" id="phone_verified" value="0">
@@ -39,7 +39,7 @@
                 <div class="flex gap-2 items-center">
                     <input type="email" id="emailInput" name="email" required placeholder="example@domain.com" 
                         class="flex-1 border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]">
-                    <button type="button" id="sendEmailOtpBtn" onclick="sendOTP('email')" class="text-xs px-3 py-1 bg-[#009A5C] text-white rounded">Send OTP</button>
+                    <button type="button" id="sendEmailOtpBtn" onclick="sendOTP('email')" class="text-xs px-3 py-1 bg-[#000000] text-white rounded">Send OTP</button>
                     <span id="emailVerifiedText" class="hidden text-green-600 text-xs font-semibold ml-2">Verified</span>
                 </div>
                 <input type="hidden" id="email_verified" value="0">
@@ -64,14 +64,24 @@
                     class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C] transition-colors">
             </div>
             <!-- Preferred Locations -->
-            <div class="md:col-span-2">
-                <label class="text-xs font-bold text-gray-500 uppercase">Preferred Hoarding Locations</label>
-                <div id="locationWrapper" class="flex flex-col gap-2">
+           <div class="md:col-span-2">
+            <label class="text-xs font-bold text-gray-500 uppercase">
+                Preferred Hoarding Locations
+            </label>
+
+            <div id="locationWrapper" class="flex flex-col gap-3 mt-2">
+                <div class="flex items-center gap-2 location-item">
                     <input type="text" name="preferred_locations[]" placeholder="Enter location e.g. Hazratganj"
-                        class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]" />
+                        class="flex-1 border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]" />
                 </div>
-                <button type="button" onclick="addAnotherLocation()" class="mt-2 text-[#009A5C] font-semibold hover:underline">+ Add Another Location</button>
             </div>
+
+            <button type="button" onclick="addAnotherLocation()"
+                class="mt-2 text-[#009A5C] font-semibold hover:underline">
+                + Add Another Location
+            </button>
+        </div>
+
 
           
 
@@ -183,6 +193,10 @@ function regenerateCaptcha() {
 
 /* =====================================================
    LOCATIONS
+}
+
+/* =====================================================
+   LOCATIONS
 ===================================================== */
 function addAnotherLocation() {
     const wrapper = document.getElementById('locationWrapper');
@@ -194,8 +208,14 @@ function addAnotherLocation() {
     wrapper.appendChild(input);
 }
 
-/* =====================================================
-   OTP LOGIC
+function sendOTP(type) {
+    const identifier = type === 'phone' ? phoneInput.value : emailInput.value;
+    if (!identifier) return alert(`Enter ${type}`);
+    if (type === 'phone' && identifier.length !== 10) {
+        return alert('Phone number must be exactly 10 digits.');
+    }
+    if (type === 'email' && !/^\S+@\S+\.\S+$/.test(identifier)) {
+        return alert('Enter a valid email address.');
     }
     if (otpCooldown) return Swal.fire({
         icon: 'warning',
