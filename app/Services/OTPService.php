@@ -44,6 +44,7 @@ class OTPService
             'purpose' => $purpose,
             'expires_at' => now()->addMinutes(self::OTP_EXPIRY_MINUTES),
         ]);
+ \Log::info("otpis" . $otp);
 
         // Send OTP
         $this->sendOTP($identifier, $otp);
