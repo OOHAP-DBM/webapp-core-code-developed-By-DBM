@@ -326,7 +326,12 @@ function toggleShortlist(btn) {
         btn.classList.toggle('is-wishlisted');
         btn.classList.toggle('bg-[#daf2e7]');
         btn.classList.toggle('bg-[#9e9e9b]');
-    });
+
+          setTimeout(() => {
+            window.location.reload();
+            }, 200);
+        })
+    .catch(err => console.error(err));
 }
 </script>
 

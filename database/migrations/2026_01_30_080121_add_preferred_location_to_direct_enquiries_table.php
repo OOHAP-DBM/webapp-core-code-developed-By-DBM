@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('direct_enquiries', function (Blueprint $table) {
-            if (!Schema::hasColumn('direct_enquiries', 'preferred_location')) {
-                $table->text('preferred_location')
+            if (!Schema::hasColumn('direct_enquiries', 'preferred_locations')) {
+                $table->text('preferred_locations')
                       ->nullable()
                       ->after('location_city');
             }
@@ -20,8 +20,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('direct_enquiries', function (Blueprint $table) {
-            if (Schema::hasColumn('direct_enquiries', 'preferred_location')) {
-                $table->dropColumn('preferred_location');
+            if (Schema::hasColumn('direct_enquiries', 'preferred_locations')) {
+                $table->dropColumn('preferred_locations');
             }
         });
     }

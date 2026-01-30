@@ -19,6 +19,33 @@ use Carbon\Carbon;
 
 class DirectEnquiryController extends Controller
 {
+    public function index(Request $request)
+    {
+        $query = DirectEnquiry::query();
+
+        // 🔍 Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                ->orWhere('email', 'like', "%$search%")
+                ->orWhere('phone', 'like', "%$search%")
+                ->orWhere('location_city', 'like', "%$search%");
+            });
+        }
+
+        // 📌 Status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $enquiries = $query
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.enquiries.directenquiry-index', compact('enquiries'));
+    }
     public function regenerateCaptcha()
     {
         $num1 = rand(1, 9);

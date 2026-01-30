@@ -963,6 +963,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/notifications', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::get('/direct-enquiries', [DirectEnquiryController::class,'index'])->name('direct-enquiries.index');
 });
 
 // ============================================

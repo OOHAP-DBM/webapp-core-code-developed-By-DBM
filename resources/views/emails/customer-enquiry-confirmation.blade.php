@@ -141,6 +141,22 @@
             <p>Thanks for choosing OOHApp.</p>
             <p>Best,<br><strong>Team OOHApp</strong></p>
         </div>
+        <!-- DISCLAIMER -->
+        <div style="
+            margin-top: 25px;
+            padding-top: 12px;
+            border-top: 1px dashed #ddd;
+            font-size: 9px;
+            color: #777;
+            line-height: 1.5;
+        ">
+            <strong style="color:#555;">Disclaimer:</strong>
+            OOHAPP helps you discover and connect with verified advertising space owners.
+            All pricing, availability, and campaign details are shared directly by the vendor.
+            Any discussions or confirmations take place between you and the selected vendor.
+            OOHAPP remains a facilitating platform and does not take part in deal discussions or execution.
+        </div>
+
 
         <div class="footer">
             <p>&copy; 2026 OOHApp. All rights reserved.</p>
