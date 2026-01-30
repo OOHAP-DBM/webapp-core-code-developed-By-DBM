@@ -77,167 +77,7 @@
       </div>
     </div>
 
-    <!-- Hoarding Location -->
-    <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-      <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
-        <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-        Hoarding Location
-      </h3>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
-        <div class="space-y-2">
-          <label class="text-sm font-bold text-gray-700">Hoarding Address <span class="text-red-500">*</span></label>
-          <input type="text" name="address" placeholder="eg. Opposite Ram Dharam Kanta B43 Sector 7" required 
-            value="{{ old('address', $draft->hoarding->address ?? '') }}"
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-bold text-gray-700">Pincode <span class="text-red-500">*</span></label>
-          <input type="text" name="pincode" 
-            value="{{ old('pincode', $draft->hoarding->pincode ?? '') }}" 
-            placeholder="eg. 226010" required 
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-bold text-gray-700">Locality <span class="text-red-500">*</span></label>
-          <input type="text" name="locality" 
-            value="{{ old('locality', $draft->hoarding->locality ?? '') }}" 
-            placeholder="eg. Indira Nagar" required 
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div class="space-y-2">
-            <label class="text-sm font-bold text-gray-700">City</label>
-            <input type="text" name="city" 
-              value="{{ old('city', $draft->hoarding->city ?? '') }}" 
-              placeholder="eg. Lucknow" 
-              class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
-          </div>
-          <div class="space-y-2">
-            <label class="text-sm font-bold text-gray-700">State</label>
-            <input type="text" name="state" 
-              value="{{ old('state', $draft->hoarding->state ?? '') }}" 
-              placeholder="eg. Uttar Pradesh" 
-              class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-8 space-y-4">
-        <!-- Nearby Landmarks -->
-        <div class="flex items-center justify-between">
-          <label class="text-sm font-bold text-gray-700">Nearby Landmarks</label>
-          <button type="button" id="addLandmarkBtn" class="bg-[#1A1A1A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-all">
-            + Add another landmark
-          </button>
-        </div>
-        <div class="space-y-3" id="landmarksContainer">
-          @php
-            $landmarks = old('landmarks', isset($draft->hoarding->landmarks) ? (is_array($draft->hoarding->landmarks) ? $draft->hoarding->landmarks : json_decode($draft->hoarding->landmarks, true)) : []);
-            if (empty($landmarks)) $landmarks = [''];
-          @endphp
-          @foreach($landmarks as $index => $landmark)
-            <input type="text" name="landmarks[]" 
-              value="{{ $landmark }}" 
-              placeholder="eg. Opposite Ram Dharam Kanta" 
-              class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none">
-          @endforeach
-        </div>
-      </div>
-
-      <!-- Location Verification Section -->
-      <div class="mt-8 bg-[#FBFBFB] rounded-3xl border border-gray-100 p-5 sm:p-6 md:p-8 space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <h3 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
-              <span class="w-2 h-2 bg-[#009A5C] rounded-full"></span>
-              Location Verification
-            </h3>
-            <p class="text-xs sm:text-sm text-gray-500 mt-1 max-w-md">
-              Confirm the exact physical location of your hoarding using the map.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            id="geotagBtn"
-            class="w-full sm:w-auto inline-flex justify-center items-center gap-2
-                  bg-[#009A5C] text-white text-sm font-bold
-                  px-4 sm:px-6 py-3 rounded-xl
-                  shadow-sm hover:bg-green-700 active:scale-95 transition">
-            📍 Confirm Location
-          </button>
-        </div>
-
-        <div id="location-error" class="text-xs text-red-500 hidden"></div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-          <div class="space-y-1">
-            <label class="text-sm font-bold text-gray-700">
-              Latitude <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="lat"
-              id="lat"
-              
-              required
-              value="{{ old('lat', $draft->hoarding->latitude ?? '') }}"
-              placeholder="Auto-filled after confirmation"
-              class="w-full  border border-gray-200 rounded-xl
-                    px-4 py-3 text-sm font-mono text-gray-900"
-            />
-          </div>
-
-          <div class="space-y-1">
-            <label class="text-sm font-bold text-gray-700">
-              Longitude <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="lng"
-              id="lng"
-              
-              required
-              value="{{ old('lng', $draft->hoarding->longitude ?? '') }}" 
-              placeholder="Auto-filled after confirmation"
-              class="w-full  border border-gray-200 rounded-xl
-                    px-4 py-3 text-sm font-mono text-gray-900"
-            />
-          </div>
-        </div>
-
-        <div
-          id="geotagSuccess"
-          class="hidden flex items-center gap-2
-                bg-green-50 border border-green-200
-                text-green-700 text-sm
-                px-4 py-3 rounded-xl">
-          <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L9 13.414l4.707-4.707z"
-              clip-rule="evenodd" />
-          </svg>
-          <span>Location confirmed and locked</span>
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-bold text-gray-700">Map Preview</label>
-          <div class="relative rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-            <div id="map" class="w-full h-[300px] sm:h-[320px]"></div>
-            <div class="absolute bottom-2 right-2
-                        bg-white/90 backdrop-blur
-                        text-xs text-gray-600
-                        px-3 py-1 rounded-lg shadow">
-              Drag pin to adjust
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  @include('components.hoardings.create.location')
 
     <!-- Pricing Details -->
     <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
@@ -359,110 +199,110 @@
 
 <script>
 /* MAP + GEOCODING */
-let map, marker;
+// let map, marker;
 
-const addressInput  = document.querySelector('input[name="address"]');
-const localityInput = document.querySelector('input[name="locality"]');
-const cityInput     = document.querySelector('input[name="city"]');
-const stateInput    = document.querySelector('input[name="state"]');
-const pincodeInput  = document.querySelector('input[name="pincode"]');
-const latInput   = document.getElementById('lat');
-const lngInput   = document.getElementById('lng');
-const errorBox   = document.getElementById('location-error');
-const geotagBtn  = document.getElementById('geotagBtn');
+// const addressInput  = document.querySelector('input[name="address"]');
+// const localityInput = document.querySelector('input[name="locality"]');
+// const cityInput     = document.querySelector('input[name="city"]');
+// const stateInput    = document.querySelector('input[name="state"]');
+// const pincodeInput  = document.querySelector('input[name="pincode"]');
+// const latInput   = document.getElementById('lat');
+// const lngInput   = document.getElementById('lng');
+// const errorBox   = document.getElementById('location-error');
+// const geotagBtn  = document.getElementById('geotagBtn');
 
-const INDIA_CENTER = [20.5937, 78.9629];
+// const INDIA_CENTER = [20.5937, 78.9629];
 
-map = L.map('map').setView(INDIA_CENTER, 5);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap'
-}).addTo(map);
+// map = L.map('map').setView(INDIA_CENTER, 5);
+// L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+//   attribution: '© OpenStreetMap'
+// }).addTo(map);
 
-marker = L.marker(INDIA_CENTER, { draggable: true }).addTo(map);
+// marker = L.marker(INDIA_CENTER, { draggable: true }).addTo(map);
 
-marker.on('dragend', () => {
-  const pos = marker.getLatLng();
-  latInput.value = pos.lat.toFixed(6);
-  lngInput.value = pos.lng.toFixed(6);
-});
+// marker.on('dragend', () => {
+//   const pos = marker.getLatLng();
+//   latInput.value = pos.lat.toFixed(6);
+//   lngInput.value = pos.lng.toFixed(6);
+// });
 
-// Restore map if lat/lng exist
-document.addEventListener('DOMContentLoaded', function() {
-  const savedLat = latInput.value;
-  const savedLng = lngInput.value;
+// // Restore map if lat/lng exist
+// document.addEventListener('DOMContentLoaded', function() {
+//   const savedLat = latInput.value;
+//   const savedLng = lngInput.value;
   
-  if (savedLat && savedLng) {
-    const lat = parseFloat(savedLat);
-    const lng = parseFloat(savedLng);
-    if (!isNaN(lat) && !isNaN(lng)) {
-      map.setView([lat, lng], 15);
-      marker.setLatLng([lat, lng]);
-      document.getElementById('geotagSuccess').classList.remove('hidden');
-    }
-  }
+//   if (savedLat && savedLng) {
+//     const lat = parseFloat(savedLat);
+//     const lng = parseFloat(savedLng);
+//     if (!isNaN(lat) && !isNaN(lng)) {
+//       map.setView([lat, lng], 15);
+//       marker.setLatLng([lat, lng]);
+//       document.getElementById('geotagSuccess').classList.remove('hidden');
+//     }
+//   }
   
-  // Auto-calculate size preview
-  updateSizePreview();
+//   // Auto-calculate size preview
+//   updateSizePreview();
   
-  // Initialize upload count
-  updateUploadCount();
-});
+//   // Initialize upload count
+//   updateUploadCount();
+// });
 
-function buildAddress() {
-  return [
-    localityInput.value,
-    cityInput.value,
-    stateInput.value,
-    pincodeInput.value,
-    'India'
-  ].filter(Boolean).join(', ');
-}
+// function buildAddress() {
+//   return [
+//     localityInput.value,
+//     cityInput.value,
+//     stateInput.value,
+//     pincodeInput.value,
+//     'India'
+//   ].filter(Boolean).join(', ');
+// }
 
-function showError(msg) {
-  errorBox.textContent = msg;
-  errorBox.classList.remove('hidden');
-}
+// function showError(msg) {
+//   errorBox.textContent = msg;
+//   errorBox.classList.remove('hidden');
+// }
 
-function hideError() {
-  errorBox.textContent = '';
-  errorBox.classList.add('hidden');
-}
+// function hideError() {
+//   errorBox.textContent = '';
+//   errorBox.classList.add('hidden');
+// }
 
-async function geocodeAddress() {
-  hideError();
-  const address = buildAddress();
+// async function geocodeAddress() {
+//   hideError();
+//   const address = buildAddress();
 
-  if (address.length < 10) {
-    showError('Please enter complete address details.');
-    return;
-  }
+//   if (address.length < 10) {
+//     showError('Please enter complete address details.');
+//     return;
+//   }
 
-  const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=in&q=${encodeURIComponent(address)}`;
+//   const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=in&q=${encodeURIComponent(address)}`;
 
-  try {
-    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    const data = await res.json();
+//   try {
+//     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+//     const data = await res.json();
 
-    if (!data.length) {
-      showError('Location not found. Please refine address.');
-      return;
-    }
+//     if (!data.length) {
+//       showError('Location not found. Please refine address.');
+//       return;
+//     }
 
-    const result = data[0];
-    const lat = parseFloat(result.lat);
-    const lng = parseFloat(result.lon);
+//     const result = data[0];
+//     const lat = parseFloat(result.lat);
+//     const lng = parseFloat(result.lon);
 
-    latInput.value = lat.toFixed(6);
-    lngInput.value = lng.toFixed(6);
-    map.setView([lat, lng], 15);
-    marker.setLatLng([lat, lng]);
-    document.getElementById('geotagSuccess').classList.remove('hidden');
-  } catch (e) {
-    showError('Unable to fetch location. Try again.');
-  }
-}
+//     latInput.value = lat.toFixed(6);
+//     lngInput.value = lng.toFixed(6);
+//     map.setView([lat, lng], 15);
+//     marker.setLatLng([lat, lng]);
+//     document.getElementById('geotagSuccess').classList.remove('hidden');
+//   } catch (e) {
+//     showError('Unable to fetch location. Try again.');
+//   }
+// }
 
-geotagBtn.addEventListener('click', geocodeAddress);
+// geotagBtn.addEventListener('click', geocodeAddress);
 
 // Size Preview
 const widthInput = document.getElementById('width');

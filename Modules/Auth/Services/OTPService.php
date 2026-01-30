@@ -41,7 +41,6 @@ class OTPService
 
         // 3. Generate 4-digit OTP (This uses the method in your User model)
         $otp = $user->generateOTP();
-
         // 4. Send the OTP
         $this->sendOTP($user, $otp);
 

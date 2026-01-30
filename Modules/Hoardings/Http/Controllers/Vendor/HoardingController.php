@@ -356,7 +356,9 @@ class HoardingController extends Controller
         } else {
             $filters = [
                 'vendor_id' => $vendor->id,
-                'status' => ['active', 'inactive', 'pending_approval']
+                'status' => ['active', 'inactive', 'pending_approval'],
+                'order_by' => 'updated_at',
+                'order_dir' => 'desc',
             ];
             if ($search) {
                 $filters['search'] = $search;
