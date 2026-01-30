@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\Customer\ProfileController;
 use Modules\Search\Controllers\SearchController;
 use Modules\Cart\Controllers\Web\CartController;
 use Modules\Enquiries\Controllers\Web\DirectEnquiryController;
+use Modules\POS\Controllers\Api\POSBookingController;
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -64,7 +65,10 @@ Route::prefix('vendor/pos')->middleware(['auth', 'role:vendor'])->name('vendor.p
     Route::get('/bookings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'index'])->name('list');
     Route::get('/create', [\Modules\POS\Controllers\Web\VendorPosController::class, 'create'])->name('create');
     Route::get('/bookings/{id}', [\Modules\POS\Controllers\Web\VendorPosController::class, 'show'])->name('show');
-     Route::get('/customers', [App\Http\Controllers\Vendor\POSController::class, 'customers'])->name('customers');
+     Route::get('/customers', [\Modules\POS\Controllers\Web\VendorPosController::class, 'customers'])->name('customers');
+     
+    Route::get('/customers/{id}', [\Modules\POS\Controllers\Web\VendorPosController::class, 'showCustomer'])->name('customers.show');
+
 
     // AJAX API Routes (Web-based, not REST API)
 
@@ -401,6 +405,17 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 // ============================================
 // VENDOR PANEL (Authenticated)
 // ============================================
+
+Route::prefix('/vendor/pos/api/')
+    ->middleware(['web', 'auth', 'role:vendor'])
+    ->group(function () {
+
+        Route::get('/bookings/{bookingId}', [POSBookingController::class, 'show']);
+        Route::post('/bookings/{bookingId}/mark-paid', [POSBookingController::class, 'markAsPaid']);
+        Route::post('/bookings/{bookingId}/release', [POSBookingController::class, 'release']);
+        Route::post('/bookings/{bookingId}/send-reminder', [POSBookingController::class, 'sendReminder']);
+    });
+
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
     // Dashboard (PROMPT 26)
     Route::get('/dashboard', [\App\Http\Controllers\Vendor\DashboardController::class, 'index'])->name('dashboard');
@@ -572,8 +587,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::get('/list', function () {
                 return view('vendor.pos.list');
             })->name('list');
-            Route::get('/bookings/{id}', function ($id) {
-                return view('vendor.pos.show', compact('id'));
+            Route::get('/bookings/{id}', function ($bookingId) {
+                return view('vendor.pos.show', compact('bookingId'));
             })->name('bookings.show');
         });
         

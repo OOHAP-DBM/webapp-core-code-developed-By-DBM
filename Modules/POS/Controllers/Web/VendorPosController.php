@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Modules\POS\Services\POSBookingService;
 use Modules\POS\Models\POSBookingHoarding;
+use Modules\POS\Models\PosCustomer;
 use App\Models\Hoarding;
 use App\Models\User;
 use Modules\Hoardings\Models\HoardingMedia;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Modules\POS\Models\POSBooking;
 class VendorPosController extends Controller
 {
     protected POSBookingService $posBookingService;
@@ -61,7 +63,7 @@ class VendorPosController extends Controller
     public function show($id)
     {
         $booking = POSBooking::findOrFail($id);
-        \Log::info($booking);
+        \Log::info("this is".$booking);
 
         // The view will fetch booking details via API
         return view('vendor.pos.show', ['bookingId' => $id]);
@@ -495,7 +497,7 @@ class VendorPosController extends Controller
                 'customer_email' => $validated['customer_email'],
                 'customer_phone' => $validated['customer_phone'],
                 'customer_address' => $validated['customer_address'],
-                'customer_gstin' => $validated['customer_gstin'],
+                'customer_gstin' => $validated['customer_gstin']??null,
                 'booking_type' => $validated['booking_type'],
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
@@ -508,7 +510,7 @@ class VendorPosController extends Controller
                 'payment_mode' => $validated['payment_mode'],
                 'payment_reference' => $validated['payment_reference'],
                 'payment_notes' => $validated['payment_notes'],
-                'notes' => $validated['notes'],
+                'notes' => $validated['notes']??null,
                 'status' => 'draft',
                 'payment_status' => 'unpaid',
             ];
@@ -800,4 +802,114 @@ class VendorPosController extends Controller
             ], 500);
         }
     }
+
+      public function customers()
+    {
+        $vendorId = Auth::id();
+
+        // 1. Get all user_ids from bookings for this vendor
+        $bookingCustomers = POSBooking::where('vendor_id', $vendorId)
+            ->whereNotNull('customer_id')
+            ->pluck('customer_id')
+            ->unique()
+            ->toArray();
+
+        // 2. Get all user_ids from pos_customers for this vendor
+        $posCustomerUserIds = PosCustomer::where('vendor_id', $vendorId)
+            ->whereNotNull('user_id')
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+
+        // 3. Merge and deduplicate user_ids
+        $allUserIds = collect($bookingCustomers)
+            ->merge($posCustomerUserIds)
+            ->unique()
+            ->filter()
+            ->values()
+            ->toArray();
+
+        // 4. Fetch all users
+        $users = User::whereIn('id', $allUserIds)
+            ->with(['posProfile' => function($q) use ($vendorId) {
+                $q->where('vendor_id', $vendorId);
+            }])
+            ->get();
+
+        // 5. For each user, calculate metrics
+        $customers = $users->map(function ($user) use ($vendorId) {
+            // Get all bookings for this user and vendor
+            $bookings = POSBooking::where('vendor_id', $vendorId)
+                ->where('customer_id', $user->id)
+                ->get();
+
+            $totalBookings = $bookings->count();
+            $totalSpent = $bookings->sum('total_amount');
+            $lastBookingAt = $bookings->max('created_at');
+
+            // Prefer posProfile business name if exists
+            $name = $user->name;
+            if ($user->posProfile && $user->posProfile->business_name) {
+                $name = $user->posProfile->business_name;
+            }
+
+            return [
+                'id' => $user->id, // Use user_id as customer ID
+                'name' => $name,
+                'phone' => $user->phone,
+                'email' => $user->email,
+                'total_bookings' => $totalBookings,
+                'total_spent' => $totalSpent,
+                'last_booking_at' => $lastBookingAt,
+                'is_active' => $totalBookings > 0,
+            ];
+        });
+
+        $totalCustomers = $customers->count();
+
+        return view('vendor.pos.customers', compact('customers', 'totalCustomers'));
+    }
+
+    public function showCustomer($id)
+    {
+        $vendorId = Auth::id();
+
+        // Find user by ID
+        $user = User::findOrFail($id);
+
+        // Get POS profile for this vendor (if exists)
+        $posProfile = $user->posProfile()->where('vendor_id', $vendorId)->first();
+
+        // Get all bookings for this user and vendor
+        $bookings = POSBooking::where('vendor_id', $vendorId)
+            ->where('customer_id', $user->id)
+            ->get();
+
+        $totalBookings = $bookings->count();
+        $totalSpent = $bookings->sum('total_amount');
+        $lastBookingAt = $bookings->max('created_at');
+
+        // Prefer posProfile business name if exists
+        $name = $user->name;
+        if ($posProfile && $posProfile->business_name) {
+            $name = $posProfile->business_name;
+        }
+
+        $customer = [
+            'id' => $user->id,
+            'name' => $name,
+            'phone' => $user->phone,
+            'email' => $user->email,
+            'total_bookings' => $totalBookings,
+            'total_spent' => $totalSpent,
+            'last_booking_at' => $lastBookingAt,
+            'is_active' => $totalBookings > 0,
+            'pos_profile' => $posProfile,
+            'bookings' => $bookings,
+        ];
+
+        return view('vendor.pos.customers.show', compact('customer'));
+    }
+
+
 }

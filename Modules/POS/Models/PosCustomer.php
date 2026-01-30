@@ -6,6 +6,7 @@ namespace Modules\POS\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\User;
 
 class PosCustomer extends Model
 {
@@ -40,6 +41,11 @@ class PosCustomer extends Model
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'vendor_id');
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(\Modules\POS\Models\PosBooking::class, 'customer_id');
     }
 
    

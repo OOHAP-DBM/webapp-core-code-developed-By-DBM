@@ -103,7 +103,9 @@ class POSController extends Controller
         $vendor = Auth::user();
         $invoice = $vendor->invoices()
             ->with(['customer', 'items'])
-            ->findOrFail($id);        
+            ->findOrFail($id);
+
+        \Log::info("that  is" . $invoice);
         return view('vendor.pos.show', compact('invoice'));
     }
     
@@ -175,4 +177,9 @@ class POSController extends Controller
             'message' => 'Invoice status updated successfully!',
         ]);
     }
+
+        /**
+     * POS Customers page for OohApp POS system
+     */
+
 }

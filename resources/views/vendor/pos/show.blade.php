@@ -100,16 +100,16 @@
 
 <script>
 const bookingId = @json($bookingId);
-const API_URL = '/api/v1/vendor/pos';
-const TOKEN = localStorage.getItem('token');
+const API_URL = '/vendor/pos/api';
+// const TOKEN = localStorage.getItem('token');
 let currentBooking = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (!TOKEN) {
-        showActionMessage('Session expired. Please log in again.', 'error');
-        setTimeout(() => window.location.href = '/login', 2000);
-        return;
-    }
+    // if (!TOKEN) {
+    //     showActionMessage('Session expired. Please log in again.', 'error');
+    //     setTimeout(() => window.location.href = '/login', 2000);
+    //     return;
+    // }
 
     loadBookingDetails();
     // Refresh countdown every minute
@@ -123,16 +123,16 @@ async function loadBookingDetails() {
     try {
         const response = await fetch(`${API_URL}/bookings/${bookingId}`, {
             headers: {
-                'Authorization': 'Bearer ' + TOKEN,
                 'Accept': 'application/json'
-            }
+            },
+            credentials: 'same-origin'
         });
 
-        if (response.status === 401) {
-            showActionMessage('Session expired. Please log in again.', 'error');
-            setTimeout(() => window.location.href = '/login', 2000);
-            return;
-        }
+        // if (response.status === 401) {
+        //     showActionMessage('Session expired. Please log in again.', 'error');
+        //     setTimeout(() => window.location.href = '/login', 2000);
+        //     return;
+        // }
 
         const data = await response.json();
         const container = document.getElementById('booking-details');
@@ -198,7 +198,7 @@ async function loadBookingDetails() {
                 </div>
 
                 <div>
-                    <span class="font-semibold">Status:</span>
+                    <span class="font-semibold">Booking Status:</span>
                     <span class="ml-2 px-2 py-1 rounded text-xs font-semibold ${getStatusColor(b.status)}">
                         ${b.status}
                     </span>
@@ -414,10 +414,12 @@ async function confirmMarkPaid() {
         const response = await fetch(`${API_URL}/bookings/${bookingId}/mark-paid`, {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + TOKEN,
+                // 'Authorization': 'Bearer ' + TOKEN,
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
+            credentials: 'same-origin',
             body: JSON.stringify({
                 amount: amount,
                 payment_reference: reference
@@ -463,10 +465,12 @@ async function confirmRelease() {
         const response = await fetch(`${API_URL}/bookings/${bookingId}/release`, {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + TOKEN,
+                // 'Authorization': 'Bearer ' + TOKEN,
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
+              credentials: 'same-origin',
             body: JSON.stringify({
                 reason: reason
             })
@@ -506,9 +510,10 @@ async function sendReminder() {
         const response = await fetch(`${API_URL}/bookings/${bookingId}/send-reminder`, {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + TOKEN,
-                'Accept': 'application/json'
-            }
+               'Accept': 'application/json',
+                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            credentials: 'same-origin'
         });
 
         if (response.ok) {

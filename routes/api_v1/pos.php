@@ -37,26 +37,26 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
      * POST /api/v1/vendor/pos/bookings/{id}/mark-paid
      * Body: { amount, payment_date?, notes? }
      */
-    Route::post('/bookings/{id}/mark-paid', [POSBookingController::class, 'markAsPaid']);
+    // Route::post('/bookings/{id}/mark-paid', [POSBookingController::class, 'markAsPaid']);
     
     /**
      * Release booking hold (free hoarding, cancel order)
      * POST /api/v1/vendor/pos/bookings/{id}/release
      * Body: { reason }
      */
-    Route::post('/bookings/{id}/release', [POSBookingController::class, 'releaseBooking']);
+    // Route::post('/bookings/{id}/release', [POSBookingController::class, 'releaseBooking']);
     
     /**
      * Get all bookings with pending payments (for dashboard)
      * GET /api/v1/vendor/pos/pending-payments
      */
-    Route::get('/pending-payments', [POSBookingController::class, 'getPendingPayments']);
+    // Route::get('/pending-payments', [POSBookingController::class, 'getPendingPayments']);
     
     /**
      * Send payment reminder for pending booking
      * POST /api/v1/vendor/pos/bookings/{id}/send-reminder
      */
-    Route::post('/bookings/{id}/send-reminder', [POSBookingController::class, 'sendReminder']);
+    // Route::post('/bookings/{id}/send-reminder', [POSBookingController::class, 'sendReminder']);
     
     // ============================================
     // Legacy Payment Actions (kept for compatibility)

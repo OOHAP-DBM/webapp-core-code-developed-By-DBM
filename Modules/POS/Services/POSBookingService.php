@@ -712,6 +712,7 @@ public function releaseHoardings(POSBooking $booking)
                 'payment_received_at' => $paymentDate,
                 'hold_expiry_at' => null, // Clear hold when payment received
                 'reminder_count' => 0,    // Reset reminders
+                'status' => $newStatus === POSBooking::PAYMENT_STATUS_PAID ? POSBooking::STATUS_CONFIRMED : $booking->status,
                 'last_reminder_at' => null,
             ]);
 
