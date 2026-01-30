@@ -16,7 +16,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <a href="{{ route('customer.enquiries.index') }}" class="px-5 py-2 bg-gray-200 text-sm rounded hover:bg-gray-300 transition-colors">
+            <a href="{{ url()->previous() }}" class="px-5 py-2 bg-gray-200 text-sm rounded hover:bg-gray-300 transition-colors">
                 Back to List
             </a>
         </div>

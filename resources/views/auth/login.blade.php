@@ -211,7 +211,7 @@
                             <span class="position-absolute top-50 end-0 translate-middle-y me-3"
                                 style="cursor:pointer;"
                                 id="togglePassword">
-                                <i class="fa-solid fa-eye text-muted pb-3"></i>
+                                <i class="fa-solid fa-eye text-muted pb-4"></i>
                             </span>
                             <small>Enter your password</small>
                         </div>

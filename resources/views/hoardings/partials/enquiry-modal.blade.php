@@ -122,8 +122,6 @@
 
 
 @php
-    // Only use $hoarding if it is set and not on homepage
-    // $modalHoarding is only used for SSR fallback. All dynamic data should be set by JS.
     $modalHoarding = null;
     $packages = collect();
 @endphp

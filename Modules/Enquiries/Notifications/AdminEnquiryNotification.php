@@ -42,7 +42,7 @@ class AdminEnquiryNotification extends Notification
         $totalItems = $this->enquiry->items()->count();
         return [
             'enquiry_id' => $this->enquiry->id,
-            'message' => 'New platform lead generated for ' . $totalItems . ' items.',
+            'message' => 'A new Enquiry Raised by customer ' . $totalItems . ' items.',
             'type' => 'platform_lead'
         ];
     }

@@ -87,7 +87,7 @@
                         </a>
                     </div>
                     <p style="margin: 8px 0; color: #666;">
-                        📍 {{ $item->hoarding->location ?? 'Location: N/A' }}
+                        📍 {{ $item->hoarding->display_location ?? 'Location: N/A' }}
                     </p>
                     <table style="margin-top: 10px;">
                         <tr>
