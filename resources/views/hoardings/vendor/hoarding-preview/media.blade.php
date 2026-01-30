@@ -38,6 +38,7 @@
                 class="w-full bg-gray-100 rounded-lg overflow-hidden
                     h-[220px] sm:h-[300px] md:h-[380px] lg:h-[450px]">
                 <img
+                    id="mainPreviewImage"
                     src="{{ $mainImage['url'] }}"
                     alt="Main Image"
                     class="w-full h-full object-cover"
@@ -49,7 +50,7 @@
         <div class="flex flex-col gap-2 w-24">
             @foreach($thumbs->take(6) as $img)
                 <div class="w-full aspect-[16/9] bg-gray-100 rounded-lg overflow-hidden cursor-pointer border border-gray-200 hover:border-green-500">
-                    <img src="{{ $img['url'] }}" alt="Thumbnail" class="w-full h-full object-cover" />
+                    <img src="{{ $img['url'] }}" onclick="swapPreviewImage('{{ $img['url'] }}')" alt="Thumbnail" class="w-full h-full object-cover" />
                 </div>
             @endforeach
             @if($thumbs->count() > 6)
@@ -85,4 +86,15 @@ window.addEventListener('DOMContentLoaded', function() {
     updateMainImgClass();
     window.addEventListener('resize', updateMainImgClass);
 });
+</script>
+<script>
+function swapPreviewImage(url) {
+    const mainImg = document.getElementById('mainPreviewImage');
+    if (!mainImg) return;
+
+    // Same image dobara click ho to kuch mat karo
+    if (mainImg.src === url) return;
+
+    mainImg.src = url;
+}
 </script>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Shortlisted Hoardings')
+@section('title', 'Cart Hoardings')
 
 @section('content')
 @include('components.customer.navbar')
@@ -14,7 +14,7 @@
 @endauth
 
 {{-- FULL HEIGHT LAYOUT --}}
-<div class="bg-white max-w-7xl mx-auto px-3 sm:px-4 md:px-6 p-4 sm:p-6 min-h-screen flex flex-col border-b border-gray-200">
+<div class="bg-white max-w-7xl mx-auto px-3 sm:px-4 md:px-6 p-4 sm:p-6  flex flex-col border-b border-gray-200">
 
     {{-- Breadcrumb --}}
     <p class="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4">

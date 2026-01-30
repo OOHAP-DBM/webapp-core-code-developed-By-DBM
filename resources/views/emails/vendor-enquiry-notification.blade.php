@@ -160,6 +160,21 @@
             <p>Looking forward to growing your business through OOHApp.</p>
             <p>Best,<br><strong>Team OOHApp</strong></p>
         </div>
+        <!-- DISCLAIMER -->
+        <div style="
+            margin-top: 25px;
+            padding-top: 12px;
+            border-top: 1px dashed #ddd;
+            font-size: 9px;
+            color: #777;
+            line-height: 1.5;
+        ">
+            <strong style="color:#555;">Disclaimer:</strong>
+            OOHAPP provides a platform to connect you with interested advertisers.
+            All quotations, pricing, timelines, and execution details are shared by you directly.
+            Any discussion or confirmation happens between you and the advertiser.
+            OOHAPP acts as a facilitator and does not participate in pricing or execution decisions.
+        </div>
 
         <div class="footer">
             <p>&copy; 2026 OOHApp. All rights reserved.</p>

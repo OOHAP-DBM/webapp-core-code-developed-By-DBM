@@ -5,7 +5,7 @@
 @include('components.customer.navbar')
 
 @section('content')
-<div class="bg-white min-h-screen">
+<div class="bg-white">
     <div class="max-w-[1460px] mx-auto px-6 py-6">
 
         {{-- HEADER --}}
@@ -142,93 +142,91 @@
 
                             <div class="mb-3">
 
-            @if($hoarding->hoarding_type === 'ooh')
+                                @if($hoarding->hoarding_type === 'ooh')
 
-            @php
-                $base  = $hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price;
-                $sale  = $hoarding->monthly_price_display ?? $hoarding->monthly_price;
-                $hasSale = !empty($sale) && $sale > 0;
-            @endphp
+                                    @php
+                                        $base  = $hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price;
+                                        $sale  = $hoarding->monthly_price_display ?? $hoarding->monthly_price;
+                                        $hasSale = !empty($sale) && $sale > 0;
+                                    @endphp
 
-            {{-- MAIN PRICE --}}
-            <div class="flex items-baseline">
-                <span class="text-xl font-semibold text-gray-900">
-                    ₹{{ number_format($hasSale ? $sale : $base, 0) }}
-                </span>
-                <span class="text-lg text-black font-bold ml-1">/Month</span>
-            </div>
+                                    {{-- MAIN PRICE --}}
+                                    <div class="flex items-baseline">
+                                        <span class="text-xl font-semibold text-gray-900">
+                                            ₹{{ number_format($hasSale ? $sale : $base, 0) }}
+                                        </span>
+                                        <span class="text-lg text-black font-bold ml-1">/Month</span>
+                                    </div>
 
-            {{-- CUT PRICE + DISCOUNT (ONLY IF REAL SALE) --}}
-            @if($hasSale && $base && $base > $sale)
-                <div class="flex items-center space-x-2 mt-1">
-                    <span class="text-xs text-red-500 line-through">
-                        ₹{{ number_format($base, 0) }}
-                    </span>
+                                    {{-- CUT PRICE + DISCOUNT (ONLY IF REAL SALE) --}}
+                                    @if($hasSale && $base && $base > $sale)
+                                        <div class="flex items-center space-x-2 mt-1">
+                                            <span class="text-xs text-red-500 line-through">
+                                                ₹{{ number_format($base, 0) }}
+                                            </span>
 
-                    @php
-                        $basePrice = (float) ($base ?? 0);
-                        $salePrice = (float) ($sale ?? 0);
-                        $discountAmount = 0;
-                        if ($basePrice > 0 && $salePrice > 0 && $salePrice < $basePrice) {
-                            $discountAmount = $basePrice - $salePrice;
-                        }
-                    @endphp
-
-
-                    @if($discountAmount > 0)
-                        <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
-                            ₹{{ number_format($discountAmount) }} OFF!
-                        </span>
-                    @endif
-                </div>
-            @endif
-
-            {{-- ================= DOOH ================= --}}
-            @else
-                <div class="flex items-baseline">
-                    <span class="text-xl font-semibold text-gray-900">
-                        ₹{{ number_format(optional($hoarding->doohScreen)->price_per_slot) }}
-                    </span>
-                    <span class="text-lg text-black font-bold ml-1">/Second</span>
-                </div>
-            @endif
+                                            @php
+                                                $basePrice = (float) ($base ?? 0);
+                                                $salePrice = (float) ($sale ?? 0);
+                                                $discountAmount = 0;
+                                                if ($basePrice > 0 && $salePrice > 0 && $salePrice < $basePrice) {
+                                                    $discountAmount = $basePrice - $salePrice;
+                                                }
+                                            @endphp
 
 
-        </div>
+                                            @if($discountAmount > 0)
+                                                <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
+                                                    ₹{{ number_format($discountAmount) }} OFF!
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                {{-- ================= DOOH ================= --}}
+                                @else
+                                    <div class="flex items-baseline">
+                                        <span class="text-xl font-semibold text-gray-900">
+                                            ₹{{ number_format(optional($hoarding->doohScreen)->price_per_slot) }}
+                                        </span>
+                                        <span class="text-lg text-black font-bold ml-1">/Second</span>
+                                    </div>
+                                @endif
+
+
+                            </div>
 
 
        
 
-        <p class="text-xs text-gray-600 mb-1">
-    @if(
-        $hoarding->available_from &&
-        \Carbon\Carbon::parse($hoarding->available_from)->isFuture()
-    )
-        Hoarding Available from
-        {{ \Carbon\Carbon::parse($hoarding->available_from)->format('F d, Y') }}
-    @else
-        Hoarding Available Now
-    @endif
-</p>
+                        <p class="text-xs text-gray-600 mb-1">
+                            @if(
+                                $hoarding->available_from &&
+                                \Carbon\Carbon::parse($hoarding->available_from)->isFuture()
+                            )
+                                Hoarding Available from
+                                {{ \Carbon\Carbon::parse($hoarding->available_from)->format('F d, Y') }}
+                            @else
+                                Hoarding Available Now
+                            @endif
+                        </p>
+                            @php
+                                $packageCount = 0;
+                                if(($hoarding->price_type ?? $hoarding->hoarding_type) === 'ooh') {
+                                    $packageCount = $hoarding->oohPackages()->count();
+                                } elseif(($hoarding->price_type ?? $hoarding->hoarding_type) === 'dooh') {
+                                    // For DOOH, count packages from the doohScreen
+                                    if($hoarding->doohScreen) {
+                                        $packageCount = $hoarding->doohScreen->packages()->count();
+                                    }
+                                }
+                            @endphp
 
-
-        @php
-            $packageCount = 0;
-            if(($hoarding->price_type ?? $hoarding->hoarding_type) === 'ooh') {
-                $packageCount = $hoarding->oohPackages()->count();
-            } elseif(($hoarding->price_type ?? $hoarding->hoarding_type) === 'dooh') {
-                // For DOOH, count packages from the doohScreen
-                if($hoarding->doohScreen) {
-                    $packageCount = $hoarding->doohScreen->packages()->count();
-                }
-            }
-        @endphp
-
-        @if($packageCount > 0)
-            <p class="text-xs text-teal-600 font-medium mb-3">{{ $packageCount }} {{ Str::plural('Package', $packageCount) }} Available</p>
-        @else
-            <p class="text-xs text-teal-600 font-medium mb-3">No packages are in this hoarding</p>
-        @endif
+                            @if($packageCount > 0)
+                                <p class="text-xs text-teal-600 font-medium mb-3">{{ $packageCount }} {{ Str::plural('Package', $packageCount) }} Available</p>
+                            @else
+                                <p class="text-xs text-teal-600 font-medium mb-3">No packages are in this hoarding</p>
+                            @endif
 
                             {{-- ACTIONS --}}
                             <div class="mt-auto flex gap-2">
@@ -243,12 +241,12 @@
                                 >
                                 </button>
 
-                                <button
+                                <!-- <button
                                     class="flex-1 py-2 btn-color text-white text-sm rounded enquiry-btn"
                                     data-hoarding-id="{{ $hoarding->id }}"
                                 >
                                     Enquiry Now
-                                </button>
+                                </button> -->
                             </div>
                         </div>
                     </div>
