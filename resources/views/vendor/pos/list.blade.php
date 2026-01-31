@@ -68,7 +68,7 @@
                         <tr>
                             <th class="border px-3 py-2">Invoice #</th>
                             <th class="border px-3 py-2">Customer</th>
-                            <th class="border px-3 py-2">Hoarding</th>
+                            <th class="border px-3 py-2">Hoarding Ids</th>
                             <th class="border px-3 py-2">Dates</th>
                             <th class="border px-3 py-2">Amount</th>
                             <th class="border px-3 py-2">Payment</th>

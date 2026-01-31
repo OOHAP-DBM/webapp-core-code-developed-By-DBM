@@ -820,68 +820,92 @@ class VendorPosController extends Controller
     //     }
     // }
     public function createCustomer(Request $request)
-{
-    try {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|max:20|unique:users,phone',
-            'password' => 'required|confirmed|min:6',
-            'gstin' => 'nullable|string|max:15|unique:users,gstin',
-        ]);
-
-        $user = DB::transaction(function () use ($request) {
-
-            $fullAddress = trim(
-                "{$request->city}, {$request->state} - {$request->pincode}, {$request->country}",
-                ", -"
-            );
-
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'password' => Hash::make($request->password),
-                'active_role' => 'customer',
-                'gstin' => $request->gstin,
-                'address' => $fullAddress,
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'phone' => 'required|string|max:20|unique:users,phone',
+                'password' => 'required|confirmed|min:6',
+                'gstin' => 'nullable|string|max:15|unique:users,gstin',
             ]);
 
-            $user->assignRole('customer');
+            $user = DB::transaction(function () use ($request) {
+                $fullAddress = trim(
+                    "{$request->city}, {$request->state} - {$request->pincode}, {$request->country}",
+                    ", -"
+                );
 
-            $user->posProfile()->create([
-                'vendor_id' => Auth::id(),
-                'created_by' => Auth::id(),
-                'gstin' => $request->gstin,
-                'business_name' => $request->business_name,
-                'address' => $fullAddress,
-            ]);
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'password' => Hash::make($request->password),
+                    'active_role' => 'customer',
+                    'gstin' => $request->gstin,
+                    'address' => $fullAddress,
+                ]);
 
-            return $user;
-        });
+                $user->assignRole('customer');
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Customer created successfully',
-            'data' => $user
-        ], 201);
+                $user->posProfile()->create([
+                    'vendor_id' => Auth::id(),
+                    'created_by' => Auth::id(),
+                    'gstin' => $request->gstin,
+                    'business_name' => $request->business_name,
+                    'address' => $fullAddress,
+                ]);
 
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Validation failed',
-            'errors' => $e->errors()
-        ], 422);
+                return $user;
+            });
 
-    } catch (\Exception $e) {
-        Log::error('Create POS customer failed', ['error' => $e->getMessage()]);
+            // // Send notification and email to Vendor
+            // try {
+            //     $vendor = Auth::user();
+            //     // Notification (if using Laravel Notifications)
+            //     if (method_exists($vendor, 'notify')) {
+            //         $vendor->notify(new \App\Notifications\PosCustomerCreatedNotification($user));
+            //     }
+            //     // Email
+            //     \Mail::to($vendor->email)->send(new \App\Mail\PosCustomerCreatedForVendor($user));
+            // } catch (\Exception $e) {
+            //     \Log::warning('Failed to notify vendor on POS customer create', ['error' => $e->getMessage()]);
+            // }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to create customer. Please try again.'
-        ], 500);
+            // // Send email and SMS to Customer
+            // try {
+            //     // Email
+            //     \Mail::to($user->email)->send(new \App\Mail\PosCustomerWelcome($user));
+            //     // SMS (if you have an SMS service)
+            //     if (function_exists('send_sms')) {
+            //         send_sms($user->phone, "Welcome to OOHApp! Your customer profile has been created.");
+            //     }
+            // } catch (\Exception $e) {
+            //     \Log::warning('Failed to notify customer on POS customer create', ['error' => $e->getMessage()]);
+            // }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Customer created successfully',
+                'data' => $user
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            Log::error('Create POS customer failed', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create customer. Please try again.'
+            ], 500);
+        }
     }
-}
 
 
       public function customers()

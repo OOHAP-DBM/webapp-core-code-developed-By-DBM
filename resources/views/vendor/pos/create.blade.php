@@ -18,10 +18,10 @@
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Customer Details</label>
                         
                         <div id="search-container" class="flex gap-2">
-                            <div class="relative flex-1 border border-gray-300 rounded-md px-2">
+                            <div class="relative flex-1 border border-gray-300 rounded-md mx-2">
                                 <input type="text" id="customer-search" autocomplete="off" 
                                     placeholder="Search by name, email, or mobile..." 
-                                    class="w-full rounded-md border-gray-300 focus:ring-green-500 text-sm py-2.5">
+                                    class="w-full rounded-md border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2">
                                 <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
                             </div>
                             <button type="button" onclick="openCustomerModal()" class="bg-green-600 text-white px-4 rounded-md hover:bg-green-700 transition flex items-center">
@@ -557,11 +557,11 @@ window.finalCheckAvailability = async function() {
             }
             const result = await res.json();
             const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
-            console.log('Final availability check for hoarding', id, result);
-            if (conflicts.length > 0) {
-                alert(` ${h.title} has unavailable dates in the selected range. Please adjust dates.`);
-                return false;
-            }
+            console.log('response after booking for hoarding', id, conflicts);
+            // if (conflicts.length > 0) {
+            //     alert(` ${h.title} has unavailable dates in the selected range. Please adjust dates.`);
+            //     return false;
+            // }
         } catch (e) {
             console.error(e);
             alert('Error checking final availability. Please try again.');

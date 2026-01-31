@@ -11,6 +11,7 @@
     }
 
     function getTieredMonths($startDate, $endDate) {
+        \Log::info("Calculating tiered months for startDate: $startDate, endDate: $endDate");
         // Returns integer months (inclusive, rounded up by 30-day buckets)
         if (empty($startDate) || empty($endDate)) {
             return 0;
