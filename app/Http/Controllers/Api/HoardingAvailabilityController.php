@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\GetAvailabilityCalendarRequest;
 use App\Http\Requests\CheckMultipleDatesRequest;
 use App\Models\Hoarding;
-use App\Services\HoardingAvailabilityService;
+use Modules\Hoardings\Services\HoardingAvailabilityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -214,50 +214,58 @@ class HoardingAvailabilityController extends Controller
      */
     public function getHeatmap(GetAvailabilityCalendarRequest $request, Hoarding $hoarding): JsonResponse
     {
-        $calendar = $this->availabilityService->getAvailabilityCalendar(
-            $hoarding->id,
-            $request->input('start_date'),
-            $request->input('end_date'),
-            false
-        );
+        try {
+            $calendar = $this->availabilityService->getAvailabilityCalendar(
+                $hoarding->id,
+                $request->input('start_date'),
+                $request->input('end_date'),
+                false
+            );
 
-        // Transform to heatmap format
-        $heatmapData = collect($calendar['calendar'])->map(function ($day) {
-            $colors = [
-                'available' => '#22c55e',
-                'booked' => '#ef4444',
-                'blocked' => '#6b7280',
-                'hold' => '#eab308',
-                'partial' => '#f97316',
-            ];
+            // Transform to heatmap format
+            $heatmapData = collect($calendar['calendar'])->map(function ($day) {
+                $colors = [
+                    'available' => '#22c55e',
+                    'booked' => '#ef4444',
+                    'blocked' => '#6b7280',
+                    'hold' => '#eab308',
+                    'partial' => '#f97316',
+                ];
 
-            $labels = [
-                'available' => 'Available',
-                'booked' => 'Booked',
-                'blocked' => 'Blocked (Maintenance)',
-                'hold' => 'On Hold',
-                'partial' => 'Multiple Statuses',
-            ];
+                $labels = [
+                    'available' => 'Available',
+                    'booked' => 'Booked',
+                    'blocked' => 'Blocked (Maintenance)',
+                    'hold' => 'On Hold',
+                    'partial' => 'Multiple Statuses',
+                ];
 
-            return [
-                'date' => $day['date'],
-                'status' => $day['status'],
-                'color' => $colors[$day['status']] ?? '#9ca3af',
-                'label' => $labels[$day['status']] ?? 'Unknown',
-            ];
-        });
+                return [
+                    'date' => $day['date'],
+                    'status' => $day['status'],
+                    'color' => $colors[$day['status']] ?? '#9ca3af',
+                    'label' => $labels[$day['status']] ?? 'Unknown',
+                ];
+            });
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Heatmap data retrieved successfully',
-            'data' => [
-                'hoarding_id' => $hoarding->id,
-                'start_date' => $calendar['start_date'],
-                'end_date' => $calendar['end_date'],
-                'summary' => $calendar['summary'],
-                'heatmap' => $heatmapData,
-            ],
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Heatmap data retrieved successfully',
+                'data' => [
+                    'hoarding_id' => $hoarding->id,
+                    'start_date' => $calendar['start_date'],
+                    'end_date' => $calendar['end_date'],
+                    'summary' => $calendar['summary'],
+                    'heatmap' => $heatmapData,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Heatmap error for hoarding ' . $hoarding->id . ': ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Internal server error retrieving heatmap',
+            ], 500);
+        }
     }
 
     /**

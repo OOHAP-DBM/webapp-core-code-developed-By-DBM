@@ -82,135 +82,33 @@
     </div>
 </div>
 
-<!-- <script>
-document.addEventListener('DOMContentLoaded', () => {
-    let globalBaseAmount = 0;
-
-    const safeSet = (id, val) => { document.getElementById(id)?.innerText = val; };
-
-    function calculateFinalTotals() {
-        const discountVal = parseFloat(document.getElementById('pos-discount')?.value || 0);
-        const taxableAmount = Math.max(0, globalBaseAmount - discountVal);
-        const tax = taxableAmount * 0.18;
-        const grandTotal = taxableAmount + tax;
-
-        safeSet('side-discount-display', `- ${formatINR(discountVal)}`);
-        safeSet('side-tax', formatINR(tax));
-        safeSet('side-grand-total', formatINR(grandTotal));
-    }
-
-    function populatePreview() {
-        if (!selectedCustomer) return alert('Select a customer');
-
-        safeSet('preview-cust-name', selectedCustomer.name);
-        safeSet('preview-cust-phone', selectedCustomer.phone);
-        safeSet('preview-total-count', selectedHoardings.size);
-
-        const oohBody = document.getElementById('preview-ooh-list');
-        const doohBody = document.getElementById('preview-dooh-list');
-        if (!oohBody || !doohBody) return console.error('Preview DOM elements missing!');
-
-        oohBody.innerHTML = '';
-        doohBody.innerHTML = '';
-        globalBaseAmount = 0;
-
-        selectedHoardings.forEach(h => {
-            const itemTotal = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
-            globalBaseAmount += itemTotal;
-
-            const row = `
-                <tr class="border-b border-gray-50">
-                    <td class="px-6 py-4 font-bold text-gray-800">${h.title}</td>
-                    <td class="px-6 py-4 text-gray-500">${h.startDate} to ${h.endDate}</td>
-                    <td class="px-6 py-4 text-right font-bold">${formatINR(itemTotal)}</td>
-                </tr>`;
-            
-            if (h.type?.toUpperCase() === 'DOOH') doohBody.innerHTML += row;
-            else oohBody.innerHTML += row;
-        });
-
-        safeSet('side-sub-total', formatINR(globalBaseAmount));
-        calculateFinalTotals();
-    }
-
-    function showPreview() {
-        if (!selectedCustomer) return alert("Please select a customer first!");
-        if (selectedHoardings.size === 0) return alert("Please select at least one hoarding!");
-
-        document.getElementById('selection-screen')?.classList.add('hidden');
-        document.getElementById('preview-screen')?.classList.remove('hidden');
-        populatePreview();
-    }
-
-    function backToSelection() {
-        document.getElementById('preview-screen')?.classList.add('hidden');
-        document.getElementById('selection-screen')?.classList.remove('hidden');
-    }
-
-    document.getElementById('create-booking-btn')?.addEventListener('click', async () => {
-        const btn = document.getElementById('create-booking-btn');
-        if (btn.disabled) return;
-
-        let sDate = null, eDate = null;
-        selectedHoardings.forEach(h => {
-            if (!sDate || h.startDate < sDate) sDate = h.startDate;
-            if (!eDate || h.endDate > eDate) eDate = h.endDate;
-        });
-
-        const payload = {
-            hoarding_ids: Array.from(selectedHoardings.keys()).join(','),
-            customer_id: selectedCustomer?.id,
-            customer_name: selectedCustomer?.name,
-            customer_phone: selectedCustomer?.phone,
-            customer_email: selectedCustomer?.email || '',
-            customer_address: selectedCustomer?.address || 'N/A',
-            booking_type: 'ooh',
-            start_date: sDate,
-            end_date: eDate,
-            base_amount: globalBaseAmount - parseFloat(document.getElementById('pos-discount')?.value || 0),
-            discount_amount: parseFloat(document.getElementById('pos-discount')?.value || 0),
-            payment_mode: document.getElementById('pos-payment-mode')?.value || 'cash',
-            payment_reference: document.getElementById('pos-payment-ref')?.value || '',
-            payment_notes: 'POS Booking'
-        };
-
-        btn.disabled = true;
-        btn.innerText = "Creating Booking...";
-
-        try {
-            const res = await fetch('/vendor/pos/api/bookings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await res.json();
-            if (!res.ok) throw new Error(Object.values(result.errors || {}).flat().join('\n') || "Error");
-
-            alert("✅ Booking Success!");
-            window.location.href = "/vendor/pos/bookings";
-        } catch (e) {
-            alert(e.message);
-            btn.disabled = false;
-            btn.innerText = "Finalize Booking";
-        }
-    });
-
-    // Expose globally
-    window.showPreview = showPreview;
-    window.backToSelection = backToSelection;
-    window.populatePreview = populatePreview;
-    window.calculateFinalTotals = calculateFinalTotals;
-});
-</script> -->
-
 <script>
 /* --- Move variables to a scope accessible by both files --- */
 let globalBaseAmount = 0;
+
+// Ensure duration helpers exist (fallback if main script hasn't defined them yet)
+if (typeof getTieredMonths !== 'function') {
+    function getTieredMonths(startDate, endDate) {
+        if (!startDate || !endDate) return 0;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        return Math.ceil(diffDays / 30);
+    }
+
+    function getTieredDurationLabel(startDate, endDate) {
+        const m = getTieredMonths(startDate, endDate);
+        if (m <= 0) return '0 Months';
+        return m === 1 ? '1 Month' : `${m} Months`;
+    }
+
+    if (typeof calculateTieredPrice !== 'function') {
+        function calculateTieredPrice(pricePerMonth, startDate, endDate) {
+            return pricePerMonth * getTieredMonths(startDate, endDate);
+        }
+    }
+}
 
 /* --- Define functions globally --- */
 function calculateFinalTotals() {
@@ -262,7 +160,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = `
                 <tr class="border-b border-gray-50">
                     <td class="px-6 py-4 font-bold text-gray-800">${h.title}</td>
-                    <td class="px-6 py-4 text-gray-500">${h.startDate} to ${h.endDate}</td>
+                    <td class="px-6 py-4 text-gray-500">
+                        ${h.startDate} to ${h.endDate}
+                        <div class="text-[10px] text-gray-400 mt-1">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
+                    </td>
                     <td class="px-6 py-4 text-right font-bold">${formatINR(itemTotal)}</td>
                 </tr>`;
             

@@ -141,20 +141,29 @@ document.getElementById('new-customer-form').addEventListener('submit', async (e
     try {
         submitBtn.disabled = true;
         submitBtn.innerText = 'Creating...';
-        
+
         const formData = new FormData(e.target);
-        const res = await fetchJSON(`${API_URL}/customers`, { 
-            method: 'POST', 
-            body: JSON.stringify(Object.fromEntries(formData)) 
+        const res = await fetchJSON(`${API_URL}/customers`, {
+            method: 'POST',
+            body: JSON.stringify(Object.fromEntries(formData))
         });
-        
+
         // selectCustomer is defined in create.blade.php
-        selectCustomer(res.data || res); 
+        selectCustomer(res.data || res);
         closeCustomerModal();
         e.target.reset();
     } catch (err) {
         console.error(err);
-        alert(err.data?.message || "Failed to create customer. Please check if email/phone already exists.");
+        let message = err;
+        if (err.data) {
+            if (err.data.errors) {
+                // Laravel validation errors
+                message = Object.values(err.data.errors).flat().join('\n');
+            } else if (err.data.message) {
+                message = err.data.message;
+            }
+        }
+        alert(message);
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = originalText;

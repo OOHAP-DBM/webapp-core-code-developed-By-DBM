@@ -229,12 +229,15 @@ class POSBookingService
 
 public function createBooking(array $data): POSBooking
 {
+    Log::info('POSBookingService.createBooking start', ['vendor_id' => Auth::id(), 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids','start_date','end_date','payment_mode','customer_id']))]);
+
     return DB::transaction(function () use ($data) {
         // Normalization: Ensure dates exist
         $start = $data['start_date'] ?? $data['booking_date'] ?? null;
         $end = $data['end_date'] ?? $data['booking_date'] ?? null;
 
         if (!$start || !$end) {
+            Log::warning('POSBookingService.createBooking missing dates', ['data' => $data]);
             throw new \Exception("The booking dates are required.");
         }
 
@@ -245,11 +248,15 @@ public function createBooking(array $data): POSBooking
             ->lockForUpdate()
             ->get();
 
+        Log::info('POSBookingService locked hoardings', ['vendor_id' => Auth::id(), 'hoarding_ids' => $hoardings->pluck('id')->all(), 'count' => $hoardings->count()]);
+
         // Perform Pricing Calculation
         $pricing = $this->calculateMultiHoardingPricing($hoardings, $start, $end, (float)($data['discount_amount'] ?? 0));
 
+        Log::info('POSBookingService calculated pricing', ['vendor_id' => Auth::id(), 'pricing' => $pricing]);
+
         // Create the record
-        $booking = POSBooking::create([
+        $bookingPayload = [
             'vendor_id'       => Auth::id(),
             'customer_id'     => $data['customer_id'] ?? null,
             'customer_name'   => $data['customer_name'], // Required by DB
@@ -265,12 +272,18 @@ public function createBooking(array $data): POSBooking
             'payment_mode'    => $data['payment_mode'] ?? 'cash',
             'payment_status'  => 'unpaid',
             'status'          => 'pending_payment',
-        ]);
+        ];
+
+        Log::info('POSBookingService creating booking record', ['vendor_id' => Auth::id(), 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id','start_date','end_date','total_amount']))]);
+
+        $booking = POSBooking::create($bookingPayload);
 
         // Inventory Linking
         foreach ($hoardings as $hoarding) {
             $this->attachHoardingToBooking($booking, $hoarding, $start, $end);
         }
+
+        Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => Auth::id(), 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
 
         return $booking->fresh(['bookingHoardings']);
     });

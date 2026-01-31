@@ -18,7 +18,7 @@
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Customer Details</label>
                         
                         <div id="search-container" class="flex gap-2">
-                            <div class="relative flex-1">
+                            <div class="relative flex-1 border border-gray-300 rounded-md px-2">
                                 <input type="text" id="customer-search" autocomplete="off" 
                                     placeholder="Search by name, email, or mobile..." 
                                     class="w-full rounded-md border-gray-300 focus:ring-green-500 text-sm py-2.5">
@@ -53,7 +53,7 @@
                                         <tr>
                                             <th class="px-4 py-3 font-semibold">Hoarding</th>
                                             <th class="px-4 py-3 font-semibold">Rental/Mo</th>
-                                            <th class="px-4 py-3 font-semibold">Duration</th>
+                                            <th class="px-4 py-3 font-semibold text-center">Duration</th>
                                             <th class="px-4 py-3 font-semibold">Total</th>
                                             <th class="px-4 py-3 font-semibold text-right">Action</th>
                                         </tr>
@@ -105,10 +105,10 @@
                     <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-bold" id="available-count">0</span>
                 </div>
                 <div class="p-5">
-                    <div class="relative mb-5">
+                    <div class="relative mb-5 border border-gray-300 rounded-lg">
                         <input type="text" id="hoarding-search" placeholder="Filter inventory..." 
                             class="w-full pl-10 rounded-lg border-gray-200 text-sm focus:ring-green-500">
-                        <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                        <span class="absolute left-3 top- text-gray-400">🔍</span>
                     </div>
                     <div id="hoardings-grid" class="grid grid-cols-2 gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 custom-scrollbar">
                         </div>
@@ -124,11 +124,38 @@
 
 @include('vendor.pos.customer-modal')
 
+<!-- Date picker modal (single calendar range picker, shows availability heatmap) -->
+<div id="datePickerModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+    <div class="bg-black/50 absolute inset-0" onclick="closeDatePickerModal()"></div>
+
+    <div class="relative bg-white rounded-lg p-4 w-full max-w-lg z-50">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="datePickerTitle" class="font-bold text-gray-800">Select Dates</h3>
+            <button class="text-gray-500" onclick="closeDatePickerModal()">✕</button>
+        </div>
+
+        <input id="date-picker-input" type="text" class="hidden">
+
+        <div id="date-picker-inline" class="mx-auto"></div>
+
+        <div class="mt-4 flex justify-end gap-2">
+            <button class="px-4 py-2 border rounded" onclick="closeDatePickerModal()">Cancel</button>
+            <button class="px-4 py-2 bg-[#2D5A43] text-white rounded" onclick="confirmDateSelection()">Confirm</button>
+        </div>
+    </div>
+</div>
+
 <style>
     .custom-scrollbar::-webkit-scrollbar { width: 5px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
     .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Flatpickr availability styles */
+    .flatpickr-day.booked { background: #ef4444 !important; color: #fff !important; border-color: #ef4444 !important; }
+    .flatpickr-day.blocked { background: #6b7280 !important; color: #fff !important; border-color: #6b7280 !important; }
+    .flatpickr-day.hold { background: #f59e0b !important; color: #fff !important; border-color: #f59e0b !important; }
+    .flatpickr-day.partial { background: #f97316 !important; color: #fff !important; border-color: #f97316 !important; }
 </style>
 
 <script>
@@ -143,22 +170,34 @@ let selectedCustomer = null;
 const formatINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
 /**
- * Tier Logic: 1-30 days = 1 Month Rent, 31-60 = 2 Months Rent, etc.
+ * Tier Logic helpers
+ * - getTieredMonths: returns integer number of months to charge (inclusive, rounds up by 30-day buckets)
+ * - getTieredDurationLabel: returns "1 Month" or "N Months"
+ * - calculateTieredPrice: uses the months to compute total
  */
-function calculateTieredPrice(pricePerMonth, startDate, endDate) {
+function getTieredMonths(startDate, endDate) {
     if (!startDate || !endDate) return 0;
     const start = new Date(startDate);
     const end = new Date(endDate);
     const diffTime = Math.abs(end - start);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    return Math.ceil(diffDays / 30);
+}
 
-    const monthsToCharge = Math.ceil(diffDays / 30);
+function getTieredDurationLabel(startDate, endDate) {
+    const months = getTieredMonths(startDate, endDate);
+    if (months <= 0) return '0 Months';
+    return months === 1 ? '1 Month' : `${months} Months`;
+}
+
+function calculateTieredPrice(pricePerMonth, startDate, endDate) {
+    const monthsToCharge = getTieredMonths(startDate, endDate);
     return pricePerMonth * monthsToCharge;
 }
 
 const fetchJSON = async (url, options = {}) => {
     const res = await fetch(url, {
-        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}',  'X-Requested-With': 'XMLHttpRequest' },
         ...options
     });
     return await res.json();
@@ -197,6 +236,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 /* --- CUSTOMER LOGIC --- */
 function openCustomerModal() { document.getElementById('customerModal').classList.remove('hidden'); }
+function clearAddressFields() {
+    const city = document.getElementById('city');
+    const state = document.getElementById('state');
+
+    if (city) city.value = '';
+    if (state) state.value = '';
+}
 
 function closeCustomerModal() { document.getElementById('customerModal').classList.add('hidden'); }
 async function handleCustomerSearch(e) {
@@ -216,16 +262,49 @@ async function handleCustomerSearch(e) {
     } catch (e) { console.error(e); }
 }
 
+// function selectCustomer(c) {
+// console.log('Customer object:', c);
+//  if (!c || !c.name) {
+//         console.warn('Invalid customer object passed to selectCustomer', c);
+//         return;
+//     }
+
+//     selectedCustomer = c;
+//     document.getElementById('search-container').classList.add('hidden');
+//     document.getElementById('customer-selected-card').classList.remove('hidden');
+//     document.getElementById('cust-name').innerText = c.name;
+//     document.getElementById('cust-details').innerText = `${c.email || ''} | ${c.phone}`;
+//     document.getElementById('cust-initials').innerText = c.name.substring(0,2).toUpperCase();
+//     document.getElementById('customer-suggestions').classList.add('hidden');
+//     document.getElementById('customer_gstin').classList.add('hidden');
+// }
+
 function selectCustomer(c) {
+    console.log('Customer object:', c);
+
+    if (!c || !c.name) {
+        console.warn('Invalid customer object passed to selectCustomer', c);
+        return;
+    }
+
     selectedCustomer = c;
-    document.getElementById('search-container').classList.add('hidden');
-    document.getElementById('customer-selected-card').classList.remove('hidden');
-    document.getElementById('cust-name').innerText = c.name;
-    document.getElementById('cust-details').innerText = `${c.email || ''} | ${c.phone}`;
-    document.getElementById('cust-initials').innerText = c.name.substring(0,2).toUpperCase();
-    document.getElementById('customer-suggestions').classList.add('hidden');
-    document.getElementById('customer_gstin').classList.add('hidden');
+
+    const searchContainer = document.getElementById('search-container');
+    const selectedCard = document.getElementById('customer-selected-card');
+    const suggestions = document.getElementById('customer-suggestions');
+    const nameEl = document.getElementById('cust-name');
+    const detailsEl = document.getElementById('cust-details');
+    const initialsEl = document.getElementById('cust-initials');
+
+    if (searchContainer) searchContainer.classList.add('hidden');
+    if (selectedCard) selectedCard.classList.remove('hidden');
+    if (suggestions) suggestions.classList.add('hidden');
+
+    if (nameEl) nameEl.innerText = c.name;
+    if (detailsEl) detailsEl.innerText = `${c.email || ''} | ${c.phone || ''}`;
+    if (initialsEl) initialsEl.innerText = c.name.slice(0, 2).toUpperCase();
 }
+
 
 function clearSelectedCustomer() {
     selectedCustomer = null;
@@ -294,10 +373,11 @@ function updateSummary() {
                     <td class="px-4 py-3 text-xs text-gray-500">${formatINR(h.price_per_month)}</td>
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-1">
-                            <input type="date" value="${h.startDate}" onchange="updateDate(${id}, 'startDate', this.value)" class="text-[10px] p-1 border rounded bg-white">
-                            <span class="text-gray-400">-</span>
-                            <input type="date" value="${h.endDate}" onchange="updateDate(${id}, 'endDate', this.value)" class="text-[10px] p-1 border rounded bg-white">
+                            <button onclick="openDatePickerForHoarding(${h.id})" class="px-2 py-1 border rounded bg-white text-[10px] font-semibold">
+                                ${h.startDate} - ${h.endDate}
+                            </button>
                         </div>
+                        <div class="text-[10px] text-gray-400 mt-1">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
                     </td>
                     <td class="px-4 py-3 font-bold text-xs text-green-700">${formatINR(totalPrice)}</td>
                     <td class="px-4 py-3 text-right">
@@ -321,6 +401,184 @@ function updateDate(id, field, value) {
         updateSummary();
     }
 }
+
+// --- Calendar modal & availability integration ---
+let currentFlatpickr = null;
+let currentHeatmapMap = {};
+let currentEditingHoardingId = null;
+
+function toYMD(d) {
+    return d.toISOString().split('T')[0];
+}
+
+function enumerateDatesBetween(start, end) {
+    const dates = [];
+    let cur = new Date(start);
+    const last = new Date(end);
+    while (cur <= last) {
+        dates.push(toYMD(cur));
+        cur.setDate(cur.getDate() + 1);
+    }
+    return dates;
+}
+
+async function openDatePickerForHoarding(id) {
+    if (typeof flatpickr === 'undefined') { alert('Calendar library not loaded.'); return; }
+    currentEditingHoardingId = id;
+    const h = selectedHoardings.get(id);
+    if (!h) return alert('Please select the hoarding first');
+
+    // set modal title
+    document.getElementById('datePickerTitle').innerText = h.title;
+    document.getElementById('datePickerModal').classList.remove('hidden');
+
+    const today = new Date();
+    const startStr = today.toISOString().split('T')[0];
+    const future = new Date(); future.setDate(future.getDate() + 365);
+    const endStr = future.toISOString().split('T')[0];
+
+    try {
+        const res = await fetch(`/api/v1/hoardings/${id}/availability/heatmap?start_date=${startStr}&end_date=${endStr}`, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
+        if (!res.ok) {
+            const txt = await res.text().catch(() => '');
+            console.error('Heatmap fetch failed', res.status, res.statusText, txt);
+            if (res.status === 401 || res.status === 403) {
+                alert('Could not load availability (authentication required). Please login and try again.');
+            } else {
+                alert(`Could not load availability (HTTP ${res.status}). Please try again.`);
+            }
+            return;
+        }
+        const payload = await res.json();
+        const heatmap = payload.data?.heatmap || [];
+
+        const disabledDates = heatmap.filter(d => d.status !== 'available').map(d => d.date);
+        currentHeatmapMap = {};
+        heatmap.forEach(d => currentHeatmapMap[d.date] = d.status);
+
+        // Initialize or reinitialize flatpickr
+        if (currentFlatpickr) currentFlatpickr.destroy();
+
+        currentFlatpickr = flatpickr('#date-picker-input', {
+            mode: 'range',
+            inline: true,
+            appendTo: document.getElementById('date-picker-inline'),
+            minDate: startStr,
+            disable: disabledDates,
+            defaultDate: [h.startDate, h.endDate],
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const date = dayElem.dateObj.toISOString().split('T')[0];
+                const status = currentHeatmapMap[date];
+                if (status && status !== 'available') {
+                    dayElem.classList.add(status);
+                    dayElem.title = status.charAt(0).toUpperCase() + status.slice(1);
+                }
+            }
+        });
+    } catch (e) {
+        console.error(e);
+        alert('Could not load availability. Please try again.');
+    }
+}
+
+function closeDatePickerModal() {
+    document.getElementById('datePickerModal').classList.add('hidden');
+}
+
+async function confirmDateSelection() {
+    if (!currentFlatpickr || !currentEditingHoardingId) return closeDatePickerModal();
+    const dates = currentFlatpickr.selectedDates;
+    if (!dates || dates.length === 0) return alert('Please select a start and end date');
+
+    const start = toYMD(dates[0]);
+    const end = toYMD(dates.length === 1 ? dates[0] : dates[1]);
+
+    // Double-check availability via API
+    const allDates = enumerateDatesBetween(start, end);
+    try {
+        const res = await fetch(`/api/v1/hoardings/${currentEditingHoardingId}/availability/check-dates`, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({ dates: allDates })
+        });
+        if (!res.ok) {
+            const text = await res.text();
+            console.error('Availability check failed', res.status, res.statusText, text);
+            alert('Could not verify availability (server error). Please try again.');
+            openDatePickerForHoarding(currentEditingHoardingId);
+            return;
+        }
+        const result = await res.json();
+        const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
+        if (conflicts.length > 0) {
+            alert('Selected range includes unavailable dates. Please choose a different range.');
+            // refresh calendar highlights
+            openDatePickerForHoarding(currentEditingHoardingId);
+            return;
+        }
+
+        // Save dates
+        let h = selectedHoardings.get(currentEditingHoardingId);
+        if (h) {
+            h.startDate = start;
+            h.endDate = end;
+            selectedHoardings.set(currentEditingHoardingId, h);
+            updateSummary();
+        }
+
+        closeDatePickerModal();
+    } catch (e) {
+        console.error(e);
+        alert('Error checking availability.');
+    }
+}
+
+// Expose helpers globally so preview script can reuse them
+window.enumerateDatesBetween = enumerateDatesBetween;
+window.toYMD = toYMD;
+
+// Final availability check used by preview finalization
+window.finalCheckAvailability = async function() {
+    for (const [id, h] of selectedHoardings) {
+        const dates = enumerateDatesBetween(h.startDate, h.endDate);
+        try {
+            const res = await fetch(`/api/v1/hoardings/${id}/availability/check-dates`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify({ dates })
+            });
+            if (!res.ok) {
+                const txt = await res.text();
+                console.error('Final availability check failed', res.status, res.statusText, txt);
+                alert('Error checking final availability (server error). Please try again.');
+                return false;
+            }
+            const result = await res.json();
+            const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
+            console.log('Final availability check for hoarding', id, result);
+            if (conflicts.length > 0) {
+                alert(` ${h.title} has unavailable dates in the selected range. Please adjust dates.`);
+                return false;
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error checking final availability. Please try again.');
+            return false;
+        }
+    }
+    return true;
+};
+
+// Add a capturing click listener to ensure final availability check runs before booking submit
+document.getElementById('create-booking-btn')?.addEventListener('click', async function(e) {
+    if (!(await window.finalCheckAvailability())) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        return false;
+    }
+}, true);
 
 document.getElementById('submit-btn').addEventListener('click', () => {
     if (!selectedCustomer) return alert("Select a customer.");
@@ -399,7 +657,10 @@ function populatePreview() {
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-4 text-xs font-medium text-gray-600">${h.startDate} - ${h.endDate}</td>
+                <td class="px-4 py-4 text-xs font-medium text-gray-600">
+                    ${h.startDate} - ${h.endDate}
+                    <div class="text-[10px] text-gray-400 mt-1">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
+                </td>
                 <td class="px-8 py-4 text-right font-bold text-gray-700 text-xs">${formatINR(itemTotal)}</td>
             </tr>`;
 

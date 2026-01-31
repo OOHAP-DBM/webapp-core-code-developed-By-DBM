@@ -213,7 +213,7 @@ async function loadBookingDetails() {
 
                 <div>
                     <span class="font-semibold">Phone:</span>
-                    ${b.customer_phone}
+                    ${b.customer_phone || '-'}
                 </div>
             </div>
 

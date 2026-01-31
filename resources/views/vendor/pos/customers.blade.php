@@ -27,7 +27,7 @@
                         <th class="px-4 py-3 text-right">Total Spent</th>
                         <th class="px-4 py-3">Last Booking</th>
                         <th class="px-4 py-3 text-center">Status</th>
-                        <th class="px-4 py-3 text-right">Actions</th>
+                        <th class="px-4 py-3 text-center">Actions</th>
                     </tr>
                 </thead>
 

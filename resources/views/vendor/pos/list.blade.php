@@ -156,7 +156,7 @@ function loadBookings(page = 1) {
                     <td class="border px-3 py-2">${booking.invoice_number || 'N/A'}</td>
                     <td class="border px-3 py-2">
                         <strong>${booking.customer_name}</strong><br>
-                        <span class="text-xs text-gray-500">${booking.customer_phone}</span>
+                        <span class="text-xs text-gray-500">${booking.customer_phone ?? '-'}</span>
                     </td>
                     <td class="border px-3 py-2">
                         ${booking.hoarding

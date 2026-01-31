@@ -99,6 +99,14 @@ Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::cla
 //     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
 //     Route::put('{id}', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'update'])->name('update');
 // });
+// Web-session versions of the Hoarding Availability API endpoints
+// These routes are intended for server-rendered pages and web clients
+// which rely on standard session auth (web guard) instead of Sanctum cookies.
+Route::middleware(['auth'])->prefix('api/v1/hoardings/{hoarding}')->group(function () {
+    Route::get('/availability/heatmap', [\App\Http\Controllers\Api\HoardingAvailabilityController::class, 'getHeatmap'])->name('web.hoardings.availability.heatmap');
+    Route::post('/availability/check-dates', [\App\Http\Controllers\Api\HoardingAvailabilityController::class, 'checkMultipleDates'])->name('web.hoardings.availability.check-dates');
+    Route::get('/availability/calendar', [\App\Http\Controllers\Api\HoardingAvailabilityController::class, 'getCalendar'])->name('web.hoardings.availability.calendar');
+});
 Route::post('/cart/add', [CartController::class,'add'])->name('cart.add');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/select-package', [CartController::class, 'selectPackage'])->name('cart.selectPackage');

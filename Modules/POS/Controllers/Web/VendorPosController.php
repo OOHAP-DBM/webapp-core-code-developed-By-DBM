@@ -369,6 +369,10 @@ class VendorPosController extends Controller
     public function createBooking(Request $request): JsonResponse
     {
         try {
+            Log::info('POS create booking request', [
+                'vendor_id' => Auth::id(),
+                'payload' => $request->only(['hoarding_ids','start_date','end_date','base_amount','payment_mode'])
+            ]);
             // $validated = $request->validate([
             //     'hoarding_ids' => 'required|string', // Comma-separated IDs
             //     'customer_id' => 'nullable|exists:users,id',
@@ -447,6 +451,16 @@ class VendorPosController extends Controller
                     ]
                 );
 
+                // Verbose logging for debugging availability issues
+                Log::info('POS booking availability check', [
+                    'vendor_id' => $vendorId,
+                    'hoarding_id' => $hoarding->id,
+                    'hoarding_addr' => $hoarding->address ?? $hoarding->title ?? null,
+                    'start_date' => $startDate->format('Y-m-d'),
+                    'end_date' => $endDate->format('Y-m-d'),
+                    'availability_preview' => array_slice($availability, 0, 5),
+                ]);
+
                 // Check if all dates in range are available
                 if (!empty($availability)) {
                     $allDatesAvailable = true;
@@ -493,12 +507,12 @@ class VendorPosController extends Controller
             $bookingData = [
                 'vendor_id' => $vendorId,
                 'customer_id' => $validated['customer_id'] ?? null,
-                'customer_name' => $validated['customer_name'],
-                'customer_email' => $validated['customer_email'],
-                'customer_phone' => $validated['customer_phone'],
-                'customer_address' => $validated['customer_address'],
+                'customer_name' => $validated['customer_name'] ?? null,
+                'customer_email' => $validated['customer_email'] ?? null,
+                'customer_phone' => $validated['customer_phone'] ?? null,
+                'customer_address' => $validated['customer_address'] ?? null,
                 'customer_gstin' => $validated['customer_gstin']??null,
-                'booking_type' => $validated['booking_type'],
+                'booking_type' => $validated['booking_type'] ?? 'ooh',
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
                 'duration_days' => Carbon::parse($validated['end_date'])
@@ -515,7 +529,25 @@ class VendorPosController extends Controller
                 'payment_status' => 'unpaid',
             ];
 
+            // Ensure customer fields meet DB requirements
+            if (empty($bookingData['customer_name'])) {
+                $bookingData['customer_name'] = 'Walk-in Customer';
+            }
+            if (empty($bookingData['customer_phone'])) {
+                $bookingData['customer_phone'] = 'N/A';
+            }
+
+            // Log prepared booking payload for debugging
+            Log::info('POS booking data prepared', [
+                'vendor_id' => $vendorId,
+                'booking_data' => array_merge($bookingData, [
+                    'hoarding_ids' => $hoardingIds,
+                    'num_hoardings' => count($hoardingIds),
+                ])
+            ]);
+
             $booking = $this->posBookingService->createBooking($bookingData);
+            Log::info('POS booking created', ['vendor_id' => $vendorId, 'booking_id' => $booking->id]);
 
             // Create pos_booking_hoardings records
             $durationDays = $endDate->diffInDays($startDate) + 1;
@@ -551,6 +583,11 @@ class VendorPosController extends Controller
             ], 201);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::warning('POS booking validation failed', [
+                'vendor_id' => Auth::id(),
+                'errors' => $e->errors(),
+                'payload' => $request->only(['hoarding_ids','start_date','end_date','base_amount'])
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -713,95 +750,139 @@ class VendorPosController extends Controller
     }
 
 
+ 
     // public function createCustomer(Request $request)
     // {
-    //     // Basic validation
+    //     \Log::info('Create POS customer request', [
+    //         'vendor_id' => Auth::id(),
+    //         'payload' => $request->all()
+    //     ]);
+    //     // 1. Expanded Validation
     //     $request->validate([
     //         'name' => 'required|string|max:255',
+    //         // 'business_name' => 'nullable|string|max:100',
     //         'email' => 'required|email|unique:users,email',
-    //         'phone' => 'required',
+    //         'phone' => 'required|string|max:20',
     //         'password' => 'required|confirmed|min:6',
-    //         'gstin' => 'nullable|string',
-    //         'city' => 'nullable|string',
-    //         'state' => 'nullable|string',
+    //         'gstin' => 'nullable|string|max:15',
+    //         'pincode' => 'nullable|string|max:10',
+    //         'city' => 'nullable|string|max:100',
+    //         'state' => 'nullable|string|max:100',
+    //         'country' => 'nullable|string|max:100',
     //     ]);
 
-    //     // Logic to create customer in your database
-    //     $customer = \App\Models\User::create([
-    //         'name' => $request->name,
-    //         'email' => $request->email,
-    //         'phone' => $request->phone,
-    //         'password' => Hash::make($request->password),
-    //         'active_role' => 'customer', // or whatever your logic is
-    //     ]);
+    //     try {
+    //         // 2. Start Transaction
+    //         return DB::transaction(function () use ($request) {
+    //             \Log::info('getting to create pos customer');
+    //             // 3. Create the Base User
+    //             $fullAddress = trim("{$request->city}, {$request->state} - {$request->pincode}, {$request->country}", ", -");
 
-    //     return response()->json([
-    //         'success' => true,
-    //         'data' => $customer
-    //     ]);
+    //             $user = User::create([
+    //                 'name' => $request->name,
+    //                 'email' => $request->email,
+    //                 'phone' => $request->phone,
+    //                 'password' => Hash::make($request->password),
+    //                 'active_role' => 'customer',
+    //                 'pincode' => $request->pincode,
+    //                 'gstin' => $request->gstin,
+    //                 'city' => $request->city,
+    //                 'state' => $request->state,
+    //                 'address'       =>$fullAddress,
+    //             ]);
+    //             $user->assignRole('customer');
+
+    //             // 4. Create the POS Customer Profile
+    //             // We combine City, State, and Pincode into the 'address' field 
+    //             // as per your migration schema
+
+    //             $user->posProfile()->create([
+    //                 'vendor_id'     => Auth::id(),
+    //                 'created_by'    => Auth::id(),
+    //                 'gstin'         => $request->gstin,
+    //                 'business_name' => $request->business_name,
+    //                 'address'       =>$fullAddress,
+    //             ]);
+
+    //             // 5. Return success response
+    //             return response()->json([
+    //                 'success' => true,
+    //                 'message' => 'Customer created successfully',
+    //                 'data' => $user
+    //             ]);
+    //         });
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Something went wrong: ' . $e->getMessage()
+    //         ], 500);
+    //     }
     // }
     public function createCustomer(Request $request)
-    {
-        // 1. Expanded Validation
+{
+    try {
         $request->validate([
             'name' => 'required|string|max:255',
-            // 'business_name' => 'nullable|string|max:100',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|unique:users,phone',
             'password' => 'required|confirmed|min:6',
-            'gstin' => 'nullable|string|max:15',
-            'pincode' => 'nullable|string|max:10',
-            'city' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
-            'country' => 'nullable|string|max:100',
+            'gstin' => 'nullable|string|max:15|unique:users,gstin',
         ]);
 
-        try {
-            // 2. Start Transaction
-            return DB::transaction(function () use ($request) {
-                
-                // 3. Create the Base User
-                $user = User::create([
-                    'name' => $request->name,
-                    'email' => $request->email,
-                    'phone' => $request->phone,
-                    'password' => Hash::make($request->password),
-                    'active_role' => 'customer',
-                    'pincode' => $request->pincode,
-                    'gstin' => $request->gstin,
-                    'city' => $request->city,
-                    'state' => $request->state,
-                ]);
-                $user->assignRole('customer');
+        $user = DB::transaction(function () use ($request) {
 
-                // 4. Create the POS Customer Profile
-                // We combine City, State, and Pincode into the 'address' field 
-                // as per your migration schema
-                $fullAddress = trim("{$request->city}, {$request->state} - {$request->pincode}, {$request->country}", ", -");
+            $fullAddress = trim(
+                "{$request->city}, {$request->state} - {$request->pincode}, {$request->country}",
+                ", -"
+            );
 
-                $user->posProfile()->create([
-                    'vendor_id'     => Auth::id(),
-                    'created_by'    => Auth::id(),
-                    'gstin'         => $request->gstin,
-                    'business_name' => $request->business_name,
-                    'address'       => trim("{$request->city}, {$request->state} - {$request->pincode}, {$request->country}", ", -"),
-                ]);
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => Hash::make($request->password),
+                'active_role' => 'customer',
+                'gstin' => $request->gstin,
+                'address' => $fullAddress,
+            ]);
 
-                // 5. Return success response
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Customer created successfully',
-                    'data' => $user
-                ]);
-            });
+            $user->assignRole('customer');
 
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Something went wrong: ' . $e->getMessage()
-            ], 500);
-        }
+            $user->posProfile()->create([
+                'vendor_id' => Auth::id(),
+                'created_by' => Auth::id(),
+                'gstin' => $request->gstin,
+                'business_name' => $request->business_name,
+                'address' => $fullAddress,
+            ]);
+
+            return $user;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Customer created successfully',
+            'data' => $user
+        ], 201);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $e->errors()
+        ], 422);
+
+    } catch (\Exception $e) {
+        Log::error('Create POS customer failed', ['error' => $e->getMessage()]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create customer. Please try again.'
+        ], 500);
     }
+}
+
 
       public function customers()
     {
