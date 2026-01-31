@@ -307,33 +307,118 @@
 <script>
 function toggleShortlist(btn) {
     const hoardingId = btn.dataset.id;
+    const isAuth = btn.dataset.auth === '1';
+    const role = btn.dataset.role;
+
     if (!hoardingId) return;
 
+    /* ❌ NOT LOGGED IN */
+    if (!isAuth) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Please login to save this hoarding',
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true
+        });
+
+        setTimeout(() => {
+            window.location.href = "{{ route('login') }}";
+        }, 2000);
+        return;
+    }
+
+    /* ❌ ROLE NOT ALLOWED */
+    if (role === 'vendor' || role === 'admin') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'You are not allowed to add items to wishlist',
+            text: 'This action is only available for customers.',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return;
+    }
+
+    /* ✅ CUSTOMER ACTION */
     fetch(`/customer/shortlist/toggle/${hoardingId}`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-            "X-CSRF-TOKEN": document
+            'X-CSRF-TOKEN': document
                 .querySelector('meta[name="csrf-token"]')
-                .getAttribute("content"),
-            "Accept": "application/json"
+                .getAttribute('content'),
+            'Accept': 'application/json'
         }
     })
-    .then(res => res.json())
+    .then(res => {
+        if (res.status === 401 || res.status === 419) {
+            throw new Error('Unauthorized');
+        }
+        return res.json();
+    })
     .then(data => {
-        if (!data.success) return;
+        if (!data.success) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: data.message || 'Something went wrong',
+                showConfirmButton: false,
+                timer: 2500
+            });
+            return;
+        }
 
-        // Toggle visual state
-        btn.classList.toggle('is-wishlisted');
-        btn.classList.toggle('bg-[#daf2e7]');
-        btn.classList.toggle('bg-[#9e9e9b]');
+        const isAdded = data.action === 'added';
 
-          setTimeout(() => {
+        /* UI TOGGLE (instant feedback) */
+        if (isAdded) {
+            btn.classList.add('is-wishlisted', 'bg-[#daf2e7]');
+            btn.classList.remove('bg-[#9e9e9b]');
+        } else {
+            btn.classList.remove('is-wishlisted', 'bg-[#daf2e7]');
+            btn.classList.add('bg-[#9e9e9b]');
+        }
+
+        /* Toast */
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: isAdded ? 'success' : 'info',
+            title: isAdded
+                ? 'Added to wishlist'
+                : 'Removed from wishlist',
+            showConfirmButton: false,
+            timer: 1800
+        });
+
+        /* 🔄 RELOAD AFTER ACTION */
+        setTimeout(() => {
             window.location.reload();
-            }, 200);
-        })
-    .catch(err => console.error(err));
+        }, 1200);
+    })
+    .catch(() => {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'Session expired. Please login again.',
+            showConfirmButton: false,
+            timer: 2500
+        });
+
+        setTimeout(() => {
+            window.location.href = "{{ route('login') }}";
+        }, 2000);
+    });
 }
 </script>
+
+
 
 </body>
 </html>
