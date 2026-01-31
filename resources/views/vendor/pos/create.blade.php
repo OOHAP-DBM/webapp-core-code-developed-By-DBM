@@ -128,7 +128,7 @@
 <div id="datePickerModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
     <div class="bg-black/50 absolute inset-0" onclick="closeDatePickerModal()"></div>
 
-    <div class="relative bg-white rounded-lg p-4 w-full max-w-lg z-50">
+    <div class="relative bg-white rounded-lg p-4 w-full max-w-sm z-50">
         <div class="flex justify-between items-center mb-4">
             <h3 id="datePickerTitle" class="font-bold text-gray-800">Select Dates</h3>
             <button class="text-gray-500" onclick="closeDatePickerModal()">✕</button>
@@ -138,9 +138,9 @@
 
         <div id="date-picker-inline" class="mx-auto"></div>
 
-        <div class="mt-4 flex justify-end gap-2">
+        <div class="mt-4 flex justify-end gap-5">
             <button class="px-4 py-2 border rounded" onclick="closeDatePickerModal()">Cancel</button>
-            <button class="px-4 py-2 bg-[#2D5A43] text-white rounded" onclick="confirmDateSelection()">Confirm</button>
+            <button class="px-4 py-2  bg-[#2D5A43] text-white rounded" onclick="confirmDateSelection()">Confirm</button>
         </div>
     </div>
 </div>
@@ -511,6 +511,7 @@ async function confirmDateSelection() {
         }
         const result = await res.json();
         const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
+        console.log('response BEDORE booking for hoarding', currentEditingHoardingId, conflicts);
         if (conflicts.length > 0) {
             alert('Selected range includes unavailable dates. Please choose a different range.');
             // refresh calendar highlights

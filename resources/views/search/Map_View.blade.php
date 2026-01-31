@@ -25,7 +25,9 @@
                                     ->take(4)
                                 : collect();
                         @endphp
-                        <div class="rounded-lg p-4 mb-4 shadow bg-[#F8F8F8]">
+                        <div class="rounded-lg p-4 mb-4 shadow bg-[#F8F8F8]"
+                        onclick="if(event.target.closest('button, a') === null)
+                        window.location.href='{{ route('hoardings.show', $item->id) }}';">
                             <div class="flex gap-3">
                                 {{-- THUMBNAIL --}}
                                 <div class="w-50 flex-shrink-0">

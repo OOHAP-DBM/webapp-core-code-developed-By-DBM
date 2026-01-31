@@ -285,6 +285,32 @@ public function createBooking(array $data): POSBooking
 
         Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => Auth::id(), 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
 
+        // Generate invoice after booking creation (auto-invoice)
+        try {
+            if ($this->isAutoInvoiceEnabled()) {
+                $invoice = $this->invoiceService->generateInvoiceForPOSBooking(
+                    $booking,
+                    Auth::id()
+                );
+                // Store invoice reference in POS booking
+                $booking->update([
+                    'invoice_number' => $invoice->invoice_number,
+                    'invoice_date' => $invoice->invoice_date,
+                    'invoice_path' => $invoice->pdf_path,
+                ]);
+                Log::info('POS invoice generated', [
+                    'pos_booking_id' => $booking->id,
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to generate POS invoice', [
+                'pos_booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
+            // Don't fail the booking if invoice fails
+        }
         return $booking->fresh(['bookingHoardings']);
     });
 }

@@ -39,3 +39,17 @@
         return $months === 1 ? "1 Month" : "{$months} Months";
     }
 
+    // app/helpers.php
+    function amountInWords($amount)
+    {
+        if (class_exists('\\NumberFormatter')) {
+            $formatter = new \NumberFormatter('en_IN', \NumberFormatter::SPELLOUT);
+            return ucwords($formatter->format($amount)) . ' Rupees Only';
+        }
+
+        // fallback (safe)
+        return trim(convertNumberToWords($amount)) . ' Rupees Only';
+    }
+
+
+
