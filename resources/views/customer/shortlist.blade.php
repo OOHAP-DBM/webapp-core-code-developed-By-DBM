@@ -108,6 +108,8 @@
                                 class="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center
                                        shortlist-btn bg-[#daf2e7] is-wishlisted"
                                 data-id="{{ $hoarding->id }}"
+                                data-auth="{{ auth()->check() ? '1' : '0' }}"
+                                data-role="{{ auth()->check() ? auth()->user()->role : '' }}"
                                 data-context="wishlist"
                                 onclick="event.stopPropagation(); toggleShortlist(this);"
                             >

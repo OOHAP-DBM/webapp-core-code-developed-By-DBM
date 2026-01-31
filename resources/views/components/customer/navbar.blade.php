@@ -156,12 +156,20 @@
 
                     </div>
                         <!-- Saved/Bookmarks -->
-                     <a href="{{ route('customer.shortlist') }}" class="relative inline-block text-gray-400 hover:text-gray-600" title="Cart">
-                            <svg width="19" height="19" viewBox="0 0 19 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <a href="javascript:void(0)"
+                        onclick="openWishlist(event)"
+                        class="relative inline-block text-gray-400 hover:text-gray-600"
+                        data-auth="{{ auth()->check() ? '1' : '0' }}"
+                        data-role="{{ auth()->check() ? auth()->user()->active_role : '' }}"
+                        title="Wishlist"
+                        >               
+                         <svg width="19" height="19" viewBox="0 0 19 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M2.24 8.25002C1.84461 7.85725 1.53134 7.38971 1.31845 6.87466C1.10556 6.3596 0.997308 5.80733 1 5.25002C1 4.12285 1.44777 3.04184 2.2448 2.24481C3.04183 1.44778 4.12283 1.00002 5.25 1.00002C6.83 1.00002 8.21 1.86002 8.94 3.14002H10.06C10.4311 2.48908 10.9681 1.94811 11.6163 1.57219C12.2645 1.19628 13.0007 0.998856 13.75 1.00002C14.8772 1.00002 15.9582 1.44778 16.7552 2.24481C17.5522 3.04184 18 4.12285 18 5.25002C18 6.42002 17.5 7.50002 16.76 8.25002L9.5 15.5L2.24 8.25002ZM17.46 8.96002C18.41 8.00002 19 6.70002 19 5.25002C19 3.85763 18.4469 2.52227 17.4623 1.53771C16.4777 0.553141 15.1424 1.8052e-05 13.75 1.8052e-05C12 1.8052e-05 10.45 0.850018 9.5 2.17002C9.0151 1.49652 8.37661 0.948336 7.63748 0.570946C6.89835 0.193557 6.0799 -0.00216431 5.25 1.8052e-05C3.85761 1.8052e-05 2.52226 0.553141 1.53769 1.53771C0.553123 2.52227 0 3.85763 0 5.25002C0 6.70002 0.59 8.00002 1.54 8.96002L9.5 16.92L17.46 8.96002Z" fill="#484848"/>
                             </svg>
                             @php
-                                $wishlistCount = auth()->user()->wishlist()->count();
+                                $wishlistCount = auth()->check()
+                                    ? auth()->user()->wishlist()->count()
+                                    : 0;
                             @endphp
                       
                            @if($wishlistCount > 0)
@@ -353,4 +361,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 </script>
+<script>
+function openWishlist(event) {
+    event.preventDefault();
+
+    const link = event.currentTarget;
+    const isAuth = link.dataset.auth === '1';
+    const role = link.dataset.role;
+
+    /* ❌ NOT LOGGED IN */
+    if (!isAuth) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Please login to view your wishlist',
+            showConfirmButton: false,
+            timer: 2500
+        });
+
+        setTimeout(() => {
+            window.location.href = "{{ route('login') }}";
+        }, 2000);
+        return;
+    }
+
+    /* ❌ ROLE NOT ALLOWED */
+    if (role === 'vendor' || role === 'admin') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'Only customers can access the wishlist',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return;
+    }
+
+    /* ✅ CUSTOMER */
+    window.location.href = "{{ route('customer.shortlist') }}";
+}
+</script>
+
 @endpush

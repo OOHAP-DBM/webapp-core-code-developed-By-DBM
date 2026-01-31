@@ -48,6 +48,8 @@
                                         class="w-8 h-8 rounded-full flex items-center justify-center shortlist-btn
                                             {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }}"
                                         data-id="{{ $item->id }}"
+                                        data-auth="{{ auth()->check() ? '1' : '0' }}"
+                                        data-role="{{ auth()->check() ? auth()->user()->role : '' }}"
                                         style="cursor:pointer;"
                                         onclick="event.stopPropagation(); toggleShortlist(this);"
                                     >

@@ -103,17 +103,43 @@ class ShortlistController extends Controller
      */
     public function toggle(int $hoardingId)
     {
-        $result = Wishlist::toggle(auth()->id(), $hoardingId);
+        if (!auth()->check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+        if (auth()->user()->active_role !== 'customer') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permission denied'
+            ], 403);
+        }
+        try {
+            $result = Wishlist::toggle(auth()->id(), $hoardingId);
 
-        return response()->json([
-            'success' => true,
-            'action' => $result['action'],
-            'message' => $result['action'] === 'added'
-                ? 'Added to shortlist'
-                : 'Removed from shortlist',
-            'count' => $result['count'],
-            'isWishlisted' => $result['action'] === 'added',
-        ]);
+            return response()->json([
+                'success'      => true,
+                'action'       => $result['action'], 
+                'message'      => $result['action'] === 'added'
+                                    ? 'Added to shortlist'
+                                    : 'Removed from shortlist',
+                'count'        => $result['count'],
+                'isWishlisted' => $result['action'] === 'added',
+            ]);
+
+        } catch (\Throwable $e) {
+            \Log::error('Wishlist toggle failed', [
+                'user_id' => auth()->id(),
+                'hoarding_id' => $hoardingId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong. Please try again.'
+            ], 500);
+        }
     }
 
     /**
