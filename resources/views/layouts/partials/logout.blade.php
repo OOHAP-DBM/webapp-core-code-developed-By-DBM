@@ -1,14 +1,18 @@
 <div id="logoutModal"
      class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60">
 
-    <div class="bg-white w-[90%] max-w-md rounded-2xl shadow-xl relative">
+    <div class="bg-white w-[70%] max-w-md rounded-2xl shadow-xl relative">
 
         <!-- CLOSE ICON -->
-        <button
-            onclick="closeLogoutModal()"
-            class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
-            ✕
-        </button>
+        <div class="h-12 bg-gray-100 relative rounded-t-2xl">
+            <!-- CLOSE ICON -->
+            <button
+                onclick="closeLogoutModal()"
+                class="absolute top-2 right-3 w-8 h-8 flex items-center justify-center
+                       rounded-full text-black text-xl leading-none">
+                ×
+            </button>
+        </div>
 
         <!-- CONTENT -->
         <div class="p-8 text-center">
@@ -27,7 +31,7 @@
                 Comeback Soon!
             </h2>
 
-            <p class="text-gray-500 text-lg mb-6">
+            <p class="text-gray-500 text-lg mb-6 font-semibold">
                 Are you sure you want<br>
                 to logout from OOHAPP?
             </p>
@@ -36,7 +40,7 @@
                 <button
                     type="button"
                     onclick="closeLogoutModal()"
-                    class="text-gray-700 font-bold">
+                    class="text-black font-bold">
                     Cancel
                 </button>
 

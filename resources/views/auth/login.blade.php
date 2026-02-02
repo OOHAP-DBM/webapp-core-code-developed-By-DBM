@@ -329,8 +329,8 @@
         passwordInp.setAttribute('type', isPassword ? 'text' : 'password');
 
         this.innerHTML = isPassword
-            ? '<i class="fa-solid fa-eye-slash text-muted pb-3"></i>'
-            : '<i class="fa-solid fa-eye text-muted pb-3"></i>';
+            ? '<i class="fa-solid fa-eye-slash text-muted pb-4"></i>'
+            : '<i class="fa-solid fa-eye text-muted pb-4"></i>';
     });
 
 
