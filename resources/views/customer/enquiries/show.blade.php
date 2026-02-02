@@ -82,8 +82,8 @@
             <div class="col-span-4">
                 <h3 class="text-sm font-semibold mb-4">Submitted On</h3>
                 <div>
-                    <span class="text-lg font-semibold leading-none">{{ $enquiry->created_at->format('d') }}</span>
-                    <span class="text-sm text-gray-500 block">{{ $enquiry->created_at->format('M, y') }}</span>
+                    <span class="text-sm text-gray-500 block">{{ $enquiry->created_at->format('d M y') }}</span>
+                    <!-- <span class="text-sm text-gray-500 block">{{ $enquiry->created_at->format('M, y') }}</span> -->
                 </div>
                 <div class="mt-4 text-xs text-gray-500">
                     <div>Last Updated: {{ $enquiry->updated_at->format('d M, y H:i') }}</div>

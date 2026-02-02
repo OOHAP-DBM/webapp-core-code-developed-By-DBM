@@ -170,7 +170,7 @@ function fillAddressFields(ad, fullDisplayName) {
     inputs.locality.value = ad.suburb || ad.neighbourhood || ad.subdistrict || ad.road || "";
     
     // City: Try city, then town, then village
-    inputs.city.value = ad.city || ad.town || ad.village || ad.district || "";
+    inputs.city.value = ad.city || ad.town || ad.village || ad.municipality || ad.county || ad.state_district || "";
     
     // State
     inputs.state.value = ad.state || "";
@@ -181,9 +181,9 @@ function fillAddressFields(ad, fullDisplayName) {
     }
     
     // Update display address if it was a pin drag
-    if (fullDisplayName && (inputs.address.value.length < 5)) {
-        inputs.address.value = fullDisplayName;
-    }
+    // if (fullDisplayName && (inputs.address.value.length < 5)) {
+    //     inputs.address.value = fullDisplayName;
+    // }
 }
 
 /* --- LISTENERS --- */
