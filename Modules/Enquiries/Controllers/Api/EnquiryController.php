@@ -10,6 +10,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Modules\Enquiries\Models\Enquiry;
+use Modules\Enquiries\Models\EnquiryItem;
 
 class EnquiryController extends Controller
 {
@@ -26,73 +30,197 @@ class EnquiryController extends Controller
      * Store a new enquiry
      * POST /api/v1/enquiries
      */
-    public function store(Request $request): JsonResponse
-    {
-        $hoarding = Hoarding::findOrFail($request->hoarding_id);
+    // public function store(Request $request): JsonResponse
+    // {
+    //     $hoarding = Hoarding::findOrFail($request->hoarding_id);
         
+    //     $validator = Validator::make($request->all(), [
+    //         'hoarding_id' => 'required|exists:hoardings,id',
+    //         'preferred_start_date' => 'required|date|after_or_equal:today',
+    //         'preferred_end_date' => 'required|date|after:preferred_start_date',
+    //         'duration_type' => 'required|in:days,weeks,months',
+    //         'message' => 'nullable|string|max:1000',
+    //     ]);
+
+    //     // Add grace period validation
+    //     $this->gracePeriodService->addValidationRule($validator, 'preferred_start_date', $hoarding);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Validation failed',
+    //             'errors' => $validator->errors(),
+    //         ], 422);
+    //     }
+
+    //     try {
+    //         $enquiry = $this->service->createEnquiry($validator->validated());
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Enquiry submitted successfully',
+    //             'data' => $enquiry->load(['customer', 'hoarding']),
+    //         ], 201);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to create enquiry',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
+    public function store(Request $request)
+    {
+        // 1. Basic Validation
         $validator = Validator::make($request->all(), [
-            'hoarding_id' => 'required|exists:hoardings,id',
-            'preferred_start_date' => 'required|date|after_or_equal:today',
-            'preferred_end_date' => 'required|date|after:preferred_start_date',
-            'duration_type' => 'required|in:days,weeks,months',
+            'customer_name' => 'required|string|max:255',
+            'customer_mobile' => 'nullable|string',
+            'customer_email' => 'nullable|email',
             'message' => 'nullable|string|max:1000',
+            'items' => 'required|array|min:1',
+            'items.*.hoarding_id' => 'required|exists:hoardings,id',
+            'items.*.preferred_start_date' => 'required|date|after_or_equal:today',
+            'items.*.duration_unit' => 'required|in:days,weeks,months',
+            'items.*.duration_value' => 'required|integer|min:1',
         ]);
 
-        // Add grace period validation
-        $this->gracePeriodService->addValidationRule($validator, 'preferred_start_date', $hoarding);
+        // 2. Custom Validation (Grace Period Check)
+        $validator->after(function ($validator) use ($request) {
+            foreach ($request->items as $index => $item) {
+                $hoarding = Hoarding::find($item['hoarding_id']);
+                if (!$hoarding) {
+                    $validator->errors()->add("items.$index.hoarding_id", "The selected hoarding no longer exists.");
+                    continue;
+                }
+
+                // Optional: Check if the hoarding is marked as active in your DB
+                if (isset($hoarding->status) && $hoarding->status !== 'active') {
+                    $validator->errors()->add("items.$index.hoarding_id", "Hoarding #{$hoarding->id} is currently unavailable for booking.");
+                }
+               $this->gracePeriodService->addValidationRule(
+                $validator, 
+                    "items.$index.preferred_start_date", 
+                    $hoarding
+                );
+            }
+        });
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
         try {
-            $enquiry = $this->service->createEnquiry($validator->validated());
+            return DB::transaction(function () use ($request) {
+                $user = Auth::user();
+                $itemsData = $request->items;
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Enquiry submitted successfully',
-                'data' => $enquiry->load(['customer', 'hoarding']),
-            ], 201);
+                // 3. Create Enquiry Header
+                $enquiry = Enquiry::create([
+                    'customer_id'    => $user->id,
+                    'enquiry_type'   => count($itemsData) > 1 ? 'multiple' : 'single',
+                    'source'         => $user->role ?? 'user',
+                    'status'         => 'submitted',
+                    'customer_note'  => $request->message,
+                    'contact_number' => $request->customer_mobile,
+                ]);
+
+                foreach ($itemsData as $item) {
+                    $hoarding = Hoarding::with('doohScreen')->findOrFail($item['hoarding_id']);
+                    $startDate = Carbon::parse($item['preferred_start_date']);
+                    
+                    // 4. Resolve Duration and Package
+                    $unit = $item['duration_unit']; // days, weeks, months
+                    $value = (int) $item['duration_value'];
+                    $packageId = $item['package_id'] ?? null;
+                    $package = null;
+                    $packageType = 'base';
+
+                    if ($packageId) {
+                        $packageType = 'package';
+                        if ($hoarding->hoarding_type === 'dooh') {
+                            $package = \Modules\DOOH\Models\DOOHPackage::find($packageId);
+                        } else {
+                            $package = \Modules\Hoardings\Models\HoardingPackage::find($packageId);
+                        }
+                        // If package exists, it might override the duration value (assuming packages are months)
+                        if ($package && isset($package->min_booking_duration)) {
+                            $value = $package->min_booking_duration;
+                            $unit = 'months'; 
+                        }
+                    }
+
+                    // Dynamic End Date Calculation
+                    $endDate = (clone $startDate);
+                    switch ($unit) {
+                        case 'days':
+                            $endDate->addDays($value);
+                            break;
+                        case 'weeks':
+                            $endDate->addWeeks($value);
+                            break;
+                        case 'months':
+                        default:
+                            $endDate->addMonths($value);
+                            break;
+                    }
+
+                    // 5. Build Meta Data
+                    $meta = [
+                        'customer_name'   => $request->customer_name,
+                        'customer_mobile' => $request->customer_mobile,
+                        'duration_unit'   => $unit,
+                        'duration_value'  => $value,
+                        'package_label'   => $package ? $package->package_name : 'Base Price',
+                    ];
+
+                    if ($hoarding->hoarding_type === 'dooh') {
+                        $meta['dooh_specs'] = [
+                            'video_duration' => $item['video_duration'] ?? 15,
+                            'slots_per_day'  => $item['slots_count'] ?? 120,
+                            'loop_interval'  => $item['slot'] ?? 'Standard',
+                        ];
+                    }
+
+                    // 6. Create Enquiry Item
+                    EnquiryItem::create([
+                        'enquiry_id'           => $enquiry->id,
+                        'hoarding_id'          => $hoarding->id,
+                        'hoarding_type'        => str_contains($hoarding->hoarding_type, 'dooh') ? 'dooh' : 'ooh',
+                        'package_id'           => $packageId,
+                        'package_type'         => $packageType,
+                        'preferred_start_date' => $startDate,
+                        'preferred_end_date'   => $endDate,
+                        'expected_duration'    => "$value-$unit",
+                        'meta'                 => $meta,
+                        'status'               => 'new',
+                    ]);
+
+                    // 7. Cleanup Cart
+                    DB::table('carts')
+                        ->where('user_id', $user->id)
+                        ->where('hoarding_id', $hoarding->id)
+                        ->delete();
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Enquiry submitted successfully',
+                    'enquiry_id' => $enquiry->id
+                ], 201);
+            });
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create enquiry',
-                'error' => $e->getMessage(),
+                'message' => 'Submission failed',
+                'error' => $e->getMessage()
             ], 500);
         }
-    }
-
-    /**
-     * Get enquiry by ID
-     * GET /api/v1/enquiries/{id}
-     */
-    public function show(int $id): JsonResponse
-    {
-        $enquiry = $this->service->find($id);
-
-        if (!$enquiry) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Enquiry not found',
-            ], 404);
-        }
-
-        // Check if user can view this enquiry
-        if (!$this->service->canView($enquiry)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ], 403);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $enquiry,
-        ]);
     }
 
     /**

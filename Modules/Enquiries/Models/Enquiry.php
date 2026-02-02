@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\Hoarding;
 use Modules\Enquiries\Models\EnquiryItem;
+use App\Models\User;
 
 class Enquiry extends Model
 {
@@ -50,7 +51,10 @@ class Enquiry extends Model
     {
         return $this->belongsTo(\App\Models\User::class, 'customer_id');
     }
-
+   public function hoarding()
+    {
+        return $this->belongsTo(Hoarding::class, 'hoarding_id');
+    }
     /**
      * Enquiry items (OOH / DOOH selections)
      */
