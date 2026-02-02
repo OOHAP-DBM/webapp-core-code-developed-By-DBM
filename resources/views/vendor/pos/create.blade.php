@@ -374,7 +374,7 @@ function updateSummary() {
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-1">
                             <button onclick="openDatePickerForHoarding(${h.id})" class="px-2 py-1 border rounded bg-white text-[10px] font-semibold">
-                                ${h.startDate} - ${h.endDate}
+                                ${toLocalYMD(h.startDate)} - ${toLocalYMD(h.endDate)}
                             </button>
                         </div>
                         <div class="text-[10px] text-gray-400 mt-1">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
@@ -407,9 +407,28 @@ let currentFlatpickr = null;
 let currentHeatmapMap = {};
 let currentEditingHoardingId = null;
 
-function toYMD(d) {
-    return d.toISOString().split('T')[0];
+// Internal format: YYYY-MM-DD (for API and state)
+function toYMD(date) {
+    if (!date) return null;
+    const d = new Date(date);
+    // Correct for timezone offset to avoid "one day earlier" issue
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    const mm = String(local.getMonth() + 1).padStart(2, '0');
+    const dd = String(local.getDate()).padStart(2, '0');
+    return `${local.getFullYear()}-${mm}-${dd}`;
 }
+
+// Display format: DD-MM-YYYY (for tables, preview)
+function toLocalYMD(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    // Correct for timezone offset
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    const mm = String(local.getMonth() + 1).padStart(2, '0');
+    const dd = String(local.getDate()).padStart(2, '0');
+    return `${dd}-${mm}-${local.getFullYear()}`;
+}
+
 
 function enumerateDatesBetween(start, end) {
     const dates = [];
@@ -659,7 +678,8 @@ function populatePreview() {
                     </div>
                 </td>
                 <td class="px-4 py-4 text-xs font-medium text-gray-600">
-                    ${h.startDate} - ${h.endDate}
+                    ${toLocalYMD(h.startDate)} - ${toLocalYMD(h.endDate)}
+
                     <div class="text-[10px] text-gray-400 mt-1">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
                 </td>
                 <td class="px-8 py-4 text-right font-bold text-gray-700 text-xs">${formatINR(itemTotal)}</td>
