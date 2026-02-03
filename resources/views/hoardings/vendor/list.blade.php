@@ -19,15 +19,25 @@
 
             <div class="py-4 flex flex-col md:flex-row items-center gap-3">
 
-                <form method="GET" action="{{ route('vendor.hoardings.myHoardings', ['tab' => $activeTab]) }}" class="relative flex-1 flex items-center">
+                <form id="searchForm"
+                    method="GET"
+                    action="{{ route('vendor.hoardings.myHoardings', ['tab' => $activeTab]) }}"
+                    class="relative flex-1 flex items-center">
+
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
-                    <input type="text" name="search" value="{{ request('vendor.hoardings.index') }}" placeholder="Search hoardings..." 
+
+                    <input
+                        type="text"
+                        name="search"
                         value="{{ request('search') }}"
-                        class="block w-full pl-9 pr-3 py-2 bg-[#F3F4F6] border-none rounded-md focus:ring-1 focus:ring-emerald-500 text-[13px]">
-                    <button type="submit" class="hidden"></button>
+                        placeholder="Search by hoarding title or location....."
+                        onkeyup="autoSearchHoardings(this.value)"
+                        class="block w-full pl-9 pr-3 py-2 bg-[#F3F4F6] border-none rounded-md focus:ring-1 focus:ring-emerald-500 text-[13px]"
+                    >
                 </form>
+
 
                 <div class="flex items-center gap-2">
                     <!-- <button class="p-2 bg-[#E6F6F0] text-[#00A86B] rounded-md border border-emerald-50">
@@ -58,6 +68,38 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
+                        <tr class="p-6">
+                            @php
+                                $selectedLetter = request('letter');
+                            @endphp
+                            <div class="flex flex-wrap gap-2 text-[11px] px-6 pt-6 font-bold text-gray-400 uppercase tracking-widest px-1">
+                                @foreach(range('A', 'Z') as $char)
+                                    <a
+                                        href="{{ route('vendor.hoardings.myHoardings', array_filter([
+                                            'tab' => $activeTab,
+                                            'letter' => $char,
+                                            'search' => request('search')
+                                        ])) }}"
+                                        class="
+                                            {{ $selectedLetter === $char
+                                                ? 'text-[#00A86B] underline'
+                                                : 'hover:text-[#00A86B]' }}
+                                        "
+                                    >
+                                        {{ $char }}
+                                    </a>
+                                @endforeach
+
+                                @if($selectedLetter)
+                                    <a
+                                        href="{{ route('vendor.hoardings.myHoardings', ['tab' => $activeTab]) }}"
+                                        class="ml-3 text-red-500 hover:underline"
+                                    >
+                                        Clear
+                                    </a>
+                                @endif
+                            </div>
+                        </tr>
                         <tr class="bg-white border-b border-gray-100 text-[12px] font-black text-gray-600  tracking-widest">
                             <th class="px-6 py-5 w-12">
                                 <input type="checkbox" id="select-all" class="rounded-sm border-gray-300">
@@ -410,6 +452,19 @@ function confirmToggle(e, checkbox) {
     return false;
 }
 </script>
+<script>
+function autoSearchHoardings(value) {
+    if (value.length >= 3) {
+        document.getElementById('searchForm').submit();
+    }
+
+    // optional: clear search if user deletes everything
+    if (value.length === 0) {
+        document.getElementById('searchForm').submit();
+    }
+}
+</script>
+
 @if(session('swal_success'))
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
