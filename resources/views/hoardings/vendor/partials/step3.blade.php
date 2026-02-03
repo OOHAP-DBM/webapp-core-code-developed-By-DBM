@@ -63,7 +63,7 @@
     <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
       <div class="flex items-center gap-3 mb-4">
         <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
-        <h3 class="text-xl font-bold text-gray-800">Services Includes</h3>
+        <h3 class="text-xl font-bold text-gray-800">Services Includes in Base Price</h3>
       </div>
       <p class="text-xs text-gray-400 mb-8">Set Services provided for free (Yes) or as additional charges (No)</p>
 
@@ -71,7 +71,7 @@
         <!-- Graphics (PARENT TABLE: hoardings) -->
         <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
           <div class="flex items-center justify-between">
-            <label class="text-sm font-bold text-gray-700">Graphics Included (Free)?</label>
+            <label class="text-sm font-bold text-gray-700">Graphics Included ?</label>
             <div class="flex items-center gap-2">
               <label class="cursor-pointer">
                 <input type="radio" name="graphics_included" value="1" 
@@ -102,7 +102,7 @@
         <!-- Printing (CHILD TABLE: ooh_hoardings) -->
         <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
           <div class="flex items-center justify-between">
-            <label class="text-sm font-bold text-gray-700">Printing Included (Free)?</label>
+            <label class="text-sm font-bold text-gray-700">Printing Included ?</label>
             <div class="flex items-center gap-2">
               <label class="cursor-pointer">
                 <input type="radio" name="printing_included" value="1" 
@@ -139,7 +139,7 @@
         <!-- Mounting (CHILD TABLE: ooh_hoardings) -->
         <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
           <div class="flex items-center justify-between">
-            <label class="text-sm font-bold text-gray-700">Mounting Included (Free)?</label>
+            <label class="text-sm font-bold text-gray-700">Mounting Included ?</label>
             <div class="flex items-center gap-2">
               <label class="cursor-pointer">
                 <input type="radio" name="mounting_included" value="1" 
@@ -169,7 +169,7 @@
         <!-- Lighting (CHILD TABLE: ooh_hoardings) -->
         <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
           <div class="flex items-center justify-between">
-            <label class="text-sm font-bold text-gray-700">Lighting Included (Free)?</label>
+            <label class="text-sm font-bold text-gray-700">Lighting Included ?</label>
             <div class="flex items-center gap-2">
               <label class="cursor-pointer">
                 <input type="radio" name="lighting_included" value="1" 

@@ -130,7 +130,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
             <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <label class="text-sm font-bold text-gray-700">Graphics Included (Free)?</label>
+                    <label class="text-sm font-bold text-gray-700">Graphics Included ?</label>
                     <div class="flex items-center gap-2">
                         <label class="cursor-pointer">
                             <input type="radio" name="graphics_included" value="1" class="hidden peer toggle-service" {{ $isGraphicsFree ? 'checked' : '' }}>
