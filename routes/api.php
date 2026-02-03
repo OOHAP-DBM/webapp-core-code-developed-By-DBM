@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RazorpayWebhookController;
-
+use App\Http\Controllers\Api\Customer\ShortlistController;
 /**
  * OOHAPP API v1 Routes
  * 
@@ -16,6 +16,23 @@ use App\Http\Controllers\Api\RazorpayWebhookController;
 Route::middleware(['throttle:webhooks'])->group(function () {
     Route::post('/webhooks/razorpay', [RazorpayWebhookController::class, 'handle']);
 });
+
+
+
+Route::middleware(['auth:sanctum', 'role:customer'])
+    ->prefix('v1/customer/wishlist')
+    ->group(function () {
+
+        Route::get('/', [ShortlistController::class, 'index']);          // Get wishlist
+        Route::post('/{hoardingId}', [ShortlistController::class, 'store']); // Add
+        Route::delete('/{hoardingId}', [ShortlistController::class, 'destroy']); // Remove
+        Route::delete('/', [ShortlistController::class, 'clear']);       // Clear all
+
+        Route::post('/toggle/{hoardingId}', [ShortlistController::class, 'toggle']);
+        Route::get('/check/{hoardingId}', [ShortlistController::class, 'check']);
+        Route::get('/count', [ShortlistController::class, 'count']);
+});
+
 
 Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     
@@ -32,6 +49,7 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     Route::prefix('auth')->group(base_path('routes/api_v1/auth.php'));
     Route::prefix('profile')->group(base_path('routes/api_v1/profile.php'));
     Route::prefix('hoardings')->group(base_path('routes/api_v1/hoardings.php'));
+    Route::prefix('cart')->group(base_path('routes/api_v1/cart.php'));
     Route::prefix('dooh')->group(base_path('routes/api_v1/dooh.php'));
     Route::prefix('enquiries')->group(base_path('routes/api_v1/enquiries.php'));
     Route::prefix('offers')->group(base_path('routes/api_v1/offers.php'));

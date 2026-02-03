@@ -18,6 +18,7 @@ Route::get('/live-categories', [HoardingController::class, 'getLiveCategories'])
 
 // Public routes - Browse hoardings
 Route::get('/', [HoardingController::class, 'index']);
+Route::get('/cities', [HoardingController::class, 'getCitiesWithActiveHoardings']);
 Route::get('/map-pins', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'mapPins']);
 Route::get('/{id}', [HoardingController::class, 'show']);
 Route::get('/search', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'search']);

@@ -6,6 +6,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use App\Services\TwilioService;
 use App\Models\User;
 use App\Models\UserOtp;
 use App\Mail\OtpMail;
@@ -187,13 +188,16 @@ class ProfileService
         if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
             Mail::to($identifier)->send(new OtpMail($otp, 'email verification'));
         } else {
-            // For phone/SMS: Integrate with SMS service provider
-            // Example: Twilio, AWS SNS, or local SMS gateway
-            \Log::info('SMS OTP would be sent', [
-                'phone' => $identifier,
-                'otp' => $otp,
-                'message' => "Your OOHAPP verification code is: {$otp}. Valid for 5 minutes."
-            ]);
+            // Use TwilioService for SMS
+            $message = "Your OOHAPP verification code is: {$otp}. Valid for 5 minutes.";
+            try {
+                app(TwilioService::class)->sendSMS($identifier, $message);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send OTP SMS: ' . $e->getMessage(), [
+                    'phone' => $identifier,
+                    'otp' => $otp,
+                ]);
+            }
         }
     }
 }

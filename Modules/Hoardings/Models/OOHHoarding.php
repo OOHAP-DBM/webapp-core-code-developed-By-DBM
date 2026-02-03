@@ -100,15 +100,23 @@ class OOHHoarding extends Model
     /**
      * Get all packages for this OOH hoarding (via parent hoarding).
      */
+    // public function packages()
+    // {
+    //     return $this->hasManyThrough(
+    //         \Modules\Hoardings\Models\HoardingPackage::class,
+    //         \App\Models\Hoarding::class,
+    //         'id', // Foreign key on hoardings table...
+    //         'hoarding_id', // Foreign key on packages table...
+    //         'hoarding_id', // Local key on ooh_hoardings table...
+    //         'id' // Local key on hoardings table...
+    //     );
+    // }
     public function packages()
     {
-        return $this->hasManyThrough(
+         return $this->hasMany(
             \Modules\Hoardings\Models\HoardingPackage::class,
-            \App\Models\Hoarding::class,
-            'id', // Foreign key on hoardings table...
-            'hoarding_id', // Foreign key on packages table...
-            'hoarding_id', // Local key on ooh_hoardings table...
-            'id' // Local key on hoardings table...
+            'hoarding_id', // foreign key on hoarding_packages table
+            'id'           // local key on ooh_hoardings table
         );
     }
 

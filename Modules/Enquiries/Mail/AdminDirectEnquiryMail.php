@@ -32,7 +32,7 @@ class AdminDirectEnquiryMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'admin.emails.admin_enquiry', // Point this to resources/views/emails/admin_enquiry.blade.php
+            view: 'admin.enquiries.emails.direct_enquiry', // Point this to resources/views/emails/admin_enquiry.blade.php
         );
     }
 }

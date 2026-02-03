@@ -8,7 +8,7 @@
         Create specific inventory bundles (e.g.,Long term Booking)
     </p>
 
-    {{-- @dump($draft->packages) --}}
+   <!-- @dump($draft->hoarding->packages) -->
     @php
         /**
          * ============================================================
@@ -18,16 +18,18 @@
         if (old('offers_json')) {
             $packagesJson = old('offers_json');
         } else {
-            $packagesJson = collect($draft->packages ?? [])
+            $packagesJson = collect($draft->hoarding->packages ?? $draft->hoarding->packages ?? [])
                 ->map(function ($pkg) {
                     return [
-                        'name'     => $pkg->package_name,
-                        'duration' => $pkg->min_booking_duration,
-                        'unit'     => $pkg->duration_unit,
-                        'discount' => $pkg->discount_percent,
-                        'end_date' => $pkg->end_date
+                        'package_id' => $pkg->id ?? null,
+                        'name'       => $pkg->package_name,
+                        'duration'   => $pkg->min_booking_duration,
+                        'unit'       => $pkg->duration_unit,
+                        'discount'   => $pkg->discount_percent,
+                        'end_date'   => $pkg->end_date
                             ? \Carbon\Carbon::parse($pkg->end_date)->format('Y-m-d')
                             : '',
+                        'services' => $pkg->included_services ? json_decode($pkg->included_services, true) : []
                     ];
                 })
                 ->values()
@@ -45,6 +47,12 @@
             id="offers_json"
             value='{{ $packagesJson }}'
         >
+        <input
+            type="hidden"
+            id="inventory_type"
+            value="{{ strtolower($draft->hoarding->hoarding_type) }}"
+        >
+
 
         <button
             type="button"
@@ -88,6 +96,8 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="group bg-gray-50/50 rounded-2xl border border-gray-100 p-6">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
 
+                <input type="hidden" class="offer_package_id" value="${data.package_id ?? ''}">
+
                 <div class="md:col-span-4">
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Offer Label</label>
                     <input type="text"
@@ -96,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
 
                 <div class="md:col-span-3">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Min Booking</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase"> Booking Duration</label>
                     <div class="flex">
                         <input type="number" min="1"
                             class="offer_duration w-20 border rounded-l-xl px-4 py-3 text-sm"
@@ -115,18 +125,18 @@ document.addEventListener('DOMContentLoaded', function () {
                         value="${data.discount ?? ''}">
                 </div>
 
-                    <div class="md:col-span-2">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase">End Date</label>
-                        <input type="date"
-                            min="${today}"
-                            class="offer_end_date w-full border rounded-xl px-4 py-3 text-sm"
-                            value="${data.end_date ?? ''}">
-                    </div>
+                <div class="md:col-span-2">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">End Date</label>
+                    <input type="date"
+                        min="${today}"
+                        class="offer_end_date w-full border rounded-xl px-4 py-3 text-sm"
+                        value="${data.end_date ?? ''}">
+                </div>
 
-                    <div class="md:col-span-1 flex justify-center items-start pb-4">
-                        <button type="button"
-                            class="remove-offer text-red-500 hover:text-red-700 text-2xl leading-none mt-1 transition-colors">×</button>
-                    </div>
+                <div class="md:col-span-1 flex justify-center items-start pb-4">
+                    <button type="button"
+                        class="remove-offer text-red-500 hover:text-red-700 text-2xl leading-none mt-1 transition-colors">×</button>
+                </div>
             </div>  
         </div>`;
 
@@ -163,8 +173,9 @@ document.addEventListener('DOMContentLoaded', function () {
         let valid = true;
         const offers = [];
 
-        offersContainer.querySelectorAll('.group').forEach(group => {
 
+        offersContainer.querySelectorAll('.group').forEach(group => {
+            const packageId = group.querySelector('.offer_package_id');
             const name     = group.querySelector('.offer_name');
             const duration = group.querySelector('.offer_duration');
             const unit     = group.querySelector('.offer_unit');
@@ -188,17 +199,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 valid = false;
             }
 
-            if (discount.value < 0 || discount.value > 100) {
+
+            if (!discount.value) {
+                showError(discount, 'Discount is required');
+                valid = false;
+            } else if (discount.value < 0 || discount.value > 100) {
                 showError(discount, 'Discount must be between 0 and 100');
                 valid = false;
             }
 
-            if (endDate.value && endDate.value < today) {
+            if (!endDate.value) {
+                showError(endDate, 'End date is required');
+                valid = false;
+            } else if (endDate.value < today) {
                 showError(endDate, 'End date cannot be in the past');
                 valid = false;
             }
 
             offers.push({
+                package_id: packageId.value || null,
                 name     : name.value.trim(),
                 duration : duration.value,
                 unit     : unit.value,

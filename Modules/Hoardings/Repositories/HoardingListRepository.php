@@ -168,6 +168,30 @@ class HoardingListRepository
     //for update step 3
     public function updateStep3($oohHoarding, array $data)
     {
+       $offers = [];
+            if (!empty($data['offers_json'])) {
+                
+                $offers = json_decode($data['offers_json'], true);
+            }
+            // If not using offers_json, fallback to old array fields
+            if (empty($offers) && !empty($data['offer_name'])) {
+                $count = is_array($data['offer_name']) ? count($data['offer_name']) : 0;
+                for ($i = 0; $i < $count; $i++) {
+                    $offers[] = [
+                        'name' => $data['offer_name'][$i] ?? '',
+                        'min_booking_duration' => $data['offer_duration'][$i] ?? 1,
+                        'duration_unit' => $data['offer_unit'][$i] ?? 'months',
+                        'discount' => $data['offer_discount'][$i] ?? 0,
+                        'start_date' => $data['offer_start_date'][$i] ?? null,
+                        'end_date' => $data['offer_end_date'][$i] ?? null,
+                        'services' => $data['offer_services'][$i] ?? [],
+                    ];
+                }
+            }
+            if (!empty($offers)) {
+                $data['offers'] = $offers;
+                $this->storePackages($oohHoarding->id, $data);
+            }
         // Get the parent hoarding
         $parent = $oohHoarding->hoarding;
         $parentChanged = false;
@@ -222,40 +246,68 @@ class HoardingListRepository
 
     public function storePackages($hoardingId, array $data)
     {
-        // dd($data);
         // Find the child OOHHoarding for this parent hoarding
         $oohHoarding = \Modules\Hoardings\Models\OOHHoarding::where('id', $hoardingId)->first();
-        $childHoardingId = $oohHoarding ? $oohHoarding->id : null;
-        if (!$childHoardingId) {
-            // fallback to parent if not found
-            $childHoardingId = $hoardingId;
-        }
-        HoardingPackage::where('hoarding_id', $childHoardingId)->delete();
-        $parent = \App\Models\Hoarding::find($oohHoarding->hoarding_id);
-        // New: handle offers array (from JSON)
+        // $childHoardingId = $oohHoarding ? $oohHoarding->id : null;
+        // if (!$childHoardingId) {
+        //     // fallback to parent if not found
+        //     $childHoardingId = $hoardingId;
+        // }
+        $actualParentId = $oohHoarding->hoarding_id;
+
+        // 3. Fetch the parent to get the vendor_id (Fixing the double 'find()->first()' syntax)
+        $parent = \App\Models\Hoarding::findOrFail($actualParentId);
+        $vendorId = $parent->vendor_id;
+
+        $existingIds = [];
         if (isset($data['offers']) && is_array($data['offers'])) {
             foreach ($data['offers'] as $offer) {
                 if (!empty($offer['name'])) {
-                    HoardingPackage::create([
-                        'hoarding_id'           => $childHoardingId,
-                        'vendor_id'             => $parent->vendor_id,
-                        'package_name'          => $offer['name'],
-                        'min_booking_duration'  => $offer['min_booking_duration'] ?? 1,
-                        'duration_unit'         => $offer['duration_unit'] ?? 'months',
-                        'discount_percent'      => $offer['discount_value'] ?? $offer['discount'] ?? 0,
-                        'start_date'            => $offer['start_date'] ?? null,
-                        'end_date'              => $offer['end_date'] ?? null,
-                        'is_active'             => $offer['is_active'] ?? true,
-                        'services_included'     => $offer['services'] ?? [],
-                    ]);
+                    if (!empty($offer['package_id'])) {
+                        // Update existing
+                        $pkg = HoardingPackage::where('id', $offer['package_id'])->where('hoarding_id', $actualParentId)->first();
+                        if ($pkg) {
+                            $pkg->update([
+                                'package_name'         => $offer['name'],
+                                'min_booking_duration' => $offer['duration'] ?? $offer['min_booking_duration'] ?? 1,
+                                'duration_unit'        => $offer['unit'] ?? $offer['duration_unit'] ?? 'months',
+                                'discount_percent'     => $offer['discount'] ?? $offer['discount_value'] ?? 0,
+                                'start_date'           => $offer['start_date'] ?? null,
+                                'end_date'             => $offer['end_date'] ?? null,
+                                'is_active'            => $offer['is_active'] ?? true,
+                                'services_included'    => $offer['services'] ?? [],
+                            ]);
+                            $existingIds[] = $pkg->id;
+                        }
+                    } else {
+                        // Create new
+                        $pkg = HoardingPackage::create([
+                            'hoarding_id'           => $actualParentId,
+                            'vendor_id'             => $parent->vendor_id,
+                            'package_name'          => $offer['name'],
+                            'min_booking_duration'  => $offer['duration'] ?? $offer['min_booking_duration'] ?? 1,
+                            'duration_unit'         => $offer['unit'] ?? $offer['duration_unit'] ?? 'months',
+                            'discount_percent'      => $offer['discount'] ?? $offer['discount_value'] ?? 0,
+                            'start_date'            => $offer['start_date'] ?? null,
+                            'end_date'              => $offer['end_date'] ?? null,
+                            'is_active'             => $offer['is_active'] ?? true,
+                            'services_included'     => $offer['services'] ?? [],
+                        ]);
+                        $existingIds[] = $pkg->id;
+                    }
                 }
             }
+            // Delete removed packages
+            HoardingPackage::where('hoarding_id', $actualParentId)
+                ->whereNotIn('id', $existingIds)
+                ->delete();
         } elseif (isset($data['offer_name']) && is_array($data['offer_name'])) {
-            // Legacy: handle old array fields
+            // Legacy: handle old array fields (no id support)
+            HoardingPackage::where('hoarding_id', $actualParentId)->delete();
             foreach ($data['offer_name'] as $index => $name) {
                 if (!empty($name)) {
                     HoardingPackage::create([
-                        'hoarding_id'         => $childHoardingId,
+                        'hoarding_id'         => $actualParentId,
                         'vendor_id'           => $parent->vendor_id,
                         'package_name'        => $name,
                         'min_booking_duration'=> $data['offer_duration'][$index] ?? 1,

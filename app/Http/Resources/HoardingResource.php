@@ -62,26 +62,26 @@ class HoardingResource extends JsonResource
 
         // Build pricing based on hoarding type
         $pricing = [];
-        if ($this->hoarding_type === 'ooh') {
+       
             $pricing = [
                 'base_monthly' => $this->base_monthly_price ? (float) $this->base_monthly_price : null,
                 'monthly' => $this->monthly_price ? (float) $this->monthly_price : ($this->base_monthly_price ? (float) $this->base_monthly_price : null),
                 'weekly' => $this->weekly_price_1 ? (float) $this->weekly_price_1 : null,
                 'enable_weekly_booking' => (bool) $this->enable_weekly_booking,
+                'weekly_price' => $this->weekly_price_1 ? (float) $this->weekly_price_1 : null,
+                'weekly_price_2' => $this->weekly_price_2 ? (float) $this->weekly_price_2 : null,
+                'weekly_price_3' => $this->weekly_price_3 ? (float) $this->weekly_price_3 : null,
             ];
-        } elseif ($this->hoarding_type === 'dooh' && $this->doohScreen) {
+         if ($this->hoarding_type === 'dooh' && $this->doohScreen) {
             $pricing = [
                 // 'price_per_slot' => $this->doohScreen->price_per_slot ? (float) $this->doohScreen->price_per_slot : null,
                 // 'price_per_30_sec' => $this->doohScreen->display_price_per_30s ? (float) $this->doohScreen->display_price_per_30s : null,
                 // 'minimum_booking' => $this->doohScreen->minimum_booking_amount ? (float) $this->doohScreen->minimum_booking_amount : null,
                 // 'base_monthly' => $this->base_monthly_price ? (float) $this->base_monthly_price : null,
                 'price_per_slot' => $this->doohScreen->price_per_slot ? (float) $this->doohScreen->price_per_slot : null,
+                'slot_duration_seconds' => $this->doohScreen->slot_duration_seconds,
+                'loop_duration_seconds' => $this->doohScreen->loop_duration_seconds,
                 // 'monthly' => $this->monthly_price ? (float) $this->monthly_price : null,
-
-                'enable_weekly_booking' => (bool) $this->enable_weekly_booking,
-                'weekly_price' => $this->weekly_price_1 ? (float) $this->weekly_price_1 : null,
-                'weekly_price_2' => $this->weekly_price_2 ? (float) $this->weekly_price_2 : null,
-                'weekly_price_3' => $this->weekly_price_3 ? (float) $this->weekly_price_3 : null,
 
             ];
         }
@@ -108,10 +108,23 @@ class HoardingResource extends JsonResource
                 'video_length' => $this->doohScreen->video_length,
                 'allowed_formats' => $this->doohScreen->allowed_formats,
                 'max_file_size_mb' => $this->doohScreen->max_file_size_mb,
-                'graphics_included' => (bool) $this->doohScreen->graphics_included,
-                'graphics_price' => $this->doohScreen->graphics_price ? (float) $this->doohScreen->graphics_price : null,
+              
             ];
         }
+
+         // Build OOH technical specs
+        $ooh_specs = null;
+        if ($this->hoarding_type === 'ooh' && $this->ooh) {
+            $ooh_specs = [
+                'screen_size' => [
+                    'width' => $this->ooh->width,
+                    'height' => $this->ooh->height,
+                    'unit' => $this->ooh->measurement_unit,
+                ]
+              
+            ];
+        }
+
 
         return [
             'id' => $this->id,
@@ -123,21 +136,35 @@ class HoardingResource extends JsonResource
                 'phone' => $this->vendor->phone,
             ],
             'title' => $this->title,
+            'slug' => $this->slug,
+            'name' => $this->name,
+
             'description' => $this->description,
             'hoarding_type' => $this->hoarding_type,
             'category' => $this->category,
             'address' => $this->address,
             'city' => $this->city,
             'state' => $this->state,
+            'country' => $this->country,
+            'pincode' => $this->pincode,
+            'locality' => $this->locality,
+            'landmark' => $this->landmark,
             'latitude' => (float) $this->latitude,
             'longitude' => (float) $this->longitude,
-            'location' => [
-                'lat' => (float) $this->latitude,
-                'lng' => (float) $this->longitude,
-            ],
+            'available_from' => $this->available_from?->toIso8601String(),
+          
             'pricing' => $pricing,
             'dooh_specs' => $dooh_specs,
+            'ooh_specs' => $ooh_specs,
             'status' => $this->status,
+            'graphics_included' => (bool) $this->graphics_included,
+            'graphics_price' => $this->graphics_price ? (float) $this->graphics_price : null,
+            'hoarding_visibility' => $this->hoarding_visibility,
+            'visibility_details' => $this->visibility_details,
+            'located_at' => $this->located_at,
+            'expected_footfall' => $this->expected_footfall,
+            'expected_eyeball' => $this->expected_eyeball,
+            'audience_types' => $this->audience_types,
             'is_featured' => (bool) $this->is_featured,
             'is_active' => $this->isActive(),
             'media' => $media,

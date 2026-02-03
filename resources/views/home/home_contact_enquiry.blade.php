@@ -156,7 +156,6 @@
 <script>
 /* =====================================================
    GLOBAL ELEMENTS & STATE
-===================================================== */
 const phoneInput = document.getElementById('phoneInput');
 const emailInput = document.getElementById('emailInput');
 const phoneVerifiedInput = document.getElementById('phone_verified');
@@ -170,28 +169,6 @@ let currentIdentifier = null;
 
 /* =====================================================
    MODAL LOGIC
-===================================================== */
-function autoShowModal() {
-    const modal = document.getElementById('directEnquiryModal');
-
-    const alreadyShown = sessionStorage.getItem('direct_enquiry_first_time');
-
-    if (alreadyShown) return;
-
-    // ⏳ 30 seconds delay
-    setTimeout(() => {
-        // double check (safety)
-        if (!sessionStorage.getItem('direct_enquiry_first_time')) {
-            modal.classList.remove('hidden');
-            sessionStorage.setItem('direct_enquiry_first_time', '1');
-        }
-    }, 5000); // 30,000 ms = 30 sec
-}
-
-
-
-
-function closeDirectEnquiryModal() {
     document.getElementById('directEnquiryModal').classList.add('hidden');
     localStorage.setItem('direct_enquiry_closed_at', Date.now());
 }
@@ -216,62 +193,19 @@ function regenerateCaptcha() {
 
 /* =====================================================
    LOCATIONS
+}
+
+/* =====================================================
+   LOCATIONS
 ===================================================== */
 function addAnotherLocation() {
     const wrapper = document.getElementById('locationWrapper');
-
-    const div = document.createElement('div');
-    div.className = 'flex items-center gap-2 location-item';
-
-    div.innerHTML = `
-        <input type="text" name="preferred_locations[]" 
-            placeholder="Enter location e.g. Aminabad"
-            class="flex-1 border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]" />
-
-        <button type="button"
-            onclick="this.closest('.location-item').remove()"
-            class="text-red-500 text-xl font-bold leading-none hover:text-red-700">
-            &times;
-        </button>
-    `;
-
-    wrapper.appendChild(div);
-}
-
-
-/* =====================================================
-   OTP LOGIC
-===================================================== */
-function updateSubmit() {
-    submitBtn.disabled = !(phoneVerifiedInput.value === '1' && emailVerifiedInput.value === '1');
-
-    document.getElementById('sendPhoneOtpBtn').style.display =
-        phoneVerifiedInput.value === '1' ? 'none' : '';
-    document.getElementById('phoneVerifiedText').classList.toggle(
-        'hidden', phoneVerifiedInput.value !== '1'
-    );
-
-    document.getElementById('sendEmailOtpBtn').style.display =
-        emailVerifiedInput.value === '1' ? 'none' : '';
-    document.getElementById('emailVerifiedText').classList.toggle(
-        'hidden', emailVerifiedInput.value !== '1'
-    );
-}
-
-function showOtpModal(type, identifier) {
-    currentOtpType = type;
-    currentIdentifier = identifier;
-    document.getElementById('otpModal').classList.remove('hidden');
-    document.getElementById('otpInput').value = '';
-    document.getElementById('otpMessage').textContent = '';
-    document.getElementById('otpForText').textContent =
-        `OTP sent to your ${type === 'phone' ? 'Phone' : 'Email'}: ${identifier}`;
-}
-
-function closeOtpModal() {
-    document.getElementById('otpModal').classList.add('hidden');
-    currentOtpType = null;
-    currentIdentifier = null;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.name = 'preferred_locations[]';
+    input.placeholder = 'Enter location e.g. Aminabad';
+    input.className = 'w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#009A5C]';
+    wrapper.appendChild(input);
 }
 
 function sendOTP(type) {
@@ -409,29 +343,3 @@ document.getElementById('directEnquiryForm').addEventListener('submit', function
 
 /* =====================================================
    INPUT HELPERS
-===================================================== */
-phoneInput.addEventListener('input', function () {
-    this.value = this.value.replace(/[^0-9]/g, '');
-});
-
-/* =====================================================
-   INIT
-===================================================== */
-window.addEventListener('DOMContentLoaded', () => {
-    regenerateCaptcha();
-    updateSubmit();
-    autoShowModal();
-    setInterval(autoShowModal, 60000); // every 1 minute
-});
-</script>
-<style>
-    /* Hide scrollbar but keep scroll */
-.scrollbar-hide {
-    -ms-overflow-style: none;  /* IE & Edge */
-    scrollbar-width: none;     /* Firefox */
-}
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;             /* Chrome, Safari */
-}
-
-</style>
