@@ -279,6 +279,15 @@ async function handleCustomerSearch(e) {
 //     document.getElementById('customer_gstin').classList.add('hidden');
 // }
 
+function toLocalYMD(date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+
 function selectCustomer(c) {
     console.log('Customer object:', c);
 
@@ -345,9 +354,9 @@ function toggleHoarding(id) {
         selectedHoardings.delete(id);
     } else {
         const h = hoardings.find(i => i.id === id);
-        const today = new Date().toISOString().split('T')[0];
+        const today = toLocalYMD(new Date());
         let end = new Date(); end.setDate(end.getDate() + 29);
-        selectedHoardings.set(id, { ...h, startDate: today, endDate: end.toISOString().split('T')[0] });
+        selectedHoardings.set(id, { ...h, startDate: today, endDate: toLocalYMD(end) });
     }
     updateSummary();
 }
@@ -408,8 +417,9 @@ let currentHeatmapMap = {};
 let currentEditingHoardingId = null;
 
 function toYMD(d) {
-    return d.toISOString().split('T')[0];
+    return toLocalYMD(d);
 }
+
 
 function enumerateDatesBetween(start, end) {
     const dates = [];
@@ -432,10 +442,10 @@ async function openDatePickerForHoarding(id) {
     document.getElementById('datePickerTitle').innerText = h.title;
     document.getElementById('datePickerModal').classList.remove('hidden');
 
-    const today = new Date();
-    const startStr = today.toISOString().split('T')[0];
+    const today = toLocalYMD(new Date());
+    const startStr = toLocalYMD(new Date());
     const future = new Date(); future.setDate(future.getDate() + 365);
-    const endStr = future.toISOString().split('T')[0];
+    const endStr = toLocalYMD(future);
 
     try {
         const res = await fetch(`/api/v1/hoardings/${id}/availability/heatmap?start_date=${startStr}&end_date=${endStr}`, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
@@ -467,7 +477,7 @@ async function openDatePickerForHoarding(id) {
             disable: disabledDates,
             defaultDate: [h.startDate, h.endDate],
             onDayCreate: function(dObj, dStr, fp, dayElem) {
-                const date = dayElem.dateObj.toISOString().split('T')[0];
+                const date = toLocalYMD(dayElem.dateObj);
                 const status = currentHeatmapMap[date];
                 if (status && status !== 'available') {
                     dayElem.classList.add(status);
