@@ -18,6 +18,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Modules\POS\Models\POSBooking;
+use Modules\POS\Events\PosCustomerCreated;
 class VendorPosController extends Controller
 {
     protected POSBookingService $posBookingService;
@@ -628,6 +629,27 @@ class VendorPosController extends Controller
                 ->where('credit_note_status', 'active')
                 ->count();
 
+                // 1. Registered Customers (Unique by ID)
+            $regCount = POSBooking::where('vendor_id', $vendorId)
+                ->whereNotNull('customer_id')
+                ->distinct('customer_id')
+                ->count('customer_id');
+
+            // 2. Guest Walk-ins (Unique by Phone, excluding 'N/A')
+            $guestCount = POSBooking::where('vendor_id', $vendorId)
+                ->whereNull('customer_id')
+                ->whereNotNull('customer_phone')
+                ->where('customer_phone', '!=', 'N/A')
+                ->distinct('customer_phone')
+                ->count('customer_phone');
+
+            // 3. True Anonymous (Every 'N/A' or empty phone is a new person)
+            $naCount = POSBooking::where('vendor_id', $vendorId)
+                ->whereNull('customer_id')
+                ->where(function($q) {
+                    $q->where('customer_phone', 'N/A')->orWhereNull('customer_phone');
+                })
+                ->count();
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -635,6 +657,7 @@ class VendorPosController extends Controller
                     'total_revenue' => (float) $totalRevenue,
                     'pending_payments' => (float) $pendingPayments,
                     'active_credit_notes' => $activeCreditNotes,
+                    'total_customers'  => ($regCount + $guestCount + $naCount), // The combined total
                 ],
             ]);
         } catch (\Exception $e) {
@@ -858,6 +881,24 @@ class VendorPosController extends Controller
 
                 return $user;
             });
+            try {
+                // Log customer creation
+                Log::info('POS customer created', [
+                    'vendor_id' => Auth::id(),
+                    'customer_id' => $user->id,
+                    'customer_email' => $user->email,
+                ]);
+                DB::afterCommit(function () use ($user) {
+                    event(new PosCustomerCreated($user, Auth::user()));
+                });
+            } catch (\Exception $e) {
+                Log::warning('Failed to log POS customer creation', [
+                    'vendor_id' => Auth::id(),
+                    'error' => $e->getMessage(),
+                ]);
+            }
+           
+
 
             // // Send notification and email to Vendor
             // try {

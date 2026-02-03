@@ -52,4 +52,22 @@
     }
 
 
+    function formatDateDDMMYYYY($dateStr) {
+        if (!$dateStr) return 'N/A';
+        
+        // Parse as local date without timezone shift
+        $parts = explode('-', $dateStr); // "YYYY-MM-DD"
+        if (count($parts) < 3) return $dateStr;
+
+        $year = (int)$parts[0];
+        $month = (int)$parts[1];
+        $day = (int)$parts[2];
+
+        $date = new \DateTime("$year-$month-$day");
+
+        return $date->format('d/m/Y');
+    }
+
+
+
 

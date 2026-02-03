@@ -311,9 +311,17 @@ public function createBooking(array $data): POSBooking
             ]);
             // Don't fail the booking if invoice fails
         }
+
+          DB::afterCommit(function () use ($booking) {
+            event(new \Modules\POS\Events\PosBookingCreated(
+                $booking->load(['customer', 'vendor', 'bookingHoardings.hoarding'])
+            ));
+        });
         return $booking->fresh(['bookingHoardings']);
     });
-}
+
+      
+    }
 
 /**
  * Calculates pricing for multiple hoardings
@@ -723,6 +731,9 @@ public function releaseHoardings(POSBooking $booking)
             'pending_payments' => $bookings->unpaid()->sum('total_amount'),
             'active_credit_notes' => $bookings->creditNotes()->count(),
             'credit_notes_value' => $bookings->creditNotes()->sum('total_amount'),
+            'total_customers'  => POSBooking::where('vendor_id', $vendorId)
+                                ->distinct('customer_phone') // or customer_email
+                                ->count('customer_phone'),
         ];
     }
 
@@ -965,35 +976,5 @@ public function isHoardingAvailable($hoardingId, $fromDate, $toDate, $excludeBoo
 // File: Modules/POS/Models/POSBooking.php
 
 // ADDITION (STEP 4)
-public function scopeActive($query)
-{
-    return $query->whereIn('status', ['confirmed', 'partial_paid', 'paid']);
-}
 
-public function scopeOverdue($query)
-{
-    return $query->whereIn('status', ['confirmed', 'partial_paid'])
-        ->where('end_date', '<', now());
-}
-
-public function scopeCompleted($query)
-{
-    return $query->where('status', 'completed');
-}
-
-public function getBookingsEligibleForWhatsappReminder(): Collection
-{
-    return PosBooking::query()
-        ->whereIn('status', ['confirmed', 'partial_paid'])
-        ->where('payment_status', '!=', 'paid')
-        ->where('reminder_count', '<', 3)
-        ->where(function ($q) {
-            $q->whereNull('last_reminder_at')
-              ->orWhere('last_reminder_at', '<', now()->subDay());
-        })
-        ->whereNull('cancelled_at')
-        ->select('id')
-        ->limit(50)
-        ->get();
-}
 }

@@ -14,28 +14,33 @@
             </div>
 
             <form id="new-customer-form" class="px-8 pb-8">
+                <div id="customer-error-summary" class="hidden mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-700 text-sm"></div>
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-5">
                     
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-gray-700">Full Name</label>
                         <input type="text" name="name" placeholder="Enter full name" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="name"></div>
                     </div>
 
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-gray-700">Business Name</label>
                         <input type="text" name="business_name" placeholder="Enter business name" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="business_name"></div>
                     </div>
 
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-gray-700">GSTIN<span class="text-red-500">*</span></label>
                         <input type="text" name="gstin" placeholder="Enter email address" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="gstin"></div>
                     </div>
 
                     <div class="space-y-2 relative">
                         <label class="block text-sm font-medium text-gray-700">Email<span class="text-red-500">*</span></label>
                         <div class="relative">
                             <input type="email" name="email" placeholder="Enter email address" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                            <div class="text-xs text-red-600 mt-1" data-error-for="email"></div>
                             <!-- <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 text-sm hover:underline">Verify</button> -->
                         </div>
                     </div>
@@ -49,6 +54,7 @@
                                 <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                             </div>
                             <input type="tel" name="phone" placeholder="Enter mobile number" class="w-full px-4 py-3 border-none focus:ring-0 placeholder-gray-400 text-sm">
+                            <div class="text-xs text-red-600 mt-1" data-error-for="phone"></div>
                         </div>
                     </div>
 
@@ -56,6 +62,7 @@
                         <label class="block text-sm font-medium text-gray-700">Pincode<span class="text-red-500">*</span></label>
                         <div class="relative">
                             <input type="text" id="pincode" name="pincode" placeholder="Enter pincode" maxlength="6" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                            <div class="text-xs text-red-600 mt-1" data-error-for="pincode"></div>
                             <div class="absolute right-3 top-1/2 -translate-y-1/2">
                                 <div class="w-5 h-5 border border-gray-300 rounded-full flex items-center justify-center text-[10px] text-gray-400 font-serif">i</div>
                             </div>
@@ -65,14 +72,17 @@
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-gray-700">City</label>
                         <input type="text" id="city" name="city" placeholder="City" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="city"></div>
                     </div>
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-gray-700">State</label>
                         <input type="text" id="state" name="state" placeholder="State" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="state"></div>
                     </div>
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-gray-700">Country</label>
                         <input type="text" id="country" name="country" value="India" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="country"></div>
                     </div>
                 </div>
 
@@ -82,10 +92,12 @@
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Password</label>
                             <input type="password" name="password" placeholder="Enter password" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                            <div class="text-xs text-red-600 mt-1" data-error-for="password"></div>
                         </div>
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
                             <input type="password" name="password_confirmation" placeholder="Confirm password" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                            <div class="text-xs text-red-600 mt-1" data-error-for="password_confirmation"></div>
                         </div>
                     </div>
                 </div>
@@ -137,7 +149,10 @@ document.getElementById('new-customer-form').addEventListener('submit', async (e
     e.preventDefault();
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerText;
-    
+    // Clear previous errors
+    document.getElementById('customer-error-summary').classList.add('hidden');
+    document.getElementById('customer-error-summary').innerText = '';
+    e.target.querySelectorAll('[data-error-for]').forEach(el => { el.innerText = ''; });
     try {
         submitBtn.disabled = true;
         submitBtn.innerText = 'Creating...';
@@ -148,22 +163,42 @@ document.getElementById('new-customer-form').addEventListener('submit', async (e
             body: JSON.stringify(Object.fromEntries(formData))
         });
 
-        // selectCustomer is defined in create.blade.php
-        selectCustomer(res.data || res);
+        // Only proceed if response is a valid customer object
+        if (res && res.success === false && res.errors) {
+            // Validation failed, show popup
+            const errorList = Object.values(res.errors).flat().join('\n');
+            alert(errorList || res.message || 'Validation failed');
+            return;
+        }
+        // Success popup
+        alert('Customer created successfully!');
+        // Pre-select in search box
+        const customerObj = res.data || res;
+        document.getElementById('customer-search').value = customerObj.name;
+        selectCustomer(customerObj);
         closeCustomerModal();
         e.target.reset();
     } catch (err) {
         console.error(err);
-        let message = err;
-        if (err.data) {
-            if (err.data.errors) {
-                // Laravel validation errors
-                message = Object.values(err.data.errors).flat().join('\n');
-            } else if (err.data.message) {
-                message = err.data.message;
+        let summary = '';
+        if (err.data && err.data.errors) {
+            // Laravel validation errors
+            const errors = err.data.errors;
+            summary = Object.values(errors).flat().join('\n');
+            for (const [field, messages] of Object.entries(errors)) {
+                const el = e.target.querySelector(`[data-error-for="${field}"]`);
+                if (el) el.innerText = messages.join(' ');
             }
+        } else if (err.data && err.data.message) {
+            summary = err.data.message;
+        } else if (typeof err === 'string') {
+            summary = err;
         }
-        alert(message);
+        if (summary) {
+            const summaryDiv = document.getElementById('customer-error-summary');
+            summaryDiv.innerText = summary;
+            summaryDiv.classList.remove('hidden');
+        }
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = originalText;

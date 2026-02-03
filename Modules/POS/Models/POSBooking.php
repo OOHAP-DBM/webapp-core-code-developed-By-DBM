@@ -287,9 +287,40 @@ class POSBooking extends Model
      */
     public function scopeActive($query)
     {
-        return $query->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_ACTIVE]);
+        return $query->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_ACTIVE, self::STATUS_PAID]);
     }
 
+//     public function scopeActive($query)
+// {
+//     return $query->whereIn('status', ['confirmed', 'partial_paid', 'paid']);
+// }
+
+    public function scopeOverdue($query)
+    {
+        return $query->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_PARTIAL_PAID])
+            ->where('end_date', '<', now());
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', self::STATUS_COMPLETED);
+    }
+
+    public function getBookingsEligibleForWhatsappReminder(): Collection
+    {
+        return PosBooking::query()
+            ->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_PARTIAL_PAID])
+            ->where('payment_status', '!=', self::PAYMENT_STATUS_PAID)
+            ->where('reminder_count', '<', 3)
+            ->where(function ($q) {
+                $q->whereNull('last_reminder_at')
+                ->orWhere('last_reminder_at', '<', now()->subDay());
+            })
+            ->whereNull('cancelled_at')
+            ->select('id')
+            ->limit(50)
+            ->get();
+    }
     /**
      * Scope: Unpaid bookings
      */

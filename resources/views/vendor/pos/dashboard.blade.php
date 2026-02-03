@@ -1,72 +1,83 @@
 @extends('layouts.vendor')
 
-@section('title', 'POS Bookings Dashboard')
+@section('title', 'POS Dashboard')
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    body { font-family: 'Poppins', sans-serif; }
+</style>
 
 @section('content')
-<div class="px-6 py-6 space-y-6">
+<div class="px-6 py-6 space-y-8 bg-gray-50 min-h-screen">
 
-    <!-- Statistics Cards -->
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-2xl font-bold text-[#1D1D1D]">Welcome,Vendor</h2>
+            <p class="text-sm text-gray-500 font-medium">POS Dashboard</p>
+        </div>
+        <button class="bg-[#1D1D1D] text-white px-6 py-2 rounded shadow-sm text-sm font-medium">POS</button>
+    </div>
+
+    <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="rounded-xl bg-blue-600 text-white p-5">
-            <h6 class="text-sm opacity-80">Total Bookings</h6>
-            <h2 id="total-bookings" class="text-3xl font-semibold mt-2">0</h2>
+
+       <div class="bg-[#4891EF] text-white rounded-xl p-5">
+            <p class="text-sm opacity-80">Total Bookings</p>
+            <h3 id="total-bookings" class="text-3xl font-semibold mt-2">0</h3>
+        </div>
+        <div class="bg-[#8153FF] text-white rounded-xl p-5">
+            <p class="text-sm opacity-80">Total Revenue</p>
+            <h3 id="total-revenue" class="text-3xl font-semibold mt-2">₹0</h3>
         </div>
 
-        <div class="rounded-xl bg-green-600 text-white p-5">
-            <h6 class="text-sm opacity-80">Total Revenue</h6>
-            <h2 id="total-revenue" class="text-3xl font-semibold mt-2">₹0</h2>
+        <div class="bg-[#2CB67D] text-white rounded-xl p-5">
+            <p class="text-sm opacity-80">Pending Payments</p>
+            <h3 id="pending-payments" class="text-3xl font-semibold mt-2">₹0</h3>
         </div>
 
-        <div class="rounded-xl bg-yellow-400 text-gray-900 p-5">
-            <h6 class="text-sm opacity-80">Pending Payments</h6>
-            <h2 id="pending-payments" class="text-3xl font-semibold mt-2">₹0</h2>
-        </div>
-
-        <div class="rounded-xl bg-cyan-600 text-white p-5">
-            <h6 class="text-sm opacity-80">Active Credit Notes</h6>
-            <h2 id="active-credit-notes" class="text-3xl font-semibold mt-2">0</h2>
+        <div class="bg-slate-800 text-white rounded-xl p-5">
+            <p class="text-sm opacity-80">Total Customers</p>
+            <h3 id="total-customers" class="text-3xl font-semibold mt-2">0</h3>
         </div>
     </div>
 
-    <!-- Action Buttons -->
+    <!-- Actions -->
     <div class="flex flex-wrap gap-4">
-        <a
-            href="{{ route('vendor.pos.create') }}"
-            class="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
-        >
-            ➕ Create New POS Booking
+        <a href="{{ route('vendor.pos.create') }}"
+           class="px-5 py-2.5 rounded-md bg-black text-white text-sm hover:bg-gray-800 transition">
+            + Create POS Booking
         </a>
 
-        <a
-            href="{{ route('vendor.pos.list') }}"
-            class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100 transition"
-        >
-            📋 View All Bookings
+        <a href="{{ route('vendor.pos.list') }}"
+           class="px-5 py-2.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition">
+            View All Bookings
         </a>
     </div>
 
-    <!-- Recent Bookings -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h5 class="text-lg font-semibold">Recent POS Bookings</h5>
+    <!-- Recent POS Bookings -->
+    <div class="bg-white rounded-xl border border-gray-200">
+        <div class="px-6 py-4 border-b">
+            <h4 class="font-semibold text-gray-800">Recent POS Bookings</h4>
         </div>
 
         <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
-                <thead class="bg-gray-50 text-gray-600">
+                <thead class="bg-gray-100 text-gray-600">
                     <tr>
-                        <th class="px-4 py-3 text-left">Invoice #</th>
+                        <th class="px-4 py-3 text-left">Invoice</th>
                         <th class="px-4 py-3 text-left">Customer</th>
                         <th class="px-4 py-3 text-left">Hoarding</th>
                         <th class="px-4 py-3 text-left">Dates</th>
                         <th class="px-4 py-3 text-left">Amount</th>
                         <th class="px-4 py-3 text-left">Payment</th>
                         <th class="px-4 py-3 text-left">Status</th>
-                        <th class="px-4 py-3 text-left">Hold Expires</th>
-                        <th class="px-4 py-3 text-left">Actions</th>
+                        <th class="px-4 py-3 text-left">Hold</th>
+                        <th class="px-4 py-3 text-left">Action</th>
                     </tr>
                 </thead>
-                <tbody id="recent-bookings-body" class="divide-y">
+                <tbody id="recent-bookings-body" class="divide-y bg-white">
                     <tr>
                         <td colspan="9" class="px-4 py-6 text-center text-gray-500">
                             Loading...
@@ -77,29 +88,33 @@
         </div>
     </div>
 
-    <!-- Pending Payments Widget -->
-    <div id="pending-payments-widget" class="bg-white rounded-xl shadow-sm border border-gray-200 hidden">
-        <div class="px-6 py-4 border-b border-gray-200 bg-yellow-50">
-            <h5 class="text-lg font-semibold text-yellow-800">Pending Payment</h5>
-            <p class="text-sm text-yellow-700">Bookings with pending payment that need attention</p>
+    <!-- Pending Payments -->
+    <div id="pending-payments-widget"
+         class="bg-white rounded-xl border border-gray-200 hidden">
+        <div class="px-6 py-4 border-b bg-yellow-50">
+            <h4 class="font-semibold text-yellow-800">Pending Payments</h4>
+            <p class="text-sm text-yellow-700">
+                Bookings requiring payment confirmation
+            </p>
         </div>
 
         <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
-                <thead class="bg-gray-50 text-gray-600">
+                <thead class="bg-gray-100 text-gray-600">
                     <tr>
-                        <th class="px-4 py-3 text-left">Invoice #</th>
+                        <th class="px-4 py-3 text-left">Invoice</th>
                         <th class="px-4 py-3 text-left">Customer</th>
                         <th class="px-4 py-3 text-left">Amount</th>
-                        <th class="px-4 py-3 text-left">Hold Expires In</th>
-                        <th class="px-4 py-3 text-left">Actions</th>
+                        <th class="px-4 py-3 text-left">Pending Since</th>
+                        <th class="px-4 py-3 text-left">Action</th>
                     </tr>
                 </thead>
-                <tbody id="pending-payments-body" class="divide-y">
+                <tbody id="pending-payments-body" class="divide-y bg-white">
                 </tbody>
             </table>
         </div>
     </div>
+
 </div>
 
 <script>
@@ -148,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('total-bookings').textContent = data.data.total_bookings;
                 document.getElementById('total-revenue').textContent = '₹' + data.data.total_revenue.toLocaleString();
                 document.getElementById('pending-payments').textContent = '₹' + data.data.pending_payments.toLocaleString();
-                document.getElementById('active-credit-notes').textContent = data.data.active_credit_notes;
+                document.getElementById('total-customers').textContent = data.data.total_customers;
             }
         })
         .catch(err => console.warn('Could not load dashboard stats:', err));
