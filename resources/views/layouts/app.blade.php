@@ -308,7 +308,6 @@
 function toggleShortlist(btn) {
     const hoardingId = btn.dataset.id;
     const isAuth = btn.dataset.auth === '1';
-    const role = btn.dataset.role;
 
     if (!hoardingId) return;
 
@@ -330,22 +329,8 @@ function toggleShortlist(btn) {
         return;
     }
 
-    /* ❌ ROLE NOT ALLOWED */
-    if (role === 'vendor' || role === 'admin') {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'error',
-            title: 'You are not allowed to add items to wishlist',
-            text: 'This action is only available for customers.',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return;
-    }
-
-    /* ✅ CUSTOMER ACTION */
-    fetch(`/customer/shortlist/toggle/${hoardingId}`, {
+    /* ✅ LOGGED IN USER ACTION */
+    fetch(`/shortlist/toggle/${hoardingId}`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document

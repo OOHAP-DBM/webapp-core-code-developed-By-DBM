@@ -15,7 +15,7 @@ class ShortlistController extends Controller
      */
     public function __construct()
     {
-        $this->middleware(['auth', 'role:customer']);
+        $this->middleware(['auth']);
     }
 
     /**
@@ -108,12 +108,6 @@ class ShortlistController extends Controller
                 'success' => false,
                 'message' => 'Unauthorized'
             ], 401);
-        }
-        if (auth()->user()->active_role !== 'customer') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Permission denied'
-            ], 403);
         }
         try {
             $result = Wishlist::toggle(auth()->id(), $hoardingId);

@@ -106,8 +106,8 @@
     }
 
     .footer-text a {
-        text-decoration: none;
-        font-weight: 500;
+        /* text-decoration: none; */
+        font-weight: 700;
     }
 
     @media (max-width: 768px) {
@@ -250,8 +250,8 @@
                     </p>
                     <small>
                         By clicking continue button, you agree with the
-                        <a href="{{ route('terms') }}">Terms & Conditions</a> and
-                        <a href="{{ route('privacy') }}">Privacy policy</a> of OOHAPP.
+                        <a href="{{ route('terms') }}" class="text-dark font-semibold">Terms & Conditions</a> and
+                        <a href="{{ route('privacy') }}" class="text-dark font-semibold">Privacy policy</a> of OOHAPP.
                     </small>
                 </div>
 

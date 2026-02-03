@@ -76,8 +76,10 @@
 
             <!-- Keep in touch Section -->
             <div>
-                <h3 class="text-gray-900 text-left text-lg font-semibold mb-4">Keep in touch</h3>
-                <div class="flex space-x-1">
+                <h3 class="text-gray-900 text-left text-lg font-semibold mb-4">
+                    Keep in touch
+                </h3>
+                <div class="flex items-center gap-2 justify-start -ml-3">
                     <a href="https://www.facebook.com/profile.php?id=100083678822547" target="_blank" class="w-9 h-9  rounded flex items-center justify-center hover:bg-gray-100 transition-colors" title="Facebook">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M15.0007 1.2168H12.5007C11.3956 1.2168 10.3358 1.65578 9.55437 2.43719C8.77297 3.21859 8.33398 4.27839 8.33398 5.38346V7.88346H5.83398V11.2168H8.33398V17.8835H11.6673V11.2168H14.1673L15.0007 7.88346H11.6673V5.38346C11.6673 5.16245 11.7551 4.95049 11.9114 4.79421C12.0677 4.63793 12.2796 4.55013 12.5007 4.55013H15.0007V1.2168Z" stroke="#1E1B18" stroke-opacity="0.9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

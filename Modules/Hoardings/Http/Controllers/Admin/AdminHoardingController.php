@@ -19,10 +19,13 @@
     public function adminHoardings(Request $request): View
     {
         $perPage = 10;
-        $hoardings = Hoarding::whereNull('vendor_id')
+        $adminUserIds = \App\Models\User::where('active_role', 'admin')->pluck('id');
+        $hoardings = Hoarding::where(function ($query) use ($adminUserIds) {
+                $query->whereNull('vendor_id')
+                    ->orWhereIn('vendor_id', $adminUserIds);
+            })
             ->orderBy('id', 'desc')
             ->paginate($perPage);
-
         $completionService = app(\App\Services\HoardingCompletionService::class);
         $hoardings->getCollection()->transform(function ($h) use ($completionService) {
             return (object) [
@@ -34,9 +37,9 @@
                 'completion' => $completionService->calculateCompletion($h),
             ];
         });
-
         return view('hoardings.admin.admin-hoardings', [
             'hoardings' => $hoardings
         ]);
     }
+
     }

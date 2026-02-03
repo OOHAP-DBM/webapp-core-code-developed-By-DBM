@@ -385,22 +385,7 @@ function openWishlist(event) {
         }, 2000);
         return;
     }
-
-    /* ❌ ROLE NOT ALLOWED */
-    if (role === 'vendor' || role === 'admin') {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'error',
-            title: 'Only customers can access the wishlist',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return;
-    }
-
-    /* ✅ CUSTOMER */
-    window.location.href = "{{ route('customer.shortlist') }}";
+    window.location.href = "{{ route('shortlist') }}";
 }
 </script>
 

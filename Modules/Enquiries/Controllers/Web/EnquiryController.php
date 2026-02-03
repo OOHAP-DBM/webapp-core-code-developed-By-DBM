@@ -32,35 +32,85 @@ class EnquiryController extends Controller
     public function index(Request $request)
     {
         if (!auth()->check() || !auth()->user()->hasRole('customer')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Only customers can view enquiries.'
-            ], 403);
+            abort(403, 'Only customers can view enquiries.');
         }
-        $query = Enquiry::where('customer_id', Auth::id())
-            ->with(['items.hoarding'])
-            ->latest();
 
+        $query = Enquiry::where('customer_id', auth()->id())
+            ->with(['items.hoarding']);
+
+        /* ---------------- STATUS FILTER ---------------- */
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
+        $searchId = null;
+
+        /* ---------------- SEARCH + PRIORITY ---------------- */
         if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function($q) use ($search) {
-                $q->where('id', 'like', "%$search%")
-                  ->orWhereHas('items.hoarding', function($h) use ($search) {
-                      $h->where('title', 'like', "%$search%")
-                        ->orWhere('city', 'like', "%$search%")
-                        ->orWhere('address', 'like', "%$search%")
-                        ->orWhere('vendor_id', 'like', "%$search%")
-                        ->orWhere('id', 'like', "%$search%")
-                        ;
-                  });
+
+            $search = trim($request->search);
+
+            // ENQ00050 / 50 → 50
+            $searchId = preg_replace('/\D/', '', $search);
+
+            $query->where(function ($q) use ($search, $searchId) {
+
+                if ($searchId !== '') {
+                    $q->orWhere('id', (int) $searchId);
+                }
+
+                $q->orWhereHas('items.hoarding', function ($h) use ($search) {
+                    $h->where('title', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%")
+                    ->orWhere('vendor_id', 'like', "%{$search}%")
+                    ->orWhere('id', 'like', "%{$search}%");
+                });
             });
+
+            // ⭐ Exact ID priority
+            if ($searchId !== '') {
+                $query->orderByRaw(
+                    "CASE WHEN id = ? THEN 0 ELSE 1 END",
+                    [(int) $searchId]
+                );
+            }
         }
 
-        $enquiries = $query->paginate(10);
+        /* ---------------- DATE FILTER (created_at) ---------------- */
+        if ($request->filled('date_filter')) {
+
+            switch ($request->date_filter) {
+
+                case 'last_week':
+                    $query->where('created_at', '>=', Carbon::now()->subWeek());
+                    break;
+
+                case 'last_month':
+                    $query->where('created_at', '>=', Carbon::now()->subMonth());
+                    break;
+
+                case 'last_year':
+                    $query->where('created_at', '>=', Carbon::now()->subYear());
+                    break;
+
+                case 'custom':
+                    if ($request->filled('from_date') && $request->filled('to_date')) {
+                        $query->whereBetween('created_at', [
+                            Carbon::parse($request->from_date)->startOfDay(),
+                            Carbon::parse($request->to_date)->endOfDay(),
+                        ]);
+                    }
+                    break;
+            }
+        }
+
+        /* ---------------- DEFAULT ORDER ---------------- */
+        $query->orderBy('created_at', 'desc');
+
+        $enquiries = $query
+            ->paginate(10)
+            ->withQueryString();
 
         return view('customer.enquiries.index', compact('enquiries'));
     }
