@@ -25,7 +25,7 @@
                                     ->take(4)
                                 : collect();
                         @endphp
-                        <div class="rounded-lg p-4 mb-4 shadow bg-[#F8F8F8]" onclick="if(event.target.closest('button, a') === null)
+                        <div class="rounded-lg p-4 mb-4 shadow bg-[#F8F8F8] cursor-pointer" onclick="if(event.target.closest('button, a') === null)
                         window.location.href='{{ route('hoardings.show', $item->id) }}';">
                             <div class="flex gap-3">
                                 {{-- THUMBNAIL --}}
@@ -45,16 +45,39 @@
                                         ? auth()->user()->wishlist()->where('hoarding_id', $item->id)->exists()
                                         : false;
                                 @endphp
+                                @php
+                                    $isOwnerVendor = false;
+
+                                    if (
+                                        auth()->check()
+                                        && auth()->user()->active_role === 'vendor'
+                                        && isset($item->vendor_id)
+                                        && auth()->id() === (int) $item->vendor_id
+                                    ) {
+                                        $isOwnerVendor = true;
+                                    }
+                                @endphp
 
                                 <button
-                                        class="absolute top-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center shortlist-btn
-                                            {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }}"
-                                        data-id="{{ $item->id }}"
-                                        data-auth="{{ auth()->check() ? '1' : '0' }}"
-                                        data-role="{{ auth()->check() ? auth()->user()->role : '' }}"
-                                        style="cursor:pointer;"
+                                    class="absolute top-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center shortlist-btn
+                                        {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }}
+                                        {{ $isOwnerVendor ? 'opacity-50' : '' }}"
+
+                                    data-id="{{ $item->id }}"
+                                    data-auth="{{ auth()->check() ? '1' : '0' }}"
+                                    data-role="{{ auth()->check() ? auth()->user()->role : '' }}"
+
+                                    {{-- 🔥 THIS IS THE KEY --}}
+                                    onmouseenter="this.style.cursor='{{ $isOwnerVendor ? 'not-allowed' : 'pointer' }}'"
+                                    onmouseleave="this.style.cursor='default'"
+
+                                    @if($isOwnerVendor)
+                                        disabled
+                                        onclick="event.stopPropagation(); return false;"
+                                    @else
                                         onclick="event.stopPropagation(); toggleShortlist(this);"
-                                    >
+                                    @endif
+                                >
                                         <svg
                                             class="wishlist-icon"
                                             width="20"

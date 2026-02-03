@@ -1,7 +1,7 @@
 {{-- Vendor Sidebar --}}
 <aside
     id="vendor-sidebar"
-    class="hidden md:block w-64 bg-white border-r border-gray-200 overflow-y-auto"
+    class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-screen"
 >
     <button
     id="vendor-mobile-btn-close"
@@ -90,7 +90,7 @@
 
           <!-- Search -->
         <div class=" pb-2 mt-2 border-b border-gray-100">
-            <div class="relative">
+            {{--<div class="relative">
                 <!-- Figma Search Icon -->
                 <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -105,7 +105,7 @@
                     class="w-full rounded-lg pl-11 pr-3 py-2 text-sm
                         bg-gray-100 focus:outline-none"
                 />
-            </div>
+            </div>--}}
         </div>
     </div>
 
