@@ -2,9 +2,8 @@
 
 @section('title', 'My Shortlist')
 
-@include('components.customer.navbar')
-
 @section('content')
+@include('components.customer.navbar')
 <div class="bg-white">
     <div class="max-w-[1460px] mx-auto px-6 py-6">
 

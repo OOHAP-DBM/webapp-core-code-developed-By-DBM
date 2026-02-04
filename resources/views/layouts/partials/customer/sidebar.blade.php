@@ -105,7 +105,7 @@
             <div
                 x-data="{ open: {{ request()->routeIs('customer.profile*') ? 'true' : 'false' }} }"
                 class="space-y-1"
-            >
+                 >
                 {{-- Parent --}}
                 <button
                     type="button"
@@ -145,6 +145,14 @@
                     >
                         <span class="text-xs">•</span>
                         Personal Info
+                    </a>
+                    <a
+                        href="{{ route('customer.profile.billing') }}"
+                        class="flex items-center gap-3 px-6 py-1 text-sm font-medium rounded-md
+                        {{ request()->routeIs('customer.profile.billing') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50' }}"
+                        >
+                        <span class="text-xs">•</span>
+                        Billing Address
                     </a>
 
                 </div>

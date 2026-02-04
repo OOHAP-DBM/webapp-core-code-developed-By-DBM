@@ -167,6 +167,7 @@ class VendorController extends Controller
 
                 // Send approval notification to vendor
                 $profile->user->notify(new \App\Notifications\VendorApprovedNotification(false));
+                $user = $profile->user->load('vendorProfile');
 
                 // Send approval email to vendor
                 try {

@@ -273,6 +273,8 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     
     // Profile
     Route::get('/profile', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/address', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'billingAddress'])->name('profile.billing');
+    Route::post('/profile/address/update', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'billingAddressUpdate'])->name('billing.update');
     Route::get('/profile/edit', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'index'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/change-password', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'changePassword'])->name('profile.change-password');

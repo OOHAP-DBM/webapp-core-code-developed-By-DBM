@@ -166,7 +166,7 @@
 
                                 {{-- CART --}}
                                 <button
-                                    class="cart-btn flex-1 border border-[#c7c7c7] py-2 text-sm rounded"
+                                    class="cart-btn flex-1 border border-[#c7c7c7] py-2 text-sm rounded cursor-pointer"
                                     data-in-cart="{{ in_array($item->id, $cartHoardingIds) ? '1' : '0' }}"
                                     onclick="event.stopPropagation(); toggleCart(this, {{ $item->id }})"
                                 ></button>
@@ -175,7 +175,7 @@
                                 @auth
                                     <button
                                         type="button"
-                                        class="flex-1 py-2 btn-color text-white text-sm font-semibold rounded enquiry-btn"
+                                        class="flex-1 py-2 btn-color text-white text-sm font-semibold rounded enquiry-btn cursor-pointer"
                                         data-hoarding-id="{{ $item->id }}"
                                         data-grace-days="{{ isset($item->grace_period_days) ? (int) $item->grace_period_days : 0 }}"
 
@@ -193,7 +193,7 @@
                                     </button>
                                 @else
                                     <button
-                                        class="flex-1 py-2 btn-color text-white text-sm font-semibold rounded"
+                                        class="flex-1 py-2 btn-color text-white text-sm font-semibold rounded cursor-pointer"
                                         onclick="event.stopPropagation(); window.location.href='/login';"
                                     >
                                         Enquiry Now
