@@ -336,43 +336,45 @@ class HoardingController extends Controller
     public function myHoardings(Request $request)
     {
         $vendor = Auth::user();
-        $activeTab = $request->query('tab', 'all'); // Detect which tab is active
+        $activeTab = $request->query('tab', 'all');
 
-        // 1. Check if the vendor has ANY hoardings at all (to show empty state)
+        $search = $request->input('search');
+        $letter = $request->input('letter'); 
         $totalCount = Hoarding::where('vendor_id', $vendor->id)->count();
         if ($totalCount === 0) {
             return view('hoardings.vendor.empty');
         }
 
-        // 2. Fetch data based on the active tab and search
-        $search = $request->input('search');
         if ($activeTab === 'draft') {
             $query = Hoarding::where('vendor_id', $vendor->id)
                 ->where('status', 'Draft');
             if ($search) {
                 $query->search($search);
             }
-            $data = $query->latest()->paginate(10);
+            if ($letter) {
+                $query->where('title', 'LIKE', $letter . '%');
+            }
+            $data = $query->orderBy('title')->paginate(10)->withQueryString();
         } else {
             $filters = [
                 'vendor_id' => $vendor->id,
                 'status' => ['active', 'inactive', 'pending_approval'],
-                'order_by' => 'updated_at',
-                'order_dir' => 'desc',
             ];
             if ($search) {
                 $filters['search'] = $search;
             }
-            // Using your service for published/live hoardings
+
+            if ($letter) {
+                $filters['letter'] = $letter;
+            }
+
             $data = $this->hoardingService->getAll($filters, 10);
         }
-
-        // 3. Map the data so the Blade file stays clean
-        // We use "through" on paginated items to keep pagination links working
         $hoardingList = $data->getCollection()->map(function ($h) {
             $parts = [];
             if (!empty($h->locality)) $parts[] = $h->locality;
             if (!empty($h->city)) $parts[] = $h->city;
+
             return [
                 'id' => $h->id,
                 'title' => $h->title,
@@ -383,7 +385,6 @@ class HoardingController extends Controller
             ];
         });
 
-        // Update the collection inside the paginator
         $data->setCollection($hoardingList);
 
         return view('hoardings.vendor.list', [

@@ -47,16 +47,41 @@
                                         ? auth()->user()->wishlist()->where('hoarding_id', $item->id)->exists()
                                         : false;
                                 @endphp
+                                @php
+                                    $isOwnerVendor = false;
 
+                                    if (
+                                        auth()->check()
+                                        && auth()->user()->active_role === 'vendor'
+                                        && isset($item->vendor_id)
+                                        && auth()->id() === (int) $item->vendor_id
+                                    ) {
+                                        $isOwnerVendor = true;
+                                    }
+                                @endphp
+                                @if(!$isOwnerVendor)
                                 <button
                                     class="absolute top-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center shortlist-btn
-                                        {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }}"
+                                        {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }}
+                                        {{ $isOwnerVendor ? 'opacity-50' : '' }}"
+
                                     data-id="{{ $item->id }}"
                                     data-auth="{{ auth()->check() ? '1' : '0' }}"
                                     data-role="{{ auth()->check() ? auth()->user()->role : '' }}"
-                                    style="cursor:pointer;"
-                                    onclick="event.stopPropagation(); toggleShortlist(this);"
-                                   >
+
+                                    {{-- 🔥 THIS IS THE KEY --}}
+                                    onmouseenter="this.style.cursor='{{ $isOwnerVendor ? 'not-allowed' : 'pointer' }}'"
+                                    onmouseleave="this.style.cursor='default'"
+
+                                    @if($isOwnerVendor)
+                                        disabled
+                                        onclick="event.stopPropagation(); return false;"
+                                    @else
+                                        onclick="event.stopPropagation(); toggleShortlist(this);"
+                                    @endif
+                                >
+
+
                                     <svg
                                         class="wishlist-icon"
                                         width="20"
@@ -73,6 +98,7 @@
                                         />
                                     </svg>
                                 </button>
+                                @endif
                             </div>
 
                             <div class="flex gap-2 mt-2">
@@ -199,7 +225,7 @@
                                 <!-- Short List + Enquire -->
                                 <div class="flex flex-col">
                                     <button
-                                        class="cart-btn border border-[#c7c7c7] px-4 py-1.5 rounded text-sm whitespace-nowrap min-w-[96px]"
+                                        class="cart-btn border border-[#c7c7c7] px-4 py-1.5 rounded text-sm whitespace-nowrap min-w-[96px] cursor-pointer"
                                         data-in-cart="{{ in_array($item->id, $cartHoardingIds) ? '1' : '0' }}"
                                         onclick="toggleCart(this, {{ $item->id }})"
                                     >
@@ -213,7 +239,7 @@
                                         type="button"
                                         class="inline-flex items-center justify-center text-center
                                                 sm:justify-start
-                                                whitespace-nowrap py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn"
+                                                whitespace-nowrap py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn cursor-pointer"
                                         data-hoarding-id="{{ $item->id }}"
                                         data-grace-days="{{ isset($item->grace_period_days) ? (int) $item->grace_period_days : 0 }}"
 
@@ -235,7 +261,7 @@
                                 @else
                                     <button
                                         type="button"
-                                        class="text-center items-center justify-center inline-flex whitespace-nowrap py-2 px-3 btn-color text-white text-sm font-semibold rounded"
+                                        class="cursor-pointer text-center items-center justify-center inline-flex whitespace-nowrap py-2 px-3 btn-color text-white text-sm font-semibold rounded"
                                         onclick="event.stopPropagation(); event.preventDefault();
                                                 window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
                                     >

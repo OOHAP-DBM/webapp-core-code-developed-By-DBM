@@ -33,6 +33,7 @@ class SearchController extends Controller
             ->whereNull('hoardings.deleted_at')
             ->select([
                 'hoardings.id',
+                'hoardings.vendor_id',
                 'hoardings.title',
                 'hoardings.address',
                 'hoardings.city',

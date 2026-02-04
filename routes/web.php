@@ -7,6 +7,8 @@ use App\Http\Controllers\Web\Customer\ProfileController;
 use Modules\Search\Controllers\SearchController;
 use Modules\Cart\Controllers\Web\CartController;
 use Modules\Enquiries\Controllers\Web\DirectEnquiryController;
+use App\Http\Controllers\Web\Customer\ShortlistController;
+
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -111,6 +113,12 @@ Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('ter
 Route::get('/legal-disclaimer', [PageController::class, 'disclaimer'])->name('disclaimer');
 Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/refund-cancellation-policy', [PageController::class, 'refund'])->name('refund');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/shortlist', [ShortlistController::class, 'index'])->name('shortlist');
+    Route::post('/shortlist/toggle/{hoarding}', [ShortlistController::class, 'toggle'])->name('shortlist.toggle');
+});
+
 
 // ============================================
 // AUTH ROUTES (PROMPT 112 - Role-Based Auth)
@@ -237,14 +245,14 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::delete('/saved-searches/{savedSearch}', [\App\Http\Controllers\MapSearchController::class, 'deleteSavedSearch'])->name('saved-searches.destroy');
     
     // Shortlist/Wishlist
-    Route::get('/shortlist', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'index'])->name('shortlist');
-    Route::post('/shortlist/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'store'])->name('shortlist.store');
-    Route::delete('/shortlist/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'destroy'])->name('shortlist.destroy');
-    Route::post('/shortlist/clear', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'clear'])->name('shortlist.clear');
+    // Route::get('/shortlist', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'index'])->name('shortlist');
+    // Route::post('/shortlist/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'store'])->name('shortlist.store');
+    // Route::delete('/shortlist/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'destroy'])->name('shortlist.destroy');
+    // Route::post('/shortlist/clear', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'clear'])->name('shortlist.clear');
     // PROMPT 50: New routes for toggle, check, and count
-    Route::post('/shortlist/toggle/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'toggle'])->name('shortlist.toggle');
-    Route::get('/shortlist/check/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'check'])->name('shortlist.check');
-    Route::get('/shortlist/count', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'count'])->name('shortlist.count');
+    // Route::post('/shortlist/toggle/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'toggle'])->name('shortlist.toggle');
+    // Route::get('/shortlist/check/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'check'])->name('shortlist.check');
+    // Route::get('/shortlist/count', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'count'])->name('shortlist.count');
     
 
     
@@ -265,6 +273,8 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     
     // Profile
     Route::get('/profile', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/address', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'billingAddress'])->name('profile.billing');
+    Route::post('/profile/address/update', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'billingAddressUpdate'])->name('billing.update');
     Route::get('/profile/edit', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'index'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/change-password', [\App\Http\Controllers\Web\Customer\ProfileController::class, 'changePassword'])->name('profile.change-password');

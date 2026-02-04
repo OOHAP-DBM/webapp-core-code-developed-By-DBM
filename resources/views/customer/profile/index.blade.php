@@ -243,11 +243,11 @@
     </div>
 </div>
 {{-- Change Password Modal --}}
-<div id="changePasswordModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal-backdrop">
+<div id="changePasswordModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-lg w-100 max-w-lg p-6 relative border border-gray-300 modal-container">
 
         <button onclick="closeChangePasswordModal()"
-                class="absolute top-2 right-3 text-gray-500 text-xl">×</button>
+                class="absolute cursor-pointer top-2 right-3 text-gray-800 text-xl hover:text-gray-500">×</button>
 
         <h3 class="text-lg font-semibold mb-4">Change Password</h3>
 
@@ -263,7 +263,7 @@
                     placeholder="Enter current password"
                 >
                 <button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPassword'); return false;">
-                    <i id="currentPasswordIcon" class="bi bi-eye"></i>
+                    <i id="currentPasswordIcon" class="bi bi-eye mt-6"></i>
                 </button>
             </div>
 
@@ -278,7 +278,7 @@
                     placeholder="Enter new password"
                 >
                 <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPassword'); return false;">
-                    <i id="newPasswordIcon" class="bi bi-eye"></i>
+                    <i id="newPasswordIcon" class="bi bi-eye  mt-6"></i>
                 </button>
             </div>
 
@@ -293,7 +293,7 @@
                     placeholder="Confirm new password"
                 >
                 <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPassword'); return false;">
-                    <i id="confirmPasswordIcon" class="bi bi-eye"></i>
+                    <i id="confirmPasswordIcon" class="bi bi-eye  mt-6"></i>
                 </button>
             </div>
 
@@ -303,12 +303,12 @@
         <div class="flex gap-3 mt-6">
             <button
                 onclick="closeChangePasswordModal()"
-                class="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50">
+                class="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50 cursor-pointer">
                 Cancel
             </button>
             <button
                 onclick="submitPasswordChange()"
-                class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded">
+                class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded cursor-pointer">
                 Update Password
             </button>
         </div>

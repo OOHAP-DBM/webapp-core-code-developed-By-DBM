@@ -235,4 +235,12 @@ class ProfileController extends Controller
             'message' => 'Verified successfully'
         ]);
     }
+    public function billingAddress()
+    {
+        return view('customer.profile.billingAddress');
+    }
+    public function billingAddressUpdate(Request $request)
+    {
+        return back()->with('success','its pending right now');
+    }
 }

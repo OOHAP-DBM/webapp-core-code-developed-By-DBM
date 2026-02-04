@@ -20,9 +20,9 @@
                         id="userDropdownBtn"
                         class="text-gray-400 hover:text-gray-600 transition-colors"
                         title="Login">
-                            <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M0.5 14.5C0.5 13.4391 0.921427 12.4217 1.67157 11.6716C2.42172 10.9214 3.43913 10.5 4.5 10.5H12.5C13.5609 10.5 14.5783 10.9214 15.3284 11.6716C16.0786 12.4217 16.5 13.4391 16.5 14.5C16.5 15.0304 16.2893 15.5391 15.9142 15.9142C15.5391 16.2893 15.0304 16.5 14.5 16.5H2.5C1.96957 16.5 1.46086 16.2893 1.08579 15.9142C0.710714 15.5391 0.5 15.0304 0.5 14.5Z" stroke="#484848" stroke-linejoin="round"/>
-                            <path d="M8.5 6.5C10.1569 6.5 11.5 5.15685 11.5 3.5C11.5 1.84315 10.1569 0.5 8.5 0.5C6.84315 0.5 5.5 1.84315 5.5 3.5C5.5 5.15685 6.84315 6.5 8.5 6.5Z" stroke="#484848"/>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 18C4 16.9391 4.42143 15.9217 5.17157 15.1716C5.92172 14.4214 6.93913 14 8 14H16C17.0609 14 18.0783 14.4214 18.8284 15.1716C19.5786 15.9217 20 16.9391 20 18C20 18.5304 19.7893 19.0391 19.4142 19.4142C19.0391 19.7893 18.5304 20 18 20H6C5.46957 20 4.96086 19.7893 4.58579 19.4142C4.21071 19.0391 4 18.5304 4 18Z" stroke="#484848" stroke-linejoin="round"/>
+                            <path d="M12 10C13.6569 10 15 8.65685 15 7C15 5.34315 13.6569 4 12 4C10.3431 4 9 5.34315 9 7C9 8.65685 10.3431 10 12 10Z" stroke="#484848"/>
                             </svg>
                 </a>
 
@@ -385,22 +385,7 @@ function openWishlist(event) {
         }, 2000);
         return;
     }
-
-    /* ❌ ROLE NOT ALLOWED */
-    if (role === 'vendor' || role === 'admin') {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'error',
-            title: 'Only customers can access the wishlist',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return;
-    }
-
-    /* ✅ CUSTOMER */
-    window.location.href = "{{ route('customer.shortlist') }}";
+    window.location.href = "{{ route('shortlist') }}";
 }
 </script>
 

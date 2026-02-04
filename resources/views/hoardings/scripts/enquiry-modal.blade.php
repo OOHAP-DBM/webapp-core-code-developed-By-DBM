@@ -643,8 +643,7 @@ window.openEnquiryModal = function (payload) {
 
                 enquiryToast.fire({
                     icon: 'success',
-                    title: 'Enquiry Submitted',
-                    html: `<small>Enquiry ID: <b>#${data.enquiry_id}</b></small>`
+                    title: 'Enquiry Submit SuccessFully',
                 });
 
                 closeEnquiryModal();

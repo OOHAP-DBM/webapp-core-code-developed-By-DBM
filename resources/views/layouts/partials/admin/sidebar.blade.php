@@ -78,16 +78,14 @@
         <hr class="mt-5 border-gray-200">
     </div>
     <!-- Search -->
-    <div class="px-6 pb-2 border-b border-gray-100">
+    <!-- <div class="px-6 pb-2 border-b border-gray-100">
         <div class="relative">
-            <!-- Figma Search Icon -->
             <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path opacity="0.3" d="M14.2929 16.7071C13.9024 16.3166 13.9024 15.6834 14.2929 15.2929C14.6834 14.9024 15.3166 14.9024 15.7071 15.2929L19.7071 19.2929C20.0976 19.6834 20.0976 20.3166 19.7071 20.7071C19.3166 21.0976 18.6834 21.0976 18.2929 20.7071L14.2929 16.7071Z" fill="#949291"/>
                 <path d="M11 4C14.866 4 18 7.13401 18 11C18 14.866 14.866 18 11 18C7.13401 18 4 14.866 4 11C4 7.13401 7.13401 4 11 4ZM11 6C8.23858 6 6 8.23858 6 11C6 13.7614 8.23858 16 11 16C13.7614 16 16 13.7614 16 11C16 8.23858 13.7614 6 11 6Z" fill="#949291"/>
                 </svg>
             </span>
-            <!-- Input -->
             <input
                 type="text"
                 placeholder="Search"
@@ -95,7 +93,7 @@
                     bg-gray-100 focus:outline-none"
             />
         </div>
-    </div>
+    </div> -->
     <!-- Menu -->
     <nav class="flex-1 overflow-y-auto px-2 py-4">
         <ul class="space-y-1">
@@ -190,9 +188,12 @@
                     {{-- <a  class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.my') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
                         <span class="submenu-item-indent">- My Hoardings</span>
                     </a> --}}
-                    <a href="{{route('admin.my-hoardings')}}" class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoardings.my') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
-                        <span class="submenu-item-indent">- My Hoardings</span>
+                    <a href="{{ route('admin.my-hoardings') }}"
+                        class="block py-2 text-sm rounded-md sidebar-submenu-item
+                        {{ request()->routeIs('admin.my-hoardings') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}">
+                            <span class="submenu-item-indent">- My Hoardings</span>
                     </a>
+
                    <a href="{{ route('admin.vendor-hoardings.index') }}"
                     class="block py-2 text-sm rounded-md sidebar-submenu-item
                             {{ request()->routeIs('admin.vendor-hoardings.*') ? ' active' : '' }}">
