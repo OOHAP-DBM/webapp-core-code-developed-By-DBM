@@ -214,12 +214,12 @@
             use Carbon\Carbon;
         @endphp
 
-        <p class="text-xs text-gray-600 mb-1">
+        <p class="text-xs text-blue-500 mb-1">
             @if($hoarding->available_from && Carbon::parse($hoarding->available_from)->isFuture())
                 Hoarding Available from
                 {{ Carbon::parse($hoarding->available_from)->format('F d, Y') }}
             @else
-                Hoarding Available Now
+                Available
             @endif
         </p>
 
@@ -238,11 +238,11 @@
         @if($packageCount > 0)
             <p class="text-xs text-teal-600 font-medium mb-3">{{ $packageCount }} {{ Str::plural('Package', $packageCount) }} Available</p>
         @else
-            <p class="text-xs text-teal-600 font-medium mb-3">No packages are in this hoarding</p>
+            <p class="text-xs text-teal-600 font-medium mb-3">No packages</p>
         @endif
 
         <!-- Action Buttons -->
-        <div class="flex items-center space-x-2 mb-2 mt-auto">
+        <div class="flex items-center space-x-2 mb-2 mt-auto cursor-pointer">
             @php
                 $isInCart = in_array($hoarding->id, $cartIds ?? []);
             @endphp
@@ -251,7 +251,7 @@
                 id="cart-btn-{{ $hoarding->id }}"
                 data-in-cart="{{ $isInCart ? '1' : '0' }}"
                 onclick="event.stopPropagation(); event.preventDefault(); toggleCart(this, {{ $hoarding->id }})"
-                class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded"
+                class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded cursor-pointer"
             >
             </button>
 
@@ -262,7 +262,7 @@
             @auth
                 <button
                     type="button"
-                    class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn"
+                    class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn cursor-pointer"
                     data-hoarding-id="{{ $hoarding->id }}"
                     data-grace-days="{{ (int) $hoarding->grace_period_days }}"
                     data-base-price="{{ ($hoarding->hoarding_type === 'dooh')
@@ -279,7 +279,7 @@
             @else
                 <button
                     type="button"
-                    class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded"
+                    class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded cursor-pointer"
                     onclick="event.stopPropagation(); event.preventDefault(); window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
                 >
                     Enquiry Now

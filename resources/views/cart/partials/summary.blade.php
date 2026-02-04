@@ -196,7 +196,7 @@ function loadEnquiryHoardings() {
                 if (hoardingType === 'ooh') {
                     if (!selectedPkg) {
                         // NO PACKAGE: Use monthly_price
-                        displayPrice = item.monthly_price || 0;
+                        displayPrice = item.monthly_price > 0 ? item.monthly_price : item.base_monthly_price;
                         months = 1;
                         packageId = null;
                         packageLabel = 'Base';
@@ -340,9 +340,9 @@ function loadEnquiryHoardings() {
                         </td>
                         <td class="py-4 px-4">${packageHTML}</td>
                         <td class="py-4 px-4 font-semibold rental-cell">
-                            ₹${rowTotal} <span class="price-label text-sm">${priceLabel}</span>
+                            ₹${rowTotal} <span class="price-label text-sm"></span>
                             <div class="text-xs text-gray-500">
-                                ${hoardingType === 'dooh' && priceLabel.includes('slot') ? 'per slot' : `${months} month${months > 1 ? 's' : ''}`}
+                                ${hoardingType === 'dooh' && priceLabel.includes('slot') ? 'per slot' : `${months} month${months > 1 ? '' : ''}`}
                             </div>
                         </td>
                     </tr>
@@ -388,37 +388,42 @@ function recalculateEnquiryTotal() {
 
     let total = 0;
 
-    document
-        .querySelectorAll('#enquiryTableBody select')
-        .forEach(select => {
+    Object.values(window.enquiryState.items).forEach(item => {
 
-            const option = select.options[select.selectedIndex];
+        let rowTotal = 0;
 
-            const price  = Number(option.dataset.price || 0);
-            const months = Number(option.dataset.months || 1);
-            const discount = Number(option.dataset.discount || 0);
+        // ✅ BASE PRICE CASE → multiply with duration
+        if (!item.package_id) {
+            rowTotal = Number(item.price || 0) * Number(item.months || 1);
+        } 
+        // ✅ PACKAGE CASE → backend price only
+        else {
+            rowTotal = Number(item.price || 0);
+        }
 
-            const rowTotal = price;
-            total += rowTotal;
+        total += rowTotal;
 
-            // 🔥 UPDATE RENTAL CELL
-            const row = select.closest('tr');
+        // 🔹 Update rental column (price same rahe, sirf text update)
+        const row = document.querySelector(
+            `tr[data-hoarding-id="${item.hoarding_id}"]`
+        );
+
+        if (row) {
             const rentalCell = row.querySelector('.rental-cell');
-            const hoardingType = row.closest('tr').dataset.hoardingType || 'ooh';
-
             if (rentalCell) {
-                const priceLabel = hoardingType === 'dooh' && !option.value ? 'per  second ' : '/ Month';
                 rentalCell.innerHTML = `
-                    ₹${rowTotal} <span class="price-label text-sm">${priceLabel}</span>
+                    ₹${item.price}
                     <div class="text-xs text-gray-500">
-                        ${hoardingType === 'dooh' && priceLabel.includes('slot') ? 'per slot' : `${months} month${months > 1 ? 's' : ''}`}
+                        ${item.months} month${item.months > 1 ? '' : ''}
                     </div>
                 `;
             }
-        });
+        }
+    });
 
     document.getElementById('enquiryTotal').innerText = total;
 }
+
 </script>
 <script>
 

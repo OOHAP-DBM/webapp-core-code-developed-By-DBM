@@ -303,7 +303,7 @@
         <div class="flex gap-3 mt-6">
             <button
                 onclick="closeChangePasswordModal()"
-                class="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50">
+                class="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50 cursor-pointer">
                 Cancel
             </button>
             <button

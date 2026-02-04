@@ -28,13 +28,19 @@ class CustomerController extends Controller
     // }
     public function index(Request $request)
     {
+        $search = $request->search;
         $customers = User::where('active_role', 'customer')
-            ->select('id', 'name', 'email', 'created_at')
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+                });
+            })
+            ->select('id', 'name', 'email', 'phone', 'created_at')
             ->orderByDesc('created_at')
             ->get();
-
-        $totalCustomerCount = $customers->count();
-
+        $totalCustomerCount = User::where('active_role', 'customer')->count();
         return view('admin.customer.index', compact('customers', 'totalCustomerCount'));
     }
 

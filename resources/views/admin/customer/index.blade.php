@@ -9,16 +9,27 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
             <h1 class="text-[20px] font-bold text-[#1E1B18]">Customer Management</h1>
-            <p class="text-[12px] text-[#949291] mt-1 font-medium">
-                Home > Customers Management > <span class="text-[#1E1B18] font-bold">Total Customers</span>
+            <p class="text-[12px] text-[#949291] mt-1 font-medium cursor-pointer">
+                <a href="{{route('home')}}">Home</a> > Customers Management > <span class="text-[#1E1B18] font-bold">Total Customers</span>
             </p>
         </div>
         
         <div class="flex items-center gap-3">
-            <div class="relative">
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                <input type="text" placeholder="Search customer..." class="pl-9 pr-4 py-2 bg-white border border-[#DADADA] rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#10B981]">
-            </div>
+            <form method="GET"
+                action="{{ route('admin.customers.index') }}"
+                id="customerSearchForm"
+                class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs mt-2.5"></i>
+                <input
+                    type="text"
+                    name="search"
+                    id="customerSearchInput"
+                    value="{{ request('search') }}"
+                    placeholder="Search customer..."
+                    class="pl-9 pr-4 py-2 bg-white border border-[#DADADA] rounded-lg text-sm
+                        focus:outline-none focus:ring-1 focus:ring-[#10B981]"
+                >
+            </form>
             <button class="bg-[#10B981] text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-[#0da673] transition-all">
                 <i class="fas fa-plus"></i> Create Profile
             </button>
@@ -54,7 +65,7 @@
                             <td class="px-6 py-4">
                                 <span class="text-[13px] font-bold text-[#10B981]">#CUST-{{ str_pad($customer->id, 4, '0', STR_PAD_LEFT) }}</span>
                             </td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4">
                                 <a
                                     href="{{ route('admin.customers.show', $customer->id) }}"
                                     class="inline-flex items-center justify-center gap-1
@@ -71,7 +82,7 @@
                                 {{ $customer->email }}
                             </td>
                             <td class="px-6 py-4 text-[13px] text-[#1E1B18] font-semibold">
-                                {{ $customer->phone ?? '+91 00000 00000' }}
+                                {{ $customer->phone ?? '-' }}
                             </td>
                             <td class="px-6 py-4">
                                 <span class="text-[13px] text-[#1E1B18] font-medium">{{ $customer->gender ?? 'Male' }}</span>
@@ -110,4 +121,19 @@
         </div>
     @endif
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('customerSearchInput');
+    const form  = document.getElementById('customerSearchForm');
+    let typingTimer;
+    const delay = 500;
+    input.addEventListener('keyup', function () {
+        clearTimeout(typingTimer);
+
+        typingTimer = setTimeout(() => {
+            form.submit();
+        }, delay);
+    });
+});
+</script>
 @endsection
