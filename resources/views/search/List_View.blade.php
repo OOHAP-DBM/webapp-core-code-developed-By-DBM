@@ -59,7 +59,7 @@
                                         $isOwnerVendor = true;
                                     }
                                 @endphp
-
+                                @if(!$isOwnerVendor)
                                 <button
                                     class="absolute top-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center shortlist-btn
                                         {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }}
@@ -98,6 +98,7 @@
                                         />
                                     </svg>
                                 </button>
+                                @endif
                             </div>
 
                             <div class="flex gap-2 mt-2">
