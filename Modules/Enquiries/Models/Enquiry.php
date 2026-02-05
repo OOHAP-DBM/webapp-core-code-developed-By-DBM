@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\Hoarding;
 use Modules\Enquiries\Models\EnquiryItem;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class Enquiry extends Model
 {
@@ -24,6 +25,8 @@ class Enquiry extends Model
         'customer_note',
         'contact_number',
     ];
+    protected $appends = ['enquiry_no'];
+
 
     /* ===================== CASTS ===================== */
 
@@ -120,5 +123,26 @@ class Enquiry extends Model
     {
         return $this->items()->count();
     }
+
+    /**
+     * Virtual enquiry number (ENQ000001)
+     */
+    public function getEnquiryNoAttribute(): string
+    {
+        return 'ENQ' . str_pad($this->id, 6, '0', STR_PAD_LEFT);
+    }
+
+
+/* ===================== ACCESSORS ===================== */
+
+public function getVendorCountAttribute(): int
+{
+    return $this->items()
+        ->join('hoardings', 'enquiry_items.hoarding_id', '=', 'hoardings.id')
+        ->whereNotNull('hoardings.vendor_id')
+        ->distinct('hoardings.vendor_id')
+        ->count('hoardings.vendor_id');
+}
+
 }
 

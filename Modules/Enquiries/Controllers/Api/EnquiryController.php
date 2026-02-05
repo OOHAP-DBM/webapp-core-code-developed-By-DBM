@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Modules\Enquiries\Models\Enquiry;
 use Modules\Enquiries\Models\EnquiryItem;
+use Modules\Enquiries\Http\Resources\Api\EnquiryResource;
+use Modules\Enquiries\Http\Resources\Api\EnquiryItemResource;
+
 
 class EnquiryController extends Controller
 {
@@ -246,10 +249,43 @@ class EnquiryController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $enquiries,
+            'data'    => EnquiryResource::collection(
+                $enquiries->load(['customer', 'items.hoarding.vendor'])
+            ),
             'total' => $enquiries->count(),
         ]);
     }
+
+    // public function show(int $id)
+    // {
+    //     $enquiry = Enquiry::with([
+    //         'customer',
+    //         'items.hoarding.vendor',
+    //         'offers'
+    //     ])->findOrFail($id);
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data'    => new EnquiryResource($enquiry),
+    //     ]);
+    // }
+
+    public function show(int $id)
+    {
+        $enquiry = Enquiry::with([
+            'customer',
+            'items.hoarding.vendor',
+            'items.hoarding.ooh',
+            'items.hoarding.doohScreen',
+            'offers',
+        ])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => new EnquiryItemResource($enquiry),
+        ]);
+    }
+    
 
     /**
      * Update enquiry status
@@ -296,12 +332,15 @@ class EnquiryController extends Controller
         }
 
         try {
-            $this->service->updateStatus($id, $request->status);
+            $enquiry = $this->service
+                ->find($id)
+                ->load(['customer', 'items.hoarding.vendor']);
+            // $this->service->updateStatus($id, $request->status);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Enquiry status updated',
-                'data' => $this->service->find($id),
+                'data'    => new EnquiryResource($enquiry),
             ]);
         } catch (\Exception $e) {
             return response()->json([
