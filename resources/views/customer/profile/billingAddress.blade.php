@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Personal Information - OOHAPP')
+@section('title', 'Billing Address')
 
 @section('content')
 <div class="w-full px-4 py-6">
@@ -154,7 +154,7 @@
                         <input
                             type="text"
                             name="billing_address"
-                            value="{{ auth()->user()->address ?? '' }}"
+                            value="{{ auth()->user()->billing_address ?? '' }}"
                             placeholder="Enter billing address"
                             class="w-full px-3 py-2.5 border border-gray-300 rounded-md
                                 text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
@@ -169,6 +169,7 @@
                         <input
                             type="number"
                             name="billing_pincode"
+                            value="{{ auth()->user()->billing_pincode?? '' }}"
                             placeholder="Enter pincode"
                             class="w-full px-3 py-2.5 border border-gray-300 rounded-md
                                 text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
@@ -183,6 +184,7 @@
                         <input
                             type="text"
                             name="billing_city"
+                            value="{{ auth()->user()->billing_city ?? '' }}"
                             class="w-full px-3 py-2.5 border border-gray-300 rounded-md
                                 text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
                         >
@@ -196,6 +198,7 @@
                         <input
                             type="text"
                             name="billing_state"
+                            value="{{ auth()->user()->billing_state ?? '' }}"
                             class="w-full px-3 py-2.5 border border-gray-300 rounded-md
                                 text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
                         >

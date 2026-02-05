@@ -1,6 +1,17 @@
 {{-- Customer Navbar --}}
 <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6">
-
+<div class="flex-1 min-w-0">
+        <h1
+            class="
+                text-sm sm:text-base lg:text-xl
+                font-semibold text-gray-900
+                truncate
+            "
+            title="@yield('title', 'Dashboard')"
+        >
+            @yield('title', 'Dashboard')
+        </h1>
+    </div>
     {{-- SEARCH BAR (Desktop & Tablet only) --}}
     <p></p>    
     @include('components.customer.home-search')

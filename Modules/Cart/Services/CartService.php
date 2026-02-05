@@ -5,6 +5,7 @@ namespace Modules\Cart\Services;
 use App\Models\Hoarding;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Wishlist;
 
 class CartService
  
@@ -35,7 +36,10 @@ class CartService
             'updated_at' => now(),
         ]
     );
-
+    DB::table('wishlists')
+        ->where('user_id', Auth::id())
+        ->where('hoarding_id', $hoardingId)
+        ->delete();
     $priceData = $this->resolveFinalPrice($hoarding, $packageId, $packageSource);
 
     return $this->response(
@@ -76,29 +80,45 @@ class CartService
         };
     }
 
-    /* ================= OOH ================= */
-    private function resolveOOHPrice(Hoarding $hoarding, ?int $packageId, ?string $source): array
+    private function resolveOOHPrice(Hoarding $hoarding,?int $packageId,?string $source): array 
     {
-        if ($source === 'ooh_package' && $packageId) {
 
-            $pkg = DB::table('hoarding_packages')
-                ->where('id', $packageId)
-                ->where('hoarding_id', $hoarding->id)
-                ->where('is_active', 1)
-                ->first();
-
-            if (!$pkg) {
-                throw new \Exception('OOH package not found');
+            if (is_null($hoarding->base_monthly_price)) {
+                throw new \Exception('Base monthly price not set for hoarding');
             }
 
-            $final = $pkg->base_price_per_month
-                - ($pkg->base_price_per_month * $pkg->discount_percent / 100);
+            $basePrice = (float) $hoarding->base_monthly_price;
 
-            return $this->priceResponse('monthly', $final);
-        }
+            // ================= PACKAGE CASE =================
+            if ($source === 'ooh_package' && $packageId) {
 
-        return $this->priceResponse('monthly', $hoarding->monthly_price);
+                $pkg = DB::table('hoarding_packages')
+                    ->where('id', $packageId)
+                    ->where('hoarding_id', $hoarding->id)
+                    ->where('is_active', 1)
+                    ->first();
+
+                if (!$pkg) {
+                    throw new \Exception('OOH package not found');
+                }
+
+                $final = $basePrice
+                    - ($basePrice * ($pkg->discount_percent ?? 0) / 100);
+
+                return $this->priceResponse('monthly', $final);
+            }
+
+            // ================= NO PACKAGE =================
+            if (!is_null($hoarding->monthly_price)) {
+                return $this->priceResponse(
+                    'monthly',
+                    (float) $hoarding->monthly_price
+                );
+            }
+
+       return $this->priceResponse('monthly', $basePrice);
     }
+
 
     /* ================= DOOH ================= */
     private function resolveDOOHPrice(Hoarding $hoarding, ?int $packageId, ?string $source): array
