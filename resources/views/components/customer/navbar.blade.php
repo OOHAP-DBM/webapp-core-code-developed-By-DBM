@@ -56,17 +56,27 @@
                             @auth
                                 @php
                                     $dashboardUrl = '#';
+                                    $profileUrl   = '#';
 
-                                    if(auth()->user()->hasRole('admin')){
-                                        $dashboardUrl = route('admin.dashboard');
-                                    }elseif(auth()->user()->hasRole('vendor')){
-                                        $dashboardUrl = route('vendor.dashboard');
-                                    }else{
-                                        $dashboardUrl = route('customer.dashboard');
+                                    if(auth()->check()) {
+
+                                        if(auth()->user()->hasRole('admin')) {
+                                            $dashboardUrl = route('admin.dashboard');
+                                            $profileUrl   = $dashboardUrl;
+
+                                        } elseif(auth()->user()->hasRole('vendor')) {
+                                            $dashboardUrl = route('vendor.dashboard');
+                                            $profileUrl   = route('vendor.profile.edit');
+
+                                        } else {
+                                            $dashboardUrl = route('customer.dashboard');
+                                            $profileUrl   = route('customer.profile.index');
+                                        }
                                     }
                                 @endphp
 
-                                <a href="{{ $dashboardUrl }}" class="block">
+
+                                <a href="{{ $profileUrl }}" class="block">
                                     <div class="bg-black text-white rounded-md px-3 py-2 hover:bg-gray-900 transition">
                                         <p class="text-sm font-semibold">
                                             {{ auth()->user()->name }}

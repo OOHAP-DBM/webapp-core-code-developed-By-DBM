@@ -577,6 +577,17 @@ window.openEnquiryModal = function (payload) {
     }, 50);
 };
 </script>
+<script>
+    function hideEnquiryLoader() {
+        const submitBtn = document.getElementById('enquirySubmitBtn');
+        const btnText = document.getElementById('enquiryBtnText');
+        const loader = document.getElementById('enquiryLoader');
+
+        if (submitBtn) submitBtn.disabled = false;
+        if (btnText) btnText.style.display = 'flex';
+        if (loader) loader.classList.add('hidden');
+    }
+</script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -594,6 +605,13 @@ window.openEnquiryModal = function (payload) {
         if (!form) return;
 
         form.addEventListener('submit', function (e) {
+            const submitBtn = document.getElementById('enquirySubmitBtn');
+            const btnText = document.getElementById('enquiryBtnText');
+            const loader = document.getElementById('enquiryLoader');
+
+            if (submitBtn) submitBtn.disabled = true;
+            if (btnText) btnText.style.display = 'none';
+            if (loader) loader.classList.remove('hidden');
             e.preventDefault();
             
             // Sync all hidden fields before submission
@@ -622,7 +640,7 @@ window.openEnquiryModal = function (payload) {
             })
             .then(({ status, data }) => {
                 console.log('[DEBUG] Response data:', data);
-                
+                hideEnquiryLoader();
                 if (!data.success) {
                     console.error('[ERROR] Validation failed:', data);
                     
@@ -651,6 +669,7 @@ window.openEnquiryModal = function (payload) {
             })
             .catch((err) => {
                 console.error('[ERROR] Fetch error:', err);
+                hideEnquiryLoader();
                 enquiryToast.fire({
                     icon: 'error',
                     title: 'Network Error',

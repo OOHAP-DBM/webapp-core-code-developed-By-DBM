@@ -1,101 +1,170 @@
 @extends('layouts.customer')
 
-@section('title', 'Notifications - OOHAPP')
+@section('title', 'Notifications')
 
 @push('styles')
 <style>
-    .notifications-header {
-        background: white;
-        border-radius: 16px;
-        padding: 32px;
-        margin-bottom: 32px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-    
-    .notifications-container {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        overflow: hidden;
-    }
+/* ===== PAGE WRAPPER ===== */
+.notifications-wrapper {
+    max-width: 820px;
+    margin: 0 auto;
+}
+
+/* ===== HEADER ===== */
+.notifications-header {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+
+/* ===== LIST CONTAINER ===== */
+.notifications-container {
+    background: #f3f8ff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* ===== ROW STYLES ===== */
+.notification-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 18px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    transition: background .2s ease;
+}
+
+.notification-row.unread {
+    background: #eef5ff;
+}
+
+.notification-row.read {
+    background: #ffffff;
+}
+
+.notification-row:hover {
+    background: #e8f1ff;
+}
+
+.notification-row:last-child {
+    border-bottom: none;
+}
+
+/* ===== CONTENT ===== */
+.notification-content {
+    max-width: 78%;
+}
+
+.notification-content h6 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.notification-content p {
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #4b5563;
+}
+
+/* ===== ACTION ===== */
+.notification-action {
+    white-space: nowrap;
+}
+
+.notification-action a {
+    font-size: 13px;
+    font-weight: 500;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.notification-action a:hover {
+    text-decoration: underline;
+}
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid px-4">
-    <!-- Notifications Header -->
-    <div class="notifications-header">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h2 class="mb-2">Notifications</h2>
-                <p class="text-muted mb-0">Stay updated with your activities</p>
-            </div>
-            <div class="col-md-6 text-end">
-                @if(isset($notifications) && $notifications->where('read_at', null)->count() > 0)
-                <button class="btn btn-outline-primary" onclick="markAllAsRead()">
-                    <i class="bi bi-check-all me-2"></i>Mark All as Read
+<div class="container">
+    <div class="notifications-wrapper">
+
+       <!-- HEADER -->
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-900">
+                Notifications
+            </h2>
+
+            @if(isset($notifications) && $notifications->whereNull('read_at')->count() > 0)
+                <button
+                    onclick="markAllAsRead()"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                        px-4 py-2 rounded-md transition cursor-pointer">
+                    Mark all as read
                 </button>
-                @endif
+            @endif
+        </div>
+
+        <!-- LIST -->
+        <div class="notifications-container">
+            @forelse($notifications as $notification)
+                <x-notification-item :notification="$notification" />
+            @empty
+                <div class="text-center py-5 bg-white">
+                    <p class="text-muted mb-0">No notifications found</p>
+                </div>
+            @endforelse
+        </div>
+
+        <!-- PAGINATION -->
+        @if($notifications->hasPages())
+            <div class="mt-3">
+                {{ $notifications->links() }}
             </div>
-        </div>
-    </div>
+        @endif
 
-    <!-- Notifications List -->
-    <div class="notifications-container">
-        @forelse($notifications ?? [] as $notification)
-        <x-notification-item :notification="$notification" />
-        @empty
-        <div class="text-center py-5">
-            <i class="bi bi-bell-slash" style="font-size: 64px; color: #cbd5e1;"></i>
-            <h4 class="mt-3">No notifications yet</h4>
-            <p class="text-muted">We'll notify you when something important happens</p>
-        </div>
-        @endforelse
     </div>
-
-    <!-- Pagination -->
-    @if(isset($notifications) && $notifications->hasPages())
-    <div class="mt-4">
-        {{ $notifications->links() }}
-    </div>
-    @endif
 </div>
-@endsection
-
-@push('scripts')
 <script>
 function markAllAsRead() {
-    fetch('/api/v1/customer/notifications/read-all', {
+    fetch("{{ route('customer.notifications.read-all') }}", {
         method: 'POST',
         headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token'),
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            'X-CSRF-TOKEN': document
+                .querySelector('meta[name="csrf-token"]')
+                .getAttribute('content')
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
+    }).then(() => {
+        setTimeout(() => {
             window.location.reload();
-        }
-    })
-    .catch(error => console.error('Error:', error));
+        }, 500);
+    });
 }
+</script>
+<script>
+document.addEventListener('click', function (e) {
 
-// Mark individual notification as read on click
-document.querySelectorAll('.notification-item.unread').forEach(item => {
-    item.addEventListener('click', function() {
-        const notificationId = this.dataset.notificationId;
-        if (notificationId) {
-            fetch(`/api/v1/customer/notifications/${notificationId}/read`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            });
+    const btn = e.target.closest('.mark-as-read');
+    if (!btn) return;
+
+    e.preventDefault();
+
+    const id = btn.dataset.id;
+
+    fetch(`/customer/notifications/${id}/read`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document
+                .querySelector('meta[name="csrf-token"]')
+                .getAttribute('content')
         }
+    }).then(() => {
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
     });
 });
 </script>
-@endpush
+@endsection

@@ -9,7 +9,7 @@
             <button
                 onclick="closeLogoutModal()"
                 class="absolute top-2 right-3 w-8 h-8 flex items-center justify-center
-                       rounded-full text-black text-xl leading-none">
+                       rounded-full text-black text-xl leading-none cursor-pointer">
                 ×
             </button>
         </div>
@@ -40,7 +40,7 @@
                 <button
                     type="button"
                     onclick="closeLogoutModal()"
-                    class="text-black font-bold">
+                    class="text-black font-bold cursor-pointer">
                     Cancel
                 </button>
 
@@ -48,7 +48,7 @@
                     @csrf
                     <button
                         type="submit"
-                        class="logout-btn font-semibold px-6 py-3 rounded-lg">
+                        class="logout-btn cursor-pointer font-semibold px-6 py-3 rounded-lg">
                         Yes, Logout
                     </button>
                 </form>

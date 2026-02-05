@@ -238,7 +238,7 @@
                                     id="cart-btn-{{ $hoarding->id }}"
                                     data-in-cart="{{ $isInCart ? '1' : '0' }}"
                                     onclick="event.stopPropagation(); event.preventDefault(); toggleCart(this, {{ $hoarding->id }})"
-                                    class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded"
+                                    class="cursor-pointer cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded"
                                 >
                                 </button>
 

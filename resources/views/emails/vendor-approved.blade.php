@@ -41,7 +41,13 @@
                 </tr>
                 <tr>
                     <td><strong>Company Name</strong></td>
-                    <td>{{ optional($user->vendorProfile)->company_name ?? 'N/A' }}</td>
+                    <td>
+                        {{
+                            optional($user->vendorProfile)->company_name
+                            ?: $user->company_name
+                            ?: '-'
+                        }}
+                    </td>
                 </tr>
                 <tr>
                     <td><strong>Commission Rate</strong></td>
