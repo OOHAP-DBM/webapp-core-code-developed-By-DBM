@@ -6,6 +6,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Hoardings\Models\HoardingPackage;
 use Modules\DOOH\Models\DOOHPackage;
 use App\Helpers\DurationHelper;
+use App\Helpers\PricingEngine;
+
 
 class EnquiryItemResource extends JsonResource
 {
@@ -80,7 +82,7 @@ class EnquiryItemResource extends JsonResource
                     'duration_label' => DurationHelper::normalize($item->expected_duration),
 
                     /* ===== Pricing ===== */
-                    'pricing' => $this->resolvePricing($item),
+                   'pricing' => PricingEngine::resolve($item),
 
                     /* ===== Media ===== */
                   'hero_image' => $item->hoarding->heroImage(),
@@ -95,30 +97,27 @@ class EnquiryItemResource extends JsonResource
     protected function resolvePricing($item): array
     {
         $baseMonthly = (float) ($item->hoarding->base_monthly_price ?? 0);
+        $sellMonthly = (float) ($item->hoarding->monthly_price ?? null);
 
         $durationLabel = DurationHelper::normalize($item->expected_duration);
         $multiplier    = DurationHelper::multiplier($item->expected_duration);
 
         $package = $this->resolvePackage($item);
         $baseTotal = round($baseMonthly * $multiplier, 2);
-
+        $discountPercent = 0;
         // Base price only
         if (!$package || $package['type'] === 'base') {
             return [
-                'package'        => $package,
-                'base_monthly'   => display_price($baseMonthly),
-                'duration_label' => $durationLabel,
-                'multiplier'     => $multiplier,
-                'final_price'    => display_price($baseTotal),
+                'package'        => null,
             ];
         }
 
         // Package applied
-        $discountPercent = data_get(
-            $item->meta,
-            'discount_percent',
-            $package['discount_percent']
-        );
+        // $discountPercent = data_get(
+        //     $item->meta,
+        //     'discount_percent',
+        //     $package['discount_percent']
+        // );
 
         $discountedMonthly = calculateDiscountedPrice(
             $baseMonthly,

@@ -14,26 +14,21 @@ class DurationHelper
      */
     public static function normalize(?string $duration): ?array
     {
-        if (empty($duration)) {
-            return null;
-        }
+        if (!$duration) return null;
 
         $duration = strtolower(trim($duration));
 
-        // Match formats like: 1-month, 2-months, 10-days
-        if (!preg_match('/(\d+)\s*-\s*(day|days|month|months)/', $duration, $matches)) {
+        if (!preg_match('/(\d+)\s*-\s*(day|days|week|weeks|month|months)/', $duration, $m)) {
             return null;
         }
 
-        $value = (int) $matches[1];
-        $unit  = $matches[2];
-
-        // Normalize unit
-        $unit = str_starts_with($unit, 'day') ? 'day' : 'month';
+        $value = (int) $m[1];
+        $unit  = $m[2];
 
         return [
             'raw'   => $duration,
-            'unit'  => $unit,
+            'unit'  => str_starts_with($unit, 'month') ? 'month'
+                    : (str_starts_with($unit, 'week') ? 'week' : 'day'),
             'value' => $value,
         ];
     }

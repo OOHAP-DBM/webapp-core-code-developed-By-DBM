@@ -47,11 +47,7 @@
                     </button> -->
                     <button class="px-10 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px]">
                         Export
-<<<<<<< HEAD
-                    </button> 
-=======
                     </button>
->>>>>>> 5a8a1e1c0c58fd50b904408f03e47d117b3eaf36
                     <a href="{{ route('vendor.hoardings.add') }}" 
                         class="px-5 py-2 bg-[#0087D1] text-white font-medium rounded-md text-[13px] flex items-center">
                         + Add New Hoarding
