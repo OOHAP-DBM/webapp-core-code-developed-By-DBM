@@ -166,6 +166,24 @@ class DOOHScreen extends Model
     {
         return $this->hasMany(DOOHScreenMedia::class, 'dooh_screen_id');
     }
+    protected function mediaUrl(string $path): string
+    {
+        return asset(
+            str_starts_with($path, 'storage/')
+                ? $path
+                : 'storage/' . ltrim($path, '/')
+        );
+    }
+
+    public function getHeroImageUrlAttribute(): ?string
+    {
+        $media = $this->media
+            ->sortByDesc('is_primary')
+            ->first();
+
+        return $media ? $this->mediaUrl($media->file_path) : null;
+    }
+
     public function brandLogos(): HasMany
     {
         return $this->hasMany(DOOHScreenBrandLogo::class, 'dooh_screen_id');

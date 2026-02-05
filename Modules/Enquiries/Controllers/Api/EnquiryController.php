@@ -277,7 +277,9 @@ class EnquiryController extends Controller
             'items.hoarding.vendor',
             'items.hoarding.ooh',
             'items.hoarding.doohScreen',
+            'items.hoarding.vendor.vendorProfile',
             'offers',
+            'items.package'
         ])->findOrFail($id);
 
         return response()->json([
