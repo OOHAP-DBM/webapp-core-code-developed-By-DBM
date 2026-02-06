@@ -389,6 +389,8 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 // VENDOR PANEL (Authenticated)
 // ============================================
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
+        // Vendor Enquiries
+        Route::get('/enquiries/{id}', [\App\Http\Controllers\Vendor\EnquiryController::class, 'show'])->name('enquiries.show');
     // Dashboard (PROMPT 26)
     Route::get('/dashboard', [\App\Http\Controllers\Vendor\DashboardController::class, 'index'])->name('dashboard');
     Route::middleware(['vendor.approved'])->group(function () {

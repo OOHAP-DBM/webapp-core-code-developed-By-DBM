@@ -21,6 +21,9 @@ class HomeController extends Controller
             'cities' => \App\Models\Hoarding::distinct('city')->count('city'),
             'active_vendors' => \App\Models\User::role('vendor')->where('status', 'active')->count(),
             'bookings' => \App\Models\Booking::where('status', 'completed')->count(),
+            'total_enquiries' => (auth()->check() && auth()->user()->hasRole('customer'))
+                ? \Modules\Enquiries\Models\Enquiry::where('customer_id', auth()->id())->count()
+                : 0,
         ];
 
         $featuredHoardings = \App\Models\Hoarding::where('status', 'approved')

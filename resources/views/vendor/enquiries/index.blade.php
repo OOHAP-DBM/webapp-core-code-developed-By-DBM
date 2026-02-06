@@ -1,7 +1,7 @@
 @extends('layouts.vendor')
 
 @section('content')
-<div class="px-6 py-6 bg-white" x-data="enquiryModal()">
+<div class="px-6 py-6 bg-white">
 
     {{-- FILTER BAR --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
@@ -37,12 +37,12 @@
         <table class="min-w-full text-sm">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
-                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Sn #</th>
+                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Sn</th>
                     <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Enquiry ID</th>
                     <!-- <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Offer ID</th> -->
                     <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Customer Name</th>
-                    <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs"># of Hoardings</th>
-                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs"># of Locations</th>
+                    <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">No. of Hoardings</th>
+                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">No. of Locations</th>
                     <!-- <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Offer Valid Till</th> -->
                     <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Status</th>
                     <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">Action</th>
@@ -147,10 +147,10 @@
                         <td class="px-4 py-4 text-center">
                             <div class="flex gap-2 justify-center flex-wrap">
                                 @if($enquiry->status === 'submitted')
-                                    <button @click="openModal({{ $enquiry->toJson() }})"
+                                    <a href="{{ route('vendor.enquiries.show', $enquiry->id) }}"
                                        class="px-4 py-2 bg-gray-900 text-white  text-xs hover:bg-gray-800 font-semibold cursor-pointer whitespace-nowrap">
                                         View Enquiry
-                                    </button>
+                                    </a>
                                 @elseif($enquiry->status === 'accepted')
                                     <a href="{{ route('vendor.quotation.create', $enquiry->id) }}"
                                        class="px-4 py-2 bg-green-600 text-white  text-xs hover:bg-green-700 font-semibold inline-block whitespace-nowrap">
@@ -194,50 +194,7 @@
         </div>
     </div>
 
-    {{-- INCLUDE ENQUIRY DETAILS MODAL --}}
-    @include('vendor.enquiries.modals.details')
 
 </div>
 
-<script>
-function enquiryModal() {
-    return {
-        showModal: false,
-        enquiryData: null,
-        
-        openModal(data) {
-            this.enquiryData = data;
-            this.showModal = true;
-            document.body.style.overflow = 'hidden';
-        },
-        
-        closeModal() {
-            this.showModal = false;
-            this.enquiryData = null;
-            document.body.style.overflow = 'auto';
-        },
-        
-        goToDetails() {
-            if (this.enquiryData?.id) {
-                window.location.href = `/vendor/enquiries/${this.enquiryData.id}`;
-            }
-        },
-        
-        formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-        },
-        
-        init() {
-            // Close modal on Escape key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && this.showModal) {
-                    this.closeModal();
-                }
-            });
-        }
-    }
-}
-</script>
 @endsection
