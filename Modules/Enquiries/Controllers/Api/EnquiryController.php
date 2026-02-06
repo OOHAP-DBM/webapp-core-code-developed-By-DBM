@@ -16,7 +16,7 @@ use Modules\Enquiries\Models\Enquiry;
 use Modules\Enquiries\Models\EnquiryItem;
 use Modules\Enquiries\Http\Resources\Api\EnquiryResource;
 use Modules\Enquiries\Http\Resources\Api\EnquiryItemResource;
-
+use Symfony\Component\HttpFoundation\Response;
 
 class EnquiryController extends Controller
 {
@@ -234,12 +234,8 @@ class EnquiryController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->hasRole('customer')) {
+        if ( $user) {
             $enquiries = $this->service->getMyEnquiries();
-        } elseif ($user->hasRole('vendor')) {
-            $enquiries = $this->service->getVendorEnquiries();
-        } elseif ($user->hasRole('admin')) {
-            $enquiries = $this->service->getAll($request->only(['status', 'hoarding_id', 'customer_id']));
         } else {
             return response()->json([
                 'success' => false,
@@ -270,9 +266,20 @@ class EnquiryController extends Controller
     //     ]);
     // }
 
-    public function show(int $id)
-    {
-        $enquiry = Enquiry::with([
+   public function show(int $id)
+{
+    $user = Auth::user();
+
+    // Must be authenticated
+    if (! $user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthenticated'
+        ], Response::HTTP_UNAUTHORIZED);
+    }
+
+    // First check ownership + existence
+    $enquiry = Enquiry::with([
             'customer',
             'items.hoarding.vendor',
             'items.hoarding.ooh',
@@ -280,14 +287,24 @@ class EnquiryController extends Controller
             'items.hoarding.vendor.vendorProfile',
             'offers',
             'items.package'
-        ])->findOrFail($id);
+        ])
+        ->where('id', $id)
+        ->where('customer_id', $user->id)
+        ->first();
 
+    if (! $enquiry) {
         return response()->json([
-            'success' => true,
-            'data' => new EnquiryItemResource($enquiry),
-        ]);
+            'success' => false,
+            'message' => 'Enquiry not found or access denied'
+        ], Response::HTTP_NOT_FOUND);
     }
-    
+
+    // Then display
+    return response()->json([
+        'success' => true,
+        'data' => new EnquiryItemResource($enquiry),
+    ]);
+}
 
     /**
      * Update enquiry status

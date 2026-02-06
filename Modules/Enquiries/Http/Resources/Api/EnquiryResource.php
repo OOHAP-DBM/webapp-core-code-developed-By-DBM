@@ -14,6 +14,9 @@ class EnquiryResource extends JsonResource
             'requirement'     => $this->customer_note,
             'status'          => $this->status,
             'status_label'    => $this->statusLabel(),
+            'customer_name'   => $this->customer?->name,
+            'customer_email'  => $this->customer?->email,
+            'customer_phone'  => $this->customer?->phone,
             'vendor_count'    => $this->vendor_count ?? 0,
             'locations_count' => $this->items_count ?? 0,
             'date'            => optional($this->created_at)->format('d M, Y'),
@@ -22,7 +25,7 @@ class EnquiryResource extends JsonResource
      private function statusLabel(): string
     {
         return match ($this->status) {
-            'submitted' => 'Enquiry Sent',
+            'submitted' => 'Waiting For Vendor Response',
             'accepted'  => 'Accepted',
             'rejected'  => 'Rejected',
             'cancelled' => 'Cancelled',

@@ -70,15 +70,15 @@ class PricingEngine
         return [
             'type'               => 'package',
             'package_id'         => $package->id,
-            'package_name'       => $package->name,
+            'package_name'       => $package->package_name,
 
-            // 👇 NEW (for offer UI)
-            'original_monthly'   => display_price($originalMonthly),
-            'original_price'     => display_price($originalTotal),
+            //  NEW (for offer UI)
+            'original_monthly_price'   => display_price($originalMonthly),
+            'original_total_price'     => display_price($originalTotal),
 
             'discount_percent'   => $discountPercent,
             'discounted_monthly' => display_price($discountedMonthly),
-            'final_price'        => display_price($finalTotal),
+            'final_total_price'        => display_price($finalTotal),
 
             'duration'           => $duration,
         ];
@@ -101,16 +101,17 @@ class PricingEngine
 
     return [
         'type'             => 'monthly',
+        // 👇 original vs final
+        'original_monthly_price' => display_price($originalMonthly),
+        'original_total_price'   => display_price($originalTotal),
 
-        //  original vs final
-        'original_monthly' => display_price($originalMonthly),
-        'original_price'   => display_price($originalTotal),
+        'final_monthly_price'    => display_price($finalMonthly),
+        'final_total_price'      => display_price($finalTotal),
 
-        'final_monthly'    => display_price($finalMonthly),
-        'final_price'      => display_price($finalTotal),
         'discount_percent' => $sell > 0
             ? calculateOffPercentage($originalMonthly, $finalMonthly)
             : 0,
+
         'duration'         => $duration,
     ];
 }
@@ -145,7 +146,7 @@ class PricingEngine
         'weeks'            => $weeks,
 
         // 👇 original vs final
-        'original_price'   => display_price($originalWeekly),
+        'original__price'   => display_price($originalWeekly),
         'final_price'      => display_price($weeklyPrice),
 
         'discount_percent' => calculateOffPercentage(

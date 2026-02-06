@@ -133,16 +133,17 @@ class Enquiry extends Model
     }
 
 
-/* ===================== ACCESSORS ===================== */
+    /* ===================== ACCESSORS ===================== */
 
-public function getVendorCountAttribute(): int
-{
-    return $this->items()
-        ->join('hoardings', 'enquiry_items.hoarding_id', '=', 'hoardings.id')
-        ->whereNotNull('hoardings.vendor_id')
-        ->distinct('hoardings.vendor_id')
-        ->count('hoardings.vendor_id');
-}
+    public function getVendorCountAttribute(): int
+    {
+        return $this->items()
+            ->join('hoardings', 'enquiry_items.hoarding_id', '=', 'hoardings.id')
+            ->whereNotNull('hoardings.vendor_id')
+            ->distinct('hoardings.vendor_id')
+            ->count('hoardings.vendor_id');
+    }
+
 
 }
 

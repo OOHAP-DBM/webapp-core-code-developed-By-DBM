@@ -18,12 +18,13 @@ class EnquiryItemResource extends JsonResource
             'id'              => $this->id,
             'enquiry_no'      => $this->enquiry_no,
             'status'          => $this->status,
-            'status_label'    => ucfirst(str_replace('_', ' ', $this->status)),
+            'status_label'    => "Waiting for Vendor Response",
             'requirement'     => $this->customer_note,
             'submitted_on'    => optional($this->created_at)->format('d M Y'),
             'last_updated'    => optional($this->updated_at)->format('d M Y, H:i'),
             'total_hoardings' => $this->items_count,
             'total_vendors'   => $this->vendor_count,
+            'customer'        => $this->customerDetails(),
 
             /* ================= Vendors ================= */
             'vendors' => $this->vendors(),
@@ -62,6 +63,26 @@ class EnquiryItemResource extends JsonResource
             });
     }
 
+    protected function customerDetails(): array
+    {
+        $customer = $this->customer;
+
+        return [
+            'id'            => $customer?->id,
+            'name'          => $this->valueOrDash($customer?->name),
+            'business_name' => $this->valueOrDash($customer?->company_name),
+            'gstin'         => $this->valueOrDash($customer?->gstin),
+            'mobile'        => $this->valueOrDash($customer?->phone ?? $this->contact_number),
+            'address'       => $this->valueOrDash($customer?->address),
+            'email'         => $this->valueOrDash($customer?->email),
+        ];
+    }
+
+    protected function valueOrDash($value): string
+    {
+        return $value ? (string) $value : '-';
+    }
+
     /* ===================================================== */
     /* ================= Hoardings ========================= */
     /* ===================================================== */
@@ -94,48 +115,48 @@ class EnquiryItemResource extends JsonResource
     /* ================= Pricing Resolver ================== */
     /* ===================================================== */
 
-    protected function resolvePricing($item): array
-    {
-        $baseMonthly = (float) ($item->hoarding->base_monthly_price ?? 0);
-        $sellMonthly = (float) ($item->hoarding->monthly_price ?? null);
+    // protected function resolvePricing($item): array
+    // {
+    //     $baseMonthly = (float) ($item->hoarding->base_monthly_price ?? 0);
+    //     $sellMonthly = (float) ($item->hoarding->monthly_price ?? null);
 
-        $durationLabel = DurationHelper::normalize($item->expected_duration);
-        $multiplier    = DurationHelper::multiplier($item->expected_duration);
+    //     $durationLabel = DurationHelper::normalize($item->expected_duration);
+    //     $multiplier    = DurationHelper::multiplier($item->expected_duration);
 
-        $package = $this->resolvePackage($item);
-        $baseTotal = round($baseMonthly * $multiplier, 2);
-        $discountPercent = 0;
-        // Base price only
-        if (!$package || $package['type'] === 'base') {
-            return [
-                'package'        => null,
-            ];
-        }
+    //     $package = $this->resolvePackage($item);
+    //     $baseTotal = round($baseMonthly * $multiplier, 2);
+    //     $discountPercent = 0;
+    //     // Base price only
+    //     if (!$package || $package['type'] === 'base') {
+    //         return [
+    //             'package'        => null,
+    //         ];
+    //     }
 
-        // Package applied
-        // $discountPercent = data_get(
-        //     $item->meta,
-        //     'discount_percent',
-        //     $package['discount_percent']
-        // );
+    //     // Package applied
+    //     // $discountPercent = data_get(
+    //     //     $item->meta,
+    //     //     'discount_percent',
+    //     //     $package['discount_percent']
+    //     // );
 
-        $discountedMonthly = calculateDiscountedPrice(
-            $baseMonthly,
-            $discountPercent
-        );
+    //     $discountedMonthly = calculateDiscountedPrice(
+    //         $baseMonthly,
+    //         $discountPercent
+    //     );
 
-        $finalTotal = round($discountedMonthly * $multiplier, 2);
+    //     $finalTotal = round($discountedMonthly * $multiplier, 2);
 
-        return [
-            'package'            => $package,
-            'base_monthly'       => display_price($baseMonthly),
-            'discount_percent'   => $discountPercent,
-            'discounted_monthly' => display_price($discountedMonthly),
-            'duration_label'     => $durationLabel,
-            'multiplier'         => $multiplier,
-            'final_price'        => display_price($finalTotal),
-        ];
-    }
+    //     return [
+    //         'package'            => $package,
+    //         'base_monthly'       => display_price($baseMonthly),
+    //         'discount_percent'   => $discountPercent,
+    //         'discounted_monthly' => display_price($discountedMonthly),
+    //         'duration_label'     => $durationLabel,
+    //         'multiplier'         => $multiplier,
+    //         'final_price'        => display_price($finalTotal),
+    //     ];
+    // }
 
     /* ===================================================== */
     /* ================= Package Resolver ================== */
