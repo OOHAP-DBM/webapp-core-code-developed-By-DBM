@@ -110,7 +110,7 @@
                 <button
                     type="button"
                     @click="open = !open"
-                    class="w-full flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium rounded-lg
+                    class="cursor-pointer w-full flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium rounded-lg
                     {{ request()->routeIs('customer.profile*') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50' }}"
                 >
                     <div class="flex items-center gap-3">
@@ -174,7 +174,7 @@
             <button
                 type="button"
                 onclick="openLogoutModal()"
-                class="block w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg
+                class="cursor-pointer block w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg
                     text-gray-700 hover:text-red-700 hover:bg-red-100"
                 >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

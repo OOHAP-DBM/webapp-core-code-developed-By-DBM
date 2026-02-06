@@ -10,6 +10,10 @@ use Modules\Auth\Services\OTPService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use Twilio\Rest\Client;
 
 class ProfileController extends Controller
 {
@@ -41,7 +45,7 @@ class ProfileController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'phone' => 'required|string|unique:users,phone,' . $user->id,
             'company_name' => 'nullable|string|max:255',
-            'gstin' => 'nullable|string|max:255',
+            'gstin'        => 'nullable|string|max:15|unique:users,gstin,' . $user->id,
             'avatar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
@@ -125,70 +129,44 @@ class ProfileController extends Controller
 
     public function sendOtp(Request $request)
     {
-        $request->validate([
-            'identifier' => 'required'
-        ]);
+        $request->validate(['identifier' => 'required']);
 
         $user = auth()->user();
         $identifier = trim($request->identifier);
-
         $isEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL);
+        $otp = random_int(1000, 9999);
+        $cacheKey = "otp:{$user->id}:{$identifier}";
+        Cache::put($cacheKey, $otp, now()->addMinute());
+        try {
+            if ($isEmail) {
+                Mail::raw(
+                    "Your OOHAPP OTP is {$otp}. This OTP will expire in 1 minute.\n\n– Team OOHAPP",
+                    fn ($msg) => $msg->to($identifier)->subject('OOHAPP OTP')
+                );
+            } else {
+                $twilio = new Client(
+                    env('TWILIO_SID'),
+                    env('TWILIO_TOKEN')
+                );
 
-        // ✅ UNIQUE CHECK (very important)
-        if ($isEmail) {
-            if (
-                \App\Models\User::where('email', $identifier)
-                    ->where('id', '!=', $user->id)
-                    ->exists()
-            ) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Email already in use'
-                ], 422);
+                $twilio->messages->create(
+                    '+91' . $identifier,
+                    [
+                        'from' => env('TWILIO_FROM'),
+                        'body' => "Your OOHAPP OTP is {$otp}. Valid for 1 minute. – OOHAPP"
+                    ]
+                );
             }
-        } else {
-            if (!preg_match('/^[0-9]{10}$/', $identifier)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid mobile number'
-                ], 422);
-            }
-
-            if (
-                \App\Models\User::where('phone', $identifier)
-                    ->where('id', '!=', $user->id)
-                    ->exists()
-            ) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Mobile number already in use'
-                ], 422);
-            }
-        }
-
-        // 🚫 Already verified
-        if ($isEmail && $user->email_verified_at) {
+        } catch (\Throwable $e) {
+            Cache::forget($cacheKey);
+            Log::error('OTP send failed', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Email already verified'
-            ], 422);
-        }
-
-        if (!$isEmail && $user->phone_verified_at) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Mobile number already verified'
-            ], 422);
-        }
-
-        // 🔥 Generate OTP on logged-in user
-        $otp = $user->generateOTP();
-
-        // 🔔 SEND OTP (based on type)
-        if ($isEmail) {
-            // Mail::to($identifier)->send(new OtpMail($otp));
-        } else {
-            // sendSms($identifier, "Your OTP is $otp");
+                'message' => 'Unable to send OTP. Try again.'
+            ], 500);
         }
 
         return response()->json([
@@ -205,31 +183,32 @@ class ProfileController extends Controller
 
         $user = auth()->user();
         $identifier = trim($request->identifier);
-
-        if (!$user->isOTPValid($request->otp)) {
+        $cacheKey = "otp:{$user->id}:{$identifier}";
+        $cachedOtp = Cache::get($cacheKey);
+        if (!$cachedOtp) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid or expired OTP'
+                'message' => 'OTP expired. Please resend.'
             ], 422);
         }
-
-        $user->clearOTP();
-
-        // EMAIL VERIFY
+        if ((string)$cachedOtp !== (string)$request->otp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid OTP'
+            ], 422);
+        }
+        Cache::forget($cacheKey);
         if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
             $user->update([
                 'email' => $identifier,
                 'email_verified_at' => now(),
             ]);
-        }
-        // PHONE VERIFY
-        else {
+        } else {
             $user->update([
                 'phone' => $identifier,
                 'phone_verified_at' => now(),
             ]);
         }
-
         return response()->json([
             'success' => true,
             'message' => 'Verified successfully'
@@ -241,6 +220,48 @@ class ProfileController extends Controller
     }
     public function billingAddressUpdate(Request $request)
     {
-        return back()->with('success','its pending right now');
+        $user = auth()->user();
+
+        // ✅ Validation
+        $validated = $request->validate([
+            'name'             => 'required|string|max:255',
+            'phone' => 'required|digits:10|unique:users,phone,' . auth()->id(),
+            'email'            => 'required|email|max:255',
+            'billing_address'  => 'required|string|max:500',
+            'billing_city'     => 'nullable|string|max:255',
+            'billing_state'    => 'nullable|string|max:255',
+            'billing_pincode'  => 'required|string|max:10',
+        ]);
+
+        $updateData = [
+            'name'             => $validated['name'],
+            'billing_address'  => $validated['billing_address'],
+            'billing_city'     => $validated['billing_city'] ?? null,
+            'billing_state'    => $validated['billing_state'] ?? null,
+            'billing_pincode'  => $validated['billing_pincode'],
+        ];
+
+        /**
+         * ================= EMAIL CHECK =================
+         */
+        if ($validated['email'] !== $user->email) {
+            $updateData['email'] = $validated['email'];
+            $updateData['email_verified_at'] = null; 
+        }
+
+        /**
+         * ================= PHONE CHECK =================
+         */
+        if ($validated['phone'] !== $user->phone) {
+            $updateData['phone'] = $validated['phone'];
+            $updateData['phone_verified_at'] = null;
+        }
+
+       
+        $user->update($updateData);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Billing address updated successfully. Please verify updated contact details.');
     }
 }

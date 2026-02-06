@@ -316,7 +316,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
         var email = document.getElementById('enquiryEmail');
         var phone = document.getElementById('enquiryMobile');
         var user = {
@@ -338,20 +338,6 @@
             phone.readOnly = false;
         }
 
-            // Show/hide Digital Ad Settings based on hoardingType
-            function toggleDoohFields() {
-                var hoardingType = document.getElementById('hoardingType')?.value || '';
-                var doohFields = document.getElementById('doohFields');
-                var doohNote = document.getElementById('doohNote');
-                // Use lowercase comparison for consistency
-                if (hoardingType.toLowerCase() === 'dooh') {
-                    if (doohFields) doohFields.style.display = '';
-                    if (doohNote) doohNote.style.display = '';
-                } else {
-                    if (doohFields) doohFields.style.display = 'none';
-                    if (doohNote) doohNote.style.display = 'none';
-                }
-            }
             // Initial call
             toggleDoohFields();
             // Also call when modal opens (in case hoardingType changes dynamically)
@@ -548,21 +534,5 @@
         document.getElementById('enquiryModal').addEventListener('modal:open', toggleDoohFields);
         // Or poll for changes if needed
         document.getElementById('hoardingType')?.addEventListener('change', toggleDoohFields);
-    });
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const enquiryForm = document.getElementById('enquiryForm');
-    const submitBtn = document.getElementById('enquirySubmitBtn');
-    const btnText = document.getElementById('enquiryBtnText');
-    const loader = document.getElementById('enquiryLoader');
-
-    if (enquiryForm && submitBtn && btnText && loader) {
-        enquiryForm.addEventListener('submit', function() {
-            submitBtn.disabled = true;
-            btnText.style.display = 'none';
-            loader.classList.remove('hidden');
-        });
-    }
 });
 </script>

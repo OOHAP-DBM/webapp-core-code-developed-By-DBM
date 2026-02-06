@@ -12,6 +12,36 @@ use App\Services\EnquiryPriceCalculator;
 
 class EnquiryController extends Controller
 {
+    /**
+     * Show the vendor enquiry detail page.
+     */
+    public function show($id)
+    {
+        $vendorId = auth()->id();
+        $enquiry = \Modules\Enquiries\Models\Enquiry::with([
+            'items' => function($q) {
+                $q->with([
+                    'hoarding' => function($q) {
+                        $q->with('media');
+                    },
+                    'package'
+                ]);
+            },
+            'customer'
+        ])->findOrFail($id);
+
+        // Only allow if vendor has access to this enquiry
+        $hasAccess = $enquiry->items->contains(function($item) use ($vendorId) {
+            return $item->hoarding?->vendor_id === $vendorId;
+        });
+        if (!$hasAccess) {
+            abort(403, 'Unauthorized');
+        }
+
+        $enquiry = $this->enrichEnquiryData($enquiry);
+        return view('vendor.enquiries.show', compact('enquiry'));
+    }
+    
     public function index(Request $request)
     {
         // Fetch all enquiries for vendor's hoardings
