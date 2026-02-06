@@ -102,17 +102,15 @@ class PricingEngine
     return [
         'type'             => 'monthly',
 
-        // 👇 original vs final
+        //  original vs final
         'original_monthly' => display_price($originalMonthly),
         'original_price'   => display_price($originalTotal),
 
         'final_monthly'    => display_price($finalMonthly),
         'final_price'      => display_price($finalTotal),
-
         'discount_percent' => $sell > 0
             ? calculateOffPercentage($originalMonthly, $finalMonthly)
             : 0,
-
         'duration'         => $duration,
     ];
 }
