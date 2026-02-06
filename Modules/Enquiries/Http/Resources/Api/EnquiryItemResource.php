@@ -53,6 +53,7 @@ class EnquiryItemResource extends JsonResource
 
                 return [
                     'user_id'      => $vendor->id,
+                    'name'         => $vendor->name,
                     'company_name' => $profile?->company_name,
                     'gstin'        => $profile?->gstin,
                     'city'         => $profile?->city,
