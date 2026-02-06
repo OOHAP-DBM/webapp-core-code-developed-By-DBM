@@ -712,4 +712,69 @@ class Hoarding extends Model implements HasMedia
 
         return '-';
     }
+
+    public function selectedEnquiryPackage(?int $packageId)
+    {
+        if (!$packageId) {
+            return null;
+        }
+
+        if ($this->hoarding_type === self::TYPE_DOOH) {
+            if (!$this->doohScreen) {
+                throw new \Exception('DOOH hoarding has no screen.');
+            }
+
+            return $this->doohScreen
+                ->packages()
+                ->where('id', $packageId)
+                ->first();
+        }
+
+        return $this->oohPackages()
+            ->where('id', $packageId)
+            ->first();
+    }
+    public function resolveMedia(): array
+{
+    // ---------- OOH ----------
+    if ($this->hoarding_type === self::TYPE_OOH) {
+        return $this->hoardingMedia
+            ->sortByDesc('is_primary')
+            ->map(fn ($media) => [
+                'id'         => $media->id,
+                'url'        => asset('storage/' . ltrim($media->file_path, '/')),
+                'type'       => $media->media_type,
+                'is_primary' => (bool) $media->is_primary,
+            ])
+            ->values()
+            ->toArray();
+    }
+
+    // ---------- DOOH ----------
+    if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+            return $this->doohScreen->media
+                ->sortByDesc('is_primary')
+                ->map(fn ($media) => [
+                    'id'         => $media->id,
+                    'url'        => asset('storage/' . ltrim($media->file_path, '/')),
+                    'type'       => $media->media_type,
+                    'is_primary' => (bool) $media->is_primary,
+                ])
+                ->values()
+                ->toArray();
+        }
+
+        return [];
+    }
+    public function heroImage(): ?string
+    {
+        $media = collect($this->resolveMedia())
+            ->firstWhere('is_primary', true)
+            ?? collect($this->resolveMedia())->first();
+
+        return $media['url'] ?? null;
+    }
+
+
+
 }

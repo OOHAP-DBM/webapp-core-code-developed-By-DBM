@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Modules\Enquiries\Models\Enquiry;
 use Modules\Enquiries\Models\EnquiryItem;
+use Modules\Enquiries\Http\Resources\Api\EnquiryResource;
+use Modules\Enquiries\Http\Resources\Api\EnquiryItemResource;
+use Symfony\Component\HttpFoundation\Response;
 
 class EnquiryController extends Controller
 {
@@ -231,12 +234,8 @@ class EnquiryController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->hasRole('customer')) {
+        if ( $user) {
             $enquiries = $this->service->getMyEnquiries();
-        } elseif ($user->hasRole('vendor')) {
-            $enquiries = $this->service->getVendorEnquiries();
-        } elseif ($user->hasRole('admin')) {
-            $enquiries = $this->service->getAll($request->only(['status', 'hoarding_id', 'customer_id']));
         } else {
             return response()->json([
                 'success' => false,
@@ -246,10 +245,66 @@ class EnquiryController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $enquiries,
+            'data'    => EnquiryResource::collection(
+                $enquiries->load(['customer', 'items.hoarding.vendor'])
+            ),
             'total' => $enquiries->count(),
         ]);
     }
+
+    // public function show(int $id)
+    // {
+    //     $enquiry = Enquiry::with([
+    //         'customer',
+    //         'items.hoarding.vendor',
+    //         'offers'
+    //     ])->findOrFail($id);
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data'    => new EnquiryResource($enquiry),
+    //     ]);
+    // }
+
+   public function show(int $id)
+{
+    $user = Auth::user();
+
+    // Must be authenticated
+    if (! $user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthenticated'
+        ], Response::HTTP_UNAUTHORIZED);
+    }
+
+    // First check ownership + existence
+    $enquiry = Enquiry::with([
+            'customer',
+            'items.hoarding.vendor',
+            'items.hoarding.ooh',
+            'items.hoarding.doohScreen',
+            'items.hoarding.vendor.vendorProfile',
+            'offers',
+            'items.package'
+        ])
+        ->where('id', $id)
+        ->where('customer_id', $user->id)
+        ->first();
+
+    if (! $enquiry) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Enquiry not found or access denied'
+        ], Response::HTTP_NOT_FOUND);
+    }
+
+    // Then display
+    return response()->json([
+        'success' => true,
+        'data' => new EnquiryItemResource($enquiry),
+    ]);
+}
 
     /**
      * Update enquiry status
@@ -296,12 +351,15 @@ class EnquiryController extends Controller
         }
 
         try {
-            $this->service->updateStatus($id, $request->status);
+            $enquiry = $this->service
+                ->find($id)
+                ->load(['customer', 'items.hoarding.vendor']);
+            // $this->service->updateStatus($id, $request->status);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Enquiry status updated',
-                'data' => $this->service->find($id),
+                'data'    => new EnquiryResource($enquiry),
             ]);
         } catch (\Exception $e) {
             return response()->json([

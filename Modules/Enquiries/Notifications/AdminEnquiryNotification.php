@@ -5,6 +5,8 @@ namespace Modules\Enquiries\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Str;
+
 
 class AdminEnquiryNotification extends Notification
 {
@@ -24,26 +26,87 @@ class AdminEnquiryNotification extends Notification
 
     public function toMail($notifiable)
     {
-        $totalItems = $this->enquiry->items()->count();
+        $items       = $this->enquiry->items;
+        $totalItems  = $items->count();
+
+        /**
+         * Detect unique vendors
+         * If vendor_id exists directly on item
+         */
+        $vendorCount = $items->pluck('vendor_id')->filter()->unique()->count();
+
+          $isMultiVendor = $vendorCount > 1;
+
+        $totalValue = $items->sum(fn ($item) => $item->meta['amount'] ?? 0);
 
         return (new MailMessage)
-            ->subject('PLATFORM ALERT: New Lead Generated #' . $this->enquiry->id)
+            ->subject(
+                ($isMultiVendor ? '🚨 MULTI-VENDOR ALERT: ' : 'PLATFORM ALERT: ') .
+                'New Lead Generated #' . $this->enquiry->id
+            )
             ->greeting('Hello Admin,')
-            ->line('A new multi-item enquiry has been generated on the platform.')
-            ->line('**Client:** ' . (is_array($this->enquiry->meta) && isset($this->enquiry->meta['customer_name']) ? $this->enquiry->meta['customer_name'] : 'N/A'))
+
+            ->line(
+                $isMultiVendor
+                    ? '🚨 **Multi-Vendor Enquiry Detected** involving hoardings from ' .
+                      $vendorCount . ' different vendors.'
+                    : (
+                        $totalItems === 1
+                            ? 'A single hoarding enquiry has been generated on the platform.'
+                            : 'A multi hoarding enquiry has been generated on the platform for ' .
+                              $totalItems . ' ' . Str::plural('hoarding', $totalItems) . '.'
+                    )
+            )
+
+            ->line(
+                '**Client:** ' .
+                (is_array($this->enquiry->meta) && isset($this->enquiry->meta['customer_name'])
+                    ? $this->enquiry->meta['customer_name']
+                    : 'N/A')
+            )
+
             ->line('**Total Hoardings:** ' . $totalItems)
-            ->line('**Total Potential Value:** ' . number_format($this->enquiry->items->sum(fn($i) => $i->meta['amount'] ?? 0), 2))
-            ->action('Review in Admin Panel', url('/admin/enquiries/' . $this->enquiry->id))
-            ->line('Ensure vendors are responding to these leads promptly.');
+
+            ->when($isMultiVendor, function (MailMessage $message) use ($vendorCount) {
+                $message->line('**Vendors Involved:** ' . $vendorCount);
+            })
+
+            ->line(
+                '**Total Potential Value:** ₹' . number_format($totalValue, 2)
+            )
+
+            ->action(
+                'Review in Admin Panel',
+                url('/admin/enquiries/' . $this->enquiry->id)
+            )
+
+            ->line(
+                $isMultiVendor
+                    ? '⚠️ Immediate coordination is required to ensure timely vendor responses.'
+                    : 'Ensure the vendor responds to this lead promptly.'
+            );
     }
 
     public function toArray($notifiable)
     {
-        $totalItems = $this->enquiry->items()->count();
+        $items       = $this->enquiry->items;
+        $totalItems  = $items->count();
+        $vendorCount = $items->pluck('vendor_id')->filter()->unique()->count();
+
         return [
-            'enquiry_id' => $this->enquiry->id,
-            'message' => 'A new Enquiry Raised by customer ' . $totalItems . ' items.',
-            'type' => 'platform_lead'
+            'enquiry_id'   => $this->enquiry->id,
+            'type'         => $vendorCount > 1 ? 'multi_vendor_lead' : 'platform_lead',
+            'vendor_count' => $vendorCount,
+            'message'      => $vendorCount > 1
+                ? '🚨 Multi-vendor enquiry involving ' .
+                  $vendorCount . ' vendors and ' .
+                  $totalItems . ' ' . Str::plural('hoarding', $totalItems) . '.'
+                : (
+                    $totalItems === 1
+                        ? 'Single hoarding enquiry raised by customer.'
+                        : 'Multi hoarding enquiry raised by customer for ' .
+                          $totalItems . ' ' . Str::plural('hoarding', $totalItems) . '.'
+                ),
         ];
     }
 }
