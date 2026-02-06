@@ -1,24 +1,12 @@
 {{-- Customer Navbar --}}
 <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6">
-<div class="flex-1 min-w-0">
-        <h1
-            class="
-                text-sm sm:text-base lg:text-xl
-                font-semibold text-gray-900
-                truncate
-            "
-            title="@yield('title', 'Dashboard')"
-        >
-            @yield('title', 'Dashboard')
-        </h1>
-    </div>
     {{-- SEARCH BAR (Desktop & Tablet only) --}}
     <p></p>    
     @include('components.customer.home-search')
 
 
     {{-- RIGHT SIDE ACTIONS --}}
-    <div class="flex items-center space-x-2 -mr-2 md:mr-0">
+    <div class="flex items-center space-x-5 mr-4 md:mr-8 lg:mr-10 xl:mr-12">
 
         {{-- Notification Dropdown --}}
         <div x-data="{ open: false, unreadCount: {{ auth()->user()->unreadNotifications->count() ?? 0 }} }" class="relative hidden md:block">

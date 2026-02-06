@@ -15,7 +15,13 @@
             </a>
             <h2 class="text-base font-semibold text-gray-900">
                 Enquiry ID
-                <span class="text-green-600"> ({{ 'ENQ' . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }})</span><br>
+                @php
+                    $vendors = $enquiry->items->map(function($item) {
+                        return optional($item->hoarding)->vendor_id;
+                    })->filter()->unique()->values();
+                    $prefix = $vendors->count() === 1 ? 'SV' : 'MV';
+                @endphp
+                <span class="text-green-600"> ({{ $prefix . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }})</span><br>
                 <p class="text-xs text-gray-500">Details of enquiry and vendor responses</p>
             </h2>
         </div>
@@ -74,7 +80,7 @@
                 </svg>
             </button>
         </div>
-        <div x-show="openTop" x-transition class="px-6 py-6 bg-[#f7f7f7]">
+        <div x-show="openTop" x-transition class="px-6 py-1 bg-[#f7f7f7]">
             {{-- ===== TOP INFO SECTION: 3 Columns ===== --}}
             <div class="grid grid-cols-12 gap-8 bg-[#f7f7f7]">
 
@@ -106,7 +112,13 @@
                 <div class="col-span-4">
                     <h3 class="text-sm font-semibold mb-4">Enquiry Details</h3>
                     <div class="space-y-3 text-xs">
-                        <div>Enquiry ID : <span class="font-medium">{{ 'ENQ' . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}</span></div>
+                        @php
+                            $vendorCount = $enquiry->items->map(function($item) {
+                                return optional($item->hoarding)->vendor_id;
+                            })->filter()->unique()->count();
+                            $prefix = $vendorCount === 1 ? 'SV' : 'MV';
+                        @endphp
+                        <div>Enquiry ID : <span class="font-medium">{{ $prefix. str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}</span></div>
                         <div>Status : <span class="font-medium">
                             @if($enquiry->status === 'submitted')
                                 <span class="text-blue-600">Waiting for Vendor Response</span>
@@ -142,7 +154,7 @@
             </div>
         </div> 
 
-        <div class="flex items-center justify-between px-6 py-3">
+        <div class="flex items-center justify-between px-6 py-1">
 
             {{-- LEFT --}}
             <div>

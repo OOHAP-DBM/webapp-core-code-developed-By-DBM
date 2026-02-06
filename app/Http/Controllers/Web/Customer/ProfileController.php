@@ -225,7 +225,7 @@ class ProfileController extends Controller
         // ✅ Validation
         $validated = $request->validate([
             'name'             => 'required|string|max:255',
-            'phone'            => 'required|string|max:15',
+            'phone' => 'required|digits:10|unique:users,phone,' . auth()->id(),
             'email'            => 'required|email|max:255',
             'billing_address'  => 'required|string|max:500',
             'billing_city'     => 'nullable|string|max:255',
@@ -246,7 +246,7 @@ class ProfileController extends Controller
          */
         if ($validated['email'] !== $user->email) {
             $updateData['email'] = $validated['email'];
-            $updateData['email_verified_at'] = null; // ❌ reset verification
+            $updateData['email_verified_at'] = null; 
         }
 
         /**
@@ -254,10 +254,10 @@ class ProfileController extends Controller
          */
         if ($validated['phone'] !== $user->phone) {
             $updateData['phone'] = $validated['phone'];
-            $updateData['phone_verified_at'] = null; // ❌ reset verification
+            $updateData['phone_verified_at'] = null;
         }
 
-        // ✅ Update user
+       
         $user->update($updateData);
 
         return redirect()

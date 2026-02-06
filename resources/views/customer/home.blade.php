@@ -104,13 +104,12 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z" fill="#374151"/></svg>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-gray-700 leading-tight">Total Hoardings</p>
-                        <p class="text-xl font-semibold text-gray-900 leading-snug mt-1">{{ $stats['total_hoardings'] ?? 0 }}</p>
-                        <p class="text-xs text-gray-500 mt-0.5">Approved Hoardings</p>
+                        <p class="text-sm font-medium text-gray-700 leading-tight">Total Enquiry</p>
+                        <p class="text-xl font-semibold text-gray-900 leading-snug mt-1">{{ $stats['total_enquiries'] ?? 0 }}</p>
                     </div>
                 </div>
                 <!-- CITIES -->
-                <div class="bg-[#DCFCE7] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+                <!-- <div class="bg-[#DCFCE7] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
                     <div class="w-10 h-10 rounded-full bg-[#86EFAC] flex items-center justify-center flex-shrink-0">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z" fill="#166534"/></svg>
                     </div>
@@ -119,9 +118,9 @@
                         <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1">{{ $stats['cities'] ?? 0 }}</p>
                         <p class="text-xs text-gray-600 mt-0.5">Cities with Hoardings</p>
                     </div>
-                </div>
+                </div> -->
                 <!-- ACTIVE VENDORS -->
-                <div class="bg-[#DBEAFE] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+                <!-- <div class="bg-[#DBEAFE] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
                     <div class="w-10 h-10 rounded-full bg-[#93C5FD] flex items-center justify-center flex-shrink-0">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z" fill="#374151"/></svg>
                     </div>
@@ -130,9 +129,9 @@
                         <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1">{{ $stats['active_vendors'] ?? 0 }}</p>
                         <p class="text-xs text-gray-500 mt-0.5">Vendors on Platform</p>
                     </div>
-                </div>
+                </div> -->
                 <!-- COMPLETED BOOKINGS -->
-                <div class="bg-[#FECACA] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+                <!-- <div class="bg-[#FECACA] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
                     <div class="w-10 h-10 rounded-full bg-[#F87171] flex items-center justify-center flex-shrink-0">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z" fill="#374151"/></svg>
                     </div>
@@ -141,7 +140,7 @@
                         <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1">{{ $stats['bookings'] ?? 0 }}</p>
                         <p class="text-xs text-gray-700 mt-0.5">Total Completed</p>
                     </div>
-                </div>
+                </div> -->
             </div>
             <!-- BOOKED STATISTICS -->
             <div class="bg-white rounded-xl p-5 shadow mb-6">
@@ -236,8 +235,14 @@
                                         {{ ($enquiries->currentPage() - 1) * $enquiries->perPage() + $index + 1 }}
                                     </td>
                                     <td class="px-4 py-4">
+                                        @php
+                                            $vendorCount = $enquiry->items->map(function($item) {
+                                                return optional($item->hoarding)->vendor_id;
+                                            })->filter()->unique()->count();
+                                            $prefix = $vendorCount === 1 ? 'SV' : 'MV';
+                                        @endphp
                                         <a href="{{ route('customer.enquiries.show', $enquiry->id) }}" class="text-green-600 font-semibold hover:text-green-700 hover:underline">
-                                            {{ 'ENQ' . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}
+                                            {{ $prefix . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}
                                         </a>
                                         <div class="text-xs text-gray-500 mt-1">
                                             {{ $enquiry->created_at->format('d M, y') }}
