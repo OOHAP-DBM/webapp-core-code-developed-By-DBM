@@ -32,20 +32,26 @@ class DOOHController extends Controller
         $step = (int) $request->query('step', 1);
         $step = max(1, min(3, $step));
 
-        // Find or create draft for this vendor
-        // $draft = DOOHScreen::where('vendor_id', $vendor->id)
-        //     ->where('status', DOOHScreen::STATUS_DRAFT)
-        //     ->orderByDesc('updated_at')
-        //     ->first();
+        $screenId = $request->query('screen_id');
         if ($step === 1) {
             $draft = null;
         } else {
-            $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
-            $q->where('vendor_id', $vendor->id)
-                    ->where('status', 'draft'); // ✅ STATUS BELONGS HERE
-            })
-            ->orderByDesc('updated_at')
-            ->first();
+            $draft = null;
+            if ($screenId) {
+                $draft = DOOHScreen::where('id', $screenId)
+                    ->whereHas('hoarding', function ($q) use ($vendor) {
+                        $q->where('vendor_id', $vendor->id)
+                            ->where('status', 'draft');
+                    })
+                    ->first();
+            }else {
+                $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+                    $q->where('vendor_id', $vendor->id)
+                        ->where('status', 'draft');
+                })
+                    ->orderByDesc('updated_at')
+                    ->first();
+            }
         }
 
 
@@ -97,7 +103,9 @@ class DOOHController extends Controller
         if ($step === 1) {
             $result = $service->storeStep1($vendor, $request->all(), $request->file('media', []));
             if ($result['success']) {
-                return redirect()->route('vendor.dooh.create', ['step' => 2])
+                $screen = $result['screen'] ?? null;
+                $screenId = $screen ? $screen->id : null;
+                return redirect()->route('vendor.dooh.create', ['step' => 2, 'screen_id' => $screenId])
                     ->with('success', 'Step 1 completed. Proceed to next step.');
             }
             return back()->withErrors($result['errors'])->withInput();
@@ -148,7 +156,7 @@ class DOOHController extends Controller
                     $q->where('vendor_id', $vendor->id);
                 })->firstOrFail();
             $result = $service->storeStep2($screen, $request->all(), $request->file('brand_logos', []));
-            return redirect()->route('vendor.dooh.create', ['step' => 3])
+            return redirect()->route('vendor.dooh.create', ['step' => 3, 'screen_id' => $screenId])
                 ->with('success', 'Step 2 completed. Proceed to next step.');
         }
 

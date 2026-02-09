@@ -38,15 +38,26 @@ class OOHListingController extends Controller
         $step = (int) $request->query('step', 1);
         $step = max(1, min(3, $step));
 
+        $oohId = $request->query('ooh_id');
         if ($step === 1) {
             $draft = null;
         } else {
-            $draft = OOHHoarding::whereHas('hoarding', function ($q) use ($vendor) {
-                $q->where('vendor_id', $vendor->id)
-                    ->where('status', 'draft');
-            })
-            ->orderByDesc('updated_at')
-            ->first();
+            $draft = null;
+            if ($oohId) {
+                $draft = OOHHoarding::where('id', $oohId)
+                    ->whereHas('hoarding', function ($q) use ($vendor) {
+                        $q->where('vendor_id', $vendor->id)
+                            ->where('status', 'draft');
+                    })
+                    ->first();
+            }else {
+                $draft = OOHHoarding::whereHas('hoarding', function ($q) use ($vendor) {
+                    $q->where('vendor_id', $vendor->id)
+                        ->where('status', 'draft');
+                })
+                ->orderByDesc('updated_at')
+                ->first();
+            }
         }
 
         $attributes = \Modules\Hoardings\Models\HoardingAttribute::groupedByType();
@@ -76,7 +87,14 @@ class OOHListingController extends Controller
                     $validated = $step1Request->validated();
                     $mediaFiles = $step1Request->file('media', []);
                     $result = $this->hoardingService->storeStep1($vendor, $validated, $mediaFiles);
-                    return redirect()->route('vendor.hoardings.create', ['step' => 2])
+                    // Get the OOHHoarding id for the created hoarding
+                    $hoarding = $result['hoarding'] ?? null;
+                    $oohHoarding = null;
+                    if ($hoarding) {
+                        $oohHoarding = OOHHoarding::where('hoarding_id', $hoarding->id)->first();
+                    }
+                    $oohId = $oohHoarding ? $oohHoarding->id : null;
+                    return redirect()->route('vendor.hoardings.create', ['step' => 2, 'ooh_id' => $oohId])
                         ->with('success', 'Step 1 completed. Proceed to next step.');
 
                 case 2:
@@ -85,7 +103,7 @@ class OOHListingController extends Controller
                             $q->where('vendor_id', $vendor->id);
                         })->firstOrFail();
                     $result = $this->hoardingService->storeStep2($screen, $request->all(), $request->file('brand_logos', []));
-                    return redirect()->route('vendor.hoardings.create', ['step' => 3])
+                    return redirect()->route('vendor.hoardings.create', ['step' => 3, 'ooh_id' => $oohId])
                         ->with('success', 'Step 2 completed. Proceed to next step.');
 
                 case 3:
