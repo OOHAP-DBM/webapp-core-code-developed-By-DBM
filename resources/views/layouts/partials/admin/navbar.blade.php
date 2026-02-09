@@ -1,7 +1,7 @@
 {{-- Admin Navbar (Figma-aligned) --}}
 <header class="admin-header sticky top-0 z-30 bg-white border-b border-gray-200 flex items-center justify-between px-6 h-20 shadow-sm">
     <div class="flex flex-col justify-center">
-        <span class="font-medium tracking-wide mb-1">@yield('page-title', 'Dashboard')</span>
+        <span class="font-medium tracking-wide mb-1">@yield('title', 'Dashboard')</span>
     </div>
     <div class="flex items-center gap-6">
         {{-- Notification Dropdown --}}

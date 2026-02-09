@@ -275,6 +275,13 @@
                 <!-- Submenu -->
                 <div x-show="open" x-cloak class="mt-1 space-y-1">
                     <a
+                        href="{{ route('admin.enquiries.index') }}"
+                        class="block py-2 text-sm rounded-md sidebar-submenu-item
+                        {{ request()->routeIs('admin.enquiries.*') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}"
+                       >
+                        <span class="submenu-item-indent">- Enquiries & Offers</span>
+                    </a>
+                    <a
                         href="{{ route('admin.direct-enquiries.index') }}"
                         class="block py-2 text-sm rounded-md sidebar-submenu-item
                         {{ request()->routeIs('admin.direct-enquiries.*') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}"
@@ -282,15 +289,12 @@
                         <span class="submenu-item-indent">- Direct Enquiry</span>
                     </a>
 
-                    <a class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoarding.booking.dummy2') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
-                        <span class="submenu-item-indent">- Dummy</span>
-                    </a>
-                    <a href="#" class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoarding.booking.dummy3') ? 'active' : 'text-gray-600 hover:bg-gray-50' }} ">
+                    <!-- <a href="#" class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoarding.booking.dummy3') ? 'active' : 'text-gray-600 hover:bg-gray-50' }} ">
                         <span class="submenu-item-indent">- Dummy</span>
                     </a>
                     <a class="block py-2 text-sm rounded-md sidebar-submenu-item {{ request()->routeIs('admin.hoarding.booking.dummy4') ? 'active' : 'text-gray-600 hover:bg-gray-50' }}" href="">
                         <span class="submenu-item-indent">- Dummy </span>
-                    </a>
+                    </a> -->
                 </div>
             </li>
              <!-- <li x-data="{ open: false }"> -->

@@ -37,13 +37,20 @@ class AdminEnquiryNotification extends Notification
             ->line('Ensure vendors are responding to these leads promptly.');
     }
 
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
-        $totalItems = $this->enquiry->items()->count();
+        $items = method_exists($this->enquiry, 'items') ? $this->enquiry->items : ($this->enquiry->items ?? []);
+        $itemCount = is_callable([$items, 'count']) ? $items->count() : (is_array($items) ? count($items) : 0);
+        $customerName = is_array($this->enquiry->meta ?? null) && isset($this->enquiry->meta['customer_name'])
+            ? $this->enquiry->meta['customer_name']
+            : 'New Client';
         return [
-            'enquiry_id' => $this->enquiry->id,
-            'message' => 'A new Enquiry Raised by customer ' . $totalItems . ' items.',
-            'type' => 'platform_lead'
+            'enquiry_id'   => $this->enquiry->id,
+            'item_count'   => $itemCount,
+            'customer_name'=> $customerName,
+            'message'      => 'New enquiry raised for ' . $itemCount . ' hoarding(s).',
+            'action_url'   => route('admin.enquiries.show', $this->enquiry->id),
+            'role'         => 'admin',
         ];
     }
 }

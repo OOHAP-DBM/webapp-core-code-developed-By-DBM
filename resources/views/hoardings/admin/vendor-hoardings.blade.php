@@ -24,6 +24,15 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+    .action-dropdown{
+        position: absolute;
+        right: 0;
+        min-width: 240px;
+        transform-origin: top right;
+    }
+    td.relative{
+        overflow: visible !important;
+    }
 </style>
 @endpush
 
@@ -160,7 +169,7 @@
     </div>
 
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <div class="overflow-x-auto -mx-4 sm:mx-0">
+        <div class="overflow-x-auto -mx-4 sm:mx-0 relative">
             <table class="min-w-full w-full text-sm">
 
                 {{-- ================= THEAD ================= --}}
@@ -354,24 +363,26 @@
                         </td>
 
                         {{-- Action --}}
-                        <td class="px-5 py-4 text-right relative" x-data="{ open: false }">
+                        <td class="px-5 py-4 text-right relative" x-data="dropdownManager">
 
-                            <button @click="open = !open"
+                            <button @click="toggleDropdown($event)"
                                 class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
                                 </svg>
                             </button>
 
-                            <div x-show="open"
+                           <div x-show="open"
+                                x-ref="dropdown"
                                 @click.outside="open = false"
+                                class="action-dropdown absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden"
                                 x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 scale-95"
                                 x-transition:enter-end="opacity-100 scale-100"
                                 x-transition:leave="transition ease-in duration-150"
                                 x-transition:leave-start="opacity-100 scale-100"
-                                x-transition:leave-end="opacity-0 scale-95"
-                                class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
+                                x-transition:leave-end="opacity-0 scale-95">
+
 
                                 <div class="py-1">
 
@@ -476,7 +487,7 @@
                     of <span class="font-semibold text-gray-900">{{ $hoardings->total() }}</span> results
                 </div>
                 <div class="flex gap-2 order-1 sm:order-2">
-                    {{ $hoardings->links() }}
+                    {{ $hoardings->withQueryString()->links() }}
                 </div>
             </div>
         </div>
@@ -487,6 +498,58 @@
 @include('hoardings.admin.modals.hoarding-commission-modal')
 @endsection
 @push('scripts')
+<script>
+    document.addEventListener('alpine:init', () => {
+
+        Alpine.data('dropdownManager', () => ({
+            open: false,
+
+            toggleDropdown(event) {
+
+                // close all open dropdowns
+                document.querySelectorAll('.action-dropdown').forEach(d => {
+                    d.style.display = 'none';
+                });
+
+                this.open = !this.open;
+                if (!this.open) return;
+
+                const button = event.currentTarget;
+                const dropdown = this.$refs.dropdown;
+
+                // show temporarily for height calculation
+                dropdown.style.display = 'block';
+
+                const rect = button.getBoundingClientRect();
+                const dropdownHeight = dropdown.offsetHeight;
+
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+
+                // direction decide
+                if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+                    // open UP
+                    dropdown.style.top = 'auto';
+                    dropdown.style.bottom = 'calc(100% - 4px)';
+
+                } else {
+                    // open DOWN
+                    dropdown.style.bottom = 'auto';
+                    dropdown.style.top = 'calc(100% - 4px)';
+                }
+
+                // auto close on scroll
+                const closeOnScroll = () => {
+                    dropdown.style.display = 'none';
+                    this.open = false;
+                    window.removeEventListener('scroll', closeOnScroll, true);
+                };
+
+                window.addEventListener('scroll', closeOnScroll, true);
+            }
+        }))
+    });
+</script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 

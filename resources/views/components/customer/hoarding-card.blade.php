@@ -246,45 +246,60 @@
             @php
                 $isInCart = in_array($hoarding->id, $cartIds ?? []);
             @endphp
-
-            <button
-                id="cart-btn-{{ $hoarding->id }}"
-                data-in-cart="{{ $isInCart ? '1' : '0' }}"
-                onclick="event.stopPropagation(); event.preventDefault(); toggleCart(this, {{ $hoarding->id }})"
-                class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded cursor-pointer"
-            >
-            </button>
-
-
-
-
-
-            @auth
+            @php
+                $isOwnerVendor = false;
+                if (
+                    auth()->check()
+                    && optional(auth()->user())->active_role === 'vendor'
+                    && isset($hoarding->vendor_id)
+                    && auth()->id() === (int) $hoarding->vendor_id
+                ) {
+                    $isOwnerVendor = true;
+                }
+            @endphp
+            @if(!$isOwnerVendor)
                 <button
-                    type="button"
-                    class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn cursor-pointer"
-                    data-hoarding-id="{{ $hoarding->id }}"
-                    data-grace-days="{{ (int) $hoarding->grace_period_days }}"
-                    data-base-price="{{ ($hoarding->hoarding_type === 'dooh')
-                        ? ($hoarding->doohScreen->price_per_slot ?? 0)
-                        : ((!empty($hoarding->monthly_price) && $hoarding->monthly_price > 0)
-                            ? $hoarding->monthly_price
-                            : ($hoarding->base_monthly_price ?? 0))
-                    }}"
-                    data-base-monthly-price="{{ $hoarding->base_monthly_price ?? 0 }}"
-                    data-hoarding-type="{{ $hoarding->hoarding_type}}"
+                    id="cart-btn-{{ $hoarding->id }}"
+                    data-in-cart="{{ $isInCart ? '1' : '0' }}"
+                    onclick="event.stopPropagation(); event.preventDefault(); toggleCart(this, {{ $hoarding->id }})"
+                    class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded cursor-pointer"
                 >
-                    Enquiry Now
                 </button>
+
+                @auth
+                    <button
+                        type="button"
+                        class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn cursor-pointer"
+                        data-hoarding-id="{{ $hoarding->id }}"
+                        data-grace-days="{{ (int) $hoarding->grace_period_days }}"
+                        data-base-price="{{ ($hoarding->hoarding_type === 'dooh')
+                            ? ($hoarding->doohScreen->price_per_slot ?? 0)
+                            : ((!empty($hoarding->monthly_price) && $hoarding->monthly_price > 0)
+                                ? $hoarding->monthly_price
+                                : ($hoarding->base_monthly_price ?? 0))
+                        }}"
+                        data-base-monthly-price="{{ $hoarding->base_monthly_price ?? 0 }}"
+                        data-hoarding-type="{{ $hoarding->hoarding_type}}"
+                    >
+                        Enquiry Now
+                    </button>
+                @else
+                    <button
+                        type="button"
+                        class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded cursor-pointer"
+                        onclick="event.stopPropagation(); event.preventDefault(); window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
+                    >
+                        Enquiry Now
+                    </button> 
+                @endauth
             @else
-                <button
-                    type="button"
-                    class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded cursor-pointer"
-                    onclick="event.stopPropagation(); event.preventDefault(); window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
-                >
-                    Enquiry Now
-                </button> 
-            @endauth
+            <div class="w-full flex justify-center">
+                <button class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded cursor-pointer"
+                    onclick="event.stopPropagation(); window.location.href='{{ route('hoardings.show', $hoarding->id) }}';">
+                    View Details
+                </button>
+            </div>
+            @endif
         </div>
         <!-- Enquire Link -->
         <!-- <a href="#" class="block text-center text-xs text-teal-600 hover:text-teal-700 font-medium" onclick="event.stopPropagation();">

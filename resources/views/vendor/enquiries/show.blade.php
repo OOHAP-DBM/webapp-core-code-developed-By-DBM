@@ -1,5 +1,5 @@
 @extends('layouts.vendor')
-
+@section('title', 'Enquiries')
 @section('content')
 <div class="px-6 py-6 bg-white">
     {{-- ===== HEADER SECTION ===== --}}

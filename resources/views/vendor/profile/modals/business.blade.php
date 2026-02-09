@@ -91,7 +91,7 @@
         <button
             type="button"
             @click="showModal = false"
-            class="px-5 py-2 border rounded-md text-sm"
+            class="px-5 py-2 border rounded-md text-sm border-gray-300 text-gray-600"
         >
             Cancel
         </button>

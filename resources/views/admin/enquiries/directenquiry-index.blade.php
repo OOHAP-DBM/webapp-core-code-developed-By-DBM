@@ -39,11 +39,11 @@
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-100 text-gray-700  ">
                     <tr>
-                        <th class="px-4 py-3 w-10 text-center">
+                        <!-- <th class="px-4 py-3 w-10 text-center">
                             <input type="checkbox" id="selectAll"
                                 class="rounded border-gray-300 text-green-600"
                                 onclick="toggleAll(this)">
-                        </th>
+                        </th> -->
 
                         <th class="px-4 py-3 w-12 text-center">SN</th>
 
@@ -61,11 +61,11 @@
                     @forelse($enquiries as $index => $enquiry)
                         <tr class="hover:bg-gray-50">
 
-                            <td class="px-4 py-3 w-10 text-center">
+                            <!-- <td class="px-4 py-3 w-10 text-center">
                                 <input type="checkbox"
                                     class="row-checkbox rounded border-gray-300 text-green-600"
                                     value="{{ $enquiry->id }}">
-                            </td>
+                            </td> -->
 
                             <td class="px-4 py-3 w-12 text-center text-gray-500 font-medium">
                                 {{ $enquiries->firstItem() + $index }}
