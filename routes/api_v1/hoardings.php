@@ -14,7 +14,7 @@ use Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController as VendorHo
 
 Route::get('/categories', [Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController::class, 'getCategories']);
 Route::get('/live-categories', [HoardingController::class, 'getLiveCategories']);
-
+Route::get('/by-type', [HoardingController::class, 'activeOOHAndDOOH']);
 
 // Public routes - Browse hoardings
 Route::get('/', [HoardingController::class, 'index']);

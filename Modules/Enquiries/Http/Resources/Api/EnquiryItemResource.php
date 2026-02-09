@@ -21,6 +21,7 @@ class EnquiryItemResource extends JsonResource
             'status_label'    => "Waiting for Vendor Response",
             'requirement'     => $this->customer_note,
             'submitted_on'    => optional($this->created_at)->format('d M Y'),
+           'preferred_campaign_start' => $this->enquiryCampaignStartDate(),
             'last_updated'    => optional($this->updated_at)->format('d M Y, H:i'),
             'total_hoardings' => $this->items_count,
             'total_vendors'   => $this->vendor_count,
@@ -53,6 +54,7 @@ class EnquiryItemResource extends JsonResource
 
                 return [
                     'user_id'      => $vendor->id,
+                    'name'         => $vendor->name,
                     'company_name' => $profile?->company_name,
                     'gstin'        => $profile?->gstin,
                     'city'         => $profile?->city,
@@ -98,8 +100,8 @@ class EnquiryItemResource extends JsonResource
                     'title'          => $item->hoarding->title,
                     'location'       => $item->hoarding->display_location,
                     'type'           => $item->hoarding->hoarding_type,
-                    'campaign_start' => optional($item->preferred_start_date)->format('d M Y'),
-                    'campaign_end'   => optional($item->preferred_end_date)->format('d M Y'),
+                    'preferred_campaign_start' => optional($item->preferred_start_date)->format('d M Y'),
+                    'preferred_campaign_end'   => optional($item->preferred_end_date)->format('d M Y'),
                     'duration_label' => DurationHelper::normalize($item->expected_duration),
 
                     /* ===== Pricing ===== */
@@ -188,6 +190,17 @@ class EnquiryItemResource extends JsonResource
         ];
     }
 
+
+       protected function enquiryCampaignStartDate(): ?string
+        {
+            $date = $this->items
+                ->pluck('preferred_start_date')
+                ->filter()
+                ->sort()
+                ->first();
+
+            return optional($date)->format('d M Y');
+        }
     /* ===================================================== */
     /* ================= Media Resolver ==================== */
     /* ===================================================== */

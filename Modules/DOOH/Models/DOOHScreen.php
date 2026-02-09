@@ -213,6 +213,6 @@ class DOOHScreen extends Model
      */
     public function categoryAttribute()
     {
-        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'category_id');
+        return $this->belongsTo(\Modules\Hoardings\Models\HoardingAttribute::class, 'category_id');
     }
 }

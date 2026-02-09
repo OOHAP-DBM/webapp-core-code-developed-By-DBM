@@ -19,17 +19,30 @@ class EnquiryResource extends JsonResource
             'customer_phone'  => $this->customer?->phone,
             'vendor_count'    => $this->vendor_count ?? 0,
             'locations_count' => $this->items_count ?? 0,
-            'date'            => optional($this->created_at)->format('d M, Y'),
+            'created_at'            => optional($this->created_at)->format('d M, Y'),
+            'preferred_campaign_start' => $this->enquiryCampaignStartDate(),
         ];
     }
      private function statusLabel(): string
     {
         return match ($this->status) {
-            'submitted' => 'Waiting For Vendor Response',
+            'new' => 'Waiting For Vendor Response',
             'accepted'  => 'Accepted',
             'rejected'  => 'Rejected',
             'cancelled' => 'Cancelled',
             default     => ucfirst($this->status),
         };
     }
+
+    protected function enquiryCampaignStartDate(): ?string
+    {
+        $date = $this->items
+            ->pluck('preferred_start_date')
+            ->filter()
+            ->sort()
+            ->first();
+
+        return optional($date)->format('d M Y');
+    }
+
 }
