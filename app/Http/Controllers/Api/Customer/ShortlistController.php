@@ -12,7 +12,7 @@ class ShortlistController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth:sanctum', 'role:customer']);
+        $this->middleware(['auth:sanctum']);
     }
 
    public function index(): JsonResponse

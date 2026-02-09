@@ -19,8 +19,8 @@ Route::middleware(['throttle:webhooks'])->group(function () {
 
 
 
-Route::middleware(['auth:sanctum', 'role:customer'])
-    ->prefix('v1/customer/wishlist')
+Route::middleware(['auth:sanctum'])
+    ->prefix('v1/wishlist')
     ->group(function () {
 
         Route::get('/', [ShortlistController::class, 'index']);          // Get wishlist
