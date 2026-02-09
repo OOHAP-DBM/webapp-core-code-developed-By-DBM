@@ -474,7 +474,7 @@ class HoardingController extends Controller
      public function activeOOHAndDOOH(Request $request): JsonResponse
     {
         $hoardings = $this->hoardingService->getActiveOOHAndDOOH(
-            $request->only('hoarding_type'),
+            $request->only(['hoarding_type', 'category']),
             (int) $request->input('per_page', 15)
         );
 
