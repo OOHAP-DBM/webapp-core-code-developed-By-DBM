@@ -92,6 +92,6 @@
         @endif
     </div>
     <p class="text-gray-500 mt-1">
-        Min Duration: {{ $pkg->min_booking_duration ?? 1 }} {{ $pkg->duration_unit ?? 'month(s)' }}
+         Duration: {{ $pkg->min_booking_duration ?? 1 }} {{ $pkg->duration_unit ?? 'month(s)' }}
     </p>
 </div>

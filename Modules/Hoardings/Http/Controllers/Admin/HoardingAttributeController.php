@@ -2,7 +2,7 @@
 
 namespace Modules\Hoardings\Http\Controllers\Admin;
 
-use Modules\Hoarding\Models\HoardingAttribute;
+use Modules\Hoardings\Models\HoardingAttribute;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 

@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Modules\Hoardings\Services\HoardingService;
 use Illuminate\Support\Facades\Validator;
-use Modules\Hoarding\Models\HoardingAttribute;
+use Modules\Hoardings\Models\HoardingAttribute;
 use App\Models\Hoarding;
 use Illuminate\Container\Attributes\Log;
 

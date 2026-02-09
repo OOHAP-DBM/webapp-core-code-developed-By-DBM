@@ -37,20 +37,17 @@ class DOOHController extends Controller
         //     ->where('status', DOOHScreen::STATUS_DRAFT)
         //     ->orderByDesc('updated_at')
         //     ->first();
-        $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+        if ($step === 1) {
+            $draft = null;
+        } else {
+            $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
             $q->where('vendor_id', $vendor->id)
-                ->where('status', 'draft'); // ✅ STATUS BELONGS HERE
-        })
+                    ->where('status', 'draft'); // ✅ STATUS BELONGS HERE
+            })
             ->orderByDesc('updated_at')
             ->first();
-
-
-
-        // If draft exists and current_step is set, resume from there
-        if ($draft && $draft->current_step && $step < $draft->current_step) {
-            // Always resume from last incomplete step
-            $step = $draft->current_step;
         }
+
 
         // If no draft, create a new one on step 1
         // if (!$draft && $step === 1) {

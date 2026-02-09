@@ -37,34 +37,19 @@ class OOHListingController extends Controller
 
         $step = (int) $request->query('step', 1);
         $step = max(1, min(3, $step));
-        $draft = OOHHoarding::whereHas('hoarding', function ($q) use ($vendor) {
-            $q->where('vendor_id', $vendor->id)
-                ->where('status', 'draft');
-        })
+
+        if ($step === 1) {
+            $draft = null;
+        } else {
+            $draft = OOHHoarding::whereHas('hoarding', function ($q) use ($vendor) {
+                $q->where('vendor_id', $vendor->id)
+                    ->where('status', 'draft');
+            })
             ->orderByDesc('updated_at')
             ->first();
-
-        if ($draft && $draft->current_step && $step < $draft->current_step) {
-            $step = $draft->current_step;
         }
 
-        // if (!$draft && $step === 1) {
-        // dd($step);
-
-        //     $hoarding = \App\Models\Hoarding::create([
-        //         'vendor_id' => $vendor->id,
-        //         'hoarding_type' => 'ooh',
-        //         'status' => 'draft',
-        //         'approval_status' => 'pending',
-        //         'current_step' => 1,
-        //     ]);
-        //     $draft = OOHHoarding::create([
-        //         'hoarding_id' => $hoarding->id,
-        //     ]);
-        // }
-
-        // Fetch attributes for form dropdowns
-        $attributes = \App\Models\HoardingAttribute::groupedByType();
+        $attributes = \Modules\Hoardings\Models\HoardingAttribute::groupedByType();
 
         return view('hoardings.vendor.create', [
             'step' => $step,
@@ -168,7 +153,7 @@ class OOHListingController extends Controller
         }
 
         // Fetch attributes for form dropdowns
-        $attributes = \App\Models\HoardingAttribute::groupedByType();
+        $attributes = \Modules\Hoardings\Models\HoardingAttribute::groupedByType();
         
         return view('hoardings.vendor.edit', [
             'step' => $step,
