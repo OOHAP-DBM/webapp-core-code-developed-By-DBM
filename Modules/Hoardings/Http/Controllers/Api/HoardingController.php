@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Modules\Hoardings\Services\HoardingService;
 use App\Models\Hoarding;
-
+use Modules\Hoardings\Models\HoardingAttribute;
 class HoardingController extends Controller
 {
     /**
@@ -345,37 +345,22 @@ class HoardingController extends Controller
      *     )
      * )
      */
-    public function getLiveCategories(): JsonResponse
-    {
-        $categories = Hoarding::where('status', 'active')
-            // ->where('approval_status', 'approved')
-            ->select('hoarding_type')
-            ->distinct()
-            ->pluck('type')
-            ->toArray();
-
-        $typesWithCount = Hoarding::where('status', 'active')
-            // ->where('approval_status', 'approved')
-            ->select('type')
-            ->selectRaw('count(*) as count')
-            ->groupBy('type')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'value' => $item->type,
-                    'label' => ucfirst($item->type),
-                    'count' => $item->count,
-                ];
-            });
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'categories' => $categories,
-                'types' => $typesWithCount,
-            ],
+  public function getLiveCategories(): JsonResponse
+{
+    $categories = HoardingAttribute::query() // change table name if needed
+        ->where('type', 'category')
+        ->where('is_active', 1)
+        ->orderBy('label')
+        ->get([
+            'label',
+            'value',
         ]);
-    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $categories,
+    ]);
+}
 
 
        /**

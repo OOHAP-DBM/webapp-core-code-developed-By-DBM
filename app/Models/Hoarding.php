@@ -18,6 +18,7 @@ use Modules\Hoardings\Models\HoardingPackage;
 use Modules\Hoardings\Models\HoardingMedia;
 use Modules\Hoardings\Models\HoardingBrandLogo;
 use Modules\Enquiries\Models\Enquiry;
+use Modules\Hoardings\Models\HoardingAttribute;
 
 class Hoarding extends Model implements HasMedia
 
@@ -549,17 +550,17 @@ class Hoarding extends Model implements HasMedia
      */
     public function categoryAttribute()
     {
-        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'category_id');
+        return $this->belongsTo(HoardingAttribute::class, 'category_id');
     }
 
     public function materialAttribute()
     {
-        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'material_id');
+        return $this->belongsTo(HoardingAttribute::class, 'material_id');
     }
 
     public function lightingAttribute()
     {
-        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'lighting_id');
+        return $this->belongsTo(HoardingAttribute::class, 'lighting_id');
     }
 
     /**

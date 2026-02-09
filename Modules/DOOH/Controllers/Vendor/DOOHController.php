@@ -79,7 +79,7 @@ class DOOHController extends Controller
 
 
         // Fetch attributes for form dropdowns (categories, etc.)
-        $attributes = \App\Models\HoardingAttribute::groupedByType();
+        $attributes = \Modules\Hoardings\Models\HoardingAttribute::groupedByType();
 
         return view('dooh.vendor.create', [
             'step' => $step,
@@ -288,7 +288,7 @@ class DOOHController extends Controller
         }
 
         // Fetch attributes for form dropdowns
-        $attributes = \App\Models\HoardingAttribute::groupedByType();
+        $attributes = \Modules\Hoardings\Models\HoardingAttribute::groupedByType();
 
         return view('dooh.vendor.edit', [
             'step' => $step,
