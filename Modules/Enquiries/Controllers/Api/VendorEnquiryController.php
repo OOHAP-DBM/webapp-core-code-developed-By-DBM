@@ -29,7 +29,15 @@ class VendorEnquiryController extends Controller
     if (! $user->hasRole('vendor')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        $enquiries = $this->service->getVendorEnquiries($user->id);
+        $enquiries = $this->service->getVendorEnquiries($user->id)
+        ->loadCount([
+            'items as vendor_hoardings_count' => function ($q) use ($user) {
+                $q->whereHas('hoarding', function ($h) use ($user) {
+                    $h->where('vendor_id', $user->id);
+                });
+            }
+        ]);
+
         return EnquiryResource::collection($enquiries);
     }
 

@@ -6,8 +6,12 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class EnquiryResource extends JsonResource
 {
+    
     public function toArray($request)
     {
+        $hoardingsCount = isset($this->vendor_hoardings_count)
+        ? $this->vendor_hoardings_count   // vendor context
+        : ($this->items_count ?? 0); 
         return [
             'id'              => $this->id,
             'enquiry_no'      => $this->enquiry_no, // 👈 from model accessor
@@ -18,7 +22,8 @@ class EnquiryResource extends JsonResource
             'customer_email'  => $this->customer?->email,
             'customer_phone'  => $this->customer?->phone,
             'vendor_count'    => $this->vendor_count ?? 0,
-            'locations_count' => $this->items_count ?? 0,
+            'total_hoardings' => $hoardingsCount,
+            'locations_count'=> $hoardingsCount,
             'created_at'            => optional($this->created_at)->format('d M, Y'),
             'preferred_campaign_start' => $this->enquiryCampaignStartDate(),
         ];
