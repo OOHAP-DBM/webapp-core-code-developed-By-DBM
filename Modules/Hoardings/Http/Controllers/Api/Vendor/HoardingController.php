@@ -3,7 +3,7 @@
 namespace Modules\Hoardings\Http\Controllers\Api\Vendor;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\HoardingResource;
+use Modules\Hoardings\Http\Resources\HoardingResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Modules\Hoardings\Services\HoardingService;

@@ -679,4 +679,34 @@ class HoardingService
     //     }
     //     return $saved;
     // }
+     public function getActiveOOHAndDOOH(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    {
+        $query = Hoarding::query()
+            ->active()
+            ->whereIn('hoarding_type', ['ooh', 'dooh']);
+
+        // Optional filter: ooh | dooh
+        if (!empty($filters['hoarding_type']) && in_array($filters['hoarding_type'], ['ooh', 'dooh'])) {
+            $query->where('hoarding_type', $filters['hoarding_type']);
+        }
+
+        return $query
+            ->with([
+                // Common
+                'vendor:id,name,email,phone',
+
+                // OOH
+                'ooh',
+                'hoardingMedia',
+                'oohPackages',
+
+                // DOOH
+                'doohScreen',
+                'doohScreen.media',
+                'doohScreen.packages',
+            ])
+            ->latest()
+            ->paginate($perPage);
+    }
+
 }

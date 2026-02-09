@@ -3,7 +3,7 @@
 namespace Modules\Hoardings\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\HoardingResource;
+use Modules\Hoardings\Http\Resources\HoardingResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Modules\Hoardings\Services\HoardingService;
@@ -444,4 +444,50 @@ class HoardingController extends Controller
             'data' => $result,
         ]);
     }
+
+
+    /**
+     * @OA\Get(
+     *     path="/hoardings/active",
+     *     operationId="getOnlyActiveOOHAndDOOH",
+     *     tags={"Hoardings"},
+     *     summary="Get only active OOH & DOOH hoardings",
+     *     description="Returns paginated list of active hoardings of type OOH and DOOH only",
+     *     @OA\Parameter(
+     *         name="hoarding_type",
+     *         in="query",
+     *         description="Filter by hoarding type (ooh or dooh)",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"ooh","dooh"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         @OA\Schema(type="integer", default=15)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success"
+     *     )
+     * )
+     */
+     public function activeOOHAndDOOH(Request $request): JsonResponse
+    {
+        $hoardings = $this->hoardingService->getActiveOOHAndDOOH(
+            $request->only('hoarding_type'),
+            (int) $request->input('per_page', 15)
+        );
+
+        return response()->json([
+            'success' => true,
+            'data'    => HoardingResource::collection($hoardings),
+            'meta'    => [
+                'current_page' => $hoardings->currentPage(),
+                'per_page'     => $hoardings->perPage(),
+                'total'        => $hoardings->total(),
+                'last_page'    => $hoardings->lastPage(),
+            ],
+        ]);
+    }
+
 }

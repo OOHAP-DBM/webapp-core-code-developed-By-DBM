@@ -15,10 +15,19 @@ class ShortlistController extends Controller
         $this->middleware(['auth:sanctum', 'role:customer']);
     }
 
-    public function index(): JsonResponse
+   public function index(): JsonResponse
     {
         $wishlist = auth()->user()->wishlist()
-            ->with('hoarding')
+            ->whereHas('hoarding')
+            ->with([
+                'hoarding:id,title,city,hoarding_type,category,monthly_price,base_monthly_price',
+                'hoarding.ooh:id,hoarding_id,width,height,measurement_unit',
+                'hoarding.doohScreen:id,hoarding_id,width,height,measurement_unit,price_per_slot',
+                'hoarding.hoardingMedia:id,hoarding_id,file_path,is_primary',
+                'hoarding.packages:id,hoarding_id,package_name,discount_percent,min_booking_duration,duration_unit,is_active',
+                'hoarding.doohScreen.media:id,dooh_screen_id,file_path',
+                'hoarding.doohScreen.packages:id,dooh_screen_id,package_name,discount_percent,min_booking_duration,duration_unit,is_active',
+            ])
             ->latest()
             ->paginate(12);
 
@@ -26,10 +35,12 @@ class ShortlistController extends Controller
             'success' => true,
             'data'    => WishlistResource::collection($wishlist),
             'meta'    => [
-                'total_count' => auth()->user()->wishlist()->count(),
+                'total_count' => $wishlist->total(),
             ]
         ]);
     }
+
+
 
     /**
      * Standard Store/Destroy/Toggle (JSON Optimized)
