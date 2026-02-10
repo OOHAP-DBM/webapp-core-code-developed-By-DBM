@@ -45,10 +45,13 @@ class EnquiryRepository implements EnquiryRepositoryInterface
      */
     public function getByCustomer(int $customerId): Collection
     {
-        return Enquiry::with(['hoarding.vendor'])
-            ->where('customer_id', $customerId)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        return Enquiry::query()
+        ->where('customer_id', auth()->id())
+        ->withVendorCount()
+        ->withCount('items')
+        ->with('items.hoarding.vendor')
+        ->latest()
+        ->get();
     }
 
     /**
@@ -94,13 +97,6 @@ class EnquiryRepository implements EnquiryRepositoryInterface
         ->whereHas('items.hoarding', function ($q) use ($vendorId) {
             $q->where('vendor_id', $vendorId);
         })
-        ->withCount([
-            'items as vendor_hoardings_count' => function ($q) use ($vendorId) {
-                $q->whereHas('hoarding', function ($h) use ($vendorId) {
-                    $h->where('vendor_id', $vendorId);
-                });
-            }
-        ])
         ->latest()
         ->get();
     }

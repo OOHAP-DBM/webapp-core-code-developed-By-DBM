@@ -14,17 +14,22 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
         <!-- Hoarding Type -->
         <div class="space-y-2">
-          <label class="text-sm font-bold text-gray-700">Hoarding Type <span class="text-red-500">*</span></label>
-          <div class="w-full bg-[#0094FF] border border-[#0094FF] rounded-xl px-4 py-3 text-white font-bold">
+            <label class="block text-sm font-semibold text-gray-700">
+                Hoarding Type <span class="text-red-500">*</span>
+            </label>
+          <div class="w-full bg-[#0094FF] border border-[#0094FF] rounded-xl px-4 py-2.5 text-white font-bold">
             OOH (Out-of-Home)
           </div>
         </div>
 
         <!-- Category -->
         <div class="space-y-2">
-          <label class="text-sm font-bold text-gray-700">Category <span class="text-red-500">*</span></label>
+          <!-- <label class="text-sm font-semibold text-gray-700"> <span class="text-red-500">*</span></label> -->
+          <label class="block text-sm font-semibold text-gray-700">
+                Category <span class="text-red-500">*</span>
+            </label>
           <select name="category" required
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%226b7280%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:20px] bg-[right_1rem_center] bg-no-repeat">
+            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%226b7280%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:20px] bg-[right_1rem_center] bg-no-repeat">
             <option value="">Select Category</option>
             @if(isset($attributes['category']))
               @foreach($attributes['category'] as $cat)
@@ -39,12 +44,14 @@
 
       <!-- Screen Size -->
       <div class="mt-8">
-        <label class="text-sm font-bold text-gray-700 mb-1 block">Hoarding Size</label>
+          <label class="block text-sm font-semibold text-gray-700">
+                Hoarding Size 
+            </label>
         <div class="grid grid-cols-4 gap-4 items-end">
           <!-- Unit -->
           <div class="space-y-1">
             <label class="text-xs font-bold text-gray-500">Unit</label>
-            <select id="unit" name="measurement_unit" required class="w-full bg-white border border-gray-200 rounded-lg px-3 py-3 outline-none">
+            <select id="unit" name="measurement_unit" required class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 outline-none">
               <option value="sqft" {{ old('measurement_unit', $draft->measurement_unit ?? 'sqft') == 'sqft' ? 'selected' : '' }}>Sqft</option>
               <option value="sqm" {{ old('measurement_unit', $draft->measurement_unit ?? 'sqft') == 'sqm' ? 'selected' : '' }}>Sqm</option>
             </select>
@@ -55,7 +62,7 @@
             <label class="text-xs font-bold text-gray-500">Width <span class="text-red-500">*</span></label>
             <input type="number" id="width" name="width" placeholder="eg.500" required 
               value="{{ old('width', $draft->width ?? '') }}"
-              class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
+              class="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#009A5C]">
           </div>
 
           <!-- Height -->
@@ -63,7 +70,7 @@
             <label class="text-xs font-bold text-gray-500">Height <span class="text-red-500">*</span></label>
             <input type="number" id="height" name="height" placeholder="eg.300" required 
               value="{{ old('height', $draft->height ?? '') }}" 
-              class="w-full border border-gray-200 rounded-lg px-3 py-3 outline-none focus:border-[#009A5C]">
+              class="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#009A5C]">
           </div>
 
           <!-- Size Preview (READ-ONLY, NO NAME) -->
@@ -71,7 +78,7 @@
             <label class="text-xs font-bold text-gray-500">Size Preview</label>
             <input type="text" id="sizePreview" readonly 
               placeholder="Auto-calculated"
-              class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-3 cursor-not-allowed text-gray-600">
+              class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 cursor-not-allowed text-gray-600">
           </div>
         </div>
       </div>
@@ -100,7 +107,7 @@
             step="0.01"
             required
             placeholder="e.g. 50,000"
-            class="w-full border border-gray-200 rounded-xl px-4 py-3
+            class="w-full border border-gray-200 rounded-xl px-4 py-2.5
                   focus:border-[#009A5C] outline-none transition-all"
           />
           <p class="text-xs text-gray-400">
@@ -127,7 +134,7 @@
             step="0.01"
             value="{{ $displayValue }}"
             placeholder="Optional discounted price"
-            class="w-full border border-gray-200 rounded-xl px-4 py-3
+            class="w-full border border-gray-200 rounded-xl px-4 py-2.5
                   focus:border-[#009A5C] outline-none transition-all"
           />
           <p class="text-xs text-gray-400">
@@ -175,7 +182,7 @@
 
               {{-- Styled File Input --}}
               <label for="mediaInput"
-                    class="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:border-green-500 transition">
+                    class="flex items-center justify-between w-full px-4 py-2.5 border border-gray-300 rounded-lg cursor-pointer hover:border-green-500 transition">
                   <span class="text-sm text-gray-600">Choose files</span>
                   <span class="text-xs text-gray-400">Browse</span>
               </label>
@@ -405,7 +412,7 @@ addLandmarkBtn.addEventListener('click', function() {
   input.type = 'text';
   input.name = 'landmarks[]';
   input.placeholder = 'Enter landmark';
-  input.className = 'w-full border border-gray-200 rounded-xl px-4 py-3 outline-none mt-2';
+  input.className = 'w-full border border-gray-200 rounded-xl px-4 py-2.5 outline-none mt-2';
   landmarksContainer.appendChild(input);
 });
 

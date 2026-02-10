@@ -69,7 +69,7 @@
         @endif
 
         <!-- Action Buttons -->
-        <div class="flex justify-between gap-3 mb-8">
+        <div class="flex justify-between gap-3 mb-8 max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
             <a href="{{ route('vendor.hoardings.myHoardings') }}" 
                class="px-5 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                 Cancel
@@ -85,12 +85,12 @@
 
                 @if($step < 3)
                     <button type="submit" name="save_and_next" value="1" 
-                            class="px-7 py-2 rounded bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition">
+                            class="w-full sm:w-auto bg-[#009A5C] hover:bg-[#008A52] text-white px-6 py-3 rounded-xl font-bold transition-all">
                         Save & Continue →
                     </button>
                 @else
                     <button type="submit" 
-                            class="px-7 py-2 rounded bg-green-600 text-white font-semibold shadow hover:bg-green-700 transition">
+                            class="w-full sm:w-auto bg-[#009A5C] hover:bg-[#008A52] text-white px-6 py-3 rounded-xl font-bold transition-all">
                         Update & Submit for Review
                     </button>
                 @endif

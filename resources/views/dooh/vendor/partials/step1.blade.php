@@ -14,19 +14,18 @@
     $source = $draft->hoarding ?? null;
     $isWeeklyEnabled = old('enable_weekly_booking', $source->enable_weekly_booking ?? false);
 @endphp
-
 <div class="min-h-screen bg-gray-50 py-4 sm:py-6 lg:py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Page Header -->
-        <div class="mb-6 lg:mb-8">
+        <!-- <div class="mb-6 lg:mb-8">
             <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
                 {{ $isEdit ? 'Edit' : 'Create' }} DOOH Screen
             </h1>
             <p class="mt-2 text-sm sm:text-base text-gray-600">
                 {{ $isEdit ? 'Update your digital hoarding details' : 'Add a new digital out-of-home advertising screen' }}
             </p>
-        </div>
+        </div> -->
 
         <div class="space-y-6 lg:space-y-8">
 
@@ -34,12 +33,10 @@
                  SECTION 1: HOARDING DETAILS
             ======================================== -->
             <div class="bg-white rounded-2xl lg:rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
-                <div class="flex items-center mb-6 lg:mb-8">
-                    <span class="w-1.5 h-6 sm:h-7 bg-[#009A5C] rounded-full mr-3"></span>
-                    <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#009A5C]">
-                        Hoarding Details
-                    </h2>
-                </div>
+                <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
+                    <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+                    Hoarding Details
+                </h3>
 
                 <div class="space-y-6">
                     <!-- Row 1: Hoarding Type & Category -->
@@ -49,7 +46,7 @@
                             <label class="block text-sm font-semibold text-gray-700">
                                 Hoarding Type <span class="text-red-500">*</span>
                             </label>
-                            <div class="w-full bg-[#0094FF] border-2 border-[#0094FF] rounded-xl px-4 py-3.5 text-white font-bold text-center text-sm sm:text-base">
+                            <div class="w-full bg-[#0094FF] border-2 border-[#0094FF] rounded-xl px-4 py-2.5 text-white font-bold  text-sm sm:text-base">
                                 DOOH (Digital Out-of-Home)
                             </div>
                         </div>
@@ -61,7 +58,7 @@
                             </label>
                             <div class="relative">
                                 <select name="category" required
-                                    class="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-sm sm:text-base
+                                    class="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm sm:text-base
                                            focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                            appearance-none bg-white cursor-pointer transition-all
                                            hover:border-gray-300">
@@ -91,7 +88,7 @@
                         </label>
                         <div class="relative">
                             <select name="screen_type" required
-                                class="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-sm sm:text-base
+                                class="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm sm:text-base
                                        focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                        appearance-none bg-white cursor-pointer transition-all
                                        hover:border-gray-300">
@@ -109,8 +106,8 @@
                     <!-- Row 3: Screen Size -->
                     <div class="space-y-3">
                         <label class="block text-sm font-semibold text-gray-700">
-                            Screen Size
-                        </label>
+                               Screen Size 
+                            </label>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                             <!-- Unit -->
                             <div class="space-y-1.5">
@@ -138,7 +135,7 @@
                                 </label>
                                 <input type="number" id="width" name="width" 
                                     value="{{ old('width', $draft->width ?? '') }}" 
-                                    placeholder="500" required min="1"
+                                    placeholder="500" required min="1" max="10000"
                                     class="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 text-sm
                                            focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                            placeholder:text-gray-400">
@@ -151,7 +148,7 @@
                                 </label>
                                 <input type="number" id="height" name="height" 
                                     value="{{ old('height', $draft->height ?? '') }}" 
-                                    placeholder="300" required min="1"
+                                    placeholder="300" required min="1" max="10000"
                                     class="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 text-sm
                                            focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                            placeholder:text-gray-400">
@@ -178,23 +175,21 @@
                  SECTION 3: PRICING
             ======================================== -->
             <div class="bg-white rounded-2xl lg:rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
-                <div class="flex items-center mb-6 lg:mb-8">
-                    <span class="w-1.5 h-6 sm:h-7 bg-[#009A5C] rounded-full mr-3"></span>
-                    <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#009A5C]">
-                        Pricing Details
-                    </h2>
-                </div>
+                <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
+                    <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+                    Pricing Details
+                </h3>
 
                 <div class="space-y-6">
                     <!-- System-locked Campaign Inputs -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
                         <div class="space-y-2">
                             <label class="block text-sm font-semibold text-gray-700">
-                                Spot Duration (sec)
+                                Spot Duration (sec)  <span class="text-red-500">*</span>
                             </label>
-                            <input type="number" name="spot_duration" 
-                                value="{{ old('spot_duration', $draft?->spot_duration) }}"
-                                class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm sm:text-base
+                            <input type="number" name="spot_duration"  required min="1" max="10000" step="1"
+                                value="{{ old('spot_duration', $draft?->slot_duration_seconds) }}"
+                                class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
                                            focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                            placeholder:text-gray-400 ">
                         </div>
@@ -205,10 +200,10 @@
                             </label>
                             <div class="relative">
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₹</span>
-                                <input type="number" name="price_per_spot" min="0.01" step="0.01" required 
-                                    value="{{ old('price_per_spot', $draft?->price_per_spot) }}" 
-                                    placeholder="10.00"
-                                    class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm sm:text-base
+                                <input type="number" name="price_per_slot" min="0.01" step="0.01" required 
+                                    value="{{ old('price_per_slot', $draft?->price_per_slot) }}" 
+                                    placeholder="" required min ="1"
+                                    class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
                                            focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                            placeholder:text-gray-400">
                             </div>
@@ -216,35 +211,39 @@
 
                         <div class="space-y-2">
                             <label class="block text-sm font-semibold text-gray-700">
-                                Spots Per Day
+                                Spots Per Day  <span class="text-red-500">*</span>
                             </label>
-                            <input type="number" name="spots_per_day" 
-                                value="{{ old('spots_per_day', $draft?->spots_per_day) }}"
-                                class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm sm:text-base
+                            <input type="number" name="spots_per_day"  required min="1" max="5000" step="1"
+                                value="{{ old('spots_per_day', $draft?->total_slots_per_day) }}"
+                                class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
                                            focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                            placeholder:text-gray-400 ">
                         </div>
 
                         <div class="space-y-2">
                             <label class="block text-sm font-semibold text-gray-700">
-                                Daily Runtime (hrs)
+                                Daily Runtime (hrs) <span class="text-red-500">*</span>
                             </label>
-                            <input type="number" name="daily_runtime" 
-                                value="{{ old('daily_runtime', $draft?->daily_runtime) }}"
-                                class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm sm:text-base
+                            <input type="number" name="daily_runtime"  required min="0.5" max="24"   step="any"
+                                value="{{ old('daily_runtime', $draft?->screen_run_time) }}"
+                                class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
                                            focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                            placeholder:text-gray-400">
                         </div>
 
                         <div class="space-y-2">
                             <label class="block text-sm font-semibold text-gray-700">
-                                Campaign Price Monthly (₹)
+                                Campaign Price Monthly  (30 Days)
                             </label>
-                            <input type="number" name="display_campaign_price_monthly" 
-                                value="{{ old('display_campaign_price_monthly', $draft?->display_campaign_price_monthly) }}"
-                                class="w-full border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 
-                                           rounded-xl pl-8 pr-4 py-3 text-sm sm:text-base
-                                           text-gray-900 font-bold ">
+                            
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700 font-bold">₹</span>
+                                <input type="text" id="base_campaign_price" readonly min="1" step="any"
+                                    class="w-full  bg-[#FFF5E7] 
+                                           rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
+                                           text-gray-900 font-bold cursor-not-allowed">
+                                <input type="hidden" name="base_monthly_price" value="{{ old('base_monthly_price', $draft?->base_monthly_price) }} " id="base_monthly_price_input">
+                            </div>
                         </div>
 
                          <!-- <div class="space-y-2">
@@ -255,41 +254,67 @@
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700 font-bold">₹</span>
                                 <input type="text" id="base_campaign_price" readonly
                                     class="w-full border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 
-                                           rounded-xl pl-8 pr-4 py-3 text-sm sm:text-base
+                                           rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
                                            text-gray-900 font-bold">
                             </div>
                         </div> -->
                     </div>
 
                     <!-- Discount -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
-                        <!-- Calculated Price Output -->
-                       
+                    <div class="grid grid-cols-1 sm:grid-cols-5 gap-4 lg:gap-6">
+
+                       <div class="sm:col-span-1 space-y-3">
+                            <label class="block text-sm font-semibold text-gray-700">
+                                Discount Type
+                            </label>
+
+                            <div class="relative">
+                                <select
+                                    id="discount_type"
+                                    name="discount_type"
+                                    class="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm sm:text-base
+                                       focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
+                                       appearance-none bg-white cursor-pointer transition-all
+                                       hover:border-gray-300">
+                                    <option value="percent">Percentage (%)</option>
+                                    <option value="amount">Fixed (₹)</option>
+                                </select>
+
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="sm:col-span-1 space-y-3">
                             <label class="block text-sm font-semibold text-gray-700">
-                                Discount (%)
+                                Discount Value
                             </label>
                             <div class="relative">
-                                <input type="number" name="discount_percent" min="0" max="100" step="0.01" 
-                                    value="{{ old('discount_percent', $draft?->discount_percent) }}" 
-                                    placeholder="10"
-                                    class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm sm:text-base
-                                           focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
-                                           placeholder:text-gray-400">
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">%</span>
+                                <input type="number" id="discount_value" name="discount_value"
+                                    min="0" step="0.01" placeholder="eg. 10"
+                                    class="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5
+                                        focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C]">
+                                        
+                                <span id="discount_symbol"
+                                    class="absolute right-8 top-1/2 -translate-y-1/2 text-gray-500 font-medium">%</span>
                             </div>
                         </div>
+
+
                          <div class="sm:col-span-1 space-y-3">
                             <label class="block text-sm font-semibold text-gray-700">
-                               Final  Campaign Price Monthly (₹)
+                               Final  Campaign Price Monthly
                             </label>
                             <div class="relative">
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700 font-bold">₹</span>
-                                <input type="text" id="monthly_price" 
-                                    class="w-full border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 
-                                           rounded-xl pl-8 pr-4 py-3 text-sm sm:text-base
-                                           text-gray-900 font-bold">
+                                <input type="text" id="monthly_price" readonly  min="0" step="any"
+                                    class="w-full  bg-[#FFF5E7] 
+                                           rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
+                                           text-gray-900 font-bold cursor-not-allowed">
+                                    <input type="hidden" name="monthly_price" id="monthly_price_input">
                             </div>
                         </div>
                     </div>
@@ -315,12 +340,16 @@
                  SECTION 4: MEDIA UPLOAD
             ======================================== -->
             <div class="bg-white rounded-2xl lg:rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
-                <div class="flex items-center mb-6 lg:mb-8">
+                <!-- <div class="flex items-center mb-6 lg:mb-8">
                     <span class="w-1.5 h-6 sm:h-7 bg-[#009A5C] rounded-full mr-3"></span>
-                    <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#009A5C]">
-                        Upload Media <span class="text-red-500">*</span>
-                    </h2>
-                </div>
+                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#009A5C]">
+                        Upload Media
+                    </h3>
+                </div> -->
+                 <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
+                    <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+                    Upload Media <span class="text-red-500">*</span>
+                </h3>
 
                 <p class="text-sm sm:text-base text-gray-600 mb-6">
                     Upload high-quality images or videos showcasing your screen (Max 10 files, 5MB each)
@@ -572,12 +601,16 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function () {
     const campaignDays = 30;
 
-    const pricePerSpotInput   = document.querySelector('[name="price_per_spot"]');
-    const spotsPerDayInput    = document.querySelector('[name="spots_per_day"]');
-    const discountInput       = document.querySelector('[name="discount_percent"]');
+    const pricePerSpotInput = document.querySelector('[name="price_per_slot"]');
+    const spotsPerDayInput = document.querySelector('[name="spots_per_day"]');
+    const discountTypeSelect = document.getElementById('discount_type');
+    const discountValueInput = document.getElementById('discount_value');
+    const discountSymbol = document.getElementById('discount_symbol');
+    const basePriceHiddenInput = document.getElementById('base_monthly_price_input');
+    const finalPriceHiddenInput = document.getElementById('monthly_price_input');
 
-    const basePriceInput      = document.getElementById('base_campaign_price');
-    const finalPriceInput     = document.getElementById('monthly_price');
+    const basePriceInput = document.getElementById('base_campaign_price');
+    const finalPriceInput = document.getElementById('monthly_price');
 
     function formatINR(value) {
         return value.toLocaleString('en-IN', {
@@ -586,31 +619,65 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function updateDiscountSymbol() {
+        const discountType = discountTypeSelect.value;
+        discountSymbol.textContent = discountType === 'percent' ? '%' : '₹';
+        updatePricing();
+    }
+
     function updatePricing() {
         const pricePerSpot = parseFloat(pricePerSpotInput?.value) || 0;
-        const spotsPerDay  = parseInt(spotsPerDayInput?.value) || 0;
-        const discount     = parseFloat(discountInput?.value) || 0;
+        const spotsPerDay = parseInt(spotsPerDayInput?.value) || 0;
+        const discountValue = parseFloat(discountValueInput?.value) || 0;
+        const discountType = discountTypeSelect.value;
 
         // Base price (NO discount)
         const basePrice = spotsPerDay * campaignDays * pricePerSpot;
 
-        // Discounted price
+        // Calculate discounted price
         let finalPrice = basePrice;
-        if (discount > 0 && discount <= 100) {
-            finalPrice = basePrice - (basePrice * discount / 100);
+        let discountAmount = 0;
+
+        if (discountValue > 0) {
+            if (discountType === 'percent') {
+                // Percentage discount
+                if (discountValue <= 100) {
+                    discountAmount = basePrice * (discountValue / 100);
+                    finalPrice = basePrice - discountAmount;
+                } else {
+                    // Invalid percentage
+                    discountValueInput.value = 100;
+                    discountAmount = basePrice;
+                    finalPrice = 0;
+                }
+            } else {
+                // Fixed amount discount
+                discountAmount = discountValue;
+                finalPrice = basePrice - discountAmount;
+                
+                // Prevent negative final price
+                if (finalPrice < 0) {
+                    finalPrice = 0;
+                    discountValueInput.value = basePrice.toFixed(2);
+                }
+            }
         }
 
         // Display values
         basePriceInput.value = basePrice > 0 ? formatINR(basePrice) : '';
-        finalPriceInput.value = finalPrice > 0 ? formatINR(finalPrice) : '';
+        finalPriceInput.value = finalPrice >= 0 ? formatINR(finalPrice) : '';
+        basePriceHiddenInput.value = basePrice > 0 ? basePrice.toFixed(2) : 0;
+        finalPriceHiddenInput.value = finalPrice >= 0 ? finalPrice.toFixed(2) : 0;
     }
 
     // Event listeners
     pricePerSpotInput?.addEventListener('input', updatePricing);
     spotsPerDayInput?.addEventListener('input', updatePricing);
-    discountInput?.addEventListener('input', updatePricing);
+    discountTypeSelect?.addEventListener('change', updateDiscountSymbol);
+    discountValueInput?.addEventListener('input', updatePricing);
 
     // Initial calculation
+    updateDiscountSymbol();
     updatePricing();
 });
 </script>

@@ -28,9 +28,13 @@ class EnquiryResource extends JsonResource
             'preferred_campaign_start' => $this->enquiryCampaignStartDate(),
         ];
     }
-     private function statusLabel(): string
+      private function statusLabel(): string
     {
+        // Get viewer type from additional data, fallback to auto-detection
+        $viewerType = $this->additional['viewer_type'] ?? $this->determineViewerType();
+        
         return match ($this->status) {
+            'submitted' => $viewerType === 'owner' ? 'Enquiry Received' : 'Enquiry Sent: Waiting for Vendor Response',
             'new' => 'Waiting For Vendor Response',
             'accepted'  => 'Accepted',
             'rejected'  => 'Rejected',
@@ -39,6 +43,21 @@ class EnquiryResource extends JsonResource
         };
     }
 
+        /**
+     * Determine viewer type based on authenticated user
+     */
+    private function determineViewerType(): string
+    {
+        $authUser = auth()->user();
+        
+        // If authenticated user is the customer who created the enquiry
+        if ($authUser && $this->customer_id === $authUser->id) {
+            return 'user';
+        }
+        
+        // Default to owner/vendor view
+        return 'owner';
+    }
     protected function enquiryCampaignStartDate(): ?string
     {
         $date = $this->items

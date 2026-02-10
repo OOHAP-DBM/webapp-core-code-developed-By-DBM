@@ -25,21 +25,16 @@ class VendorEnquiryController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-
-    if (! $user->hasRole('vendor')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-        $enquiries = $this->service->getVendorEnquiries($user->id)
-        ->loadCount([
-            'items as vendor_hoardings_count' => function ($q) use ($user) {
-                $q->whereHas('hoarding', function ($h) use ($user) {
-                    $h->where('vendor_id', $user->id);
-                });
+        $viewerType = "vendor";
+        if (! $user->hasRole('vendor')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
             }
-        ]);
+            $enquiries = $this->service->getVendorEnquiries($user->id);
 
-        return EnquiryResource::collection($enquiries);
-    }
+
+            return EnquiryResource::collection($enquiries)
+            ->additional(['viewer_type' => 'owner']);
+        }
 
     public function show(int $id)
     {
@@ -84,7 +79,8 @@ class VendorEnquiryController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => new EnquiryItemResource($enquiry),
+            'data' => (new EnquiryItemResource($enquiry))
+                ->additional(['viewer_type' => 'owner']),
         ]);
     }
 }

@@ -230,25 +230,21 @@ class EnquiryController extends Controller
      * Get all enquiries for authenticated user
      * GET /api/v1/enquiries
      */
-    public function index(Request $request): JsonResponse
+   public function index(Request $request): JsonResponse
     {
-        $user = Auth::user();
-
-        if ( $user) {
-            $enquiries = $this->service->getMyEnquiries();
-        } else {
+        if (!Auth::check()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized',
             ], 403);
         }
 
+        $enquiries = $this->service->getMyEnquiries();
+
         return response()->json([
             'success' => true,
-            'data'    => EnquiryResource::collection(
-                $enquiries->load(['customer', 'items.hoarding.vendor'])
-            ),
-            'total' => $enquiries->count(),
+            'data'    => EnquiryResource::collection($enquiries),
+            'total'   => $enquiries->count(),
         ]);
     }
 
@@ -290,6 +286,7 @@ class EnquiryController extends Controller
         ])
         ->where('id', $id)
         ->where('customer_id', $user->id)
+        ->withVendorCount()
         ->first();
 
     if (! $enquiry) {

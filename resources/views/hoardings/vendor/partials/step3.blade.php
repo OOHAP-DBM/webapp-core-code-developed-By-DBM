@@ -31,7 +31,7 @@
             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
             <input type="number" name="weekly_price_1" placeholder="1 Week Price" 
               value="{{ old('weekly_price_1', $draft->hoarding->weekly_price_1 ?? '') }}"
-              class="w-full border border-gray-200 rounded-xl px-8 py-3.5 focus:border-[#009A5C] outline-none">
+              class="w-full border border-gray-200 rounded-xl px-8 py-2.5.5 focus:border-[#009A5C] outline-none">
           </div>
         </div>
         <div class="space-y-2">
@@ -40,7 +40,7 @@
             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
             <input type="number" name="weekly_price_2" placeholder="2 Weeks Price" 
               value="{{ old('weekly_price_2', $draft->hoarding->weekly_price_2 ?? '') }}"
-              class="w-full border border-gray-200 rounded-xl px-8 py-3.5 focus:border-[#009A5C] outline-none">
+              class="w-full border border-gray-200 rounded-xl px-8 py-2.5.5 focus:border-[#009A5C] outline-none">
           </div>
         </div>
         <div class="space-y-2">
@@ -49,7 +49,7 @@
             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
             <input type="number" name="weekly_price_3" placeholder="3 Weeks Price" 
               value="{{ old('weekly_price_3', $draft->hoarding->weekly_price_3 ?? '') }}"
-              class="w-full border border-gray-200 rounded-xl px-8 py-3.5 focus:border-[#009A5C] outline-none">
+              class="w-full border border-gray-200 rounded-xl px-8 py-2.5.5 focus:border-[#009A5C] outline-none">
           </div>
         </div>
       </div>
@@ -94,7 +94,7 @@
               <input type="number" name="graphics_charge" placeholder="0.00" 
                 value="{{ old('graphics_charge', $draft->hoarding->graphics_charge ?? '') }}"
                 {{ old('graphics_included', $draft->hoarding->graphics_included ?? 0) == 1 ? 'disabled' : '' }}
-                class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                class="w-full border border-gray-200 rounded-xl pl-8 py-2.5 text-sm outline-none">
             </div>
           </div>
         </div>
@@ -124,11 +124,11 @@
               <input type="number" name="printing_charge" placeholder="Price" 
                 value="{{ old('printing_charge', $draft->printing_charge ?? '') }}"
                 {{ old('printing_included', $draft->printing_included ?? 0) == 1 ? 'disabled' : '' }}
-                class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                class="w-full border border-gray-200 rounded-xl pl-8 py-2.5 text-sm outline-none">
             </div>
             <select name="material_type" 
               {{ old('printing_included', $draft->printing_included ?? 0) == 1 ? 'disabled' : '' }}
-              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none bg-white">
+              class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none bg-white">
               <option value="">Select Material</option>
               <option value="flex" {{ old('material_type', $draft->material_type ?? '') == 'flex' ? 'selected' : '' }}>Flex</option>
               <option value="vinyl" {{ old('material_type', $draft->material_type ?? '') == 'vinyl' ? 'selected' : '' }}>Vinyl</option>
@@ -161,7 +161,7 @@
               <input type="number" name="mounting_charge" placeholder="Price" 
                 value="{{ old('mounting_charge', $draft->mounting_charge ?? '') }}"
                 {{ old('mounting_included', $draft->mounting_included ?? 0) == 1 ? 'disabled' : '' }}
-                class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                class="w-full border border-gray-200 rounded-xl pl-8 py-2.5 text-sm outline-none">
             </div>
           </div>
         </div>
@@ -191,9 +191,9 @@
               <input type="number" name="lighting_charge" placeholder="Lighting Charge" 
                 value="{{ old('lighting_charge', $draft->lighting_charge ?? '') }}"
                 {{ old('lighting_included', $draft->lighting_included ?? 0) == 1 ? 'disabled' : '' }}
-                class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                class="w-full border border-gray-200 rounded-xl pl-8 py-2.5 text-sm outline-none">
             </div>
-            <select name="lighting_type" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none bg-white">
+            <select name="lighting_type" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none bg-white">
               <option value="">Select Lighting Type</option>
               <option value="front-lit" {{ old('lighting_type', $draft->lighting_type ?? '') == 'front-lit' ? 'selected' : '' }}>Front-lit</option>
               <option value="back-lit" {{ old('lighting_type', $draft->lighting_type ?? '') == 'back-lit' ? 'selected' : '' }}>Back-lit</option>
@@ -215,7 +215,7 @@
                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
                 <input type="number" name="remounting_charge" placeholder="Per remounting charge" 
                   value="{{ old('remounting_charge', $draft->remounting_charge ?? '') }}"
-                  class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                  class="w-full border border-gray-200 rounded-xl pl-8 py-2.5 text-sm outline-none">
               </div>
             </div>
 
@@ -228,7 +228,7 @@
                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
                 <input type="number" name="survey_charge" placeholder="Per survey charge" 
                   value="{{ old('survey_charge', $draft->hoarding->survey_charge ?? '') }}"
-                  class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none">
+                  class="w-full border border-gray-200 rounded-xl pl-8 py-2.5 text-sm outline-none">
               </div>
             </div>
           </div>
