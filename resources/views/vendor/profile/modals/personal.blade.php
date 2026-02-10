@@ -86,38 +86,100 @@
         </div>
 
         {{-- Email (Read-only) --}}
+        @php
+            $emailLocked = !empty(auth()->user()->email);
+        @endphp
+
         <div>
             <label class="block text-gray-600 mb-1 flex items-center gap-2">
-                Your Email Address 
-                @if(auth()->user()->email)
+                Your Email Address
+                @if($emailLocked)
                     <span class="text-green-600 font-bold text-lg">✓</span>
                 @endif
             </label>
-            <input
-                type="email"
-                name="email"
-                value="{{ auth()->user()->email }}"
-                readonly
-                class="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
-            >
+
+            <div class="relative">
+                <input
+                    type="email"
+                    name="email"
+                    id="emailField"
+                    value="{{ old('email', auth()->user()->email) }}"
+                    {{ $emailLocked ? 'readonly' : '' }}
+                    class="w-full px-3 py-2 pr-28 border rounded-md
+                    {{ $emailLocked
+                        ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed'
+                        : 'border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500'
+                    }}"
+                    placeholder="{{ $emailLocked ? '' : 'Enter your email address' }}"
+                >
+
+                @unless($emailLocked)
+                <button
+                    type="button"
+                    onclick="openOtpModal('email')"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded-md hover:bg-blue-700"
+                >
+                    Send OTP
+                </button>
+                @endunless
+            </div>
+
+
+            @unless($emailLocked)
+                <p class="text-xs text-gray-500 mt-1">
+                    Once saved, email cannot be changed later.
+                </p>
+            @endunless
         </div>
 
+
         {{-- Mobile --}}
+        @php
+            $phoneLocked = !empty(auth()->user()->phone);
+        @endphp
+
         <div>
             <label class="block text-gray-600 mb-1 flex items-center gap-2">
                 Your Mobile Number
-                @if(auth()->user()->phone)
+                @if($phoneLocked)
                     <span class="text-green-600 font-bold text-lg">✓</span>
                 @endif
             </label>
-            <input
-                type="text"
-                name="phone"
-                value="{{ auth()->user()->phone }}"
-                readonly
-                class="w-full px-3 py-2 border border-gray-200 bg-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 cursor-not-allowed"
-            >
+
+            <div class="relative">
+                <input
+                    type="text"
+                    name="phone"
+                    id="phoneField"
+                    value="{{ old('phone', auth()->user()->phone) }}"
+                    {{ $phoneLocked ? 'readonly' : '' }}
+                    class="w-full px-3 py-2 pr-28 border rounded-md
+                    {{ $phoneLocked
+                        ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed'
+                        : 'border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500'
+                    }}"
+                    placeholder="{{ $phoneLocked ? '' : 'Enter your mobile number' }}"
+                >
+
+                @unless($phoneLocked)
+                <button
+                    type="button"
+                    onclick="openOtpModal('phone')"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded-md hover:bg-blue-700"
+                >
+                    Send OTP
+                </button>
+                @endunless
+            </div>
+
+
+            @unless($phoneLocked)
+                <p class="text-xs text-gray-500 mt-1">
+                    Mobile number can be set only once.
+                </p>
+            @endunless
         </div>
+
 
     </div>
 

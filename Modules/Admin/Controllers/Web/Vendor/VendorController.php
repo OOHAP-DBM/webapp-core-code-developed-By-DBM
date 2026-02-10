@@ -18,52 +18,32 @@ class VendorController extends Controller
     // }
     public function index(Request $request)
     {
-        // 1️⃣ Current tab
         $status = $request->get('status', 'pending_approval');
+        $search = $request->get('search');
+        $query = VendorProfile::with('user')
+        ->where(function ($main) use ($status, $search) {
+            $main->where('onboarding_status', $status);
+            if (!empty($search)) {
+                $main->where(function ($q) use ($search) {
+                    $q->whereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                    });
+                    $q->orWhere('company_name', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%")
+                    ->orWhere('state', 'like', "%{$search}%");
+                });
+            }
+        });
 
-        // 2️⃣ Vendors data (tab wise)
-        switch ($status) {
-
-            case 'pending_approval':
-                $vendors = VendorProfile::with('user')
-                    ->where('onboarding_status', 'pending_approval')
-                    ->latest()
-                    ->paginate(15);
-                break;
-
-            case 'approved':
-                $vendors = VendorProfile::with('user')
-                    ->where('onboarding_status', 'approved')
-                    ->latest()
-                    ->paginate(15);
-                break;
-
-            case 'suspended':
-                $vendors = VendorProfile::with('user')
-                    ->where('onboarding_status', 'suspended')
-                    ->latest()
-                    ->paginate(15);
-                break;
-
-            case 'rejected':
-                $vendors = VendorProfile::with('user')
-                    ->where('onboarding_status', 'rejected')
-                    ->latest()
-                    ->paginate(15);
-                break;
-
-            default:
-                $vendors = collect(); // safety
-        }
-
-        // 3️⃣ Tab counts (sirf numbers ke liye)
+        $vendors = $query->latest()->paginate(15)->withQueryString();
         $counts = VendorProfile::selectRaw("
             SUM(onboarding_status = 'pending_approval') as requested,
             SUM(onboarding_status = 'approved') as active,
             SUM(onboarding_status = 'suspended') as disabled,
             SUM(onboarding_status = 'rejected') as deleted
         ")->first();
-
         return view('admin.vendors.index', compact(
             'vendors',
             'status',

@@ -616,6 +616,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/vendors/{id}/suspend', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'suspend'])->name('vendors.suspend');
         // Customer Management
         Route::get('/customers', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'index'])->name('customers.index');
+        Route::get('/customers/create', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'create'])->name('customers.create');
+        Route::post('/customers', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'store'])->name('customers.store');
         Route::get('/customers/{id}', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'show'])->name('customers.show');
 
     
@@ -976,6 +978,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::get('/direct-enquiries', [DirectEnquiryController::class,'index'])->name('direct-enquiries.index');
+    Route::get('/enquiries', [\Modules\Enquiries\Controllers\Web\AdminEnquiryController::class, 'index'])->name('enquiries.index');
+    Route::get('/enquiries/{id}', [\Modules\Enquiries\Controllers\Web\AdminEnquiryController::class, 'show'])->name('enquiries.show');
 });
 
 // ============================================

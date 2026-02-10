@@ -44,10 +44,24 @@
 
     {{-- Search + Actions --}}
     <div class="bg-white rounded-xl p-4 flex items-center gap-4 mb-4">
-        <input class="flex-1 border rounded-lg px-4 py-2 text-sm"
-               placeholder="Search Vendor by Name, City & State...">
 
-        <button class="bg-[#E8F5EE] p-2 rounded-lg">🔽</button>
+        <form method="GET" action="{{ route('admin.vendors.index', ['status' => $status]) }}" class="flex-1 flex items-center gap-2" id="vendor-search-form">
+        <input type="hidden" name="status" value="{{ $status }}">   
+        <input class="flex-1 border rounded-lg px-4 py-2 text-sm" name="search" value="{{ request('search') }}" placeholder="Search Vendor by Name, City & State..." id="vendor-search-input" autocomplete="off">
+        </form>
+        <script>
+        (function() {
+            var input = document.getElementById('vendor-search-input');
+            var form = document.getElementById('vendor-search-form');
+            var timeout = null;
+            input.addEventListener('input', function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(function() {
+                    form.submit();
+                }, 400); // debounce
+            });
+        })();
+        </script>
 
         @if($status === 'pending_approval')
             <button class="bg-[#F59E0B] text-white px-6 py-2 rounded-lg text-sm">
