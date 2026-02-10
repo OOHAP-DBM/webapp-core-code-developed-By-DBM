@@ -5,7 +5,7 @@
             <thead class="bg-[#F9FAFB] text-[#6B7280]">
                 <tr>
                     <th class="px-4 py-3 text-left">
-                        <input type="checkbox" class="accent-green-600">
+                        <input type="checkbox" id="check-all" class="accent-green-600">
                     </th>
                     <th class="px-4 py-3 text-left">S.N</th>
                     <th class="px-4 py-3 text-left">VENDOR NAME</th>
@@ -23,7 +23,9 @@
                 @forelse($vendors as $i => $vendor)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
-                            <input type="checkbox" class="accent-green-600">
+                            <input type="checkbox"
+                                class="row-checkbox accent-green-600"
+                                value="{{ $vendor->id }}">
                         </td>
 
                         <td class="px-4 py-3">

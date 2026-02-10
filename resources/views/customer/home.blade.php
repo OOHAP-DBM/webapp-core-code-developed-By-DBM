@@ -180,7 +180,7 @@
             <div class="bg-white rounded-xl p-5 shadow">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
                     <div class="mb-6">
-                        <h3 class="font-semibold text-lg text-gray-900">All Enquiries</h3>
+                        <h3 class="font-semibold text-lg text-gray-900">Recent Enquiries</h3>
                     </div>
                     <div class="flex items-center gap-3">
                         <form method="GET" class="relative flex-1 md:w-72">
@@ -220,10 +220,10 @@
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Sn #</th>
+                                <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Sn</th>
                                 <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Enquiry ID</th>
-                                <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs"># of Vendors</th>
-                                <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs"># of Locations</th>
+                                <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">Requirement</th>
+                                <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">No. of Locations</th>
                                 <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Status</th>
                                 <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">Action</th>
                             </tr>
@@ -231,31 +231,21 @@
                         <tbody class="divide-y divide-gray-200">
                             @forelse($enquiries as $index => $enquiry)
                                 <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-4 py-4 text-gray-700">
-                                        {{ ($enquiries->currentPage() - 1) * $enquiries->perPage() + $index + 1 }}
+                                   <td class="px-4 py-4 text-gray-700">
+                                        {{ $loop->iteration }}
                                     </td>
+
                                     <td class="px-4 py-4">
-                                        @php
-                                            $vendorCount = $enquiry->items->map(function($item) {
-                                                return optional($item->hoarding)->vendor_id;
-                                            })->filter()->unique()->count();
-                                            $prefix = $vendorCount === 1 ? 'SV' : 'MV';
-                                        @endphp
                                         <a href="{{ route('customer.enquiries.show', $enquiry->id) }}" class="text-green-600 font-semibold hover:text-green-700 hover:underline">
-                                            {{ $prefix . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}
+                                          {{ $enquiry->formatted_id }}
                                         </a>
                                         <div class="text-xs text-gray-500 mt-1">
                                             {{ $enquiry->created_at->format('d M, y') }}
                                         </div>
                                     </td>
                                     <td class="px-4 py-4 text-center">
-                                        @php
-                                            $vendorCount = $enquiry->items->map(function($item) {
-                                                return optional($item->hoarding)->vendor_id;
-                                            })->filter()->unique()->count();
-                                        @endphp
                                         <span class="text-gray-900 font-semibold">
-                                            {{ $vendorCount }}
+                                            {{$enquiry->customer_note}}
                                         </span>
                                     </td>
                                     <td class="px-4 py-4 text-center">
@@ -272,36 +262,54 @@
                                     </td>
                                     <td class="px-4 py-4">
                                         <div class="space-y-1">
-                                            <div class="text-xs font-semibold
-                                                @if($enquiry->status === 'submitted')
-                                                    text-blue-600
-                                                @elseif($enquiry->status === 'responded')
-                                                    text-orange-600
-                                                @elseif($enquiry->status === 'accepted')
-                                                    text-green-600
-                                                @elseif($enquiry->status === 'rejected')
-                                                    text-red-600
-                                                @else
-                                                    text-gray-600
-                                                @endif
-                                            ">
-                                                @if($enquiry->status === 'submitted')
-                                                    Waiting for Vendor Response
-                                                @elseif($enquiry->status === 'responded')
-                                                    Offers Received
-                                                @elseif($enquiry->status === 'accepted')
-                                                    Accepted
-                                                @elseif($enquiry->status === 'rejected')
-                                                    Rejected
-                                                @else
-                                                    {{ ucwords(str_replace('_', ' ', $enquiry->status)) }}
-                                                @endif
-                                            </div>
+
+                                            {{-- STATUS TEXT --}}
+                                            @if($enquiry->status === 'submitted')
+
+                                                <div class="flex">
+                                                    <i class="text-xs font-semibold text-gray-900">
+                                                        Enquiry Sent: &nbsp;
+                                                    </i>
+                                                    <div class="text-xs font-semibold text-[var(--waiting)]">
+                                                        Waiting for Vendor Response
+                                                    </div>
+                                                </div>
+
+                                            @else
+
+                                                {{-- OTHER STATUSES --}}
+                                                <div class="text-xs font-semibold
+                                                    @if($enquiry->status === 'responded')
+                                                        text-orange-600
+                                                    @elseif($enquiry->status === 'accepted')
+                                                        text-green-600
+                                                    @elseif($enquiry->status === 'rejected')
+                                                        text-red-600
+                                                    @else
+                                                        text-gray-600
+                                                    @endif
+                                                ">
+                                                    @if($enquiry->status === 'responded')
+                                                        Offers Received
+                                                    @elseif($enquiry->status === 'accepted')
+                                                        Accepted
+                                                    @elseif($enquiry->status === 'rejected')
+                                                        Rejected
+                                                    @else
+                                                        {{ ucwords(str_replace('_', ' ', $enquiry->status)) }}
+                                                    @endif
+                                                </div>
+
+                                            @endif
+
+                                            {{-- DATE --}}
                                             <div class="text-xs text-gray-500">
                                                 {{ $enquiry->updated_at->format('d M, y | H:i') }}
                                             </div>
+
                                         </div>
                                     </td>
+
                                     <td class="px-4 py-4 text-center">
                                         <div class="flex gap-2 justify-center flex-wrap">
                                             <a href="{{ route('customer.enquiries.show', $enquiry->id) }}"
@@ -321,16 +329,19 @@
                                     </td>
                                 </tr>
                             @endforelse
+                            @if($stats['total_enquiries'] > 5)
+                            <tr>
+                                <td colspan="6" class="py-4 text-center bg-gray-50">
+                                    <a href="{{ route('customer.enquiries.index') }}"
+                                    class="inline-flex items-center gap-2 text-sm font-semibold text-green-700 hover:text-green-900 hover:underline transition">
+                                        View More Enquiries
+                                    </a>
+                                </td>
+                            </tr>
+                            @endif
+
                         </tbody>
                     </table>
-                </div>
-                <div class="mt-6 flex items-center justify-between text-sm text-gray-600">
-                    <div class="font-medium">
-                        Showing {{ $enquiries->firstItem() ?? 0 }} - {{ $enquiries->lastItem() ?? 0 }} of {{ $enquiries->total() }}
-                    </div>
-                    <div>
-                        {{ $enquiries->links() }}
-                    </div>
                 </div>
             </div>
         <div

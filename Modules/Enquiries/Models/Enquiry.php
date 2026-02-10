@@ -125,14 +125,17 @@ class Enquiry extends Model
    
     public function getFormattedIdAttribute(): string
     {
-        if ($this->relationLoaded('items')) {
-            $count = $this->items->count();
-        } else {
-            $count = $this->items()->count();
-        }
-        $prefix = $count <= 1 ? 'SV' : 'MV';
+        $vendorIds = $this->items()
+            ->with('hoarding:id,vendor_id')
+            ->get()
+            ->pluck('hoarding.vendor_id')
+            ->filter()        
+            ->unique();    
+        $vendorCount = $vendorIds->count();
+        $prefix = $vendorCount <= 1 ? 'SV' : 'MV';
         return $prefix . str_pad($this->id, 6, '0', STR_PAD_LEFT);
     }
+
 
     public function getEnquiryDetails()
     {

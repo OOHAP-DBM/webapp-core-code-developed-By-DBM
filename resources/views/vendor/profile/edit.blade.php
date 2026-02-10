@@ -129,7 +129,7 @@
             <div>
                 <label class="text-black">PAN</label>
                 <p class="font-medium border border-gray-200 rounded-md px-3 min-h-[44px] flex items-center justify-between">
-                    {{ auth()->user()->pan ?? '-' }}
+                    {{ $vendor->pan ?: ($vendor->user->pan ?? '') }}
                     <button @click="showModal = true; modalType = 'pan'" class="text-blue-600 text-xs">
                         <!-- SVG AS-IT-IS -->
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"

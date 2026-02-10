@@ -40,7 +40,13 @@
                     <a href="{{ route('admin.customers.show', $customer->id) }}" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all">
                         <i class="fas fa-eye text-[12px]"></i>
                     </a>
-                    <button class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all">
+                    <a href="{{ route('admin.customers.edit', $customer->id) }}"
+                        class="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all">
+                            <i class="fas fa-edit text-[12px]"></i>
+                    </a>
+                    <button 
+                        onclick="deleteCustomer({{ $customer->id }})"
+                        class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all">
                         <i class="fas fa-trash text-[12px]"></i>
                     </button>
                 </div>

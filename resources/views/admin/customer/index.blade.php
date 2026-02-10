@@ -91,3 +91,58 @@
 
 </div>
 @endsection
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+function deleteCustomer(id)
+{
+    Swal.fire({
+        title: "Are you sure?",
+        text: "You really want to delete this customer?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            fetch(`/admin/customers/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+                    "Accept": "application/json"
+                }
+            })
+            .then(res => res.json())
+            .then(response => {
+
+                if(response.status){
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: response.message,
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+
+                }else{
+                    Swal.fire("Error!", response.message, "error");
+                }
+
+            })
+            .catch(() => {
+                Swal.fire("Error!", "Server error occurred", "error");
+            });
+
+        }
+    });
+}
+</script>
