@@ -24,4 +24,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Update enquiry status (vendor/admin only)
     Route::patch('/{id}/status', [\Modules\Enquiries\Controllers\Api\EnquiryController::class, 'updateStatus'])
         ->middleware('role:vendor,admin');
+
+    Route::get('vendor/all', [\Modules\Enquiries\Controllers\Api\VendorEnquiryController::class, 'index'])
+        ->middleware('role:vendor');
+    Route::get('vendor/{id}', [\Modules\Enquiries\Controllers\Api\VendorEnquiryController::class, 'show']);
 });

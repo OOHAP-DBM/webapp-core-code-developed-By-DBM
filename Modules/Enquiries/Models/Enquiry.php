@@ -26,6 +26,8 @@ class Enquiry extends Model
         'customer_note',
         'contact_number',
     ];
+    protected $appends = ['enquiry_no'];
+
 
     /* ===================== CASTS ===================== */
 

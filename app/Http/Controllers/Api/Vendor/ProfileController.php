@@ -32,11 +32,24 @@ public function show(ProfileService $profileService)
 {
     $user = Auth::user();
     $vendor = $user->vendorProfile;
+
+    // Convert document paths to URLs
+    if ($vendor) {
+        $vendor->pan_card_document = $vendor->pan_card_document 
+            ? asset('storage/' . $vendor->pan_card_document) 
+            : null;
+
+        $vendor->aadhaar_card_document = $vendor->aadhaar_card_document 
+            ? asset('storage/' . $vendor->aadhaar_card_document) 
+            : null;
+    }
+
     return response()->json([
         'user' => $profileService->response($user),
         'vendor' => $vendor,
     ]);
 }
+
 
 /**
  * @OA\Post(

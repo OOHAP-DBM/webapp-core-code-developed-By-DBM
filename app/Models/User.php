@@ -507,4 +507,25 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_violation' => $this->last_sla_violation_at,
         ];
     }
+
+
+       /**
+     * Get IDs of hoardings owned by the user (vendor, vendor_staff, agency, agency_staff)
+     */
+    public function getOwnedHoardingIds(): array
+    {
+        // If user is vendor or vendor_staff, get hoardings where vendor_id = user id
+        if ($this->hasRole('vendor') || $this->hasRole('vendor_staff')) {
+            return $this->hoardings()->pluck('id')->toArray();
+        }
+        // If user is agency or agency_staff, get hoardings where agency_id = user id (if such a relation exists)
+        if ($this->hasRole('agency') || $this->hasRole('agency_staff')) {
+            if (method_exists($this, 'agencyHoardings')) {
+                return $this->agencyHoardings()->pluck('id')->toArray();
+            }
+            // fallback: try to get hoardings where agency_id = user id
+            return \App\Models\Hoarding::where('agency_id', $this->id)->pluck('id')->toArray();
+        }
+        return [];
+    }
 }

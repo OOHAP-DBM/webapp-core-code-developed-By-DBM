@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Http\Resources;
+namespace Modules\Hoardings\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Helpers\HoardingHelper;
+
 
 class HoardingResource extends JsonResource
 {
@@ -59,32 +61,36 @@ class HoardingResource extends JsonResource
                 ];
             });
         }
+        $basePrice = 0;
+        $sellPrice = 0;
 
+   
+        $basePrice = (float) ($this->base_monthly_price ?? $this->doohScreen->price_per_slot ?? 0);
+        $sellPrice = (float) ($this->monthly_price??0);
+        
+
+        $discount = HoardingHelper::discountBeforeOffer($basePrice, $sellPrice);
         // Build pricing based on hoarding type
-        $pricing = [];
-       
             $pricing = [
-                'base_monthly' => $this->base_monthly_price ? (float) $this->base_monthly_price : null,
-                'monthly' => $this->monthly_price ? (float) $this->monthly_price : ($this->base_monthly_price ? (float) $this->base_monthly_price : null),
-                'weekly' => $this->weekly_price_1 ? (float) $this->weekly_price_1 : null,
-                'enable_weekly_booking' => (bool) $this->enable_weekly_booking,
-                'weekly_price' => $this->weekly_price_1 ? (float) $this->weekly_price_1 : null,
-                'weekly_price_2' => $this->weekly_price_2 ? (float) $this->weekly_price_2 : null,
-                'weekly_price_3' => $this->weekly_price_3 ? (float) $this->weekly_price_3 : null,
-            ];
-         if ($this->hoarding_type === 'dooh' && $this->doohScreen) {
-            $pricing = [
-                // 'price_per_slot' => $this->doohScreen->price_per_slot ? (float) $this->doohScreen->price_per_slot : null,
-                // 'price_per_30_sec' => $this->doohScreen->display_price_per_30s ? (float) $this->doohScreen->display_price_per_30s : null,
-                // 'minimum_booking' => $this->doohScreen->minimum_booking_amount ? (float) $this->doohScreen->minimum_booking_amount : null,
-                // 'base_monthly' => $this->base_monthly_price ? (float) $this->base_monthly_price : null,
-                'price_per_slot' => $this->doohScreen->price_per_slot ? (float) $this->doohScreen->price_per_slot : null,
-                'slot_duration_seconds' => $this->doohScreen->slot_duration_seconds,
-                'loop_duration_seconds' => $this->doohScreen->loop_duration_seconds,
-                // 'monthly' => $this->monthly_price ? (float) $this->monthly_price : null,
+            'base_price'      => round($basePrice, 2),
+            'sell_price'      => $discount['sell_price'],
+            'has_discount'    => $discount['has_discount'],
+            'off_percentage'  => $discount['off_percentage'],
+            'off_amount'      => $discount['off_amount'],
 
-            ];
-        }
+            // OOH extras
+            'weekly' => $this->weekly_price_1 ? (float) $this->weekly_price_1 : null,
+            'enable_weekly_booking' => (bool) $this->enable_weekly_booking,
+
+            // DOOH extras
+            'price_per_slot' => $this->hoarding_type === 'dooh'
+                ? (float) ($this->doohScreen->price_per_slot ?? 0)
+                : null,
+
+            'slot_duration_seconds' => $this->hoarding_type === 'dooh'
+                ? $this->doohScreen?->slot_duration_seconds
+                : null,
+        ];
 
         // Build DOOH technical specs
         $dooh_specs = null;
@@ -130,10 +136,10 @@ class HoardingResource extends JsonResource
             'id' => $this->id,
             'vendor_id' => $this->vendor_id,
             'vendor' => [
-                'id' => $this->vendor->id,
-                'name' => $this->vendor->name,
-                'email' => $this->vendor->email,
-                'phone' => $this->vendor->phone,
+                'id' => $this->vendor?->id,
+                'name' => $this->vendor?->name,
+                'email' => $this->vendor?->email,
+                'phone' => $this->vendor?->phone,
             ],
             'title' => $this->title,
             'slug' => $this->slug,

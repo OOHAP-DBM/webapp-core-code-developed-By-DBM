@@ -445,7 +445,7 @@
                                 <div class="grid grid-cols-3 gap-2 text-xs text-gray-600 mt-3">
                                     @if($package->min_booking_duration)
                                         <div>
-                                            <span class="font-semibold">Min Duration:</span> {{ $package->min_booking_duration }} months
+                                            <span class="font-semibold"> Duration:</span> {{ $package->min_booking_duration }} months
                                         </div>
                                     @endif
                                     @if($package->discount_percent)

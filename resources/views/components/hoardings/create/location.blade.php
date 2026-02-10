@@ -135,39 +135,57 @@ async function syncCoordsToFields(lat, lng) {
 
 // 2. FORWARD: Input Type -> Update Map & Fields
 async function syncAddressToMap(specificQuery = null) {
-    const query = specificQuery || inputs.address.value;
-    if (query.length < 5) return;
+    let query = specificQuery || inputs.address.value;
+    if (!query || query.length < 3) return;
+
+    // If only pincode is entered → force India context
+    if (/^\d{6}$/.test(query)) {
+        query = `${query}, India`;
+    }
 
     try {
-        // We add addressdetails=1 to get the specific City/State/Locality objects
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`);
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?` +
+            `format=json&limit=1&addressdetails=1&q=${encodeURIComponent(query)}`
+        );
+
         const data = await res.json();
-        
-        if (data && data.length > 0) {
-            const result = data[0];
-            const nLat = parseFloat(result.lat);
-            const nLng = parseFloat(result.lon);
 
-            marker.setLatLng([nLat, nLng]);
-            map.setView([nLat, nLng], 16);
-            
-            inputs.lat.value = nLat.toFixed(6);
-            inputs.lng.value = nLng.toFixed(6);
+        if (data && data.length) {
+            const r = data[0];
+            const lat = parseFloat(r.lat);
+            const lng = parseFloat(r.lon);
 
-            // Update sub-fields (City, State, Locality)
-            fillAddressFields(result.address, result.display_name);
+            marker.setLatLng([lat, lng]);
+            map.setView([lat, lng], 16);
+
+            inputs.lat.value = lat.toFixed(6);
+            inputs.lng.value = lng.toFixed(6);
+
+            fillAddressFields(r.address, r.display_name);
             inputs.error.classList.add('hidden');
         } else {
-            inputs.error.innerText = "Location not found. Try adding city name to address.";
+            inputs.error.innerText = "No location found for this pincode.";
             inputs.error.classList.remove('hidden');
         }
-    } catch (e) { console.error("Forward sync error", e); }
+    } catch (err) {
+        console.error("Geocode error:", err);
+    }
 }
+
 
 // Helper function to map API response to Form Fields
 function fillAddressFields(ad, fullDisplayName) {
     // Locality: Try suburb, then neighbourhood, then road
-    inputs.locality.value = ad.suburb || ad.neighbourhood || ad.subdistrict || ad.road || "";
+        inputs.locality.value =
+        ad.suburb ||
+        ad.neighbourhood ||
+        ad.residential ||
+        ad.hamlet ||
+        ad.village ||
+        ad.subdistrict ||
+        ad.road ||
+        "";
     
     // City: Try city, then town, then village
     inputs.city.value = ad.city || ad.town || ad.village || ad.municipality || ad.county || ad.state_district || "";

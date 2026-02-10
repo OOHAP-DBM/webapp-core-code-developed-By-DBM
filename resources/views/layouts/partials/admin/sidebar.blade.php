@@ -107,7 +107,14 @@
                 </a>
             </li>
           
-            <li x-data="{ open: false }">
+            <li x-data="{ open: {{ request()->routeIs(
+                'admin.my-hoardings',
+                'admin.hoardings.my',
+                'admin.vendor-hoardings.*',
+                'admin.hoardings.drafts',
+                'admin.hoarding-attributes.index'
+            ) ? 'true' : 'false' }} }">
+
 
                 <!-- Parent -->
                 <button
