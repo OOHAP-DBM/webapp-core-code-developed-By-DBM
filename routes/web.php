@@ -23,6 +23,7 @@ use App\Http\Controllers\Web\Customer\ShortlistController;
 // ============================================
 // PUBLIC ROUTES (Customer-facing)
 // ============================================
+Route::middleware(['auth'])->get('/notification/{notification}', [App\Http\Controllers\NotificationRedirectController::class, 'open'])->name('notifications.open');
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
@@ -595,6 +596,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/avatar/{user}', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewAvatar'])->name('view-avatar');
     Route::get('/vendor/pan/{vendor}',[\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewPan'])->name('pan.view');
     Route::put('/profile', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/send-otp',[\App\Http\Controllers\Web\Vendor\ProfileController::class,'sendProfileOtp'])->name('profile.send-otp');
+    Route::post('/profile/verify-otp',[\App\Http\Controllers\Web\Vendor\ProfileController::class,'verifyProfileOtp'])->name('profile.verify-otp');
     Route::post('/delete/send-otp',[\App\Http\Controllers\Web\Vendor\ProfileController::class, 'sendDeleteOtp'])->name('profile.delete.sendOtp');
 
 }); // End of vendor middleware group

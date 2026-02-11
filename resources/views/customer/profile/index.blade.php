@@ -119,14 +119,6 @@
 
                     {{-- Actions --}}
                     <div class="flex flex-col gap-1">
-                        <label for="profileImage"
-                            class="text-sm text-blue-600 hover:underline cursor-pointer">
-                            {{ auth()->user()->avatar ? 'Change' : 'Upload' }}
-                        </label>
-
-                        <span id="avatarFileName"
-                            class="text-xs text-gray-500 truncate max-w-[180px]"></span>
-
                         @if(auth()->user()->avatar)
                             <a href="javascript:void(0)"
                             onclick="removeAvatar()"
@@ -134,6 +126,13 @@
                                 Remove
                             </a>
                         @endif
+                        <label for="profileImage"
+                            class="text-xs text-blue-600 hover:underline cursor-pointer">
+                            {{ auth()->user()->avatar ? 'Change' : 'Upload' }}
+                        </label>
+
+                        <span id="avatarFileName"
+                            class="text-xs text-gray-500 truncate max-w-[180px]"></span>
                     </div>
 
                     <input type="file"
@@ -274,7 +273,7 @@
             <div class="text-right">
                 <button
                     type="submit"
-                    class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-md text-sm font-medium">
+                    class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-md text-sm font-medium cursor-pointer">
                     Update
                 </button>
             </div>
