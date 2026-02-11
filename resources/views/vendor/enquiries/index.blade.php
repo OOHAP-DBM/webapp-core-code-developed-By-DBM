@@ -61,7 +61,7 @@
                         {{-- ENQUIRY ID --}}
                         <td class="px-4 py-4">
                             <button @click="openModal({{ $enquiry->toJson() }})" class="text-green-600 font-semibold hover:text-green-700 hover:underline cursor-pointer bg-transparent border-0 p-0">
-                                {{ 'ENQ' . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}
+                                {{ $enquiry->formatted_id }}
                             </button>
                             <div class="text-xs text-gray-500 mt-1">
                                 {{ $enquiry->created_at->format('d M, y') }}

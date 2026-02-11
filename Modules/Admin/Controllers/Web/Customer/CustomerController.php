@@ -51,9 +51,12 @@ class CustomerController extends Controller
 
         $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
         $validated['active_role'] = 'customer';
+        $validated['status'] = 'active';
+        $validated['email_verified_at'] = now(); 
+        $validated['phone_verified_at'] = now(); 
 
-        \App\Models\User::create($validated);
-
+        $user = \App\Models\User::create($validated);
+        $user->assignRole('customer');
         return redirect()->route('admin.customers.index')->with('success', 'Customer added successfully!');
     }
     public function index(Request $request)
@@ -95,7 +98,7 @@ class CustomerController extends Controller
                         ->orWhere('phone', 'like', "%{$search}%");
                 });
             })
-            ->select('id', 'name', 'email', 'phone', 'created_at')
+            ->select('id', 'name', 'email', 'phone','status', 'created_at')
             ->orderByDesc('created_at')
             ->get();
 
@@ -155,5 +158,72 @@ class CustomerController extends Controller
             'bookings',
             'stats'
         ));
+    }
+    public function edit($id)
+    {
+        $user = User::where('active_role', 'customer')->findOrFail($id);
+        return view('admin.customer.edit', compact('user'));
+    }
+    public function update(Request $request, $id)
+    {
+        $user = User::where('active_role', 'customer')->findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'city' => 'nullable|string',
+            'state' => 'nullable|string',
+            'country' => 'nullable|string',
+            'status' => 'required|in:active,inactive',
+            'avatar' => 'nullable|image|max:2048',
+        ]);
+
+        /* ---------- AVATAR UPDATE ---------- */
+        if ($request->hasFile('avatar')) {
+
+            // old image delete
+            if ($user->avatar && \Storage::disk('public')->exists($user->avatar)) {
+                \Storage::disk('public')->delete($user->avatar);
+            }
+
+            // new upload
+            $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        }
+
+        /* ---------- PASSWORD UPDATE (optional) ---------- */
+        if ($request->filled('password')) {
+            $validated['password'] = \Hash::make($request->password);
+        }
+
+        $user->update($validated);
+
+        return redirect()
+            ->route('admin.customers.index')
+            ->with('success', 'Customer updated successfully!');
+    }
+    public function destroy($id)
+    {
+        try {
+            $user = User::where('active_role', 'customer')->findOrFail($id);
+
+            // avatar delete (optional but professional)
+            if ($user->avatar && \Storage::disk('public')->exists($user->avatar)) {
+                \Storage::disk('public')->delete($user->avatar);
+            }
+
+            // SOFT DELETE
+            $user->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Customer deleted successfully!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong!'
+            ], 500);
+        }
     }
 }

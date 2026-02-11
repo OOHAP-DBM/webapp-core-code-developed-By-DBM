@@ -137,21 +137,29 @@
                 </button>
 
                 {{-- Children --}}
-                <div x-show="open" x-collapse class="space-y-1 mt-1">
+                <div
+                        x-show="open"
+                        x-collapse
+                        x-cloak
+                        class="space-y-1 pl-3 mt-1"
+                    >
                     <a
                         href="{{ route('customer.profile.index') }}"
-                        class="flex items-center gap-3 px-6 py-1 text-sm font-medium rounded-md 
-                        {{ request()->routeIs('customer.profile.index') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50' }}"
-                    >
-                        <span class="text-xs">•</span>
+                        class="block px-6 py-1 text-sm rounded-md transition
+                        {{ request()->routeIs('customer.profile.index')
+                            ? 'bg-emerald-50 text-gray-900 pl-5 font-semibold border-[#00995c]'
+                            : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}"
+
+                       >
                         Personal Info
                     </a>
                     <a
                         href="{{ route('customer.profile.billing') }}"
-                        class="flex items-center gap-3 px-6 py-1 text-sm font-medium rounded-md
-                        {{ request()->routeIs('customer.profile.billing') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50' }}"
-                        >
-                        <span class="text-xs">•</span>
+                        class="block px-6 py-1 text-sm rounded-md transition
+                        {{ request()->routeIs('customer.profile.billing')
+                            ? 'bg-emerald-50 text-gray-900 pl-5 font-semibold border-[#00995c]'
+                            : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}"
+                         >
                         Billing Address
                     </a>
 

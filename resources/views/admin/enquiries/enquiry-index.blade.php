@@ -14,7 +14,7 @@
                 View and manage all customer enquiries involving hoardings from multiple vendors.
             </p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-col md:flex-row md:items-center gap-3 w-full md:w-auto">
             <form method="GET" class="relative flex-1 md:w-72" x-data="{ search: '{{ request('search') }}' }">
                 <input
                     type="text"
@@ -249,10 +249,9 @@
                         </div>
                     </td>
 
-                    {{-- ACTION --}}
-                    <td class="px-3 py-3 text-center">
+                    <td class="px-3 py-3 text-center whitespace-nowrap">
                         <a href="{{ route('admin.enquiries.show', $enquiry->id) }}"
-                           class="px-4 py-1.5 bg-gray-800 text-white text-xs font-medium hover:bg-black">
+                        class="inline-flex items-center justify-center px-3 py-1.5 bg-gray-900 text-white text-xs font-medium  hover:bg-black whitespace-nowrap">
                             View Enquiry
                         </a>
                     </td>

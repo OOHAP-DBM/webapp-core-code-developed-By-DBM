@@ -60,7 +60,7 @@
             <input
                 type="text"
                 name="pan"
-                value="{{ $user->pan }}"
+                value="{{ $vendor->pan ?: ($vendor->user->pan ?? '') }}"
                 class="w-full px-3 py-2 border border-gray-200 rounded-md"
             >
         </div>

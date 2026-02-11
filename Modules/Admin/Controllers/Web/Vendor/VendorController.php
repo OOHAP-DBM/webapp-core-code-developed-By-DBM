@@ -5,8 +5,8 @@ namespace Modules\Admin\Controllers\Web\Vendor;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-
-
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use App\Models\VendorProfile;
 
 class VendorController extends Controller
@@ -233,5 +233,195 @@ class VendorController extends Controller
         $vendor->status = 'suspended';
         $vendor->save();
         return redirect()->back()->with('success', 'Vendor suspended.');
+    }
+    public function create()
+    {
+        return view('admin.vendors.create');
+    }
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name'          => 'required|string|max:255',
+            'phone'         => 'required|string|max:20|unique:users,phone',
+            'email'         => 'required|email|unique:users,email',
+            'password'      => 'required|min:4',
+
+            'company_name'  => 'required|string|max:255',
+            'gstin'         => 'nullable|string|max:20',
+            'pan'           => 'nullable|string|max:20',
+            'address'       => 'required|string|max:500',
+            'city'          => 'required|string|max:100',
+            'state'         => 'required|string|max:100',
+            'pincode'       => 'required|string|max:10',
+            'status'        => 'required|in:active,inactive',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+
+            // ---------------- USER CREATE ----------------
+            $user = User::create([
+                'name'              => $request->name,
+                'phone'             => $request->phone,
+                'email'             => $request->email,
+                'password'          => Hash::make($request->password),
+
+                'active_role'       => 'vendor',
+                'status'            => $request->status,
+
+                // ADMIN VERIFIED
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
+            ]);
+
+            $user->assignRole('vendor');
+
+
+            // ---------------- VENDOR PROFILE CREATE ----------------
+            VendorProfile::create([
+                'user_id'                   => $user->id,
+
+                // AUTO APPROVED (ADMIN CREATED)
+                'onboarding_status'         => 'approved',
+                'onboarding_step'           => 3,
+                'onboarding_completed_at'   => now(),
+                'approved_at'               => now(),
+                'approved_by'               => auth()->id(),
+
+                // BUSINESS DETAILS
+                'company_name'              => $request->company_name,
+                'gstin'                     => $request->gstin,
+                'pan'                       => $request->pan,
+                'registered_address'        => $request->address,
+                'city'                      => $request->city,
+                'state'                     => $request->state,
+                'pincode'                   => $request->pincode,
+
+                // KYC AUTO VERIFIED
+                'kyc_verified'              => 1,
+                'kyc_verified_at'           => now(),
+
+                // TERMS AUTO ACCEPT
+                'terms_accepted'            => 1,
+                'terms_accepted_at'         => now(),
+                'terms_ip_address'          => request()->ip(),
+
+                // DEFAULT COMMISSION
+                'commission_percentage'     => 10,
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('admin.vendors.index', ['status' => 'approved'])
+                ->with('success', 'Vendor created and auto-approved successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    public function bulkApprove(Request $request)
+    {
+        $request->validate([
+            'vendor_ids' => 'required|array',
+            'commission_percentage' => 'required|numeric|min:1|max:100'
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+
+            foreach ($request->vendor_ids as $vendorProfileId) {
+
+                $vendor = VendorProfile::find($vendorProfileId);
+                if(!$vendor) continue;
+
+                // vendor profile approve
+                $vendor->update([
+                    'onboarding_status'      => 'approved',
+                    'approved_at'            => now(),
+                    'approved_by'            => auth()->id(),
+                    'kyc_verified'           => 1,
+                    'kyc_verified_at'        => now(),
+                    'commission_percentage'  => $request->commission_percentage,
+                    'onboarding_completed_at'=> now(),
+                    'terms_accepted'         => 1,
+                    'terms_accepted_at'      => now(),
+                    'terms_ip_address'       => request()->ip(),
+                ]);
+
+                // user activate
+                $user = User::find($vendor->user_id);
+                if($user){
+                    $user->update([
+                        'status' => 1,
+                        'email_verified_at' => now(),
+                        'phone_verified_at' => now(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Selected vendors approved successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Approval failed'
+            ],500);
+        }
+    }
+    public function bulkDisable(Request $request)
+    {
+        $vendors = VendorProfile::whereIn('id',$request->vendor_ids)->get();
+
+        foreach ($vendors as $vendor) {
+
+            $vendor->update([
+                'onboarding_status' => 'suspended',
+                'suspended_at' => now()
+            ]);
+
+            // optional: block login
+            $vendor->user->update([
+                'is_active' => 0
+            ]);
+        }
+
+        return response()->json([
+            'success'=>true,
+            'message'=>'Selected vendors disabled successfully'
+        ]);
+    }
+    public function bulkEnable(Request $request)
+    {
+        $vendors = VendorProfile::with('user')
+            ->whereIn('id', $request->vendor_ids)
+            ->get();
+
+        foreach ($vendors as $vendor) {
+            $vendor->update([
+                'onboarding_status' => 'approved',
+                'suspended_at' => null
+            ]);
+            if($vendor->user){
+                $vendor->user->update([
+                    'is_active' => 1
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Selected vendors enabled successfully'
+        ]);
     }
 }

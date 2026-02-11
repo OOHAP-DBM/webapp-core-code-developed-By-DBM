@@ -15,13 +15,7 @@
             </a>
             <h2 class="text-base font-semibold text-gray-900">
                 Enquiry ID
-                @php
-                    $vendors = $enquiry->items->map(function($item) {
-                        return optional($item->hoarding)->vendor_id;
-                    })->filter()->unique()->values();
-                    $prefix = $vendors->count() === 1 ? 'SV' : 'MV';
-                @endphp
-                <span class="text-green-600"> ({{ $prefix . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }})</span><br>
+                <span class="text-green-600">({{ $enquiry->formatted_id }})</span><br>
                 <p class="text-xs text-gray-500">Details of enquiry and vendor responses</p>
             </h2>
         </div>
@@ -112,13 +106,7 @@
                 <div class="col-span-4">
                     <h3 class="text-sm font-semibold mb-4">Enquiry Details</h3>
                     <div class="space-y-3 text-xs">
-                        @php
-                            $vendorCount = $enquiry->items->map(function($item) {
-                                return optional($item->hoarding)->vendor_id;
-                            })->filter()->unique()->count();
-                            $prefix = $vendorCount === 1 ? 'SV' : 'MV';
-                        @endphp
-                        <div>Enquiry ID : <span class="font-medium">{{ $prefix. str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}</span></div>
+                        <div>Enquiry ID : <span class="font-medium">({{ $enquiry->formatted_id }})</span></div>
                         <div>Status : <span class="font-medium">
                             @if($enquiry->status === 'submitted')
                                 <span class="text-blue-600">Waiting for Vendor Response</span>
