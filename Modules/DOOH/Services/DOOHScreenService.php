@@ -33,17 +33,22 @@ class DOOHScreenService
         $validator = Validator::make($data, [
             'category'          => 'required|string|max:100',
             'screen_type'       => 'required|string|max:50',
-            'width'             => 'required|numeric|min:0.1',
-            'height'            => 'required|numeric|min:0.1',
+            'width'             => 'required|numeric|min:0.1|max:4000',
+            'height'            => 'required|numeric|min:0.1|max:4000',
             'measurement_unit'  => 'required|in:sqft,sqm',
             'address'           => 'required|string|max:255',
             'pincode'           => 'required|string|max:20',
             'locality'          => 'required|string|max:100',
             'price_per_slot'    => 'required|numeric|min:1',
-            // 'price_per_30_sec_slot'    => 'required|numeric|min:1',
-            'resolution_type' => 'required|string',
-            'resolution_width' => 'required_if:resolution_type,custom|nullable|integer|min:1',
-            'resolution_height' => 'required_if:resolution_type,custom|nullable|integer|min:1',
+            'base_monthly_price'    => 'required|numeric|min:1',
+            'monthly_price'    => 'required|numeric|min:1',
+            'spot_duration'    => 'required|numeric|min:1',
+            'spots_per_day'    => 'required|numeric|min:1',
+            // 'loop_duration_seconds'    => 'required|numeric|min:1',
+              'daily_runtime' => 'nullable|numeric|min:0|max:24',
+            // 'resolution_type' => 'required|string',
+            // 'resolution_width' => 'required_if:resolution_type,custom|nullable|integer|min:1',
+            // 'resolution_height' => 'required_if:resolution_type,custom|nullable|integer|min:1',
         ]);
 
         // Normalize mediaFiles to always be an array
@@ -74,27 +79,28 @@ class DOOHScreenService
             }
 
             $screen->hoarding->current_step = 1;
+            
             $screen->save();
 
             return ['success' => true, 'screen' => $screen->fresh('media')];
         });
     }
 
-    protected function normalizeResolution(array $data): array
-    {
-        if ($data['resolution_type'] !== 'custom') {
-            [$width, $height] = explode('x', $data['resolution_type']);
-        } else {
-            $width = $data['resolution_width'];
-            $height = $data['resolution_height'];
-        }
+    // protected function normalizeResolution(array $data): array
+    // {
+    //     if ($data['resolution_type'] !== 'custom') {
+    //         [$width, $height] = explode('x', $data['resolution_type']);
+    //     } else {
+    //         $width = $data['resolution_width'];
+    //         $height = $data['resolution_height'];
+    //     }
 
-        return [
-            'resolution_width'  => (int) $width,
-            'resolution_height' => (int) $height,
-            'aspect_ratio'      => round($width / $height, 2),
-        ];
-    }
+    //     return [
+    //         'resolution_width'  => (int) $width,
+    //         'resolution_height' => (int) $height,
+    //         'aspect_ratio'      => round($width / $height, 2),
+    //     ];
+    // }
 
     /**
      * Store Step 2 (Additional Settings, Visibility & Brand Logos)
@@ -447,7 +453,7 @@ class DOOHScreenService
                 'resolution_width' => $screen->resolution_width,
                 'resolution_height' => $screen->resolution_height,
                 'price_per_slot' => $screen->price_per_slot,
-                'display_price_per_30s' => $screen->display_price_per_30s,
+                // 'display_price_per_30s' => $screen->display_price_per_30s,
                 'status' => $screen->status,
                 'hoarding' => $hoarding ? [
                     'id' => $hoarding->id,
@@ -553,13 +559,15 @@ class DOOHScreenService
                 'lat' => $data['lat'] ?? $hoarding->lat,
                 'lng' => $data['lng'] ?? $hoarding->lng,
                 'enable_weekly_booking' => isset($data['enable_weekly_booking']) ? $data['enable_weekly_booking'] : 0,
-                'weekly_price_1' => $data['weekly_price_1'],
-                'weekly_price_2' => $data['weekly_price_2'],
-                'weekly_price_3' => $data['weekly_price_3'],
+                'weekly_price_1' => $data['weekly_price_1']?? null,
+                'weekly_price_2' => $data['weekly_price_2']?? null,
+                'weekly_price_3' => $data['weekly_price_3']?? null,
             ]);
-
+      
+            $hoarding->title = $hoarding->generateSeoTitle();
+            
             // Normalize resolution
-            $normalized = $this->normalizeResolution($data);
+            // $normalized = $this->normalizeResolution($data);
 
             // Update DOOH screen
             $screen->update([
@@ -567,8 +575,8 @@ class DOOHScreenService
                 'width' => $data['width'] ?? $screen->width,
                 'height' => $data['height'] ?? $screen->height,
                 'measurement_unit' => $data['measurement_unit'] ?? $screen->measurement_unit,
-                'resolution_width' => $normalized['resolution_width'],
-                'resolution_height' => $normalized['resolution_height'],
+                // 'resolution_width' => $normalized['resolution_width'],
+                // 'resolution_height' => $normalized['resolution_height'],
                 'price_per_slot' => $data['price_per_slot'] ?? $screen->price_per_slot,
              
             ]);
@@ -602,6 +610,7 @@ class DOOHScreenService
             $hoarding->update([
                 'graphics_included' => isset($data['graphics_included']),
                 'graphics_price' => $data['graphics_price'] ?? 0,
+                'current_step' => 3,
             ]);
 
 // dd($data);

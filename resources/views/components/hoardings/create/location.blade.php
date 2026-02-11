@@ -2,9 +2,10 @@
     $hoarding = $draft->hoarding ?? null;
 @endphp
 <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-    <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
-        <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-        Hoarding Location
+
+    <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
+                <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+                Hoarding Location
     </h3>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
@@ -12,31 +13,31 @@
             <label class="text-sm font-bold text-gray-700">Full Address <span class="text-red-500">*</span></label>
             <input name="address" id="address" value="{{ old('address', $hoarding?->address) }}" required 
                 placeholder="Enter complete address"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none transition-all">
         </div>
 
         <div class="space-y-2">
             <label class="text-sm font-bold text-gray-700">Pincode <span class="text-red-500">*</span></label>
             <input type="text" name="pincode" id="pincode" value="{{ old('pincode', $hoarding?->pincode) }}" placeholder="eg. 226010" required 
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none transition-all">
         </div>
 
         <div class="space-y-2">
             <label class="text-sm font-bold text-gray-700">Locality <span class="text-red-500">*</span></label>
             <input type="text" name="locality" id="locality" value="{{ old('locality', $hoarding?->locality) }}" placeholder="e.g. Indira Nagar" required 
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#009A5C] outline-none transition-all">
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none transition-all">
         </div>
 
         <div class="grid grid-cols-2 gap-4">
             <div class="space-y-2">
                 <label class="text-sm font-bold text-gray-700">City <span class="text-red-500">*</span></label>
                 <input type="text" name="city" id="city" value="{{ old('city', $hoarding?->city) }}" placeholder="eg. Lucknow" 
-                    class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#009A5C]">
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-[#009A5C]">
             </div>
             <div class="space-y-2">
                 <label class="text-sm font-bold text-gray-700">State <span class="text-red-500">*</span></label>
                 <input type="text" name="state" id="state" value="{{ old('state', $hoarding?->state) }}" placeholder="eg. Uttar Pradesh" 
-                    class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#009A5C]">
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-[#009A5C]">
             </div>
         </div>
     </div>
@@ -52,7 +53,7 @@
             </div>
 
             <button type="button" id="geotagBtn" 
-                class="bg-[#009A5C] text-white text-sm font-bold px-6 py-3 rounded-xl shadow-sm hover:bg-green-700 active:scale-95 transition">
+                class="bg-[#009A5C] text-white text-sm font-bold px-6 py-2.5 rounded-xl shadow-sm hover:bg-green-700 active:scale-95 transition">
                 📍 Sync Address to Map
             </button>
         </div>
@@ -63,12 +64,12 @@
             <div class="space-y-1">
                 <label class="text-sm font-bold text-gray-700">Latitude <span class="text-red-500">*</span></label>
                 <input type="text" name="lat" id="lat" value="{{ old('lat', $hoarding?->latitude) }}" required 
-                    class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:border-[#009A5C] outline-none">
+                    class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:border-[#009A5C] outline-none">
             </div>
             <div class="space-y-1">
                 <label class="text-sm font-bold text-gray-700">Longitude <span class="text-red-500">*</span></label>
                 <input type="text" name="lng" id="lng" value="{{ old('lng', $hoarding?->longitude) }}" required 
-                    class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:border-[#009A5C] outline-none">
+                    class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:border-[#009A5C] outline-none">
             </div>
         </div>
 

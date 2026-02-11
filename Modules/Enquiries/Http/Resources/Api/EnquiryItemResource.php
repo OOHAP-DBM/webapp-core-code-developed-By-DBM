@@ -24,6 +24,7 @@ class EnquiryItemResource extends JsonResource
            'preferred_campaign_start' => $this->enquiryCampaignStartDate(),
             'last_updated'    => optional($this->updated_at)->format('d M Y, H:i'),
             'total_hoardings' => $this->items_count,
+            'total_locations' => $this->items_count,
             'total_vendors'   => $this->vendor_count,
             'customer'        => $this->customerDetails(),
 

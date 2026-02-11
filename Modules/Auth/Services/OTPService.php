@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\EmailOTPNotification;
+use App\Services\TwilioService;
+use Modules\Auth\Models\UserOtp;
 
 class OTPService
 {
@@ -161,15 +164,14 @@ class OTPService
     protected function sendOTP(User $user, string $otp): void
     {
         
+        $message = "Your OOHAPP OTP is: {$otp}. Valid for 5 minutes.";
+
         if ($user->phone) {
-            // TODO: Implement SMS sending
-            // Example: Twilio::sendSMS($user->phone, "Your OOHAPP OTP is: {$otp}");
+            app(TwilioService::class)->sendSMS($user->phone, $message);
         }
 
-        // Fallback to email
         if ($user->email) {
-            // TODO: Implement email sending
-            // $user->notify(new OTPNotification($otp));
+            $user->notify(new EmailOTPNotification($otp));
         }
     }
 

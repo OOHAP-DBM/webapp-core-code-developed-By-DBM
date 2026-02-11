@@ -71,7 +71,7 @@
                     @include('dooh.vendor.partials.step3', ['draft' => $draft])
                 @endif
 
-                <div class="flex flex-col sm:flex-row justify-between gap-2 sm:gap-3 mb-8 w-full">
+                <div class="flex flex-col sm:flex-row justify-between gap-2 sm:gap-3 mb-8 max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                     <a href="{{ route('vendor.hoardings.myHoardings') }}" class="w-full sm:w-auto px-5 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition text-center">Cancel</a>
                     <button type="submit" class="w-full sm:w-auto px-7 py-2 rounded bg-green-600 text-white font-semibold shadow hover:bg-green-700 transition text-center" style="cursor:pointer;">
                          @if($step < 3)

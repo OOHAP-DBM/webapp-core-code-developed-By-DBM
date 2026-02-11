@@ -296,7 +296,6 @@ class HoardingListService
         return DB::transaction(function () use ($hoarding, $oohHoarding, $data, $mediaFiles) {
             // Update parent hoarding
             $hoarding->update([
-                'title' => $data['title'] ?? $hoarding->title,
                 'category' => $data['category'] ?? $hoarding->category,
                 'address' => $data['address'] ?? $hoarding->address,
                 'locality' => $data['locality'] ?? $hoarding->locality,
@@ -307,6 +306,8 @@ class HoardingListService
                 'lng' => $data['lng'] ?? $hoarding->lng,
                 'landmark' => $data['landmark'] ?? $hoarding->landmark,
                 'monthly_price' => $data['monthly_price'] ?? $hoarding->monthly_price,
+                'title' => $hoarding->generateSeoTitle(),
+
             ]);
 
             // Update OOH-specific fields

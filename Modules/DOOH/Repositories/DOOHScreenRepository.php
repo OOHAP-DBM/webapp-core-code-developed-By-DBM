@@ -48,20 +48,15 @@ class DOOHScreenRepository
     public function createStep1($vendor, $data)
     {
         return \DB::transaction(function () use ($vendor, $data) {
-
             /** -------------------------------
              * 1. Create Parent Hoarding
              * -------------------------------- */
-          
             $hoarding = Hoarding::create([
                 'vendor_id'      => $vendor->id,
-                'title'          => $data['name'] ?? null,
-                'name'        => $data['name'] ?? 'DOOH Screen',
+                'name'           => $data['name'] ?? 'DOOH Screen',
                 'description'    => $data['description'] ?? null,
                 'hoarding_type'  => 'dooh',
                 'category'       => $data['category'],
-
-                // Location
                 'address'        => $data['address'],
                 'locality'       => $data['locality'],
                 'city'           => $data['city'] ?? null,
@@ -70,38 +65,23 @@ class DOOHScreenRepository
                 'country'        => 'India',
                 'latitude'       => $data['lat'] ?? null,
                 'longitude'      => $data['lng'] ?? null,
-
-                // Booking & rules
-                // 'grace_period_days' => $data['grace_period_days'] ?? 0,
-                // 'audience_types'    => $data['audience_types'] ?? null,
-                'enable_weekly_booking' => $data['enable_weekly_booking'],
-                'weekly_price_1' => $data['weekly_price_1'],
-                'weekly_price_2' => $data['weekly_price_2'],
-                'weekly_price_3' => $data['weekly_price_3'],
-
+                'enable_weekly_booking' => $data['enable_weekly_booking']?? false,
+                'weekly_price_1' => $data['weekly_price_1']?? null,
+                'weekly_price_2' => $data['weekly_price_2']?? null,
+                'weekly_price_3' => $data['weekly_price_3']?? null,
+                'base_monthly_price' => $data['base_monthly_price']?? 0,
+                'monthly_price' => $data['monthly_price']?? 0,
                 'status' => 'draft',
                 'approval_status' => 'pending',
                 'current_step'   => 1,
             ]);
+            // Always generate or update the title in Step 1
+            $hoarding->title = $hoarding->generateSeoTitle();
+            $hoarding->save();
 
             /** -------------------------------
              * 2. Create DOOH Screen
              * -------------------------------- */
-         
-            // dd($areaSqft);
-            // Inline resolution normalization logic
-            if (($data['resolution_type'] ?? '') !== 'custom') {
-                $preset = $data['resolution_type'] ?? '';
-                if (strpos($preset, 'x') !== false) {
-                    [$resWidth, $resHeight] = explode('x', $preset);
-                } else {
-                    $resWidth = null;
-                    $resHeight = null;
-                }
-            } else {
-                $resWidth = $data['resolution_width'] ?? null;
-                $resHeight = $data['resolution_height'] ?? null;
-            }
             $width  = (float) $data['width'];
             $height = (float) $data['height'];
             $measurement_unit = $data['measurement_unit'] ?? null;
@@ -115,14 +95,12 @@ class DOOHScreenRepository
                 'width' => $width,
                 'height' => $height,
                 'measurement_unit' => $measurement_unit,
-                'resolution_width'  => $resWidth,
-                'resolution_height' => $resHeight,
+                'screen_run_time' => $data['daily_runtime'] ?? null,
+                'slot_duration_seconds' => $data['spot_duration'] ?? null,
+                'total_slots_per_day' => $data['spots_per_day'] ?? null,
                 'calculated_area_sqft' => $areaSqft,
                 'price_per_slot' => $data['price_per_slot'],
-                // 'display_price_per_30s' => $data['price_per_30_sec_slot']?? 0,
-              
             ]);
-
         });
     }
     public function getOrCreateHoardingDraft($vendor, array $data)
@@ -157,7 +135,8 @@ class DOOHScreenRepository
                 'current_step'   => 1,
                 'status' => 'draft',
                 'approval_status' => 'pending',
-
+                 'base_monthly_price' => $data['base_monthly_price']?? 0,
+                'monthly_price' => $data['monthly_price']?? 0,
                 // Booking & audience
                 'grace_period_days' => $data['grace_period_days'] ?? 0,
                 'audience_types'    => $data['audience_types'] ?? null,
@@ -245,6 +224,7 @@ class DOOHScreenRepository
         ];
         $screen->fill(array_intersect_key($data, array_flip($allowed)));
         $screen->save();
+
         return $screen;
     }
 

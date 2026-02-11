@@ -139,35 +139,27 @@ class Enquiry extends Model
     }
 
 
-    public function getEnquiryDetails()
+    /* ===================== ACCESSORS ===================== */
+
+    // public function getVendorCountAttribute(): int
+    // {
+    //     return $this->items()
+    //         ->join('hoardings', 'enquiry_items.hoarding_id', '=', 'hoardings.id')
+    //         ->whereNotNull('hoardings.vendor_id')
+    //         ->distinct('hoardings.vendor_id')
+    //         ->count('hoardings.vendor_id');
+    // }
+
+     public function scopeWithVendorCount($query)
     {
-        // LOAD ALL RELATIONS (THIS IS THE FIX)
-        $this->load([
-            'items.hoarding.vendor',
-            'items.hoarding.doohScreen'
+        return $query->withCount([
+            'items as vendor_count' => function ($q) {
+                $q->join('hoardings', 'enquiry_items.hoarding_id', '=', 'hoardings.id')
+                ->whereNotNull('hoardings.vendor_id')
+                ->distinct('hoardings.vendor_id');
+            }
         ]);
-
-        foreach ($this->items as $item) {
-
-            $item->image_url = null;
-
-            if (!$item->hoarding) {
-                continue;
-            }
-
-            /* ================= OOH IMAGE ================= */
-
-            if ($item->hoarding_type === 'ooh') {
-
-                $media = DB::table('hoarding_media')
-                    ->where('hoarding_id', $item->hoarding->id)
-                    ->where('is_primary', 1)
-                    ->first();
-
-                if ($media) {
-                    $item->image_url = asset('storage/' . $media->file_path);
-                }
-            }
+    }
 
             /* ================= DOOH IMAGE (FIXED) ================= */
 
@@ -217,6 +209,7 @@ class Enquiry extends Model
 
         return $this;
     }
+
 
 }
 

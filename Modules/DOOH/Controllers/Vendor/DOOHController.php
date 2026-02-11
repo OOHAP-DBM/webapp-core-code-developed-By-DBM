@@ -96,6 +96,7 @@ class DOOHController extends Controller
      */
     public function store(Request $request, \Modules\DOOH\Services\DOOHScreenService $service)
     {
+        // dd($request->all());
         $vendor = Auth::user();
         $step = (int) $request->input('step', 1);
         $step = max(1, min(3, $step));
@@ -186,11 +187,6 @@ class DOOHController extends Controller
 
             $result = $service->storeStep3($draft, $request->all());
             if ($result['success']) {
-                // Auto-generate SEO title if empty
-                if (empty($draft->hoarding->title)) {
-                    $draft->hoarding->title = $draft->hoarding->generateSeoTitle();
-                    $draft->hoarding->save();
-                }
                 $draft->hoarding->status = Hoarding::STATUS_PENDING_APPROVAL;
                 $draft->hoarding->current_step = 3; // Mark as finished
                 $draft->save();
@@ -324,7 +320,6 @@ class DOOHController extends Controller
             return redirect()->route('vendor.hoardings.edit', $hoarding->ooh->id)
                 ->with('error', 'This is an OOH hoarding. Please use OOH edit.');
         }
-
         try {
             switch ($step) {
                 case 1:
@@ -359,15 +354,16 @@ class DOOHController extends Controller
             }
 
             // Mark as completed on step 3
-            if ($step === 3) {
-                if ($hoarding->status === 'draft' || $hoarding->approval_status === 'pending') {
-                    $hoarding->update([
-                        'status' => 'pending_approval',
-                        'approval_status' => 'pending',
-                        'current_step' => null,
-                    ]);
-                }
-            }
+            // if ($step === 3) {
+            //     dd($data = $request->all());
+            //     if ($hoarding->status === 'draft' || $hoarding->approval_status === 'pending') {
+            //         $hoarding->update([
+            //             'status' => 'pending_approval',
+            //             'approval_status' => 'pending',
+            //             // 'current_step' => null,
+            //         ]);
+            //     }
+            // }
 
             return redirect()->route('vendor.hoardings.myHoardings')
                 ->with('success', 'DOOH Screen updated successfully!, Once approved by our team, it will be live on the platform.');
