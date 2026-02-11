@@ -87,26 +87,20 @@ class AdminEnquiryNotification extends Notification
             );
     }
 
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
-        $items       = $this->enquiry->items;
-        $totalItems  = $items->count();
-        $vendorCount = $items->pluck('vendor_id')->filter()->unique()->count();
-
+        $items = method_exists($this->enquiry, 'items') ? $this->enquiry->items : ($this->enquiry->items ?? []);
+        $itemCount = is_callable([$items, 'count']) ? $items->count() : (is_array($items) ? count($items) : 0);
+        $customerName = is_array($this->enquiry->meta ?? null) && isset($this->enquiry->meta['customer_name'])
+            ? $this->enquiry->meta['customer_name']
+            : 'New Client';
         return [
             'enquiry_id'   => $this->enquiry->id,
-            'type'         => $vendorCount > 1 ? 'multi_vendor_lead' : 'platform_lead',
-            'vendor_count' => $vendorCount,
-            'message'      => $vendorCount > 1
-                ? '🚨 Multi-vendor enquiry involving ' .
-                  $vendorCount . ' vendors and ' .
-                  $totalItems . ' ' . Str::plural('hoarding', $totalItems) . '.'
-                : (
-                    $totalItems === 1
-                        ? 'Single hoarding enquiry raised by customer.'
-                        : 'Multi hoarding enquiry raised by customer for ' .
-                          $totalItems . ' ' . Str::plural('hoarding', $totalItems) . '.'
-                ),
+            'item_count'   => $itemCount,
+            'customer_name'=> $customerName,
+            'message'      => 'New enquiry raised for ' . $itemCount . ' hoarding(s).',
+            'action_url'   => route('admin.enquiries.show', $this->enquiry->id),
+            'role'         => 'admin',
         ];
     }
 }

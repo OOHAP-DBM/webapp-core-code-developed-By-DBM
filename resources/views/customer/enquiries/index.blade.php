@@ -80,14 +80,8 @@
 
                         {{-- ENQUIRY ID --}}
                         <td class="px-4 py-4">
-                            @php
-                                $vendorIds = $enquiry->items->map(function($item) {
-                                    return optional($item->hoarding)->vendor_id;
-                                })->filter()->unique()->values();
-                                $prefix = $vendorIds->count() === 1 ? 'SV' : 'MV';
-                            @endphp
                             <a href="{{ route('customer.enquiries.show', $enquiry->id) }}" class="text-green-600 font-semibold hover:text-green-700 hover:underline">
-                                {{ $prefix . str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}
+                               {{ $enquiry->formatted_id }}
                             </a>
                             <div class="text-xs text-gray-500 mt-1">
                                 {{ $enquiry->created_at->format('d M, y') }}

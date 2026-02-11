@@ -1,5 +1,5 @@
 @extends('layouts.vendor')
-
+@section('title', 'Enquiries')
 @section('content')
 <div class="px-6 py-6 bg-white">
     {{-- ===== HEADER SECTION ===== --}}
@@ -13,7 +13,7 @@
             <div>
                 <h2 class="text-base font-semibold text-gray-900">
                 Enquiry ID
-                    <span class="text-green-600">SV{{ str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}</span>
+                    <span class="text-green-600">({{ $enquiry->formatted_id }})</span>
                 </h2>
                 <p class="text-xs text-gray-500">Details of enquiry</p>
             </div>
@@ -52,7 +52,7 @@
                     <div class="col-span-4">
                         <h3 class="text-sm font-semibold mb-4">Enquiry Details</h3>
                         <div class="space-y-3 text-xs">
-                            <div>Enquiry ID : <span class="font-medium">SV{{ str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}</span></div>
+                            <div>Enquiry ID : <span class="font-medium">({{ $enquiry->formatted_id }})</span></div>
                             <div>
                                 Campaign Starting From :
                                 <span>{{ optional($enquiry->items->first())->preferred_start_date ? \Carbon\Carbon::parse($enquiry->items->first()->preferred_start_date)->format('d M, Y') : 'N/A' }}</span>

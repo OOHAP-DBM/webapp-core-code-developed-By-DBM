@@ -19,6 +19,6 @@
     {{-- PAN Number --}}
     <div class="text-sm text-gray-700">
         <span class="font-medium">PAN Number:</span>
-        {{ auth()->user()->pan ?? '-' }}
+        {{ $vendor->pan ?: ($vendor->user->pan ?? '') }}
     </div>
 </div>

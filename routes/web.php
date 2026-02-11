@@ -25,6 +25,7 @@ use App\Http\Controllers\Web\Customer\ShortlistController;
 // ============================================
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
 
 Route::get('/direct-enquiry/captcha', [DirectEnquiryController::class, 'regenerateCaptcha'])->name('direct.enquiry.captcha');
 
@@ -609,14 +610,24 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     // Vendors Management
     Route::get('/vendors', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'index'])->name('vendors.index');
+    Route::get('/vendors/create', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'create'])->name('vendors.create');
+    Route::post('/vendors', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'store'])->name('vendors.store');
     // Route::get('/vendors/requested', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'requestedVendors'])->name('vendors.requested');
     Route::get('/vendors/{id}', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'show'])->name('vendors.show');
+    Route::post('/vendors/bulk-approve', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'bulkApprove'])->name('vendors.bulk-approve');
+    Route::post('/vendors/bulk-disable', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class,'bulkDisable'])->name('vendors.bulk-disable');
+    Route::post('/vendors/bulk-enable', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class,'bulkEnable'])->name('vendors.bulk-enable');
     Route::post('/vendors/{id}/approve', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'approve'])->name('vendors.approve');
     Route::post('/vendors/{id}/reject', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'reject'])->name('vendors.reject');
     Route::post('/vendors/{id}/suspend', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'suspend'])->name('vendors.suspend');
         // Customer Management
         Route::get('/customers', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'index'])->name('customers.index');
+        Route::get('/customers/create', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'create'])->name('customers.create');
+        Route::post('/customers', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'store'])->name('customers.store');
         Route::get('/customers/{id}', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'show'])->name('customers.show');
+        Route::get('/customers/{id}/edit', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'edit'])->name('customers.edit');
+        Route::put('/customers/{id}', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'update'])->name('customers.update');
+        Route::delete('/customers/{id}', [\Modules\Admin\Controllers\Web\Customer\CustomerController::class, 'destroy'])->name('customers.destroy');
 
     
     // KYC Verification
@@ -976,6 +987,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::get('/direct-enquiries', [DirectEnquiryController::class,'index'])->name('direct-enquiries.index');
+    Route::get('/enquiries', [\Modules\Enquiries\Controllers\Web\AdminEnquiryController::class, 'index'])->name('enquiries.index');
+    Route::get('/enquiries/{id}', [\Modules\Enquiries\Controllers\Web\AdminEnquiryController::class, 'show'])->name('enquiries.show');
 });
 
 // ============================================
