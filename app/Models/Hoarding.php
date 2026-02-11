@@ -578,7 +578,7 @@ class Hoarding extends Model implements HasMedia
         // Type label
         $typeLabel = '';
         if ($type === 'ooh' && $child) {
-            $typeLabel = ucfirst($child->category ?? 'Billboard');
+            $typeLabel = ucfirst($this->category ?? 'Billboard');
         } elseif ($type === 'dooh' && $child) {
             $typeLabel = $child->screen_type ? ucfirst($child->screen_type) : 'LED Screen';
         }

@@ -76,10 +76,12 @@
 </head>
 <body>
     <div class="email-container">
-        <div class="logo">
-            <h1> OOHAPP</h1>
-        </div>
-        
+        <div class="logo" style="text-align:center; margin-bottom:30px;">
+            <img src="https://staging.oohapp.io/assets/images/logo/logo_image.jpeg" 
+                alt="OOHAPP Logo"
+                width="180"
+                style="display:block; margin:0 auto;">
+        </div>   
         <h2 style="color: #1e293b; margin-bottom: 20px;">Email Verification Required</h2>
         
         <p>Hello,</p>
@@ -92,12 +94,10 @@
         </div>
         
         <p class="validity">⏰ This code is valid for 5 minutes only</p>
-        
         <div class="warning">
             <strong>⚠️ Security Notice:</strong><br>
             Never share this OTP with anyone. OOHAPP staff will never ask for your OTP.
         </div>
-        
         <p>If you did not request this verification, please ignore this email or contact our support team immediately.</p>
         
         <div class="footer">
