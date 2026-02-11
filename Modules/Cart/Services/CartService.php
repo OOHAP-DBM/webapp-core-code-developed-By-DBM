@@ -152,7 +152,7 @@ class CartService
 
         return $this->priceResponse(
             'slot',
-            $screen->display_price_per_30s ?: $screen->price_per_slot
+             $screen->price_per_slot
         );
     }
 
@@ -409,10 +409,9 @@ class CartService
 
             $slotPrice = round(
                 (float) (
-                    $screen
-                        ? ($screen->display_price_per_30s ?: $screen->price_per_slot)
-                        : 0
+                    $screen->price_per_slot ?? 0
                 ),
+                
                 2
             );
 

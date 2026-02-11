@@ -27,7 +27,14 @@
                 @endphp
             <div class="bg-[#f0f0f0] rounded-xl p-5 mb-5 flex flex-col cursor-pointer"
                 onclick="if(event.target.closest('button, a') === null)
-                        window.location.href='{{ route('hoardings.show', $item->id) }}';">
+                        @php
+                            $hoardingParam = $item->slug ?? $item->title;
+                        @endphp
+                        @if(!empty($hoardingParam))
+                            window.location.href='{{ route('hoardings.show', $hoardingParam) }}';
+                        @else
+                            // No valid slug or title, do nothing
+                        @endif">
                     <div class="flex gap-6 items-stretch flex-1">
 
                         {{-- IMAGE --}}

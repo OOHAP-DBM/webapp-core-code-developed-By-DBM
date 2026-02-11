@@ -47,8 +47,7 @@ class HoardingListRepository
             'height' => $height,
             'measurement_unit' => $measurement_unit,
         ]);
-        $hoarding->title = $hoarding->generateSeoTitle();
-        $hoarding->save();
+    
 
         return $hoarding;
     }

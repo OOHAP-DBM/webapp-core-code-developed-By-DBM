@@ -14,7 +14,7 @@ class EnquiryResource extends JsonResource
         : ($this->items_count ?? 0); 
         return [
             'id'              => $this->id,
-            'enquiry_no'      => $this->enquiry_no, // 👈 from model accessor
+            'enquiry_no'      => $this->formatted_id, // 👈 from model accessor
             'requirement'     => $this->customer_note,
             'status'          => $this->status,
             'status_label'    => $this->statusLabel(),

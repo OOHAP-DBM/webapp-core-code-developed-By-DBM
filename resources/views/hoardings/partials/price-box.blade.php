@@ -129,7 +129,7 @@
             class="cart-btn cart-btn--white flex-1 py-2 px-3 text-sm font-semibold rounded w-full
                 {{ $isInCart ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
             
-            {{ $isInCart ? 'Remove from Cart' : 'Add to Cart' }}
+            {{ $isInCart ? 'Remove from Sortlist' : 'Add to Sortlist' }}
         </button>
     @endif
 @endauth

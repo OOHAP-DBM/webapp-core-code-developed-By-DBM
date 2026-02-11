@@ -247,9 +247,7 @@ class HoardingListService
            
             if ($parent && $parent->status !== \App\Models\Hoarding::STATUS_PENDING_APPROVAL) {
                 $parent->status = \App\Models\Hoarding::STATUS_PENDING_APPROVAL;
-                if (empty($parent->title)) {
-                    $parent->title = $parent->generateSeoTitle();
-                }
+                
                 $parent->save();
                 // Notify all admins
                 $admins = \App\Models\User::role(['admin'])->get();
@@ -266,11 +264,12 @@ class HoardingListService
 
     public function updateStep1($hoarding, $oohHoarding, $data, $mediaFiles)
     {
+        // dd($data);
         // Backend safety check for offer price
         $errors = [];
-        if (isset($data['monthly_offer_price']) && isset($data['base_monthly_price'])) {
-            if ($data['monthly_offer_price'] >= $data['base_monthly_price']) {
-                $errors['monthly_offer_price'][] = 'Offer price must be less than base price.';
+        if (isset($data['monthly_price']) && isset($data['base_monthly_price'])) {
+            if ($data['monthly_price'] >= $data['base_monthly_price']) {
+                $errors['monthly_price'][] = 'Offer price must be less than base price.';
             }
         }
 
@@ -306,8 +305,7 @@ class HoardingListService
                 'lng' => $data['lng'] ?? $hoarding->lng,
                 'landmark' => $data['landmark'] ?? $hoarding->landmark,
                 'monthly_price' => $data['monthly_price'] ?? $hoarding->monthly_price,
-                'title' => $hoarding->generateSeoTitle(),
-
+                'base_monthly_price' => $data['base_monthly_price'] ?? $hoarding->base_monthly_price,
             ]);
 
             // Update OOH-specific fields

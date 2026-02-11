@@ -32,6 +32,7 @@ class SearchController extends Controller
             ->where('hoardings.status', 'active')
             ->whereNull('hoardings.deleted_at')
             ->select([
+                'hoardings.slug',
                 'hoardings.id',
                 'hoardings.vendor_id',
                 'hoardings.title',
@@ -257,5 +258,20 @@ class SearchController extends Controller
             'results' => $results,
             'cartHoardingIds' => $cartHoardingIds,
         ]);
+    }
+
+        /**
+     * SEO-friendly search handler. Accepts city and area as route parameters.
+     * Allows SEO developer to change URL structure via config.
+     */
+    public function seoSearch(Request $request, CartService $cartService, $city = null, $area = null)
+    {
+        // Merge city/area into request for filtering
+        $request->merge([
+            'location' => $city,
+            'area' => $area,
+        ]);
+        // You can add more logic here to map SEO-friendly slugs to types/categories if needed
+        return $this->index($request, $cartService);
     }
 }

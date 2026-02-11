@@ -25,7 +25,7 @@ class Enquiry extends Model
         'customer_note',
         'contact_number',
     ];
-    protected $appends = ['enquiry_no'];
+    protected $appends = ['formatted_id'];
 
 
     /* ===================== CASTS ===================== */
@@ -154,7 +154,18 @@ class Enquiry extends Model
             }
         ]);
     }
-
+    public function getFormattedIdAttribute(): string
+    {
+        $vendorIds = $this->items()
+            ->with('hoarding:id,vendor_id')
+            ->get()
+            ->pluck('hoarding.vendor_id')
+            ->filter()        
+            ->unique();    
+        $vendorCount = $vendorIds->count();
+        $prefix = $vendorCount <= 1 ? 'SV' : 'MV';
+        return $prefix . str_pad($this->id, 6, '0', STR_PAD_LEFT);
+    }
 
 
 }
