@@ -6,10 +6,8 @@
 <div 
     class="max-w-full mx-auto px-2 py-8 space-y-6"
     x-data="{
-        showModal: {{ $errors->has('current_password') ? 'true' : 'false' }},
-        modalType: {{ $errors->has('current_password') ? "'change-password'" : 'null' }}
-    }"
->
+    showModal: {{ session('reopen_personal_modal') ? 'true' : ($errors->has('current_password') ? 'true' : 'false') }},
+    modalType: {{ session('reopen_personal_modal') ? "'personal'" : ($errors->has('current_password') ? "'change-password'" : 'null') }}}">
     {{-- COMMISSION INFO --}}
     <div class="bg-[#e8fff2] rounded-xl shadow p-6">
         <h2 class="text-black text-lg font-semibold">Commission Offered</h2>
@@ -294,10 +292,205 @@
     </div>
 
 </div>
+<div id="otpModal" class="fixed inset-0 z-[999] hidden items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-sm p-6 relative">
 
+        <button onclick="closeOtpModal()" class="absolute right-3 top-3 text-gray-600">✕</button>
+
+        <h2 class="text-lg font-semibold text-center mb-1">Verify OTP</h2>
+        <p id="otpTargetText" class="text-sm text-gray-500 text-center mb-4"></p>
+
+        <input
+            id="otpInput"
+            type="text"
+            maxlength="4"
+            class="w-full border rounded-lg px-4 py-3 text-center text-xl tracking-[6px] outline-none focus:border-blue-500"
+            placeholder="----"
+        >
+
+        <p id="otpTimer" class="text-xs text-gray-500 text-center mt-3"></p>
+
+        <button
+            onclick="verifyOtp()"
+            type="button"
+            class="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+        >
+            Verify OTP
+        </button>
+
+        <button
+            onclick="resendOtp()"
+            id="resendBtn"
+            class="w-full mt-2 text-sm text-blue-600 hidden"
+            type="button"
+        >
+            Resend OTP
+        </button>
+
+    </div>
+</div>
 <style>
 button {
     cursor: pointer;
 }
 </style>
 @endsection
+<script>
+    let otpType   = null;
+    let otpValue  = null;
+    let sending   = false;
+    let timerInterval = null;
+    let seconds = 60;
+    function toast(type, message){
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: type,
+            title: message,
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true
+        });
+    }
+    function openOtpModal(){
+        document.getElementById('otpModal').classList.remove('hidden');
+        document.getElementById('otpModal').classList.add('flex');
+
+        document.getElementById('otpInput').value = '';
+        document.getElementById('otpInput').focus();
+
+        document.getElementById('otpTargetText').innerText =
+            otpType === 'email'
+            ? "OTP sent to: " + otpValue
+            : "OTP sent to: +91 " + otpValue;
+    }
+    function closeOtpModal(){
+        document.getElementById('otpModal').classList.add('hidden');
+        document.getElementById('otpModal').classList.remove('flex');
+        clearInterval(timerInterval);
+    }
+    function startTimer(){
+        seconds = 60;
+        const timerEl = document.getElementById('otpTimer');
+        const resendBtn = document.getElementById('resendBtn');
+        resendBtn.classList.add('hidden');
+
+        timerInterval = setInterval(() => {
+            seconds--;
+            timerEl.innerText = "Resend OTP in " + seconds + " sec";
+
+            if(seconds <= 0){
+                clearInterval(timerInterval);
+                timerEl.innerText = "";
+                resendBtn.classList.remove('hidden');
+            }
+        }, 1000);
+    }
+    async function autoSendOtp(type){
+        if(sending) return;
+        otpType = type;
+        otpValue = (type === 'email')
+            ? document.getElementById('emailField').value.trim()
+            : document.getElementById('phoneField').value.trim();
+
+        if(!otpValue){
+            toast('error','Enter value first');
+            return;
+        }
+        sending = true;
+        try{
+            const res = await fetch("{{ route('vendor.profile.send-otp') }}",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Accept":"application/json",
+                    "X-CSRF-TOKEN":"{{ csrf_token() }}"
+                },
+                body:JSON.stringify({ type:otpType, value:otpValue })
+            });
+
+            const data = await res.json();
+            sending = false;
+
+            if(data.success){
+                toast('success',data.message);
+                openOtpModal();
+                startTimer();
+            }else{
+                toast('error',data.message || 'OTP failed');
+            }
+
+        }catch(e){
+            sending=false;
+            toast('error','Connection error');
+        }
+    }
+    function resendOtp(){
+        autoSendOtp(otpType);
+    }
+    async function verifyOtp(){
+
+        const otp = document.getElementById('otpInput').value.trim();
+
+        if(otp.length !== 4){
+            toast('error','Enter 4 digit OTP');
+            return;
+        }
+
+        let data = null;
+
+        try{
+
+            const res = await fetch("{{ route('vendor.profile.verify-otp') }}",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Accept":"application/json",
+                    "X-CSRF-TOKEN":"{{ csrf_token() }}"
+                },
+                body:JSON.stringify({
+                    type: otpType,
+                    value: otpValue,
+                    otp: otp
+                })
+            });
+
+            // IMPORTANT: read response BEFORE any DOM change
+            const text = await res.text();
+            data = JSON.parse(text);
+
+        }catch(e){
+            console.error(e);
+            toast('error','Server response error');
+            return;
+        }
+
+        // ⚠️ NOW handle UI AFTER response parsed
+        setTimeout(() => {
+
+            if(data && data.success){
+
+                toast('success',data.message);
+
+                closeOtpModal();
+
+                if(otpType === 'email'){
+                    const tick = document.getElementById('emailVerifiedTick');
+                    if(tick) tick.classList.remove('hidden');
+                }
+
+                if(otpType === 'phone'){
+                    const tick = document.getElementById('phoneVerifiedTick');
+                    if(tick) tick.classList.remove('hidden');
+                }
+                setTimeout(() => {
+            window.location.reload();
+        }, 800);
+
+            }else{
+                toast('error', data?.message || 'Verification failed');
+            }
+
+        }, 120);
+    }
+</script>

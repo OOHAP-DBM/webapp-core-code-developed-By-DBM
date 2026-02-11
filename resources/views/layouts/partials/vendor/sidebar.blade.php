@@ -118,70 +118,6 @@
                 </svg>
                 Dashboard
             </a>
-            {{-- My Orders Dropdown --}}
-            <!-- <div x-data="{ open: false }" class="space-y-1">
-
-                {{-- Parent --}}
-                <button
-                    type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
-                        text-gray-700 hover:bg-gray-50"
-                 >
-                    <div class="flex items-center gap-3">
-                        {{-- SVG Icon --}}
-                        <svg width="21" height="24" viewBox="0 0 21 24" fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path d="M2.33333 24H18.6667C19.9535 24 21 22.9236 21 21.6V4.8C21 3.4764 19.9535 2.4 18.6667 2.4H16.3333V0H14V2.4H7V0H4.66667V2.4H2.33333C1.0465 2.4 0 3.4764 0 4.8V21.6C0 22.9236 1.0465 24 2.33333 24ZM18.6667 7.2L18.6678 21.6H2.33333V7.2H18.6667Z"
-                                fill="#949291"/>
-                        </svg>
-
-                        <span>My Orders</span>
-                    </div>
-
-                    {{-- Arrow --}}
-                    <svg
-                        class="w-4 h-4 transition-transform duration-200"
-                        :class="{ 'rotate-180': open }"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-
-                {{-- Children --}}
-                <div
-                    x-show="open"
-                    x-collapse
-                    x-cloak
-                    class="space-y-1"
-                >
-                    <a href=""
-                    class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50">
-                        - All Orders
-                    </a>
-
-                    <a href=""
-                    class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50">
-                        - New Orders
-                    </a>
-
-                    <a href=""
-                    class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50">
-                        - Completed Orders
-                    </a>
-
-                    <a href=""
-                    class="block px-6 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50">
-                        - Cancelled Orders
-                    </a>
-                </div>
-            </div> -->
-
-
             {{-- Display Enquiries Dropdown --}}
             <div
                 x-data="{ open: @if(request()->routeIs('vendor.enquiries.*')) true @else false @endif }"
@@ -241,7 +177,7 @@
              <div
                 x-data="{ open: @if(request()->routeIs('vendor.hoardings.*')) true @else false @endif }"
                 class="space-y-1"
-            >
+                  >
                 {{-- Parent --}}
                 <button
                     type="button"

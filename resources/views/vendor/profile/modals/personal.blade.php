@@ -105,23 +105,15 @@
                     id="emailField"
                     value="{{ old('email', auth()->user()->email) }}"
                     {{ $emailLocked ? 'readonly' : '' }}
+                    @unless($emailLocked)
+                        onblur="autoSendOtp('email')"
+                    @endunless
                     class="w-full px-3 py-2 pr-28 border rounded-md
                     {{ $emailLocked
                         ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed'
                         : 'border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500'
                     }}"
-                    placeholder="{{ $emailLocked ? '' : 'Enter your email address' }}"
                 >
-
-                @unless($emailLocked)
-                <button
-                    type="button"
-                    onclick="openOtpModal('email')"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded-md hover:bg-blue-700"
-                >
-                    Send OTP
-                </button>
-                @endunless
             </div>
 
 
@@ -153,23 +145,15 @@
                     id="phoneField"
                     value="{{ old('phone', auth()->user()->phone) }}"
                     {{ $phoneLocked ? 'readonly' : '' }}
+                    @unless($phoneLocked)
+                        onblur="autoSendOtp('phone')"
+                    @endunless
                     class="w-full px-3 py-2 pr-28 border rounded-md
                     {{ $phoneLocked
                         ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed'
                         : 'border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500'
                     }}"
-                    placeholder="{{ $phoneLocked ? '' : 'Enter your mobile number' }}"
                 >
-
-                @unless($phoneLocked)
-                <button
-                    type="button"
-                    onclick="openOtpModal('phone')"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded-md hover:bg-blue-700"
-                >
-                    Send OTP
-                </button>
-                @endunless
             </div>
 
 
