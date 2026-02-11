@@ -28,7 +28,7 @@
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
                         <input type="number" name="weekly_price_{{$week}}" 
-                            class="w-full rounded-xl border border-gray-200 pl-8 py-3.5 text-sm focus:border-[#009A5C] outline-none" 
+                            class="w-full rounded-xl border border-gray-200 pl-8 py-2.5.5 text-sm focus:border-[#009A5C] outline-none" 
                             value="{{ old('weekly_price_'.$week, $parentHoading->{"weekly_price_$week"} ?? $parentHoarding->{"weekly_price_$week"} ?? '') }}">
                     </div>
                 </div>
@@ -110,7 +110,7 @@
         <div class="space-y-6">
             <div id="offers-container" class="space-y-4"></div>
             <input type="hidden" name="offers_json" id="offers_json" value="{{ json_encode(old('offers_json', $draft->packages ?? $draft->packages ?? [])) }}">
-            <button type="button" id="add-offer-btn" class="bg-[#1A1A1A] text-white px-8 py-3 rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-95 transition-transform flex items-center gap-2 w-fit">
+            <button type="button" id="add-offer-btn" class="bg-[#1A1A1A] text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-95 transition-transform flex items-center gap-2 w-fit">
                 <span>+</span> Add Campaign Package
             </button>
         </div>
@@ -130,7 +130,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
             <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
                 <div class="flex items-center justify-between">
-                    <label class="text-sm font-bold text-gray-700">Graphics Included (Free)?</label>
+                    <label class="text-sm font-bold text-gray-700">Graphics Included ?</label>
                     <div class="flex items-center gap-2">
                         <label class="cursor-pointer">
                             <input type="radio" name="graphics_included" value="1" class="hidden peer toggle-service" {{ $isGraphicsFree ? 'checked' : '' }}>
@@ -146,7 +146,7 @@
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Graphics Charge</label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                        <input type="number" name="graphics_charge" value="{{ $graphicsCharge }}" class="w-full border border-gray-200 rounded-xl pl-8 py-3 text-sm outline-none" {{ $isGraphicsFree ? 'disabled' : '' }}>
+                        <input type="number" name="graphics_charge" value="{{ $graphicsCharge }}" class="w-full border border-gray-200 rounded-xl pl-8 py-2.5 text-sm outline-none" {{ $isGraphicsFree ? 'disabled' : '' }}>
                     </div>
                 </div>
             </div>
@@ -204,13 +204,13 @@ document.addEventListener('DOMContentLoaded', function() {
     //             <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
     //                 <div class="md:col-span-4 space-y-2">
     //                     <label class="text-[10px] font-bold text-gray-400 uppercase">Offer Label</label>
-    //                     <input type="text" class="offer_name w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none" value="${data.name || ''}" placeholder="e.g. Festival">
+    //                     <input type="text" class="offer_name w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" value="${data.name || ''}" placeholder="e.g. Festival">
     //                 </div>
     //                 <div class="md:col-span-3 space-y-2">
     //                     <label class="text-[10px] font-bold text-gray-400 uppercase">Min. Booking</label>
     //                     <div class="flex">
-    //                         <input type="number" class="offer_duration w-20 border border-gray-200 rounded-l-xl px-4 py-3 text-sm" value="${data.duration || ''}" placeholder="Qty">
-    //                         <select class="offer_unit flex-1 border border-l-0 border-gray-200 rounded-r-xl px-3 py-3 text-sm bg-white">
+    //                         <input type="number" class="offer_duration w-20 border border-gray-200 rounded-l-xl px-4 py-2.5 text-sm" value="${data.duration || ''}" placeholder="Qty">
+    //                         <select class="offer_unit flex-1 border border-l-0 border-gray-200 rounded-r-xl px-3 py-2.5 text-sm bg-white">
     //                             <option value="weeks" ${data.unit === 'weeks' ? 'selected' : ''}>Weeks</option>
     //                             <option value="months" ${data.unit === 'months' ? 'selected' : ''}>Months</option>
     //                         </select>
@@ -219,13 +219,13 @@ document.addEventListener('DOMContentLoaded', function() {
     //                 <div class="md:col-span-2 space-y-2">
     //                     <label class="text-[10px] font-bold text-gray-400 uppercase">Discount (%)</label>
     //                     <div class="relative">
-    //                         <input type="number" class="offer_discount w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value="${data.discount || ''}" placeholder="0">
+    //                         <input type="number" class="offer_discount w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm" value="${data.discount || ''}" placeholder="0">
     //                         <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">%</span>
     //                     </div>
     //                 </div>
     //                 <div class="md:col-span-2 space-y-2">
     //                     <label class="text-[10px] font-bold text-gray-400 uppercase">Offer End Date</label>
-    //                     <input type="date" class="offer_end_date w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none" value="${data.end_date || ''}">
+    //                     <input type="date" class="offer_end_date w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" value="${data.end_date || ''}">
     //                 </div>
     //                 <div class="md:col-span-1 flex justify-center pb-2">
     //                     <button type="button" class="remove-offer text-gray-300 hover:text-red-500">

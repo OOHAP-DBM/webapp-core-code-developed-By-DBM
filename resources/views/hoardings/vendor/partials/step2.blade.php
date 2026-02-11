@@ -46,11 +46,11 @@
                 <h2 class="text-lg font-bold mb-4 text-gray-800">Enter Permit Details</h2>
                 <input type="text" id="permitNumberInput" 
                        value="{{ $permitNumber }}"
-                       class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" 
+                       class="w-full border border-gray-200 rounded-xl px-4 py-2.5 mb-4 outline-none focus:border-[#009A5C]" 
                        placeholder="Permit Number">
                 <input type="date" id="permitValidTillInput" 
                        value="{{ $permitValidTill }}"
-                       class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" 
+                       class="w-full border border-gray-200 rounded-xl px-4 py-2.5 mb-4 outline-none focus:border-[#009A5C]" 
                        placeholder="Permit Valid Till">
                 <div class="flex justify-end gap-2">
                   <button type="button" id="nagarCancelBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold">Cancel</button>
@@ -92,7 +92,7 @@
             <div id="blockDatesModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/20 hidden">
               <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-xs">
                 <h2 class="text-lg font-bold mb-4 text-gray-800">Select Blocked Dates</h2>
-                <input type="text" id="blockDatesCalendar" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" placeholder="Pick dates to block...">
+                <input type="text" id="blockDatesCalendar" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 mb-4 outline-none focus:border-[#009A5C]" placeholder="Pick dates to block...">
                 <div class="flex justify-end gap-2">
                   <button type="button" id="blockDatesCancelBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold">Cancel</button>
                   <button type="button" id="blockDatesSaveBtn" class="px-4 py-2 rounded-lg bg-[#009A5C] text-white font-semibold">Save</button>
@@ -134,7 +134,7 @@
                   <h2 class="text-lg font-bold mb-4 text-gray-800">Set Grace Period (in days)</h2>
                   <input type="number"  max="30" id="gracePeriodInput" 
                          value="{{ $gracePeriodValue }}"
-                         class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 outline-none focus:border-[#009A5C]" 
+                         class="w-full border border-gray-200 rounded-xl px-4 py-2.5 mb-4 outline-none focus:border-[#009A5C]" 
                          placeholder="Enter number of days">
                   <div class="flex justify-end gap-2">
                     <button type="button" id="graceCancelBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold">Cancel</button>
@@ -161,7 +161,7 @@
                         name="expected_footfall" 
                         value="{{ old('expected_footfall', $parentHoarding->expected_footfall ?? '') }}"
                         placeholder="1000" 
-                        class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none transition-all bg-white shadow-inner">
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none transition-all bg-white shadow-inner">
                 </div>
 
                 <div class="space-y-2">
@@ -170,7 +170,7 @@
                         name="expected_eyeball" 
                         value="{{ old('expected_eyeball', $parentHoarding->expected_eyeball ?? '') }}"
                         placeholder="5000" 
-                        class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none transition-all bg-white shadow-inner">
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none transition-all bg-white shadow-inner">
                 </div>
             </div>
             <p class="text-[11px] text-gray-400 mt-4 flex items-center italic">
@@ -359,7 +359,7 @@
                 name="visibility_start[]"
                 value="{{ old('visibility_start.0', $oneWayStart) }}"
                 placeholder="Eg. Santacruz"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-[#009A5C] outline-none"
               >
             </div>
             <div>
@@ -369,7 +369,7 @@
                 name="visibility_end[]"
                 value="{{ old('visibility_end.0', $oneWayEnd) }}"
                 placeholder="Eg. Fun Mall"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-[#009A5C] outline-none"
               >
             </div>
           </div>
@@ -408,7 +408,7 @@
                 name="visibility_start[]"
                 value="{{ old('visibility_start.0', $bothSideStart) }}"
                 placeholder="Eg. Santacruz"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-[#009A5C] outline-none"
               >
             </div>
 
@@ -419,7 +419,7 @@
                 name="visibility_end[]"
                 value="{{ old('visibility_end.0', $bothSideEnd) }}"
                 placeholder="Eg. Fun Mall"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#009A5C] outline-none"
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-[#009A5C] outline-none"
               >
             </div>
           </div>

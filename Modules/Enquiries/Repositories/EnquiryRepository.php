@@ -45,10 +45,13 @@ class EnquiryRepository implements EnquiryRepositoryInterface
      */
     public function getByCustomer(int $customerId): Collection
     {
-        return Enquiry::with(['hoarding.vendor'])
-            ->where('customer_id', $customerId)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        return Enquiry::query()
+        ->where('customer_id', auth()->id())
+        ->withVendorCount()
+        ->withCount('items')
+        ->with('items.hoarding.vendor')
+        ->latest()
+        ->get();
     }
 
     /**
@@ -65,14 +68,37 @@ class EnquiryRepository implements EnquiryRepositoryInterface
     /**
      * Get enquiries for a vendor
      */
+    //  public function getByVendor(int $vendorId): Collection
+    // {
+    //     return Enquiry::with([
+    //             'customer',
+    //             'items' => function ($q) use ($vendorId) {
+    //                 $q->whereHas('hoarding', function ($h) use ($vendorId) {
+    //                     $h->where('vendor_id', $vendorId);
+    //                 })->with('hoarding');
+    //             }
+    //         ])
+    //         ->whereHas('items.hoarding', function ($q) use ($vendorId) {
+    //             $q->where('vendor_id', $vendorId);
+    //         })
+    //         ->latest()
+    //         ->get();
+    // }
     public function getByVendor(int $vendorId): Collection
     {
-        return Enquiry::with(['customer', 'hoarding'])
-            ->whereHas('hoarding', function ($query) use ($vendorId) {
-                $query->where('vendor_id', $vendorId);
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
+    return Enquiry::with([
+            'customer',
+            'items' => function ($q) use ($vendorId) {
+                $q->whereHas('hoarding', function ($h) use ($vendorId) {
+                    $h->where('vendor_id', $vendorId);
+                })->with('hoarding', 'package');
+            }
+        ])
+        ->whereHas('items.hoarding', function ($q) use ($vendorId) {
+            $q->where('vendor_id', $vendorId);
+        })
+        ->latest()
+        ->get();
     }
 
     /**

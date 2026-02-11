@@ -32,25 +32,28 @@ class DOOHController extends Controller
         $step = (int) $request->query('step', 1);
         $step = max(1, min(3, $step));
 
-        // Find or create draft for this vendor
-        // $draft = DOOHScreen::where('vendor_id', $vendor->id)
-        //     ->where('status', DOOHScreen::STATUS_DRAFT)
-        //     ->orderByDesc('updated_at')
-        //     ->first();
-        $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
-            $q->where('vendor_id', $vendor->id)
-                ->where('status', 'draft'); // ✅ STATUS BELONGS HERE
-        })
-            ->orderByDesc('updated_at')
-            ->first();
-
-
-
-        // If draft exists and current_step is set, resume from there
-        if ($draft && $draft->current_step && $step < $draft->current_step) {
-            // Always resume from last incomplete step
-            $step = $draft->current_step;
+        $screenId = $request->query('screen_id');
+        if ($step === 1) {
+            $draft = null;
+        } else {
+            $draft = null;
+            if ($screenId) {
+                $draft = DOOHScreen::where('id', $screenId)
+                    ->whereHas('hoarding', function ($q) use ($vendor) {
+                        $q->where('vendor_id', $vendor->id)
+                            ->where('status', 'draft');
+                    })
+                    ->first();
+            }else {
+                $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+                    $q->where('vendor_id', $vendor->id)
+                        ->where('status', 'draft');
+                })
+                    ->orderByDesc('updated_at')
+                    ->first();
+            }
         }
+
 
         // If no draft, create a new one on step 1
         // if (!$draft && $step === 1) {
@@ -79,7 +82,7 @@ class DOOHController extends Controller
 
 
         // Fetch attributes for form dropdowns (categories, etc.)
-        $attributes = \App\Models\HoardingAttribute::groupedByType();
+        $attributes = \Modules\Hoardings\Models\HoardingAttribute::groupedByType();
 
         return view('dooh.vendor.create', [
             'step' => $step,
@@ -93,6 +96,7 @@ class DOOHController extends Controller
      */
     public function store(Request $request, \Modules\DOOH\Services\DOOHScreenService $service)
     {
+        // dd($request->all());
         $vendor = Auth::user();
         $step = (int) $request->input('step', 1);
         $step = max(1, min(3, $step));
@@ -100,7 +104,9 @@ class DOOHController extends Controller
         if ($step === 1) {
             $result = $service->storeStep1($vendor, $request->all(), $request->file('media', []));
             if ($result['success']) {
-                return redirect()->route('vendor.dooh.create', ['step' => 2])
+                $screen = $result['screen'] ?? null;
+                $screenId = $screen ? $screen->id : null;
+                return redirect()->route('vendor.dooh.create', ['step' => 2, 'screen_id' => $screenId])
                     ->with('success', 'Step 1 completed. Proceed to next step.');
             }
             return back()->withErrors($result['errors'])->withInput();
@@ -151,7 +157,7 @@ class DOOHController extends Controller
                     $q->where('vendor_id', $vendor->id);
                 })->firstOrFail();
             $result = $service->storeStep2($screen, $request->all(), $request->file('brand_logos', []));
-            return redirect()->route('vendor.dooh.create', ['step' => 3])
+            return redirect()->route('vendor.dooh.create', ['step' => 3, 'screen_id' => $screenId])
                 ->with('success', 'Step 2 completed. Proceed to next step.');
         }
 
@@ -181,11 +187,6 @@ class DOOHController extends Controller
 
             $result = $service->storeStep3($draft, $request->all());
             if ($result['success']) {
-                // Auto-generate SEO title if empty
-                if (empty($draft->hoarding->title)) {
-                    $draft->hoarding->title = $draft->hoarding->generateSeoTitle();
-                    $draft->hoarding->save();
-                }
                 $draft->hoarding->status = Hoarding::STATUS_PENDING_APPROVAL;
                 $draft->hoarding->current_step = 3; // Mark as finished
                 $draft->save();
@@ -288,7 +289,7 @@ class DOOHController extends Controller
         }
 
         // Fetch attributes for form dropdowns
-        $attributes = \App\Models\HoardingAttribute::groupedByType();
+        $attributes = \Modules\Hoardings\Models\HoardingAttribute::groupedByType();
 
         return view('dooh.vendor.edit', [
             'step' => $step,
@@ -319,7 +320,6 @@ class DOOHController extends Controller
             return redirect()->route('vendor.hoardings.edit', $hoarding->ooh->id)
                 ->with('error', 'This is an OOH hoarding. Please use OOH edit.');
         }
-
         try {
             switch ($step) {
                 case 1:
@@ -354,15 +354,16 @@ class DOOHController extends Controller
             }
 
             // Mark as completed on step 3
-            if ($step === 3) {
-                if ($hoarding->status === 'draft' || $hoarding->approval_status === 'pending') {
-                    $hoarding->update([
-                        'status' => 'pending_approval',
-                        'approval_status' => 'pending',
-                        'current_step' => null,
-                    ]);
-                }
-            }
+            // if ($step === 3) {
+            //     dd($data = $request->all());
+            //     if ($hoarding->status === 'draft' || $hoarding->approval_status === 'pending') {
+            //         $hoarding->update([
+            //             'status' => 'pending_approval',
+            //             'approval_status' => 'pending',
+            //             // 'current_step' => null,
+            //         ]);
+            //     }
+            // }
 
             return redirect()->route('vendor.hoardings.myHoardings')
                 ->with('success', 'DOOH Screen updated successfully!, Once approved by our team, it will be live on the platform.');
