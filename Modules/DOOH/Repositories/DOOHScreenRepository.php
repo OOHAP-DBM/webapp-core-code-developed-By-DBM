@@ -71,13 +71,13 @@ class DOOHScreenRepository
                 'weekly_price_3' => $data['weekly_price_3']?? null,
                 'base_monthly_price' => $data['base_monthly_price']?? 0,
                 'monthly_price' => $data['monthly_price']?? 0,
+                'discount_type' => $data['discount_type'] ?? null,
+                'discount_value' => $data['discount_value'] ?? null,
                 'status' => 'draft',
                 'approval_status' => 'pending',
                 'current_step'   => 1,
             ]);
-            // Always generate or update the title in Step 1
-            $hoarding->title = $hoarding->generateSeoTitle();
-            $hoarding->save();
+            
 
             /** -------------------------------
              * 2. Create DOOH Screen

@@ -59,6 +59,7 @@
         @csrf
         @method('PUT')
         <input type="hidden" name="step" value="{{ $step }}">
+        <input type="hidden" name="id" value="{{ $listing->id }}">
 
         @if($step == 1)
             @include('hoardings.vendor.partials.step1', ['draft' => $listing,'media' => $hoarding->oohMedia])

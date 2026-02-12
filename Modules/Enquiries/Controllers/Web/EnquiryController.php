@@ -26,7 +26,7 @@ class EnquiryController extends Controller
      */
     public function __construct()
     {
-        $this->middleware(['auth', 'role:customer'])->except(['store']);
+        $this->middleware(['auth'])->except(['store']);
     }
 
     public function index(Request $request)

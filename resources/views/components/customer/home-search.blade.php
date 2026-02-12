@@ -1,5 +1,5 @@
 <div class="hidden md:flex items-center flex-1 max-w-3xl mx-4 bg-[#f0f0f0] rounded-md">
-                <form action="{{ route('search') }}" method="GET" class="flex items-center w-full bg-[#f0f0f0] rounded-md border border-white overflow-hidden">
+                <form action="{{ route('search.seo', ['city' => request('location', 'india'), 'area' => request('area')]) }}" method="GET" class="flex items-center w-full bg-[#f0f0f0] rounded-md border border-white overflow-hidden">
                     <!-- Location Search Input -->
                     <div class="flex items-center flex-1 px-4 py-2.5 cursor-pointer">
                         <svg class="w-4 h-4 text-gray-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

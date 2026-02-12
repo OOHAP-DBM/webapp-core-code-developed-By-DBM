@@ -323,8 +323,6 @@ class DOOHScreenService
 
             // ---- Hoarding fields ----
             $parentHoarding = $screen->hoarding;
-            $parentHoarding->base_monthly_price = $data['base_monthly_price'] ?? 0;
-            $parentHoarding->monthly_price = $data['monthly_offered_price'] ?? 0;
             // $parentHoarding->enable_weekly_booking = isset($data['enable_weekly_booking']) ? 1 : 0;
             // $parentHoarding->weekly_price_1 = $data['weekly_price_1'] ?? null;
             // $parentHoarding->weekly_price_2 = $data['weekly_price_2'] ?? null;
@@ -558,13 +556,17 @@ class DOOHScreenService
                 'pincode' => $data['pincode'] ?? $hoarding->pincode,
                 'lat' => $data['lat'] ?? $hoarding->lat,
                 'lng' => $data['lng'] ?? $hoarding->lng,
-                'enable_weekly_booking' => isset($data['enable_weekly_booking']) ? $data['enable_weekly_booking'] : 0,
-                'weekly_price_1' => $data['weekly_price_1']?? null,
-                'weekly_price_2' => $data['weekly_price_2']?? null,
-                'weekly_price_3' => $data['weekly_price_3']?? null,
+                // 'enable_weekly_booking' => isset($data['enable_weekly_booking']) ? $data['enable_weekly_booking'] : 0,
+                // 'weekly_price_1' => $data['weekly_price_1']?? null,
+                // 'weekly_price_2' => $data['weekly_price_2']?? null,
+                // 'weekly_price_3' => $data['weekly_price_3']?? null,
+                'monthly_price' => $data['monthly_price'] ?? $hoarding->monthly_price,
+                 'base_monthly_price' => $data['base_monthly_price'] ?? $hoarding->base_monthly_price,
+               'discount_type' => $data['discount_type'] ?? null,
+                'discount_value' => $data['discount_value'] ?? null,
+
             ]);
       
-            $hoarding->title = $hoarding->generateSeoTitle();
             
             // Normalize resolution
             // $normalized = $this->normalizeResolution($data);
@@ -578,6 +580,9 @@ class DOOHScreenService
                 // 'resolution_width' => $normalized['resolution_width'],
                 // 'resolution_height' => $normalized['resolution_height'],
                 'price_per_slot' => $data['price_per_slot'] ?? $screen->price_per_slot,
+                'slot_duration_seconds' => $data['spot_duration'] ?? $hoarding->spot_duration,
+                 'total_slots_per_day' => $data['spots_per_day'] ?? $hoarding->spots_per_day,
+                 'screen_run_time' => $data['daily_runtime'] ?? $hoarding->daily_runtime,
              
             ]);
 

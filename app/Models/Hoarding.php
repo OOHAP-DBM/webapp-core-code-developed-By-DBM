@@ -19,6 +19,8 @@ use Modules\Hoardings\Models\HoardingMedia;
 use Modules\Hoardings\Models\HoardingBrandLogo;
 use Modules\Enquiries\Models\Enquiry;
 use Modules\Hoardings\Models\HoardingAttribute;
+use Illuminate\Support\Str;
+
 
 class Hoarding extends Model implements HasMedia
 
@@ -127,6 +129,9 @@ class Hoarding extends Model implements HasMedia
         'view_count',
         'bookings_count',
         'last_booked_at',
+        'discount_type',
+        'discount_value',
+        'slot_duration_seconds'
     ];
 
     /* ===================== CASTS ===================== */
@@ -569,7 +574,7 @@ class Hoarding extends Model implements HasMedia
      *
      * @return string
      */
-    public function generateSeoTitle(): string
+    public function generateTitle(): string
     {
         // Determine type and child
         $type = $this->hoarding_type ?? ($this->ooh ? 'ooh' : ($this->doohScreen ? 'dooh' : ''));
@@ -597,8 +602,8 @@ class Hoarding extends Model implements HasMedia
         // Size
         $size = '';
         if ($child && !empty($child->width) && !empty($child->height)) {
-            $unit = $child->unit ?? 'ft';
-            $size = $child->width . 'x' . $child->height . ' ' . $unit;
+            $unit = $child->measurement_unit ?? 'ft';
+            $size = $child->width . ' x ' . $child->height . ' ' . $unit;
         }
 
         // Features
@@ -638,6 +643,67 @@ class Hoarding extends Model implements HasMedia
 
         return $title;
     }
+
+
+   protected static function boot()
+{
+    parent::boot();
+
+    // On creation
+    static::created(function ($hoarding) {
+        $hoarding->loadMissing(['oohHoarding', 'doohScreen']); // load size data
+
+        $hoarding->updateQuietly([
+            'slug'  => $hoarding->generateSlugWithId(),
+            'title' => $hoarding->generateTitle(),
+        ]);
+    });
+
+    // On update
+    static::updating(function ($hoarding) {
+        $hoarding->title = $hoarding->generateTitle();
+
+        // Update slug if any key field changes
+        if ($hoarding->isDirty(['city', 'locality', 'category', 'landmark', 'hoarding_type'])) {
+            $hoarding->loadMissing(['oohHoarding', 'doohScreen']);
+            $hoarding->slug = $hoarding->generateSlugWithId();
+        }
+    });
+}
+
+   public function generateSlugWithId(): string
+    {
+        $parts = [
+            Str::slug($this->city ?? ''),
+            Str::slug($this->locality ?? ''),
+            Str::slug($this->category ?? 'hoarding'),
+        ];
+
+        // Get size from child
+        $size = '';
+        if ($this->hoarding_type === self::TYPE_OOH && $this->oohHoarding) {
+            $size = "{$this->oohHoarding->width}x{$this->oohHoarding->height}";
+        }
+        if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+            $size = "{$this->doohScreen->width}x{$this->doohScreen->height}";
+        }
+        if ($size) {
+            $parts[] = $size;
+        }
+
+        // Add landmark **only if available**
+        if (!empty($this->landmark)) {
+            $parts[] = Str::slug($this->landmark);
+        }
+
+        // Always append id for uniqueness
+        $parts[] = "h{$this->id}";
+
+        // Join non-empty parts with hyphen
+        return implode('-', array_filter($parts));
+    }
+
+
 
     /**
      * Scope a query to search by title, address, city, or description.

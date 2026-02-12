@@ -8,6 +8,7 @@ use Modules\Search\Controllers\SearchController;
 use Modules\Cart\Controllers\Web\CartController;
 use Modules\Enquiries\Controllers\Web\DirectEnquiryController;
 use App\Http\Controllers\Web\Customer\ShortlistController;
+use Modules\Auth\Http\Controllers\MobileForgotPasswordController;
 
 
 /**
@@ -23,6 +24,10 @@ use App\Http\Controllers\Web\Customer\ShortlistController;
 // ============================================
 // PUBLIC ROUTES (Customer-facing)
 // ============================================
+
+// SEO-friendly hoarding search route (pattern controlled by config/seo_search_routes.php)
+$seoSearchPattern = config('seo_search_routes.pattern', '/billboard-advertising/{city}/{area?}');
+Route::get($seoSearchPattern, [SearchController::class, 'seoSearch'])->name('search.seo');
 Route::middleware(['auth'])->get('/notification/{notification}', [App\Http\Controllers\NotificationRedirectController::class, 'open'])->name('notifications.open');
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
@@ -70,7 +75,15 @@ Route::prefix('vendor/pos')->middleware(['auth', 'vendor'])->name('vendor.pos.')
     Route::get('/bookings/{id}', [\Modules\POS\Controllers\Web\VendorPosController::class, 'show'])->name('show');
     // Extend: edit, view, etc. as needed
 });
-Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
+Route::get('/hoardings/{slug}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
+// 301 Redirect from old ID-based hoarding URLs to new slug-based URLs
+Route::get('/hoardings/{id}', function($id) {
+    $hoarding = \App\Models\Hoarding::find($id);
+    if ($hoarding && $hoarding->slug) {
+        return redirect()->route('hoardings.show', ['slug' => $hoarding->slug], 301);
+    }
+    abort(404);
+});
 // DOOH Screen Vendor Routes
 // Route::prefix('vendor/dooh')->middleware(['auth', 'vendor'])->name('vendor.dooh.')->group(function () {
 //     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
@@ -158,6 +171,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password', [\Modules\Auth\Http\Controllers\ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('guest')->name('password.email');
     Route::get('/reset-password/{token}', [\Modules\Auth\Http\Controllers\ForgotPasswordController::class, 'showResetForm'])->middleware('guest')->name('password.reset');
     Route::post('/reset-password', [\Modules\Auth\Http\Controllers\ForgotPasswordController::class, 'reset'])->middleware('guest')->name('password.update');
+    Route::get('/mobile/forgot-password', [MobileForgotPasswordController::class,'showForm'])->name('password.mobile.request');
+    Route::post('/mobile/forgot-password/send-otp', [MobileForgotPasswordController::class,'sendOtp'])->name('password.mobile.sendOtp');
+    Route::post('/mobile/forgot-password/verify-otp', [MobileForgotPasswordController::class,'verifyOtp'])->name('password.mobile.verifyOtp');
+    Route::post('/mobile/forgot-password/reset', [MobileForgotPasswordController::class,'resetPassword'])->name('password.mobile.reset');
 });
 
 Route::post('/logout', [Modules\Auth\Http\Controllers\LoginController::class, 'logout'])->name('logout')->middleware('auth');

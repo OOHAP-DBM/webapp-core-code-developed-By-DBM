@@ -4,7 +4,7 @@
             <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 md:p-8">
                 <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">Find Your Perfect Advertising Space</h3>
                 
-                <form action="{{ route('search') }}" method="GET" class="space-y-4">
+                <form action="{{ route('search.seo', ['city' => request('location', 'india'), 'area' => request('area')]) }}" method="GET" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Location Search -->
                         <div class="relative">

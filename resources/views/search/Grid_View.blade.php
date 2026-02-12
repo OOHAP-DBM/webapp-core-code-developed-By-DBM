@@ -1,5 +1,5 @@
 <div id="gridView" class="bg-gray-100 ">
-    <div class="max-w-[1460px] mx-auto px-6 py-6">
+    <div class="max-w-[1460px] mx-auto py-6">
 
         @if($results->total() > 0)
             <h2 class="text-lg text-black font-semibold mb-4">
@@ -20,8 +20,14 @@
 
                     <div
                         class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col h-full"
-                        onclick="if(event.target.closest('button, a') === null)
-                            window.location.href='{{ route('hoardings.show', $item->id) }}';"
+                        @php
+                            $hoardingParam = $item->slug ?? $item->title;
+                        @endphp
+                        @if(!empty($hoardingParam))
+                            onclick="if(event.target.closest('button, a') === null) window.location.href='{{ route('hoardings.show', $hoardingParam) }}';"
+                        @else
+                            style="cursor:not-allowed; opacity:0.6;"
+                        @endif
                     >
 
                         {{-- IMAGE --}}
@@ -117,19 +123,12 @@
                                 </span>
 
                                 <span class="text-sm text-black">
-                                    @if(request('duration') === 'weekly')
-                                        /Week
-                                    @elseif($item->hoarding_type === 'dooh')
-                                        /Second
-                                    @else
                                         /Month
-                                    @endif
                                 </span>
                             </div>
 
                             @if(
                                 request('duration') !== 'weekly'
-                                && $item->hoarding_type === 'ooh'
                                 && !empty($item->monthly_price)
                                 && $item->monthly_price > 0
                                 && !empty($item->base_monthly_price)
@@ -139,18 +138,24 @@
                                     <span class="line-through text-red-500">
                                         ₹{{ number_format($item->base_monthly_price) }}
                                     </span>
-
-                                    @if($item->discount_percent)
-                                        <span class="ml-1 bg-green-200 text-green-700 px-2 py-0.5 rounded">
-                                            {{ $item->discount_percent }}% OFF
-                                        </span>
-                                    @endif
+                                    <span class="ml-1 bg-green-200 text-green-700 px-2 py-0.5 rounded">
+                                        ₹{{ number_format($item->base_monthly_price - $item->monthly_price) }} OFF
+                                    </span>
                                 </div>
                             @endif
 
                             {{-- TAX NOTE --}}
                             <p class="text-xs text-gray-500 mt-2">
                                 Taxes excluded
+                            </p>
+                            <!-- No import needed; use fully qualified class name below -->
+                            <p class="text-xs text-blue-500 mb-1">
+                                @if($item->available_from && \Carbon\Carbon::parse($item->available_from)->isFuture())
+                                    Hoarding Available from
+                                    {{ \Carbon\Carbon::parse($item->available_from)->format('F d, Y') }}
+                                @else
+                                    Available
+                                @endif
                             </p>
                             
 
