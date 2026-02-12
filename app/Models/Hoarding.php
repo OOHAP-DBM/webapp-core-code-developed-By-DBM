@@ -603,7 +603,9 @@ class Hoarding extends Model implements HasMedia
         $size = '';
         if ($child && !empty($child->width) && !empty($child->height)) {
             $unit = $child->measurement_unit ?? 'ft';
-            $size = $child->width . ' x ' . $child->height . ' ' . $unit;
+            $width = (int) $child->width;
+            $height = (int) $child->height;
+            $size = $width . ' x ' . $height . ' ' . $unit;
         }
 
         // Features
@@ -682,10 +684,16 @@ class Hoarding extends Model implements HasMedia
         // Get size from child
         $size = '';
         if ($this->hoarding_type === self::TYPE_OOH && $this->oohHoarding) {
-            $size = "{$this->oohHoarding->width}x{$this->oohHoarding->height}";
+            $width = (int) $this->oohHoarding->width;
+            $height = (int) $this->oohHoarding->height;
+            $unit = $this->oohHoarding->measurement_unit ?? 'ft';
+            $size = "{$width}x{$height}{$unit}";
         }
         if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
-            $size = "{$this->doohScreen->width}x{$this->doohScreen->height}";
+            $width = (int) $this->doohScreen->width;
+            $height = (int) $this->doohScreen->height;
+            $unit = $this->doohScreen->measurement_unit ?? 'px';
+            $size = "{$width}x{$height}{$unit}";
         }
         if ($size) {
             $parts[] = $size;
@@ -759,7 +767,7 @@ class Hoarding extends Model implements HasMedia
         // OOH size
         if ($this->hoarding_type === self::TYPE_OOH && $this->ooh) {
             if ($this->ooh->width && $this->ooh->height) {
-                $unit = $this->ooh->unit ?? 'ft';
+                $unit = $this->ooh->measurement_unit ?? 'ft';
                 return "{$this->ooh->width} x {$this->ooh->height} {$unit}";
             }
         }
@@ -767,7 +775,7 @@ class Hoarding extends Model implements HasMedia
         // DOOH size
         if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
             if ($this->doohScreen->width && $this->doohScreen->height) {
-                $unit = $this->doohScreen->unit ?? 'px';
+                $unit = $this->doohScreen->measurement_unit ?? 'px';
                 return "{$this->doohScreen->width} x {$this->doohScreen->height} {$unit}";
             }
 

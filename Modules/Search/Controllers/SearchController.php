@@ -264,14 +264,18 @@ class SearchController extends Controller
      * SEO-friendly search handler. Accepts city and area as route parameters.
      * Allows SEO developer to change URL structure via config.
      */
-    public function seoSearch(Request $request, CartService $cartService, $city = null, $area = null)
+    public function seoSearch(Request $request, CartService $cartService, $city = null, $locality = null)
     {
-        // Merge city/area into request for filtering
-        $request->merge([
-            'location' => $city,
-            'area' => $area,
-        ]);
-        // You can add more logic here to map SEO-friendly slugs to types/categories if needed
+        $mergeParams = [];
+        if ($city && strtolower($city) !== 'india') {
+            $mergeParams['location'] = $city;
+        }
+        if (isset($locality) && $locality !== '') {
+            $mergeParams['locality'] = $locality;
+        }
+        if (!empty($mergeParams)) {
+            $request->merge($mergeParams);
+        }
         return $this->index($request, $cartService);
     }
 }

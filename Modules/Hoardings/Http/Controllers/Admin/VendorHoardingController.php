@@ -472,6 +472,38 @@ class VendorHoardingController extends Controller
             ], 500);
         }
     }
+    /**
+     * Bulk generate/update slugs for hoardings
+     */
+    public function bulkUpdateSlugs(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer|exists:hoardings,id'
+        ]);
 
+        try {
+            $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+            $updated = 0;
+            foreach ($hoardings as $hoarding) {
+                $oldSlug = $hoarding->slug;
+                $hoarding->slug = $hoarding->generateSlugWithId();
+                if ($hoarding->isDirty('slug')) {
+                    $hoarding->save();
+                    $updated++;
+                }
+            }
+            return response()->json([
+                'success' => true,
+                'message' => "$updated slug(s) updated successfully",
+                'count' => $updated
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update slugs: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
 }
