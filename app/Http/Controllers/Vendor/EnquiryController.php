@@ -139,6 +139,7 @@ class EnquiryController extends Controller
                     ->first();
 
                 if ($package) {
+                    $item->package = $package; // Ensure calculator gets correct package
                     $item->package_name = $package->package_name;
                     $item->discount_percent = $package->discount_percent;
                 }
@@ -149,6 +150,7 @@ class EnquiryController extends Controller
                     ->first();
 
                 if ($package) {
+                    $item->package = $package; // Ensure calculator gets correct package
                     $item->package_name = $package->package_name;
                     $item->discount_percent = $package->discount_percent;
                 }

@@ -171,35 +171,25 @@
                                 </span>
 
                                 <span class="text-lg text-black font-bold">
-                                    @if(request('duration') === 'weekly')
-                                        /Week
-                                    @elseif($item->hoarding_type === 'dooh')
-                                        /Second
-                                    @else
                                         /Month
-                                    @endif
                                 </span>
                             </div>
 
 
                             @if(
                                 request('duration') !== 'weekly'
-                                && $item->hoarding_type === 'ooh'
                                 && !empty($item->monthly_price)
                                 && $item->monthly_price > 0
                                 && !empty($item->base_monthly_price)
                                 && $item->base_monthly_price > $item->monthly_price
                             )
-                                <div class="mt-1">
-                                    <span class="text-xs text-red-500 line-through">
+                                <div class="text-xs mt-1">
+                                    <span class="line-through text-red-500">
                                         ₹{{ number_format($item->base_monthly_price) }}
                                     </span>
-
-                                    @if($item->discount_percent)
-                                        <span class="bg-green-200 text-xs text-green-700 px-2 py-0.5 rounded">
-                                            {{ $item->discount_percent }}% OFF
-                                        </span>
-                                    @endif
+                                    <span class="ml-1 bg-green-200 text-green-700 px-2 py-0.5 rounded">
+                                        ₹{{ number_format($item->base_monthly_price - $item->monthly_price) }} OFF
+                                    </span>
                                 </div>
                             @endif
 
@@ -209,13 +199,14 @@
                                 Taxes excluded
                             </p>
 
-                            {{-- AVAILABLE FROM --}}
-                            @if($item->available_from)
-                                <p class="text-xs text-gray-500">
-                                    Available from:
-                                    {{ \Carbon\Carbon::parse($item->available_from)->format('d M Y') }}
-                                </p>
-                            @endif
+                            <p class="text-xs text-blue-500 mb-1">
+                                @if($item->available_from && \Carbon\Carbon::parse($item->available_from)->isFuture())
+                                    Hoarding Available from
+                                    {{ \Carbon\Carbon::parse($item->available_from)->format('F d, Y') }}
+                                @else
+                                    Available
+                                @endif
+                            </p>
 
                             {{-- GAZEFLOW --}}
                             @if($item->expected_eyeball)

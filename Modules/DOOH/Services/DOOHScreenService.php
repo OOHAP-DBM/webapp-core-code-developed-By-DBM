@@ -323,8 +323,6 @@ class DOOHScreenService
 
             // ---- Hoarding fields ----
             $parentHoarding = $screen->hoarding;
-            $parentHoarding->base_monthly_price = $data['base_monthly_price'] ?? 0;
-            $parentHoarding->monthly_price = $data['monthly_offered_price'] ?? 0;
             // $parentHoarding->enable_weekly_booking = isset($data['enable_weekly_booking']) ? 1 : 0;
             // $parentHoarding->weekly_price_1 = $data['weekly_price_1'] ?? null;
             // $parentHoarding->weekly_price_2 = $data['weekly_price_2'] ?? null;

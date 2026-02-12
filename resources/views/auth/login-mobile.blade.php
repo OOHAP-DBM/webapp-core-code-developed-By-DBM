@@ -165,9 +165,9 @@
                         </ul>
 
                         <div class="text-end mt-2">
-                            <a href="{{ route('password.request') }}"
+                            <a href="#" id="forgotMobilePassword"
                             class="text-success small text-decoration-underline">
-                            Forgot Password?
+                                Forgot Password?
                             </a>
                         </div>
 
@@ -269,6 +269,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
 
@@ -356,6 +357,27 @@
             passwordInp.removeAttribute('readonly');
         }, 500);
 
+    });
+</script>
+<script>
+    document.getElementById('forgotMobilePassword').addEventListener('click', function(e){
+        e.preventDefault();
+
+        const phone = document.getElementById('mobileInput').value.trim();
+
+        if(!phone || phone.length !== 10){
+            Swal.fire({
+                toast:true,
+                position:'top-end',
+                icon:'error',
+                title:'Enter mobile number first',
+                showConfirmButton:false,
+                timer:2000
+            });
+            return;
+        }
+
+        window.location.href = "/mobile/forgot-password?phone="+phone;
     });
 </script>
 @endpush
