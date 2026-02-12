@@ -229,6 +229,7 @@
                         <div class="min-w-[200px] relative">
                             <!-- FORCE BOTTOM -->
                             <div class="absolute bottom-0 right-0 flex gap-6 items-start">
+                            @if(!$isOwnerVendor)
                                 <!-- Short List + Enquire -->
                                 <div class="flex flex-col">
                                     <button
@@ -276,6 +277,11 @@
                                     </button>
                                 @endauth
                                 </div>
+                            @else
+                                <button class="cursor-pointer text-center items-center justify-center inline-flex whitespace-nowrap py-2 px-20 btn-color text-white text-sm font-semibold rounded">
+                                    View Details
+                                </button>
+                            @endif
 
                             </div>
                         </div>

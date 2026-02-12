@@ -4,9 +4,9 @@
         <table class="w-full min-w-[1400px] text-sm">
             <thead class="bg-[#F9FAFB] text-[#6B7280]">
                 <tr>
-                    <th class="px-4 py-3 text-left">
+                    <!-- <th class="px-4 py-3 text-left">
                         <input type="checkbox" class="accent-green-600">
-                    </th>
+                    </th> -->
                     <th class="px-4 py-3 text-left">S.N</th>
                     <th class="px-4 py-3 text-left">VENDOR NAME</th>
                     <th class="px-4 py-3 text-left">JOINING DATE</th>
@@ -20,9 +20,9 @@
             <tbody class="divide-y">
                 @forelse($vendors as $i => $vendor)
                     <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3">
+                        <!-- <td class="px-4 py-3">
                             <input type="checkbox" class="accent-green-600">
-                        </td>
+                        </td> -->
 
                         <td class="px-4 py-3">
                             {{ $vendors->firstItem() + $i }}

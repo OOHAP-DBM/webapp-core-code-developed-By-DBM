@@ -117,11 +117,24 @@
 
 @endif
 @endif
-
-{{-- FINAL PRICE --}}
+@php
+    $isOwnerVendor = false;
+    if(
+        auth()->check()
+        && auth()->user()->active_role === 'vendor'
+        && isset($hoarding->vendor_id)
+        && auth()->id() === (int)$hoarding->vendor_id
+    ){
+        $isOwnerVendor = true;
+    }
+@endphp
 <div class="bg-gray-50 rounded-xl p-4 mt-4">
-    @auth
-    @if(auth()->user()->hasRole('customer'))
+
+    @if($isOwnerVendor)
+        <p class="text-white py-2 text-center rounded bg-[#22c55e] hover:bg-[#16a34a] mt-2">
+          your own hoarding.
+        </p>
+    @else
         <button
             id="cart-btn-{{ $hoarding->id }}"
             data-in-cart="{{ $isInCart ? '1' : '0' }}"
@@ -131,53 +144,33 @@
             
             {{ $isInCart ? 'Remove from Sortlist' : 'Add to Sortlist' }}
         </button>
+        @auth
+            <a href="javascript:void(0)"
+                class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium"
+                data-hoarding-id="{{ $hoarding->id }}"
+                data-hoarding-type="{{ $hoarding->hoarding_type ?? 'ooh' }}"
+                data-base-price="{{ $hoarding->hoarding_type === 'dooh'
+                    ? ($hoarding->doohScreen->price_per_slot ?? 0)
+                    : ($hoarding->monthly_price ?? 0) }}"
+                data-grace-days="{{ (int) $hoarding->grace_period_days }}"
+                data-count="1"
+                onclick="openEnquiryModal({
+                    id: this.getAttribute('data-hoarding-id'),
+                    basePrice: this.getAttribute('data-base-price'),
+                    hoardingType: this.getAttribute('data-hoarding-type'),
+                    graceDays: this.getAttribute('data-grace-days'),
+                    count: this.getAttribute('data-count')
+                })"
+            >
+                Enquire Now
+            </a>
+        @else
+            <a href="/login?message={{ urlencode('Please login to raise an enquiry.') }}"
+               class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium">
+                Enquire Now
+            </a>
+        @endauth
     @endif
-@endauth
-
-{{-- 
-    <a href="javascript:void(0)"
-       class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium"
-       data-hoarding-id="{{ $hoarding->id }}"
-    data-hoarding-type="{{ $hoarding->hoarding_type ?? 'ooh' }}"
-       data-base-price="{{ $hoarding->hoarding_type === 'dooh' ? ($hoarding->doohScreen->price_per_slot ?? 0) : ($hoarding->monthly_price ?? 0) }}"
-       data-grace-days="{{ (int) $hoarding->grace_period_days }}"
-       data-count="1"
-       onclick="openEnquiryModal({
-           id: this.getAttribute('data-hoarding-id'),
-           basePrice: this.getAttribute('data-base-price'),
-           hoardingType: this.getAttribute('data-hoarding-type'),
-           graceDays: this.getAttribute('data-grace-days'),
-           count: this.getAttribute('data-count')
-       })"
-    >
-        Enquire Now
-    </a> --}}
-    @auth
-    @if(auth()->user()->hasRole('customer'))
-    <a href="javascript:void(0)"
-       class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium enquiry-btn"
-       data-hoarding-id="{{ $hoarding->id }}"
-       data-hoarding-type="{{ $hoarding->hoarding_type ?? 'ooh' }}"
-       data-base-price="{{ $hoarding->hoarding_type === 'dooh' ? ($hoarding->doohScreen->price_per_slot ?? 0) : ($hoarding->monthly_price ?? 0) }}"
-       data-grace-days="{{ (int) $hoarding->grace_period_days }}"
-       data-count="1"
-    >
-        Enquire Now
-    </a>
-    @else
-    <span class="mt-3 block text-center text-xs text-gray-400 font-medium cursor-not-allowed" title="Only customers can raise enquiries">
-        Enquire Now (Customers Only)
-    </span>
-    @endif
-@else
-<a href="{{ route('login') }}?intended={{ urlencode(url()->current()) }}" 
-   class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium">
-    Login to Enquire
-</a>
-@endauth
-
-
-
 
 </div>
 
@@ -185,11 +178,10 @@
 <style>
 .cart-btn--white {
     color: #fff !important;
-    background-color: #22c55e; /* green-500 */
+    background-color: #22c55e;
 }
-
 .cart-btn--white:hover {
-    background-color: #16a34a !important; /* green-600 */
+    background-color: #16a34a !important;
     color: #fff !important;
 }
 

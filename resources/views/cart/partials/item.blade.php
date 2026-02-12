@@ -74,7 +74,7 @@
                                 <div class="relative inline-block">
                                     <button
                                         type="button"
-                                        class="text-blue-500 hover:underline"
+                                        class="text-blue-500 hover:underline cursor-pointer"
                                         onclick="toggleShareMenu(this)">
                                         Share
                                     </button>
@@ -84,27 +84,27 @@
                                             <a
                                                 href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}"
                                                 target="_blank"
-                                                class="text-blue-700 hover:underline">
+                                                class="text-blue-700 hover:underline cursor-pointer">
                                                 Facebook
                                             </a>
 
                                             <a
                                                 href="https://twitter.com/intent/tweet?url={{ urlencode(route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}&text={{ urlencode($item->title) }}"
                                                 target="_blank"
-                                                class="text-sky-500 hover:underline">
+                                                class="text-sky-500 hover:underline cursor-pointer">
                                                 Twitter
                                             </a>
 
                                             <a
                                                 href="https://api.whatsapp.com/send?text={{ urlencode($item->title . ' - ' . route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}"
                                                 target="_blank"
-                                                class="text-green-600 hover:underline">
+                                                class="text-green-600 hover:underline cursor-pointer">
                                                 WhatsApp
                                             </a>
 
                                             <button
                                                 type="button"
-                                                class="text-gray-700 hover:underline text-left"
+                                                class="text-gray-700 hover:underline text-left cursor-pointer"
                                                 onclick="copyCartLink('{{ route('hoardings.show', $item->slug ?? $item->hoarding_id) }}')">
                                                 Copy Link
                                             </button>
@@ -194,43 +194,68 @@
 </div>
 
 <script>
-function copyCartLink(link) {
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(link).then(() => {
-            alert('Link copied to clipboard!');
+    function copyCartLink(link) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(link).then(() => {
+                if (window.Swal) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Link copied to clipboard!',
+                        showConfirmButton: false,
+                        timer: 1800,
+                        timerProgressBar: true
+                    });
+                } else {
+                    alert('Link copied to clipboard!');
+                }
+            });
+        } else {
+            const tempInput = document.createElement('input');
+            tempInput.value = link;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            if (window.Swal) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Link copied to clipboard!',
+                    showConfirmButton: false,
+                    timer: 1800,
+                    timerProgressBar: true
+                });
+            } else {
+                alert('Link copied to clipboard!');
+            }
+    
+        }
+    }
+
+    function toggleShareMenu(btn) {
+        // close all other menus
+        document.querySelectorAll('.cart-share-menu').forEach(menu => {
+            if (menu !== btn.nextElementSibling) {
+                menu.classList.add('hidden');
+            }
         });
-    } else {
-        const tempInput = document.createElement('input');
-        tempInput.value = link;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempInput);
-        alert('Link copied to clipboard!');
-    }
-}
 
-function toggleShareMenu(btn) {
-    // close all other menus
-    document.querySelectorAll('.cart-share-menu').forEach(menu => {
-        if (menu !== btn.nextElementSibling) {
-            menu.classList.add('hidden');
+        const menu = btn.nextElementSibling;
+        menu.classList.toggle('hidden');
+
+        // close on outside click
+        function outsideClick(e) {
+            if (!menu.contains(e.target) && e.target !== btn) {
+                menu.classList.add('hidden');
+                document.removeEventListener('mousedown', outsideClick);
+            }
         }
-    });
 
-    const menu = btn.nextElementSibling;
-    menu.classList.toggle('hidden');
-
-    // close on outside click
-    function outsideClick(e) {
-        if (!menu.contains(e.target) && e.target !== btn) {
-            menu.classList.add('hidden');
-            document.removeEventListener('mousedown', outsideClick);
-        }
+        setTimeout(() => {
+            document.addEventListener('mousedown', outsideClick);
+        }, 0);
     }
-
-    setTimeout(() => {
-        document.addEventListener('mousedown', outsideClick);
-    }, 0);
-}
 </script>

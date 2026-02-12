@@ -42,7 +42,11 @@
     {{-- SINGLE REVIEW --}}
     <div class="border-gray-300">
         <h2>Business Name: {{ $hoarding->vendor->company_name ?? 'N/A' }}</h2>
-        <h2>Vendor Name: {{ $hoarding->vendor->name ?? 'N/A' }}</h2>
+        <a href="{{ route('vendors.show', $hoarding->vendor->id) }}">
+            <h2 class="text-blue-600 hover:underline">
+                Vendor Name: {{ $hoarding->vendor->name ?? 'N/A' }}
+            </h2>
+        </a>
         <p class="text-xs text-gray-500 mb-4">
             {{ $hoarding->created_at->format('d M, Y') }}
         </p>

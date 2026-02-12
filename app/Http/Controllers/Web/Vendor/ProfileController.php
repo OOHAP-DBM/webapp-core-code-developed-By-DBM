@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Twilio\Rest\Client;
 use Illuminate\Support\Facades\Log;
+use App\Services\OTPService;
 
 
 class ProfileController extends Controller
@@ -439,6 +440,192 @@ class ProfileController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to send OTP'
+            ], 500);
+        }
+    }
+    public function sendProfileOtp(Request $request, OTPService $otpService)
+    {
+        $user = auth()->user();
+
+        $type  = $request->input('type');
+        $value = trim($request->input('value'));
+
+        if (!$type || !$value) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid request'
+            ], 422);
+        }
+
+        /* ---------------- EMAIL ---------------- */
+
+        if ($type === 'email') {
+
+            if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Enter a valid email address'
+                ], 422);
+            }
+
+            // already used?
+            if (
+                User::where('email', $value)
+                    ->where('id', '!=', $user->id)
+                    ->exists()
+            ) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email already registered'
+                ], 422);
+            }
+
+            $purpose = 'profile_email';
+        }
+
+        /* ---------------- PHONE ---------------- */
+
+        elseif ($type === 'phone') {
+
+            $value = preg_replace('/[^0-9]/', '', $value);
+
+            if (strlen($value) != 10) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Enter valid 10 digit mobile number'
+                ], 422);
+            }
+
+            // already used?
+            if (
+                User::where('phone', $value)
+                    ->where('id', '!=', $user->id)
+                    ->exists()
+            ) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Phone already in use'
+                ], 422);
+            }
+
+            $purpose = 'profile_phone';
+        }
+
+        else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid type'
+            ], 422);
+        }
+
+        /* ---------------- SEND OTP ---------------- */
+
+        try {
+
+            $otpService->generate(
+                $user->id,
+                $value,
+                $purpose
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP sent successfully'
+            ]);
+
+        } catch (\Throwable $e) {
+
+            Log::error('PROFILE OTP SEND FAILED', [
+                'user_id' => $user->id,
+                'type'    => $type,
+                'value'   => $value,
+                'error'   => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to send OTP'
+            ], 500);
+        }
+    }
+    public function verifyProfileOtp(Request $request, OTPService $otpService)
+    {
+        $user = auth()->user();
+
+        $type  = $request->input('type');
+        $value = trim($request->input('value'));
+        $otp   = trim($request->input('otp'));
+
+        if (!$type || !$value || !$otp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid request'
+            ], 422);
+        }
+
+        // purpose mapping
+        if ($type === 'email') {
+            $purpose = 'profile_email';
+        } elseif ($type === 'phone') {
+            $purpose = 'profile_phone';
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid verification type'
+            ], 422);
+        }
+
+        try {
+
+            $verified = $otpService->verify(
+                $user->id,
+                $value,
+                $otp,
+                $purpose
+            );
+
+            if (!$verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Incorrect or expired OTP'
+                ], 422);
+            }
+
+            // SAVE VERIFIED VALUE
+            if ($type === 'email') {
+                $user->email = $value;
+                $user->email_verified_at = now();
+            }
+
+            if ($type === 'phone') {
+                $user->phone = preg_replace('/[^0-9]/', '', $value);
+                $user->phone_verified_at = now();
+            }
+
+            $user->save();
+            if (!$user->email_verified_at || !$user->phone_verified_at) {
+                session()->flash('reopen_personal_modal', true);
+            }
+
+            auth()->setUser($user);
+
+            return response()->json([
+                'success' => true,
+                'message' => ucfirst($type).' verified successfully'
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+
+
+        } catch (\Throwable $e) {
+
+            \Log::error('OTP VERIFY FAILED', [
+                'user_id' => $user->id,
+                'type' => $type,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Verification failed. Try again.'
             ], 500);
         }
     }

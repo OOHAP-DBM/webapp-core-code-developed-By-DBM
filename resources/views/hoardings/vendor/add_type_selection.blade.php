@@ -6,6 +6,7 @@
     - Pixel-perfect Figma match
 --}}
 @extends('layouts.vendor')
+@section('title', 'Hoardings-Types')
 
 @section('content')
 <div class="container add-hoarding-type-selection">

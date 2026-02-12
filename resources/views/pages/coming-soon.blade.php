@@ -60,19 +60,38 @@
         </div>
 
         <!-- CTA -->
-        <div class="flex flex-col sm:flex-row justify-center gap-4 mb-10">
-            <form class="flex w-full sm:w-auto gap-3">
-                <input
-                    type="email"
-                    placeholder="Enter your email for early access"
-                    class="px-5 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00baa8] w-72"
-                >
-                <button
-                    type="submit"
-                    class="px-8 py-4 rounded-xl bg-gradient-to-r from-[#00baa8] to-[#009e8e] font-bold text-white shadow-2xl hover:scale-105 transition-transform">
-                    Notify Me
-                </button>
-            </form>
+       <div class="flex justify-center mb-10">
+            <a href="{{ route('home') }}"
+            class="group relative flex items-center gap-2 px-5 py-2.5 rounded-xl 
+                    bg-white/5 backdrop-blur-md border border-white/10
+                    transition-all duration-300 ease-out
+                    hover:bg-emerald-400/10 hover:border-emerald-400/40
+                    hover:shadow-[0_0_25px_rgba(16,185,129,0.35)]
+                    hover:-translate-y-1">
+
+                {{-- Glow effect --}}
+                <span class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100
+                            transition duration-300
+                            bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-emerald-400/20 blur-xl">
+                </span>
+
+                {{-- Logo --}}
+                <h1 class="relative flex items-center text-white text-xl font-semibold tracking-wide
+                        transition duration-300 group-hover:text-emerald-300">
+
+                    <svg width="21" height="21" class="mt-1 mx-0.5 transition duration-300 group-hover:scale-110"
+                        viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                        <path d="M1.19337 8.43476C1.06653 9.1025 1 9.79309 1 10.5C1 16.299 5.47715 21 11 21C16.5228 21 21 16.299 21 10.5C21 4.70101 16.5228 0 11 0C10.0948 0 9.21772 0.126281 8.38383 0.362979V5.73332C9.15366 5.26649 10.0471 4.99936 11 4.99936C13.8933 4.99936 16.2387 7.46208 16.2387 10.5C16.2387 13.5379 13.8933 16.0006 11 16.0006C8.10674 16.0006 5.7613 13.5379 5.7613 10.5C5.7613 9.76959 5.89689 9.07243 6.14307 8.43476H1.19337Z"
+                            fill="black"/>
+
+                        <path d="M0 0.7875L7.25 2.05941V7.35L0 6.07809V0.7875Z"
+                            class="fill-emerald-400 group-hover:fill-emerald-300 transition duration-300"/>
+                    </svg>
+
+                    <span class="ml-1">ohApp</span>
+                </h1>
+            </a>
         </div>
 
         <!-- Secondary CTA -->

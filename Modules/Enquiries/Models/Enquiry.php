@@ -12,6 +12,7 @@ use Modules\Enquiries\Models\EnquiryItem;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
+
 class Enquiry extends Model
 {
     use HasFactory;
@@ -123,37 +124,7 @@ class Enquiry extends Model
     {
         return $this->items()->count();
     }
-
-    /**
-     * Virtual enquiry number (ENQ000001)
-     */
-    public function getEnquiryNoAttribute(): string
-    {
-        return 'ENQ' . str_pad($this->id, 6, '0', STR_PAD_LEFT);
-    }
-
-
-    /* ===================== ACCESSORS ===================== */
-
-    // public function getVendorCountAttribute(): int
-    // {
-    //     return $this->items()
-    //         ->join('hoardings', 'enquiry_items.hoarding_id', '=', 'hoardings.id')
-    //         ->whereNotNull('hoardings.vendor_id')
-    //         ->distinct('hoardings.vendor_id')
-    //         ->count('hoardings.vendor_id');
-    // }
-
-     public function scopeWithVendorCount($query)
-    {
-        return $query->withCount([
-            'items as vendor_count' => function ($q) {
-                $q->join('hoardings', 'enquiry_items.hoarding_id', '=', 'hoardings.id')
-                ->whereNotNull('hoardings.vendor_id')
-                ->distinct('hoardings.vendor_id');
-            }
-        ]);
-    }
+   
     public function getFormattedIdAttribute(): string
     {
         $vendorIds = $this->items()
@@ -165,6 +136,29 @@ class Enquiry extends Model
         $vendorCount = $vendorIds->count();
         $prefix = $vendorCount <= 1 ? 'SV' : 'MV';
         return $prefix . str_pad($this->id, 6, '0', STR_PAD_LEFT);
+    }
+
+
+    /* ===================== ACCESSORS ===================== */
+
+    public function getVendorCountAttribute(): int
+    {
+        return $this->items()
+            ->join('hoardings', 'enquiry_items.hoarding_id', '=', 'hoardings.id')
+            ->whereNotNull('hoardings.vendor_id')
+            ->distinct('hoardings.vendor_id')
+            ->count('hoardings.vendor_id');
+    }
+
+     public function scopeWithVendorCount($query)
+    {
+        return $query->withCount([
+            'items as vendor_count' => function ($q) {
+                $q->join('hoardings', 'enquiry_items.hoarding_id', '=', 'hoardings.id')
+                ->whereNotNull('hoardings.vendor_id')
+                ->distinct('hoardings.vendor_id');
+            }
+        ]);
     }
 
 

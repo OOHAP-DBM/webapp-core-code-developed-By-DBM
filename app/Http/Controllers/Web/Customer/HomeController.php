@@ -123,8 +123,9 @@ class HomeController extends Controller
             $query->orderBy('created_at', 'desc');
 
             $enquiries = $query
-                ->paginate(10)
-                ->withQueryString();
+                ->limit(5)
+                ->get();
+
         }
 
         return view(
