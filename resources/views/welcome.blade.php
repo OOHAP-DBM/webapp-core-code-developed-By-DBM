@@ -427,7 +427,7 @@
             </div>
             <div class="grid">
                 @forelse($bestHoardings as $hoarding)
-                    <div class="card" onclick="window.location.href='{{ route('hoardings.show', $hoarding->id) }}'">
+                    <div class="card" onclick="window.location.href='{{ route('hoardings.show', $hoarding->slug ?? $hoarding->id) }}'">
                         @if($hoarding->hasMedia('images'))
                             <img src="{{ $hoarding->getFirstMediaUrl('images') }}" alt="{{ $hoarding->title }}" class="card-image">
                         @else

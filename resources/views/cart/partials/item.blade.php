@@ -153,58 +153,44 @@
             </div>
         @endif
         <div class="flex justify-end text-right mr-2 sm:mr-4 md:mr-6 lg:mr-8 mb-4 mt-2 sm:mt-0 lg:-mt-6">
-            {{-- OOH --}}
-            @if($item->hoarding_type === 'ooh')
-                <div>
-                    @php
-                        $finalPrice = !empty($item->monthly_price) && $item->monthly_price > 0
-                            ? $item->monthly_price
-                            : ($item->base_monthly_price ?? 0);
-                    @endphp
+            @php
+                // Decide final price
+                $finalPrice = $item->monthly_price 
+                                ?? $item->base_monthly_price 
+                                ?? $item->slot_price 
+                                ?? 0;
 
-                    @if(!empty($item->base_monthly_price) && $item->base_monthly_price > $finalPrice)
-                        <p
-                            id="base-price-{{ $item->hoarding_id }}"
-                            data-base-price="{{ $item->base_monthly_price }}"
-                            class="text-sm text-gray-400 line-through"
-                        >
-                            ₹{{ number_format($item->base_monthly_price) }}
-                        </p>
-                    @endif
+                // Decide base price (for strike-through)
+                $basePrice = $item->base_monthly_price ?? $item->slot_price ?? 0;
 
-                    <p
-                        id="final-price-{{ $item->hoarding_id }}"
-                        data-default-price="{{ $finalPrice }}"
-                        class="text-lg font-semibold text-gray-900"
-                    >
-                        ₹{{ number_format($finalPrice) }}
-                        <span class="text-sm text-gray-400">/ Month</span>
-                    </p>
-                </div>
-            @endif
+                // Decide unit label
+               
+                $unit =  '/ Month';
 
-            {{-- DOOH --}}
-            @if($item->hoarding_type === 'dooh')
-                <div>
+            @endphp
+
+            <div>
+                @if($basePrice > $finalPrice)
                     <p
                         id="base-price-{{ $item->hoarding_id }}"
-                        data-base-price="{{ $item->slot_price }}"
-                        class="text-sm text-gray-400 line-through hidden"
+                        data-base-price="{{ $basePrice }}"
+                        class="text-sm text-gray-400 line-through"
                     >
-                        ₹{{ number_format($item->slot_price) }}
+                        ₹{{ number_format($basePrice) }}
                     </p>
-                    <p
-                        id="final-price-{{ $item->hoarding_id }}"
-                        data-default-price="{{ $item->slot_price }}"
-                        class="text-lg font-semibold text-gray-900"
-                    >
-                        ₹{{ number_format($item->slot_price) }}
-                        <span class="text-sm text-gray-400">/ sec  slot</span>
-                    </p>
-                </div>
-            @endif
+                @endif
 
+                <p
+                    id="final-price-{{ $item->hoarding_id }}"
+                    data-default-price="{{ $finalPrice }}"
+                    class="text-lg font-semibold text-gray-900"
+                >
+                    ₹{{ number_format($finalPrice) }}
+                    <span class="text-sm text-gray-400">{{ $unit }}</span>
+                </p>
+            </div>
         </div>
+
 </div>
 
 <script>

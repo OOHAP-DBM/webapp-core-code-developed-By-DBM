@@ -86,7 +86,7 @@
             <div class="mt-auto">
                 <div class="d-flex gap-2">
                     <button class="btn btn-outline-primary btn-sm flex-fill" onclick="addToCart({{ $hoarding->id }})">
-                        <i class="bi bi-cart-plus"></i> Add to Cart
+                        <i class="bi bi-cart-plus"></i> Add to Sortlist
                     </button>
                     <a href="{{ route('customer.enquiries.create', ['hoarding_id' => $hoarding->id]) }}" 
                        class="btn btn-primary btn-sm flex-fill">

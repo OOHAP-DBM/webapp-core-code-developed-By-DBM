@@ -26,7 +26,7 @@ class Enquiry extends Model
         'customer_note',
         'contact_number',
     ];
-    protected $appends = ['enquiry_no'];
+    protected $appends = ['formatted_id'];
 
 
     /* ===================== CASTS ===================== */
@@ -141,14 +141,14 @@ class Enquiry extends Model
 
     /* ===================== ACCESSORS ===================== */
 
-    // public function getVendorCountAttribute(): int
-    // {
-    //     return $this->items()
-    //         ->join('hoardings', 'enquiry_items.hoarding_id', '=', 'hoardings.id')
-    //         ->whereNotNull('hoardings.vendor_id')
-    //         ->distinct('hoardings.vendor_id')
-    //         ->count('hoardings.vendor_id');
-    // }
+    public function getVendorCountAttribute(): int
+    {
+        return $this->items()
+            ->join('hoardings', 'enquiry_items.hoarding_id', '=', 'hoardings.id')
+            ->whereNotNull('hoardings.vendor_id')
+            ->distinct('hoardings.vendor_id')
+            ->count('hoardings.vendor_id');
+    }
 
      public function scopeWithVendorCount($query)
     {
@@ -159,55 +159,6 @@ class Enquiry extends Model
                 ->distinct('hoardings.vendor_id');
             }
         ]);
-    }
-
-            /* ================= DOOH IMAGE (FIXED) ================= */
-
-            if ($item->hoarding_type === 'dooh') {
-
-                $doohScreenId = optional($item->hoarding->doohScreen)->id;
-
-                if ($doohScreenId) {
-
-                    $media = DB::table('dooh_screen_media')
-                        ->where('dooh_screen_id', $doohScreenId)
-                        ->orderBy('is_primary', 'desc')
-                        ->orderBy('sort_order', 'asc')
-                        ->first();
-
-                    if ($media) {
-                        $item->image_url = asset('storage/' . $media->file_path);
-                    }
-                }
-            }
-
-            /* ================= PACKAGE ================= */
-
-            $item->package_name = '-';
-            $item->discount_percent = '-';
-
-            if ($item->hoarding_type === 'ooh' && $item->package_id) {
-                $package = DB::table('hoarding_packages')->find($item->package_id);
-                if ($package) {
-                    $item->package_name = $package->package_name;
-                    $item->discount_percent = $package->discount_percent;
-                }
-            }
-
-            if ($item->hoarding_type === 'dooh' && $item->package_id) {
-                $package = DB::table('dooh_packages')->find($item->package_id);
-                if ($package) {
-                    $item->package_name = $package->package_name;
-                    $item->discount_percent = $package->discount_percent;
-                }
-            }
-
-            /* ================= PRICE ================= */
-
-            $item->final_price = \App\Services\EnquiryPriceCalculator::calculate($item);
-        }
-
-        return $this;
     }
 
 

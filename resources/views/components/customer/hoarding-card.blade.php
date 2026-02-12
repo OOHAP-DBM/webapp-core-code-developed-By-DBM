@@ -1,4 +1,4 @@
-<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col h-full" onclick="if(event.target.closest('button') === null) window.location.href='{{ route('hoardings.show', $hoarding->id) }}';">
+<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col h-full" onclick="if(event.target.closest('button') === null) window.location.href='{{ route('hoardings.show', $hoarding->slug ?? $hoarding->id) }}';">
     <!-- Image -->
     <div class="relative h-48 overflow-hidden bg-gray-100">
     @php
@@ -155,7 +155,7 @@
         <!-- Price -->
         <div class="mb-3">
 
-            @if($hoarding->hoarding_type === 'ooh')
+          
 
             @php
                 $base  = $hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price;
@@ -196,16 +196,7 @@
                 </div>
             @endif
 
-            {{-- ================= DOOH ================= --}}
-            @else
-                <div class="flex items-baseline">
-                    <span class="text-xl font-semibold text-gray-900">
-                        ₹{{ number_format(optional($hoarding->doohScreen)->price_per_slot) }}
-                    </span>
-                    <span class="text-lg text-black font-bold ml-1">/Second</span>
-                </div>
-            @endif
-
+           
 
         </div>
 

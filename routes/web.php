@@ -23,7 +23,11 @@ use App\Http\Controllers\Web\Customer\ShortlistController;
 // ============================================
 // PUBLIC ROUTES (Customer-facing)
 // ============================================
-Route::middleware(['auth'])->get('/notification/{notification}', [App\Http\Controllers\NotificationRedirectController::class, 'open'])->name('notifications.open');
+
+// SEO-friendly hoarding search route (pattern controlled by config/seo_search_routes.php)
+$seoSearchPattern = config('seo_search_routes.pattern', '/billboard-advertising/{city}/{area?}');
+Route::get($seoSearchPattern, [SearchController::class, 'seoSearch'])->name('search.seo');
+
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
@@ -70,7 +74,15 @@ Route::prefix('vendor/pos')->middleware(['auth', 'vendor'])->name('vendor.pos.')
     Route::get('/bookings/{id}', [\Modules\POS\Controllers\Web\VendorPosController::class, 'show'])->name('show');
     // Extend: edit, view, etc. as needed
 });
-Route::get('/hoardings/{id}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
+Route::get('/hoardings/{slug}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
+// 301 Redirect from old ID-based hoarding URLs to new slug-based URLs
+Route::get('/hoardings/{id}', function($id) {
+    $hoarding = \App\Models\Hoarding::find($id);
+    if ($hoarding && $hoarding->slug) {
+        return redirect()->route('hoardings.show', ['slug' => $hoarding->slug], 301);
+    }
+    abort(404);
+});
 // DOOH Screen Vendor Routes
 // Route::prefix('vendor/dooh')->middleware(['auth', 'vendor'])->name('vendor.dooh.')->group(function () {
 //     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');

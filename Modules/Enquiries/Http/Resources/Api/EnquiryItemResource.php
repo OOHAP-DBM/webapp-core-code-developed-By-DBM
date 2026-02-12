@@ -16,9 +16,9 @@ class EnquiryItemResource extends JsonResource
         return [
             /* ================= Enquiry Summary ================= */
             'id'              => $this->id,
-            'enquiry_no'      => $this->enquiry_no,
+            'enquiry_no'      => $this->formatted_id,
             'status'          => $this->status,
-            'status_label'    => "Waiting for Vendor Response",
+            'status_label'    => $this->statusLabel(),
             'requirement'     => $this->customer_note,
             'submitted_on'    => optional($this->created_at)->format('d M Y'),
            'preferred_campaign_start' => $this->enquiryCampaignStartDate(),
@@ -114,56 +114,20 @@ class EnquiryItemResource extends JsonResource
             });
     }
 
-    /* ===================================================== */
-    /* ================= Pricing Resolver ================== */
-    /* ===================================================== */
-
-    // protected function resolvePricing($item): array
-    // {
-    //     $baseMonthly = (float) ($item->hoarding->base_monthly_price ?? 0);
-    //     $sellMonthly = (float) ($item->hoarding->monthly_price ?? null);
-
-    //     $durationLabel = DurationHelper::normalize($item->expected_duration);
-    //     $multiplier    = DurationHelper::multiplier($item->expected_duration);
-
-    //     $package = $this->resolvePackage($item);
-    //     $baseTotal = round($baseMonthly * $multiplier, 2);
-    //     $discountPercent = 0;
-    //     // Base price only
-    //     if (!$package || $package['type'] === 'base') {
-    //         return [
-    //             'package'        => null,
-    //         ];
-    //     }
-
-    //     // Package applied
-    //     // $discountPercent = data_get(
-    //     //     $item->meta,
-    //     //     'discount_percent',
-    //     //     $package['discount_percent']
-    //     // );
-
-    //     $discountedMonthly = calculateDiscountedPrice(
-    //         $baseMonthly,
-    //         $discountPercent
-    //     );
-
-    //     $finalTotal = round($discountedMonthly * $multiplier, 2);
-
-    //     return [
-    //         'package'            => $package,
-    //         'base_monthly'       => display_price($baseMonthly),
-    //         'discount_percent'   => $discountPercent,
-    //         'discounted_monthly' => display_price($discountedMonthly),
-    //         'duration_label'     => $durationLabel,
-    //         'multiplier'         => $multiplier,
-    //         'final_price'        => display_price($finalTotal),
-    //     ];
-    // }
-
-    /* ===================================================== */
-    /* ================= Package Resolver ================== */
-    /* ===================================================== */
+   private function statusLabel(): string
+    {
+        // Get viewer type from additional data, fallback to auto-detection
+        $viewerType = $this->additional['viewer_type'] ?? 'user';
+        
+        return match ($this->status) {
+            'submitted' => $viewerType === 'owner' ? 'Enquiry Received' : 'Enquiry Sent: Waiting for Vendor Response',
+            'new' => 'Waiting For Vendor Response',
+            'accepted'  => 'Accepted',
+            'rejected'  => 'Rejected',
+            'cancelled' => 'Cancelled',
+            default     => ucfirst($this->status),
+        };
+    }
 
     protected function resolvePackage($item): ?array
     {

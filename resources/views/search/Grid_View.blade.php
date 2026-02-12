@@ -20,8 +20,14 @@
 
                     <div
                         class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col h-full"
-                        onclick="if(event.target.closest('button, a') === null)
-                            window.location.href='{{ route('hoardings.show', $item->id) }}';"
+                        @php
+                            $hoardingParam = $item->slug ?? $item->title;
+                        @endphp
+                        @if(!empty($hoardingParam))
+                            onclick="if(event.target.closest('button, a') === null) window.location.href='{{ route('hoardings.show', $hoardingParam) }}';"
+                        @else
+                            style="cursor:not-allowed; opacity:0.6;"
+                        @endif
                     >
 
                         {{-- IMAGE --}}

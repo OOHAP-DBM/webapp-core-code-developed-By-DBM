@@ -143,7 +143,7 @@
         color: #fff; /* white */
     }
 </style>
-<form method="GET" action="{{ route('search') }}" id="filterForm">
+<form method="GET" action="{{ route('search.seo', ['city' => request('location', 'india'), 'area' => request('area')]) }}" id="filterForm">
     <div id="filterModal" class="fixed inset-0 z-[9999] hidden p-4 sm:p-6 md:p-8 lg:p-0">
 
         <!-- Overlay -->
@@ -452,7 +452,7 @@
 
             {{-- FOOTER --}}
             <div class="flex items-center justify-between px-6 py-4 border border-gray-200">
-                <a href="{{ route('search') }}" class="text-lg text-black">Clear all</a>
+                <a href="{{ route('search.seo', ['city' => 'india']) }}" class="text-lg text-black">Clear all</a>
                 <button type="submit"
                     class="btn-color text-white px-14 py-2 rounded" style="cursor:pointer;">
                     Apply
