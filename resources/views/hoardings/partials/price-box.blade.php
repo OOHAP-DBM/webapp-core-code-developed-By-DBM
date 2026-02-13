@@ -149,9 +149,12 @@
                 class="mt-3 block text-center text-xs text-teal-600 hover:text-teal-700 font-medium"
                 data-hoarding-id="{{ $hoarding->id }}"
                 data-hoarding-type="{{ $hoarding->hoarding_type ?? 'ooh' }}"
-                data-base-price="{{ $hoarding->hoarding_type === 'dooh'
-                    ? ($hoarding->doohScreen->price_per_slot ?? 0)
-                    : ($hoarding->monthly_price ?? 0) }}"
+                data-base-price="{{ (!empty($hoarding->monthly_price) && $hoarding->monthly_price > 0)
+                            ? $hoarding->monthly_price
+                            : ($hoarding->base_monthly_price ?? 0)
+                        }}"
+                data-slot-duration="{{ $hoarding->doohScreen->slot_duration_seconds ?? '' }}"
+                data-total-slots="{{ $hoarding->doohScreen->total_slots_per_day ?? '' }}"
                 data-grace-days="{{ (int) $hoarding->grace_period_days }}"
                 data-count="1"
                 onclick="openEnquiryModal({

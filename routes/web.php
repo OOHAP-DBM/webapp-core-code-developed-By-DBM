@@ -230,10 +230,10 @@ Route::middleware(['auth'])->prefix('auth')->name('auth.')->group(function () {
 // ============================================
 Route::middleware('auth')->group(function () {
     // Enquiries
-    Route::get('/customer/enquiries', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('customer.enquiries.index');
-    Route::get('/customer/enquiries/{id}', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'show'])->name('customer.enquiries.show');
+    Route::get('/my/enquiries', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('customer.enquiries.index');
+    Route::get('/my/enquiries/{id}', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'show'])->name('customer.enquiries.show');
     // Customer Enquiries Create Route
-    Route::get('/customer/enquiries/create', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('customer.enquiries.create');
+    Route::get('/my/enquiries/create', [\Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('customer.enquiries.create');
     // OOH Hoarding Vendor Routes
     Route::get('/enquiries', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'index'])->name('enquiries.index');
     Route::get('/enquiries/create', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'create'])->name('enquiries.create');
@@ -241,6 +241,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/enquiries/{id}', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'show'])->name('enquiries.show');
     Route::post('/enquiries/{id}/cancel', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'cancel'])->name('enquiries.cancel');
     Route::get('/enquiry/shortlisted', [Modules\Enquiries\Controllers\Web\EnquiryController::class, 'shortlisted']);
+    Route::get('/myHoarding/enquiries', [\App\Http\Controllers\Vendor\EnquiryController::class, 'index'])->name('vendor.enquiries.index');
+    Route::get('/myHoarding/enquiries/{id}', [\App\Http\Controllers\Vendor\EnquiryController::class, 'show'])->name('vendor.enquiries.show');
+    Route::post('/myHoarding/enquiries/{id}/respond', [\App\Http\Controllers\Vendor\EnquiryController::class, 'respond'])->name('vendor.enquiries.respond');
 });
 
 // ============================================
@@ -440,16 +443,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::delete('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteSizeOverlay'])->name('delete-size-overlay');
             Route::post('/gallery/reorder', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'reorderGallery'])->name('reorder-gallery');
             Route::get('/stats', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'stats'])->name('stats');
-        });
-        
-        // DOOH Management
-        // Route::resource('dooh', \App\Http\Controllers\Web\Vendor\DOOHController::class);
-        
-        // Enquiries (received)
-        Route::get('/enquiries', [\App\Http\Controllers\Vendor\EnquiryController::class, 'index'])->name('enquiries.index');
-        Route::get('/enquiries/{id}', [\App\Http\Controllers\Vendor\EnquiryController::class, 'show'])->name('enquiries.show');
-        Route::post('/enquiries/{id}/respond', [\App\Http\Controllers\Vendor\EnquiryController::class, 'respond'])->name('enquiries.respond');
-        
+        });       
         // Offers
         Route::get('/offers', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'index'])->name('offers.index');
         Route::get('/offers/create', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'create'])->name('offers.create');

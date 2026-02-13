@@ -241,18 +241,13 @@
                                                 whitespace-nowrap py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn cursor-pointer"
                                         data-hoarding-id="{{ $item->id }}"
                                         data-grace-days="{{ isset($item->grace_period_days) ? (int) $item->grace_period_days : 0 }}"
-
-                                        {{-- BASE PRICE (used for dropdown base option) --}}
-                                        data-base-price="{{ ($item->hoarding_type === 'dooh')
-                                            ? ($item->price ?? 0)
-                                            : ((!empty($item->monthly_price) && $item->monthly_price > 0)
-                                                ? $item->monthly_price
-                                                : ($item->base_monthly_price ?? 0))
+                                        data-base-price="{{ (!empty($item->monthly_price) && $item->monthly_price > 0)
+                                            ? $item->monthly_price
+                                            : ($item->base_monthly_price ?? 0)
                                         }}"
-
-                                        {{-- ALWAYS BASE MONTHLY PRICE (for OOH package discount calc) --}}
+                                        data-slot-duration="{{ $item->doohScreen->slot_duration_seconds ?? '' }}"
+                                        data-total-slots="{{ $item->doohScreen->total_slots_per_day ?? '' }}"
                                         data-base-monthly-price="{{ $item->base_monthly_price ?? 0 }}"
-
                                         data-hoarding-type="{{ $item->hoarding_type }}"
                                     >
                                         Enquiry Now
