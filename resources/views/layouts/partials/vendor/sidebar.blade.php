@@ -120,6 +120,60 @@
             </a>
             {{-- Display Enquiries Dropdown --}}
             <div
+                x-data="{ open: {{ request()->routeIs('customer.enquiries.*') ? 'true' : 'false' }} }"
+                class="space-y-1"
+                >
+                {{-- Parent --}}
+                <button
+                    type="button"
+                    @click="open = !open"
+                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
+                           {{ request()->routeIs('customer.enquiries.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
+                >
+                    <div class="flex items-center gap-3
+                         {{ request()->routeIs('customer.enquiries.*') ? 'text-white' : 'text-gray-700' }}">
+
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" fill="currentColor"/>
+                        </svg>
+                        My Order
+                    </div>
+                    <svg
+                        class="w-4 h-4 transition-transform duration-200"
+                        :class="{ 'rotate-180': open }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 9l-7 7-7-7"
+                        />
+                    </svg>
+                </button>
+
+                {{-- Children --}}
+                <div
+                        x-show="open"
+                        x-collapse
+                        x-cloak
+                        class="space-y-1 pl-3 mt-1"
+                    >
+
+                    <a
+                        href="{{ route('customer.enquiries.index') }}"
+                        class="block px-6 py-1 text-sm rounded-md transition
+                        {{ request()->routeIs('customer.enquiries.*')
+                            ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold'
+                            : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}"
+                    >
+                        - Enquiries & Offers
+                    </a>
+                </div>
+            </div>
+            <div
                 x-data="{ open: @if(request()->routeIs('vendor.enquiries.*')) true @else false @endif }"
                 class="space-y-1"
                 >

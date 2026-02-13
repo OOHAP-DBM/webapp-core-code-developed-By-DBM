@@ -1,5 +1,18 @@
-@extends('layouts.customer')
+@php
+    $authUser = auth()->user();
 
+    $layout = 'layouts.customer';
+
+    if($authUser){
+        if($authUser->active_role === 'vendor'){
+            $layout = 'layouts.vendor';
+        }
+        elseif($authUser->active_role === 'admin'){
+            $layout = 'layouts.admin';
+        }
+    }
+@endphp
+@extends($layout)
 @section('title', 'Enquiry & Offers')
 
 @section('content')

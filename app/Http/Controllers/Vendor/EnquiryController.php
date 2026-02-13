@@ -44,24 +44,56 @@ class EnquiryController extends Controller
     
     public function index(Request $request)
     {
-        // Fetch all enquiries for vendor's hoardings
+        // Fetch all enquiries for vendor's hoardings with search and filter
         $vendorId = auth()->id();
-        $enquiries = Enquiry::whereHas('items.hoarding', function($q) use ($vendorId) {
+        $query = Enquiry::whereHas('items.hoarding', function($q) use ($vendorId) {
             $q->where('vendor_id', $vendorId);
-        })
-        ->with([
-            'items' => function($q) {
-                $q->with([
-                    'hoarding' => function($q) {
-                        $q->with('media');
-                    },
-                    'package'
-                ]);
-            },
-            'customer'
-        ])
-        ->latest()
-        ->paginate(10);
+        });
+
+        // SEARCH by enquiry id or customer info
+        if ($search = $request->input('search')) {
+            $query->where(function($q) use ($search) {
+                $q->where('id', $search);
+            });
+        }
+
+        // FILTER by created_at date
+        $dateFilter = $request->input('date_filter', 'all');
+        if ($dateFilter && $dateFilter !== 'all') {
+            if ($dateFilter === 'last_week') {
+                $query->where('created_at', '>=', now()->subWeek());
+            } elseif ($dateFilter === 'last_month') {
+                $query->where('created_at', '>=', now()->subMonth());
+            } elseif ($dateFilter === 'last_year') {
+                $query->where('created_at', '>=', now()->subYear());
+            } elseif ($dateFilter === 'custom') {
+                $from = $request->input('from_date');
+                $to = $request->input('to_date');
+                if ($from && $to) {
+                    $query->whereBetween('created_at', [Carbon::parse($from)->startOfDay(), Carbon::parse($to)->endOfDay()]);
+                } elseif ($from) {
+                    $query->where('created_at', '>=', Carbon::parse($from)->startOfDay());
+                } elseif ($to) {
+                    $query->where('created_at', '<=', Carbon::parse($to)->endOfDay());
+                }
+            }
+        }
+
+        $enquiries = $query
+            ->with([
+                'items' => function($q) {
+                    $q->with([
+                        'hoarding' => function($q) {
+                            $q->with('media');
+                        },
+                        'package'
+                    ]);
+                },
+                'customer'
+            ])
+            ->latest()
+            ->paginate(10)
+            ->appends($request->all());
 
         // Process each enquiry with additional data
         $enquiries->getCollection()->transform(function($enquiry) {

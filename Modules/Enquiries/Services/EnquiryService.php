@@ -97,8 +97,8 @@ class EnquiryService
             'customer_email' => 'nullable|email',
             'message' => 'nullable|string',
             // DOOH
-            'video_duration' => 'nullable|integer|in:15,30',
-            'slots_count' => 'nullable|integer|min:1',
+            // 'video_duration' => 'nullable|integer|in:15,30',
+            // 'slots_count' => 'nullable|integer|min:1',
             'slot' => 'nullable|string',
             'duration_days' => 'nullable|integer|min:1',
         ];
