@@ -255,7 +255,6 @@ class SearchController extends Controller
      */
     public function seoSearch(Request $request, CartService $cartService, $city = null, $locality = null)
     {
-        // Only set location if city is not empty and not a generic value
         $mergeParams = [];
         if ($city && strtolower($city) !== 'india') {
             $mergeParams['location'] = $city;
@@ -266,7 +265,6 @@ class SearchController extends Controller
         if (!empty($mergeParams)) {
             $request->merge($mergeParams);
         }
-        // You can add more logic here to map SEO-friendly slugs to types/categories if needed
         return $this->index($request, $cartService);
     }
 }

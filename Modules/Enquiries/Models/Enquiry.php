@@ -238,6 +238,5 @@ class Enquiry extends Model
 
         return $this;
     }
-
 }
 

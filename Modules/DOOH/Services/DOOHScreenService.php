@@ -46,9 +46,6 @@ class DOOHScreenService
             'spots_per_day'    => 'required|numeric|min:1',
             // 'loop_duration_seconds'    => 'required|numeric|min:1',
               'daily_runtime' => 'nullable|numeric|min:0|max:24',
-            // 'resolution_type' => 'required|string',
-            // 'resolution_width' => 'required_if:resolution_type,custom|nullable|integer|min:1',
-            // 'resolution_height' => 'required_if:resolution_type,custom|nullable|integer|min:1',
         ]);
 
         // Normalize mediaFiles to always be an array
@@ -85,88 +82,6 @@ class DOOHScreenService
             return ['success' => true, 'screen' => $screen->fresh('media')];
         });
     }
-
-    // protected function normalizeResolution(array $data): array
-    // {
-    //     if ($data['resolution_type'] !== 'custom') {
-    //         [$width, $height] = explode('x', $data['resolution_type']);
-    //     } else {
-    //         $width = $data['resolution_width'];
-    //         $height = $data['resolution_height'];
-    //     }
-
-    //     return [
-    //         'resolution_width'  => (int) $width,
-    //         'resolution_height' => (int) $height,
-    //         'aspect_ratio'      => round($width / $height, 2),
-    //     ];
-    // }
-
-    /**
-     * Store Step 2 (Additional Settings, Visibility & Brand Logos)
-     */
-    // public function storeStep2($screen, array $data, array $brandLogoFiles = [])
-    // {
-    //     return DB::transaction(function () use ($screen, $data, $brandLogoFiles) {
-    //         try {
-    //             $update = [
-    //                 'nagar_nigam_approved' => $data['nagar_nigam_approved'] ?? null,
-    //                 'block_dates'          => $data['block_dates'] ?? null,
-    //                 'grace_period'         => $data['grace_period'] ?? null,
-    //                 'audience_types'       => $data['audience_types'] ?? null,
-    //                 'visible_from'         => $data['visible_from'] ?? null,
-    //                 'located_at'           => $data['located_at'] ?? null,
-    //                 'hoarding_visibility'  => $data['hoarding_visibility'] ?? null,
-    //                 'visibility_details'   => $data['visibility_details'] ?? null,
-    //             ];
-
-    //             $screen = $this->repo->updateStep2($screen, $update);
-
-    //             if (!empty($brandLogoFiles)) {
-    //                 $this->repo->storeBrandLogos($screen->id, $brandLogoFiles);
-    //             }
-
-    //             $screen->current_step = 2;
-    //             $screen->save();
-
-    //             return ['success' => true, 'screen' => $screen->fresh(['brandLogos'])];
-    //         } catch (\Throwable $e) {
-    //             Log::error('DOOH step2 failed', ['error' => $e->getMessage()]);
-    //             return ['success' => false, 'errors' => ['step2' => ['Failed to save step 2 settings.']]];
-    //         }
-    //     });
-    //     return DB::transaction(function () use ($screen, $data, $brandLogoFiles) {
-    //         try {
-    //         $update = [
-    //             'nagar_nigam_approved' => isset($data['nagar_nigam_approved']),
-    //             'grace_period'         => isset($data['grace_period']) ? (int)$data['grace_period'] : null,
-    //             'block_dates'          => $data['block_dates'] ?? null,
-    //             'audience_types'       => $data['audience_types'] ?? null,
-    //             'visible_from'         => $data['visible_from'] ?? null,
-    //             'located_at'           => $data['located_at'] ?? null,
-    //             'hoarding_visibility'  => $data['hoarding_visibility'] ?? null,
-    //             'visibility_details'   => $data['visibility_details'] ?? null,
-    //         ];
-
-    //         $screen = $this->repo->updateStep2($screen, $update);
-
-    //         if (!empty($brandLogoFiles)) {
-    //             $this->repo->storeBrandLogos($screen->id, $brandLogoFiles);
-    //         }
-
-    //         $screen->hoarding->current_step = 2;
-    //         $screen->save();
-
-    //         return [
-    //             'success' => true,
-    //             'screen'  => $screen->fresh('brandLogos')
-    //         ];
-    //         } catch (\Throwable $e) {
-    //                     Log::error('DOOH step2 failed', ['error' => $e->getMessage()]);
-    //                     return ['success' => false, 'errors' => ['step2' => ['Failed to save step 2 settings.']]];
-    //                 }
-    //         });
-    // }
 
     public function storeStep2($screen, array $data, array $brandLogoFiles = []): array
     {

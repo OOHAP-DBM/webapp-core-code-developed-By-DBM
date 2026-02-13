@@ -14,36 +14,6 @@ use Illuminate\Support\Facades\DB;
 
 class DOOHScreenRepository
 {
-    // public function createStep1($vendor, $data)
-    // {
-    //     $width = floatval($data['width']);
-    //     $height = floatval($data['height']);
-    //     $measurement_unit = $data['measurement_unit'] ?? $data['unit'] ?? null;
-    //     $areaSqft = $measurement_unit === 'sqm'
-    //         ? round($width * $height * 10.7639, 2)
-    //         : round($width * $height, 2);
-
-    //     return DOOHScreen::create([
-    //         'vendor_id'        => $vendor->id,
-    //         'category'         => $data['category'],
-    //         'screen_type'      => $data['screen_type'],
-    //         'width'            => $width,
-    //         'height'           => $height,
-    //         'measurement_unit' => $measurement_unit,
-    //         'area_sqft'        => $areaSqft,
-
-    //         'address'          => $data['address'],
-    //         'pincode'          => $data['pincode'],
-    //         'locality'         => $data['locality'],
-    //         'city'             => $data['city'] ?? null,
-    //         'state'            => $data['state'] ?? null,
-    //         'lat'              => $data['lat'] ?? null,
-    //         'lng'              => $data['lng'] ?? null,
-    //         'price_per_slot'      => $data['price_per_slot'],
-    //         'status'              => DOOHScreen::STATUS_DRAFT,
-    //         'current_step'        => 1,
-    //     ]);
-    // }
 
     public function createStep1($vendor, $data)
     {
@@ -85,10 +55,6 @@ class DOOHScreenRepository
             $width  = (float) $data['width'];
             $height = (float) $data['height'];
             $measurement_unit = $data['measurement_unit'] ?? null;
-
-            $areaSqft = ($measurement_unit === 'sqm')
-                ? round($width * $height * 10.7639, 2)
-                : round($width * $height, 2);
             return DOOHScreen::create([
                 'hoarding_id' => $hoarding->id,
                 'screen_type' => $data['screen_type'],
@@ -98,7 +64,6 @@ class DOOHScreenRepository
                 'screen_run_time' => $data['daily_runtime'] ?? null,
                 'slot_duration_seconds' => $data['spot_duration'] ?? null,
                 'total_slots_per_day' => $data['spots_per_day'] ?? null,
-                'calculated_area_sqft' => $areaSqft,
                 'price_per_slot' => $data['price_per_slot'],
             ]);
         });

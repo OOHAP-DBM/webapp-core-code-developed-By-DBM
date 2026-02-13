@@ -83,6 +83,12 @@
                             Deactivate Selected
                         </button>
                         <div class="border-t border-gray-100 my-1"></div>
+                        <button onclick="bulkUpdateSlugs()" class="w-full text-left px-4 py-2.5 hover:bg-yellow-50 text-yellow-700 font-medium flex items-center gap-3 transition-colors">
+                            <svg class="w-5 h-5 mt-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 01-8 0m8 0a4 4 0 00-8 0m8 0V5a4 4 0 00-8 0v2m8 0a4 4 0 01-8 0" />
+                            </svg>
+                            Generate/Update Slugs
+                        </button>
                         <button onclick="bulkDelete()" class="w-full text-left px-4 py-2.5 hover:bg-red-50 text-red-600 font-medium flex items-center gap-3 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -1211,5 +1217,66 @@
                 }
             });
         }
+
+            function bulkUpdateSlugs() {
+                const ids = getSelectedIds();
+                if (ids.length === 0) return;
+
+                Swal.fire({
+                    title: 'Generate/Update Slugs?',
+                    text: `Update slugs for ${ids.length} hoarding(s)?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#eab308',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, update slugs',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Updating...',
+                            text: 'Please wait',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        fetch('/admin/vendor-hoardings/bulk-update-slugs', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ ids })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Slugs Updated!',
+                                    text: data.message,
+                                    confirmButtonColor: '#16a34a'
+                                }).then(() => location.reload());
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Failed',
+                                    text: data.message
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Failed to update slugs'
+                            });
+                        });
+                    }
+                });
+            }
     </script>
 @endpush

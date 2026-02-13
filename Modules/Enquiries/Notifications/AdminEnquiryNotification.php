@@ -13,66 +13,63 @@ class AdminEnquiryNotification extends Notification
     use Queueable;
 
     protected $enquiry;
+    protected $totalItems;
+    protected $vendorCount;
+    protected $isMultiVendor;
+    protected $totalValue;
+    protected $customerName;
 
     public function __construct($enquiry)
     {
         $this->enquiry = $enquiry;
+
+        $items = $enquiry->items ?? collect();
+
+        $this->totalItems  = $items->count();
+        $this->vendorCount = $items->pluck('vendor_id')
+                                ->filter(fn($id) => !empty($id))
+                                ->unique()
+                                ->count();
+
+        $this->isMultiVendor = $this->vendorCount > 1;
+        $this->totalValue = $items->sum(fn ($item) => $item->meta['amount'] ?? 0);
+
+        $this->customerName = is_array($enquiry->meta ?? null) && isset($enquiry->meta['customer_name'])
+            ? $enquiry->meta['customer_name']
+            : 'New Client';
     }
 
     public function via($notifiable)
     {
         return ['mail', 'database'];
     }
-
     public function toMail($notifiable)
     {
-        $items       = $this->enquiry->items;
-        $totalItems  = $items->count();
-
-        /**
-         * Detect unique vendors
-         * If vendor_id exists directly on item
-         */
-        $vendorCount = $items->pluck('vendor_id')->filter()->unique()->count();
-
-          $isMultiVendor = $vendorCount > 1;
-
-        $totalValue = $items->sum(fn ($item) => $item->meta['amount'] ?? 0);
-
         return (new MailMessage)
             ->subject(
-                ($isMultiVendor ? '🚨 MULTI-VENDOR ALERT: ' : 'PLATFORM ALERT: ') .
-                'New Lead Generated #' . $this->enquiry->id
+                ($this->isMultiVendor 
+                    ? '🚨 MULTI-VENDOR ALERT: ' 
+                    : '📩 SINGLE-VENDOR LEAD: ')
+                . 'New Enquiry #' . $this->enquiry->id
             )
             ->greeting('Hello Admin,')
 
             ->line(
-                $isMultiVendor
-                    ? '🚨 **Multi-Vendor Enquiry Detected** involving hoardings from ' .
-                      $vendorCount . ' different vendors.'
-                    : (
-                        $totalItems === 1
-                            ? 'A single hoarding enquiry has been generated on the platform.'
-                            : 'A multi hoarding enquiry has been generated on the platform for ' .
-                              $totalItems . ' ' . Str::plural('hoarding', $totalItems) . '.'
-                    )
+                $this->isMultiVendor
+                    ? "🚨 Multi-vendor enquiry involving {$this->vendorCount} vendors."
+                    : "📩 Single-vendor enquiry."
             )
 
             ->line(
-                '**Client:** ' .
-                (is_array($this->enquiry->meta) && isset($this->enquiry->meta['customer_name'])
-                    ? $this->enquiry->meta['customer_name']
-                    : 'N/A')
+                "Total Hoardings: {$this->totalItems}"
             )
 
-            ->line('**Total Hoardings:** ' . $totalItems)
-
-            ->when($isMultiVendor, function (MailMessage $message) use ($vendorCount) {
-                $message->line('**Vendors Involved:** ' . $vendorCount);
-            })
+            ->line(
+                "Client: {$this->customerName}"
+            )
 
             ->line(
-                '**Total Potential Value:** ₹' . number_format($totalValue, 2)
+                "Total Potential Value: ₹" . number_format($this->totalValue, 2)
             )
 
             ->action(
@@ -81,26 +78,31 @@ class AdminEnquiryNotification extends Notification
             )
 
             ->line(
-                $isMultiVendor
-                    ? '⚠️ Immediate coordination is required to ensure timely vendor responses.'
-                    : 'Ensure the vendor responds to this lead promptly.'
+                $this->isMultiVendor
+                    ? '⚠️ Coordination between multiple vendors is required.'
+                    : 'Ensure the vendor responds promptly.'
             );
     }
 
     public function toDatabase($notifiable)
     {
-        $items = method_exists($this->enquiry, 'items') ? $this->enquiry->items : ($this->enquiry->items ?? []);
-        $itemCount = is_callable([$items, 'count']) ? $items->count() : (is_array($items) ? count($items) : 0);
-        $customerName = is_array($this->enquiry->meta ?? null) && isset($this->enquiry->meta['customer_name'])
-            ? $this->enquiry->meta['customer_name']
-            : 'New Client';
         return [
-            'enquiry_id'   => $this->enquiry->id,
-            'item_count'   => $itemCount,
-            'customer_name'=> $customerName,
-            'message'      => 'New enquiry raised for ' . $itemCount . ' hoarding(s).',
-            'action_url'   => route('admin.enquiries.show', $this->enquiry->id),
-            'role'         => 'admin',
+            'enquiry_id'    => $this->enquiry->id,
+            'customer_name' => $this->customerName,
+            'item_count'    => $this->totalItems,
+            'vendor_count'  => $this->vendorCount,
+            'is_multi_vendor' => $this->isMultiVendor,
+            'total_value'   => $this->totalValue,
+
+            'message' => $this->isMultiVendor
+                ? "🚨 Multi-vendor enquiry ({$this->vendorCount} vendors, {$this->totalItems} hoardings)."
+                    : "📩 Single-vendor enquiry ({$this->totalItems} " 
+                      . Str::plural('hoarding', $this->totalItems) . ").",
+
+            'action_url' => route('admin.enquiries.show', $this->enquiry->id),
+            'role'       => 'admin',
         ];
     }
+
+
 }
