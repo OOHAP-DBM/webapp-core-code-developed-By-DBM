@@ -287,6 +287,13 @@
                     @endif
                 </div>
             </div>
+            <div class="space-y-1">
+                        <a href="{{ route('vendor.email-settings') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.email-settings') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 4h16v16H4V4zm8 2a6 6 0 100 12A6 6 0 0012 6zm0 2a4 4 0 110 8 4 4 0 010-8z" fill="currentColor"/>
+                </svg>
+                Notification Settings
+            </a>
             <button
                 type="button"
                 onclick="openLogoutModal()"

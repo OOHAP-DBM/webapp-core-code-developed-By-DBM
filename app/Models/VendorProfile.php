@@ -20,7 +20,6 @@ class VendorProfile extends Model
         'approved_at',
         'approved_by',
         'rejection_reason',
-        
         // Company Details
         'company_name',
         'company_registration_number',
@@ -32,7 +31,6 @@ class VendorProfile extends Model
         'state',
         'pincode',
         'website',
-        
         // Business Information
         'year_established',
         'total_hoardings',
@@ -43,7 +41,6 @@ class VendorProfile extends Model
         'contact_person_designation',
         'contact_person_phone',
         'contact_person_email',
-        
         // KYC Documents
         'pan_card_document',
         'gst_certificate',
@@ -54,7 +51,6 @@ class VendorProfile extends Model
         'other_documents',
         'kyc_verified',
         'kyc_verified_at',
-        
         // Bank Details
         'bank_name',
         'account_holder_name',
@@ -63,10 +59,16 @@ class VendorProfile extends Model
         'branch_name',
         'account_type',
         'bank_verified',
-        
         // Terms & Agreement
         'terms_accepted',
         'terms_accepted_at',
+        'terms_ip_address',
+        'commission_agreement_accepted',
+        'commission_percentage',
+        'special_terms',
+        // Notification emails and preferences
+        'additional_emails',
+        'email_preferences',
         'terms_ip_address',
         'commission_agreement_accepted',
         'commission_percentage',
@@ -86,6 +88,8 @@ class VendorProfile extends Model
         'kyc_verified_at' => 'datetime',
         'terms_accepted_at' => 'datetime',
         'commission_percentage' => 'decimal:2',
+        'additional_emails' => 'array',
+        'email_preferences' => 'array',
     ];
 
 
@@ -371,5 +375,57 @@ class VendorProfile extends Model
     {
         $this->update(['onboarding_status' => 'suspended']);
         $this->user->update(['status' => 'suspended']);
+    }
+
+    /**
+     * Get all verified additional emails
+     */
+    public function getVerifiedEmailsAttribute(): array
+    {
+        $verified = [];
+        $prefs = $this->email_preferences ?? [];
+        
+        foreach ($this->additional_emails ?? [] as $email) {
+            if (!empty($prefs[$email]['verified'])) {
+                $verified[] = $email;
+            }
+        }
+        
+        return $verified;
+    }
+
+    /**
+     * Get all emails that should receive notifications
+     */
+    public function getNotificationEmailsAttribute(): array
+    {
+        $notificationEmails = [$this->user->email]; // Always include primary email
+        $prefs = $this->email_preferences ?? [];
+        
+        foreach ($this->additional_emails ?? [] as $email) {
+            if (!empty($prefs[$email]['verified']) && !empty($prefs[$email]['notifications'])) {
+                $notificationEmails[] = $email;
+            }
+        }
+        
+        return $notificationEmails;
+    }
+
+    /**
+     * Check if an email is verified
+     */
+    public function isEmailVerified(string $email): bool
+    {
+        $prefs = $this->email_preferences ?? [];
+        return !empty($prefs[$email]['verified']);
+    }
+
+    /**
+     * Check if an email should receive notifications
+     */
+    public function shouldNotifyEmail(string $email): bool
+    {
+        $prefs = $this->email_preferences ?? [];
+        return !empty($prefs[$email]['verified']) && !empty($prefs[$email]['notifications']);
     }
 }

@@ -91,7 +91,7 @@ class OTPService
         } else {
             // Send via Email
             try {
-                Mail::to($identifier)->queue(new OTPEmail($otp));
+                Mail::to($identifier)->send(new OTPEmail($otp));
             } catch (\Exception $e) {
                 Log::error("OTP Email sending failed: " . $e->getMessage());
             }
@@ -111,5 +111,21 @@ class OTPService
             return '+91'.$number; // Assuming India
         }
         return $number;
+    }
+
+    /**
+     * Send OTP for email verification
+     */
+    public function sendEmailOTP(string $email, User $user): int
+    {
+        return $this->generate($user->id, $email, 'email_verification');
+    }
+
+    /**
+     * Verify OTP for email verification
+     */
+    public function verifyEmailOTP(string $email, string $otp, User $user): bool
+    {
+        return $this->verify($user->id, $email, $otp, 'email_verification');
     }
 }

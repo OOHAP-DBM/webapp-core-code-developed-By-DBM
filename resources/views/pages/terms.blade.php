@@ -28,12 +28,12 @@
 
 <style>
     hr {
-    border: none;
-    border-top: 1px solid #e5e7eb; /* Tailwind gray-200 */
-    margin: 24px 0;
-}
-.section-content{
-    padding-left:25px;
-}
-</style>
+        border: none;
+        border-top: 1px solid #e5e7eb; /* Tailwind gray-200 */
+        margin: 24px 0;
+    }
+    .section-content{
+        padding-left:25px;
+    }
+    </style>
 @endsection

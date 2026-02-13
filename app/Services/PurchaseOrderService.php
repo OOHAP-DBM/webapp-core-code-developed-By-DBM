@@ -319,10 +319,12 @@ class PurchaseOrderService
     protected function notifyVendor(PurchaseOrder $po): void
     {
         try {
-            $po->vendor->notify(new PurchaseOrderGeneratedNotification($po));
+            // Send to all enabled vendor emails if global preference is on
+            $notification = new \App\Notifications\PurchaseOrderGeneratedNotification($po);
+            $po->vendor->notifyVendorEmails($notification);
 
-            // Also notify customer
-            $po->customer->notify(new PurchaseOrderGeneratedNotification($po, true));
+            // Also notify customer (primary email only)
+            $po->customer->notify(new \App\Notifications\PurchaseOrderGeneratedNotification($po, true));
 
             Log::info('PO notifications sent', [
                 'po_id' => $po->id,

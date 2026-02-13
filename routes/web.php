@@ -89,6 +89,12 @@ Route::get('/hoardings/{id}', function($id) {
 //     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
 //     Route::put('{id}', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'update'])->name('update');
 // });
+
+// Global Notification Preferences
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notification/preferences', [\App\Http\Controllers\NotificationController::class, 'showGlobalPreferences'])->name('notification.global-preferences');
+    Route::post('/notification/preferences', [\App\Http\Controllers\NotificationController::class, 'updateGlobalPreferences'])->name('notification.global-preferences.update');
+});
 Route::post('/cart/add', [CartController::class,'add'])->name('cart.add');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/select-package', [CartController::class, 'selectPackage'])->name('cart.selectPackage');
@@ -386,14 +392,12 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
         Route::post('/creatives', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'storeCreative'])->name('creatives.store');
         Route::get('/creatives/{creative}', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'showCreative'])->name('creatives.show');
         Route::delete('/creatives/{creative}', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'destroyCreative'])->name('creatives.destroy');
-        
         // Schedules
         Route::get('/schedules', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'schedules'])->name('schedules.index');
         Route::get('/schedules/create', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'createSchedule'])->name('schedules.create');
         Route::post('/schedules', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'storeSchedule'])->name('schedules.store');
         Route::get('/schedules/{schedule}', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'showSchedule'])->name('schedules.show');
         Route::post('/schedules/{schedule}/cancel', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'cancelSchedule'])->name('schedules.cancel');
-        
         // AJAX Routes
         Route::post('/check-availability', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'checkAvailability'])->name('check-availability');
         Route::post('/playback-preview', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'playbackPreview'])->name('playback-preview');
@@ -404,7 +408,12 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
 // VENDOR PANEL (Authenticated)
 // ============================================
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
-        // Vendor Enquiries
+ // Vendor Email Settings (with verification)
+      Route::get('/email-settings', [App\Http\Controllers\Vendor\EmailSettingController::class, 'show'])->name('email-settings');
+    Route::post('/email-settings/update', [App\Http\Controllers\Vendor\EmailSettingController::class, 'update'])->name('email-settings.update');
+    Route::post('/email-settings/send-verification', [App\Http\Controllers\Vendor\EmailSettingController::class, 'sendVerification'])->name('email-settings.send-verification');
+    Route::post('/email-settings/verify-otp', [App\Http\Controllers\Vendor\EmailSettingController::class, 'verifyOtp'])->name('email-settings.verify-otp');
+    // Vendor Enquiries
         Route::get('/enquiries/{id}', [\App\Http\Controllers\Vendor\EnquiryController::class, 'show'])->name('enquiries.show');
     // Dashboard (PROMPT 26)
     Route::get('/dashboard', [\App\Http\Controllers\Vendor\DashboardController::class, 'index'])->name('dashboard');

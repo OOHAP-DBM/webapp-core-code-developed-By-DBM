@@ -1,6 +1,7 @@
 <?php
 
-namespace Modules\Notifications\Controllers\Api;
+
+namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -118,5 +119,34 @@ class NotificationController extends Controller
      
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Show global notification preferences page (UI)
+     */
+    public function showGlobalPreferences()
+    {
+        $user = Auth::user();
+        return view('notification.global-preferences', [
+            'user' => $user
+        ]);
+    }
+
+    /**
+     * Update global notification preferences (POST handler)
+     */
+    public function updateGlobalPreferences(Request $request)
+    {
+        $user = Auth::user();
+        $data = $request->validate([
+            'notification_email' => 'nullable|boolean',
+            'notification_push' => 'nullable|boolean',
+            'notification_whatsapp' => 'nullable|boolean',
+        ]);
+        $user->notification_email = $request->has('notification_email');
+        $user->notification_push = $request->has('notification_push');
+        $user->notification_whatsapp = $request->has('notification_whatsapp');
+        $user->save();
+        return redirect()->back()->with('success', 'Notification preferences updated successfully.');
     }
 }
