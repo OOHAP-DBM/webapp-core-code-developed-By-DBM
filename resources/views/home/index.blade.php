@@ -93,29 +93,7 @@
             <hr class="border-gray-200">
        </div>
     @endguest
-
     @include('home.home_contact_enquiry')
-    
-     <!-- Top DOOH Section -->
-    {{-- <section class="py-16 bg-gray-50">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Top DOOHs</h2>
-                <p class="text-gray-600">Digital out-of-home advertising screens</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                @foreach($topDOOHs as $dooh)
-                    @include('components.customer.dooh-card', ['dooh' => $dooh])
-                @endforeach
-            </div>
-        </div>
-    </section> --}}
-
-  
-
-   
-
     <!-- Featured Categories -->
     <section class="py-16 bg-white">
         <div class="container mx-auto px-4">

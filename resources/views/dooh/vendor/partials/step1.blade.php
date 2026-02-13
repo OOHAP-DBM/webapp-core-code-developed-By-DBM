@@ -270,21 +270,21 @@
 
                             <div class="relative">
                                <select id="discount_type" name="discount_type"
-    class="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm sm:text-base
-       focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
-       appearance-none bg-white cursor-pointer transition-all
-       hover:border-gray-300">
+                                    class="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm sm:text-base
+                                    focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
+                                    appearance-none bg-white cursor-pointer transition-all
+                                    hover:border-gray-300">
 
-    <option value="percent"
-        {{ old('discount_type', $hoarding->discount_type ?? '') == 'percent' ? 'selected' : '' }}>
-        Percentage (%)
-    </option>
+                                    <option value="percent"
+                                        {{ old('discount_type', $hoarding->discount_type ?? '') == 'percent' ? 'selected' : '' }}>
+                                        Percentage (%)
+                                    </option>
 
-    <option value="amount"
-        {{ old('discount_type', $hoarding->discount_type ?? '') == 'amount' ? 'selected' : '' }}>
-        Fixed (₹)
-    </option>
-</select>
+                                    <option value="amount"
+                                        {{ old('discount_type', $hoarding->discount_type ?? '') == 'amount' ? 'selected' : '' }}>
+                                        Fixed (₹)
+                                    </option>
+                                </select>
 
 
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">

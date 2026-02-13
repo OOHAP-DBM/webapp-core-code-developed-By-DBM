@@ -8,10 +8,6 @@ class HoardingHelper
 {
     public static function basePrice($hoarding): float
     {
-        if ($hoarding->hoarding_type === 'dooh') {
-            return (float) ($hoarding->doohScreen?->price_per_slot ?? 0);
-        }
-
         return (float) ($hoarding->base_monthly_price ?? 0);
     }
 
