@@ -675,7 +675,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/vendor-hoardings/bulk-deactivate',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkDeactivate'])->name('vendor-hoardings.bulk-deactivate');
     Route::post('/vendor-hoardings/bulk-approve',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkApprove'])->name('vendor-hoardings.bulk-approve');
     Route::post('/vendor-hoardings/{id}/suspend',[\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'suspend'])->name('vendor-hoardings.suspend');
-    Route::post('/vendor-hoardings/bulk-update-slugs', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkUpdateSlugs'])->name('vendor-hoardings.bulk-update-slugs');
+    // Route::post('/vendor-hoardings/bulk-update-slugs', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkUpdateSlugs'])->name('vendor-hoardings.bulk-update-slugs');
    
     // Admin: View draft hoardings
     Route::get('hoardings/drafts', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'drafts'])->name('hoardings.drafts');

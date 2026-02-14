@@ -90,27 +90,27 @@ class NotificationController extends Controller
         $user->notification_push = $data['push'] ?? $user->notification_push;
         $user->notification_whatsapp = $data['whatsapp'] ?? $user->notification_whatsapp;
 
-           if ($user->isVendor()) {
-            $vendorProfile = $user->vendorProfile;
-            if ($vendorProfile) {
-                if (!empty($data['primary_email'])) {
-                    $user->email = $data['primary_email'];
-                    $user->save();
-                }
-                if (isset($data['additional_emails'])) {
-                    $vendorProfile->additional_emails = $data['additional_emails'];
-                }
-                if (isset($data['email_preferences'])) {
-                    $vendorProfile->email_preferences = $data['email_preferences'];
-                }
-                $vendorProfile->save();
-            }
-        }
-        else {
-            if (!empty($data['primary_email'])) {
-                $user->email = $data['primary_email'];
-            }
-        }
+        //    if ($user->isVendor()) {
+        //     $vendorProfile = $user->vendorProfile;
+        //     if ($vendorProfile) {
+        //         if (!empty($data['primary_email'])) {
+        //             $user->email = $data['primary_email'];
+        //             $user->save();
+        //         }
+        //         if (isset($data['additional_emails'])) {
+        //             $vendorProfile->additional_emails = $data['additional_emails'];
+        //         }
+        //         if (isset($data['email_preferences'])) {
+        //             $vendorProfile->email_preferences = $data['email_preferences'];
+        //         }
+        //         $vendorProfile->save();
+        //     }
+        // }
+        // else {
+        //     if (!empty($data['primary_email'])) {
+        //         $user->email = $data['primary_email'];
+        //     }
+        // }
 
         $user->save();
 

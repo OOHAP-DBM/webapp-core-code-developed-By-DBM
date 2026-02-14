@@ -8,4 +8,3 @@ Route::get('/terms', [PageController::class, 'terms'])->name('api.pages.terms');
 Route::get('/disclaimer', [PageController::class, 'disclaimer'])->name('api.pages.disclaimer');
 Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('api.pages.privacy');
 Route::get('/refund-policy', [PageController::class, 'refund'])->name('api.pages.refund');
-

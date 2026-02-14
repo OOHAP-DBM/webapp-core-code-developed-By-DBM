@@ -82,21 +82,38 @@ class PageController extends Controller
             'data' => new TermsResource($terms)
         ]);
     }
-
-
     public function disclaimer(): JsonResponse
     {
+        $disclaimer = Disclaimer::where('is_active', 1)->first();
+
+        if (!$disclaimer) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Disclaimer not found'
+            ], 404);
+        }
+
         return response()->json([
             'status' => true,
-            'data' => Disclaimer::where('is_active', 1)->first()
+            'data' => $disclaimer
         ]);
     }
 
-    public function privacy(): JsonResponse
+
+   public function privacy(): JsonResponse
     {
+        $privacy = PrivacyPolicy::where('is_active', 1)->first();
+
+        if (!$privacy) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Privacy policy not found'
+            ], 404);
+        }
+
         return response()->json([
             'status' => true,
-            'data' => PrivacyPolicy::where('is_active', 1)->first()
+            'data' => $privacy
         ]);
     }
 
