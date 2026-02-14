@@ -53,6 +53,7 @@
                        value="{{ $permitValidTill }}"
                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 mb-4 outline-none focus:border-[#009A5C]" 
                        placeholder="Permit Valid Till">
+                <h6 class="text-xs font-semibold text-gray-700 mb-2">Permit valid till :</h6>
                 <div class="flex justify-end gap-2">
                   <button type="button" id="nagarCancelBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold">Cancel</button>
                   <button type="button" id="nagarSaveBtn" class="px-4 py-2 rounded-lg bg-[#009A5C] text-white font-semibold">Save</button>

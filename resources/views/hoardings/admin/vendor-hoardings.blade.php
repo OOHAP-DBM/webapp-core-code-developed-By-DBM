@@ -392,34 +392,35 @@
 
                                 <div class="py-1">
 
+
                                     @if($hoarding->status === 'pending_approval')
-                                    <button 
-                                        onclick="approveAndActivateSingle({{ $hoarding->id }})"
-                                        class="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-blue-600 font-medium flex items-center gap-3 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        Approve & Activate
-                                    </button>
+                                        <button 
+                                            onclick="approveAndActivateSingle({{ $hoarding->id }})"
+                                            class="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-blue-600 font-medium flex items-center gap-3 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Approve & Activate
+                                        </button>
+                                    @elseif($hoarding->status === 'active')
+                                        <button 
+                                            onclick="deactivateSingle({{ $hoarding->id }})"
+                                            class="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-gray-600 font-medium flex items-center gap-3 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Deactivate
+                                        </button>
+                                    @elseif($hoarding->status === 'inactive')
+                                        <button 
+                                            onclick="activateSingle({{ $hoarding->id }})"
+                                            class="w-full text-left px-4 py-2.5 hover:bg-green-50 text-green-600 font-medium flex items-center gap-3 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            Activate
+                                        </button>
                                     @endif
-
-                                    <button 
-                                        onclick="activateSingle({{ $hoarding->id }})"
-                                        class="w-full text-left px-4 py-2.5 hover:bg-green-50 text-green-600 font-medium flex items-center gap-3 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                        Activate
-                                    </button>
-
-                                    <button 
-                                        onclick="deactivateSingle({{ $hoarding->id }})"
-                                        class="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-gray-600 font-medium flex items-center gap-3 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        Deactivate
-                                    </button>
 
                                     <button 
                                         onclick="suspendSingle({{ $hoarding->id }})"

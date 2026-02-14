@@ -487,9 +487,11 @@
             </div>
         </div>
     </section>
-
+  @dump($city);
     <!-- Top Cities Section -->
     <section class="section" id="cities">
+              
+
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">Top DOAs</h2>

@@ -112,9 +112,6 @@
         </div>
     </section> --}}
 
-  
-
-   
 
     <!-- Featured Categories -->
     <section class="py-16 bg-white">

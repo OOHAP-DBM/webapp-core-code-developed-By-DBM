@@ -14,8 +14,10 @@ class HoardingHelper
     public static function discountBeforeOffer(float $base, float $sell): array
     {
             // Invalid base
+            
         if ($base <= 0) {
             return [
+                'base_price'     => 0,
                 'sell_price'     => 0,
                 'has_discount'   => false,
                 'off_percentage' => 0,
@@ -48,6 +50,8 @@ class HoardingHelper
             $realOffPercentage = (($base - $sell) / $base) * 100;
 
             return [
+
+                'base_price'     => round($base, 2),
                 'sell_price'     => round($sell, 2),
                 'has_discount'   => true,
                 'off_percentage' => number_format($realOffPercentage, 2),
@@ -57,6 +61,7 @@ class HoardingHelper
 
         // Normal discount
         return [
+            'base_price'     => round($base, 2),
             'sell_price'     => round($sell, 2),
             'has_discount'   => true,
             'off_percentage' => number_format((($base - $sell) / $base) * 100, 2),

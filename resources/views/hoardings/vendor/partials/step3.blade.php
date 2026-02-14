@@ -171,17 +171,17 @@
           <div class="flex items-center justify-between">
             <label class="text-sm font-bold text-gray-700">Lighting Included ?</label>
             <div class="flex items-center gap-2">
+                <label class="cursor-pointer">
+                <input type="radio" name="lighting_included" value="0" 
+                  {{ old('lighting_included', $draft->lighting_included ?? 0) == 0 ? 'checked' : '' }}
+                  class="hidden peer toggle-service" data-target="lighting-box">
+                <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">No</span>
+              </label>
               <label class="cursor-pointer">
                 <input type="radio" name="lighting_included" value="1" 
                   {{ old('lighting_included', $draft->lighting_included ?? 0) == 1 ? 'checked' : '' }}
                   class="hidden peer toggle-service" data-target="lighting-box">
                 <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">Yes</span>
-              </label>
-              <label class="cursor-pointer">
-                <input type="radio" name="lighting_included" value="0" 
-                  {{ old('lighting_included', $draft->lighting_included ?? 0) == 0 ? 'checked' : '' }}
-                  class="hidden peer toggle-service" data-target="lighting-box">
-                <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">No</span>
               </label>
             </div>
           </div>
