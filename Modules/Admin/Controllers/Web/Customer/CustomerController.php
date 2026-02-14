@@ -5,6 +5,9 @@ namespace Modules\Admin\Controllers\Web\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Notifications\AdminUserRegisteredNotification;
+use App\Notifications\UserWelcomeNotification;
+use Spatie\Permission\Models\Role;
 
 class CustomerController extends Controller
 {
@@ -57,6 +60,11 @@ class CustomerController extends Controller
 
         $user = \App\Models\User::create($validated);
         $user->assignRole('customer');
+        try {
+            \Mail::to($user->email)->send(new \Modules\Mail\CustomerWelcomeMail($user));
+        } catch (\Exception $e) {
+            \Log::error('Customer welcome mail failed: ' . $e->getMessage());
+        }
         return redirect()->route('admin.customers.index')->with('success', 'Customer added successfully!');
     }
     public function index(Request $request)

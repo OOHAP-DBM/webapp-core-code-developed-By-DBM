@@ -362,21 +362,7 @@
 <script>
     document.getElementById('forgotMobilePassword').addEventListener('click', function(e){
         e.preventDefault();
-
         const phone = document.getElementById('mobileInput').value.trim();
-
-        if(!phone || phone.length !== 10){
-            Swal.fire({
-                toast:true,
-                position:'top-end',
-                icon:'error',
-                title:'Enter mobile number first',
-                showConfirmButton:false,
-                timer:2000
-            });
-            return;
-        }
-
         window.location.href = "/mobile/forgot-password?phone="+phone;
     });
 </script>

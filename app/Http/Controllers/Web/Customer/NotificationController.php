@@ -29,7 +29,7 @@ class NotificationController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function markAsRead(int $id)
+    public function markAsRead(string $id)
     {
         $notification = auth()->user()
             ->notifications()
@@ -37,7 +37,7 @@ class NotificationController extends Controller
 
         $notification->markAsRead();
 
-        return response()->json(['success' => true]);
+        return back();
     }
 
     /**

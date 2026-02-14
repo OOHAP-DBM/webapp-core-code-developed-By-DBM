@@ -512,61 +512,39 @@
         {{-- RIGHT COLUMN (1/3 width) - Sidebar Info --}}
         <div class="lg:col-span-1 space-y-6">
             
-            {{-- Pricing Summary --}}
             <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Pricing Summary</h2>
-                
-                @if($hoarding->hoarding_type === 'dooh')
-                    {{-- DOOH Pricing --}}
-                    @if($hoarding->price_per_slot)
-                        <div class="mb-3 pb-3 border-b border-gray-200">
-                            <label class="text-xs font-semibold text-gray-500 uppercase">Base Price (Per Slot)</label>
-                            <p class="text-2xl font-bold text-green-600 mt-1">₹{{ number_format($hoarding->price_per_slot, 2) }}</p>
-                        </div>
-                    @endif
-                    
-                    @if($hoarding->price_per_slot)
-                        <div class="mb-2">
-                            <label class="text-xs text-gray-500">second </label>
-                            <p class="text-sm font-semibold text-gray-900">₹{{ number_format($hoarding->price_per_10_sec, 2) }}</p>
-                        </div>
-                    @endif
-                    
-                    @if($hoarding->price_per_30_sec)
-                        <div class="mb-2">
-                            <label class="text-xs text-gray-500">30-second slot</label>
-                            <p class="text-sm font-semibold text-gray-900">₹{{ number_format($hoarding->price_per_30_sec, 2) }}</p>
-                        </div>
-                    @endif
-                    
-                    @if($hoarding->minimum_booking_amount)
-                        <div class="mt-3 pt-3 border-t border-gray-200">
-                            <label class="text-xs text-gray-500">Minimum Booking Amount</label>
-                            <p class="text-sm font-semibold text-gray-900">₹{{ number_format($hoarding->minimum_booking_amount, 2) }}</p>
-                        </div>
-                    @endif
-                @else
-                    {{-- OOH Pricing --}}
-                    @if($hoarding->monthly_price)
-                        <div class="mb-3 pb-3 border-b border-gray-200">
-                            <label class="text-xs font-semibold text-gray-500 uppercase">Monthly Price</label>
-                            <p class="text-2xl font-bold text-green-600 mt-1">₹{{ number_format($hoarding->monthly_price, 2) }}</p>
-                        </div>
-                    @endif
-                    
-                    @if($hoarding->base_monthly_price && $hoarding->base_monthly_price != $hoarding->monthly_price)
-                        <div class="mb-2">
-                            <label class="text-xs text-gray-500">Base Monthly Price</label>
-                            <p class="text-sm text-gray-500 line-through">₹{{ number_format($hoarding->base_monthly_price, 2) }}</p>
-                        </div>
-                    @endif
-                    
-                    @if($hoarding->supports_weekly && $hoarding->weekly_price)
-                        <div class="mb-2">
-                            <label class="text-xs text-gray-500">Weekly Price</label>
-                            <p class="text-sm font-semibold text-gray-900">₹{{ number_format($hoarding->weekly_price, 2) }}</p>
-                        </div>
-                    @endif
+                @php
+                    $monthly = $hoarding->monthly_price;
+                    $base = $hoarding->base_monthly_price;
+                    $weekly = $hoarding->weekly_price;
+                    $hasMonthly = !is_null($monthly) && $monthly !== '' && $monthly > 0;
+                    $hasBase = !is_null($base) && $base !== '' && $base > 0;
+                    $hasWeekly = !is_null($weekly) && $weekly !== '' && $weekly > 0 && $hoarding->supports_weekly;
+                @endphp
+                @if($hasMonthly || $hasBase)
+                    <div class="mb-3 pb-3">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Monthly Price</label>
+                        <p class="text-2xl font-bold text-green-600 mt-1">
+                            ₹{{ number_format($hasMonthly ? $monthly : $base, 2) }}
+                        </p>
+                    </div>
+                @endif
+                @if($hasMonthly && $hasBase && $monthly != $base)
+                    <div class="mb-2 border-t border-gray-200">
+                        <label class="text-xs text-gray-500">Base Monthly Price</label>
+                        <p class="text-sm text-gray-500 line-through">
+                            ₹{{ number_format($base, 2) }}
+                        </p>
+                    </div>
+                @endif
+                @if($hasWeekly)
+                    <div class="mb-2">
+                        <label class="text-xs text-gray-500">Weekly Price</label>
+                        <p class="text-sm font-semibold text-gray-900">
+                            ₹{{ number_format($weekly, 2) }}
+                        </p>
+                    </div>
                 @endif
                 
                 {{-- Additional Charges --}}

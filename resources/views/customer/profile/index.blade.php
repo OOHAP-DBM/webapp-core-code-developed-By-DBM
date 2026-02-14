@@ -568,7 +568,10 @@ function showToast(type, message) {
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, remove',
-            cancelButtonText: 'Cancel'
+            cancelButtonText: 'Cancel',
+            customClass: {
+                confirmButton: 'btn-color'
+            }
         }).then((result) => {
 
             if (!result.isConfirmed) return;

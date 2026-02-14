@@ -424,8 +424,8 @@ function confirmToggle(e, checkbox) {
     Swal.fire({
         title: isActiveNow ? 'Active Hoarding?' : 'Inactive Hoarding?',
         html: isActiveNow
-            ? '<p class="text-sm text-gray-600">Are you sure you want to Active this hoarding? It will not be visible to customers until re-activated.</p>'
-            : '<p class="text-sm text-gray-600">Are you sure you want to Inactive this hoarding? It will be visible to customers.</p>',
+            ? '<p class="text-sm text-gray-600">Are you sure you want to Active this hoarding? It will be visible to customers.</p>'
+            : '<p class="text-sm text-gray-600">Are you sure you want to Inactive this hoarding? It will not be visible to customers until re-activated.</p>',
         width:'25rem',
         showCloseButton: true,
         showCancelButton: true,
