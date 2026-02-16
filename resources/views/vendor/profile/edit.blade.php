@@ -5,10 +5,21 @@
 @section('content')
 <div 
     class="max-w-full mx-auto px-2 py-8 space-y-6"
-    x-data="{
-    showModal: {{ session('reopen_personal_modal') ? 'true' : ($errors->has('current_password') ? 'true' : 'false') }},
-    modalType: {{ session('reopen_personal_modal') ? "'personal'" : ($errors->has('current_password') ? "'change-password'" : 'null') }}}">
-    {{-- COMMISSION INFO --}}
+    x-data="profileModal()"
+    x-init="init()">
+
+    {{-- Only show global errors if not password related --}}
+    @if ($errors->any() && !($errors->has('current_password') || $errors->has('password') || $errors->has('password_confirmation')))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <strong class="font-bold">Please correct the following errors:</strong>
+            <ul class="mt-2 list-disc list-inside text-sm">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="bg-[#e8fff2] rounded-xl shadow p-6">
         <h2 class="text-black text-lg font-semibold">Commission Offered</h2>
         <i class="text-gray-700">The offer is set by OOHAPP</i>
@@ -246,53 +257,58 @@
             </button>
         </div>
     </div>
-     {{-- GLOBAL MODAL --}}
+
+    <!-- MODAL: Move inside Alpine root, no duplicate x-data -->
     <div
         x-show="showModal"
+        x-transition.opacity
         x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-        >
-        <div class="bg-white w-full max-w-lg rounded-xl p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto mx-auto">
+        style="display:none;"
+        class="fixed inset-0 z-[9999] bg-black/40">
 
-            <button
-                @click="showModal=false"
-                class="absolute top-3 right-3 text-gray-700 hover:text-black"
-            >✕</button>
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div
+                @click.outside="showModal=false"
+                class="bg-white w-full max-w-lg rounded-xl p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
 
-            <template x-if="modalType === 'personal'">
-                @include('vendor.profile.modals.personal')
-            </template>
+                <button
+                    @click="showModal=false"
+                    class="absolute top-3 right-3 text-gray-700 hover:text-black">✕</button>
 
-            <template x-if="modalType === 'business'">
-                @include('vendor.profile.modals.business')
-            </template>
+                <template x-if="modalType === 'personal'">
+                    @include('vendor.profile.modals.personal')
+                </template>
 
-            <template x-if="modalType === 'bank'">
-                @include('vendor.profile.modals.bank')
-            </template>
+                <template x-if="modalType === 'business'">
+                    @include('vendor.profile.modals.business')
+                </template>
 
-            <template x-if="modalType === 'address'">
-                @include('vendor.profile.modals.address')
-            </template>
+                <template x-if="modalType === 'bank'">
+                    @include('vendor.profile.modals.bank')
+                </template>
 
-            <template x-if="modalType === 'pan'">
-                @include('vendor.profile.modals.pan')
-            </template>
+                <template x-if="modalType === 'address'">
+                    @include('vendor.profile.modals.address')
+                </template>
 
-            <template x-if="modalType === 'delete'">
-                @include('vendor.profile.modals.delete-account')
-            </template>
+                <template x-if="modalType === 'pan'">
+                    @include('vendor.profile.modals.pan')
+                </template>
 
-            <template x-if="modalType === 'change-password' || {{ $errors->has('current_password') ? 'true' : 'false' }}">
-                @include('vendor.profile.modals.change-password')
-            </template>
+                <template x-if="modalType === 'delete'">
+                    @include('vendor.profile.modals.delete-account')
+                </template>
 
+                <template x-if="modalType === 'change-password'">
+                    @include('vendor.profile.modals.change-password')
+                </template>
 
+            </div>
         </div>
     </div>
 
 </div>
-<div id="otpModal" class="fixed inset-0 z-[999] hidden items-center justify-center bg-black/40">
+<div id="otpModal" class="fixed inset-0 z-[11000] hidden items-center justify-center bg-black/40">
     <div class="bg-white rounded-xl shadow-lg w-full max-w-sm p-6 relative">
 
         <button onclick="closeOtpModal()" class="absolute right-3 top-3 text-gray-600">✕</button>
@@ -332,6 +348,10 @@
 <style>
 button {
     cursor: pointer;
+}
+/* Increase SweetAlert z-index */
+.swal2-container {
+    z-index: 12000 !important;
 }
 </style>
 @endsection
@@ -531,5 +551,28 @@ function sendVerifyClick(type){
 
     // call your existing function
     autoSendOtp(type);
+}
+</script>
+<script>
+function profileModal(){
+    return {
+        showModal: false,
+        modalType: null,
+        init() {
+            // Only open modal if explicitly intended by session or validation error
+            const reopenPersonal = @json(session('reopen_personal_modal'));
+            const passwordError = @json($errors->has('current_password') || $errors->has('password') || $errors->has('password_confirmation'));
+            if (reopenPersonal === true) {
+                this.showModal = true;
+                this.modalType = 'personal';
+            } else if (passwordError === true) {
+                this.showModal = true;
+                this.modalType = 'change-password';
+            } else {
+                this.showModal = false;
+                this.modalType = null;
+            }
+        }
+    }
 }
 </script>

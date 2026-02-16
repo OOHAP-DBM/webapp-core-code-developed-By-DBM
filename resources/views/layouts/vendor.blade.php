@@ -10,14 +10,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
+<style>
+    [x-cloak]{
+        display:none !important;
+    }
+</style>
 </head>
 <body class="antialiased bg-gray-50">
     <div id="app" class="flex h-screen overflow-hidden">
@@ -39,6 +44,7 @@
 
                 @yield('content')
             </main>
+            @stack('vendor-modals')
         </div>
     </div>
 
@@ -55,7 +61,6 @@
     }
 </style>
     @stack('scripts')
-<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script>
         document.addEventListener('DOMContentLoaded', function () {
             const sidebar   = document.getElementById('vendor-sidebar');

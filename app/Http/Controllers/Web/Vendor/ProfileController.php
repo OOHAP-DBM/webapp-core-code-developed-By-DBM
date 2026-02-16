@@ -160,12 +160,6 @@ class ProfileController extends Controller
         /* =========================
         | PAN NUMBER → USERS TABLE
         ========================= */
-        if (!empty($data['pan'])) {
-            $user->update([
-                'pan' => $data['pan'],
-            ]);
-        }
-
         /* =========================
         | PAN FILE → VENDOR PROFILE
         ========================= */
@@ -187,6 +181,7 @@ class ProfileController extends Controller
             'company_name' => $data['company_name'],
             'company_type' => $data['company_type'],
             'gstin'        => $data['gstin'],
+            'pan'          => $data['pan'],
         ]);
     }
 

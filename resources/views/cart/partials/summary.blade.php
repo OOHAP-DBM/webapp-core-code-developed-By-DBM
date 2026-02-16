@@ -38,7 +38,7 @@
     <center>
         <button 
             id="enquireNowBtn"
-            class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-semibold transition-colors"
+            class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-semibold transition-colors cursor-pointer"
             >
                 Enquire Now
         </button>
@@ -66,7 +66,7 @@
         <!-- Header -->
         <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h2 class="text-lg font-semibold">Selected Hoardings</h2>
-            <button onclick="closeEnquiryModal()" class="text-gray-500 hover:text-black text-lg">✕</button>
+            <button onclick="closeEnquiryModal()" class="text-gray-500 hover:text-black text-lg cursor-pointer">✕</button>
         </div>
 
         <!-- Table -->
@@ -95,7 +95,7 @@
             </p>
 
             <button onclick="openRaiseEnquiryModal(Object.keys(window.enquiryState.items).length); closeEnquiryModal();"
-                    class="bg-green-700 text-white px-6 py-2 rounded">
+                    class="bg-green-700 text-white px-6 py-2 rounded cursor-pointer">
                 Raise an Enquiry
             </button>
 

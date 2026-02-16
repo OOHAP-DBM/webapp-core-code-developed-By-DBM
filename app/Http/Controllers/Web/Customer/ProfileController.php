@@ -51,21 +51,19 @@ class ProfileController extends Controller
 
         if ($request->hasFile('avatar')) {
             try {
-                $path = $request->file('avatar')->store(
-                    'media/users/avatars/' . $user->id,
+                if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                    Storage::disk('public')->delete($user->avatar);
+                }
+                $file = $request->file('avatar');
+                $filename = time().'_'.Str::uuid().'.'.$file->getClientOriginalExtension();
+                $path = $file->storeAs(
+                    'media/users/avatars/'.$user->id,
+                    $filename,
                     'public'
                 );
-
-                // 🔴 EXTRA SAFETY: file exists check
-                if (!Storage::disk('public')->exists($path)) {
-                    return back()->withErrors([
-                        'avatar' => 'Avatar upload failed. Please try again.'
-                    ]);
-                }
-
                 $validated['avatar'] = $path;
-
             } catch (\Exception $e) {
+                Log::error('Avatar upload failed', ['error'=>$e->getMessage()]);
                 return back()->withErrors([
                     'avatar' => 'Avatar upload failed. Please try again.'
                 ]);
@@ -134,6 +132,33 @@ class ProfileController extends Controller
         $user = auth()->user();
         $identifier = trim($request->identifier);
         $isEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL);
+
+        // Check if email or phone is already registered (and not current user)
+        if ($isEmail) {
+            $exists = \App\Models\User::where('email', $identifier)
+                ->where('id', '!=', $user->id)
+                ->exists();
+            if ($exists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This email is already registered.'
+                ], 422);
+            }
+        } else {
+            $digits = preg_replace('/\D/', '', $identifier);
+            if (strlen($digits) === 10) {
+                $exists = \App\Models\User::where('phone', $digits)
+                    ->where('id', '!=', $user->id)
+                    ->exists();
+                if ($exists) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This mobile number is already registered.'
+                    ], 422);
+                }
+            }
+        }
+
         $otp = random_int(1000, 9999);
         $cacheKey = "otp:{$user->id}:{$identifier}";
         Cache::put($cacheKey, $otp, now()->addMinute());
