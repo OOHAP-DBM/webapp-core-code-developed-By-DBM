@@ -28,7 +28,7 @@ Route::get('/availability/{id}', [\Modules\Http\Hoardings\Controllers\Api\Hoardi
 Route::middleware(['auth:sanctum', 'role:vendor', 'vendor.approved'])->prefix('vendor')->group(function () {
     Route::post('/', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'store']);
     Route::put('/{id}', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'update']);
-    Route::delete('/{id}', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'destroy']);
+    Route::delete('/{id}', [\Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController::class, 'destroy']);
     Route::post('/{id}/media', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'uploadMedia']);
 
     // Vendor-specific: Get all hoardings for authenticated vendor
@@ -39,6 +39,9 @@ Route::middleware(['auth:sanctum', 'role:vendor', 'vendor.approved'])->prefix('v
     Route::post('ooh/step-3/{ooh_id}', [OOHListingController::class, 'storeStep3']);
     Route::get('/draft', [\Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController::class, 'getDrafts']);
     Route::get('/{id}', [OOHListingController::class, 'show']);
+
+    Route::post('/{id}/activate',  [\Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController::class,'activate']);
+    Route::post('/{id}/deactivate', [\Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController::class, 'deactivate']);
 
 });
 

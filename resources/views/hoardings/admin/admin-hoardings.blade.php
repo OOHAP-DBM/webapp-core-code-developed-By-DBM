@@ -2,7 +2,7 @@
 @section('title', "Admin Hoardings")
 
 @section('title', 'All Hoardings')
-@section('page_title', 'Admin Hoardings')
+@section('page_title', 'All Hoardings')
 
 @section('breadcrumb')
 <x-breadcrumb :items="[
@@ -19,13 +19,12 @@
         <h1 class="text-lg font-semibold text-gray-900">
             Admin Hoardings
         </h1>
-        <a
-         href="{{ route('vendor.hoardings.add') }}"
+        <button
             type="button"
             class="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-md
                    hover:bg-teal-700 transition">
             Add Hoarding
-        </a>
+        </button>
     </div>
     @if($hoardings->count())
 
@@ -187,11 +186,11 @@
             <h3 class="mt-6 text-lg font-semibold text-gray-700">
                 No Hoardings Found
             </h3>
-            <a href="{{ route('vendor.hoardings.add') }}"
+            <button
                 class="mt-4 px-5 py-2 text-sm font-medium text-white
                        bg-teal-600 rounded-md hover:bg-teal-700 transition">
                 Add Hoarding
-            </a>
+            </button>
         </div>
 
     @endif
