@@ -99,22 +99,36 @@
             </label>
 
             <div class="relative">
-                <input
-                    type="email"
-                    name="email"
-                    id="emailField"
-                    value="{{ old('email', auth()->user()->email) }}"
-                    {{ $emailLocked ? 'readonly' : '' }}
-                    @unless($emailLocked)
-                        onblur="autoSendOtp('email')"
-                    @endunless
-                    class="w-full px-3 py-2 pr-28 border rounded-md
-                    {{ $emailLocked
-                        ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed'
-                        : 'border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500'
-                    }}"
-                >
-            </div>
+
+            <input
+                type="email"
+                name="email"
+                id="emailField"
+                value="{{ old('email', auth()->user()->email) }}"
+                {{ $emailLocked ? 'readonly' : '' }}
+                class="w-full px-3 py-2 pr-24 border rounded-md
+                {{ $emailLocked
+                    ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed'
+                    : 'border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500'
+                }}"
+            >
+
+            @unless($emailLocked)
+            <button
+                type="button"
+                onclick="sendVerifyClick('email')"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-green-600 hover:text-green-700 hover:underline"
+            >
+                Verify
+            </button>
+            @endunless
+
+        </div>
+
+            @error('email', 'personalUpdate')
+                  <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+
 
 
             @unless($emailLocked)
@@ -145,17 +159,28 @@
                     id="phoneField"
                     value="{{ old('phone', auth()->user()->phone) }}"
                     {{ $phoneLocked ? 'readonly' : '' }}
-                    @unless($phoneLocked)
-                        onblur="autoSendOtp('phone')"
-                    @endunless
-                    class="w-full px-3 py-2 pr-28 border rounded-md
+                    class="w-full px-3 py-2 pr-24 border rounded-md
                     {{ $phoneLocked
                         ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed'
                         : 'border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500'
                     }}"
                 >
+
+                @unless($phoneLocked)
+                <button
+                    type="button"
+                    onclick="sendVerifyClick('phone')"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-green-600 hover:text-green-700 hover:underline"
+                >
+                    Verify
+                </button>
+                @endunless
+
             </div>
 
+            @error('phone', 'personalUpdate')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
 
             @unless($phoneLocked)
                 <p class="text-xs text-gray-500 mt-1">

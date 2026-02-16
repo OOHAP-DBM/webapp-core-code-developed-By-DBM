@@ -259,7 +259,6 @@ class VendorController extends Controller
         DB::beginTransaction();
 
         try {
-
             // ---------------- USER CREATE ----------------
             $user = User::create([
                 'name'              => $request->name,
@@ -277,6 +276,12 @@ class VendorController extends Controller
 
             $user->assignRole('vendor');
 
+            // Send welcome mail to vendor
+            try {
+                \Mail::to($user->email)->send(new \Modules\Mail\VendorWelcomeMail($user));
+            } catch (\Exception $e) {
+                \Log::error('Vendor welcome mail failed: ' . $e->getMessage());
+            }
 
             // ---------------- VENDOR PROFILE CREATE ----------------
             VendorProfile::create([

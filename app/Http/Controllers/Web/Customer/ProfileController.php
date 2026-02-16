@@ -42,8 +42,8 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'phone' => 'required|string|unique:users,phone,' . $user->id,
+            'email' => 'nullable|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|unique:users,phone,' . $user->id,
             'company_name' => 'nullable|string|max:255',
             'gstin'        => 'nullable|string|max:15|unique:users,gstin,' . $user->id,
             'avatar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',

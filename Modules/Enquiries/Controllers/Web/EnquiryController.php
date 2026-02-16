@@ -26,14 +26,14 @@ class EnquiryController extends Controller
      */
     public function __construct()
     {
-        $this->middleware(['auth', 'role:customer'])->except(['store']);
+        $this->middleware(['auth'])->except(['store']);
     }
 
     public function index(Request $request)
     {
-        if (!auth()->check() || !auth()->user()->hasRole('customer')) {
-            abort(403, 'Only customers can view enquiries.');
-        }
+        // if (!auth()->check() || !auth()->user()->hasRole('customer')) {
+        //     abort(403, 'Only customers can view enquiries.');
+        // }
 
         $query = Enquiry::where('customer_id', auth()->id())
             ->with(['items.hoarding']);

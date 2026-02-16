@@ -154,20 +154,13 @@
         @endif
         <div class="flex justify-end text-right mr-2 sm:mr-4 md:mr-6 lg:mr-8 mb-4 mt-2 sm:mt-0 lg:-mt-6">
             @php
-                // Decide final price
-                $finalPrice = $item->monthly_price 
-                                ?? $item->base_monthly_price 
-                                ?? $item->slot_price 
-                                ?? 0;
-
-                // Decide base price (for strike-through)
-                $basePrice = $item->base_monthly_price ?? $item->slot_price ?? 0;
-
-                // Decide unit label
-               
-                $unit =  '/ Month';
-
+                $finalPrice = (!empty($item->monthly_price) && $item->monthly_price > 0)
+                    ? $item->monthly_price
+                    : $item->base_monthly_price;
+                $basePrice = $item->base_monthly_price ?? 0;
+                $unit = '/ Month';
             @endphp
+
 
             <div>
                 @if($basePrice > $finalPrice)

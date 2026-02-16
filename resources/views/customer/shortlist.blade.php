@@ -143,7 +143,6 @@
 
                             <div class="mb-3">
 
-                                @if($hoarding->hoarding_type === 'ooh')
 
                                     @php
                                         $base  = $hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price;
@@ -184,15 +183,6 @@
                                         </div>
                                     @endif
 
-                                {{-- ================= DOOH ================= --}}
-                                @else
-                                    <div class="flex items-baseline">
-                                        <span class="text-xl font-semibold text-gray-900">
-                                            ₹{{ number_format(optional($hoarding->doohScreen)->price_per_slot) }}
-                                        </span>
-                                        <span class="text-lg text-black font-bold ml-1">/Second</span>
-                                    </div>
-                                @endif
 
 
                             </div>
@@ -200,7 +190,7 @@
 
        
 
-                        <p class="text-xs text-gray-600 mb-1">
+                        <p class="text-xs text-blue-500 mb-1">
                             @if(
                                 $hoarding->available_from &&
                                 \Carbon\Carbon::parse($hoarding->available_from)->isFuture()

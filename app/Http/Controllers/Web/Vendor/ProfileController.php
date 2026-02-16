@@ -76,7 +76,28 @@ class ProfileController extends Controller
             'phone'  => 'nullable|required_without:email|string|max:20',
             'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:5120',
         ]);
+        if($request->filled('email')){
+            if($request->email !== $user->email && is_null($user->email_verified_at)){
+                return back()
+                    ->withInput()
+                    ->with('reopen_personal_modal', true)
+                    ->withErrors([
+                        'email' => 'Please verify your email first via OTP.'
+                    ], 'personalUpdate');
+            }
+        }
+        if($request->filled('phone')){
+            $phone = preg_replace('/[^0-9]/','',$request->phone);
 
+            if($phone !== $user->phone && is_null($user->phone_verified_at)){
+                return back()
+                    ->withInput()
+                    ->with('reopen_personal_modal', true)
+                    ->withErrors([
+                        'phone' => 'Please verify your mobile number first via OTP.'
+                    ], 'personalUpdate');
+            }
+        }
         if ($request->hasFile('avatar')) {
             try {
                 // Delete old avatar if exists
