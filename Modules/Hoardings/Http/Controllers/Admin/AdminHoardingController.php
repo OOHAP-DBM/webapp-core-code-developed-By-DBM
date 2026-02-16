@@ -10,7 +10,6 @@
     use Illuminate\View\View;
     use Illuminate\Support\Facades\Mail;
 
-
     class AdminHoardingController extends Controller
     {
     /**
