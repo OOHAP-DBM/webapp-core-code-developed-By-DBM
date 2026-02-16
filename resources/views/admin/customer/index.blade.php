@@ -2,16 +2,16 @@
 
 @section('title', 'Customers Management')
 
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'Customers Management', 'route' => route('admin.customers.index')],
+    ['label' => ucfirst(str_replace('_',' ', $tab)) . ' Customers']
+]" />
+@endsection
 @section('content')
 <div class="bg-[#F7F7F7] w-full min-h-screen">
 
-    {{-- Breadcrumb --}}
-    <div class="text-sm text-[#6B7280] mb-4">
-        Home - Customers Management -
-        <span class="text-[#111827] font-semibold">
-            {{ ucfirst(str_replace('_',' ', $tab)) }} Customers
-        </span>
-    </div>
 
     {{-- Tabs --}}
     <div class="flex items-center justify-between mb-4">

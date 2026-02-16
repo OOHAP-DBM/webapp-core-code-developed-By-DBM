@@ -12,6 +12,7 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Notifications\HoardingApproved;
+use App\Events\HoardingStatusChanged;
 
 
 
@@ -176,47 +177,8 @@ class VendorHoardingController extends Controller
 
             $hoarding->save();
 
-            // 🔔 DB NOTIFICATION (REGISTER STYLE)
-            if ($hoarding->status === 'active' && $hoarding->vendor) {
-                try {
-                    $hoarding->vendor->notify(
-                        new \App\Notifications\HoardingApproved($hoarding)
-                    );
-
-                    Log::info('HoardingApproved DB notification sent', [
-                        'hoarding_id' => $hoarding->id,
-                        'vendor_id'   => $hoarding->vendor->id,
-                    ]);
-                } catch (\Throwable $e) {
-                    Log::error('HoardingApproved DB notification failed', [
-                        'hoarding_id' => $hoarding->id,
-                        'vendor_id'   => optional($hoarding->vendor)->id,
-                        'error'       => $e->getMessage(),
-                    ]);
-                }
-            }
-
-            // 📧 MAIL (unchanged, already working)
-            if ($hoarding->status === 'active' && $hoarding->vendor) {
-                try {
-                    if (!empty($hoarding->vendor->email)) {
-                        Mail::to($hoarding->vendor->email)->send(
-                            new HoardingPublishedMail($hoarding)
-                        );
-
-                        Log::info('HoardingPublished mail sent', [
-                            'hoarding_id' => $hoarding->id,
-                            'email'       => $hoarding->vendor->email,
-                        ]);
-                    }
-                } catch (\Throwable $e) {
-                    Log::error('Hoarding published mail failed', [
-                        'hoarding_id' => $hoarding->id,
-                        'vendor_email' => $hoarding->vendor->email,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
+            // Fire event for notification (single)
+            event(new HoardingStatusChanged(collect([$hoarding]), $hoarding->status, auth()->user()));
 
             return response()->json([
                 'success' => true,
@@ -301,6 +263,11 @@ class VendorHoardingController extends Controller
 
         try {
             $count = Hoarding::whereIn('id', $request->ids)->delete();
+            // Fire event for notification (bulk delete)
+            $hoardings = collect();
+            // Optionally, you may want to fetch deleted hoardings' info before deletion for notification
+            // $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+            event(new HoardingStatusChanged($hoardings, 'deleted', auth()->user()));
 
             return response()->json([
                 'success' => true,
@@ -326,40 +293,11 @@ class VendorHoardingController extends Controller
         ]);
 
         try {
-            // Check if all hoardings have commission set
-            $hoardings = Hoarding::whereIn('id', $request->ids)->get();
-            $missingCommission = $hoardings->filter(function($h) {
-                return empty($h->commission_percent) || $h->commission_percent == 0;
-            });
-
-            if ($missingCommission->count() > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot activate hoardings without commission. Please set commission first.',
-                    'missing_commission_ids' => $missingCommission->pluck('id')->toArray()
-                ], 422);
-            }
-
-            // Activate all hoardings
             $count = Hoarding::whereIn('id', $request->ids)
                 ->update(['status' => 'active']);
-
-            // Send emails to vendors
-            foreach ($hoardings as $hoarding) {
-                if ($hoarding->vendor && !empty($hoarding->vendor->email)) {
-                    try {
-                        Mail::to($hoarding->vendor->email)->send(
-                            new HoardingPublishedMail($hoarding)
-                        );
-                    } catch (\Throwable $e) {
-                        Log::error('Hoarding published mail failed', [
-                            'hoarding_id' => $hoarding->id,
-                            'vendor_email' => $hoarding->vendor->email,
-                            'error' => $e->getMessage(),
-                        ]);
-                    }
-                }
-            }
+            $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+            // Fire event for notification (bulk activate)
+            event(new HoardingStatusChanged($hoardings, 'activated', auth()->user()));
 
             return response()->json([
                 'success' => true,
@@ -387,6 +325,9 @@ class VendorHoardingController extends Controller
         try {
             $count = Hoarding::whereIn('id', $request->ids)
                 ->update(['status' => 'inactive']);
+            $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+            // Fire event for notification (bulk deactivate)
+            event(new HoardingStatusChanged($hoardings, 'deactivated', auth()->user()));
 
             return response()->json([
                 'success' => true,
@@ -460,6 +401,8 @@ class VendorHoardingController extends Controller
             
             $hoarding->status = 'suspended';
             $hoarding->save();
+            // Fire event for notification (single suspend)
+            event(new HoardingStatusChanged(collect([$hoarding]), 'suspended', auth()->user()));
 
             return response()->json([
                 'success' => true,

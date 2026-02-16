@@ -1,8 +1,18 @@
 {{-- Admin Navbar (Figma-aligned) --}}
 <header class="admin-header sticky top-0 z-30 bg-white border-b border-gray-200 flex items-center justify-between px-6 h-20 shadow-sm">
-    <div class="flex flex-col justify-center">
-        <span class="font-medium tracking-wide mb-1">@yield('title', 'Dashboard')</span>
+    <div class="px-4 md:px-6 py-1 bg-white  ">
+        <div class="flex flex-col">
+            <h1 class="text-xl font-semibold text-gray-800">
+                @yield('page_title', 'Dashboard')
+            </h1>
+            @hasSection('breadcrumb')
+                <div class="mt-[-3px]">
+                    @yield('breadcrumb')
+                </div>
+            @endif
+        </div>
     </div>
+
     <div class="flex items-center gap-6">
         {{-- Notification Dropdown --}}
         <div x-data="{ open: false, unreadCount: {{ auth()->user()->unreadNotifications->count() ?? 0 }} }" class="relative hidden md:block">

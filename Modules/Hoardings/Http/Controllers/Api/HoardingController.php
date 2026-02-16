@@ -11,6 +11,7 @@ use App\Models\Hoarding;
 use Modules\Hoardings\Models\HoardingAttribute;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 class HoardingController extends Controller
 {
     /**

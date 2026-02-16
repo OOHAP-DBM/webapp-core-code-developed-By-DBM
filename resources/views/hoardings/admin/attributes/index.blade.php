@@ -1,4 +1,16 @@
 @extends('layouts.admin')
+
+@section('title', 'All Hoardings')
+@section('page_title', 'Hoarding Attributes')
+
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'All Hoardings', 'route' => route('admin.my-hoardings')],
+    ['label' => 'Category']
+]" />
+@endsection
+@section('content')
 @section('content')
 <div class="max-w-4xl mx-auto py-10">
     <h2 class="text-2xl font-bold mb-8">Hoarding Attributes Settings</h2>

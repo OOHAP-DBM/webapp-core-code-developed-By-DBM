@@ -72,7 +72,7 @@ class HoardingResource extends JsonResource
         $discount = HoardingHelper::discountBeforeOffer($basePrice, $sellPrice);
         // Build pricing based on hoarding type
             $pricing = [
-            'base_price'      => round($basePrice, 2),
+            'base_price'      => $discount['base_price'],
             'sell_price'      => $discount['sell_price'],
             'has_discount'    => $discount['has_discount'],
             'off_percentage'  => $discount['off_percentage'],
@@ -81,11 +81,6 @@ class HoardingResource extends JsonResource
             // OOH extras
             'weekly' => $this->weekly_price_1 ? (float) $this->weekly_price_1 : null,
             'enable_weekly_booking' => (bool) $this->enable_weekly_booking,
-
-            // DOOH extras
-            'price_per_slot' => $this->hoarding_type === 'dooh'
-                ? (float) ($this->doohScreen->price_per_slot ?? 0)
-                : null,
 
             'slot_duration_seconds' => $this->hoarding_type === 'dooh'
                 ? $this->doohScreen?->slot_duration_seconds
@@ -97,10 +92,10 @@ class HoardingResource extends JsonResource
         if ($this->hoarding_type === 'dooh' && $this->doohScreen) {
             $dooh_specs = [
                 'screen_type' => $this->doohScreen->screen_type,
-                'resolution' => [
-                    'width' => $this->doohScreen->resolution_width,
-                    'height' => $this->doohScreen->resolution_height,
-                ],
+                // 'resolution' => [
+                //     'width' => $this->doohScreen->resolution_width,
+                //     'height' => $this->doohScreen->resolution_height,
+                // ],
                 'screen_size' => [
                     'width' => $this->doohScreen->width,
                     'height' => $this->doohScreen->height,
@@ -108,9 +103,9 @@ class HoardingResource extends JsonResource
                 ],
                 'slot_duration_seconds' => $this->doohScreen->slot_duration_seconds,
                 'loop_duration_seconds' => $this->doohScreen->loop_duration_seconds,
-                'slots_per_loop' => $this->doohScreen->slots_per_loop,
+                'screen_run_time' => $this->doohScreen->screen_run_time,
                 'total_slots_per_day' => $this->doohScreen->total_slots_per_day,
-                'available_slots_per_day' => $this->doohScreen->available_slots_per_day,
+                'loop_duration_seconds' => $this->doohScreen->loop_duration_seconds,
                 'video_length' => $this->doohScreen->video_length,
                 'allowed_formats' => $this->doohScreen->allowed_formats,
                 'max_file_size_mb' => $this->doohScreen->max_file_size_mb,

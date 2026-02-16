@@ -53,6 +53,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'active_role',
         'previous_role',
         'last_role_switch_at',
+        // Notification preferences
+        'notification_email',
+        'notification_push',
+        'notification_whatsapp',
     ];
 
     /**
@@ -80,6 +84,9 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_login_at' => 'datetime',
             'last_role_switch_at' => 'datetime',
             'password' => 'hashed',
+            'notification_email' => 'boolean',
+            'notification_push' => 'boolean',
+            'notification_whatsapp' => 'boolean',
         ];
     }
 
@@ -527,5 +534,52 @@ class User extends Authenticatable implements MustVerifyEmail
             return \App\Models\Hoarding::where('agency_id', $this->id)->pluck('id')->toArray();
         }
         return [];
+    }
+
+     /**
+     * Get all emails for this vendor (primary + additional verified emails)
+     */
+    public function getAllEmailsAttribute(): array
+    {
+        $emails = [$this->email];
+        
+        if ($this->vendorProfile) {
+            $emails = array_merge($emails, $this->vendorProfile->verified_emails);
+        }
+        
+        return array_unique($emails);
+    }
+
+    /**
+     * Get all emails that should receive notifications
+     */
+    public function getNotificationEmailsAttribute(): array
+    {
+        if (!$this->notification_email) {
+            return [];
+        }
+
+        if ($this->vendorProfile) {
+            return $this->vendorProfile->notification_emails;
+        }
+        
+        return [$this->email];
+    }
+
+    
+    /**
+     * Send a notification to all enabled vendor emails if global preference is enabled
+     */
+    public function notifyVendorEmails($notification)
+    {
+        // Only send if global email notifications are enabled
+        if (!$this->notification_email) {
+            return;
+        }
+
+        $emails = $this->vendorProfile?->notification_emails ?? [$this->email];
+        foreach ($emails as $email) {
+            \Mail::to($email)->send($notification->toMail($this));
+        }
     }
 }

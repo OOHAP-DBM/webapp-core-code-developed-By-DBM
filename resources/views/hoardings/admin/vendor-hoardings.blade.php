@@ -1,5 +1,14 @@
 @extends('layouts.admin')
-@section('title', "Vendor's Hoardings")
+@section('title', 'All Hoardings')
+@section('page_title', 'All Hoardings')
+
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'All Hoardings', 'route' => route('admin.my-hoardings')],
+    ['label' => 'Vendor\'s Hoardings']
+]" />
+@endsection
 
 @push('styles')
 <style>
@@ -83,12 +92,12 @@
                             Deactivate Selected
                         </button>
                         <div class="border-t border-gray-100 my-1"></div>
-                        <button onclick="bulkUpdateSlugs()" class="w-full text-left px-4 py-2.5 hover:bg-yellow-50 text-yellow-700 font-medium flex items-center gap-3 transition-colors">
+                        <!-- <button onclick="bulkUpdateSlugs()" class="w-full text-left px-4 py-2.5 hover:bg-yellow-50 text-yellow-700 font-medium flex items-center gap-3 transition-colors">
                             <svg class="w-5 h-5 mt-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 01-8 0m8 0a4 4 0 00-8 0m8 0V5a4 4 0 00-8 0v2m8 0a4 4 0 01-8 0" />
                             </svg>
                             Generate/Update Slugs
-                        </button>
+                        </button> -->
                         <button onclick="bulkDelete()" class="w-full text-left px-4 py-2.5 hover:bg-red-50 text-red-600 font-medium flex items-center gap-3 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -192,8 +201,7 @@
                         <th class="px-5 py-4">Hoarding Commission</th>
                         <th class="px-5 py-4">Location</th>
                         {{-- <th class="px-5 py-4 text-center"># of Bookings</th> --}}
-                        <th class="px-5 py-4">Status</th>
-                        <th class="px-5 py-4">Hoarding Expire On</th>
+                        <th class="px-5 py-4 text-left md:ml-2">Status</th>
                         <th class="px-5 py-4">Progress</th>
                         <th class="px-5 py-4 text-right">Action</th>
                     </tr>
@@ -299,63 +307,24 @@
                         {{-- Status --}}
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-3">
-
-                              <button
-                                    type="button"
-                                    aria-label="Toggle Status"
-                                    class="status-toggle group relative inline-flex items-center w-14 h-7 rounded-full transition-all duration-300
-                                        focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
-                                        {{ $isActive ? 'bg-gradient-to-r from-green-500 to-green-600 shadow-green-300/50' : 'bg-gray-300' }}"
-                                    data-id="{{ $hoarding->id }}"
-                                    data-source="{{ $hoarding->source }}"
-                                    data-hoarding-commission="{{ $hoarding->hoarding_commission }}"
-                                >
-                                    {{-- Loader --}}
-                                    <span class="absolute inset-0 flex items-center justify-center opacity-0 loading-spinner">
-                                        <svg class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                            <path class="opacity-75" fill="currentColor"
-                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-                                        </svg>
-                                    </span>
-
-                                    {{-- Knob --}}
-                                    <span
-                                        class="relative z-10 inline-flex items-center justify-center w-6 h-6 rounded-full bg-white shadow-md
-                                        transition-transform duration-300
-                                        {{ $isActive ? 'translate-x-7' : 'translate-x-1' }}"
-                                    >
-                                        @if($isActive)
-                                            <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                            </svg>
-                                        @else
-                                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                                            </svg>
-                                        @endif
-                                    </span>
-                                </button>
-
-
-
-                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $hoarding->status === 'pending_approval' ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-700' }}">
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full
+                                    @if($hoarding->status === 'active') bg-green-50 text-green-700
+                                    @elseif($hoarding->status === 'pending_approval') bg-red-50 text-red-600
+                                    @else bg-gray-100 text-gray-700 @endif">
                                     {{ $hoarding->status === 'pending_approval' ? 'UNAPPROVED' : strtoupper($hoarding->status) }}
                                 </span>
-
                             </div>
                         </td>
 
                         {{-- Expiry --}}
-                        <td class="px-5 py-4">
+                        <!-- <td class="px-5 py-4">
                             <div class="flex items-center gap-2 text-sm text-gray-600">
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
                                 {{ $hoarding->expiry_date ? $hoarding->expiry_date->format('d M, Y') : '—' }}
                             </div>
-                        </td>
-
+                        </td> -->
                         {{-- Progress --}}
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-2">
@@ -392,43 +361,45 @@
 
                                 <div class="py-1">
 
+
                                     @if($hoarding->status === 'pending_approval')
-                                    <button 
-                                        onclick="approveAndActivateSingle({{ $hoarding->id }})"
-                                        class="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-blue-600 font-medium flex items-center gap-3 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        Approve & Activate
-                                    </button>
+                                        <button 
+                                            onclick="approveAndActivateSingle({{ $hoarding->id }})"
+                                            class="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-blue-600 font-medium flex items-center gap-3 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Approve & Activate
+                                        </button>
+                                    @elseif($hoarding->status === 'active')
+                                        <button 
+                                            onclick="deactivateSingle({{ $hoarding->id }})"
+                                            class="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-gray-600 font-medium flex items-center gap-3 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Deactivate
+                                        </button>
+                                    @elseif($hoarding->status === 'inactive' || $hoarding->status === 'suspended')
+                                        <button 
+                                            onclick="activateSingle({{ $hoarding->id }})"
+                                            class="w-full text-left px-4 py-2.5 hover:bg-green-50 text-green-600 font-medium flex items-center gap-3 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            Activate
+                                        </button>
                                     @endif
-
-                                    <button 
-                                        onclick="activateSingle({{ $hoarding->id }})"
-                                        class="w-full text-left px-4 py-2.5 hover:bg-green-50 text-green-600 font-medium flex items-center gap-3 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                        Activate
-                                    </button>
-
-                                    <button 
-                                        onclick="deactivateSingle({{ $hoarding->id }})"
-                                        class="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-gray-600 font-medium flex items-center gap-3 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        Deactivate
-                                    </button>
-
-                                    <button 
-                                        onclick="suspendSingle({{ $hoarding->id }})"
-                                        class="w-full text-left px-4 py-2.5 hover:bg-orange-50 text-orange-600 font-medium flex items-center gap-3 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                        </svg>
-                                        Suspend
-                                    </button>
+                                    @if($hoarding->status !== 'suspended')
+                                        <button 
+                                            onclick="suspendSingle({{ $hoarding->id }})"
+                                            class="w-full text-left px-4 py-2.5 hover:bg-orange-50 text-orange-600 font-medium flex items-center gap-3 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                            </svg>
+                                            Suspend
+                                        </button>
+                                    @endif
 
                                     <button
                                         class="w-full text-left px-4 py-2.5 hover:bg-green-50 text-green-600 font-medium flex items-center gap-3 transition-colors"
@@ -1218,65 +1189,65 @@
             });
         }
 
-            function bulkUpdateSlugs() {
-                const ids = getSelectedIds();
-                if (ids.length === 0) return;
+            // function bulkUpdateSlugs() {
+            //     const ids = getSelectedIds();
+            //     if (ids.length === 0) return;
 
-                Swal.fire({
-                    title: 'Generate/Update Slugs?',
-                    text: `Update slugs for ${ids.length} hoarding(s)?`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#eab308',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Yes, update slugs',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire({
-                            title: 'Updating...',
-                            text: 'Please wait',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
+            //     Swal.fire({
+            //         title: 'Generate/Update Slugs?',
+            //         text: `Update slugs for ${ids.length} hoarding(s)?`,
+            //         icon: 'question',
+            //         showCancelButton: true,
+            //         confirmButtonColor: '#eab308',
+            //         cancelButtonColor: '#6b7280',
+            //         confirmButtonText: 'Yes, update slugs',
+            //         cancelButtonText: 'Cancel'
+            //     }).then((result) => {
+            //         if (result.isConfirmed) {
+            //             Swal.fire({
+            //                 title: 'Updating...',
+            //                 text: 'Please wait',
+            //                 allowOutsideClick: false,
+            //                 didOpen: () => {
+            //                     Swal.showLoading();
+            //                 }
+            //             });
 
-                        fetch('/admin/vendor-hoardings/bulk-update-slugs', {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ ids })
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Slugs Updated!',
-                                    text: data.message,
-                                    confirmButtonColor: '#16a34a'
-                                }).then(() => location.reload());
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Failed',
-                                    text: data.message
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'Failed to update slugs'
-                            });
-                        });
-                    }
-                });
-            }
+            //             fetch('/admin/vendor-hoardings/bulk-update-slugs', {
+            //                 method: 'POST',
+            //                 headers: {
+            //                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            //                     'Accept': 'application/json',
+            //                     'Content-Type': 'application/json'
+            //                 },
+            //                 body: JSON.stringify({ ids })
+            //             })
+            //             .then(res => res.json())
+            //             .then(data => {
+            //                 if (data.success) {
+            //                     Swal.fire({
+            //                         icon: 'success',
+            //                         title: 'Slugs Updated!',
+            //                         text: data.message,
+            //                         confirmButtonColor: '#16a34a'
+            //                     }).then(() => location.reload());
+            //                 } else {
+            //                     Swal.fire({
+            //                         icon: 'error',
+            //                         title: 'Failed',
+            //                         text: data.message
+            //                     });
+            //                 }
+            //             })
+            //             .catch(error => {
+            //                 Swal.fire({
+            //                     icon: 'error',
+            //                     title: 'Error',
+            //                     text: 'Failed to update slugs'
+            //                 });
+            //             });
+            //         }
+            //     });
+            // }
     </script>
 @endpush
