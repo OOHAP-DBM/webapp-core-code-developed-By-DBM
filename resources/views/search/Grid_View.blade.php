@@ -1,5 +1,5 @@
 <div id="gridView" class="bg-gray-100 ">
-    <div class="max-w-[1460px] mx-auto px-6 py-6">
+    <div class="max-w-[1460px] mx-auto py-6">
 
         @if($results->total() > 0)
             <h2 class="text-lg text-black font-semibold mb-4">
@@ -123,19 +123,12 @@
                                 </span>
 
                                 <span class="text-sm text-black">
-                                    @if(request('duration') === 'weekly')
-                                        /Week
-                                    @elseif($item->hoarding_type === 'dooh')
-                                        /Second
-                                    @else
                                         /Month
-                                    @endif
                                 </span>
                             </div>
 
                             @if(
                                 request('duration') !== 'weekly'
-                                && $item->hoarding_type === 'ooh'
                                 && !empty($item->monthly_price)
                                 && $item->monthly_price > 0
                                 && !empty($item->base_monthly_price)
@@ -145,18 +138,24 @@
                                     <span class="line-through text-red-500">
                                         ₹{{ number_format($item->base_monthly_price) }}
                                     </span>
-
-                                    @if($item->discount_percent)
-                                        <span class="ml-1 bg-green-200 text-green-700 px-2 py-0.5 rounded">
-                                            {{ $item->discount_percent }}% OFF
-                                        </span>
-                                    @endif
+                                    <span class="ml-1 bg-green-200 text-green-700 px-2 py-0.5 rounded">
+                                        ₹{{ number_format($item->base_monthly_price - $item->monthly_price) }} OFF
+                                    </span>
                                 </div>
                             @endif
 
                             {{-- TAX NOTE --}}
                             <p class="text-xs text-gray-500 mt-2">
                                 Taxes excluded
+                            </p>
+                            <!-- No import needed; use fully qualified class name below -->
+                            <p class="text-xs text-blue-500 mb-1">
+                                @if($item->available_from && \Carbon\Carbon::parse($item->available_from)->isFuture())
+                                    Hoarding Available from
+                                    {{ \Carbon\Carbon::parse($item->available_from)->format('F d, Y') }}
+                                @else
+                                    Available
+                                @endif
                             </p>
                             
 
@@ -174,12 +173,12 @@
                                             class="flex-1 py-2 btn-color text-white text-sm font-semibold rounded enquiry-btn cursor-pointer"
                                             data-hoarding-id="{{ $item->id }}"
                                             data-grace-days="{{ isset($item->grace_period_days) ? (int) $item->grace_period_days : 0 }}"
-                                            data-base-price="{{ ($item->hoarding_type === 'dooh')
-                                                ? ($item->price ?? 0)
-                                                : ((!empty($item->monthly_price) && $item->monthly_price > 0)
-                                                    ? $item->monthly_price
-                                                    : ($item->base_monthly_price ?? 0))
+                                            data-base-price="{{ (!empty($item->monthly_price) && $item->monthly_price > 0)
+                                                ? $item->monthly_price
+                                                : ($item->base_monthly_price ?? 0)
                                             }}"
+                                            data-slot-duration="{{ $item->doohScreen->slot_duration_seconds ?? '' }}"
+                                            data-total-slots="{{ $item->doohScreen->total_slots_per_day ?? '' }}"
                                             data-base-monthly-price="{{ $item->base_monthly_price ?? 0 }}"
                                             data-hoarding-type="{{ $item->hoarding_type }}"
                                         >

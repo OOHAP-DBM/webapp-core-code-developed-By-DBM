@@ -160,8 +160,7 @@ class Enquiry extends Model
             }
         ]);
     }
-
-public function getEnquiryDetails()
+    public function getEnquiryDetails()
     {
         // LOAD ALL RELATIONS (THIS IS THE FIX)
         $this->load([

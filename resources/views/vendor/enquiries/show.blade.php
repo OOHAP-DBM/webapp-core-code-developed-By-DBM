@@ -1,4 +1,8 @@
-@extends('layouts.vendor')
+@php
+    $user = auth()->user();
+    $layout = ($user && $user->hasRole('admin')) ? 'layouts.admin' : 'layouts.vendor';
+@endphp
+@extends($layout)
 @section('title', 'Enquiries')
 @section('content')
 <div class="px-6 py-6 bg-white">

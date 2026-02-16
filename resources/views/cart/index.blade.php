@@ -30,7 +30,7 @@
     </h1>
 
     {{-- MAIN CONTENT (NO PAGE SCROLL) --}}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 flex-1">
+    <div class="pb-12 pt-5 px-12 shadow bg-white grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 flex-1">
         @if($items->count() > 0)
             <div class="lg:col-span-8 overflow-y-auto">
                 @include('cart.partials.list', ['items' => $items])

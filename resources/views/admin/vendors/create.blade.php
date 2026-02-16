@@ -149,6 +149,7 @@ Business Details
 <label class="block mb-1">City <span class="text-red-500">*</span></label>
 <input type="text"
        name="city"
+       id="cityField"
        value="{{ old('city') }}"
        class="border rounded px-3 py-2 w-full"
        autocomplete="off"
@@ -160,6 +161,7 @@ Business Details
 <label class="block mb-1">State <span class="text-red-500">*</span></label>
 <input type="text"
        name="state"
+       id="stateField"
        value="{{ old('state') }}"
        class="border rounded px-3 py-2 w-full"
        autocomplete="off"
@@ -171,6 +173,8 @@ Business Details
 <label class="block mb-1">Pincode <span class="text-red-500">*</span></label>
 <input type="text"
        name="pincode"
+       maxlength="6"
+       id="pincodeField"
        value="{{ old('pincode') }}"
        class="border rounded px-3 py-2 w-full"
        autocomplete="off"
@@ -193,3 +197,63 @@ Save Vendor
 </form>
 </div>
 @endsection
+<script>
+       document.addEventListener("DOMContentLoaded", function(){
+
+       const pincode = document.getElementById('pincodeField');
+       const city    = document.getElementById('cityField');
+       const state   = document.getElementById('stateField');
+
+       let typingTimer;
+
+       function toast(type, message){
+              Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: type,
+              title: message,
+              showConfirmButton: false,
+              timer: 2500,
+              timerProgressBar: true
+              });
+       }
+
+       pincode.addEventListener('input', function(){
+
+              clearTimeout(typingTimer);
+              this.value = this.value.replace(/\D/g,'');
+              if(this.value.length !== 6){
+              city.value  = '';
+              state.value = '';
+              return;
+              }
+
+              typingTimer = setTimeout(() => {
+
+              fetch("https://api.postalpincode.in/pincode/" + this.value)
+              .then(res => res.json())
+              .then(data => {
+
+                     if(data[0].Status === "Success"){
+
+                     const postOffice = data[0].PostOffice[0];
+
+                     city.value  = postOffice.District;
+                     state.value = postOffice.State;
+                     }else{
+
+                     city.value  = '';
+                     state.value = '';
+                     toast('error','Invalid Pincode');
+                     }
+              })
+              .catch(() => {
+                     city.value  = '';
+                     state.value = '';
+                     toast('error','Unable to fetch pincode details');
+              });
+
+              }, 500);
+       });
+       });
+</script>

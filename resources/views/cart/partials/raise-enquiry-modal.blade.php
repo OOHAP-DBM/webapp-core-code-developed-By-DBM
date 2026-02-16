@@ -320,7 +320,7 @@ document.getElementById('raiseEnquiryForm').addEventListener('submit', function(
             });
             setTimeout(() => {
                 closeRaiseEnquiryModal();
-                window.location.href = '/customer/enquiries';
+                window.location.href = '/my/enquiries';
             }, 1500);
         } else {
             Swal.fire({

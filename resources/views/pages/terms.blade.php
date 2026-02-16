@@ -29,11 +29,17 @@
 <style>
     hr {
         border: none;
-        border-top: 1px solid #e5e7eb; /* Tailwind gray-200 */
+        border-top: 1px solid #e5e7eb;
         margin: 24px 0;
     }
     .section-content{
         padding-left:25px;
     }
-    </style>
+    .tc-section h2 {
+        margin-bottom: 6px;
+    }
+    .tc-section .section-content {
+        margin-top: 8px;
+    }
+</style>
 @endsection

@@ -192,52 +192,27 @@ function loadEnquiryHoardings() {
 
                 let displayPrice, months, packageId, packageLabel, priceLabel;
 
-                // =========== OOH LOGIC ===========
-                if (hoardingType === 'ooh') {
-                    if (!selectedPkg) {
-                        // NO PACKAGE: Use monthly_price
-                        displayPrice = item.monthly_price > 0 ? item.monthly_price : item.base_monthly_price;
-                        months = 1;
-                        packageId = null;
-                        packageLabel = 'Base';
-                        priceLabel = '/ Month';
-                    } else {
-                        // WITH PACKAGE: Use base_monthly_price
-                        const basePrice = item.base_monthly_price || 0;
-                        months = selectedPkg.min_booking_duration || 1;
-                        const totalPrice = basePrice * months;
-                        const discountPercent = selectedPkg.discount_percent || 0;
-                        displayPrice = discountPercent > 0 
-                            ? totalPrice - (totalPrice * discountPercent / 100)
-                            : totalPrice;
-                        displayPrice = Math.round(displayPrice);
-                        packageId = selectedPkg.id;
-                        packageLabel = selectedPkg.package_name;
-                        priceLabel = '/ Month';
-                    }
-                }
-                // =========== DOOH LOGIC ===========
-                else if (hoardingType === 'dooh') {
-                    if (!selectedPkg) {
-                        // NO PACKAGE: Use price_per_slot
-                        displayPrice = item.price_per_slot || item.slot_price || 0;
-                        months = 1;
-                        packageId = null;
-                        packageLabel = 'Base';
-                        priceLabel = 'per  second ';
-                    } else {
-                        // WITH PACKAGE: Use package monthly logic
-                        const basePrice = item.base_monthly_price || item.slot_price || 0;
-                        months = selectedPkg.min_booking_duration || 1;
-                        const discountPercent = selectedPkg.discount_percent || 0;
-                        displayPrice = discountPercent > 0 
-                            ? basePrice - (basePrice * discountPercent / 100)
-                            : basePrice;
-                        displayPrice = Math.round(displayPrice);
-                        packageId = selectedPkg.id;
-                        packageLabel = selectedPkg.package_name;
-                        priceLabel = '/ Month';
-                    }
+                // Unified logic for OOH and DOOH
+                if (!selectedPkg) {
+                    // NO PACKAGE: Use monthly_price if > 0, else base_monthly_price
+                    displayPrice = item.monthly_price > 0 ? item.monthly_price : item.base_monthly_price;
+                    months = 1;
+                    packageId = null;
+                    packageLabel = 'Base';
+                    priceLabel = '/ Month';
+                } else {
+                    // WITH PACKAGE: Use base_monthly_price for discount calculation
+                    const basePrice = item.base_monthly_price || 0;
+                    months = selectedPkg.min_booking_duration || 1;
+                    const totalPrice = basePrice * months;
+                    const discountPercent = selectedPkg.discount_percent || 0;
+                    displayPrice = discountPercent > 0 
+                        ? totalPrice - (totalPrice * discountPercent / 100)
+                        : totalPrice;
+                    displayPrice = Math.round(displayPrice);
+                    packageId = selectedPkg.id;
+                    packageLabel = selectedPkg.package_name;
+                    priceLabel = '/ Month';
                 }
 
                 /* ===============================
@@ -264,61 +239,50 @@ function loadEnquiryHoardings() {
                  =============================== */
                 let packageHTML = '—';
 
-                // Calculate base price for both OOH and DOOH
-                let basePrice = 0;
-                if (hoardingType === 'ooh') {
-                    basePrice = Math.round(item.monthly_price || item.base_monthly_price || 0);
-                } else if (hoardingType === 'dooh') {
-                    basePrice = Math.round(item.price_per_slot || item.slot_price || 0);
-                }
+                // Calculate base price for both OOH and DOOH (unified)
+                let basePrice = Math.round(item.monthly_price > 0 ? item.monthly_price : item.base_monthly_price || 0);
 
                 // ALWAYS SHOW BASE PRICE OPTION + PACKAGES (if available)
                 packageHTML = `
-                    <select class="border border-gray-200 px-2 py-1 rounded w-full"
-                            onchange="onPackageChange(this, ${hoardingId}, '${hoardingType}')">
-                        <option value=""
-                            data-price="${basePrice}"
-                            data-months="1"
-                            data-discount="0"
-                            ${!selectedPkg ? 'selected' : ''}>
-                            Price (₹${basePrice})
-                        </option>
-                        ${item.packages?.length ? item.packages.map(pkg => {
+                                <div class="duration-select-wrapper">
+                                    <select class="duration-select border border-gray-200 px-2 py-1 rounded w-full"
+                                            onchange="onPackageChange(this, ${hoardingId}, '${hoardingType}')">
+                                        <option value=""
+                                            data-price="${basePrice}"
+                                            data-months="1"
+                                            data-discount="0"
+                                            ${!selectedPkg ? 'selected' : ''}>
+                                            Price (₹${basePrice})
+                                        </option>
+                                        ${item.packages?.length ? item.packages.map(pkg => {
 
-                                let pkgPrice, pkgMonths = pkg.min_booking_duration ?? 1;
+                                                let pkgPrice, pkgMonths = pkg.min_booking_duration ?? 1;
 
-                                // OOH: Calculate price based on base_monthly_price * duration - discount
-                                if (hoardingType === 'ooh') {
-                                    const basePriceCalc = item.base_monthly_price || 0;
-                                    const totalPrice = basePriceCalc * pkgMonths;
-                                    const discountPercent = pkg.discount_percent || 0;
-                                    pkgPrice = discountPercent > 0 
-                                        ? totalPrice - (totalPrice * discountPercent / 100)
-                                        : totalPrice;
-                                    pkgPrice = Math.round(pkgPrice);
-                                }
-                                // DOOH: Calculate price based on base_monthly_price with discount
-                                else if (hoardingType === 'dooh') {
-                                    const basePriceCalc = item.base_monthly_price || item.slot_price || 0;
-                                    const discountPercent = pkg.discount_percent || 0;
-                                    pkgPrice = discountPercent > 0 
-                                        ? basePriceCalc - (basePriceCalc * discountPercent / 100)
-                                        : basePriceCalc;
-                                    pkgPrice = Math.round(pkgPrice);
-                                }
+                                                // Unified: Calculate price based on base_monthly_price * duration - discount
+                                                const basePriceCalc = item.base_monthly_price || 0;
+                                                const totalPrice = basePriceCalc * pkgMonths;
+                                                const discountPercent = pkg.discount_percent || 0;
+                                                pkgPrice = discountPercent > 0 
+                                                    ? totalPrice - (totalPrice * discountPercent / 100)
+                                                    : totalPrice;
+                                                pkgPrice = Math.round(pkgPrice);
 
-                                return `
-                                    <option value="${pkg.id}"
-                                        data-price="${pkgPrice}"
-                                        data-months="${pkgMonths}"
-                                        data-discount="${pkg.discount_percent || 0}"
-                                        ${selectedPkg && Number(pkg.id) === Number(selectedPkg.id) ? 'selected' : ''}>
-                                        offer- ${pkg.discount_percent || 0}% / ${pkgMonths} months
-                                    </option>
+                                                return `
+                                                    <option value="${pkg.id}"
+                                                        data-price="${pkgPrice}"
+                                                        data-months="${pkgMonths}"
+                                                        data-discount="${pkg.discount_percent || 0}"
+                                                        ${selectedPkg && Number(pkg.id) === Number(selectedPkg.id) ? 'selected' : ''}>
+                                                        offer- ${pkg.discount_percent || 0}% / ${pkgMonths} months
+                                                    </option>
+                                                `;
+                                            }).join('') : ''}
+                                    </select>
+                                    <svg class="duration-arrow w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                 </div>
                                 `;
-                            }).join('') : ''}
-                    </select>
-                `;
 
                 /* ===============================
                  | 4. ROW HTML
@@ -330,13 +294,18 @@ function loadEnquiryHoardings() {
                             ${(item.locality ?? '')}${item.state ? ', ' + item.state : ''}
                         </td>
                         <td class="py-4 px-4">
-                            <select class="border border-gray-200 px-2 py-1 rounded w-full" onchange="onDurationChange(this, ${hoardingId})">
-                                <option value="1" data-months="1">1 Month</option>
-                                <option value="2" data-months="2">2 Months</option>
-                                <option value="3" data-months="3">3 Months</option>
-                                <option value="6" data-months="6">6 Months</option>
-                                <option value="12" data-months="12">12 Months</option>
-                            </select>
+                            <div class="duration-select-wrapper">
+                                <select class="duration-select border border-gray-200 px-2 py-1 rounded w-full" name="duration" onchange="onDurationChange(this, ${hoardingId})">
+                                    <option value="1" data-months="1">1 Month</option>
+                                    <option value="2" data-months="2">2 Months</option>
+                                    <option value="3" data-months="3">3 Months</option>
+                                    <option value="6" data-months="6">6 Months</option>
+                                    <option value="12" data-months="12">12 Months</option>
+                                </select>
+                                <svg class="duration-arrow w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
                         </td>
                         <td class="py-4 px-4">${packageHTML}</td>
                         <td class="py-4 px-4 font-semibold rental-cell">
@@ -570,3 +539,26 @@ function onDurationChange(select, hoardingId) {
 }
 
 </script>
+<style>
+    .duration-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: none;
+    padding-right: 2rem;
+    width: 100%;
+    box-sizing: border-box;
+    }
+    .duration-select-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    }
+    .duration-arrow {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+    }
+</style>

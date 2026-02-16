@@ -144,49 +144,38 @@
                                             ₹{{ number_format($item->price) }}
                                         </span>
 
-                                        <span class="text-sm text-gray-500">
-                                            @if($item->hoarding_type === 'dooh')
-                                                /Slot
-                                            @elseif(request('duration') === 'weekly')
-                                                /Week
-                                            @else
-                                                /Month
-                                            @endif
+                                        <span class="text-sm text-gray-500">                                
+                                                /Month                                        
                                         </span>
                                     </div>
 
 
                                     @if(
                                         request('duration') !== 'weekly'
-                                        && $item->hoarding_type === 'ooh'
                                         && !empty($item->monthly_price)
                                         && $item->monthly_price > 0
                                         && !empty($item->base_monthly_price)
                                         && $item->base_monthly_price > $item->monthly_price
                                     )
-                                        <div class="mt-1">
-                                            <span class="text-xs text-red-500 line-through">
+                                        <div class="text-xs mt-1">
+                                            <span class="line-through text-red-500">
                                                 ₹{{ number_format($item->base_monthly_price) }}
                                             </span>
-
-                                            @if($item->discount_percent)
-                                                <span class="bg-green-200 text-xs text-green-700 px-2 py-0.5 rounded">
-                                                    {{ $item->discount_percent }}% OFF
-                                                </span>
-                                            @endif
-
-                                            <span class="text-xs text-gray-500 ml-1">Taxes excluded</span>
+                                            <span class="ml-1 bg-green-200 text-green-700 px-2 py-0.5 rounded">
+                                                ₹{{ number_format($item->base_monthly_price - $item->monthly_price) }} OFF
+                                            </span>
                                         </div>
                                     @endif
+                                    <p class="text-xs text-gray-500 my-2">
+                                        Taxes excluded
+                                    </p>
 
                                     {{-- GAZEFLOW --}}
                                     @if($item->expected_eyeball)
                                         <p class="text-xs text-gray-500 my-1">
                                             Approx {{ number_format($item->expected_eyeball) }} daily eyeballs
                                         </p>
-                                    @endif
-                                        <p class="text-xs text-blue-500">3 Packages Available</p>
-                                    
+                                    @endif                                    
                                 </div>
                             </div>
                         </div>

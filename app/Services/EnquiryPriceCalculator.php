@@ -48,34 +48,22 @@ class EnquiryPriceCalculator
          | DOOH PRICING
          ===================================================== */
         if ($item->hoarding_type === 'dooh') {
-
-            $screen = $item->hoarding->doohScreen;
-
-            if (!$screen) {
-                return 0;
-            }
-
-            $pricePer10Sec = (float) ($screen->price_per_slot ?? 0);
-
-            $videoDuration = (int) ($meta['dooh_specs']['video_duration'] ?? 10);
-            $slotsPerDay   = (int) ($meta['dooh_specs']['slots_per_day'] ?? 1);
-            $totalDays     = (int) ($meta['dooh_specs']['total_days'] ?? 1);
-
-            // 🔥 Core DOOH Formula
-            $pricePerSecond = $pricePer10Sec;
-            $pricePerPlay   = $pricePerSecond * $videoDuration;
-            $perDayPrice    = $pricePerPlay * $slotsPerDay;
-            $basePrice      = $perDayPrice * $totalDays;
-
-            // ✅ DOOH WITHOUT PACKAGE
+            // If no package, use monthly_price or base_monthly_price (unified logic)
             if (empty($item->package_id)) {
-                return round($basePrice, 2);
+                $months = (int) ($meta['months'] ?? 1);
+                $monthlyPrice = (float) ($item->hoarding->monthly_price ?? 0);
+                $baseMonthlyPrice = (float) ($item->hoarding->base_monthly_price ?? 0);
+                $price = $monthlyPrice > 0 ? $monthlyPrice : $baseMonthlyPrice;
+                return round($months * $price, 2);
             }
 
-            // ✅ DOOH WITH PACKAGE
-            $discountPercent = (float) ($item->package->discount_percent ?? 0);
-            $discount        = $basePrice * ($discountPercent / 100);
-
+            // With package, use base_monthly_price, min_booking_duration, discount_percent
+            $package = $item->package;
+            $baseMonthlyPrice = (float) ($item->hoarding->base_monthly_price ?? 0);
+            $minMonths        = (int) ($package->min_booking_duration ?? 1);
+            $discountPercent  = (float) ($package->discount_percent ?? 0);
+            $basePrice = $baseMonthlyPrice * $minMonths;
+            $discount  = $basePrice * ($discountPercent / 100);
             return round($basePrice - $discount, 2);
         }
 

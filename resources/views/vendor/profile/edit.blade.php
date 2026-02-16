@@ -69,7 +69,7 @@
                 <label class="text-black">Email Address</label>
                 <p class="font-medium border border-gray-200 rounded-md px-3 min-h-[44px] flex items-center gap-1">
                     {{ auth()->user()->email }}
-                    @if(auth()->user()->email)
+                    @if(auth()->user()->email_verified_at)
                         <span class="text-green-600">✔</span>
                     @endif
                 </p>
@@ -79,7 +79,7 @@
                 <label class="text-black">Mobile Number</label>
                 <p class="font-medium border border-gray-200 rounded-md px-3 min-h-[44px] flex items-center gap-1">
                     {{ auth()->user()->phone }}
-                    @if(auth()->user()->phone)
+                    @if(auth()->user()->phone_verified_at)
                         <span class="text-green-600">✔</span>
                     @endif
                 </p>
@@ -304,7 +304,7 @@
             id="otpInput"
             type="text"
             maxlength="4"
-            class="w-full border rounded-lg px-4 py-3 text-center text-xl tracking-[6px] outline-none focus:border-blue-500"
+            class="w-full border rounded-lg px-4 py-3 text-center text-xl tracking-[6px] outline-none"
             placeholder="----"
         >
 
@@ -313,7 +313,7 @@
         <button
             onclick="verifyOtp()"
             type="button"
-            class="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+            class="w-full mt-4 btn-color text-white py-2 rounded-lg"
         >
             Verify OTP
         </button>
@@ -321,7 +321,7 @@
         <button
             onclick="resendOtp()"
             id="resendBtn"
-            class="w-full mt-2 text-sm text-blue-600 hidden"
+            class="w-full mt-2 text-sm text-success hidden"
             type="button"
         >
             Resend OTP
@@ -493,4 +493,43 @@ button {
 
         }, 120);
     }
+</script>
+<script>
+function sendVerifyClick(type){
+
+    let value = '';
+
+    if(type === 'email'){
+        value = document.getElementById('emailField').value.trim();
+
+        if(!value){
+            toast('error','Enter email first');
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if(!emailRegex.test(value)){
+            toast('error','Enter valid email');
+            return;
+        }
+    }
+
+    if(type === 'phone'){
+        value = document.getElementById('phoneField').value.trim();
+
+        if(!value){
+            toast('error','Enter mobile number first');
+            return;
+        }
+
+        const digits = value.replace(/\D/g,'');
+        if(digits.length !== 10){
+            toast('error','Enter valid 10 digit mobile');
+            return;
+        }
+    }
+
+    // call your existing function
+    autoSendOtp(type);
+}
 </script>

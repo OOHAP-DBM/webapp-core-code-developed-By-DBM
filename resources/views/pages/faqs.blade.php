@@ -21,7 +21,7 @@
                     <button
                         type="button"
                         @click="open = !open"
-                        class="w-full flex items-center justify-between px-5 py-4 text-left font-semibold text-gray-900"
+                        class="w-full flex items-center justify-between px-5 py-4 text-left font-semibold text-gray-900 cursor-pointer"
                     >
                         <span class="flex items-center gap-2">
                             <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
