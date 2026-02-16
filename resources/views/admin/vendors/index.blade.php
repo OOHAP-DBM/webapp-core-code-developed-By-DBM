@@ -53,12 +53,11 @@
         (function() {
             var input = document.getElementById('vendor-search-input');
             var form = document.getElementById('vendor-search-form');
-            var timeout = null;
-            input.addEventListener('input', function() {
-                clearTimeout(timeout);
-                timeout = setTimeout(function() {
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
                     form.submit();
-                }, 400);
+                }
             });
         })();
         </script>

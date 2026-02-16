@@ -182,20 +182,20 @@
 
                 <div class="space-y-6">
                     <!-- System-locked Campaign Inputs -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700">
+                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
                                 Spot Duration (sec)  <span class="text-red-500">*</span>
                             </label>
                             <input type="number" name="spot_duration"  required min="1" max="10000" step="1"
                                 value="{{ old('spot_duration', $draft?->slot_duration_seconds) }}"
-                                class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
+                                class="w-full border-2 border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm sm:text-base
                                            focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                            placeholder:text-gray-400 ">
                         </div>
 
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700">
+                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
                                 Price Per Spot (₹) <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
@@ -203,36 +203,36 @@
                                 <input type="number" name="price_per_slot" min="0.01" step="0.01" required 
                                     value="{{ old('price_per_slot', $draft?->price_per_slot) }}" 
                                     placeholder="" required min ="1"
-                                    class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
+                                    class="w-full border-2 border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm sm:text-base
                                            focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                            placeholder:text-gray-400">
                             </div>
                         </div>
 
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700">
+                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
                                 Spots Per Day  <span class="text-red-500">*</span>
                             </label>
                             <input type="number" name="spots_per_day"  required min="1" max="5000" step="1"
                                 value="{{ old('spots_per_day', $draft?->total_slots_per_day) }}"
-                                class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
+                                class="w-full border-2 border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm sm:text-base
                                            focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                            placeholder:text-gray-400 ">
                         </div>
 
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700">
+                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
                                 Daily Runtime (hrs) <span class="text-red-500">*</span>
                             </label>
                             <input type="number" name="daily_runtime"  required min="0.5" max="24"   step="any"
                                 value="{{ old('daily_runtime', $draft?->screen_run_time) }}"
-                                class="w-full border-2 border-gray-200 rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
+                                class="w-full border-2 border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm sm:text-base
                                            focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C] outline-none
                                            placeholder:text-gray-400">
                         </div>
 
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700">
+                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
                                 Campaign Price Monthly  (30 Days)
                             </label>
                             
@@ -240,7 +240,7 @@
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700 font-bold">₹</span>
                                 <input type="text" id="base_campaign_price" readonly min="1" step="any"
                                     class="w-full  bg-[#FFF5E7] 
-                                           rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
+                                           rounded-xl pl-10 pr-4 py-2.5 text-sm sm:text-base
                                            text-gray-900 font-bold cursor-not-allowed">
                                 <input type="hidden" name="base_monthly_price" value="{{ old('base_monthly_price', $draft?->base_monthly_price) }} " id="base_monthly_price_input">
                             </div>
@@ -264,7 +264,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-5 gap-4 lg:gap-6">
 
                        <div class="sm:col-span-1 space-y-3">
-                            <label class="block text-sm font-semibold text-gray-700">
+                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
                                 Discount Type
                             </label>
 
@@ -296,19 +296,19 @@
                         </div>
 
                         <div class="sm:col-span-1 space-y-3">
-                            <label class="block text-sm font-semibold text-gray-700">
+                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
                                 Discount Value
                             </label>
                             <div class="relative">
                                 <input type="number"
-    id="discount_value"
-    name="discount_value"
-    value="{{ old('discount_value', $hoarding->discount_value ?? '') }}"
-    min="0"
-    step="0.01"
-    placeholder="eg. 10"
-    class="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5
-        focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C]">
+                                    id="discount_value"
+                                    name="discount_value"
+                                    value="{{ old('discount_value', $hoarding->discount_value ?? '') }}"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="eg. 10"
+                                    class="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5
+                                        focus:ring-2 focus:ring-[#009A5C]/20 focus:border-[#009A5C]">
 
                                         
                                 <span id="discount_symbol"
@@ -318,14 +318,14 @@
 
 
                          <div class="sm:col-span-1 space-y-3">
-                            <label class="block text-sm font-semibold text-gray-700">
+                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
                                Final  Campaign Price Monthly
                             </label>
                             <div class="relative">
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700 font-bold">₹</span>
                                 <input type="text" id="monthly_price" readonly  min="0" step="any"
                                     class="w-full  bg-[#FFF5E7] 
-                                           rounded-xl pl-8 pr-4 py-2.5 text-sm sm:text-base
+                                           rounded-xl pl-10 pr-4 py-2.5 text-sm sm:text-base
                                            text-gray-900 font-bold cursor-not-allowed">
                                     <input type="hidden" name="monthly_price" id="monthly_price_input">
                             </div>

@@ -45,31 +45,12 @@ class EnquiryController extends Controller
 
         $searchId = null;
 
-        /* ---------------- SEARCH + PRIORITY ---------------- */
+        /* ---------------- SEARCH BY ID ONLY ---------------- */
         if ($request->filled('search')) {
-
             $search = trim($request->search);
-
-            // ENQ00050 / 50 → 50
             $searchId = preg_replace('/\D/', '', $search);
-
-            $query->where(function ($q) use ($search, $searchId) {
-
-                if ($searchId !== '') {
-                    $q->orWhere('id', (int) $searchId);
-                }
-
-                $q->orWhereHas('items.hoarding', function ($h) use ($search) {
-                    $h->where('title', 'like', "%{$search}%")
-                    ->orWhere('city', 'like', "%{$search}%")
-                    ->orWhere('address', 'like', "%{$search}%")
-                    ->orWhere('vendor_id', 'like', "%{$search}%")
-                    ->orWhere('id', 'like', "%{$search}%");
-                });
-            });
-
-            // ⭐ Exact ID priority
             if ($searchId !== '') {
+                $query->where('id', (int) $searchId);
                 $query->orderByRaw(
                     "CASE WHEN id = ? THEN 0 ELSE 1 END",
                     [(int) $searchId]

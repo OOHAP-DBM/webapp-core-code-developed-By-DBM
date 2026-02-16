@@ -52,12 +52,11 @@
         (function() {
             var input = document.getElementById('customer-search-input');
             var form = document.getElementById('customer-search-form');
-            var timeout = null;
-            input.addEventListener('input', function() {
-                clearTimeout(timeout);
-                timeout = setTimeout(function() {
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
                     form.submit();
-                }, 400);
+                }
             });
         })();
         </script>

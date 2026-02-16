@@ -241,15 +241,9 @@ class RegisterController extends Controller
         // $otp = 1234;
 
         Cache::put('email_otp_' . $request->email, $otp, now()->addMinutes(1));
-        // Send OTP via email
-        // echo $otp; // For testing purposes
+        // Send OTP via email using a Mailable class
         try {
-            Mail::raw(
-                "Your OOHAPP email verification code is: {$otp}\n\nPlease enter this code to verify your email address. If you did not request this, you may safely ignore this message.",
-                function ($m) use ($request) {
-                    $m->to($request->email)->subject('OOHAPP Email Verification');
-                }
-            );
+            Mail::to($request->email)->send(new \Modules\Mail\OtpVerificationMail($otp));
         } catch (\Exception $e) {
             \Log::error('Email OTP send failed: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Failed to send OTP. Please try again.']);
