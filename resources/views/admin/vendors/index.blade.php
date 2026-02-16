@@ -2,17 +2,18 @@
 
 @section('title', 'Vendors Management')
 
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'Vendors Management', 'route' => route('admin.vendors.index')],
+    ['label' => ucfirst(str_replace('_',' ', $status)) . ' Vendors']
+]" />
+@endsection
+
 @section('content')
 <div class="bg-[#F7F7F7] w-full min-h-screen">
 
-    {{-- Breadcrumb --}}
-    <div class="text-xs text-[#6B7280] mb-4">
-        Home - Vendors Management -
-        <span class="text-[#111827] font-semibold">
-            {{ ucfirst(str_replace('_',' ', $status)) }} Vendors
-        </span>
-    </div>
-
+    
     {{-- Tabs --}}
     <div class="flex items-center justify-between mb-4">
         <div class="flex gap-6 text-sm font-medium border-b border-[#E5E7EB]">

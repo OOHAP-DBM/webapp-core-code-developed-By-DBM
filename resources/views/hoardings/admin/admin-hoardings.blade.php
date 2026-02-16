@@ -1,6 +1,16 @@
 @extends('layouts.admin')
 @section('title', "Admin Hoardings")
 
+@section('title', 'All Hoardings')
+@section('page_title', 'Admin Hoardings')
+
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'All Hoardings', 'route' => route('admin.my-hoardings')],
+    ['label' => 'Vendor\'s Hoardings']
+]" />
+@endsection
 @section('content')
 <div class="px-6 py-6">
 
@@ -9,12 +19,13 @@
         <h1 class="text-lg font-semibold text-gray-900">
             Admin Hoardings
         </h1>
-        <button
+        <a
+         href="{{ route('vendor.hoardings.add') }}"
             type="button"
             class="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-md
                    hover:bg-teal-700 transition">
             Add Hoarding
-        </button>
+        </a>
     </div>
     @if($hoardings->count())
 
@@ -176,11 +187,11 @@
             <h3 class="mt-6 text-lg font-semibold text-gray-700">
                 No Hoardings Found
             </h3>
-            <button
+            <a href="{{ route('vendor.hoardings.add') }}"
                 class="mt-4 px-5 py-2 text-sm font-medium text-white
                        bg-teal-600 rounded-md hover:bg-teal-700 transition">
                 Add Hoarding
-            </button>
+            </a>
         </div>
 
     @endif

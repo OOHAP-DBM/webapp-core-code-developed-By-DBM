@@ -1,5 +1,14 @@
 @extends('layouts.admin')
-@section('title', "Vendor's Hoardings")
+@section('title', 'All Hoardings')
+@section('page_title', 'All Hoardings')
+
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'All Hoardings', 'route' => route('admin.my-hoardings')],
+    ['label' => 'Vendor\'s Hoardings']
+]" />
+@endsection
 
 @push('styles')
 <style>
@@ -192,8 +201,7 @@
                         <th class="px-5 py-4">Hoarding Commission</th>
                         <th class="px-5 py-4">Location</th>
                         {{-- <th class="px-5 py-4 text-center"># of Bookings</th> --}}
-                        <th class="px-5 py-4">Status</th>
-                        <th class="px-5 py-4">Hoarding Expire On</th>
+                        <th class="px-5 py-4 text-left md:ml-2">Status</th>
                         <th class="px-5 py-4">Progress</th>
                         <th class="px-5 py-4 text-right">Action</th>
                     </tr>
@@ -299,63 +307,24 @@
                         {{-- Status --}}
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-3">
-
-                              <button
-                                    type="button"
-                                    aria-label="Toggle Status"
-                                    class="status-toggle group relative inline-flex items-center w-14 h-7 rounded-full transition-all duration-300
-                                        focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
-                                        {{ $isActive ? 'bg-gradient-to-r from-green-500 to-green-600 shadow-green-300/50' : 'bg-gray-300' }}"
-                                    data-id="{{ $hoarding->id }}"
-                                    data-source="{{ $hoarding->source }}"
-                                    data-hoarding-commission="{{ $hoarding->hoarding_commission }}"
-                                >
-                                    {{-- Loader --}}
-                                    <span class="absolute inset-0 flex items-center justify-center opacity-0 loading-spinner">
-                                        <svg class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                            <path class="opacity-75" fill="currentColor"
-                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-                                        </svg>
-                                    </span>
-
-                                    {{-- Knob --}}
-                                    <span
-                                        class="relative z-10 inline-flex items-center justify-center w-6 h-6 rounded-full bg-white shadow-md
-                                        transition-transform duration-300
-                                        {{ $isActive ? 'translate-x-7' : 'translate-x-1' }}"
-                                    >
-                                        @if($isActive)
-                                            <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                            </svg>
-                                        @else
-                                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                                            </svg>
-                                        @endif
-                                    </span>
-                                </button>
-
-
-
-                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $hoarding->status === 'pending_approval' ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-700' }}">
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full
+                                    @if($hoarding->status === 'active') bg-green-50 text-green-700
+                                    @elseif($hoarding->status === 'pending_approval') bg-red-50 text-red-600
+                                    @else bg-gray-100 text-gray-700 @endif">
                                     {{ $hoarding->status === 'pending_approval' ? 'UNAPPROVED' : strtoupper($hoarding->status) }}
                                 </span>
-
                             </div>
                         </td>
 
                         {{-- Expiry --}}
-                        <td class="px-5 py-4">
+                        <!-- <td class="px-5 py-4">
                             <div class="flex items-center gap-2 text-sm text-gray-600">
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
                                 {{ $hoarding->expiry_date ? $hoarding->expiry_date->format('d M, Y') : '—' }}
                             </div>
-                        </td>
-
+                        </td> -->
                         {{-- Progress --}}
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-2">
@@ -411,7 +380,7 @@
                                             </svg>
                                             Deactivate
                                         </button>
-                                    @elseif($hoarding->status === 'inactive')
+                                    @elseif($hoarding->status === 'inactive' || $hoarding->status === 'suspended')
                                         <button 
                                             onclick="activateSingle({{ $hoarding->id }})"
                                             class="w-full text-left px-4 py-2.5 hover:bg-green-50 text-green-600 font-medium flex items-center gap-3 transition-colors">
@@ -421,15 +390,16 @@
                                             Activate
                                         </button>
                                     @endif
-
-                                    <button 
-                                        onclick="suspendSingle({{ $hoarding->id }})"
-                                        class="w-full text-left px-4 py-2.5 hover:bg-orange-50 text-orange-600 font-medium flex items-center gap-3 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                        </svg>
-                                        Suspend
-                                    </button>
+                                    @if($hoarding->status !== 'suspended')
+                                        <button 
+                                            onclick="suspendSingle({{ $hoarding->id }})"
+                                            class="w-full text-left px-4 py-2.5 hover:bg-orange-50 text-orange-600 font-medium flex items-center gap-3 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                            </svg>
+                                            Suspend
+                                        </button>
+                                    @endif
 
                                     <button
                                         class="w-full text-left px-4 py-2.5 hover:bg-green-50 text-green-600 font-medium flex items-center gap-3 transition-colors"
