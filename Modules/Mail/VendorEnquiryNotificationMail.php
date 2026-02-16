@@ -8,8 +8,8 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Enquiries\Models\Enquiry;
 use Illuminate\Support\Collection;
-
-class VendorEnquiryNotificationMail extends Mailable
+use Illuminate\Support\Facades\Mail;
+class VendorEnquiryNotificationMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
