@@ -10,6 +10,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Mail\Mailable;
+use Illuminate\Support\Facades\Mail;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -570,16 +572,17 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Send a notification to all enabled vendor emails if global preference is enabled
      */
-    public function notifyVendorEmails($notification)
+ 
+    public function notifyVendorEmails(Mailable $mailable)
     {
-        // Only send if global email notifications are enabled
         if (!$this->notification_email) {
             return;
         }
 
         $emails = $this->vendorProfile?->notification_emails ?? [$this->email];
+
         foreach ($emails as $email) {
-            \Mail::to($email)->send($notification->toMail($this));
+            Mail::to($email)->send($mailable);
         }
     }
 }
