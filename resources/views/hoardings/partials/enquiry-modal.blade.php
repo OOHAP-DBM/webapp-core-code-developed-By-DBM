@@ -150,7 +150,7 @@
                 </p>
             </div>
             <button type="button" onclick="closeEnquiryModal()"
-                    class="text-gray-500 hover:text-black text-xl">
+                    class="text-gray-500 hover:text-black text-xl cursor-pointer">
                 ✕
             </button>
         </div>
@@ -296,7 +296,7 @@
                         id="enquirySubmitBtn"
                         class="w-full bg-[#2F5D46] hover:bg-[#264B39]
                             text-white py-3 rounded-md font-semibold flex items-center justify-center relative overflow-hidden">
-                    <span id="enquiryBtnText" class="flex items-center justify-center w-full h-full">Enquire Now</span>
+                    <span id="enquiryBtnText" class="flex items-center justify-center w-full h-full cursor-pointer">Enquire Now</span>
                     <span
                         id="enquiryLoader"
                         class="hidden absolute inset-0 flex items-center justify-center bg-[#2f5d46] bg-opacity-90"
