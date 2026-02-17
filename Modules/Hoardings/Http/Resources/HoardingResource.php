@@ -72,11 +72,11 @@ class HoardingResource extends JsonResource
         $discount = HoardingHelper::discountBeforeOffer($basePrice, $sellPrice);
         // Build pricing based on hoarding type
             $pricing = [
-            'base_price'      => $discount['base_price'],
-            'sell_price'      => $discount['sell_price'],
-            'has_discount'    => $discount['has_discount'],
-            'off_percentage'  => $discount['off_percentage'],
-            'off_amount'      => $discount['off_amount'],
+            'base_price'      => $discount['base_price']?? $basePrice,
+            'sell_price'      => $discount['sell_price']?? $sellPrice,
+            'has_discount'    => $discount['has_discount']?? false,
+            'off_percentage'  => $discount['off_percentage']?? 0,
+            'off_amount'      => $discount['off_amount']?? 0,
 
             // OOH extras
             'weekly' => $this->weekly_price_1 ? (float) $this->weekly_price_1 : null,
