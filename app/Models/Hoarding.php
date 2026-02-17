@@ -851,5 +851,149 @@ class Hoarding extends Model implements HasMedia
     }
 
 
+/**
+     * Check if hoarding is currently available
+     */
+    public function getIsAvailableAttribute(): bool
+    {
+        if ($this->status !== 'active') {
+            return false;
+        }
+        
+        if ($this->is_on_hold && $this->hold_till && $this->hold_till->isFuture()) {
+            return false;
+        }
+        
+        if ($this->available_from && $this->available_from->isFuture()) {
+            return false;
+        }
+        
+        if ($this->available_to && $this->available_to->isPast()) {
+            return false;
+        }
+        
+        return true;
+    }
 
+    /**
+     * Get formatted price with currency
+     */
+    public function getFormattedPriceAttribute(): string
+    {
+        $symbol = $this->currency === 'INR' ? '₹' : '$';
+        return $symbol . number_format($this->monthly_price, 2);
+    }
+
+   
+
+    /**
+     * Scope: Available hoardings (active and not on hold)
+     */
+    public function scopeAvailable($query)
+    {
+        return $query->where('status', 'active')
+            ->where(function ($q) {
+                $q->where('is_on_hold', false)
+                  ->orWhere(function ($q2) {
+                      $q2->where('is_on_hold', true)
+                         ->where('hold_till', '<', now());
+                  });
+            })
+            ->where(function ($q) {
+                $q->whereNull('available_from')
+                  ->orWhere('available_from', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('available_to')
+                  ->orWhere('available_to', '>=', now());
+            });
+    }
+
+    /**
+     * Scope: Filter by city
+     */
+    public function scopeInCity($query, string $city)
+    {
+        return $query->where('city', 'like', "%{$city}%");
+    }
+
+    /**
+     * Scope: Filter by locality
+     */
+    public function scopeInLocality($query, string $locality)
+    {
+        return $query->where(function ($q) use ($locality) {
+            $q->where('locality', 'like', "%{$locality}%")
+              ->orWhere('address', 'like', "%{$locality}%");
+        });
+    }
+
+    /**
+     * Scope: Filter by hoarding type
+     */
+    public function scopeOfType($query, string $type)
+    {
+        return $query->where('hoarding_type', 'like', "%{$type}%");
+    }
+
+    /**
+     * Scope: Featured hoardings
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+
+    /**
+     * Increment view count
+     */
+    public function incrementViewCount(): void
+    {
+        $this->increment('view_count');
+        $this->update(['last_viewed_at' => now()]);
+    }
+
+    /**
+     * Check if hoarding matches enquiry criteria
+     */
+    public function matchesEnquiry(string $city, array $localities, array $hoardingTypes): bool
+    {
+        // Check city match
+        if (stripos($this->city, $city) === false && stripos($city, $this->city) === false) {
+            return false;
+        }
+        
+        // Check hoarding type match
+        $typeMatch = false;
+        foreach ($hoardingTypes as $type) {
+            if (stripos($this->hoarding_type, $type) !== false) {
+                $typeMatch = true;
+                break;
+            }
+        }
+        
+        if (!$typeMatch) {
+            return false;
+        }
+        
+        // Check locality match (if specified)
+        if (!empty($localities) && $localities[0] !== 'To be discussed') {
+            $localityMatch = false;
+            foreach ($localities as $locality) {
+                if (stripos($this->locality, $locality) !== false || 
+                    stripos($this->address, $locality) !== false ||
+                    stripos($this->landmark, $locality) !== false) {
+                    $localityMatch = true;
+                    break;
+                }
+            }
+            
+            if (!$localityMatch) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
 }
