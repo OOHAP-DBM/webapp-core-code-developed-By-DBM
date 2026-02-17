@@ -9,8 +9,6 @@ use Illuminate\Queue\SerializesModels;
 use Modules\Enquiries\Models\Enquiry;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Contracts\Queue\ShouldQueue;
-
 class VendorEnquiryNotificationMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
