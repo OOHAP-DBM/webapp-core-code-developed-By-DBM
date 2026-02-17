@@ -8,7 +8,7 @@ use Illuminate\Queue\SerializesModels;
 use Modules\Enquiries\Models\DirectEnquiry;
 use App\Models\User;
 
-class VendorEnquiryNotification extends Mailable
+class VendorDirectEnquiryMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -24,11 +24,11 @@ class VendorEnquiryNotification extends Mailable
     public function build()
     {
         return $this->subject("New Hoarding Enquiry in {$this->enquiry->location_city}")
-            ->markdown('enquiries.emails.vendor-enquiry-notification')
+            ->markdown('enquiries.emails.vendor-direct-enquiry-mail')
             ->with([
                 'enquiry' => $this->enquiry,
                 'vendor' => $this->vendor,
-                'action_url' => route('vendor.enquiries.show', $this->enquiry->id)
+                 'action_url' => url('/vendor/notifications'),
             ]);
     }
 }

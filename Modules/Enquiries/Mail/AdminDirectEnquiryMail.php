@@ -23,12 +23,12 @@ class AdminDirectEnquiryMail extends Mailable
 
     public function build()
     {
-        return $this->subject("New Enquiry: {$enquiry->location_city} - {$this->enquiry->name}")
-            ->markdown('emails.admin-enquiry-notification')
+        return $this->subject("New Enquiry: {$this->enquiry->location_city} - {$this->enquiry->name}")
+            ->markdown('admin.emails.direct-enquiry-notification')
             ->with([
                 'enquiry' => $this->enquiry,
                 'vendors' => $this->vendors,
-                'adminUrl' => route('admin.enquiries.show', $this->enquiry->id)
+                'adminUrl' => route('admin.direct-enquiries.index', $this->enquiry->id)
             ]);
     }
 }

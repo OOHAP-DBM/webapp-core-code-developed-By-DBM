@@ -62,7 +62,7 @@ return new class extends Migration
         // Pivot table for enquiry-vendor relationship
         Schema::create('enquiry_vendor', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('enquiry_id')->constrained('direct_enquiries')->cascadeOnDelete();
+            $table->foreignId('enquiry_id')->constrained('direct_web_enquiries')->cascadeOnDelete();
             $table->foreignId('vendor_id')->constrained('users')->cascadeOnDelete();
             $table->boolean('has_viewed')->default(false);
             $table->timestamp('viewed_at')->nullable();
@@ -82,6 +82,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('enquiry_vendor');
-        Schema::dropIfExists('direct_enquiries');
+        Schema::dropIfExists('direct_web_enquiries');
     }
 };

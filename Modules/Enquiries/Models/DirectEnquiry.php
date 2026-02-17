@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\User;
 
+
 class DirectEnquiry extends Model
 {
     protected $table = 'direct_web_enquiries';

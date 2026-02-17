@@ -1,5 +1,5 @@
 @component('mail::message')
-# New Hoarding Enquiry Alert!
+# New Lead Alert!
 
 Hello **{{ $vendor->name }}**,
 
@@ -34,9 +34,9 @@ Great news! A potential client is looking for hoarding spaces in **{{ $enquiry->
 2. Prepare your best quote and options
 3. Contact the client within 24 hours for best results
 
-@component('mail::button', ['url' => $dashboardUrl])
+<!-- @component('mail::button', ['url' => $action_url, 'color' => 'primary'])
 View Full Enquiry & Respond
-@endcomponent
+@endcomponent -->
 
 ---
 

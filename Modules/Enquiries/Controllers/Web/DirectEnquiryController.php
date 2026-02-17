@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Services\OTPService;
+use App\Services\GuestOtpService;
 use Modules\Enquiries\Models\DirectEnquiry;
 use Modules\Enquiries\Mail\AdminDirectEnquiryMail;
 use Modules\Enquiries\Mail\UserDirectEnquiryConfirmation;
-use Modules\Enquiries\Mail\VendorEnquiryNotification;
+use Modules\Enquiries\Mail\VendorDirectEnquiryMail;
 use App\Notifications\AdminDirectEnquiryNotification;
-use App\Notifications\VendorEnquiryNotification as VendorEnquiryNotif;
+use Modules\Enquiries\Notifications\VendorDirectEnquiryNotification;
 use App\Models\User;
 use App\Models\Hoarding; // Adjust namespace based on your structure
 use Carbon\Carbon;
@@ -84,10 +84,7 @@ class DirectEnquiryController extends Controller
         ]);
     }
 
-    /**
-     * Send OTP to phone number
-     */
-    public function sendOtp(Request $request, OTPService $otpService)
+        public function sendOtp(Request $request, GuestOtpService $otpService)
     {
         $request->validate([
             'identifier' => 'required|string'
@@ -104,18 +101,8 @@ class DirectEnquiryController extends Controller
         }
 
         try {
-            // Create or get guest user
-            $user = Auth::user() ?? User::firstOrCreate(
-                ['phone' => $identifier],
-                [
-                    'name' => 'Guest User',
-                    'status' => 'pending_verification',
-                    'active_role' => 'customer'
-                ]
-            );
-
             // Rate limiting check (60 seconds between OTPs)
-            $recentOtp = DB::table('user_otps')
+            $recentOtp = DB::table('guest_user_otps')
                 ->where('identifier', $identifier)
                 ->where('purpose', 'direct_enquiry')
                 ->latest('created_at')
@@ -123,7 +110,7 @@ class DirectEnquiryController extends Controller
 
             if ($recentOtp) {
                 $createdAt = Carbon::parse($recentOtp->created_at);
-                $waitTime = config('app.otp_wait_time', 60); // Default 60 seconds
+                $waitTime = config('app.otp_wait_time', 1); // Default 60 seconds
 
                 if (now()->diffInSeconds($createdAt) < $waitTime) {
                     $remaining = $waitTime - now()->diffInSeconds($createdAt);
@@ -135,12 +122,11 @@ class DirectEnquiryController extends Controller
                 }
             }
 
-            // Generate and send OTP
-            $otpService->generate($user->id, $identifier, 'direct_enquiry');
+            // Generate and send OTP (no user creation needed!)
+            $otpService->generate($identifier, 'direct_enquiry');
 
             Log::info('OTP sent for direct enquiry', [
-                'phone' => $identifier,
-                'user_id' => $user->id,
+                'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
                 'ip' => $request->ip()
             ]);
 
@@ -151,9 +137,8 @@ class DirectEnquiryController extends Controller
 
         } catch (\Exception $e) {
             Log::error('OTP Send Failed', [
-                'identifier' => $identifier,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
+                'error' => $e->getMessage()
             ]);
 
             return response()->json([
@@ -165,8 +150,9 @@ class DirectEnquiryController extends Controller
 
     /**
      * Verify OTP
+     * NO USER LOOKUP NEEDED - works directly with phone number
      */
-    public function verifyOtp(Request $request, OTPService $otpService)
+    public function verifyOtp(Request $request, GuestOtpService $otpService)
     {
         $request->validate([
             'identifier' => 'required|string',
@@ -174,17 +160,8 @@ class DirectEnquiryController extends Controller
         ]);
 
         try {
-            $user = Auth::user() ?? User::where('phone', $request->identifier)->first();
-
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not found'
-                ], 404);
-            }
-
+            // Verify OTP directly without user lookup
             $verified = $otpService->verify(
-                $user->id, 
                 $request->identifier, 
                 $request->otp, 
                 'direct_enquiry'
@@ -192,7 +169,7 @@ class DirectEnquiryController extends Controller
 
             if (!$verified) {
                 Log::warning('Invalid OTP attempt', [
-                    'phone' => $request->identifier,
+                    'phone_masked' => substr($request->identifier, 0, 2) . 'XXXXXX' . substr($request->identifier, -2),
                     'ip' => $request->ip()
                 ]);
 
@@ -203,8 +180,7 @@ class DirectEnquiryController extends Controller
             }
 
             Log::info('OTP verified successfully', [
-                'phone' => $request->identifier,
-                'user_id' => $user->id
+                'phone_masked' => substr($request->identifier, 0, 2) . 'XXXXXX' . substr($request->identifier, -2)
             ]);
 
             return response()->json([
@@ -214,7 +190,7 @@ class DirectEnquiryController extends Controller
 
         } catch (\Exception $e) {
             Log::error('OTP Verification Failed', [
-                'identifier' => $request->identifier,
+                'phone_masked' => substr($request->identifier, 0, 2) . 'XXXXXX' . substr($request->identifier, -2),
                 'error' => $e->getMessage()
             ]);
 
@@ -263,12 +239,13 @@ class DirectEnquiryController extends Controller
         }
 
         // Verify OTP was actually verified in last 10 minutes
-        $phoneVerified = DB::table('user_otps')
+        $phoneVerified = DB::table('guest_user_otps')
             ->where('identifier', $request->phone)
             ->where('purpose', 'direct_enquiry')
             ->whereNotNull('verified_at')
-            ->where('created_at', '>', now()->subMinutes(10))
+            ->where('created_at', '>', now()->subMinutes(20))
             ->exists();
+
 
         if (!$phoneVerified) {
             return response()->json([
@@ -283,7 +260,7 @@ class DirectEnquiryController extends Controller
             // Prepare data
             $data = $validator->validated();
             
-            // Normalize city name (handle spelling mistakes with fuzzy matching)
+            // Normalize city name (handle spelling mistakes)
             $normalizedCity = $this->normalizeCityName($data['location_city']);
             
             // Filter and clean preferred locations
@@ -294,7 +271,7 @@ class DirectEnquiryController extends Controller
                 ))
                 : ['To be discussed'];
 
-            // Normalize locality names to handle spelling mistakes
+            // Normalize locality names
             $normalizedLocalities = array_map(
                 fn($loc) => $this->normalizeLocalityName($loc, $normalizedCity),
                 $preferredLocations
@@ -315,7 +292,7 @@ class DirectEnquiryController extends Controller
                 'source' => 'website'
             ]);
 
-            // Find relevant vendors based on their hoardings in the specified location
+            // Find relevant vendors based on hoardings
             $vendors = $this->findRelevantVendors(
                 $normalizedCity, 
                 $normalizedLocalities,
@@ -326,32 +303,22 @@ class DirectEnquiryController extends Controller
                 // Attach vendors to enquiry
                 $enquiry->assignedVendors()->attach($vendors->pluck('id'));
                 
-                // Send notifications to vendors (queued for better performance)
+                // Send notifications to vendors (queued)
                 foreach ($vendors as $vendor) {
                     Mail::to($vendor->email)->queue(
-                        new VendorEnquiryNotification($enquiry, $vendor)
+                        new VendorDirectEnquiryMail($enquiry, $vendor)
                     );
-                    
-                    // In-app notification
-                    $vendor->notify(new VendorEnquiryNotif($enquiry));
+                    $vendor->notify(new VendorDirectEnquiryNotification($enquiry, $vendor));
                 }
                 
                 Log::info('Enquiry assigned to vendors', [
                     'enquiry_id' => $enquiry->id,
                     'vendor_count' => $vendors->count(),
-                    'vendor_ids' => $vendors->pluck('id')->toArray(),
-                    'city' => $normalizedCity,
-                    'localities' => $normalizedLocalities
-                ]);
-            } else {
-                Log::warning('No vendors found for enquiry', [
-                    'enquiry_id' => $enquiry->id,
-                    'city' => $normalizedCity,
-                    'localities' => $normalizedLocalities
+                    'city' => $normalizedCity
                 ]);
             }
 
-            // Send confirmation to user
+            // Send confirmation to customer
             Mail::to($enquiry->email)->queue(
                 new UserDirectEnquiryConfirmation($enquiry)
             );
@@ -361,29 +328,28 @@ class DirectEnquiryController extends Controller
                 ->where('status', 'active')
                 ->get();
 
-            if ($admins->isNotEmpty()) {
-                foreach ($admins as $admin) {
-                    Mail::to($admin->email)->queue(
-                        new AdminDirectEnquiryMail($enquiry, $vendors)
-                    );
-                    $admin->notify(new AdminDirectEnquiryNotification($enquiry));
-                }
+            foreach ($admins as $admin) {
+                Mail::to($admin->email)->queue(
+                    new AdminDirectEnquiryMail($enquiry, $vendors)
+                );
+                $admin->notify(new AdminDirectEnquiryNotification($enquiry));
             }
 
             DB::commit();
 
-            // Clear captcha and OTP records
-            session()->forget('captcha_answer');
-            DB::table('user_otps')
+            // Clean up - delete OTP records after successful submission
+            DB::table('guest_user_otps')
                 ->where('identifier', $request->phone)
                 ->where('purpose', 'direct_enquiry')
                 ->delete();
 
+            // Clear captcha
+            session()->forget('captcha_answer');
+
             Log::info('Direct enquiry created successfully', [
                 'enquiry_id' => $enquiry->id,
                 'city' => $normalizedCity,
-                'vendors_notified' => $vendors->count(),
-                'customer_phone' => $enquiry->phone
+                'vendors_notified' => $vendors->count()
             ]);
 
             return response()->json([
@@ -397,13 +363,12 @@ class DirectEnquiryController extends Controller
             
             Log::error('Enquiry submission failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->except(['captcha', 'phone'])
+                'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to submit enquiry. Please try again or contact support.'
+                'message' => 'Failed to submit enquiry. Please try again.'
             ], 500);
         }
     }
@@ -614,5 +579,23 @@ class DirectEnquiryController extends Controller
         // e.g., "lucknow" becomes "%l%u%c%k%n%o%w%"
         $pattern = '%' . implode('%', str_split(strtolower($text))) . '%';
         return $pattern;
+    }
+
+    /**
+     * Show a single direct enquiry for the vendor panel
+     */
+    public function vendorShow($enquiryId)
+    {
+        $vendor = auth()->user();
+        $enquiry = DirectEnquiry::whereHas('assignedVendors', function($q) use ($vendor) {
+                $q->where('vendor_id', $vendor->id);
+            })
+            ->where('id', $enquiryId)
+            ->firstOrFail();
+
+        return view('vendor.enquiries.show', [
+            'enquiry' => $enquiry,
+            'vendor' => $vendor,
+        ]);
     }
 }

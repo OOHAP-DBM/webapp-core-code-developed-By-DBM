@@ -24,7 +24,7 @@ class UserDirectEnquiryConfirmation extends Mailable
             ->markdown('enquiries.emails.user-direct-enquiry-confirmation')
             ->with([
                 'enquiry' => $this->enquiry,
-                'trackingUrl' => route('enquiry.track', ['id' => $this->enquiry->id, 'email' => $this->enquiry->email])
+                 'action_url' => route('vendor.enquiries.show', $this->enquiry->id)
             ]);
     }
 }
