@@ -11,7 +11,6 @@ use Modules\Enquiries\Controllers\Web\DirectEnquiryController;
 use App\Http\Controllers\Web\Customer\ShortlistController;
 use Modules\Auth\Http\Controllers\MobileForgotPasswordController;
 
-
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
  * 
@@ -34,26 +33,90 @@ Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->nam
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
 
-Route::get('/direct-enquiry/captcha', [DirectEnquiryController::class, 'regenerateCaptcha'])->name('direct.enquiry.captcha');
 
-// The page where the form lives
-Route::get('/direct-enquiry', function () {
-    return view('home.home_contact_enquiry');
-})->name('direct.enquiry.show.form');
-// Route::get('/direct-enquiry', [DirectEnquiryController::class, 'showForm'])->name('direct.enquiry.show.form');
-// The submission logic
-Route::post('/direct-enquiry/otp/send', [
-    DirectEnquiryController::class,
-    'sendOtp'
-])->name('direct.enquiry.otp.send');
+/*
+|--------------------------------------------------------------------------
+| Direct Enquiry Routes
+|--------------------------------------------------------------------------
+*/
 
-Route::post('/direct-enquiry/otp/verify', [
-    DirectEnquiryController::class,
-    'verifyOtp'
-])->name('direct.enquiry.otp.verify');
+// Public routes (no authentication required)
+Route::prefix('enquiry')->name('direct.enquiry.')->group(function () {
+    
+    // Captcha generation
+    Route::get('/captcha', [DirectEnquiryController::class, 'regenerateCaptcha'])
+        ->name('captcha');
+    
+    // OTP operations
+    Route::post('/otp/send', [DirectEnquiryController::class, 'sendOtp'])
+        ->name('otp.send')
+        ->middleware('throttle:50,1'); // Max 50 requests per minute
+    
+    Route::post('/otp/verify', [DirectEnquiryController::class, 'verifyOtp'])
+        ->name('otp.verify')
+        ->middleware('throttle:100,1'); // Max 100 requests per minute
+    
+    // Submit enquiry
+    Route::post('/submit', [DirectEnquiryController::class, 'store'])
+        ->name('submit')
+        ->middleware('throttle:30,5'); // Max 3 submissions per 5 minutes
+    
+    // Track enquiry (optional - for customer to check status)
+    Route::get('/track', [DirectEnquiryController::class, 'track'])
+        ->name('track');
+});
 
-Route::post('/direct-enquiry/submit', [DirectEnquiryController::class, 'store'])->name('direct.enquiry.submit');
+// Admin routes (requires authentication and admin role)
+Route::prefix('admin/enquiries')->name('admin.enquiries.')->middleware(['auth', 'role:admin,superadmin'])->group(function () {
+    
+    // List all enquiries
+    Route::get('/', [DirectEnquiryController::class, 'index'])
+        ->name('index');
+    
+    // View single enquiry
+    Route::get('/{enquiry}', [DirectEnquiryController::class, 'show'])
+        ->name('show');
+    
+    // Update enquiry status
+    Route::patch('/{enquiry}/status', [DirectEnquiryController::class, 'updateStatus'])
+        ->name('update.status');
+    
+    // Assign enquiry to admin/manager
+    Route::patch('/{enquiry}/assign', [DirectEnquiryController::class, 'assignTo'])
+        ->name('assign');
+    
+    // Add admin notes
+    Route::patch('/{enquiry}/notes', [DirectEnquiryController::class, 'updateNotes'])
+        ->name('update.notes');
+    
+    // Delete enquiry
+    Route::delete('/{enquiry}', [DirectEnquiryController::class, 'destroy'])
+        ->name('destroy');
+    
+    // Export enquiries
+    Route::get('/export/csv', [DirectEnquiryController::class, 'exportCsv'])
+        ->name('export.csv');
+});
 
+// Vendor routes (requires authentication and vendor role)
+Route::prefix('vendor/enquiries')->name('vendor.enquiries.')->middleware(['auth', 'role:vendor'])->group(function () {
+    
+    // List assigned enquiries
+    Route::get('/', [DirectEnquiryController::class, 'vendorIndex'])
+        ->name('index');
+    
+    // View enquiry details
+    Route::get('/{enquiry}', [DirectEnquiryController::class, 'vendorShow'])
+        ->name('show');
+    
+    // Update vendor response
+    Route::post('/{enquiry}/respond', [DirectEnquiryController::class, 'vendorRespond'])
+        ->name('respond');
+    
+    // Mark as viewed
+    Route::post('/{enquiry}/mark-viewed', [DirectEnquiryController::class, 'markAsViewed'])
+        ->name('mark.viewed');
+});
 // ADMIN POS WEB ROUTES
 Route::prefix('admin/pos')->middleware(['auth', 'role:admin'])->name('admin.pos.')->group(function () {
     Route::get('/dashboard', [\Modules\POS\Controllers\Web\AdminPosController::class, 'dashboard'])->name('dashboard');
