@@ -499,6 +499,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const pincodeInput = document.getElementById("pincode");
     const cityInput = document.getElementById("city");
     const stateInput = document.getElementById("state");
+    const countryInput = document.getElementById("country");
     let pinTimer = null;
     const PinErrorToast = Swal.mixin({
         toast: true,
@@ -513,6 +514,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (pincode.length !== 6) {
             cityInput.value = "";
             stateInput.value = "";
+            countryInput.value = "";
             pincodeInput.classList.remove('border-red-500');
             return;
         }
@@ -527,11 +529,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 const postOffice = data[0].PostOffice[0];
                 cityInput.value = postOffice.District;
                 stateInput.value = postOffice.State;
+                countryInput.value = "India";
                 pincodeInput.classList.remove('border-red-500');
             })
             .catch(() => {
                 cityInput.value = "";
                 stateInput.value = "";
+                countryInput.value = "";
                 pincodeInput.classList.add('border-red-500');
                 PinErrorToast.fire({
                     title: 'Invalid Pincode'

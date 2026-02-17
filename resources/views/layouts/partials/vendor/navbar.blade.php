@@ -4,16 +4,23 @@
     <!-- LEFT : TITLE -->
     <div class="flex-1 min-w-0">
         <div class="px-4 md:px-6 py-1 bg-white  ">
-            <div class="flex flex-col">
-                <h1 class="text-xl font-semibold text-gray-800">
-                    @yield('page_title', 'Dashboard')
-                </h1>
-                @hasSection('breadcrumb')
-                    <div class="mt-[-3px]">
-                        @yield('breadcrumb')
-                    </div>
-                @endif
-            </div>
+                <div class="flex flex-col">
+                    @hasSection('breadcrumb')
+                        <div class="mb-1">
+                            @yield('breadcrumb')
+                        </div>
+                    @endif
+                    <h1 class="text-xl font-semibold text-gray-800">
+                        @yield('title', 'Dashboard')
+                    </h1>
+                    @if (Request::routeIs('vendor.dashboard'))
+                        <!-- No breadcrumb on dashboard -->
+                    @else
+                        <div class="text-xs text-gray-500 mt-1">
+                            <a href="{{ route('vendor.dashboard') }}" class="">Dashboard</a> &rarr; @yield('title', 'Dashboard')
+                        </div>
+                    @endif
+                </div>
         </div>
     </div>
 

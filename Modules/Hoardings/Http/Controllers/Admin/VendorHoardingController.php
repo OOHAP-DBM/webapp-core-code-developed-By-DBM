@@ -1,7 +1,7 @@
 <?php
 
 namespace Modules\Hoardings\Http\Controllers\Admin;
-
+use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Models\Hoarding;
 use Modules\Mail\HoardingPublishedMail;
@@ -262,16 +262,14 @@ class VendorHoardingController extends Controller
         ]);
 
         try {
-            $count = Hoarding::whereIn('id', $request->ids)->delete();
-            // Fire event for notification (bulk delete)
-            $hoardings = collect();
-            // Optionally, you may want to fetch deleted hoardings' info before deletion for notification
-            // $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+            // Fetch hoardings before deletion for event
+            $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+            $count = $hoardings->count();
+            Hoarding::whereIn('id', $request->ids)->delete();
             event(new HoardingStatusChanged($hoardings, 'deleted', auth()->user()));
-
             return response()->json([
                 'success' => true,
-                'message' => "{$count} hoarding(s) deleted successfully",
+                'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' deleted successfully',
                 'count' => $count
             ]);
         } catch (\Exception $e) {
@@ -296,12 +294,10 @@ class VendorHoardingController extends Controller
             $count = Hoarding::whereIn('id', $request->ids)
                 ->update(['status' => 'active']);
             $hoardings = Hoarding::whereIn('id', $request->ids)->get();
-            // Fire event for notification (bulk activate)
             event(new HoardingStatusChanged($hoardings, 'activated', auth()->user()));
-
             return response()->json([
                 'success' => true,
-                'message' => "{$count} hoarding(s) activated successfully",
+                'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' activated successfully',
                 'count' => $count
             ]);
         } catch (\Exception $e) {
@@ -326,12 +322,10 @@ class VendorHoardingController extends Controller
             $count = Hoarding::whereIn('id', $request->ids)
                 ->update(['status' => 'inactive']);
             $hoardings = Hoarding::whereIn('id', $request->ids)->get();
-            // Fire event for notification (bulk deactivate)
             event(new HoardingStatusChanged($hoardings, 'deactivated', auth()->user()));
-
             return response()->json([
                 'success' => true,
-                'message' => "{$count} hoarding(s) deactivated successfully",
+                'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' deactivated successfully',
                 'count' => $count
             ]);
         } catch (\Exception $e) {
@@ -378,11 +372,13 @@ class VendorHoardingController extends Controller
                 }
             }
 
+            $count = $hoardings->count();
             return response()->json([
                 'success' => true,
-                'message' => "{$hoardings->count()} hoarding(s) approved and activated successfully",
-                'count' => $hoardings->count()
+                'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' approved and activated successfully',
+                'count' => $count
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -438,7 +434,7 @@ class VendorHoardingController extends Controller
             }
             return response()->json([
                 'success' => true,
-                'message' => "$updated slug(s) updated successfully",
+                'message' => $updated . ' ' . Str::plural('slug', $updated) . ' updated successfully',
                 'count' => $updated
             ]);
         } catch (\Exception $e) {

@@ -158,6 +158,26 @@ html, body {
     width: 100%;
     z-index: 50;
 }
+.otp-box.error{
+    border:1px solid #dc3545 !important;
+    background:#fff5f5 !important;
+}
+#otpInlineErrorEmail{
+    font-size:12px;
+    color:#dc3545;
+    margin-top:6px;
+    display:none;
+}
+@keyframes otpShake{
+    0%{transform:translateX(0)}
+    25%{transform:translateX(-4px)}
+    50%{transform:translateX(4px)}
+    75%{transform:translateX(-4px)}
+    100%{transform:translateX(0)}
+}
+.otp-shake{
+    animation:otpShake .25s ease;
+}
 
 </style>
 @endpush
@@ -253,6 +273,7 @@ html, body {
                 <input class="otp-box" maxlength="1" inputmode="numeric">
                 <input class="otp-box" maxlength="1" inputmode="numeric">
             </div>
+            <div id="otpInlineErrorEmail" class="text-left">Invalid OTP. Please try again.</div>
             <!-- RESEND -->
             <div class="otp-text">
                 <small class="text-muted">
@@ -481,10 +502,29 @@ html, body {
             otpError.innerText = '';
             otpError.classList.add('d-none');
         }
+        const otpInlineErrorEmail = document.getElementById('otpInlineErrorEmail');
+        function markEmailOtpInvalid(msg='Invalid OTP. Please try again.'){
+            otpBoxes.forEach(box=>{
+                box.classList.add('error','otp-shake');
+            });
+
+            otpInlineErrorEmail.innerText = msg;
+            otpInlineErrorEmail.style.display = 'block';
+
+            setTimeout(()=>{
+                otpBoxes.forEach(box=>box.classList.remove('otp-shake'));
+            },300);
+        }
+
+        function clearEmailOtpHighlight(){
+            otpBoxes.forEach(box=>box.classList.remove('error'));
+            otpInlineErrorEmail.style.display = 'none';
+        }
         otpBoxes.forEach((box, index) => {
             box.addEventListener('input', () => {
                 box.value = box.value.replace(/\D/g, '');
                 clearOtpInlineError();
+                clearEmailOtpHighlight();
                 if (box.value && otpBoxes[index + 1]) {
                     otpBoxes[index + 1].focus();
                 }
@@ -515,7 +555,10 @@ html, body {
             .then(r => r.json())
             .then(res => {
                 if (!res.success) {
-                    showOtpInlineError(res.message);
+                    clearOtpInlineError();    
+                    markEmailOtpInvalid(res.message || 'Invalid OTP');
+                    otpBoxes.forEach(b=>b.value='');
+                    otpBoxes[0].focus();
                     return;
                 }
                 clearOtpInlineError();
@@ -640,7 +683,7 @@ function updateTimerText() {
 /* ===================== RESEND OTP CLICK ===================== */
 
 resendBtn.addEventListener('click', function () {
-
+    clearEmailOtpHighlight();
     resendBtn.classList.add('d-none');
     resendText.classList.remove('d-none');
 

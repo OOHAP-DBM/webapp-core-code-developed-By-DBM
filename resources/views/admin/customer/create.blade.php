@@ -55,7 +55,7 @@
             </div>
             <div>
                 <label class="block mb-1">Country<span class="text-red-500">*</span></label>
-                <input type="text" name="country" value="{{ old('country', 'India') }}" class="border rounded px-3 py-2 w-full" required autocomplete="off">
+                <input type="text" id="countryField" name="country" value="{{ old('country', 'India') }}" class="border rounded px-3 py-2 w-full" required autocomplete="off">
                 @error('country') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
             </div>
         </div>
@@ -84,6 +84,7 @@
     const pincode = document.getElementById('pincodeField');
     const city    = document.getElementById('cityField');
     const state   = document.getElementById('stateField');
+    const country = document.getElementById('countryField');
 
     let typingTimer;
 
@@ -111,6 +112,7 @@
             if(this.value.length !== 6){
             city.value  = '';
             state.value = '';
+            country.value = '';
             return;
             }
 
@@ -126,10 +128,12 @@
 
                 city.value  = postOffice.District;
                 state.value = postOffice.State;
+                country.value = "India";
                 }else{
 
                 city.value  = '';
                 state.value = '';
+                country.value = '';
                 toast('error','Invalid Pincode');
                 }
             })

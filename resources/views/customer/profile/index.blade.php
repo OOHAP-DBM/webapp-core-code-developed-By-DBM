@@ -97,14 +97,6 @@
                             src="{{ $avatarUrl }}"
                             class="w-full h-full object-cover absolute inset-0 hidden"
                             alt="avatar"
-                            onload="
-                                this.classList.remove('hidden');
-                                document.getElementById('avatarFallback').classList.add('hidden');
-                            "
-                            onerror="
-                                this.remove();
-                                document.getElementById('avatarFallback').classList.remove('hidden');
-                            "
                         />
                         <div id="avatarFallback"
                             class="absolute inset-0 flex items-center justify-center {{ $avatar ? 'hidden' : '' }}">
@@ -726,29 +718,90 @@ function showToast(type, message) {
             showToast('error', 'Server error. Please try again.');
         });
     }
+</script>
+<script>
     document.addEventListener('DOMContentLoaded', function () {
 
-        const input = document.getElementById('profileImage');
-        const img = document.getElementById('avatarPreviewImg');
-        const fallback = document.getElementById('avatarFallback');
-        const name = document.getElementById('avatarFileName');
+    const input = document.getElementById('profileImage');
+    const img = document.getElementById('avatarPreviewImg');
+    const fallback = document.getElementById('avatarFallback');
+    const fileName = document.getElementById('avatarFileName');
 
-        if (!input) return;
+    if (!input || !img || !fallback) return;
 
-        input.addEventListener('change', function () {
+    /* ------------------------------
+       PAGE LOAD STATE (existing avatar)
+    -------------------------------*/
+    function setInitialState() {
+        const src = img.getAttribute('src');
 
-            const file = this.files[0];
-            if (!file) return;
+        if (src && src.trim() !== '') {
+            // existing uploaded avatar
+            img.classList.remove('hidden');
+            fallback.classList.add('hidden');
+        } else {
+            // no avatar → svg
+            img.classList.add('hidden');
+            fallback.classList.remove('hidden');
+        }
+    }
 
-            name.textContent = file.name;
+    setInitialState();
 
-            const reader = new FileReader();
-            reader.onload = e => {
-                img.src = e.target.result;
+    /* ------------------------------
+       FILE SELECT
+    -------------------------------*/
+    input.addEventListener('change', function () {
+
+        const file = this.files[0];
+
+        // if user cancelled file picker
+        if (!file) {
+            setInitialState();
+            fileName.textContent = '';
+            return;
+        }
+
+        /* ------------------------------
+           VALIDATION
+        -------------------------------*/
+        if (!file.type.startsWith('image/')) {
+            showToast('error', 'Please select a valid image (JPG, PNG)');
+            input.value = '';
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('error', 'Image size must be less than 2MB');
+            input.value = '';
+            return;
+        }
+
+        fileName.textContent = file.name;
+
+        /* ------------------------------
+           IMPORTANT FIX (THE REAL BUG)
+        -------------------------------*/
+
+        // browser caching + repaint fix
+        img.src = '';
+        img.classList.add('hidden');
+
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+
+            // force new render
+            img.onload = function () {
                 img.classList.remove('hidden');
-                fallback.classList.add('hidden'); // 👈 hide icon
+                fallback.classList.add('hidden');
             };
-            reader.readAsDataURL(file);
-        });
+
+            img.src = e.target.result;
+        };
+
+        reader.readAsDataURL(file);
     });
+
+});
 </script>
