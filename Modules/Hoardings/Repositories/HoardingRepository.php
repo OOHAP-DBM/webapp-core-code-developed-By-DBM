@@ -95,6 +95,11 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
             $query->search($filters['search']);
         }
 
+        // Letter filter: only hoardings where title starts with the selected letter
+        if (!empty($filters['letter'])) {
+            $query->whereRaw('UPPER(LEFT(title, 1)) = ?', [mb_strtoupper(mb_substr($filters["letter"], 0, 1))]);
+        }
+
         if (!empty($filters['lat']) && !empty($filters['lng'])) {
             $radiusKm = $filters['radius'] ?? 10;
             $query->nearLocation($filters['lat'], $filters['lng'], $radiusKm);

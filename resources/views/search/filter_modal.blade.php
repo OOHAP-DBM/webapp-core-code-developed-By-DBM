@@ -372,7 +372,7 @@
                         max="40"
                         step="1"
                         id="minRange"
-                        value="{{ request('min_height',12) }}"
+                        value="{{ strlen(request('min_height')) ? request('min_height') : 8 }}"
                     >
 
                     <input
@@ -381,7 +381,7 @@
                         max="40"
                         step="1"
                         id="maxRange"
-                        value="{{ request('max_height',16) }}"
+                        value="{{ strlen(request('max_height')) ? request('max_height') : (strlen(request('min_height')) ? request('min_height')+1 : 9) }}"
                     >
 
                     <div class="range-base">

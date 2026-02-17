@@ -352,7 +352,7 @@ class HoardingController extends Controller
                 $query->search($search);
             }
             if ($letter) {
-                $query->where('title', 'LIKE', $letter . '%');
+                $query->whereRaw('UPPER(LEFT(title, 1)) = ?', [mb_strtoupper(mb_substr($letter, 0, 1))]);
             }
             $data = $query->orderBy('title')->paginate(10)->withQueryString();
         } else {
@@ -363,12 +363,14 @@ class HoardingController extends Controller
             if ($search) {
                 $filters['search'] = $search;
             }
-
             if ($letter) {
-                $filters['letter'] = $letter;
+                $filters['letter'] = mb_strtoupper(mb_substr($letter, 0, 1));
             }
-
             $data = $this->hoardingService->getAll($filters, 10);
+            // If letter is set and no results, show empty (not all hoardings)
+            if ($letter && $data->total() === 0) {
+                $data = $data->setCollection(collect([]));
+            }
         }
         $hoardingList = $data->getCollection()->map(function ($h) {
             $parts = [];

@@ -49,7 +49,7 @@
                         Export
                     </button>
                     <a href="{{ route('vendor.hoardings.add') }}" 
-                        class="px-5 py-2 bg-[#0087D1] text-white font-medium rounded-md text-[13px] flex items-center">
+                        class="px-5 py-2 bg-black text-white font-medium rounded-md text-[13px] flex items-center">
                         + Add New Hoarding
                     </a>
                 </div>
@@ -146,12 +146,15 @@
                             @endif
 
                             <td class="px-4 py-4">
-                            @if(!$isPending)
+                            @if(strtolower($hoarding['status']) === 'draft')
+                                <span class="text-gray-500 text-[11px] font-bold">Draft</span>
+                            @elseif($isPending)
+                                <span class="text-orange-500 text-[11px] font-bold">Pending Approval</span>
+                            @else
                                 <form action="{{ route('vendor.hoardings.toggle', $hoarding['id']) }}"
                                     method="POST"
                                     class="inline-flex items-center gap-2">
                                     @csrf
-
                                     <!-- TOGGLE -->
                                     <label class="relative inline-flex items-center cursor-pointer">
                                         <input
@@ -160,7 +163,6 @@
                                                 {{ $isActive ? 'checked' : '' }}
                                                 onclick="return confirmToggle(event, this)"
                                             >
-
                                         <div class="
                                             w-9 h-5 bg-gray-300 rounded-full
                                             peer-checked:bg-emerald-500
@@ -173,7 +175,6 @@
                                             peer-checked:after:translate-x-4
                                         "></div>
                                     </label>
-
                                     <!-- STATUS TEXT -->
                                     <span class="
                                         text-[11px] font-bold uppercase tracking-wide
@@ -182,10 +183,6 @@
                                         {{ $isActive ? 'Active' : 'Inactive' }}
                                     </span>
                                 </form>
-                            @else
-                                <span class="text-orange-500 text-[11px] font-bold uppercase italic">
-                                    Pending Approval
-                                </span>
                             @endif
                         </td>
 

@@ -4,12 +4,12 @@
     <div class="bg-white w-[70%] max-w-md rounded-2xl shadow-xl relative">
 
         <!-- CLOSE ICON -->
-        <div class="h-12 bg-gray-100 relative rounded-t-2xl">
+        <div class="h-12 bg-[#ededed] relative rounded-t-2xl">
             <!-- CLOSE ICON -->
             <button
                 onclick="closeLogoutModal()"
-                class="absolute top-2 right-3 w-8 h-8 flex items-center justify-center
-                       rounded-full text-black text-xl leading-none cursor-pointer">
+                class="absolute top-2 right-3 w-10 h-10 flex items-center justify-center
+                       rounded-full font-semibold text-black text-xl leading-none cursor-pointer">
                 ×
             </button>
         </div>
@@ -40,7 +40,7 @@
                 <button
                     type="button"
                     onclick="closeLogoutModal()"
-                    class="text-black font-bold cursor-pointer">
+                    class="w-40 px-6 py-3 rounded-lg text-black font-bold cursor-pointer hover:border">
                     Cancel
                 </button>
 
@@ -48,7 +48,7 @@
                     @csrf
                     <button
                         type="submit"
-                        class="logout-btn cursor-pointer font-semibold px-6 py-3 rounded-lg">
+                        class="w-40 logout-btn cursor-pointer font-semibold px-6 py-3 rounded-lg">
                         Yes, Logout
                     </button>
                 </form>
