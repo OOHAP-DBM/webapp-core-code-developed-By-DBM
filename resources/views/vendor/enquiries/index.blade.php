@@ -6,7 +6,18 @@
 @section('title', 'Enquiries')
 @section('content')
 
-<div x-data="{ openFilter: false, dateFilter: '{{ request('date_filter', 'all') }}' }" class="px-6 py-6 bg-white">
+<div x-data="{ openFilter: false, dateFilter: '{{ request('date_filter', 'all') }}',
+    init() {
+        // Always ensure modal is closed on load, navigation, or back
+        this.openFilter = false;
+        // Remove any accidental hash or query param that could trigger modal
+        if (window.location.hash === '#filter') {
+            window.location.hash = '';
+        }
+    }
+}"
+ x-init="init()"
+ class="px-6 py-6 bg-white">
     {{-- FILTER BAR --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
         <div class="mb-6">
@@ -35,7 +46,7 @@
             <button
                 type="button"
                 @click="openFilter = true"
-                class="px-4 py-2 border border-gray-300 bg-white text-gray-900 text-sm hover:bg-gray-100 font-medium"
+                class="px-4 py-2 border border-gray-300 bg-white text-gray-900 text-sm hover:bg-gray-100 font-medium cursor-pointer"
             >
                 Filter
             </button>
@@ -43,11 +54,11 @@
     </div>
 
     {{-- FILTER MODAL --}}
-    <div x-show="openFilter" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div x-show="openFilter === true" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
         <div @click.away="openFilter = false" class="bg-white w-full max-w-2xl rounded shadow-lg relative">
             <div class="flex items-center justify-between h-10 bg-green-100 px-4 rounded-t">
                 <span></span>
-                <button @click="openFilter = false" class="text-gray-800 hover:text-black text-xl">✕</button>
+                <button @click="openFilter = false" class="text-gray-800 hover:text-black text-xl cursor-pointer">✕</button>
             </div>
             <form method="GET" class="p-6 space-y-6">
                 <h2 class="inline-block text-lg font-semibold text-gray-900 border-b border-gray-700 pb-1">Filter</h2>
@@ -76,8 +87,8 @@
                     </div>
                 </div>
                 <div class="flex items-center justify-end gap-6 pt-4">
-                    <a href="{{ route('vendor.enquiries.index') }}" class="text-sm text-black font-semibold hover:underline">Reset</a>
-                    <button type="submit" class="px-6 py-2 bg-green-800 text-white text-sm font-semibold hover:bg-green-900">Apply Filter</button>
+                    <a href="{{ route('vendor.enquiries.index') }}" class="text-sm text-black font-semibold hover:underline cursor-pointer">Reset</a>
+                    <button type="submit" class="px-6 py-2 bg-green-800 text-white text-sm font-semibold hover:bg-green-900 cursor-pointer">Apply Filter</button>
                 </div>
             </form>
         </div>

@@ -61,31 +61,16 @@ class HomeController extends Controller
         $enquiries = null;
 
         if (auth()->check() && auth()->user()->hasRole('customer')) {
-
             $query = Enquiry::where('customer_id', auth()->id())
                 ->with(['items.hoarding']);
 
-            /* SEARCH */
+            // SEARCH BY ID ONLY (match EnquiryController)
+            $searchId = null;
             if ($request->filled('search')) {
-
                 $search = trim($request->search);
                 $searchId = preg_replace('/\D/', '', $search);
-
-                $query->where(function ($q) use ($search, $searchId) {
-
-                    if ($searchId !== '') {
-                        $q->orWhere('id', (int) $searchId);
-                    }
-
-                    $q->orWhereHas('items.hoarding', function ($h) use ($search) {
-                        $h->where('title', 'like', "%{$search}%")
-                        ->orWhere('city', 'like', "%{$search}%")
-                        ->orWhere('address', 'like', "%{$search}%");
-                    });
-                });
-
-                // Exact ENQ ID priority
                 if ($searchId !== '') {
+                    $query->where('id', (int) $searchId);
                     $query->orderByRaw(
                         "CASE WHEN id = ? THEN 0 ELSE 1 END",
                         [(int) $searchId]
@@ -95,20 +80,16 @@ class HomeController extends Controller
 
             /* DATE FILTER */
             if ($request->filled('date_filter')) {
-
                 switch ($request->date_filter) {
                     case 'last_week':
                         $query->where('created_at', '>=', Carbon::now()->subWeek());
                         break;
-
                     case 'last_month':
                         $query->where('created_at', '>=', Carbon::now()->subMonth());
                         break;
-
                     case 'last_year':
                         $query->where('created_at', '>=', Carbon::now()->subYear());
                         break;
-
                     case 'custom':
                         if ($request->filled('from_date') && $request->filled('to_date')) {
                             $query->whereBetween('created_at', [
@@ -125,7 +106,6 @@ class HomeController extends Controller
             $enquiries = $query
                 ->limit(5)
                 ->get();
-
         }
 
         return view(

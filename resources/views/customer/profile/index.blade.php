@@ -86,35 +86,39 @@
 
                 <div class="flex items-center gap-4">
 
-                    {{-- Avatar Wrapper --}}
-                    <div id="avatarWrapper"
+                   <div id="avatarWrapper"
                         class="w-14 h-14 rounded-full overflow-hidden border border-gray-300
-                                flex items-center justify-center bg-gray-100 flex-shrink-0">
-
-                        {{-- Image --}}
+                            flex items-center justify-center bg-gray-100 flex-shrink-0 relative">
+                        @php
+                            $avatar = auth()->user()->avatar;
+                            $avatarUrl = $avatar ? asset('storage/'.$avatar).'?v='.time() : null;
+                        @endphp
                         <img id="avatarPreviewImg"
-                            src="{{ auth()->user()->avatar
-                                    ? (str_starts_with(auth()->user()->avatar, 'http')
-                                        ? auth()->user()->avatar
-                                        : asset('storage/' . ltrim(auth()->user()->avatar, '/')))
-                                    : '' }}"
-                            class="w-full h-full object-cover {{ auth()->user()->avatar ? '' : 'hidden' }}" />
-
-                        {{-- Fallback Icon --}}
-                        <svg id="avatarFallback"
-                            class="w-14 h-14 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                             >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804
-                                M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                        </svg>
+                            src="{{ $avatarUrl }}"
+                            class="w-full h-full object-cover absolute inset-0 hidden"
+                            alt="avatar"
+                            onload="
+                                this.classList.remove('hidden');
+                                document.getElementById('avatarFallback').classList.add('hidden');
+                            "
+                            onerror="
+                                this.remove();
+                                document.getElementById('avatarFallback').classList.remove('hidden');
+                            "
+                        />
+                        <div id="avatarFallback"
+                            class="absolute inset-0 flex items-center justify-center {{ $avatar ? 'hidden' : '' }}">
+                            <svg class="w-10 h-10 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804
+                                    M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
                     </div>
 
                     {{-- Actions --}}
@@ -163,7 +167,7 @@
                         id="phoneInput"
                         name="phone"
                         value="{{ auth()->user()->phone }}"
-                        {{ auth()->user()->phone ? 'readonly' : '' }}
+                        {{ auth()->user()->phone_verified_at ? 'readonly' : '' }}
                         placeholder="Enter mobile number"
                         class="w-full border-b border-gray-300 py-2 bg-transparent"
                     >
@@ -188,7 +192,7 @@
                     id="emailInput"
                     name="email"
                     value="{{ auth()->user()->email }}"
-                    {{ auth()->user()->email ? 'readonly' : '' }}
+                    {{ auth()->user()->email_verified_at ? 'readonly' : '' }}
                     placeholder="Enter email address"
                     class="w-full border-b border-gray-300 py-2 bg-transparent"
                 >
@@ -357,7 +361,7 @@
     <div class="bg-white rounded-lg w-96 p-6 relative border border-gray-300 modal-container">
 
         <button onclick="closeOtpModal()"
-                class="absolute top-2 right-3 text-gray-500 text-xl">×</button>
+                class="absolute top-2 right-3 text-gray-500 text-xl cursor-pointer">×</button>
 
         <h3 class="text-lg font-semibold mb-2">Verify</h3>
 
@@ -377,7 +381,7 @@
 
         <button
             onclick="verifyOtp()"
-            class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded">
+            class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded cursor-pointer">
             Verify
         </button>
 
