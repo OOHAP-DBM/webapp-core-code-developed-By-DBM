@@ -564,7 +564,7 @@ class DirectEnquiryController extends Controller
             'localities' => $localities,
             'total_hoardings_found' => count($vendorIds),
             'vendors_found' => $vendors->count(),
-            'vendor_emails' => $vendors->pluck('email')->toArray()
+            'vendor_emails' => $vendors->pluck('email')->toAebsiterray()
         ]);
         
         return $vendors;
@@ -593,9 +593,235 @@ class DirectEnquiryController extends Controller
             ->where('id', $enquiryId)
             ->firstOrFail();
 
-        return view('vendor.enquiries.show', [
+        return view('vendor.direct-enquiries.show', [
             'enquiry' => $enquiry,
             'vendor' => $vendor,
+        ]);
+    }
+
+    /**
+     * List direct enquiries assigned to the vendor (with optional type filter)
+     */
+   /**
+     * Display vendor's assigned enquiries
+     */
+    public function vendorDirectIndex(Request $request)
+    {
+        $vendor = Auth::user();
+        
+        $query = $vendor->assignedEnquiries()
+            ->with(['assignedVendors' => function ($q) use ($vendor) {
+                $q->where('users.id', $vendor->id);
+            }])
+            ->latest('direct_web_enquiries.created_at');
+        
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->wherePivot('response_status', $request->status);
+        }
+        
+        // Filter by viewed
+        if ($request->filled('viewed')) {
+            $viewed = $request->boolean('viewed');
+            $query->wherePivot('has_viewed', $viewed);
+        }
+        
+        $enquiries = $query->paginate(15);
+        
+        // Get counts for dashboard
+        $counts = [
+            'total' => $vendor->assignedEnquiries()->count(),
+            'new' => $vendor->newEnquiries()->count(),
+            'pending' => $vendor->assignedEnquiries()->wherePivot('response_status', 'pending')->count(),
+            'interested' => $vendor->assignedEnquiries()->wherePivot('response_status', 'interested')->count(),
+            'quoted' => $vendor->assignedEnquiries()->wherePivot('response_status', 'quote_sent')->count(),
+        ];
+        
+        return view('enquiries.vendor.direct-enquiry-index', compact('enquiries', 'counts'));
+    }
+    
+    /**
+     * Show single enquiry details
+     */
+    public function show(DirectEnquiry $enquiry)
+    {
+        $vendor = Auth::user();
+        
+        // Check if vendor is assigned to this enquiry
+        if (!$enquiry->assignedVendors()->where('users.id', $vendor->id)->exists()) {
+            abort(403, 'Unauthorized access to this enquiry');
+        }
+        
+        // Mark as viewed
+        $enquiry->markViewedBy($vendor->id);
+        
+        // Load relationships
+        $enquiry->load(['assignedVendors' => function ($q) use ($vendor) {
+            $q->where('users.id', $vendor->id);
+        }]);
+        
+        // Get vendor's pivot data
+        $vendorPivot = $enquiry->assignedVendors->first()->pivot;
+        
+        return view('vendor.enquiries.show', compact('enquiry', 'vendorPivot'));
+    }
+    
+    /**
+     * Update vendor's response to enquiry
+     */
+    public function respond(Request $request, DirectEnquiry $enquiry)
+    {
+        $vendor = Auth::user();
+        
+        // Validate
+        $request->validate([
+            'response_status' => 'required|in:interested,quote_sent,declined',
+            'vendor_notes' => 'nullable|string|max:1000',
+            'quoted_price' => 'nullable|numeric|min:0|max:99999999.99',
+        ]);
+        
+        // Check if vendor is assigned
+        if (!$enquiry->assignedVendors()->where('users.id', $vendor->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not assigned to this enquiry'
+            ], 403);
+        }
+        
+        try {
+            DB::beginTransaction();
+            
+            // Prepare update data
+            $updateData = [
+                'response_status' => $request->response_status,
+                'responded_at' => now(),
+            ];
+            
+            if ($request->filled('vendor_notes')) {
+                $updateData['vendor_notes'] = $request->vendor_notes;
+            }
+            
+            if ($request->filled('quoted_price')) {
+                $updateData['quoted_price'] = $request->quoted_price;
+            }
+            
+            if ($request->response_status === 'quote_sent') {
+                $updateData['quote_sent_at'] = now();
+            }
+            
+            // Update pivot table
+            $enquiry->updateVendorResponse($vendor->id, $request->response_status, $updateData);
+            
+            // Send notification to customer if interested or quote sent
+            if (in_array($request->response_status, ['interested', 'quote_sent'])) {
+                Mail::to($enquiry->email)->queue(
+                    new CustomerVendorResponseMail($enquiry, $vendor, $request->response_status, $request->quoted_price)
+                );
+            }
+            
+            // Notify admin
+            $admins = User::whereIn('active_role', ['admin', 'superadmin'])->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new VendorRespondedNotification($enquiry, $vendor, $request->response_status));
+            }
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Response submitted successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Log::error('Vendor response failed', [
+                'vendor_id' => $vendor->id,
+                'enquiry_id' => $enquiry->id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to submit response'
+            ], 500);
+        }
+    }
+    
+    /**
+     * Mark enquiry as viewed
+     */
+    public function markViewed(DirectEnquiry $enquiry)
+    {
+        $vendor = Auth::user();
+        
+        if (!$enquiry->assignedVendors()->where('users.id', $vendor->id)->exists()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+        
+        $enquiry->markViewedBy($vendor->id);
+        
+        return response()->json(['success' => true]);
+    }
+    
+    /**
+     * Get vendor's enquiry statistics
+     */
+    public function statistics()
+    {
+        $vendor = Auth::user();
+        
+        $stats = [
+            'total_enquiries' => $vendor->assignedEnquiries()->count(),
+            'new_enquiries' => $vendor->newEnquiries()->count(),
+            'viewed_enquiries' => $vendor->assignedEnquiries()->wherePivot('has_viewed', true)->count(),
+            'responded' => $vendor->assignedEnquiries()->where('response_status', '!=', 'pending')->count(),
+            'interested' => $vendor->assignedEnquiries()->wherePivot('response_status', 'interested')->count(),
+            'quotes_sent' => $vendor->assignedEnquiries()->wherePivot('response_status', 'quote_sent')->count(),
+            'declined' => $vendor->assignedEnquiries()->wherePivot('response_status', 'declined')->count(),
+            'response_rate' => 0,
+            'avg_response_time_hours' => 0,
+        ];
+        
+        // Calculate response rate
+        if ($stats['total_enquiries'] > 0) {
+            $stats['response_rate'] = round(($stats['responded'] / $stats['total_enquiries']) * 100, 2);
+        }
+        
+        // Calculate average response time
+        $avgResponseTime = DB::table('enquiry_vendor')
+            ->where('vendor_id', $vendor->id)
+            ->whereNotNull('responded_at')
+            ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, responded_at)) as avg_hours')
+            ->value('avg_hours');
+        
+        $stats['avg_response_time_hours'] = round($avgResponseTime ?? 0, 1);
+        
+        return response()->json($stats);
+    }
+    
+    /**
+     * Update vendor notes
+     */
+    public function updateNotes(Request $request, DirectEnquiry $enquiry)
+    {
+        $vendor = Auth::user();
+        
+        $request->validate([
+            'notes' => 'required|string|max:1000'
+        ]);
+        
+        if (!$enquiry->assignedVendors()->where('users.id', $vendor->id)->exists()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+        
+        $enquiry->assignedVendors()->updateExistingPivot($vendor->id, [
+            'vendor_notes' => $request->notes
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Notes updated successfully'
         ]);
     }
 }

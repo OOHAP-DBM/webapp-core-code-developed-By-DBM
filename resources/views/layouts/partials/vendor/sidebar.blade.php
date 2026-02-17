@@ -171,6 +171,7 @@
                     >
                         - Enquiries & Offers
                     </a>
+
                 </div>
             </div>
             <div
@@ -224,6 +225,13 @@
                             : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}"
                     >
                         - All Enquiries
+                    </a>
+                    <a
+                        href="{{ route('vendor.direct-enquiries.index') }}"
+                        class="block px-6 py-1 text-sm rounded-md transition
+                        {{ request()->routeIs('vendor.direct-enquiries.*') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}"
+                    >
+                        - Direct Enquiries
                     </a>
                 </div>
             </div>

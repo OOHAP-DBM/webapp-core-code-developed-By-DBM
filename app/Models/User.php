@@ -12,7 +12,8 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Mail;
-
+use Modules\Enquiries\Models\DirectEnquiry;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasApiTokens, HasRoles, SoftDeletes;
@@ -610,7 +611,7 @@ public function availableHoardings(): HasMany
  */
 public function assignedEnquiries(): BelongsToMany
 {
-    return $this->belongsToMany(DirectEnquiry::class, 'direct_vendor_enquiries', 'vendor_id', 'enquiry_id')
+    return $this->belongsToMany(DirectEnquiry::class, 'enquiry_vendor', 'vendor_id', 'enquiry_id')
         ->withPivot('has_viewed', 'viewed_at', 'response_status', 'vendor_notes')
         ->withTimestamps();
 }
@@ -620,7 +621,7 @@ public function assignedEnquiries(): BelongsToMany
  */
 public function newEnquiries(): BelongsToMany
 {
-    return $this->belongsToMany(DirectEnquiry::class, 'direct_vendor_enquiries', 'vendor_id', 'enquiry_id')
+    return $this->belongsToMany(DirectEnquiry::class, 'enquiry_vendor', 'vendor_id', 'enquiry_id')
         ->wherePivot('has_viewed', false)
         ->withPivot('has_viewed', 'viewed_at', 'response_status', 'vendor_notes')
         ->withTimestamps();

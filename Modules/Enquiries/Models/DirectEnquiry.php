@@ -11,7 +11,7 @@ use App\Models\User;
 
 class DirectEnquiry extends Model
 {
-    protected $table = 'direct_web_enquiries';
+   protected $table = 'direct_web_enquiries';
 
     use SoftDeletes;
 

@@ -117,6 +117,13 @@ Route::prefix('vendor/enquiries')->name('vendor.enquiries.')->middleware(['auth'
     Route::post('/{enquiry}/mark-viewed', [DirectEnquiryController::class, 'markAsViewed'])
         ->name('mark.viewed');
 });
+
+// Vendor Direct Enquiries (dedicated)
+Route::prefix('vendor/direct-enquiries')->name('vendor.direct-enquiries.')->middleware(['auth', 'role:vendor'])->group(function () {
+    Route::get('/', [\Modules\Enquiries\Controllers\Web\DirectEnquiryController::class, 'vendorDirectIndex'])->name('index');
+    Route::get('/{enquiry}', [\Modules\Enquiries\Controllers\Web\DirectEnquiryController::class, 'vendorDirectShow'])->name('show');
+});
+
 // ADMIN POS WEB ROUTES
 Route::prefix('admin/pos')->middleware(['auth', 'role:admin'])->name('admin.pos.')->group(function () {
     Route::get('/dashboard', [\Modules\POS\Controllers\Web\AdminPosController::class, 'dashboard'])->name('dashboard');
