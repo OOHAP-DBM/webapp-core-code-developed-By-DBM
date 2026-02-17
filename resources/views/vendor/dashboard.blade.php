@@ -895,23 +895,24 @@
     <h4 class="text-sm font-semibold text-gray-800 absolute top-6 left-6">
         Recent Transactions
     </h4>
-    <div class="absolute inset-0 flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg"
-            class="w-14 h-14 text-black"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round">
-            <circle cx="12" cy="12" r="7"/>
-            <path d="M9 9h6"/>
-            <path d="M9 12h4"/>
-            <path d="M12 12l3 3"/>
-            <path d="M5 7l-2 2 2 2"/>
-            <path d="M19 17l2-2-2-2"/>
-        </svg>
-    </div>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-14 h-14 text-black mb-2"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="7"/>
+                <path d="M9 9h6"/>
+                <path d="M9 12h4"/>
+                <path d="M12 12l3 3"/>
+                <path d="M5 7l-2 2 2 2"/>
+                <path d="M19 17l2-2-2-2"/>
+            </svg>
+            <p class="font-semibold text-[17px]">No Transactions</p>
+        </div>
 </div>
 
     <!-- Top 5 Customers -->

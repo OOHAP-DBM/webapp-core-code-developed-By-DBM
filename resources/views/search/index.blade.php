@@ -411,20 +411,37 @@
         const listView  = document.getElementById('listView');
         const gridView  = document.getElementById('gridView');
         const toggle    = document.getElementById('mapViewToggle');
+        const currentView = "{{ $currentView }}"; // list | grid
 
         if (toggle.checked) {
-            // 🔒 Map ON → sirf map dikhe
+            // Save state
+            try {
+                localStorage.setItem('view', 'map');
+            } catch (e) {}
+            // Update URL
+            const url = new URL(window.location.href);
+            url.searchParams.set('view', 'map');
+            window.history.replaceState({}, '', url);
+
             if (mapView)  mapView.style.display = 'block';
             if (listView) listView.style.display = 'none';
             if (gridView) gridView.style.display = 'none';
 
-            setTimeout(initPriceMap, 300);
+            setTimeout(() => {
+                if (!window.mapReady) initPriceMap();
+            }, 300);
         } else {
-            // 🔓 Map OFF → URL ke hisaab se view dikhe
+            // Remove state
+            try {
+                localStorage.removeItem('view');
+            } catch (e) {}
+            // Remove ?view=map from URL
+            const url = new URL(window.location.href);
+            if (url.searchParams.get('view') === 'map') {
+                url.searchParams.delete('view');
+                window.history.replaceState({}, '', url);
+            }
             if (mapView) mapView.style.display = 'none';
-
-            const currentView = "{{ $currentView }}"; // list | grid
-
             if (currentView === 'grid') {
                 if (gridView) gridView.style.display = 'block';
                 if (listView) listView.style.display = 'none';
@@ -434,6 +451,34 @@
             }
         }
     }
+    // On page load, persist Map View state
+    document.addEventListener('DOMContentLoaded', function () {
+        const mapView   = document.getElementById('mapView');
+        const listView  = document.getElementById('listView');
+        const gridView  = document.getElementById('gridView');
+        const toggle    = document.getElementById('mapViewToggle');
+        const url = new URL(window.location.href);
+        let shouldShowMap = false;
+        if (url.searchParams.get('view') === 'map') {
+            shouldShowMap = true;
+        } else {
+            try {
+                if (localStorage.getItem('view') === 'map') {
+                    shouldShowMap = true;
+                }
+            } catch (e) {}
+        }
+        if (shouldShowMap && toggle) {
+            toggle.checked = true;
+            if (mapView)  mapView.style.display = 'block';
+            if (listView) listView.style.display = 'none';
+            if (gridView) gridView.style.display = 'none';
+            setTimeout(() => {
+                if (!window.mapReady) initPriceMap();
+            }, 300);
+        }
+    });
+
     function openFilterModal() {
         document.getElementById('filterModal').classList.remove('hidden');
         document.body.style.overflow = 'hidden';
