@@ -1,6 +1,6 @@
 <!-- FOOTER TOP -->
 <tr>
-<td style="background:#eeeeee;padding:18px 20px;font-family:Arial,Helvetica,sans-serif;">
+<td style="background:#eeeeee;padding:25px 20px;font-family:Arial,Helvetica,sans-serif;">
 
     <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
@@ -13,15 +13,16 @@
                         <td>
                             <a href="https://play.google.com/store" target="_blank">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/512px-Google_Play_Store_badge_EN.svg.png"
-                                    width="140"
-                                    style="display:block;border:0;outline:none;text-decoration:none;">
+                                    width="140" height="42"
+                                    style="display:block;border:0;outline:none;text-decoration:none;height:42px;">
                             </a>
                         </td>
-                        <td style="padding-right:10px;">
+                        <td style="width:7px;"></td>
+                        <td>
                             <a href="https://www.apple.com/app-store/" target="_blank">
                                 <img src="https://staging.oohapp.io/assets/images/emails/app-store.png"
-                                    width="140"
-                                    style="display:block;border:0;outline:none;text-decoration:none;height:auto;">
+                                    width="140" height="42"
+                                    style="display:block;border:0;outline:none;text-decoration:none;height:42px;">
                             </a>
                         </td>
 
