@@ -228,6 +228,9 @@ document.addEventListener('DOMContentLoaded', function() {
     axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
     axios.defaults.headers.common['Accept'] = 'application/json';
     
+    // Setup file inputs and drag-drop
+    setupFileInputs();
+    
     // Load initial data
     loadBatches();
     
@@ -261,8 +264,12 @@ async function loadBatches(status = null) {
             headers: { 'X-CSRF-TOKEN': csrfToken }
         });
         
+        console.log('API Response:', response.data);
+        
         const batches = response.data.data || [];
         const pagination = response.data.pagination || {};
+        
+        console.log('Batches received:', batches);
         
         // Convert API field names to match renderBatches expectations
         const formattedBatches = batches.map(batch => ({
@@ -274,6 +281,8 @@ async function loadBatches(status = null) {
             invalid_records: batch.invalid_rows || batch.invalid_records,
             created_at: batch.created_at,
         }));
+        
+        console.log('Formatted batches:', formattedBatches);
         
         renderBatches(formattedBatches);
         updateStats(formattedBatches);
@@ -291,6 +300,14 @@ async function loadBatches(status = null) {
 // Render Batches in Table
 function renderBatches(batches) {
     const tbody = document.getElementById('batchesTableBody');
+    
+    console.log('renderBatches called with:', batches);
+    console.log('tbody element:', tbody);
+    
+    if (!tbody) {
+        console.error('batchesTableBody element not found!');
+        return;
+    }
     
     if (!batches || batches.length === 0) {
         tbody.innerHTML = `
@@ -385,6 +402,78 @@ function formatDate(dateString) {
     });
 }
 
+// File Input Handlers
+function setupFileInputs() {
+    const excelInput = document.getElementById('excelFile');
+    const pptInput = document.getElementById('pptFile');
+
+    excelInput.addEventListener('change', (e) => {
+        const fileName = e.target.files[0]?.name || '';
+        updateFileDisplay('excelFileName', fileName);
+    });
+
+    pptInput.addEventListener('change', (e) => {
+        const fileName = e.target.files[0]?.name || '';
+        updateFileDisplay('pptFileName', fileName);
+    });
+
+    // Drag and drop
+    setupDragDrop(excelInput);
+    setupDragDrop(pptInput);
+}
+
+function setupDragDrop(input) {
+    const label = input.nextElementSibling;
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        label.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        label.addEventListener(eventName, () => {
+            label.classList.add('bg-blue-50', 'border-blue-400');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        label.addEventListener(eventName, () => {
+            label.classList.remove('bg-blue-50', 'border-blue-400');
+        });
+    });
+
+    label.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        input.files = files;
+        const event = new Event('change', { bubbles: true });
+        input.dispatchEvent(event);
+    });
+}
+
+function updateFileDisplay(elementId, fileName) {
+    // Create a display element if it doesn't exist
+    let element = document.getElementById(elementId);
+    if (!element) {
+        const input = document.getElementById(elementId.replace('FileName', 'File'));
+        element = document.createElement('p');
+        element.id = elementId;
+        element.className = 'hidden text-sm text-green-600 mt-1 font-medium';
+        input.parentElement.appendChild(element);
+    }
+    
+    if (fileName) {
+        element.textContent = `✓ ${fileName}`;
+        element.classList.remove('hidden');
+    } else {
+        element.classList.add('hidden');
+    }
+}
+
 // Submit Upload
 document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -399,8 +488,7 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     }
     
     const formData = new FormData();
-    if (excelFile) formData.append('excel_file', excelFile);
-    if (pptFile) formData.append('ppt_file', pptFile);
+            if (excelFile) formData.append('file', excelFile);
     formData.append('media_type', mediaType);
     
     try {
@@ -414,7 +502,8 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
         
         showToast('✓ Files uploaded successfully', 'success');
         document.getElementById('uploadForm').reset();
-        loadBatches();
+        // Wait a moment then refresh batches
+        setTimeout(() => loadBatches(), 500);
     } catch (error) {
         console.error('Upload error:', error);
         const message = error.response?.data?.message || 'Upload failed';

@@ -260,8 +260,16 @@ class ImportController extends Controller
     public function listImports(): JsonResponse
     {
         try {
-            $imports = InventoryImportBatch::byVendor(auth()->id())
-                ->orderByDesc('created_at')
+            $user = auth()->user();
+            
+            // Admins see all batches, vendors see only their own
+            $importsQuery = InventoryImportBatch::query();
+            
+            if (!$user->hasRole('admin')) {
+                $importsQuery->byVendor($user->id);
+            }
+            
+            $imports = $importsQuery->orderByDesc('created_at')
                 ->paginate(15, ['*'], 'page', 1);
 
             return response()->json([
