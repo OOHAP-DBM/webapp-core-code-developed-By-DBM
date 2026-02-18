@@ -17,7 +17,7 @@ class ImportServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->publishMigrations();
-        $this->loadMigrationsFrom(module_path('import', 'Database/Migrations'));
+        $this->loadMigrationsFrom(base_path('Modules/Import/Database/Migrations'));
     }
 
     /**
@@ -28,7 +28,7 @@ class ImportServiceProvider extends ServiceProvider
     protected function publishMigrations()
     {
         $this->publishes([
-            module_path('import', 'Database/Migrations') => database_path('migrations'),
+            base_path('Modules/Import/Database/Migrations') => database_path('migrations'),
         ], 'migrations');
     }
 
@@ -50,10 +50,10 @@ class ImportServiceProvider extends ServiceProvider
     protected function registerConfig()
     {
         $this->publishes([
-            module_path('import', 'Config/config.php') => config_path('import.php'),
+            base_path('Modules/Import/Config/config.php') => config_path('import.php'),
         ], 'config');
         $this->mergeConfigFrom(
-            module_path('import', 'Config/config.php'), 'import'
+            base_path('Modules/Import/Config/config.php'), 'import'
         );
     }
 
@@ -66,7 +66,7 @@ class ImportServiceProvider extends ServiceProvider
     {
         $viewPath = resource_path('views/modules/import');
 
-        $sourcePath = module_path('import', 'Resources/views');
+        $sourcePath = base_path('Modules/Import/Resources/views');
 
         $this->publishes([
             $sourcePath => $viewPath
@@ -90,7 +90,7 @@ class ImportServiceProvider extends ServiceProvider
                 $langPath => $langPath
             ]);
         } else {
-            $this->loadTranslationsFrom(module_path('import', 'Resources/lang'), 'import');
+            $this->loadTranslationsFrom(base_path('Modules/Import/Resources/lang'), 'import');
         }
     }
 

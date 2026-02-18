@@ -37,7 +37,7 @@ class RouteServiceProvider extends ServiceProvider
             ->middleware(['web', 'auth'])
             ->name('vendor.import.')
             ->namespace($this->moduleNamespace)
-            ->group(module_path('import', 'Routes/web.php'));
+            ->group(base_path('Modules/Import/Routes/web.php'));
     }
 
     /**
@@ -51,7 +51,7 @@ class RouteServiceProvider extends ServiceProvider
             ->middleware(['web', 'auth'])
             ->name('admin.import.')
             ->namespace($this->moduleNamespace)
-            ->group(module_path('import', 'Routes/web.php'));
+            ->group(base_path('Modules/Import/Routes/web.php'));
     }
 
     /**
@@ -64,6 +64,6 @@ class RouteServiceProvider extends ServiceProvider
         Route::prefix('api')
             ->middleware('api')
             ->namespace($this->moduleNamespace)
-            ->group(module_path('import', 'Routes/api.php'));
+            ->group(base_path('Modules/Import/Routes/api.php'));
     }
 }
