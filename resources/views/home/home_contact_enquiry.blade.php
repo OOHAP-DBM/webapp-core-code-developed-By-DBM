@@ -120,7 +120,7 @@
                     <!-- City -->
                     <div class="form-group">
                         <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
-                            City <span class="text-red-500">*</span>
+                          Campaign  City <span class="text-red-500">*</span>
                         </label>
                         <input type="text" 
                                name="location_city" 
@@ -128,7 +128,7 @@
                                required
                                placeholder="e.g. Lucknow, Mumbai, Delhi"
                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
-                        <p class="text-xs text-gray-500 mt-2">Don't worry about spelling - we'll find the right match!</p>
+                        <!-- <p class="text-xs text-gray-500 mt-2">Don't worry about spelling - we'll find the right match!</p> -->
                     </div>
 
                     <!-- Preferred Locations -->
@@ -160,9 +160,9 @@
                             Your Requirements <span class="text-red-500">*</span>
                         </label>
                         <textarea name="remarks" 
-                                  rows="4" 
+                                  rows="3" 
                                   required
-                                  minlength="10"
+                                  minlength="5"
                                   placeholder="Tell us about your campaign: duration, budget, target audience, creative preferences, etc."
                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all resize-none text-sm sm:text-base"></textarea>
                     </div>

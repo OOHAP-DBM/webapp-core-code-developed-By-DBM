@@ -443,6 +443,7 @@ class HoardingController extends Controller
                 'id' => $hoarding->id,
                 'status' => $hoarding->status,
                 'title' => $hoarding->title,
+                'status' => $hoarding->status,
                 'hoarding_type' => $hoarding->hoarding_type,
                 'ooh' => $hoarding->ooh,
                 'doohScreen' => $hoarding->doohScreen,
