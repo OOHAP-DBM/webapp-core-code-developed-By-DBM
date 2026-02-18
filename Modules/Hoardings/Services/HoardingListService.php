@@ -33,19 +33,31 @@ class HoardingListService
             }
         }
 
-        // Media validation (images only, no videos, max 5MB)
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-        $maxSize = 5 * 1024 * 1024; // 5MB
+        // Media validation (images + 1 video, max 10MB)
+        $allowedImageMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+        $allowedVideoMimes = ['video/mp4', 'video/webm'];
+        $maxSize = 10 * 1024 * 1024; // 10MB
+        $videoCount = 0;
+
         if (empty($mediaFiles)) {
-            $errors['media'][] = 'At least one image is required.';
+            $errors['media'][] = 'At least one image or video is required.';
         } else {
             foreach ($mediaFiles as $file) {
-                if (!in_array($file->getMimeType(), $allowedMimes)) {
-                    $errors['media'][] = 'Only JPG, JPEG, PNG, and WEBP images are allowed.';
+                $mime = $file->getMimeType();
+
+                if (in_array($mime, $allowedVideoMimes)) {
+                    $videoCount++;
+                    if ($videoCount > 1) {
+                        $errors['media'][] = 'Only 1 video is allowed.';
+                        break;
+                    }
+                } elseif (!in_array($mime, $allowedImageMimes)) {
+                    $errors['media'][] = 'Only JPG, PNG, WEBP images and MP4, WEBM videos are allowed.';
                     break;
                 }
+
                 if ($file->getSize() > $maxSize) {
-                    $errors['media'][] = 'Each image must not exceed 5MB.';
+                    $errors['media'][] = 'Each file must not exceed 10MB.';
                     break;
                 }
             }
