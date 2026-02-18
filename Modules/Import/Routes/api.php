@@ -8,21 +8,21 @@ use Modules\Import\Http\Controllers\ImportApprovalController;
  * Import Module API Routes
  *
  * Prefix: /api
- * Middleware: api, auth:sanctum
+ * Middleware: web, auth:sanctum (supports both session and token auth)
  */
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['web', 'auth:sanctum'])->group(function () {
     /**
      * Inventory Import endpoints
      */
     Route::prefix('import')->name('import.')->group(function () {
+        // List user's imports
+        Route::get('/', [ImportController::class, 'listImports'])
+            ->name('list');
+
         // Upload inventory import (Excel + PowerPoint)
         Route::post('/upload', [ImportController::class, 'uploadInventoryImport'])
             ->name('upload');
-
-        // List user's imports
-        Route::get('/list', [ImportController::class, 'listImports'])
-            ->name('list');
 
         // Get import status
         Route::get('/{batch}/status', [ImportController::class, 'getImportStatus'])
@@ -37,7 +37,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ->name('approve');
 
         // Cancel import
-        Route::post('/{batch}/cancel', [ImportController::class, 'cancelImport'])
+        Route::delete('/{batch}', [ImportController::class, 'cancelImport'])
             ->name('cancel');
     });
 });

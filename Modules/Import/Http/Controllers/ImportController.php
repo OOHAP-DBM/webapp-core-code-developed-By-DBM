@@ -5,6 +5,7 @@ namespace Modules\Import\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 use Modules\Import\Http\Requests\UploadInventoryImportRequest;
 use Modules\Import\Entities\InventoryImportBatch;
 use Modules\Import\Jobs\ProcessInventoryImportJob;
@@ -12,6 +13,36 @@ use Exception;
 
 class ImportController extends Controller
 {
+    /**
+     * Show import dashboard with role-based batch filtering
+     *
+     * Admins see all batches, vendors see only their own batches
+     *
+     * @return View
+     */
+    public function dashboard(): View
+    {
+        $user = auth()->user();
+        
+        // Build query based on user role
+        $batchesQuery = InventoryImportBatch::query()
+            ->latest('created_at');
+        
+        // Filter by vendor_id if user is not admin
+        if (!$user->hasRole('admin')) {
+            $batchesQuery->where('vendor_id', $user->id);
+        }
+        
+        $batches = $batchesQuery->paginate(15);
+        
+        // Use different view based on role
+        $viewName = $user->hasRole('admin') ? 'import::admin' : 'import::index';
+        
+        return view($viewName, [
+            'batches' => $batches,
+            'isAdmin' => $user->hasRole('admin'),
+        ]);
+    }
     /**
      * Store path for imports
      */

@@ -349,6 +349,22 @@
                     @endif
                 </div>
             </div>
+
+            {{-- Import Menu Item --}}
+            @can('import.manage')
+            <div class="space-y-1">
+                <a href="{{ route('vendor.import.dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.import.dashboard') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="7" height="7" rx="1" fill="currentColor"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1" fill="currentColor"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1" fill="currentColor"/>
+                        <path opacity="0.5" d="M14 14L21 14M21 14L19 12M21 14L19 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Inventory Import
+                </a>
+            </div>
+            @endcan
+
             <div class="space-y-1">
                         <a href="{{ route('vendor.email-settings') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.email-settings') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

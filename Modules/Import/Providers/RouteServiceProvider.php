@@ -21,7 +21,37 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function map()
     {
+        $this->mapVendorWebRoutes();
+        $this->mapAdminWebRoutes();
         $this->mapApiRoutes();
+    }
+
+    /**
+     * Define the "web" routes for vendors.
+     *
+     * @return void
+     */
+    protected function mapVendorWebRoutes()
+    {
+        Route::prefix('vendor/import')
+            ->middleware(['web', 'auth'])
+            ->name('vendor.import.')
+            ->namespace($this->moduleNamespace)
+            ->group(module_path('import', 'Routes/web.php'));
+    }
+
+    /**
+     * Define the "web" routes for admins.
+     *
+     * @return void
+     */
+    protected function mapAdminWebRoutes()
+    {
+        Route::prefix('admin/import')
+            ->middleware(['web', 'auth'])
+            ->name('admin.import.')
+            ->namespace($this->moduleNamespace)
+            ->group(module_path('import', 'Routes/web.php'));
     }
 
     /**
