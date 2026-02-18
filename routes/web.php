@@ -67,7 +67,7 @@ Route::prefix('enquiry')->name('direct.enquiry.')->group(function () {
 });
 
 // Admin routes (requires authentication and admin role)
-Route::prefix('admin/enquiries')->name('admin.enquiries.')->middleware(['auth', 'role:admin,superadmin'])->group(function () {
+Route::prefix('admin/direct-enquiries')->name('admin.direct-enquiries.')->middleware(['auth', 'role:admin,superadmin'])->group(function () {
     
     // List all enquiries
     Route::get('/', [DirectEnquiryController::class, 'index'])
