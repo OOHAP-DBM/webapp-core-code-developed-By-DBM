@@ -564,7 +564,7 @@ class DirectEnquiryController extends Controller
             'localities' => $localities,
             'total_hoardings_found' => count($vendorIds),
             'vendors_found' => $vendors->count(),
-            'vendor_emails' => $vendors->pluck('email')->toAebsiterray()
+            'vendor_emails' => $vendors->pluck('email')->toArray()
         ]);
         
         return $vendors;
