@@ -10,7 +10,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-
+use Illuminate\Mail\Mailable;
+use Illuminate\Support\Facades\Mail;
+use Modules\Enquiries\Models\DirectEnquiry;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasApiTokens, HasRoles, SoftDeletes;
@@ -570,16 +573,92 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Send a notification to all enabled vendor emails if global preference is enabled
      */
-    public function notifyVendorEmails($notification)
+ 
+    public function notifyVendorEmails(Mailable $mailable)
     {
-        // Only send if global email notifications are enabled
         if (!$this->notification_email) {
             return;
         }
 
         $emails = $this->vendorProfile?->notification_emails ?? [$this->email];
+
         foreach ($emails as $email) {
-            \Mail::to($email)->send($notification);
+            Mail::to($email)->send($mailable);
         }
     }
+
+
+/**
+ * Get active hoardings only
+ */
+public function activeHoardings(): HasMany
+{
+    return $this->hasMany(Hoarding::class, 'vendor_id')
+        ->where('status', 'active');
+}
+
+/**
+ * Get available hoardings (active and not on hold)
+ */
+public function availableHoardings(): HasMany
+{
+    return $this->hasMany(Hoarding::class, 'vendor_id')
+        ->available();
+}
+
+/**
+ * Get enquiries assigned to this vendor
+ */
+public function assignedEnquiries(): BelongsToMany
+{
+    return $this->belongsToMany(DirectEnquiry::class, 'enquiry_vendor', 'vendor_id', 'enquiry_id')
+        ->withPivot('has_viewed', 'viewed_at', 'response_status', 'vendor_notes')
+        ->withTimestamps();
+}
+
+/**
+ * Get new unviewed enquiries for vendor
+ */
+public function newEnquiries(): BelongsToMany
+{
+    return $this->belongsToMany(DirectEnquiry::class, 'enquiry_vendor', 'vendor_id', 'enquiry_id')
+        ->wherePivot('has_viewed', false)
+        ->withPivot('has_viewed', 'viewed_at', 'response_status', 'vendor_notes')
+        ->withTimestamps();
+}
+
+
+/**
+ * Check if user is an admin
+ */
+public function isAdmin(): bool
+{
+    return in_array($this->active_role, ['admin', 'superadmin']);
+}
+
+/**
+ * Get total hoardings count for vendor
+ */
+public function getTotalHoardingsAttribute(): int
+{
+    return $this->hoardings()->count();
+}
+
+/**
+ * Get active hoardings count for vendor
+ */
+public function getActiveHoardingsCountAttribute(): int
+{
+    return $this->activeHoardings()->count();
+}
+
+/**
+ * Get pending enquiries count for vendor
+ */
+public function getPendingEnquiriesCountAttribute(): int
+{
+    return $this->assignedEnquiries()
+        ->where('status', 'new')
+        ->count();
+}
 }

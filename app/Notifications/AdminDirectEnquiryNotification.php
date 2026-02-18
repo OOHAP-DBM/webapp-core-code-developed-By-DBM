@@ -52,6 +52,7 @@ class AdminDirectEnquiryNotification extends Notification implements ShouldQueue
             'name' => $this->enquiry->name,
             'city' => $this->enquiry->location_city,
             'message' => 'New enquiry received from ' . $this->enquiry->name,
+            'url' => route('admin.direct-enquiries.show', $this->enquiry->id)
         ];
     }
 }
