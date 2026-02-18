@@ -441,6 +441,7 @@ class HoardingController extends Controller
 
             return [
                 'id' => $hoarding->id,
+                'status' => $hoarding->status,
                 'title' => $hoarding->title,
                 'hoarding_type' => $hoarding->hoarding_type,
                 'ooh' => $hoarding->ooh,
