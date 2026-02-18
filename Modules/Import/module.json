@@ -1,0 +1,22 @@
+{
+  "name": "Import",
+  "alias": "import",
+  "description": "A comprehensive import module for handling file imports with support for CSV, XLSX, and JSON formats.",
+  "keywords": [
+    "import",
+    "csv",
+    "xlsx",
+    "json",
+    "batch",
+    "queue"
+  ],
+  "version": "1.0.0",
+  "active": true,
+  "order": 0,
+  "providers": [
+    "Modules\\Import\\Providers\\ImportServiceProvider"
+  ],
+  "aliases": {},
+  "files": [],
+  "requires": []
+}
