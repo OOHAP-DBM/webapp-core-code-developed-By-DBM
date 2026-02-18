@@ -2,95 +2,154 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #1dbf73; color: white; padding: 20px; border-radius: 5px; text-align: center; }
-        .content { padding: 20px 0; }
-        .button { display: inline-block; background-color: #1dbf73; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
-        .success-box { background-color: #f0f9ff; border-left: 4px solid #1dbf73; padding: 15px; margin: 20px 0; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        table, th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #f0f0f0; }
-        .footer { text-align: center; color: #666; font-size: 12px; padding-top: 20px; border-top: 1px solid #ddd; margin-top: 20px; }
-        .highlight { background-color: #fffacd; padding: 2px 5px; font-weight: bold; }
-    </style>
+    <title>Profile Approved - OOHAPP</title>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎉 Your Profile Has Been Approved!</h1>
-        </div>
 
-        <div class="content">
-            <p>Hi {{ $user->name }},</p>
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, Helvetica, sans-serif;">
 
-            <p>Great news! Your vendor profile on <strong>OOHApp</strong> has been <span class="highlight">officially approved</span> by our admin team.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8; padding:40px 0;">
+<tr>
+<td align="center">
 
-            <div class="success-box">
-                <h3 style="margin-top: 0; color: #1dbf73;">Your Profile is Now Live ✓</h3>
-                <p>Your hoardings, DOOH screens, and media placements are now <strong>visible to advertisers</strong> on the platform.</p>
-            </div>
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 
-            <h3>Key Details:</h3>
-            <table>
-                <tr>
-                    <th>Information</th>
-                    <th>Details</th>
-                </tr>
-                <tr>
-                    <td><strong>Company Name</strong></td>
-                    <td>
-                        {{
-                            optional($user->vendorProfile)->company_name
-                            ?: $user->company_name
-                            ?: '-'
-                        }}
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>Commission Rate</strong></td>
-                    <td><span class="highlight">
-                        {{ env('ADMIN_COMMISSION_PERCENTAGE', 10) }}% - {{ $commissionPercentage }}%
-                    </span></td>
-                </tr>
-                <tr>
-                    <td><strong>Status</strong></td>
-                    <td><span style="color: #1dbf73; font-weight: bold;">Active</span></td>
-                </tr>
-                <tr>
-                    <td><strong>Dashboard URL</strong></td>
-                    <td><a href="https://staging.oohapp.io/vendor/dashboard">https://staging.oohapp.io/vendor/dashboard</a></td>
-                </tr>
-            </table>
+@include('emails.partials.header')
 
-            <h3>What's Next?</h3>
-            <ul>
-                <li>Login to your vendor dashboard to manage your media inventory</li>
-                <li>Update media details, pricing, and availability as needed</li>
-                <li>Receive booking requests from advertisers in real-time</li>
-                <li>Track earnings and manage your commission payouts</li>
-            </ul>
+<!-- TITLE -->
+<tr>
+    <td align="center" style="padding:20px 40px 0 40px;">
+        <h2 style="margin:0; color:#16a34a; font-weight:600;">
+            🎉 Your Profile Has Been Approved!
+        </h2>
+        <p style="margin-top:8px; color:#666; font-size:14px;">
+            Hi {{ $user->name }}, your vendor account is now live.
+        </p>
+    </td>
+</tr>
 
-            <p style="text-align: center;">
-                <a href="https://staging.oohapp.io/vendor/dashboard" class="button">Go to Dashboard</a>
-            </p>
-
-            <h3>Commission Structure:</h3>
-            <p>Your approved commission rate is <span class="highlight">{{ env('ADMIN_COMMISSION_PERCENTAGE', 10) }}% - {{ $commissionPercentage }}%</span>. This is the commission you'll earn on successful bookings made through the OOHApp platform.</p>
-
-            <p><strong>Need Help?</strong><br>
-            If you have any questions or need support, our team is here to help. Reach out to us at <strong>support@oohapp.com</strong> or use the support chat in your dashboard.</p>
-
-            <p style="margin-top: 30px;">Happy booking!<br>
-            <strong>Team OOHApp</strong></p>
-        </div>
-
-        <div class="footer">
-            <p>&copy; 2026 OOHApp. All rights reserved.</p>
-            <p>This is an automated email notification. Please do not reply directly.</p>
-        </div>
+<!-- SUCCESS BOX -->
+<tr>
+<td style="padding:20px 40px 0 40px;">
+    <div style="
+        background:#ecfdf5;
+        border-left:4px solid #16a34a;
+        padding:15px;
+        font-size:14px;
+        color:#065f46;
+    ">
+        Your hoardings, DOOH screens, and media placements are now visible to advertisers on OOHAPP.
     </div>
+</td>
+</tr>
+
+<!-- DETAILS TABLE -->
+<tr>
+<td style="padding:20px 40px;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;">
+    <tr style="background:#f3f4f6;">
+        <th align="left" style="padding:10px; font-size:13px;">Information</th>
+        <th align="left" style="padding:10px; font-size:13px;">Details</th>
+    </tr>
+
+    <tr>
+        <td style="padding:10px; font-size:13px;"><strong>Company Name</strong></td>
+        <td style="padding:10px; font-size:13px;">
+            {{ $user->vendorProfile->company_name ?? $user->company_name ?? '-' }}
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding:10px; font-size:13px;"><strong>Commission Rate</strong></td>
+        <td style="padding:10px; font-size:13px;">
+            <span style="background:#fef9c3; padding:3px 6px; font-weight:bold;">
+                {{ env('ADMIN_COMMISSION_PERCENTAGE', 10) }}% - {{ $commissionPercentage }}%
+            </span>
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding:10px; font-size:13px;"><strong>Status</strong></td>
+        <td style="padding:10px; font-size:13px; color:#16a34a; font-weight:bold;">
+            Active
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding:10px; font-size:13px;"><strong>Dashboard URL</strong></td>
+        <td style="padding:10px; font-size:13px;">
+            <a href="https://staging.oohapp.io/vendor/dashboard">
+                https://staging.oohapp.io/vendor/dashboard
+            </a>
+        </td>
+    </tr>
+</table>
+</td>
+</tr>
+
+<!-- NEXT STEPS -->
+<tr>
+<td style="padding:0 40px 10px 40px; font-size:14px; color:#444; line-height:22px;">
+    <p><strong>What’s Next?</strong></p>
+    <ul style="padding-left:18px;">
+        <li>Login to your vendor dashboard</li>
+        <li>Manage your hoardings and DOOH screens</li>
+        <li>Update pricing & availability</li>
+        <li>Receive real-time booking enquiries</li>
+        <li>Track earnings and commission payouts</li>
+    </ul>
+</td>
+</tr>
+
+<!-- BUTTON -->
+<tr>
+<td align="center" style="padding:25px 40px;">
+    <a href="https://staging.oohapp.io/vendor/dashboard"
+       style="background:#16a34a; color:#ffffff; padding:12px 26px; font-size:14px; text-decoration:none; border-radius:6px; display:inline-block;">
+        Go to Dashboard
+    </a>
+</td>
+</tr>
+
+<!-- COMMISSION INFO -->
+<tr>
+<td style="padding:0 40px 20px 40px; font-size:14px; color:#444; line-height:22px;">
+    <p>
+        Your approved commission rate is
+        <strong>{{ env('ADMIN_COMMISSION_PERCENTAGE', 10) }}% - {{ $commissionPercentage }}%</strong>.
+        This will be applied on successful bookings made via OOHAPP.
+    </p>
+
+    <p><strong>Need Help?</strong><br>
+    Contact us at <strong>support@oohapp.com</strong></p>
+
+    <p>Happy booking!<br><strong>Team OOHAPP</strong></p>
+</td>
+</tr>
+<tr>
+        <td style="padding:10px 40px 7px 40px;">
+            <div style="
+                margin-top: 25px;
+                padding-top: 12px;
+                border-top: 1px dashed #ddd;
+                font-size: 9px;
+                color: #777;
+                line-height: 1.5;
+            ">
+                <strong style="color:#555;">Disclaimer:</strong>
+                OOHAPP provides a platform to connect you with interested advertisers.
+                All quotations, pricing, timelines, and execution details are shared by you directly.
+                Any discussion or confirmation happens between you and the advertiser.
+                OOHAPP acts as a facilitator and does not participate in pricing or execution decisions.
+            </div>
+        </td>
+        </tr>
+
+@include('emails.partials.footer')
+
+</table>
+</td>
+</tr>
+</table>
+
 </body>
 </html>

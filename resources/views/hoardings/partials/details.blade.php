@@ -10,7 +10,6 @@
 
     <h3 class="text-sm font-semibold text-gray-900 flex justify-between">
         Hoarding Details
-        <span class="text-gray-400">—</span>
     </h3>
 
     <div class="grid grid-cols-2 md:grid-cols-5 gap-y-4 text-sm">

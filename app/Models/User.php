@@ -579,7 +579,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
         $emails = $this->vendorProfile?->notification_emails ?? [$this->email];
         foreach ($emails as $email) {
-            \Mail::to($email)->send($notification->toMail($this));
+            \Mail::to($email)->send($notification);
         }
     }
 }

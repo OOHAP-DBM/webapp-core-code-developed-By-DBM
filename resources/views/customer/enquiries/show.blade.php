@@ -89,7 +89,7 @@
         </div>
         <div x-show="openTop" x-transition class="px-6 py-1 bg-[#f7f7f7]">
             {{-- ===== TOP INFO SECTION: 3 Columns ===== --}}
-            <div class="grid grid-cols-12 gap-8 bg-[#f7f7f7]">
+            <div class="grid grid-cols-12 gap-8 bg-[#f7f7f7] my-3">
 
                 {{-- Column 1: Vendor Details (Multiple vendors if applicable) --}}
                 <div class="col-span-4">
@@ -101,14 +101,12 @@
                     @endphp
                     <div class="space-y-3 text-xs">
                         @forelse($vendors as $vendor)
-                            <div class=" pb-3 mb-3">
                                 <div>Name : <span class="font-medium">{{ $vendor->name ?? 'N/A' }}</span></div>
-                                <div>Business Name : <span>{{ $vendor->company_name ?? 'N/A' }}</span></div>
-                                <div>GSTIN : <span>{{ $vendor->gstin ?? 'N/A' }}</span></div>
+                                <div>Business Name : <span>{{ $vendor->vendorProfile->company_name ?? $vendor->company_name ?? 'N/A' }}</span></div>
+                                <div>GSTIN : <span>{{ $vendor->vendorProfile->gstin ?? $vendor->gstin ?? 'N/A' }}</span></div>
                                 <div>Mobile : <span>{{ $vendor->phone ?? 'N/A' }}</span></div>
                                 <div>Email : <span>{{ $vendor->email ?? 'N/A' }}</span></div>
-                                <div>Address : <span>{{ $vendor->address ?? 'N/A' }}</span></div>
-                            </div>
+                                <div>Address : <span>{{ $vendor->vendorProfile->registered_address ?? $vendor->address ?? 'N/A' }}</span></div>
                         @empty
                             <span class="text-gray-400">No vendors found</span>
                         @endforelse
