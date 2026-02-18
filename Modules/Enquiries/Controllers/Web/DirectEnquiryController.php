@@ -498,10 +498,15 @@ class DirectEnquiryController extends Controller
             ->whereNotNull('vendor_id');
         
         // Match city (with fuzzy tolerance)
-        $hoardingQuery->where(function ($q) use ($city) {
-            $q->where('city', 'like', "%{$city}%")
-              ->orWhere('city', 'like', $this->getFuzzyPattern($city));
+        $columns = ['city', 'state', 'locality'];
+
+        $hoardingQuery->where(function ($q) use ($city, $columns) {
+            foreach ($columns as $column) {
+                $q->orWhere($column, 'like', "%{$city}%")
+                ->orWhere($column, 'like', $this->getFuzzyPattern($city));
+            }
         });
+
         
         // Match locality if specified (excluding "To be discussed")
         if (!empty($localities) && $localities[0] !== 'To be discussed') {
