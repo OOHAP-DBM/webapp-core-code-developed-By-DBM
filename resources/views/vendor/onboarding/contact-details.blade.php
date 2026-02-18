@@ -51,7 +51,7 @@
                             @else
                                 <button type="button" 
                                         id="phoneBtn"
-                                        class="text-xs font-bold text-green-600 hover:text-green-700 transition-colors uppercase tracking-tight" 
+                                        class="text-xs font-bold text-green-600 hover:text-green-700 transition-colors uppercase tracking-tight cursor-pointer" 
                                         onclick="sendPhoneOtp()">
                                     Verify Now
                                 </button>
@@ -80,7 +80,7 @@
                             @else
                                 <button type="button" 
                                         id="emailBtn"
-                                        class="text-xs font-bold text-green-600 hover:text-green-700 transition-colors uppercase tracking-tight" 
+                                        class="text-xs font-bold text-green-600 hover:text-green-700 transition-colors uppercase tracking-tight cursor-pointer" 
                                         onclick="sendEmailOtp()">
                                     Verify
                                 </button>
@@ -92,7 +92,7 @@
             </div>
 
             <div class="mt-12 pt-8 border-t border-gray-50 flex flex-col items-center">
-                <button class="w-full md:w-64 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg shadow-green-200 transition-all active:scale-95" 
+                <button class="cursor-pointer w-full md:w-64 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg shadow-green-200 transition-all active:scale-95" 
                         onclick="skipContactVerification()">
                     Skip & Continue
                 </button>

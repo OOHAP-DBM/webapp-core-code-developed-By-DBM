@@ -102,7 +102,7 @@
 
         <!-- VENDOR DISCLAIMER -->
         <tr>
-        <td style="padding:10px 40px 0 40px;">
+        <td style="padding:10px 40px 7px 40px;">
             <div style="
                 margin-top: 25px;
                 padding-top: 12px;
