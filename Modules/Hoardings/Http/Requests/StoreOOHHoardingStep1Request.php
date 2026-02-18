@@ -32,7 +32,19 @@ class StoreOOHHoardingStep1Request extends FormRequest
                 'lt:base_monthly_price',
             ],
             'media' => 'required|array',
-            'media.*' => 'file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/jpg,image/webp|max:5120',
+           'media.*' => [
+                'file',
+                'max:10240',
+                function ($attribute, $value, $fail) {
+                    $allowed = [
+                        'image/jpeg', 'image/jpg', 'image/png', 'image/webp',
+                        'video/mp4', 'video/webm',
+                    ];
+                    if (!in_array($value->getMimeType(), $allowed)) {
+                        $fail('Only JPG, PNG, WEBP images and MP4, WEBM videos are allowed.');
+                    }
+                },
+           ],
         ];
     }
 

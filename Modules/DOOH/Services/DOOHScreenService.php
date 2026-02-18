@@ -93,10 +93,20 @@ class DOOHScreenService
         $formattedData = $this->mapHoardingStep2Data($data);
 
         return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles) {
-            // 2. Persist main hoarding data (parent)
+            // 1. Persist main hoarding data
             $updatedHoarding = $this->repo->updateStep2($parentHoarding, $formattedData);
 
-            // 3. Handle Brand Logos via Repository (child)
+            // 2. Handle deleted brand logos
+            if (!empty($data['delete_brand_logos'])) {
+                $deleteIds = array_filter(explode(',', $data['delete_brand_logos']));
+                if (!empty($deleteIds)) {
+                    \Modules\DOOH\Models\DOOHScreenBrandLogo::whereIn('id', $deleteIds)
+                        ->where('dooh_screen_id', $childHoarding->id)
+                        ->delete();
+                }
+            }
+
+            // 3. Handle new brand logos
             if (!empty($brandLogoFiles)) {
                 $this->repo->storeBrandLogos($childHoarding->id, $brandLogoFiles);
             }

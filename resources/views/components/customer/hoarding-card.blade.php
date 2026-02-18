@@ -1,40 +1,11 @@
 <div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col h-full" onclick="if(event.target.closest('button') === null) window.location.href='{{ route('hoardings.show', $hoarding->slug ?? $hoarding->id) }}';">
-    <!-- Image -->
-    <div class="relative h-48 overflow-hidden bg-gray-100">
-    @php
-        $imageUrl = null;
+<!-- Image / Video -->
+<div class="relative h-48 overflow-hidden bg-gray-100">
+    @php $mediaItem = $hoarding->primaryMediaItem(); @endphp
 
-        if ($hoarding->hoarding_type === 'ooh'
-            && $hoarding->hoardingMedia->isNotEmpty()) {
-
-            $imageUrl = asset(
-                'storage/' . $hoarding->hoardingMedia->first()->file_path
-            );
-        }
-
-        if (
-                $hoarding->hoarding_type === 'dooh'
-                && $hoarding->doohScreen
-                && $hoarding->doohScreen->media->isNotEmpty()
-            ) {
-                $imageUrl = asset(
-                    'storage/' . $hoarding->doohScreen->media
-                        ->sortBy('sort_order')
-                        ->first()
-                        ->file_path
-                );
-            }
-        @endphp
-
-    @if($imageUrl)
-        <img src="{{ $imageUrl }}"
-            class="w-full h-full object-cover">
-    @else
-        <div class="w-full h-full flex items-center justify-center bg-gray-200">
-            No Image {{ $hoarding->id }} | {{ $hoarding->hoarding_type }}
-        </div>
-    @endif
-
+        @if($mediaItem)
+            <x-media-preview :media="$mediaItem" :alt="$hoarding->title ?? 'Hoarding'" />
+        @endif
 
 
         

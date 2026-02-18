@@ -99,7 +99,10 @@ Route::prefix('admin/enquiries')->name('admin.enquiries.')->middleware(['auth', 
 });
 
 // Vendor routes (requires authentication and vendor role)
-Route::prefix('vendor/enquiries')->name('vendor.enquiries.')->middleware(['auth', 'role:vendor'])->group(function () {
+Route::prefix('direct-enquiries')
+    ->name('direct.enquiries.')
+    ->middleware(['auth', 'role:vendor|admin'])
+    ->group(function () {
     
     // List assigned enquiries
     Route::get('/', [DirectEnquiryController::class, 'vendorIndex'])

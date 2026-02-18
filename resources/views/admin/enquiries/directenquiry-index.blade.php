@@ -53,7 +53,7 @@
                         <th class="px-4 py-3 text-left">Preferred_Locations</th>
                         <th class="px-4 py-3 text-center">Hoarding Type</th>
                         <th class="px-4 py-3 text-center">Preferred Modes</th>
-                        <th class="px-4 py-3 text-center">Verification</th>
+                        <th class="px-4 py-3 text-center">Verified</th>
                         <th class="px-4 py-3 text-center">Status</th>
                     </tr>
                 </thead>
@@ -106,9 +106,6 @@
                             </td>
 
                             <td class="px-4 py-3 text-center text-xs">
-                                <span class="{{ $enquiry->is_email_verified ? 'text-green-600' : 'text-red-500' }}">
-                                    Email
-                                </span> /
                                 <span class="{{ $enquiry->is_phone_verified ? 'text-green-600' : 'text-red-500' }}">
                                     Phone
                                 </span>

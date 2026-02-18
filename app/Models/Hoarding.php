@@ -996,4 +996,38 @@ class Hoarding extends Model implements HasMedia
         
         return true;
     }
+
+
+
+    /**
+ * Get the first media item for display (OOH or DOOH)
+ */
+public function primaryMediaItem()
+{
+    if ($this->hoarding_type === self::TYPE_OOH) {
+        return $this->hoardingMedia->first();
+    }
+
+    if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+        return $this->doohScreen->media->sortBy('sort_order')->first();
+    }
+
+    return null;
+}
+
+/**
+ * Get all media items for display (OOH or DOOH)
+ */
+public function allMediaItems()
+{
+    if ($this->hoarding_type === self::TYPE_OOH) {
+        return $this->hoardingMedia;
+    }
+
+    if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+        return $this->doohScreen->media->sortBy('sort_order');
+    }
+
+    return collect();
+}
 }
