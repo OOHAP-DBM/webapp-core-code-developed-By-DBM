@@ -380,8 +380,22 @@
                                         <img src="{{ asset('storage/'.$media->file_path) }}"
                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200">
                                     @else
-                                        <video src="{{ asset('storage/'.$media->file_path) }}"
-                                            class="w-full h-full object-cover" muted></video>
+                                        {{-- Video: show thumbnail via canvas-friendly poster --}}
+                                        <video
+                                            src="{{ asset('storage/'.$media->file_path) }}"
+                                            class="w-full h-full object-cover"
+                                            muted
+                                            playsinline
+                                            preload="metadata"
+                                            onloadedmetadata="this.currentTime=0.5"
+                                        ></video>
+                                        <div class="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                                            <div class="bg-black/50 rounded-full p-1.5">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M8 5v14l11-7z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
                                     @endif
                                     <button type="button"
                                         onclick="removeExistingMedia({{ $media->id }})"
@@ -447,7 +461,7 @@
 let deletedMediaIds = [];
 let newFiles = [];
 const maxFiles = 10;
-const maxFileSize = 5 * 1024 * 1024; // 5MB
+const maxFileSize = 10 * 1024 * 1024; // 10MB
 
 const mediaInput = document.getElementById('mediaInput');
 const newMediaPreview = document.getElementById('newMediaPreview');
@@ -456,34 +470,117 @@ const deletedMediaIdsInput = document.getElementById('deletedMediaIds');
 
 function renderNewPreviews() {
     newMediaPreview.innerHTML = '';
+
     newFiles.forEach((file, idx) => {
-        const url = URL.createObjectURL(file);
-        const isImage = file.type.startsWith('image');
-        const isVideo = file.type.startsWith('video');
-        
+        const isImage = file.type.startsWith('image/');
+        const isVideo = file.type.startsWith('video/');
         if (!isImage && !isVideo) return;
 
-        const mediaEl = isImage 
-            ? `<img src='${url}' class='object-cover w-full h-full group-hover:scale-105 transition-transform duration-200'>`
-            : `<video src='${url}' class='object-cover w-full h-full' muted></video>`;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-xl overflow-hidden border-2 border-gray-200 bg-gray-50 flex-shrink-0 group';
 
-        const el = `
-            <div class='relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-xl overflow-hidden 
-                        border-2 border-gray-200 bg-gray-50 flex-shrink-0 group'>
-                ${mediaEl}
-                <button type='button' 
-                        onclick='removeNewFile(${idx})' 
-                        class='absolute top-2 right-2 bg-white/90 backdrop-blur rounded-full p-1.5 
-                               shadow-lg text-red-600 hover:bg-red-50 hover:scale-110 
-                               transition-all duration-200'
-                        title='Remove'>
-                    <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'></path>
-                    </svg>
-                </button>
-            </div>`;
-        
-        newMediaPreview.insertAdjacentHTML('beforeend', el);
+        if (isImage) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'object-cover w-full h-full group-hover:scale-105 transition-transform duration-200';
+            wrapper.appendChild(img);
+
+        } else if (isVideo) {
+            // Spinner while thumbnail generates
+            wrapper.classList.add('bg-gray-800', 'flex', 'items-center', 'justify-center');
+            wrapper.innerHTML = `<svg class="animate-spin h-6 w-6 text-white opacity-60"
+                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>`;
+
+            // Generate thumbnail via canvas
+            getVideoThumbnail(file).then((dataUrl) => {
+                wrapper.innerHTML = '';
+                if (dataUrl) {
+                    const thumb = document.createElement('img');
+                    thumb.src = dataUrl;
+                    thumb.className = 'object-cover w-full h-full';
+                    const overlay = document.createElement('div');
+                    overlay.className = 'absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none';
+                    overlay.innerHTML = `<div class="bg-black/50 rounded-full p-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </div>`;
+                    wrapper.appendChild(thumb);
+                    wrapper.appendChild(overlay);
+                } else {
+                    wrapper.classList.add('bg-gray-800');
+                    wrapper.innerHTML = `<div class="flex flex-col items-center justify-center w-full h-full text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M4 8a2 2 0 012-2h9a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V8z"/>
+                        </svg>
+                        <span class="text-xs text-white">Video</span>
+                    </div>`;
+                }
+                // Add remove button after thumbnail loads
+                wrapper.appendChild(makeRemoveBtn(idx));
+            });
+        }
+
+        // Add remove button immediately for images
+        if (isImage) {
+            wrapper.appendChild(makeRemoveBtn(idx));
+        }
+
+        newMediaPreview.appendChild(wrapper);
+    });
+}
+
+function makeRemoveBtn(idx) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'absolute top-2 right-2 bg-white/90 backdrop-blur rounded-full p-1.5 shadow-lg text-red-600 hover:bg-red-50 hover:scale-110 transition-all duration-200 z-10';
+    btn.title = 'Remove';
+    btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>`;
+    btn.addEventListener('click', () => removeNewFile(idx));
+    return btn;
+}
+
+function getVideoThumbnail(file) {
+    return new Promise((resolve) => {
+        const blobUrl = URL.createObjectURL(file);
+        const video = document.createElement('video');
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+
+        let resolved = false;
+        const done = (result) => {
+            if (resolved) return;
+            resolved = true;
+            URL.revokeObjectURL(blobUrl);
+            video.src = '';
+            resolve(result);
+        };
+
+        video.addEventListener('loadedmetadata', () => {
+            video.currentTime = Math.min(0.5, video.duration * 0.1 || 0.1);
+        });
+
+        video.addEventListener('seeked', () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = canvas.height = 112;
+                canvas.getContext('2d').drawImage(video, 0, 0, 112, 112);
+                done(canvas.toDataURL('image/jpeg', 0.85));
+            } catch (e) { done(null); }
+        });
+
+        video.addEventListener('error', () => done(null));
+        setTimeout(() => done(null), 8000);
+
+        video.src = blobUrl;
+        video.load();
     });
 }
 

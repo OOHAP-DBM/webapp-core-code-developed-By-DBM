@@ -1,77 +1,85 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Direct Enquiry Confirmation</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f5f7fb; font-family:Arial, Helvetica, sans-serif;">
+@component('mail::message')
+# Thank You for Your Enquiry! 🎯
 
-<table width="100%" cellpadding="0" cellspacing="0">
-    <tr>
-        <td align="center" style="padding:30px 15px;">
-            <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; overflow:hidden;">
+Hi **{{ $enquiry->name }}**,
 
-                <!-- Header -->
-                <tr>
-                    <td style="background-color:#acf0d0; padding:20px; text-align:center; color:#ffffff;">
-                        <h2 style="margin:0;">OOHAPP</h2>
-                        <p style="margin:5px 0 0;">Direct Enquiry Confirmation</p>
-                    </td>
-                </tr>
+We've received your hoarding enquiry and our team is on it! Here's what happens next:
 
-                <!-- Body -->
-                <tr>
-                    <td style="padding:24px; color:#333333;">
-                        <p>Hi <strong>{{ $enquiry->name }}</strong>,</p>
+@component('mail::panel')
+**Your Enquiry ID:** #{{ str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}
+@endcomponent
 
-                        <p>
-                            Thank you for contacting <strong>OOHAPP</strong>.
-                            We have successfully received your enquiry.
-                        </p>
+## 📝 Your Requirements Summary
 
-                        <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0; font-size:14px;">
-                            <tr>
-                                <td width="40%" style="padding:6px 0;"><strong>City</strong></td>
-                                <td>{{ $enquiry->location_city }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:6px 0;"><strong>Hoarding Type</strong></td>
-                                <td>{{ ucfirst($enquiry->hoarding_type) }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:6px 0;"><strong>Preferred Locations</strong></td>
-                                <td>{{ $enquiry->preferred_locations_text }}</td>
-                            </tr>
-                            @if($enquiry->remarks)
-                            <tr>
-                                <td style="padding:6px 0;"><strong>Remarks</strong></td>
-                                <td>{{ $enquiry->remarks }}</td>
-                            </tr>
-                            @endif
-                        </table>
+**Location:** {{ $enquiry->location_city }}
+@if($enquiry->preferred_locations && count($enquiry->preferred_locations) > 0 && $enquiry->preferred_locations[0] !== 'To be discussed')
+**Preferred Areas:** {{ implode(', ', $enquiry->preferred_locations) }}
+@endif
+**Hoarding Type:** {{ str_replace(',', ', ', $enquiry->hoarding_type) }}
 
-                        <p>
-                            Our team will review your request and get back to you shortly.
-                        </p>
+---
 
-                        <p style="margin-top:24px;">
-                            Regards,<br>
-                            <strong>OOHAPP Team</strong>
-                        </p>
-                    </td>
-                </tr>
+## ⏱️ What Happens Next?
 
-                <!-- Footer -->
-                <tr>
-                    <td style="background:#f1f5f9; padding:16px; text-align:center; font-size:12px; color:#666;">
-                        © {{ date('Y') }} OOHAPP. All rights reserved.
-                    </td>
-                </tr>
+@component('mail::table')
+| Timeline | Action |
+|:---------|:-------|
+| **Now** | We're notifying verified vendors in your area |
+| **Within 24 hours** | You'll start receiving quotes via {{ implode('/', $enquiry->preferred_modes ?? ['phone', 'email']) }} |
+| **24-48 hours** | Multiple vendors will reach out with their best offers |
+@endcomponent
 
-            </table>
-        </td>
-    </tr>
-</table>
+---
 
-</body>
-</html>
+## 📞 Our vendors will contact you via:
+@if($enquiry->preferred_modes && count($enquiry->preferred_modes) > 0)
+@foreach($enquiry->preferred_modes as $mode)
+- ✅ {{ $mode }}
+@endforeach
+@else
+- ✅ Phone Call
+- ✅ Email
+@endif
+
+---
+
+@component('mail::button', ['url' => $trackingUrl, 'color' => 'success'])
+Track Your Enquiry Status
+@endcomponent
+
+---
+
+## 💡 Pro Tips While You Wait:
+
+1. **Keep your phone handy** - Vendors move fast!
+2. **Compare multiple quotes** - Don't settle on the first offer
+3. **Ask about visibility** - Request foot traffic and vehicle count data
+4. **Check availability** - Popular spots get booked quickly
+
+---
+
+### Need to Update Your Requirements?
+
+Contact us at:
+- 📧 Email: support@yourdomain.com
+- 📱 Phone: +91-1234567890
+- 💬 WhatsApp: +91-1234567890
+
+@component('mail::subcopy')
+**Reference Information:**
+- Enquiry ID: #{{ str_pad($enquiry->id, 6, '0', STR_PAD_LEFT) }}
+- Submitted: {{ $enquiry->created_at->format('d M Y, h:i A') }}
+- Phone: {{ $enquiry->formatted_phone }}
+- Email: {{ $enquiry->email }}
+@endcomponent
+
+Best regards,<br>
+**{{ config('app.name') }} Team**
+
+---
+
+<small style="color: #999;">
+This is an automated confirmation. Please do not reply to this email. 
+For any queries, contact us at support@yourdomain.com
+</small>
+@endcomponent

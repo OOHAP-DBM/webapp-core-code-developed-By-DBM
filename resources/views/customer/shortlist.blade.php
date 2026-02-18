@@ -60,22 +60,7 @@
                 @foreach($wishlist as $item)
                     @php
                         $hoarding = $item->hoarding;
-
-                        $imageUrl = null;
-
-                        if ($hoarding->hoarding_type === 'ooh'
-                            && $hoarding->hoardingMedia->isNotEmpty()) {
-                            $imageUrl = asset('storage/' . $hoarding->hoardingMedia->first()->file_path);
-                        }
-
-                        if ($hoarding->hoarding_type === 'dooh'
-                            && $hoarding->doohScreen
-                            && $hoarding->doohScreen->media->isNotEmpty()) {
-                            $imageUrl = asset(
-                                'storage/' .
-                                $hoarding->doohScreen->media->sortBy('sort_order')->first()->file_path
-                            );
-                        }
+                        $mediaItem = $hoarding->primaryMediaItem()?? null;
                     @endphp
 
                     <div
@@ -89,8 +74,8 @@
                         {{-- IMAGE --}}
                         <div class="relative h-48 overflow-hidden bg-gray-100">
 
-                            @if($imageUrl)
-                                <img src="{{ $imageUrl }}" class="w-full h-full object-cover">
+                           @if($mediaItem)
+                                <x-media-preview :media="$mediaItem" :alt="$hoarding->title ?? 'Hoarding'" />
                             @else
                                 <div class="w-full h-full flex items-center justify-center text-gray-500">
                                     No Image

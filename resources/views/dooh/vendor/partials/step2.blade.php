@@ -212,36 +212,74 @@
             </div>
         </div>
 
-        <!-- Brand Logos Section -->
+       <!-- Brand Logos Section -->
         <div>
             <div class="flex items-center gap-3 mb-8">
                 <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
                 <h3 class="text-xl font-bold text-gray-800">Recently Booked by</h3>
             </div>
             <p class="text-xs text-gray-400 mb-4">Upload up to 10 brand logos.</p>
-            
-            @if(isset($parentHoarding) && $parentHoarding->hasMedia('brand_logos'))
-            <div class="mb-4 grid grid-cols-5 gap-4">
-                @foreach($parentHoarding->getMedia('brand_logos') as $media)
-                <div class="relative group">
-                    <img src="{{ $media->getUrl() }}" alt="Brand Logo" class="w-full h-20 object-contain border border-gray-200 rounded-lg p-2">
-                    <label class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <input type="checkbox" name="delete_brand_logos[]" value="{{ $media->id }}" class="w-4 h-4">
-                    </label>
+
+            {{-- Existing brand logos with remove --}}
+            @php
+                $existingLogos = collect();
+
+                if (isset($parentHoarding)) {
+                    if ($parentHoarding->hoarding_type === 'dooh' && $parentHoarding->doohScreen) {
+                        $existingLogos = $parentHoarding->doohScreen->brandLogos ?? collect();
+                    } elseif ($parentHoarding->hoarding_type === 'ooh' && $parentHoarding->hasMedia('brand_logos')) {
+                        $existingLogos = $parentHoarding->getMedia('brand_logos')->map(function($m) {
+                            return (object)[
+                                'id'        => $m->id,
+                                'url'       => $m->getUrl(),
+                                'is_spatie' => true,
+                            ];
+                        });
+                    }
+                }
+            @endphp
+
+            @if($existingLogos->isNotEmpty())
+                <div class="mb-4 flex flex-wrap gap-4" id="existingBrandLogos">
+                    @foreach($existingLogos as $logo)
+                        @php
+                            $logoId  = $logo->id;
+                            $logoUrl = isset($logo->is_spatie) ? $logo->url : asset('storage/' . $logo->file_path);
+                        @endphp
+                        <div class="relative group w-24 h-20" id="brand-logo-existing-{{ $logoId }}">
+                            <img src="{{ $logoUrl }}" alt="Brand Logo"
+                                class="w-full h-full object-contain border border-gray-200 rounded-lg p-2 bg-white">
+                            <button
+                                type="button"
+                                onclick="removeExistingBrandLogo({{ $logoId }})"
+                                class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full
+                                    flex items-center justify-center text-xs hover:bg-red-600 shadow">
+                                ✕
+                            </button>
+                        </div>
+                    @endforeach
                 </div>
-                @endforeach
-            </div>
             @endif
 
+            <input type="hidden" name="delete_brand_logos" id="deleteBrandLogosHidden" value="">
+
+            {{-- New logo previews --}}
+            <div id="newBrandLogoPreview" class="flex flex-wrap gap-4 mb-4"></div>
+
+            {{-- File input --}}
             <div class="flex items-center w-full">
-                <label class="flex flex-row items-center w-full h-14 border border-gray-200 rounded-xl overflow-hidden cursor-pointer hover:border-[#009A5C] transition-all">
-                    <div class="bg-gray-100 px-6 h-full flex items-center justify-center text-sm font-bold text-gray-500 border-r border-gray-200">
+                <label class="flex flex-row items-center w-full h-14 border border-gray-200 rounded-xl
+                            overflow-hidden cursor-pointer hover:border-[#009A5C] transition-all">
+                    <div class="bg-gray-100 px-6 h-full flex items-center justify-center text-sm
+                                font-bold text-gray-500 border-r border-gray-200">
                         Browse
                     </div>
                     <div class="px-4 text-sm text-gray-400" id="brand-logo-name">Choose file</div>
-                    <input type="file" name="brand_logos[]" multiple accept="image/*" class="hidden" id="brand-logos-input" onchange="document.getElementById('brand-logo-name').innerText = this.files.length + ' files selected'">
+                    <input type="file" name="brand_logos[]" multiple accept="image/*"
+                        class="hidden" id="brand-logos-input">
                 </label>
             </div>
+            <p class="text-xs text-gray-400 mt-2">Supported: JPG, PNG, WEBP • Max 10 logos • 2MB each</p>
         </div>
     </div>
 
@@ -643,4 +681,74 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+</script>
+<script>
+    // Brand Logo Preview & Remove
+const brandLogoInput  = document.getElementById('brand-logos-input');
+const brandLogoName   = document.getElementById('brand-logo-name');
+const newBrandPreview = document.getElementById('newBrandLogoPreview');
+const deleteBrandHidden = document.getElementById('deleteBrandLogosHidden');
+
+let newBrandFiles    = [];
+let deletedLogoIds   = [];
+
+brandLogoInput.addEventListener('change', function () {
+    const files = Array.from(this.files);
+    files.forEach(file => {
+        if (newBrandFiles.length >= 10) return;
+        if (!file.type.startsWith('image/')) return;
+        if (file.size > 2 * 1024 * 1024) {
+            alert(`"${file.name}" exceeds 2MB limit.`);
+            return;
+        }
+        newBrandFiles.push(file);
+    });
+    this.value = '';
+    brandLogoName.textContent = newBrandFiles.length + ' file(s) selected';
+    syncBrandInput();
+    renderBrandPreviews();
+});
+
+function syncBrandInput() {
+    const dt = new DataTransfer();
+    newBrandFiles.forEach(f => dt.items.add(f));
+    brandLogoInput.files = dt.files;
+}
+
+function renderBrandPreviews() {
+    newBrandPreview.innerHTML = '';
+    newBrandFiles.forEach((file, idx) => {
+        const url     = URL.createObjectURL(file);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative w-24 h-20 group';
+
+        const img     = document.createElement('img');
+        img.src       = url;
+        img.className = 'w-full h-full object-contain border border-gray-200 rounded-lg p-2 bg-white';
+
+        const btn     = document.createElement('button');
+        btn.type      = 'button';
+        btn.className = 'absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 shadow';
+        btn.textContent = '✕';
+        btn.addEventListener('click', () => {
+            newBrandFiles.splice(idx, 1);
+            syncBrandInput();
+            renderBrandPreviews();
+            brandLogoName.textContent = newBrandFiles.length
+                ? newBrandFiles.length + ' file(s) selected'
+                : 'Choose file';
+        });
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(btn);
+        newBrandPreview.appendChild(wrapper);
+    });
+}
+
+function removeExistingBrandLogo(id) {
+    deletedLogoIds.push(id);
+    deleteBrandHidden.value = deletedLogoIds.join(',');
+    const el = document.getElementById('brand-logo-existing-' + id);
+    if (el) el.remove();
+}
 </script>
