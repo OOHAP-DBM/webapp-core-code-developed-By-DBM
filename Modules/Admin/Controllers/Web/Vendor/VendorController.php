@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\VendorProfile;
+use App\Mail\VendorEnabledMail;
+use App\Mail\VendorDisabledMail;
+use Illuminate\Support\Facades\Mail;
 
 class VendorController extends Controller
 {
@@ -389,16 +392,27 @@ class VendorController extends Controller
         $vendors = VendorProfile::whereIn('id',$request->vendor_ids)->get();
 
         foreach ($vendors as $vendor) {
-
             $vendor->update([
                 'onboarding_status' => 'suspended',
                 'suspended_at' => now()
             ]);
 
             // optional: block login
-            $vendor->user->update([
-                'is_active' => 0
-            ]);
+            if ($vendor->user) {
+                $vendor->user->update([
+                    'is_active' => 0,
+                    'status' =>'suspended'
+                ]);
+
+                // Send disabled mail
+                if ($vendor->user->email) {
+                    try {
+                        \Mail::to($vendor->user->email)->send(new VendorDisabledMail($vendor->user));
+                    } catch (\Exception $e) {
+                        \Log::error('Vendor disabled mail failed: ' . $e->getMessage());
+                    }
+                }
+            }
         }
 
         return response()->json([
@@ -419,8 +433,18 @@ class VendorController extends Controller
             ]);
             if($vendor->user){
                 $vendor->user->update([
-                    'is_active' => 1
+                    'is_active' => 1,
+                    'status' =>'active'
                 ]);
+
+                // Send enabled mail
+                if ($vendor->user->email) {
+                    try {
+                        \Mail::to($vendor->user->email)->send(new VendorEnabledMail($vendor->user));
+                    } catch (\Exception $e) {
+                        \Log::error('Vendor enabled mail failed: ' . $e->getMessage());
+                    }
+                }
             }
         }
 
