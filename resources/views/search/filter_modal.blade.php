@@ -161,7 +161,7 @@
                 <button
                     type="button"
                     onclick="closeFilterModal()"
-                    class="ml-auto text-xl"
+                    class="ml-auto text-xl cursor-pointer"
                 >
                     &times;
                 </button>
