@@ -35,7 +35,7 @@
                                required 
                                minlength="3"
                                placeholder="e.g. Rajesh Kumar"
-                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                               class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                     </div>
 
                     <!-- Phone with Auto-OTP -->
@@ -54,7 +54,7 @@
                                    maxlength="10"
                                    pattern="[6-9][0-9]{9}"
                                    placeholder="10-digit mobile number" 
-                                   class="w-full pl-14 pr-4 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                                   class="w-full pl-14 pr-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                             
                             <!-- Verification Status Indicator -->
                             <div id="phoneStatusIndicator" class="absolute right-3 top-1/2 -translate-y-1/2 hidden">
@@ -80,7 +80,7 @@
                                name="email" 
                                required 
                                placeholder="your.email@example.com" 
-                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                               class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                     </div>
 
                     <!-- Hoarding Type -->
@@ -89,7 +89,7 @@
                             Hoarding Type <span class="text-red-500">*</span>
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label class="relative flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#009A5C] transition-all group">
+                            <label class="relative flex items-center px-4 py-2  border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#009A5C] transition-all group">
                                 <input type="checkbox" name="hoarding_type[]" value="DOOH" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
@@ -102,7 +102,7 @@
                                 </div>
                             </label>
 
-                            <label class="relative flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#009A5C] transition-all group">
+                            <label class="relative flex items-center px-4 py-2 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#009A5C] transition-all group">
                                 <input type="checkbox" name="hoarding_type[]" value="OOH" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
@@ -127,7 +127,7 @@
                                id="cityInput"
                                required
                                placeholder="e.g. Lucknow, Mumbai, Delhi"
-                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                               class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                         <!-- <p class="text-xs text-gray-500 mt-2">Don't worry about spelling - we'll find the right match!</p> -->
                     </div>
 
@@ -141,7 +141,7 @@
                                 <input type="text" 
                                        name="preferred_locations[]" 
                                        placeholder="e.g. Hazratganj, Gomti Nagar"
-                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                                       class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                             </div>
                         </div>
                         <button type="button" 
@@ -164,7 +164,7 @@
                                   required
                                   minlength="5"
                                   placeholder="Tell us about your campaign: duration, budget, target audience, creative preferences, etc."
-                                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all resize-none text-sm sm:text-base"></textarea>
+                                  class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all resize-none text-sm sm:text-base"></textarea>
                     </div>
 
                     <!-- Preferred Communication -->
@@ -211,7 +211,7 @@
                             Security Check <span class="text-red-500">*</span>
                         </label>
                         <div class="flex items-center gap-3">
-                            <div class="flex-1 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                            <div class="flex-1 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-2 flex items-center justify-between">
                                 <span id="captchaText" class="font-bold text-lg text-gray-700"></span>
                                 <button type="button" 
                                         onclick="regenerateCaptcha()" 
@@ -225,7 +225,7 @@
                                    name="captcha" 
                                    required 
                                    placeholder="Answer"
-                                   class="w-24 sm:w-32 px-4 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-center text-sm sm:text-base">
+                                   class="w-24 sm:w-32 px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-center text-sm sm:text-base">
                         </div>
                     </div>
 
@@ -233,7 +233,7 @@
                     <button type="submit" 
                             id="submitBtn" 
                             disabled
-                            class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm sm:text-base cursor-pointer">
+                            class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm sm:text-base">
                         <span id="submitBtnText">Submit Enquiry</span>
                     </button>
 
@@ -290,12 +290,12 @@
             <div class="flex gap-3">
                 <button type="button" 
                         onclick="closeOtpModal()" 
-                        class="flex-1 bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-300 transition-colors cursor-pointer">
+                        class="flex-1 bg-gray-200 text-gray-700 font-semibold py-2 rounded-xl hover:bg-gray-300 transition-colors">
                     Cancel
                 </button>
                 <button type="button" 
                         id="verifyOtpBtn" 
-                        class="flex-1 bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-all cursor-pointer">
+                        class="flex-1 bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-semibold py-2 rounded-xl hover:shadow-lg transition-all">
                     Verify
                 </button>
             </div>
@@ -324,7 +324,7 @@
             </p>
 
             <button onclick="closeSuccessModal()" 
-                    class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-3 rounded-xl hover:shadow-lg transition-all">
+                    class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-2 rounded-xl hover:shadow-lg transition-all">
                 Got It!
             </button>
         </div>
@@ -370,10 +370,6 @@ function closeOtpModal() {
     document.getElementById('otpModal').classList.add('hidden');
     document.getElementById('otpInput').value = '';
     document.getElementById('otpMessage').textContent = '';
-    // Allow the auto-trigger to fire again if they change the number
-    otpSentAutomatically = false;
-    otpCooldown = false;
-    
     if (resendInterval) {
         clearInterval(resendInterval);
     }
@@ -384,22 +380,6 @@ function closeSuccessModal() {
     closeDirectEnquiryModal();
 }
 
-
-// Add this inside your <script> tag
-phoneInput.addEventListener('input', function() {
-    // If the user changes the number, we reset the state
-    phoneVerified = false;
-    otpSentAutomatically = false;
-    phoneVerifiedInput.value = '0';
-    
-    // UI Resets
-    phoneInput.readOnly = false;
-    phoneInput.classList.remove('bg-gray-50', 'cursor-not-allowed');
-    document.getElementById('phoneStatusIndicator').classList.add('hidden');
-    
-    // Re-validate submit button
-    updateSubmitButtonState();
-});
 // =====================================================
 // AUTO-OTP TRIGGER
 // =====================================================
@@ -610,7 +590,7 @@ function addAnotherLocation() {
         <input type="text" 
                name="preferred_locations[]" 
                placeholder="e.g. Aminabad, Alambagh"
-               class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+               class="flex-1 px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
         <button type="button" 
                 onclick="removeLocation(this)" 
                 class="text-red-500 hover:text-red-700 p-2 transition-colors">
@@ -742,7 +722,7 @@ function showToast(message, type = 'info') {
         'info': 'bg-blue-500'
     }[type] || 'bg-gray-500';
 
-    toast.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-[100] animate-slide-in-right`;
+    toast.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-2 rounded-lg shadow-lg z-[100] animate-slide-in-right`;
     toast.textContent = message;
     
     document.body.appendChild(toast);
