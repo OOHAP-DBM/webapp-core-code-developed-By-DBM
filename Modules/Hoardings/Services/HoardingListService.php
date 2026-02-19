@@ -6,6 +6,8 @@ use Modules\Hoardings\Repositories\HoardingListRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class HoardingListService
 {
@@ -21,9 +23,6 @@ class HoardingListService
      */
     public function storeStep1($vendor, $data, $mediaFiles)
     {
-
-
-
         // Backend safety check for offer price
         $errors = [];
         if (isset($data['monthly_offer_price']) && isset($data['base_monthly_price'])) {
@@ -113,30 +112,36 @@ class HoardingListService
      */
     public function storeStep2($hoarding, array $data, array $brandLogoFiles = []): array
     {
+        $parentHoarding = method_exists($hoarding, 'hoarding') && $hoarding->hoarding
+            ? $hoarding->hoarding
+            : $hoarding;
 
-        // dd($data);
-        // Always update the parent Hoarding model
-        $parentHoarding = method_exists($hoarding, 'hoarding') && $hoarding->hoarding ? $hoarding->hoarding : $hoarding;
-       \Log::info('Step2 parentHoarding', ['id' => $parentHoarding->id]);
-        $childHoarding = $hoarding;
-        \Log::info('Step2 childHoarding', ['id' => $childHoarding->id]);
-        // 1. Data Transformation (Mapping form inputs to DB columns)
         $formattedData = $this->mapHoardingStep2Data($data);
 
+        // ✅ Extract delete IDs BEFORE passing to repo — don't let fill() see it
+        $deleteBrandLogosRaw = $data['delete_brand_logos'] ?? null;
+        unset($formattedData['deleted_brand_logos']); // ✅ remove from fill() data
+
         try {
-            return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles) {
-                // 2. Persist main hoarding data (parent)
+            return \DB::transaction(function () use ($parentHoarding, $formattedData, $brandLogoFiles, $deleteBrandLogosRaw) {
+
+                // 1. Persist main hoarding data
                 $updatedHoarding = $this->repo->updateStep2($parentHoarding, $formattedData);
 
-                // 3. Handle Brand Logos via Repository (child)
+                // 2. Delete removed brand logos via repo
+                if (!empty($deleteBrandLogosRaw)) {
+                    $this->repo->deleteBrandLogos($parentHoarding, $deleteBrandLogosRaw);
+                }
+
+                // 3. Store new brand logos
                 if (!empty($brandLogoFiles)) {
-                    $this->repo->storeBrandLogos($childHoarding->id, $brandLogoFiles);
+                    $this->repo->storeBrandLogos($parentHoarding->id, $brandLogoFiles);
                 }
 
                 return [
                     'success'  => true,
                     'message'  => 'Hoarding details updated successfully.',
-                    'hoarding' => $updatedHoarding->fresh('brandLogos')
+                    'hoarding' => $updatedHoarding->fresh('brandLogos'),
                 ];
             });
         } catch (\Throwable $e) {
@@ -149,6 +154,7 @@ class HoardingListService
      */
     protected function mapHoardingStep2Data(array $data): array
     {
+        // dd($data);
         // \Log::info('Step2 incoming data', $data);
         $mapped = [
             // Legal
@@ -178,6 +184,7 @@ class HoardingListService
             'traffic_type'        => $data['traffic_type'] ?? null,
             'visibility_details'   => $data['visible_from'] ?? null,
             'located_at'   => $data['located_at'] ?? null,
+            'deleted_brand_logos' => $data['delete_brand_logos'] ?? null,
 
             // Step Management
             'current_step'         => 2,
@@ -275,26 +282,23 @@ class HoardingListService
 
     public function updateStep1($hoarding, $oohHoarding, $data, $mediaFiles)
     {
-        // dd($data);
-        // Backend safety check for offer price
-        $errors = [];
+         $errors = [];
         if (isset($data['monthly_price']) && isset($data['base_monthly_price'])) {
             if ($data['monthly_price'] > $data['base_monthly_price']) {
                 $errors['monthly_price'][] = 'Monthly discounted price must be less than or equal to the base monthly price.';
             }
         }
 
-        // Media validation (only if new files provided)
         if (!empty($mediaFiles)) {
-            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-            $maxSize = 5 * 1024 * 1024; // 5MB
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'video/mp4', 'video/webm'];
+            $maxSize = 10 * 1024 * 1024;
 
             foreach ($mediaFiles as $index => $file) {
                 if (!in_array($file->getMimeType(), $allowedMimes)) {
-                    $errors['media'][] = "File #{$index}: Invalid format. Only JPEG, PNG, and WEBP allowed.";
+                    $errors['media'][] = "File #{$index}: Invalid format. Only JPEG, PNG, WEBP, MP4, WEBM allowed.";
                 }
                 if ($file->getSize() > $maxSize) {
-                    $errors['media'][] = "File #{$index}: Exceeds 5MB size limit.";
+                    $errors['media'][] = "File #{$index}: Exceeds 10MB size limit.";
                 }
             }
         }
@@ -334,7 +338,12 @@ class HoardingListService
                 // 'calculated_area_sqft' => $areaSqft,
             ]);
 
-            // Handle media - only add new, don't delete existing unless specified
+
+            if (!empty($data['deleted_media_ids'])) {
+                $this->repo->deleteMedia($hoarding->id, $data['deleted_media_ids']);
+            }
+
+            // ✅ Store new media via repo
             if (!empty($mediaFiles)) {
                 $this->repo->storeMedia($hoarding->id, $mediaFiles);
             }

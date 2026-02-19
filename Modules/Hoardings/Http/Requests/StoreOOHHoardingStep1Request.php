@@ -14,6 +14,7 @@ class StoreOOHHoardingStep1Request extends FormRequest
 
     public function rules()
     {
+         $oohId = $this->input('ooh_id');
         return [
             'category' => 'required|string|max:100',
             'width' => 'required|numeric|min:0.1',
@@ -27,12 +28,13 @@ class StoreOOHHoardingStep1Request extends FormRequest
             'base_monthly_price' => 'required|numeric|min:1',
             'lat' => ['required', 'numeric', 'between:-90,90'],
             'lng' => ['required', 'numeric', 'between:-180,180'],
+            'deleted_media_ids' => 'nullable',
             'monthly_price' => [
                 'nullable',
                 'numeric',
                 'lte:base_monthly_price',
             ],
-            'media' => 'required|array',
+            'media'=> $oohId ? 'nullable|array' : 'required|array|min:1',
            'media.*' => [
                 'file',
                 'max:10240',
