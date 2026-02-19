@@ -240,18 +240,18 @@
             @endphp
 
             @if($existingLogos->isNotEmpty())
-                <div class="mb-4 flex flex-wrap gap-4" id="existingBrandLogos">
+                <div class="mb-4 flex flex-row flex-wrap gap-4" id="existingBrandLogos">
                     @foreach($existingLogos as $logo)
                         @php
                             $logoId  = $logo->id;
                             $logoUrl = isset($logo->is_spatie) ? $logo->url : asset('storage/' . $logo->file_path);
                         @endphp
-                        <div class="relative group w-24 h-20" id="brand-logo-existing-{{ $logoId }}">
+                         <div class="relative flex-shrink-0 w-24 h-20" id="brand-logo-existing-{{ $logoId }}">
                             <img src="{{ $logoUrl }}" alt="Brand Logo"
                                 class="w-full h-full object-contain border border-gray-200 rounded-lg p-2 bg-white">
                             <button
                                 type="button"
-                                onclick="removeExistingBrandLogo({{ $logoId }})"
+                                onclick="removeExistingBrandLogo({{ $logoId }}, this)"
                                 class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full
                                     flex items-center justify-center text-xs hover:bg-red-600 shadow">
                                 ✕
@@ -264,7 +264,7 @@
             <input type="hidden" name="delete_brand_logos" id="deleteBrandLogosHidden" value="">
 
             {{-- New logo previews --}}
-            <div id="newBrandLogoPreview" class="flex flex-wrap gap-4 mb-4"></div>
+            <div id="newBrandLogoPreview" class="flex flex-row flex-wrap gap-4 mb-4"></div>
 
             {{-- File input --}}
             <div class="flex items-center w-full">
@@ -473,213 +473,237 @@
 
 <!-- JavaScript for Modal Interactions -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Grace period modal logic
-    const graceYes = document.getElementById('grace-yes');
-    const graceNo = document.getElementById('grace-no');
-    const graceModal = document.getElementById('graceModal');
-    const graceInput = document.getElementById('gracePeriodInput');
-    const graceSaveBtn = document.getElementById('graceSaveBtn');
-    const graceCancelBtn = document.getElementById('graceCancelBtn');
-    const graceHidden = document.getElementById('gracePeriodDaysHidden');
+document.addEventListener('DOMContentLoaded', function () {
 
-    if (graceYes && graceModal && graceInput && graceSaveBtn && graceCancelBtn && graceHidden) {
-        // Show modal if grace period is already set
-        if (graceHidden.value && parseInt(graceHidden.value) > 0) {
-            graceYes.checked = true;
+    // ─── NAGAR NIGAM ───────────────────────────────────────────────
+    const nagarYes            = document.getElementById('nagar-yes');
+    const nagarNo             = document.getElementById('nagar-no');
+    const nagarModal          = document.getElementById('nagarModal');
+    const permitNumberInput   = document.getElementById('permitNumberInput');
+    const permitValidTillInput= document.getElementById('permitValidTillInput');
+    const nagarSaveBtn        = document.getElementById('nagarSaveBtn');
+    const nagarCancelBtn      = document.getElementById('nagarCancelBtn');
+    const permitNumberHidden  = document.getElementById('permitNumberHidden');
+    const permitValidTillHidden = document.getElementById('permitValidTillHidden');
+
+    // Track what was saved — so cancel can revert radio
+    let nagarSaved = permitNumberHidden.value && permitValidTillHidden.value;
+
+    nagarYes.addEventListener('change', function () {
+        if (this.checked) {
+            // Open modal, pre-fill with already-saved values
+            permitNumberInput.value    = permitNumberHidden.value || '';
+            permitValidTillInput.value = permitValidTillHidden.value || '';
+            nagarModal.classList.remove('hidden');
+        }
+    });
+
+    nagarNo.addEventListener('change', function () {
+        if (this.checked) {
+            // Clear saved values
+            permitNumberHidden.value    = '';
+            permitValidTillHidden.value = '';
+            permitNumberInput.value     = '';
+            permitValidTillInput.value  = '';
+            nagarSaved = false;
+        }
+    });
+
+    nagarSaveBtn.addEventListener('click', function () {
+        const num  = permitNumberInput.value.trim();
+        const date = permitValidTillInput.value;
+
+        if (num && date) {
+            permitNumberHidden.value    = num;
+            permitValidTillHidden.value = date;
+            nagarSaved = true;
+            nagarModal.classList.add('hidden');
+            permitNumberInput.classList.remove('border-red-500');
+            permitValidTillInput.classList.remove('border-red-500');
+        } else {
+            if (!num)  permitNumberInput.classList.add('border-red-500');
+            if (!date) permitValidTillInput.classList.add('border-red-500');
+            if (!num)  permitNumberInput.focus();
+            else       permitValidTillInput.focus();
+        }
+    });
+
+    nagarCancelBtn.addEventListener('click', function () {
+        nagarModal.classList.add('hidden');
+        permitNumberInput.classList.remove('border-red-500');
+        permitValidTillInput.classList.remove('border-red-500');
+
+        // ✅ If nothing was ever saved, revert radio back to No
+        if (!nagarSaved) {
+            nagarYes.checked = false;
+            nagarNo.checked  = true;
         }
 
-        graceYes.addEventListener('change', function() {
-            if (this.checked) {
+        // Reset modal inputs to last saved values
+        permitNumberInput.value    = permitNumberHidden.value || '';
+        permitValidTillInput.value = permitValidTillHidden.value || '';
+    });
+
+
+    // ─── BLOCK DATES ───────────────────────────────────────────────
+    const blockYes      = document.getElementById('block-yes');
+    const blockNo       = document.getElementById('block-no');
+    const blockModal    = document.getElementById('blockDatesModal');
+    const blockCalendar = document.getElementById('blockDatesCalendar');
+    const blockSaveBtn  = document.getElementById('blockDatesSaveBtn');
+    const blockCancelBtn= document.getElementById('blockDatesCancelBtn');
+    const blockHidden   = document.getElementById('blockedDatesHidden');
+
+    let blockSelectedDates = [];
+    let blockSaved = false;
+
+    // Pre-populate from existing DB data
+    try {
+        const existing = blockHidden.value ? JSON.parse(blockHidden.value) : [];
+        if (existing.length > 0) {
+            blockSelectedDates = existing;
+            blockSaved = true;
+            blockYes.checked = true;
+        }
+    } catch (e) {
+        console.error('Error parsing blocked dates:', e);
+    }
+
+    // Init flatpickr
+    let flatpickrInstance = null;
+    if (typeof flatpickr !== 'undefined') {
+        flatpickrInstance = flatpickr(blockCalendar, {
+            mode: 'multiple',
+            dateFormat: 'Y-m-d',
+            minDate: new Date(),
+            defaultDate: blockSelectedDates,
+            onChange: function (_, dateStrArr) {
+                blockSelectedDates = dateStrArr;
+            }
+        });
+    }
+
+    blockYes.addEventListener('change', function () {
+        if (this.checked) {
+            blockModal.classList.remove('hidden');
+        }
+    });
+
+    blockNo.addEventListener('change', function () {
+        if (this.checked) {
+            blockHidden.value  = '[]';
+            blockSelectedDates = [];
+            blockSaved = false;
+            if (flatpickrInstance) flatpickrInstance.clear();
+        }
+    });
+
+    blockSaveBtn.addEventListener('click', function () {
+        if (blockSelectedDates.length > 0) {
+            blockHidden.value = JSON.stringify(blockSelectedDates);
+            blockSaved = true;
+            blockModal.classList.add('hidden');
+            blockCalendar.classList.remove('border-red-500');
+        } else {
+            blockCalendar.classList.add('border-red-500');
+            blockCalendar.focus();
+        }
+    });
+
+    blockCancelBtn.addEventListener('click', function () {
+        blockModal.classList.add('hidden');
+        blockCalendar.classList.remove('border-red-500');
+
+        // ✅ If nothing was saved, revert radio back to No
+        if (!blockSaved) {
+            blockYes.checked = false;
+            blockNo.checked  = true;
+        }
+
+        // Restore selected dates to last saved state
+        try {
+            blockSelectedDates = blockHidden.value ? JSON.parse(blockHidden.value) : [];
+        } catch {
+            blockSelectedDates = [];
+        }
+        if (flatpickrInstance) {
+            flatpickrInstance.setDate(blockSelectedDates);
+        }
+    });
+
+
+    // ─── GRACE PERIOD ──────────────────────────────────────────────
+    const graceYes     = document.getElementById('grace-yes');
+    const graceNo      = document.getElementById('grace-no');
+    const graceModal   = document.getElementById('graceModal');
+    const graceInput   = document.getElementById('gracePeriodInput');
+    const graceSaveBtn = document.getElementById('graceSaveBtn');
+    const graceCancelBtn = document.getElementById('graceCancelBtn');
+    const graceHidden  = document.getElementById('gracePeriodDaysHidden');
+
+    let graceSaved = graceHidden.value && parseInt(graceHidden.value) > 0;
+
+    // Pre-select Yes if value already saved
+    if (graceSaved) {
+        graceYes.checked = true;
+    }
+
+    graceYes.addEventListener('change', function () {
+        if (this.checked) {
+            graceInput.value = graceHidden.value || '';
+            graceModal.classList.remove('hidden');
+        }
+    });
+
+    graceNo.addEventListener('change', function () {
+        if (this.checked) {
+            graceHidden.value = '';
+            graceInput.value  = '';
+            graceSaved = false;
+        }
+    });
+
+    graceSaveBtn.addEventListener('click', function () {
+        const val = parseInt(graceInput.value, 10);
+        if (!isNaN(val) && val > 0 && val <= 30) {
+            graceHidden.value = val;
+            graceSaved = true;
+            graceModal.classList.add('hidden');
+            graceInput.classList.remove('border-red-500');
+        } else {
+            alert('Please enter a valid number between 1 and 30');
+            graceInput.classList.add('border-red-500');
+            graceInput.focus();
+        }
+    });
+
+    graceCancelBtn.addEventListener('click', function () {
+        graceModal.classList.add('hidden');
+        graceInput.classList.remove('border-red-500');
+
+        // ✅ If nothing was saved, revert radio back to No
+        if (!graceSaved) {
+            graceYes.checked = false;
+            graceNo.checked  = true;
+        }
+
+        // Restore input to last saved value
+        graceInput.value = graceHidden.value || '';
+    });
+
+    // Form submit guard
+    const form = graceYes.closest('form');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            if (graceYes.checked && (!graceHidden.value || graceHidden.value === '')) {
+                e.preventDefault();
+                alert('Please set the grace period days or select "No"');
                 graceModal.classList.remove('hidden');
-                graceInput.value = graceHidden.value || '';
-            }
-        });
-        
-        graceNo.addEventListener('change', function() {
-            if (this.checked) {
-                graceHidden.value = '';
-                graceInput.value = '';
-            }
-        });
-        
-        graceSaveBtn.addEventListener('click', function() {
-            const val = parseInt(graceInput.value, 10);
-            if (!isNaN(val) && val > 0 && val <= 30) {
-                graceHidden.value = val;
-                graceModal.classList.add('hidden');
-                graceInput.classList.remove('border-red-500');
-            } else {
-                alert('Please enter a valid number between 1 and 30');
-                graceInput.classList.add('border-red-500');
                 graceInput.focus();
             }
         });
-        
-        // graceCancelBtn.addEventListener('click', function() {
-        //     graceModal.classList.add('hidden');
-        //     if (!graceHidden.value) {
-        //         graceYes.checked = false;
-        //         graceNo.checked = true;
-        //     }
-        //     graceInput.classList.remove('border-red-500');
-        // });
-        graceCancelBtn.addEventListener('click', function () {
-            graceModal.classList.add('hidden');
-
-            // Restore value from hidden field
-            graceInput.value = graceHidden.value || '';
-            graceInput.classList.remove('border-red-500');
-        });
-
-
-        // Prevent form submission if grace period is selected but not filled
-        const form = graceYes.closest('form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                if (graceYes.checked && (!graceHidden.value || graceHidden.value === '')) {
-                    e.preventDefault();
-                    alert('Please set the grace period days or select "No"');
-                    graceModal.classList.remove('hidden');
-                    graceInput.focus();
-                    return false;
-                }
-            });
-        }
     }
 
-    // Block Dates modal logic
-    const blockYes = document.getElementById('block-yes');
-    const blockNo = document.getElementById('block-no');
-    const blockModal = document.getElementById('blockDatesModal');
-    const blockCalendar = document.getElementById('blockDatesCalendar');
-    const blockSaveBtn = document.getElementById('blockDatesSaveBtn');
-    const blockCancelBtn = document.getElementById('blockDatesCancelBtn');
-    const blockHidden = document.getElementById('blockedDatesHidden');
-    let blockSelectedDates = [];
-
-    if (blockYes && blockModal && blockCalendar && blockSaveBtn && blockCancelBtn && blockHidden) {
-        // Pre-populate blocked dates from existing data
-        try {
-            const existingDates = blockHidden.value ? JSON.parse(blockHidden.value) : [];
-            if (existingDates.length > 0) {
-                blockSelectedDates = existingDates;
-                blockYes.checked = true;
-            }
-        } catch (e) {
-            console.error('Error parsing blocked dates:', e);
-        }
-
-        blockYes.addEventListener('change', function() {
-            if (this.checked) {
-                blockModal.classList.remove('hidden');
-            }
-        });
-        
-        blockNo.addEventListener('change', function() {
-            if (this.checked) {
-                blockHidden.value = '[]';
-                blockSelectedDates = [];
-            }
-        });
-        
-        blockSaveBtn.addEventListener('click', function() {
-            if (blockSelectedDates.length > 0) {
-                blockHidden.value = JSON.stringify(blockSelectedDates);
-                blockModal.classList.add('hidden');
-                blockCalendar.classList.remove('border-red-500');
-            } else {
-                blockCalendar.classList.add('border-red-500');
-                blockCalendar.focus();
-            }
-        });
-        
-        blockCancelBtn.addEventListener('click', function() {
-            blockModal.classList.add('hidden');
-              try {
-                blockSelectedDates = blockHidden.value
-                    ? JSON.parse(blockHidden.value)
-                    : [];
-            } catch {
-                blockSelectedDates = [];
-            }
-
-            blockCalendar.classList.remove('border-red-500');
-        });
-
-        // Initialize flatpickr calendar
-        if (typeof flatpickr !== 'undefined') {
-            flatpickr(blockCalendar, {
-                mode: 'multiple',
-                dateFormat: 'Y-m-d',
-                minDate: new Date(),
-                defaultDate: blockSelectedDates,
-                onChange: function(selectedDates, dateStrArr) {
-                    blockSelectedDates = dateStrArr;
-                }
-            });
-        }
-    }
-
-    // Nagar Nigam modal logic
-    const nagarYes = document.getElementById('nagar-yes');
-    const nagarNo = document.getElementById('nagar-no');
-    const nagarModal = document.getElementById('nagarModal');
-    const permitNumberInput = document.getElementById('permitNumberInput');
-    const permitValidTillInput = document.getElementById('permitValidTillInput');
-    const nagarSaveBtn = document.getElementById('nagarSaveBtn');
-    const nagarCancelBtn = document.getElementById('nagarCancelBtn');
-    const permitNumberHidden = document.getElementById('permitNumberHidden');
-    const permitValidTillHidden = document.getElementById('permitValidTillHidden');
-
-    if (nagarYes && nagarModal && permitNumberInput && permitValidTillInput && nagarSaveBtn && nagarCancelBtn && permitNumberHidden && permitValidTillHidden) {
-        nagarYes.addEventListener('change', function() {
-            if (this.checked) {
-                nagarModal.classList.remove('hidden');
-                permitNumberInput.value = permitNumberHidden.value || '';
-                permitValidTillInput.value = permitValidTillHidden.value || '';
-            }
-        });
-        
-        nagarNo.addEventListener('change', function() {
-            if (this.checked) {
-                permitNumberHidden.value = '';
-                permitValidTillHidden.value = '';
-                permitNumberInput.value = '';
-                permitValidTillInput.value = '';
-            }
-        });
-        
-        nagarSaveBtn.addEventListener('click', function() {
-            const permitNum = permitNumberInput.value.trim();
-            const permitDate = permitValidTillInput.value;
-            
-            if (permitNum && permitDate) {
-                permitNumberHidden.value = permitNum;
-                permitValidTillHidden.value = permitDate;
-                nagarModal.classList.add('hidden');
-                permitNumberInput.classList.remove('border-red-500');
-                permitValidTillInput.classList.remove('border-red-500');
-            } else {
-                if (!permitNum) permitNumberInput.classList.add('border-red-500');
-                if (!permitDate) permitValidTillInput.classList.add('border-red-500');
-                if (!permitNum) permitNumberInput.focus();
-                else permitValidTillInput.focus();
-            }
-        });
-        
-        nagarCancelBtn.addEventListener('click', function() {
-            nagarModal.classList.add('hidden');
-            // nagarYes.checked = false;
-            // nagarNo.checked = true;
-             permitNumberHidden.value = permitNumberHidden.value || '';
-            permitValidTillHidden.value = permitValidTillHidden.value || '';
-
-            // Optionally reset modal inputs to hidden values
-            permitNumberInput.value = permitNumberHidden.value;
-            permitValidTillInput.value = permitValidTillHidden.value;
-        });
-    }
 });
 </script>
 <script>
@@ -714,13 +738,13 @@ function syncBrandInput() {
     newBrandFiles.forEach(f => dt.items.add(f));
     brandLogoInput.files = dt.files;
 }
-
 function renderBrandPreviews() {
     newBrandPreview.innerHTML = '';
     newBrandFiles.forEach((file, idx) => {
         const url     = URL.createObjectURL(file);
         const wrapper = document.createElement('div');
-        wrapper.className = 'relative w-24 h-20 group';
+        // ✅ Added flex-shrink-0 so items don't collapse to full width
+        wrapper.className = 'relative flex-shrink-0 w-24 h-20 group';
 
         const img     = document.createElement('img');
         img.src       = url;
@@ -728,7 +752,7 @@ function renderBrandPreviews() {
 
         const btn     = document.createElement('button');
         btn.type      = 'button';
-        btn.className = 'absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 shadow';
+        btn.className = 'absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 shadow z-10';
         btn.textContent = '✕';
         btn.addEventListener('click', () => {
             newBrandFiles.splice(idx, 1);
@@ -745,10 +769,23 @@ function renderBrandPreviews() {
     });
 }
 
-function removeExistingBrandLogo(id) {
+// function removeExistingBrandLogo(id) {
+//     deletedLogoIds.push(id);
+//     deleteBrandHidden.value = deletedLogoIds.join(',');
+//     const el = document.getElementById('brand-logo-existing-' + id);
+//     if (el) el.remove();
+// }
+function removeExistingBrandLogo(id, btnEl) {
+    // Track ID for server-side deletion
     deletedLogoIds.push(id);
     deleteBrandHidden.value = deletedLogoIds.join(',');
-    const el = document.getElementById('brand-logo-existing-' + id);
-    if (el) el.remove();
+
+    // ✅ Use button reference to find parent — no fragile DOM query
+    const wrapper = btnEl.closest('[id^="brand-logo-existing-"]');
+    if (wrapper) {
+        wrapper.style.transition = 'opacity 0.2s';
+        wrapper.style.opacity = '0';
+        setTimeout(() => wrapper.remove(), 200);
+    }
 }
 </script>

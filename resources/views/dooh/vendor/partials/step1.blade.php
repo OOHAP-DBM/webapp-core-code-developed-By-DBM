@@ -372,6 +372,7 @@
                 @if(isset($screen) && $screen->media && $screen->media->count())
                     <div class="mb-6">
                         <h3 class="text-sm font-semibold text-gray-700 mb-3">Existing Media</h3>
+
                         <div class="flex flex-wrap gap-3" id="existingMediaPreview">
                             @foreach($screen->media as $media)
                                 <div class="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-xl overflow-hidden 
@@ -398,10 +399,11 @@
                                         </div>
                                     @endif
                                     <button type="button"
-                                        onclick="removeExistingMedia({{ $media->id }})"
+                                        data-media-id="{{ $media->id }}"
+                                        onclick="removeExistingMedia({{ $media->id }}, this)"
                                         class="absolute top-2 right-2 bg-white/90 backdrop-blur rounded-full p-1.5 
-                                               shadow-lg text-red-600 hover:bg-red-50 hover:scale-110 
-                                               transition-all duration-200">
+                                            shadow-lg text-red-600 hover:bg-red-50 hover:scale-110 
+                                            transition-all duration-200">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                         </svg>
@@ -590,12 +592,26 @@ function removeNewFile(idx) {
     renderNewPreviews();
 }
 
-function removeExistingMedia(id) {
+// function removeExistingMedia(id) {
+//     deletedMediaIds.push(id);
+//     deletedMediaIdsInput.value = deletedMediaIds.join(',');
+//     const button = existingMediaPreview.querySelector(`[onclick*='removeExistingMedia(${id})']`);
+//     if (button && button.parentElement) {
+//         button.parentElement.remove();
+//     }
+// }
+function removeExistingMedia(id, btnEl) {
+    // Track the ID
     deletedMediaIds.push(id);
     deletedMediaIdsInput.value = deletedMediaIds.join(',');
-    const button = existingMediaPreview.querySelector(`[onclick*='removeExistingMedia(${id})']`);
-    if (button && button.parentElement) {
-        button.parentElement.remove();
+
+    // ✅ Use the button reference directly — no DOM query needed
+    const mediaItem = btnEl.closest('.relative');
+    if (mediaItem) {
+        // Fade out then remove
+        mediaItem.style.transition = 'opacity 0.2s';
+        mediaItem.style.opacity = '0';
+        setTimeout(() => mediaItem.remove(), 200);
     }
 }
 
