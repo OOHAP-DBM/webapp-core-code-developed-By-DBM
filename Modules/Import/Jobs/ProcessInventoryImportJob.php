@@ -128,7 +128,15 @@ class ProcessInventoryImportJob implements ShouldQueue
             ]);
 
             // Store and extract image archive from Python response, if provided
-            $this->ingestImageArchive($apiResponse);
+            // This should not fail the whole import when ZIP handling is unavailable.
+            try {
+                $this->ingestImageArchive($apiResponse);
+            } catch (Exception $e) {
+                \Log::warning('Image archive ingestion skipped', [
+                    'batch_id' => $this->batch->id,
+                    'reason' => $e->getMessage(),
+                ]);
+            }
 
             // Process rows with bulk insert
             $this->processApiRows(
@@ -442,6 +450,15 @@ class ProcessInventoryImportJob implements ShouldQueue
 
         if (!is_dir($imagesAbsolutePath)) {
             mkdir($imagesAbsolutePath, 0755, true);
+        }
+
+        if (!class_exists(ZipArchive::class)) {
+            \Log::warning('ZipArchive extension is not available; storing ZIP without extraction', [
+                'batch_id' => $this->batch->id,
+                'zip_path' => $zipPath,
+            ]);
+
+            return;
         }
 
         $zip = new ZipArchive();
