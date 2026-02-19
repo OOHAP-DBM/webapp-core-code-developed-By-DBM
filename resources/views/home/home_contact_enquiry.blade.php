@@ -89,7 +89,7 @@
                             Hoarding Type <span class="text-red-500">*</span>
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label class="relative flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#009A5C] transition-all group">
+                            <label class="relative flex items-center px-4  border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#009A5C] transition-all group">
                                 <input type="checkbox" name="hoarding_type[]" value="DOOH" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
@@ -141,7 +141,7 @@
                                 <input type="text" 
                                        name="preferred_locations[]" 
                                        placeholder="e.g. Hazratganj, Gomti Nagar"
-                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                                       class="w-full px-4py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                             </div>
                         </div>
                         <button type="button" 
