@@ -200,6 +200,26 @@ class InventoryImportBatch extends Model
     }
 
     /**
+     * Mark batch as completed
+     */
+    public function markAsCompleted(): void
+    {
+        $this->update([
+            'status' => 'completed',
+        ]);
+    }
+
+    /**
+     * Mark batch as failed
+     */
+    public function markAsFailed(string $errorMessage = ''): void
+    {
+        $this->update([
+            'status' => 'failed',
+        ]);
+    }
+
+    /**
      * Update row counts
      */
     public function updateRowCounts(int $totalRows, int $validRows, int $invalidRows): void

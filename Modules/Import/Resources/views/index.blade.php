@@ -132,7 +132,7 @@
                         <li>✓ Excel file up to 20MB</li>
                         <li>✓ PowerPoint file up to 50MB</li>
                         <li>✓ Select import type</li>
-                        <li>✓ Both files are optional</li>
+                        <li>✓ Both Excel and PowerPoint are required</li>
                     </ul>
                 </div>
             </div>
@@ -343,13 +343,76 @@
 
 <script>
     const API_BASE = '/api/import';
+
+    function createHttpClient() {
+        if (window.axios) {
+            return window.axios;
+        }
+
+        const request = async (url, options = {}) => {
+            const response = await fetch(url, {
+                credentials: 'same-origin',
+                ...options,
+            });
+
+            const text = await response.text();
+            let data = {};
+
+            try {
+                data = text ? JSON.parse(text) : {};
+            } catch (e) {
+                data = { message: text || 'Request failed' };
+            }
+
+            if (!response.ok) {
+                const error = new Error(data?.message || `HTTP ${response.status}`);
+                error.response = {
+                    status: response.status,
+                    data,
+                };
+                throw error;
+            }
+
+            return {
+                data,
+                status: response.status,
+            };
+        };
+
+        return {
+            defaults: { headers: { common: {} } },
+            get(url, config = {}) {
+                return request(url, {
+                    method: 'GET',
+                    headers: config.headers || {},
+                });
+            },
+            post(url, body = {}, config = {}) {
+                const headers = { ...(config.headers || {}) };
+                let payload = body;
+
+                if (!(body instanceof FormData)) {
+                    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+                    payload = JSON.stringify(body);
+                }
+
+                return request(url, {
+                    method: 'POST',
+                    headers,
+                    body: payload,
+                });
+            },
+        };
+    }
+
+    const http = createHttpClient();
     
     // Get CSRF token from meta tag
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     
     // Configure Axios with CSRF token
-    axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
-    axios.defaults.headers.common['Accept'] = 'application/json';
+    http.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+    http.defaults.headers.common['Accept'] = 'application/json';
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', () => {
@@ -435,8 +498,8 @@
         const pptFile = document.getElementById('pptFile').files[0];
         const mediaType = document.querySelector('input[name="media_type"]:checked').value;
 
-        if (!excelFile && !pptFile) {
-            showError('Please select at least one file');
+        if (!excelFile || !pptFile) {
+            showError('Please select both Excel and PowerPoint files');
             return;
         }
 
@@ -452,13 +515,12 @@
 
         try {
             const formData = new FormData();
-            if (excelFile) formData.append('file', excelFile);
-            if (pptFile) formData.append('ppt_file', pptFile);
+            formData.append('excel', excelFile);
+            formData.append('ppt', pptFile);
             formData.append('media_type', mediaType);
 
-            const response = await axios.post(API_BASE + '/upload', formData, {
+            const response = await http.post(API_BASE + '/upload', formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
                     'X-CSRF-TOKEN': csrfToken
                 }
             });
@@ -503,7 +565,7 @@
     // Load batches
     async function loadBatches() {
         try {
-            const response = await axios.get(API_BASE, {
+            const response = await http.get(API_BASE, {
                 headers: {
                     'X-CSRF-TOKEN': csrfToken
                 }
@@ -645,7 +707,7 @@
         btn.disabled = true;
         
         try {
-            const response = await axios.post(`${API_BASE}/${batchId}/approve`, {}, {
+            const response = await http.post(`${API_BASE}/${batchId}/approve`, {}, {
                 headers: {
                     'X-CSRF-TOKEN': csrfToken
                 }
@@ -664,7 +726,7 @@
     // Error modal
     async function openErrorModal(batchId) {
         try {
-            const response = await axios.get(`${API_BASE}/${batchId}/details`, {
+            const response = await http.get(`${API_BASE}/${batchId}/details`, {
                 headers: {
                     'Authorization': `Bearer ${getAuthToken()}`
                 }
@@ -766,7 +828,7 @@
 
     async function loadBatchDetails(batchId) {
         try {
-            const response = await axios.get(`${API_BASE}/${batchId}/details`, {
+            const response = await http.get(`${API_BASE}/${batchId}/details`, {
                 headers: {
                     'X-CSRF-TOKEN': csrfToken
                 }

@@ -43,6 +43,7 @@
                                     <span class="text-xs text-gray-500">Max 20MB</span>
                                 </div>
                             </label>
+                            <p id="excelFileName" class="mt-2 text-sm text-gray-600 font-medium hidden"></p>
                         </div>
                     </div>
 
@@ -68,6 +69,7 @@
                                     <span class="text-xs text-gray-500">Max 50MB</span>
                                 </div>
                             </label>
+                            <p id="pptFileName" class="mt-2 text-sm text-gray-600 font-medium hidden"></p>
                         </div>
                     </div>
 
@@ -114,18 +116,19 @@
                                 <svg class="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
-                                Both files are optional
+                                Both Excel and PowerPoint are required
                             </li>
                         </ul>
                     </div>
 
-                    <button type="submit"
+                    <button type="submit" id="submitBtn"
                         class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg id="submitIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
-                        Upload Files
+                        <span id="submitText">Upload Files</span>
                     </button>
+                    <div id="errorMessages" class="hidden space-y-2"></div>
                 </form>
             </div>
         </div>
@@ -482,13 +485,24 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     const pptFile = document.getElementById('pptFile').files[0];
     const mediaType = document.querySelector('input[name="media_type"]:checked').value;
     
-    if (!excelFile && !pptFile) {
-        showToast('Please select at least one file', 'error');
+    if (!excelFile || !pptFile) {
+        showError('Please select both Excel and PowerPoint files');
         return;
     }
+
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitIcon = document.getElementById('submitIcon');
+    const errorMessages = document.getElementById('errorMessages');
+
+    submitBtn.disabled = true;
+    submitText.textContent = 'Uploading...';
+    submitIcon.classList.add('animate-spin');
+    errorMessages.classList.add('hidden');
     
     const formData = new FormData();
-            if (excelFile) formData.append('file', excelFile);
+    formData.append('excel', excelFile);
+    formData.append('ppt', pptFile);
     formData.append('media_type', mediaType);
     
     try {
@@ -502,14 +516,43 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
         
         showToast('✓ Files uploaded successfully', 'success');
         document.getElementById('uploadForm').reset();
+        document.getElementById('excelFileName').classList.add('hidden');
+        document.getElementById('pptFileName').classList.add('hidden');
         // Wait a moment then refresh batches
         setTimeout(() => loadBatches(), 500);
     } catch (error) {
         console.error('Upload error:', error);
-        const message = error.response?.data?.message || 'Upload failed';
-        showToast(`✕ ${message}`, 'error');
+        const errors = error.response?.data?.errors || {};
+        if (Object.keys(errors).length > 0) {
+            displayErrors(errors);
+        } else {
+            const message = error.response?.data?.message || 'Upload failed';
+            showToast(`✕ ${message}`, 'error');
+        }
+    } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = 'Upload Files';
+        submitIcon.classList.remove('animate-spin');
     }
 });
+
+function displayErrors(errors) {
+    const container = document.getElementById('errorMessages');
+    container.innerHTML = '';
+    Object.values(errors).flat().forEach(error => {
+        const div = document.createElement('div');
+        div.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm';
+        div.textContent = error;
+        container.appendChild(div);
+    });
+    container.classList.remove('hidden');
+}
+
+function showError(message) {
+    const container = document.getElementById('errorMessages');
+    container.innerHTML = `<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">${message}</div>`;
+    container.classList.remove('hidden');
+}
 
 // Approve Batch
 async function approveBatch(batchId) {

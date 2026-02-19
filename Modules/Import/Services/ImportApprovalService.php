@@ -3,6 +3,7 @@
 namespace Modules\Import\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Modules\Import\Entities\InventoryImportBatch;
 use Modules\Import\Entities\InventoryImportStaging;
 use App\Models\Hoarding;
@@ -281,6 +282,21 @@ class ImportApprovalService
     {
         // Images are stored in: storage/app/imports/{batch_id}/images/{image_name}
         $imagePath = "imports/{$stagingRow->batch_id}/images/{$stagingRow->image_name}";
+
+        $disk = Storage::disk('local');
+
+        if ($disk->exists($imagePath)) {
+            return $imagePath;
+        }
+
+        $searchRoot = "imports/{$stagingRow->batch_id}/images";
+        if ($disk->exists($searchRoot)) {
+            foreach ($disk->allFiles($searchRoot) as $file) {
+                if (basename($file) === $stagingRow->image_name) {
+                    return $file;
+                }
+            }
+        }
 
         return $imagePath;
     }

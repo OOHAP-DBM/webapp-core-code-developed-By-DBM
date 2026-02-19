@@ -62,12 +62,15 @@ return [
     /**
      * Python API configuration for inventory imports
      */
-    'python_url' => env('PYTHON_IMPORT_URL'),
+    'python_url' => env('IMPORT_PYTHON_URL', env('PYTHON_IMPORT_URL', 'http://127.0.0.1:9000')),
 
-    'python_token' => env('PYTHON_IMPORT_TOKEN'),
+    'python_process_endpoint' => env('IMPORT_PYTHON_PROCESS_ENDPOINT', env('PYTHON_IMPORT_PROCESS_ENDPOINT', '/process-import')),
+
+    'python_token' => env('IMPORT_PYTHON_TOKEN', env('PYTHON_IMPORT_TOKEN', '')),
 
     /**
      * Python API request timeout (in seconds)
      */
-    'python_timeout' => env('IMPORT_PYTHON_TIMEOUT', 300),
+    'python_timeout' => env('IMPORT_PYTHON_TIMEOUT', env('PYTHON_IMPORT_TIMEOUT', 30)),
 ];
+

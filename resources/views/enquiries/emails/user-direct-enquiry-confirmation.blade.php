@@ -43,9 +43,9 @@ We've received your hoarding enquiry and our team is on it! Here's what happens 
 
 ---
 
-@component('mail::button', ['url' => $trackingUrl, 'color' => 'success'])
+<!-- @component('mail::button', ['url' => $trackingUrl, 'color' => 'success'])
 Track Your Enquiry Status
-@endcomponent
+@endcomponent -->
 
 ---
 

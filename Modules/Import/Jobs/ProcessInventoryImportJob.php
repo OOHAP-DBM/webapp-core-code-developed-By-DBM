@@ -8,10 +8,13 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Modules\Import\Entities\InventoryImportBatch;
 use Modules\Import\Services\PythonImportService;
 use Modules\Import\Exceptions\ImportApiException;
 use Exception;
+use ZipArchive;
 
 class ProcessInventoryImportJob implements ShouldQueue
 {
@@ -88,6 +91,16 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'batch_id' => $this->batch->id,
                 'vendor_id' => $this->batch->vendor_id,
                 'media_type' => $this->batch->media_type,
+                'excel_file' => [
+                    'path' => $this->excelPath,
+                    'name' => basename($this->excelPath),
+                    'size_bytes' => @filesize($this->excelPath) ?: null,
+                ],
+                'ppt_file' => [
+                    'path' => $this->pptPath,
+                    'name' => basename($this->pptPath),
+                    'size_bytes' => @filesize($this->pptPath) ?: null,
+                ],
             ]);
 
             // Get API response from Python service
@@ -104,6 +117,18 @@ class ProcessInventoryImportJob implements ShouldQueue
                     $apiResponse['message'] ?? 'Import processing failed'
                 );
             }
+
+            $apiLogPayload = $apiResponse;
+            unset($apiLogPayload['images_zip_base64']);
+
+            \Log::info('Inventory import API data received', [
+                'batch_id' => $this->batch->id,
+                'api_response_without_base64_zip' => $apiLogPayload,
+                'received_data' => $apiResponse['data'] ?? [],
+            ]);
+
+            // Store and extract image archive from Python response, if provided
+            $this->ingestImageArchive($apiResponse);
 
             // Process rows with bulk insert
             $this->processApiRows(
@@ -127,6 +152,17 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'api_code' => $e->getApiCode(),
                 'error' => $e->getMessage(),
             ]);
+
+            $apiCode = (string) $e->getApiCode();
+            $isClientError = str_starts_with($apiCode, 'API_ERROR_401')
+                || str_starts_with($apiCode, 'API_ERROR_403')
+                || str_starts_with($apiCode, 'API_ERROR_404')
+                || str_starts_with($apiCode, 'API_ERROR_422');
+
+            if ($isClientError) {
+                return;
+            }
+
             throw $e;
         } catch (Exception $e) {
             $this->batch->markAsFailed($e->getMessage());
@@ -191,6 +227,26 @@ class ProcessInventoryImportJob implements ShouldQueue
     protected function transformRow(array $row): array
     {
         try {
+            $pythonStatus = strtolower((string) ($row['status'] ?? ''));
+            $pythonErrors = $row['errors'] ?? [];
+
+            if (is_string($pythonErrors)) {
+                $pythonErrors = [$pythonErrors];
+            }
+
+            if (!is_array($pythonErrors)) {
+                $pythonErrors = [];
+            }
+
+            if (
+                $pythonStatus === 'invalid' ||
+                !empty($pythonErrors) ||
+                !empty($row['error_message'])
+            ) {
+                $errorMessage = $row['error_message'] ?? implode('; ', array_filter($pythonErrors));
+                throw new Exception($errorMessage ?: 'Row marked invalid by Python API');
+            }
+
             // Validate required fields
             $this->validateRowFields($row);
 
@@ -198,11 +254,11 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'batch_id' => $this->batch->id,
                 'vendor_id' => $this->batch->vendor_id,
                 'media_type' => $this->batch->media_type,
-                'code' => trim($row['code'] ?? ''),
-                'city' => trim($row['city'] ?? '') ?: null,
+                'code' => $this->toNullableString($row['code'] ?? ''),
+                'city' => $this->toNullableString($row['city'] ?? ''),
                 'width' => isset($row['width']) ? (float) $row['width'] : null,
                 'height' => isset($row['height']) ? (float) $row['height'] : null,
-                'image_name' => $row['image_name'] ?? null,
+                'image_name' => $this->toNullableString($row['image_name'] ?? null),
                 'extra_attributes' => $this->extractExtraAttributes($row),
                 'status' => 'valid',
                 'error_message' => null,
@@ -214,14 +270,14 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'batch_id' => $this->batch->id,
                 'vendor_id' => $this->batch->vendor_id,
                 'media_type' => $this->batch->media_type,
-                'code' => trim($row['code'] ?? 'UNKNOWN'),
+                'code' => $this->toNullableString($row['code'] ?? 'UNKNOWN') ?? 'UNKNOWN',
                 'city' => null,
                 'width' => null,
                 'height' => null,
                 'image_name' => null,
                 'extra_attributes' => null,
                 'status' => 'invalid',
-                'error_message' => $e->getMessage(),
+                'error_message' => $this->toNullableString($e->getMessage()) ?? 'Invalid row',
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -253,20 +309,56 @@ class ProcessInventoryImportJob implements ShouldQueue
      * Extract extra attributes from row
      *
      * @param array $row
-     * @return array|null
+     * @return string|null
      */
-    protected function extractExtraAttributes(array $row): ?array
+    protected function extractExtraAttributes(array $row): ?string
     {
-        $standardFields = ['code', 'city', 'width', 'height', 'image_name'];
+        $standardFields = [
+            'code',
+            'city',
+            'width',
+            'height',
+            'image_name',
+            'status',
+            'errors',
+            'error_message',
+        ];
+
         $extra = [];
 
         foreach ($row as $key => $value) {
-            if (!in_array($key, $standardFields) && !empty($value)) {
+            if (!in_array($key, $standardFields, true) && $value !== null && $value !== '') {
                 $extra[$key] = $value;
             }
         }
 
-        return !empty($extra) ? $extra : null;
+        if (empty($extra)) {
+            return null;
+        }
+
+        return json_encode($extra, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
+     * Convert mixed value to a nullable string.
+     *
+     * @param mixed $value
+     * @return string|null
+     */
+    protected function toNullableString($value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_array($value) || is_object($value)) {
+            $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $encoded = $encoded === false ? null : trim($encoded);
+            return $encoded === '' ? null : $encoded;
+        }
+
+        $stringValue = trim((string) $value);
+        return $stringValue === '' ? null : $stringValue;
     }
 
     /**
@@ -287,6 +379,90 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'rows_count' => count($rows),
             ]);
         });
+    }
+
+    /**
+     * Ingest images archive from Python API response (base64 or URL).
+     *
+     * @param array $apiResponse
+     * @return void
+     * @throws Exception
+     */
+    protected function ingestImageArchive(array $apiResponse): void
+    {
+        $zipBase64 = $apiResponse['images_zip_base64'] ?? null;
+        $zipUrl = $apiResponse['images_zip_url'] ?? null;
+
+        if (empty($zipBase64) && empty($zipUrl)) {
+            return;
+        }
+
+        $disk = Storage::disk('local');
+        $batchRoot = "imports/{$this->batch->id}";
+        $imagesDir = "{$batchRoot}/images";
+        $zipPath = "{$batchRoot}/images_bundle.zip";
+
+        $disk->makeDirectory($imagesDir);
+
+        $zipBinary = null;
+
+        if (!empty($zipBase64)) {
+            $payload = (string) $zipBase64;
+
+            if (str_starts_with($payload, 'data:')) {
+                $parts = explode(',', $payload, 2);
+                $payload = $parts[1] ?? '';
+            }
+
+            $decoded = base64_decode($payload, true);
+            if ($decoded === false) {
+                throw new Exception('Invalid images ZIP base64 payload from Python API');
+            }
+
+            $zipBinary = $decoded;
+        } elseif (!empty($zipUrl)) {
+            $response = Http::timeout((int) config('import.python_timeout', 300))
+                ->get((string) $zipUrl);
+
+            if ($response->failed()) {
+                throw new Exception('Failed to download images ZIP from Python API URL');
+            }
+
+            $zipBinary = $response->body();
+        }
+
+        if ($zipBinary === null || $zipBinary === '') {
+            throw new Exception('Empty images ZIP payload received from Python API');
+        }
+
+        $disk->put($zipPath, $zipBinary);
+
+        $zipAbsolutePath = $disk->path($zipPath);
+        $imagesAbsolutePath = $disk->path($imagesDir);
+
+        if (!is_dir($imagesAbsolutePath)) {
+            mkdir($imagesAbsolutePath, 0755, true);
+        }
+
+        $zip = new ZipArchive();
+        $openResult = $zip->open($zipAbsolutePath);
+
+        if ($openResult !== true) {
+            throw new Exception('Unable to open images ZIP archive');
+        }
+
+        $zip->extractTo($imagesAbsolutePath);
+        $zip->close();
+
+        $allExtractedFiles = $disk->allFiles($imagesDir);
+
+        \Log::info('Extracted image archive for import batch', [
+            'batch_id' => $this->batch->id,
+            'images_dir' => $imagesDir,
+            'zip_path' => $zipPath,
+            'extracted_files_count' => count($allExtractedFiles),
+            'extracted_files' => $allExtractedFiles,
+        ]);
     }
 
     /**

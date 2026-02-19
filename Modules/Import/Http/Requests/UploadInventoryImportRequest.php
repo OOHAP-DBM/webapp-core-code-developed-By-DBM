@@ -7,6 +7,28 @@ use Illuminate\Foundation\Http\FormRequest;
 class UploadInventoryImportRequest extends FormRequest
 {
     /**
+     * Normalize legacy field names before validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation(): void
+    {
+        if (!$this->hasFile('excel') && $this->hasFile('file')) {
+            $this->files->set('excel', $this->file('file'));
+        }
+
+        if (!$this->hasFile('ppt') && $this->hasFile('ppt_file')) {
+            $this->files->set('ppt', $this->file('ppt_file'));
+        }
+
+        if ($this->filled('media_type')) {
+            $this->merge([
+                'media_type' => strtolower((string) $this->input('media_type')),
+            ]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array
@@ -23,12 +45,13 @@ class UploadInventoryImportRequest extends FormRequest
             'ppt' => [
                 'required',
                 'file',
-                'mimes:pptx',
+                'mimes:ppt,pptx',
                 'max:51200', // 50MB in KB
             ],
             'media_type' => [
                 'required',
                 'string',
+                'in:ooh,dooh',
                 'max:50',
             ],
         ];
@@ -48,10 +71,11 @@ class UploadInventoryImportRequest extends FormRequest
             'excel.max' => 'Excel file must not exceed 20MB',
             'ppt.required' => 'PowerPoint file is required',
             'ppt.file' => 'PowerPoint must be a valid file',
-            'ppt.mimes' => 'PowerPoint file must be in PPTX format',
+            'ppt.mimes' => 'PowerPoint file must be in PPT or PPTX format',
             'ppt.max' => 'PowerPoint file must not exceed 50MB',
             'media_type.required' => 'Media type is required',
             'media_type.string' => 'Media type must be a string',
+            'media_type.in' => 'Media type must be either OOH or DOOH',
             'media_type.max' => 'Media type must not exceed 50 characters',
         ];
     }
