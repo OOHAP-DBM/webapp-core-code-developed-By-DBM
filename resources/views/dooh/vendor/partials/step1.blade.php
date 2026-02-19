@@ -43,7 +43,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <!-- Hoarding Type -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700">
+                            <label class="text-sm font-bold text-gray-700">
                                 Hoarding Type <span class="text-red-500">*</span>
                             </label>
                             <div class="w-full bg-[#0094FF] border-2 border-[#0094FF] rounded-xl px-4 py-2.5 text-white font-bold  text-sm sm:text-base">
@@ -53,7 +53,7 @@
 
                         <!-- Category -->
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700">
+                            <label class="text-sm font-bold text-gray-700">
                                 Category <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
@@ -83,7 +83,7 @@
 
                     <!-- Row 2: Screen Type -->
                     <div class="space-y-2">
-                        <label class="block text-sm font-semibold text-gray-700">
+                        <label class="text-sm font-bold text-gray-700">
                             Screen Type <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
@@ -105,7 +105,7 @@
 
                     <!-- Row 3: Screen Size -->
                     <div class="space-y-3">
-                        <label class="block text-sm font-semibold text-gray-700">
+                        <label class="text-sm font-bold text-gray-700">
                                Screen Size 
                             </label>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
@@ -184,7 +184,7 @@
                     <!-- System-locked Campaign Inputs -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
+                            <label class="text-sm font-bold text-gray-700 sm:whitespace-nowrap">
                                 Spot Duration (sec)  <span class="text-red-500">*</span>
                             </label>
                             <input type="number" name="spot_duration"  required min="1" max="10000" step="1"
@@ -195,7 +195,7 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
+                            <label class="text-sm font-bold text-gray-700 sm:whitespace-nowrap">
                                 Price Per Spot (₹) <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
@@ -210,7 +210,7 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
+                            <label class="text-sm font-bold text-gray-700 sm:whitespace-nowrap">
                                 Spots Per Day  <span class="text-red-500">*</span>
                             </label>
                             <input type="number" name="spots_per_day"  required min="1" max="5000" step="1"
@@ -221,7 +221,7 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
+                            <label class="text-sm font-bold text-gray-700 sm:whitespace-nowrap">
                                 Daily Runtime (hrs) <span class="text-red-500">*</span>
                             </label>
                             <input type="number" name="daily_runtime"  required min="0.5" max="24"   step="any"
@@ -232,7 +232,7 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
+                            <label class="text-sm font-bold text-gray-700 sm:whitespace-nowrap">
                                 Campaign Price Monthly  (30 Days)
                             </label>
                             
@@ -264,7 +264,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-5 gap-4 lg:gap-6">
 
                        <div class="sm:col-span-1 space-y-3">
-                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
+                            <label class="text-sm font-bold text-gray-700 sm:whitespace-nowrap">
                                 Discount Type
                             </label>
 
@@ -296,7 +296,7 @@
                         </div>
 
                         <div class="sm:col-span-1 space-y-3">
-                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
+                            <label class="text-sm font-bold text-gray-700 sm:whitespace-nowrap">
                                 Discount Value
                             </label>
                             <div class="relative">
@@ -318,7 +318,7 @@
 
 
                          <div class="sm:col-span-1 space-y-3">
-                            <label class="block text-sm font-semibold text-gray-700 sm:whitespace-nowrap">
+                            <label class="text-sm font-bold text-gray-700 sm:whitespace-nowrap">
                                Final  Campaign Price Monthly
                             </label>
                             <div class="relative">

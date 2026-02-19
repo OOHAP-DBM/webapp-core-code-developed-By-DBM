@@ -14,7 +14,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
         <!-- Hoarding Type -->
         <div class="space-y-2">
-            <label class="block text-sm font-semibold text-gray-700">
+            <label class="text-sm font-bold text-gray-700">
                 Hoarding Type <span class="text-red-500">*</span>
             </label>
           <div class="w-full bg-[#0094FF] border border-[#0094FF] rounded-xl px-4 py-2.5 text-white font-bold">
@@ -25,7 +25,7 @@
         <!-- Category -->
         <div class="space-y-2">
           <!-- <label class="text-sm font-semibold text-gray-700"> <span class="text-red-500">*</span></label> -->
-          <label class="block text-sm font-semibold text-gray-700">
+          <label class="text-sm font-bold text-gray-700">
                 Category <span class="text-red-500">*</span>
             </label>
           <select name="category" required
@@ -44,7 +44,7 @@
 
       <!-- Screen Size -->
       <div class="mt-8">
-          <label class="block text-sm font-semibold text-gray-700">
+          <label class="text-sm font-bold text-gray-700">
                 Hoarding Size 
             </label>
         <div class="grid grid-cols-4 gap-4 items-end">
@@ -90,7 +90,7 @@
     <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
       <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
         <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-        Pricing<span class="text-red-500 ml-1">*</span>
+        Pricing
       </h3>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

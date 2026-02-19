@@ -20,7 +20,7 @@
                         } elseif (($item->hoarding_type ?? '') === 'dooh') {
                             $screen = \Modules\DOOH\Models\DOOHScreen::where('hoarding_id', $item->id)->first();
                             if ($screen) {
-                                $mediaItem = \Modules\DOOH\Models\DoohScreenMedia::where('dooh_screen_id', $screen->id)
+                                $mediaItem = \Modules\DOOH\Models\DOOHScreenMedia::where('dooh_screen_id', $screen->id)
                                     ->orderBy('sort_order')
                                     ->first();
                             }

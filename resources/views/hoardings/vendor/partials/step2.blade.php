@@ -201,11 +201,11 @@
                     );
                 @endphp
                 @foreach($audiences as $audience)
-                <label class="flex items-center space-x-3 cursor-pointer group">
+                <label class="flex items-center space-x-3 p-4 cursor-pointer group">
                     <input type="checkbox" name="audience_type[]" value="{{ $audience }}" 
                            {{ in_array($audience, (array)$selectedAudiences) ? 'checked' : '' }}
-                           class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
-                    <span class="text-sm text-gray-600 group-hover:text-gray-900">{{ $audience }}</span>
+                           class="w-5 h-5 rounded border-gray-300  text-[#009A5C] focus:ring-[#009A5C]">
+                    <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-[#009A5C]">{{ $audience }}</span>
                 </label>
                 @endforeach
             </div>
@@ -293,11 +293,11 @@
                     );
                 @endphp
                 @foreach($locationOptions as $loc)
-                <label class="flex items-center space-x-3 cursor-pointer group">
+                <label class="flex items-center space-x-3 p-4 cursor-pointer group">
                     <input type="checkbox" name="located_at[]" value="{{ $loc }}" 
                            {{ in_array($loc, (array)$selectedLocations) ? 'checked' : '' }}
                            class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
-                    <span class="text-sm text-gray-600 group-hover:text-gray-900">{{ $loc }}</span>
+                    <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-[#009A5C]">{{ $loc }}</span>
                 </label>
                 @endforeach
             </div>
