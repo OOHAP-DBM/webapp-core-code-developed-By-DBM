@@ -30,16 +30,32 @@ class HoardingStatusNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable)
     {
-        $mail = (new MailMessage)
-            ->subject('Hoarding ' . ucfirst($this->action))
-            ->greeting('Hello ' . ($notifiable->name ?? ''))
-            ->line('Your hoarding "' . ($this->hoarding->title ?? $this->hoarding->name) . '" has been ' . $this->action . '.')
-            ->action('View Hoarding', url('/vendor/hoardings/' . $this->hoarding->id))
-            ->line('Thank you for using our application!');
-        return $mail;
+        $isVendor = false;
+        if (method_exists($notifiable, 'hasRole')) {
+            $isVendor = $notifiable->hasRole('vendor');
+        }
+        if ($isVendor) {
+            $adminName = $this->extra['admin_name'] ?? ($this->hoarding->updated_by_name ?? 'Admin');
+            $customMessage = "Your hoarding '" . ($this->hoarding->title ?? $this->hoarding->name) . "' has been " . $this->action . " by " . $adminName . ".";
+            return new \Modules\Hoardings\Mail\VendorHoardingStatusMail(
+                $notifiable,
+                $this->hoarding,
+                $this->action,
+                $adminName,
+                $customMessage
+            );
+        } else {
+            $mail = (new MailMessage)
+                ->subject('Hoarding ' . ucfirst($this->action))
+                ->greeting('Hello ' . ($notifiable->name ?? ''))
+                ->line('Your hoarding "' . ($this->hoarding->title ?? $this->hoarding->name) . '" has been ' . $this->action . '.')
+                ->action('View Hoarding', url('/vendor/hoardings/' . $this->hoarding->id))
+                ->line('Thank you for using our application!');
+            return $mail;
+        }
     }
 
-  public function toArray($notifiable)
+    public function toArray($notifiable)
     {
         $title = $this->hoarding->title ?? $this->hoarding->name ?? 'Hoarding';
         $action = ucfirst($this->action);
