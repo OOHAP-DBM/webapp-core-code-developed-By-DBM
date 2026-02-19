@@ -454,7 +454,7 @@ async function sendOTPAutomatically(phone) {
         // Start 60 second cooldown
         setTimeout(() => {
             otpCooldown = false;
-        }, 60000);
+        }, 5000);
 
     } catch (error) {
         console.error('OTP Send Error:', error);
