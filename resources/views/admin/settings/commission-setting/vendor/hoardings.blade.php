@@ -21,7 +21,7 @@
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-bold text-gray-900">All Hoardings ({{ $hoardings->total() }})</h2>
         <button onclick="openVendorCommissionModal()"
-            class="px-5 py-2.5 {{ ($hasExistingCommission ?? false) ? 'bg-[#F97316] hover:bg-[#ea6c0a]' : 'bg-[#009A5C] hover:bg-[#007a49]' }} text-white rounded-xl font-semibold text-sm transition">
+            class="px-5 py-2.5 {{ ($hasExistingCommission ?? false) ? 'bg-[#F97316] hover:bg-[#ea6c0a]' : 'bg-[#009A5C] hover:bg-[#007a49]' }} text-black rounded-xl font-semibold text-sm transition">
             {{ ($hasExistingCommission ?? false) ? 'Update Commission' : 'Set Vendor Commission' }}
         </button>
     </div>
@@ -114,7 +114,7 @@
                                 @endif
                             </div>
                             <div>
-                                <p class="font-medium text-gray-900">{{ $hoarding->name }}</p>
+                                <p class="font-medium text-gray-900">{{ $hoarding->title }}</p>
                                 <p class="text-xs text-gray-500 mt-0.5">
                                     <span class="uppercase font-semibold text-[#F97316]">{{ $hoarding->hoarding_type }}</span>
                                     @if($hoarding->size) | {{ $hoarding->size }} @endif
@@ -123,7 +123,7 @@
                         </div>
                     </td>
                     <td class="px-6 py-4 text-gray-600">{{ $hoarding->city }}</td>
-                    <td class="px-6 py-4 text-gray-500 text-xs max-w-xs truncate">{{ $hoarding->location }}</td>
+                    <td class="px-6 py-4 text-gray-500 text-xs max-w-xs truncate">{{ $hoarding->display_location }}</td>
                     <td class="px-6 py-4">
                         <span id="commission-display-{{ $hoarding->id }}"
                             class="font-bold {{ $hoarding->commission ? 'text-[#009A5C]' : 'text-gray-400' }}">
@@ -132,7 +132,7 @@
                     </td>
                     <td class="px-6 py-4">
                         <button onclick="openHoardingCommissionModal({{ $hoarding->id }}, '{{ addslashes($hoarding->name) }}', {{ $hoarding->commission ?? 'null' }})"
-                            class="px-4 py-1.5 bg-[#F97316] text-white rounded-lg text-xs font-semibold hover:bg-[#ea6c0a] transition">
+                            class="px-4 py-1.5 bg-[#F97316]  rounded-lg text-xs font-semibold hover:bg-[#ea6c0a] transition">
                             Set Commission
                         </button>
                     </td>
@@ -570,7 +570,7 @@ function buildStateInputs() {
     const wrap = document.getElementById('vStateInputsWrap');
     wrap.innerHTML = '';
     if (!vendorStates.length) {
-        wrap.innerHTML = '<p class="text-xs text-gray-400">No states found for this vendor.</p>';
+        wrap.innerHTML = '<p class="text-xs text-gray-400">Hoarding has not been added by this vendor</p>';
         return;
     }
     vendorStates.forEach(s => {
