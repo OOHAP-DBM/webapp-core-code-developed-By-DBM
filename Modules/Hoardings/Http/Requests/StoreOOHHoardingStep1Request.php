@@ -22,6 +22,7 @@ class StoreOOHHoardingStep1Request extends FormRequest
             'address' => 'required|string|max:255',
             'pincode' => 'required|string|max:20',
             'locality' => 'required|string|max:100',
+            'city' => 'required|string|max:100',
             'state' => 'required|string|max:100',
             'base_monthly_price' => 'required|numeric|min:1',
             'lat' => ['required', 'numeric', 'between:-90,90'],
@@ -29,7 +30,7 @@ class StoreOOHHoardingStep1Request extends FormRequest
             'monthly_price' => [
                 'nullable',
                 'numeric',
-                'lt:base_monthly_price',
+                'lte:base_monthly_price',
             ],
             'media' => 'required|array',
            'media.*' => [
@@ -51,7 +52,7 @@ class StoreOOHHoardingStep1Request extends FormRequest
     public function messages()
     {
         return [
-            'monthly_price.lt' => 'Offer price must be less than the base monthly price.',
+            'monthly_price.lt' => 'Monthly Discounted Price  must be less than the Monthly Base Price (₹).',
             'media.required' => 'At least one image is required.',
             'media.*.mimes' => 'Only JPG, JPEG, PNG, and WEBP images are allowed.',
             'media.*.max' => 'Each image must not exceed 5MB.',

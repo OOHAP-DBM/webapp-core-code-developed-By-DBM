@@ -10,6 +10,7 @@ use Modules\Cart\Controllers\Web\CartController;
 use Modules\Enquiries\Controllers\Web\DirectEnquiryController;
 use App\Http\Controllers\Web\Customer\ShortlistController;
 use Modules\Auth\Http\Controllers\MobileForgotPasswordController;
+use App\Http\Controllers\GeocodeController;
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -25,6 +26,9 @@ use Modules\Auth\Http\Controllers\MobileForgotPasswordController;
 // PUBLIC ROUTES (Customer-facing)
 // ============================================
 
+
+Route::get('/api/geocode', [GeocodeController::class, 'search']);
+Route::get('/api/reverse-geocode', [GeocodeController::class, 'reverse']);
 // SEO-friendly hoarding search route (pattern controlled by config/seo_search_routes.php)
 $seoSearchPattern = config('seo_search_routes.pattern', '/billboard-advertising/{city}/{area?}');
 Route::get($seoSearchPattern, [SearchController::class, 'seoSearch'])->name('search.seo');

@@ -332,7 +332,7 @@
                     );
                 @endphp
                 @foreach($locationOptions as $loc)
-                <label class="flex items-center space-x-3 cursor-pointer group">
+                <label class="flex items-center space-x-3 p-4 cursor-pointer group">
                     <input type="checkbox" name="located_at[]" value="{{ $loc }}" 
                            {{ in_array($loc, (array)$selectedLocations) ? 'checked' : '' }}
                            class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">

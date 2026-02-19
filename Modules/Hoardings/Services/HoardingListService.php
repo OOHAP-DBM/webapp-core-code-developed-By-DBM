@@ -21,15 +21,14 @@ class HoardingListService
      */
     public function storeStep1($vendor, $data, $mediaFiles)
     {
-        // dd($data);
 
 
 
         // Backend safety check for offer price
         $errors = [];
         if (isset($data['monthly_offer_price']) && isset($data['base_monthly_price'])) {
-            if ($data['monthly_offer_price'] !== null && $data['monthly_offer_price'] >= $data['base_monthly_price']) {
-                $errors['monthly_offer_price'][] = 'Offer price must be less than the base monthly price.';
+            if ($data['monthly_offer_price'] !== null && $data['monthly_offer_price'] > $data['base_monthly_price']) {
+                $errors['monthly_offer_price'][] = 'Monthly discounted price must be less than or equal to the base monthly price.';
             }
         }
 
@@ -280,8 +279,8 @@ class HoardingListService
         // Backend safety check for offer price
         $errors = [];
         if (isset($data['monthly_price']) && isset($data['base_monthly_price'])) {
-            if ($data['monthly_price'] >= $data['base_monthly_price']) {
-                $errors['monthly_price'][] = 'Offer price must be less than base price.';
+            if ($data['monthly_price'] > $data['base_monthly_price']) {
+                $errors['monthly_price'][] = 'Monthly discounted price must be less than or equal to the base monthly price.';
             }
         }
 
