@@ -390,9 +390,7 @@ class OnboardingController extends Controller
             now()->addMinutes(10)
         );
 
-        Mail::raw("Your OOHAPP verification code is: $otp", function ($m) use ($request) {
-            $m->to($request->email)->subject('OOHAPP Email Verification');
-        });
+        Mail::to($request->email)->send(new \Modules\Mail\OtpVerificationMail($otp));
 
         return response()->json(['success' => true]);
     }

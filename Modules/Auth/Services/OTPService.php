@@ -370,8 +370,8 @@ class OTPService
             // SMS Provider
             // SMS::send($identifier, "Your OTP is {$otp}");
         } else {
-            // Email Provider
-            // Mail::to($identifier)->send(new OTPMail($otp));
+            // Email Provider (use OtpVerificationMail for OTP emails)
+            \Mail::to($identifier)->send(new \Modules\Mail\OtpVerificationMail($otp));
         }
     }
 }

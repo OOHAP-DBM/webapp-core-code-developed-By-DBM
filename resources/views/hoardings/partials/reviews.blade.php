@@ -59,4 +59,30 @@
         </div> -->
     </div>
 
+    {{-- BRAND LOGOS --}}
+    @php
+        $brandLogos = collect();
+        if ($hoarding->hoarding_type === 'dooh' && $hoarding->doohScreen) {
+            $brandLogos = $hoarding->doohScreen->brandLogos;
+        } elseif ($hoarding->hoarding_type === 'ooh' && $hoarding->ooh) {
+            $brandLogos = $hoarding->ooh->brandLogos;
+        } else {
+            $brandLogos = $hoarding->brandLogos;
+        }
+    @endphp
+    @if($brandLogos && $brandLogos->count())
+        <div class="mt-8">
+            <h4 class="text-sm font-semibold text-gray-700 mb-2">Recent Booked By</h4>
+            <div class="flex flex-wrap gap-4">
+                @foreach($brandLogos as $logo)
+                    <div class="flex flex-col items-center">
+                        <img src="{{ asset('storage/' . ltrim($logo->file_path, '/')) }}" alt="{{ $logo->brand_name ?? 'Brand Logo' }}" class="w-24 h-24 object-cover border rounded bg-white shadow-sm" style="background-size:cover;">
+                        @if(!empty($logo->brand_name))
+                            <span class="text-xs mt-1 text-gray-600">{{ $logo->brand_name }}</span>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
 </div>
