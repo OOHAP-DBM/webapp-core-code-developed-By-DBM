@@ -13,20 +13,18 @@ use Illuminate\Validation\Rule;
 
 class CommissionSettingController extends Controller
 {
-    /**
-     * List all vendors with their hoarding counts.
-     */
-    public function index(Request $request)
+     public function index(Request $request)
     {
-        $query = User::where('active_role', 'vendor')
-            ->withCount('hoardings');
+        $query = User::where('active_role', 'vendor')->withCount('hoardings');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%")
-                  ->orWhereHas('hoardings', fn($h) => $h->where('city', 'like', "%$search%")
-                      ->orWhere('state', 'like', "%$search%"));
+                  ->orWhereHas('hoardings', fn($h) =>
+                      $h->where('city', 'like', "%$search%")
+                        ->orWhere('state', 'like', "%$search%")
+                  );
             });
         }
 
@@ -38,9 +36,7 @@ class CommissionSettingController extends Controller
             $query->whereHas('hoardings', fn($h) => $h->where('city', $request->city));
         }
 
-        $vendors = $query->with(['hoardings' => function ($q) {
-                $q->select('vendor_id', 'city')->distinct();
-            }])
+        $vendors = $query->with(['hoardings' => fn($q) => $q->select('vendor_id', 'city')->distinct()])
             ->orderBy('name')
             ->paginate(10)
             ->withQueryString();
@@ -53,50 +49,90 @@ class CommissionSettingController extends Controller
         return view('admin.settings.commission-setting.index', compact('vendors', 'states', 'cities'));
     }
 
-    /**
-     * Show all hoardings for a specific vendor.
-     */
-    public function vendorHoardings(Request $request, User $vendor)
-    {
-        $query = Hoarding::where('vendor_id', $vendor->id);
+    // public function vendorHoardings(Request $request, User $vendor)
+    // {
+    //     $query = Hoarding::where('vendor_id', $vendor->id);
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%$search%")
-                  ->orWhere('city', 'like', "%$search%")
-                  ->orWhere('location', 'like', "%$search%");
-            });
-        }
+    //     if ($request->filled('search')) {
+    //         $search = $request->search;
+    //         $query->where(function ($q) use ($search) {
+    //             $q->where('name', 'like', "%$search%")
+    //               ->orWhere('city', 'like', "%$search%")
+    //               ->orWhere('location', 'like', "%$search%");
+    //         });
+    //     }
 
-        if ($request->filled('type')) {
-            $query->where('hoarding_type', $request->type);
-        }
+    //     if ($request->filled('type')) {
+    //         $query->where('hoarding_type', $request->type);
+    //     }
 
-        if ($request->filled('state')) {
-            $query->where('state', $request->state);
-        }
+    //     if ($request->filled('state')) {
+    //         $query->where('state', $request->state);
+    //     }
 
-        if ($request->filled('city')) {
-            $query->where('city', $request->city);
-        }
+    //     if ($request->filled('city')) {
+    //         $query->where('city', $request->city);
+    //     }
 
-        $hoardings = $query->paginate(10)->withQueryString();
+    //     $hoardings = $query->paginate(10)->withQueryString();
 
-        $states = Hoarding::where('vendor_id', $vendor->id)
-            ->whereNotNull('state')->distinct()->pluck('state')->sort()->values();
+    //     $states = Hoarding::where('vendor_id', $vendor->id)
+    //         ->whereNotNull('state')->distinct()->pluck('state')->sort()->values();
 
-        $cities = Hoarding::where('vendor_id', $vendor->id)
-            ->whereNotNull('city')
-            ->when($request->state, fn($q) => $q->where('state', $request->state))
-            ->distinct()->pluck('city')->sort()->values();
+    //     $cities = Hoarding::where('vendor_id', $vendor->id)
+    //         ->whereNotNull('city')
+    //         ->when($request->state, fn($q) => $q->where('state', $request->state))
+    //         ->distinct()->pluck('city')->sort()->values();
 
-        return view('admin.settings.commission-setting.vendor.hoardings', compact('vendor', 'hoardings', 'states', 'cities'));
+    //     return view('admin.settings.commission-setting.vendor.hoardings', compact('vendor', 'hoardings', 'states', 'cities'));
+    // }
+
+// Add: fetch existing commission settings for this vendor to prefill modals
+
+public function vendorHoardings(Request $request, User $vendor)
+{
+    $query = Hoarding::where('vendor_id', $vendor->id);
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%$search%")
+              ->orWhere('city', 'like', "%$search%")
+              ->orWhere('location', 'like', "%$search%");
+        });
     }
 
-    /**
-     * Get cities for a state (AJAX).
-     */
+    if ($request->filled('type'))  { $query->where('hoarding_type', $request->type); }
+    if ($request->filled('state')) { $query->where('state', $request->state); }
+    if ($request->filled('city'))  { $query->where('city', $request->city); }
+
+    $hoardings = $query->paginate(10)->withQueryString();
+
+    $states = Hoarding::where('vendor_id', $vendor->id)
+        ->whereNotNull('state')->distinct()->pluck('state')->sort()->values();
+
+    $cities = Hoarding::where('vendor_id', $vendor->id)
+        ->whereNotNull('city')
+        ->when($request->state, fn($q) => $q->where('state', $request->state))
+        ->distinct()->pluck('city')->sort()->values();
+
+    // ── NEW: fetch existing commission rules for prefilling ──
+    $existingCommissions = CommissionSetting::where('vendor_id', $vendor->id)->get();
+
+    // Build a lookup map: "type|state|city" => commission_percent
+    // e.g. "all||" => 15, "ooh|UP|" => 12, "all|UP|Lucknow" => 18
+    $commissionMap = [];
+    foreach ($existingCommissions as $ec) {
+        $key = ($ec->hoarding_type ?? 'all') . '|' . ($ec->state ?? '') . '|' . ($ec->city ?? '');
+        $commissionMap[$key] = (float) $ec->commission_percent;
+    }
+
+    $hasExistingCommission = $existingCommissions->isNotEmpty();
+
+    return view('admin.settings.commission-setting.vendor.hoardings',
+        compact('vendor', 'hoardings', 'states', 'cities', 'commissionMap', 'hasExistingCommission')
+    );
+}
     public function getCities(Request $request)
     {
         $query = Hoarding::whereNotNull('city');
@@ -114,48 +150,60 @@ class CommissionSettingController extends Controller
     }
 
     /**
-     * Save commission settings.
+     * Save commission directly on a single hoarding row.
+     */
+    public function saveHoardingCommission(Request $request, Hoarding $hoarding)
+    {
+        $request->validate([
+            'commission' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $hoarding->update(['commission_percent' => $request->commission]);
+
+        return response()->json([
+            'success'    => true,
+            'message'    => 'Commission saved for this hoarding.',
+            'commission' => (float) $hoarding->commission_percent,
+        ]);
+    }
+
+    /**
+     * Save vendor-level commission to commission_settings table.
      */
     public function save(Request $request)
     {
         $request->validate([
-            'vendor_id'                     => 'nullable|exists:users,id',
-            'hoarding_ids'                  => 'nullable|array',
-            'hoarding_ids.*'                => 'exists:hoardings,id',
-            'apply_all_types'               => 'required|boolean',
-            'global_commission'             => 'nullable|numeric|min:0|max:100',
-            'ooh_commission'                => 'nullable|numeric|min:0|max:100',
-            'dooh_commission'               => 'nullable|numeric|min:0|max:100',
-            'apply_all_states'              => 'required|boolean',
-            'apply_all_cities'              => 'required|boolean',
-            'states'                        => 'nullable|array',
-            'states.*.name'                 => 'required_with:states|string',
-            'states.*.commission'           => 'nullable|numeric|min:0|max:100',
-            'states.*.ooh_commission'       => 'nullable|numeric|min:0|max:100',
-            'states.*.dooh_commission'      => 'nullable|numeric|min:0|max:100',
-            'cities'                        => 'nullable|array',
-            'cities.*.state'                => 'required_with:cities|string',
-            'cities.*.name'                 => 'required_with:cities|string',
-            'cities.*.commission'           => 'nullable|numeric|min:0|max:100',
-            'cities.*.ooh_commission'       => 'nullable|numeric|min:0|max:100',
-            'cities.*.dooh_commission'      => 'nullable|numeric|min:0|max:100',
+            'vendor_id'                => 'required|exists:users,id',
+            'base_commission'          => 'required|numeric|min:0|max:100',
+            'apply_to_all_types'       => 'required|boolean',
+            'ooh_commission'           => 'required_if:apply_to_all_types,false|nullable|numeric|min:0|max:100',
+            'dooh_commission'          => 'required_if:apply_to_all_types,false|nullable|numeric|min:0|max:100',
+            'apply_all_states'         => 'required|boolean',
+            'apply_all_cities'         => 'required|boolean',
+            'states'                   => 'nullable|array',
+            'states.*.name'            => 'required_with:states|string',
+            'states.*.commission'      => 'nullable|numeric|min:0|max:100',
+            'states.*.ooh_commission'  => 'nullable|numeric|min:0|max:100',
+            'states.*.dooh_commission' => 'nullable|numeric|min:0|max:100',
+            'cities'                   => 'nullable|array',
+            'cities.*.state'           => 'required_with:cities|string',
+            'cities.*.name'            => 'required_with:cities|string',
+            'cities.*.commission'      => 'nullable|numeric|min:0|max:100',
+            'cities.*.ooh_commission'  => 'nullable|numeric|min:0|max:100',
+            'cities.*.dooh_commission' => 'nullable|numeric|min:0|max:100',
         ]);
 
         DB::transaction(function () use ($request) {
-            $vendorId = $request->vendor_id ?: null;
+            $vendorId = (int) $request->vendor_id;
             $adminId  = auth()->id();
 
-            // Clear existing rules for this vendor/scope
             CommissionSetting::where('vendor_id', $vendorId)->delete();
 
-            // ── GLOBAL / TYPE LEVEL ──────────────────────────────
-            if ($request->apply_all_types) {
-                if (!is_null($request->global_commission)) {
-                    $this->upsert($vendorId, 'all', null, null, [
-                        'commission_percent' => $request->global_commission,
-                        'set_by'             => $adminId,
-                    ]);
-                }
+            if ($request->apply_to_all_types) {
+                $this->upsert($vendorId, 'all', null, null, [
+                    'commission_percent' => $request->base_commission,
+                    'set_by'             => $adminId,
+                ]);
             } else {
                 if (!is_null($request->ooh_commission)) {
                     $this->upsert($vendorId, 'ooh', null, null, [
@@ -171,26 +219,23 @@ class CommissionSettingController extends Controller
                 }
             }
 
-            // ── STATE LEVEL ──────────────────────────────────────
             if (!$request->apply_all_states && $request->states) {
-                foreach ($request->states as $stateData) {
-                    if ($request->apply_all_types) {
-                        if (!empty($stateData['commission'])) {
-                            $this->upsert($vendorId, 'all', $stateData['name'], null, [
-                                'commission_percent' => $stateData['commission'],
-                                'set_by'             => $adminId,
-                            ]);
-                        }
+                foreach ($request->states as $sd) {
+                    if ($request->apply_to_all_types && !empty($sd['commission'])) {
+                        $this->upsert($vendorId, 'all', $sd['name'], null, [
+                            'commission_percent' => $sd['commission'],
+                            'set_by'             => $adminId,
+                        ]);
                     } else {
-                        if (!empty($stateData['ooh_commission'])) {
-                            $this->upsert($vendorId, 'ooh', $stateData['name'], null, [
-                                'commission_percent' => $stateData['ooh_commission'],
+                        if (!empty($sd['ooh_commission'])) {
+                            $this->upsert($vendorId, 'ooh', $sd['name'], null, [
+                                'commission_percent' => $sd['ooh_commission'],
                                 'set_by'             => $adminId,
                             ]);
                         }
-                        if (!empty($stateData['dooh_commission'])) {
-                            $this->upsert($vendorId, 'dooh', $stateData['name'], null, [
-                                'commission_percent' => $stateData['dooh_commission'],
+                        if (!empty($sd['dooh_commission'])) {
+                            $this->upsert($vendorId, 'dooh', $sd['name'], null, [
+                                'commission_percent' => $sd['dooh_commission'],
                                 'set_by'             => $adminId,
                             ]);
                         }
@@ -198,26 +243,23 @@ class CommissionSettingController extends Controller
                 }
             }
 
-            // ── CITY LEVEL ───────────────────────────────────────
             if (!$request->apply_all_cities && $request->cities) {
-                foreach ($request->cities as $cityData) {
-                    if ($request->apply_all_types) {
-                        if (!empty($cityData['commission'])) {
-                            $this->upsert($vendorId, 'all', $cityData['state'], $cityData['name'], [
-                                'commission_percent' => $cityData['commission'],
-                                'set_by'             => $adminId,
-                            ]);
-                        }
+                foreach ($request->cities as $cd) {
+                    if ($request->apply_to_all_types && !empty($cd['commission'])) {
+                        $this->upsert($vendorId, 'all', $cd['state'], $cd['name'], [
+                            'commission_percent' => $cd['commission'],
+                            'set_by'             => $adminId,
+                        ]);
                     } else {
-                        if (!empty($cityData['ooh_commission'])) {
-                            $this->upsert($vendorId, 'ooh', $cityData['state'], $cityData['name'], [
-                                'commission_percent' => $cityData['ooh_commission'],
+                        if (!empty($cd['ooh_commission'])) {
+                            $this->upsert($vendorId, 'ooh', $cd['state'], $cd['name'], [
+                                'commission_percent' => $cd['ooh_commission'],
                                 'set_by'             => $adminId,
                             ]);
                         }
-                        if (!empty($cityData['dooh_commission'])) {
-                            $this->upsert($vendorId, 'dooh', $cityData['state'], $cityData['name'], [
-                                'commission_percent' => $cityData['dooh_commission'],
+                        if (!empty($cd['dooh_commission'])) {
+                            $this->upsert($vendorId, 'dooh', $cd['state'], $cd['name'], [
+                                'commission_percent' => $cd['dooh_commission'],
                                 'set_by'             => $adminId,
                             ]);
                         }
@@ -226,12 +268,9 @@ class CommissionSettingController extends Controller
             }
         });
 
-        return response()->json(['success' => true, 'message' => 'Commission settings saved successfully.']);
+        return response()->json(['success' => true, 'message' => 'Vendor commission saved successfully.']);
     }
 
-    /**
-     * Delete a commission rule.
-     */
     public function destroy(CommissionSetting $commission)
     {
         $commission->delete();
@@ -241,12 +280,7 @@ class CommissionSettingController extends Controller
     private function upsert(?int $vendorId, string $type, ?string $state, ?string $city, array $data): void
     {
         CommissionSetting::updateOrCreate(
-            [
-                'vendor_id'     => $vendorId,
-                'hoarding_type' => $type,
-                'state'         => $state,
-                'city'          => $city,
-            ],
+            ['vendor_id' => $vendorId, 'hoarding_type' => $type, 'state' => $state, 'city' => $city],
             $data
         );
     }

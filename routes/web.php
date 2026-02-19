@@ -784,6 +784,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/',[\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'index'])->name('index');
         Route::get('/vendor/{vendor}/hoardings',[\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'vendorHoardings'])->name('vendor.hoardings');
         Route::post('/save',[\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'save'])->name('save');
+            Route::post('/hoarding/{hoarding}/commission',   [\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'saveHoardingCommission'])->name('hoarding.commission');
         Route::delete('/{commission}',[\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'destroy'])->name('destroy');
         Route::get('/cities',[\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'getCities'])->name('cities');
     });
