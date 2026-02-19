@@ -226,6 +226,9 @@
                     </svg>
                     Inventory Import
                 </a>
+                <a href="{{ route('admin.import.enhanced') }}" class="block ml-9 px-3 py-1.5 text-sm rounded-lg {{ request()->routeIs('admin.import.enhanced') ? 'bg-emerald-50 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}">
+                    Enhanced Import
+                </a>
             </div>
             @endcan
 

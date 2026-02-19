@@ -16,4 +16,7 @@ Route::middleware(['permission:import.manage'])->group(function () {
     // Route names are prefixed as: vendor.import.dashboard or admin.import.dashboard
     Route::get('/', [ImportController::class, 'dashboard'])
         ->name('dashboard');
+
+    Route::get('/enhanced', [ImportController::class, 'enhancedDashboard'])
+        ->name('enhanced');
 });

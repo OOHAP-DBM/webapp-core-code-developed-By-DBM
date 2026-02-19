@@ -15,24 +15,49 @@ class ImportPermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create permission
-        $permission = Permission::firstOrCreate(
-            ['name' => 'import.manage'],
-            ['guard_name' => 'web']
-        );
+        $permissions = [
+            'import.manage',
+            'import.batch.view',
+            'import.batch.create',
+            'import.batch.update',
+            'import.batch.delete',
+            'import.batch.approve',
+            'import.row.view',
+            'import.row.create',
+            'import.row.update',
+            'import.row.delete',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(
+                ['name' => $permission],
+                ['guard_name' => 'web']
+            );
+        }
 
         // Get or create roles
         $adminRole = Role::where('name', 'admin')->first();
         $vendorRole = Role::where('name', 'vendor')->first();
 
-        // Assign permission to admin role
-        if ($adminRole && !$adminRole->hasPermissionTo('import.manage')) {
-            $adminRole->givePermissionTo('import.manage');
+        // Assign all import permissions to admin role
+        if ($adminRole) {
+            $adminRole->givePermissionTo($permissions);
         }
 
-        // Assign permission to vendor role
-        if ($vendorRole && !$vendorRole->hasPermissionTo('import.manage')) {
-            $vendorRole->givePermissionTo('import.manage');
+        // Assign vendor import permissions
+        if ($vendorRole) {
+            $vendorRole->givePermissionTo([
+                'import.manage',
+                'import.batch.view',
+                'import.batch.create',
+                'import.batch.update',
+                'import.batch.delete',
+                'import.batch.approve',
+                'import.row.view',
+                'import.row.create',
+                'import.row.update',
+                'import.row.delete',
+            ]);
         }
 
         $this->command->info('✓ Import permissions created and assigned successfully');

@@ -103,6 +103,18 @@ class RolesAndPermissionsSeeder extends Seeder
             // Media
             'media.upload',
             'media.delete',
+
+            // Import
+            'import.manage',
+            'import.batch.view',
+            'import.batch.create',
+            'import.batch.update',
+            'import.batch.delete',
+            'import.batch.approve',
+            'import.row.view',
+            'import.row.create',
+            'import.row.update',
+            'import.row.delete',
         ];
 
         foreach ($permissions as $permission) {
@@ -153,6 +165,16 @@ class RolesAndPermissionsSeeder extends Seeder
             'reports.view',
             'media.upload',
             'media.delete',
+            'import.manage',
+            'import.batch.view',
+            'import.batch.create',
+            'import.batch.update',
+            'import.batch.delete',
+            'import.batch.approve',
+            'import.row.view',
+            'import.row.create',
+            'import.row.update',
+            'import.row.delete',
         ]);
 
         // Subvendor

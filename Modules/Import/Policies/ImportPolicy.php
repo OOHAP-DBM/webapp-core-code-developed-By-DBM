@@ -8,6 +8,30 @@ use Modules\Import\Entities\InventoryImportBatch;
 class ImportPolicy
 {
     /**
+     * Determine if user can manage import module.
+     */
+    protected function canManage(User $user): bool
+    {
+        return $user->can('import.manage');
+    }
+
+    /**
+     * Determine if user is admin.
+     */
+    protected function isAdmin(User $user): bool
+    {
+        return $user->hasRole('admin');
+    }
+
+    /**
+     * Determine if user owns the batch.
+     */
+    protected function isOwner(User $user, InventoryImportBatch $batch): bool
+    {
+        return (int) $user->id === (int) $batch->vendor_id;
+    }
+
+    /**
      * Determine if the user can view the import.
      *
      * @param User $user
@@ -16,7 +40,11 @@ class ImportPolicy
      */
     public function view(User $user, InventoryImportBatch $batch)
     {
-        return $user->id === $batch->vendor_id;
+        if (!$this->canManage($user)) {
+            return false;
+        }
+
+        return $this->isAdmin($user) || $this->isOwner($user, $batch);
     }
 
     /**
@@ -27,7 +55,7 @@ class ImportPolicy
      */
     public function create(User $user)
     {
-        return true;
+        return $this->canManage($user) && $user->can('import.batch.create');
     }
 
     /**
@@ -39,7 +67,11 @@ class ImportPolicy
      */
     public function update(User $user, InventoryImportBatch $batch)
     {
-        return $user->id === $batch->vendor_id;
+        if (!$this->canManage($user) || !$user->can('import.batch.update')) {
+            return false;
+        }
+
+        return $this->isAdmin($user) || $this->isOwner($user, $batch);
     }
 
     /**
@@ -51,7 +83,11 @@ class ImportPolicy
      */
     public function delete(User $user, InventoryImportBatch $batch)
     {
-        return $user->id === $batch->vendor_id;
+        if (!$this->canManage($user) || !$user->can('import.batch.delete')) {
+            return false;
+        }
+
+        return $this->isAdmin($user) || $this->isOwner($user, $batch);
     }
 
     /**
@@ -63,8 +99,12 @@ class ImportPolicy
      */
     public function approve(User $user, InventoryImportBatch $batch)
     {
-        // Only batch owner (vendor) can approve
-        return $user->id === $batch->vendor_id;
+        if (!$this->canManage($user) || !$user->can('import.batch.approve')) {
+            return false;
+        }
+
+        // Approval is vendor-owned only
+        return !$this->isAdmin($user) && $this->isOwner($user, $batch);
     }
 }
 
