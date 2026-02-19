@@ -81,7 +81,7 @@
                             rounded-[6px]
                             font-medium text-[16px] leading-[21px]
                             text-white
-                            transition"
+                            transition cursor-pointer"
                     >
                         Direct Enquiry
                     </button>

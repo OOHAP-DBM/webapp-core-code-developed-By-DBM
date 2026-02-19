@@ -24,7 +24,7 @@
                     elseif(($item->hoarding_type ?? '') === 'dooh'){
                         $screen = \Modules\DOOH\Models\DOOHScreen::where('hoarding_id', $item->id)->first();
                         if($screen){
-                            $allMedia = \Modules\DOOH\Models\DoohScreenMedia::where('dooh_screen_id', $screen->id)
+                            $allMedia = \Modules\DOOH\Models\DOOHScreenMedia::where('dooh_screen_id', $screen->id)
                                 ->orderByDesc('is_primary')
                                 ->orderBy('sort_order')
                                 ->get();
