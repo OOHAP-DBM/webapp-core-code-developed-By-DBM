@@ -44,11 +44,9 @@
 
         {{-- VALIDITY --}}
         <div>
-            <p class="text-gray-400">Validity</p>
+            <p class="text-gray-400">Valid Till</p>
             <p class="font-medium">
-                {{ optional($hoarding->available_from)->format('M d, Y') ?? '—' }}
-                to
-                {{ optional($hoarding->available_to)->format('M d, Y') ?? '—' }}
+              {{ $hoarding->permit_valid_till ? \Carbon\Carbon::parse($hoarding->permit_valid_till)->format('d-m-Y') : '—' }}
             </p>
         </div>
 

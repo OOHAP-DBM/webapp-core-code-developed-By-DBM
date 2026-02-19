@@ -33,7 +33,7 @@
                         name="search"
                         value="{{ request('search') }}"
                         placeholder="Search by hoarding title or location....."
-                        onkeyup="autoSearchHoardings(this.value)"
+                        onkeydown="autoSearchHoardings(event)"
                         class="block w-full pl-9 pr-3 py-2 bg-[#F3F4F6] border-none rounded-md focus:ring-1 focus:ring-emerald-500 text-[13px]"
                     >
                 </form>
@@ -450,13 +450,9 @@ function confirmToggle(e, checkbox) {
 }
 </script>
 <script>
-function autoSearchHoardings(value) {
-    if (value.length >= 3) {
-        document.getElementById('searchForm').submit();
-    }
-
-    // optional: clear search if user deletes everything
-    if (value.length === 0) {
+function autoSearchHoardings(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
         document.getElementById('searchForm').submit();
     }
 }
