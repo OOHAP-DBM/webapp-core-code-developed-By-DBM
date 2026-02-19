@@ -71,8 +71,19 @@ class DOOHScreenService
             $screen = $this->repo->createStep1($vendor, $data);
             
             // Only store media if files are present
-            if (!empty($mediaFiles) && is_array($mediaFiles)) {
-                $this->repo->storeMedia($screen->id, $mediaFiles);
+            if (!empty($data['deleted_media_ids'])) {
+                $deleteIds = array_filter(
+                    array_map('intval', explode(',', $data['deleted_media_ids']))
+                );
+                if (!empty($deleteIds)) {
+                    $mediaToDelete = \Modules\DOOH\Models\DOOHScreenMedia::whereIn('id', $deleteIds)
+                        ->where('dooh_screen_id', $screen->id)
+                        ->get();
+                    foreach ($mediaToDelete as $media) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($media->file_path);
+                        $media->delete();
+                    }
+                }
             }
 
             $screen->hoarding->current_step = 1;
@@ -83,26 +94,76 @@ class DOOHScreenService
         });
     }
 
+    // public function storeStep2($screen, array $data, array $brandLogoFiles = []): array
+    // {
+
+    //     // Always update the parent Hoarding model
+    //     $parentHoarding = method_exists($screen, 'hoarding') && $screen->hoarding ? $screen->hoarding : $screen;
+    //     $childHoarding = $screen;
+    //     // 1. Data Transformation (Mapping form inputs to DB columns)
+    //     $formattedData = $this->mapHoardingStep2Data($data);
+
+    //     return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles) {
+    //         // 1. Persist main hoarding data
+    //         $updatedHoarding = $this->repo->updateStep2($parentHoarding, $formattedData);
+
+    //         // 2. Handle deleted brand logos
+    //         if (!empty($data['delete_brand_logos'])) {
+    //             $deleteIds = array_filter(explode(',', $data['delete_brand_logos']));
+    //             if (!empty($deleteIds)) {
+    //                 \Modules\DOOH\Models\DOOHScreenBrandLogo::whereIn('id', $deleteIds)
+    //                     ->where('dooh_screen_id', $childHoarding->id)
+    //                     ->delete();
+    //             }
+    //         }
+
+    //         // 3. Handle new brand logos
+    //         if (!empty($brandLogoFiles)) {
+    //             $this->repo->storeBrandLogos($childHoarding->id, $brandLogoFiles);
+    //         }
+
+    //         return [
+    //             'success'  => true,
+    //             'message'  => 'Hoarding details updated successfully.',
+    //             'hoarding' => $updatedHoarding->fresh('brandLogos')
+    //         ];
+    //     });
+    // }
     public function storeStep2($screen, array $data, array $brandLogoFiles = []): array
     {
-
-        // Always update the parent Hoarding model
-        $parentHoarding = method_exists($screen, 'hoarding') && $screen->hoarding ? $screen->hoarding : $screen;
+        $parentHoarding = method_exists($screen, 'hoarding') && $screen->hoarding 
+            ? $screen->hoarding 
+            : $screen;
         $childHoarding = $screen;
-        // 1. Data Transformation (Mapping form inputs to DB columns)
+
         $formattedData = $this->mapHoardingStep2Data($data);
 
-        return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles) {
+        // ✅ Pass $data into the closure so deleted logo IDs are accessible
+        return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles, $data) {
+
             // 1. Persist main hoarding data
             $updatedHoarding = $this->repo->updateStep2($parentHoarding, $formattedData);
 
-            // 2. Handle deleted brand logos
+            // 2. ✅ Handle deleted brand logos
             if (!empty($data['delete_brand_logos'])) {
-                $deleteIds = array_filter(explode(',', $data['delete_brand_logos']));
+                $deleteIds = array_filter(
+                    array_map('intval', explode(',', $data['delete_brand_logos']))
+                );
+
                 if (!empty($deleteIds)) {
-                    \Modules\DOOH\Models\DOOHScreenBrandLogo::whereIn('id', $deleteIds)
+                    $logosToDelete = \Modules\DOOH\Models\DOOHScreenBrandLogo::whereIn('id', $deleteIds)
                         ->where('dooh_screen_id', $childHoarding->id)
-                        ->delete();
+                        ->get();
+
+                    foreach ($logosToDelete as $logo) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($logo->file_path);
+                        $logo->delete();
+                    }
+
+                    Log::info('Brand logos deleted', [
+                        'screen_id'   => $childHoarding->id,
+                        'deleted_ids' => $deleteIds,
+                    ]);
                 }
             }
 
@@ -114,7 +175,7 @@ class DOOHScreenService
             return [
                 'success'  => true,
                 'message'  => 'Hoarding details updated successfully.',
-                'hoarding' => $updatedHoarding->fresh('brandLogos')
+                'hoarding' => $updatedHoarding->fresh('brandLogos'),
             ];
         });
     }
@@ -467,8 +528,32 @@ class DOOHScreenService
             throw ValidationException::withMessages($errors);
         }
 
+
+
         return DB::transaction(function () use ($screen, $data, $mediaFiles) {
             $hoarding = $screen->hoarding;
+
+              if (!empty($data['deleted_media_ids'])) {
+                $deleteIds = array_filter(
+                    array_map('intval', explode(',', $data['deleted_media_ids']))
+                );
+
+                if (!empty($deleteIds)) {
+                    $mediaToDelete = \Modules\DOOH\Models\DOOHScreenMedia::whereIn('id', $deleteIds)
+                        ->where('dooh_screen_id', $screen->id)
+                        ->get();
+
+                    foreach ($mediaToDelete as $media) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($media->file_path);
+                        $media->delete();
+                    }
+
+                    Log::info('DOOH media deleted', [
+                        'screen_id'   => $screen->id,
+                        'deleted_ids' => $deleteIds,
+                    ]);
+                }
+            }
 
             // Update parent hoarding
             $hoarding->update([

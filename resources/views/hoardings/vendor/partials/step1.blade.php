@@ -166,8 +166,8 @@
                               @endif
 
                               <button type="button"
-                                      onclick="removeExistingMedia({{ $media->id }})"
-                                      class="absolute top-1 right-1 bg-white rounded-full p-1 shadow text-red-600 hover:bg-red-100">
+                                  onclick="removeExistingMedia({{ $media->id }}, '{{ Str::startsWith($media->mime_type, 'video') ? 'video' : 'image' }}', this)"
+                                  class="absolute top-1 right-1 bg-white rounded-full p-1 shadow text-red-600 hover:bg-red-100">
                                   ✕
                               </button>
                           </div>
@@ -377,12 +377,17 @@ function renderNewPreviews() {
 }
 
 /* ── Existing media remove ── */
-function removeExistingMedia(id, type) {
-  deletedMediaIds.push(id);
-  deletedMediaIdsInput.value = deletedMediaIds.join(',');
-  const btn = existingMediaPreview.querySelector(`[onclick*="removeExistingMedia(${id}"]`);
-  if (btn) btn.closest('div.relative').remove();
-  if (type === 'video') existingVideoCount = Math.max(0, existingVideoCount - 1);
+// ✅ FIXED — use button reference
+function removeExistingMedia(id, type, btnEl) {
+    deletedMediaIds.push(id);
+    deletedMediaIdsInput.value = deletedMediaIds.join(',');
+    const mediaItem = btnEl.closest('.relative');
+    if (mediaItem) {
+        mediaItem.style.transition = 'opacity 0.2s';
+        mediaItem.style.opacity = '0';
+        setTimeout(() => mediaItem.remove(), 200);
+    }
+    if (type === 'video') existingVideoCount = Math.max(0, existingVideoCount - 1);
 }
 
 /* ── Single file input handler ── */
