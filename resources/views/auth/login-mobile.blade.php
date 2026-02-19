@@ -156,27 +156,34 @@
 
                 <h3 class="text-start">Login with Mobile</h3>
 
-                @if ($errors->any())
+                @if ($errors->has('credentials'))
                     <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative" style="font-size:15px;">
                         <ul class="mb-2 ps-3 ms-0">
-                            @foreach ($errors->all() as $error)
-                                <li class="mb-1">{{ $error }}</li>
-                            @endforeach
+                            <li class="mb-1">{{ $errors->first('credentials') }}</li>
                         </ul>
-
                         <div class="text-end mt-2">
                             <a href="#" id="forgotMobilePassword"
                             class="text-success small text-decoration-underline">
                                 Forgot Password?
                             </a>
                         </div>
-
                         <button type="button"
                             class="btn-close position-absolute top-0 end-0 mt-2 me-2"
                             onclick="this.closest('.alert').remove()">
                         </button>
                     </div>
-              @endif
+                @endif
+                @if ($errors->has('account_status'))
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative" style="font-size:15px;">
+                        <ul class="mb-2 ps-3 ms-0">
+                            <li class="mb-1">{{ $errors->first('account_status') }}</li>
+                        </ul>
+                        <button type="button"
+                            class="btn-close position-absolute top-0 end-0 mt-2 me-2"
+                            onclick="this.closest('.alert').remove()">
+                        </button>
+                    </div>
+                @endif
 
                 <form method="POST"
                     action="{{ route('login.submit') }}"

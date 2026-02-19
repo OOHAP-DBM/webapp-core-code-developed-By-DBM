@@ -321,12 +321,9 @@
             </form>
    </div>
 
-    {{-- PAGINATION --}}
-    <div 
-        class="mt-6 flex items-center justify-between text-sm text-gray-600"
-        x-show="!openFilter"
-        x-cloak
-    >
+</div>
+ {{-- PAGINATION --}}
+    <div class="mt-6 flex items-center justify-between text-sm text-gray-600">
         <div class="font-medium">
             Showing {{ $enquiries->firstItem() ?? 0 }} - {{ $enquiries->lastItem() ?? 0 }} of {{ $enquiries->total() }}
         </div>
@@ -334,7 +331,4 @@
             {{ $enquiries->links() }}
         </div>
     </div>
-
-</div>
-
 @endsection

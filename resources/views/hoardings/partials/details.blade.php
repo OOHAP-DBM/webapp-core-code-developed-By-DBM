@@ -70,34 +70,34 @@
     @if($isDOOH && $dooh)
         <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 text-sm pt-2">
 
-            <div>
+            <!-- <div>
                 <p class="text-gray-400">Resolution</p>
                 <p class="font-medium">
                     {{ $dooh->resolution_width ?? '—' }} × {{ $dooh->resolution_height ?? '—' }}
                     {{ $dooh->resolution_unit ?? 'px' }}
                 </p>
-            </div>
+            </div> -->
 
             <div>
-                <p class="text-gray-400">Slot Duration</p>
+                <p class="text-gray-400">Spot Duration</p>
                 <p class="font-medium">
                     {{ $dooh->slot_duration_seconds ?? '—' }} sec
                 </p>
             </div>
 
             <div>
-                <p class="text-gray-400">Slots / Day</p>
+                <p class="text-gray-400">Slots Per Day</p>
                 <p class="font-medium">
                     {{ $dooh->available_slots_per_day ?? '—' }}
                 </p>
             </div>
-
+<!-- 
             <div>
                 <p class="text-gray-400">Price / Slot</p>
                 <p class="font-medium">
                     ₹{{ number_format($dooh->price_per_slot ?? 0) }}
                 </p>
-            </div>
+            </div> -->
 
         </div>
     @endif
