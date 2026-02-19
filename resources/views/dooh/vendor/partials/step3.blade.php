@@ -40,7 +40,7 @@
         <div class="flex items-center justify-between mb-8">
             <div class="flex items-center gap-3">
                 <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
-                <h3 class="text-xl font-bold text-gray-800">Available Slot</h3>
+                <h3 class="text-xl font-bold text-gray-800">Available Slots</h3>
             </div>
             <button type="button" id="add-slot-btn" class="bg-[#1A1A1A] text-white px-6 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-transform hover:scale-105 active:scale-95">
                 <span>+</span> Add slot
