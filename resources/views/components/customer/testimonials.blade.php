@@ -82,7 +82,7 @@
                     opacity-0 group-hover:opacity-100
                     shadow-[0_6px_18px_rgba(0,0,0,0.35)]
                     hover:shadow-[0_10px_28px_rgba(0,0,0,0.45)]
-                    transition-all duration-300">
+                    transition-all duration-300 cursor-pointer">
                 ‹
             </button>
 
@@ -97,7 +97,7 @@
                     opacity-0 group-hover:opacity-100
                     shadow-[0_6px_18px_rgba(0,0,0,0.35)]
                     hover:shadow-[0_10px_28px_rgba(0,0,0,0.45)]
-                    transition-all duration-300">
+                    transition-all duration-300 cursor-pointer">
                 ›
             </button>
 
