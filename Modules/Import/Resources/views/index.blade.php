@@ -11,6 +11,28 @@
 <!-- Toast Notifications -->
 <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
+<div id="uploadTimerWidget" class="fixed bottom-4 right-4 z-50 hidden">
+    <div id="uploadTimerExpanded" class="bg-white border border-blue-200 rounded-xl shadow-lg p-4 w-80">
+        <div class="flex items-start justify-between gap-2">
+            <div>
+                <p class="text-sm font-semibold text-blue-900">Please wait</p>
+                <p id="uploadTimerMessage" class="text-xs text-blue-700 mt-1">Upload is being processed. You can continue browsing other screens.</p>
+            </div>
+            <div class="flex items-center gap-1">
+                <button id="minimizeUploadTimer" type="button" class="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100">_</button>
+            </div>
+        </div>
+        <div class="mt-3">
+            <p id="uploadTimerCountdown" class="text-lg font-bold text-blue-900">05:00</p>
+            <p id="uploadTimerBatch" class="text-xs text-gray-600 mt-1"></p>
+        </div>
+    </div>
+
+    <button id="uploadTimerMinimized" type="button" class="hidden bg-white border border-blue-200 rounded-full shadow px-3 py-2 text-xs font-semibold text-blue-800 hover:bg-blue-50">
+        Processing 05:00
+    </button>
+</div>
+
 <!-- Upload Section -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             <!-- Upload Card -->
@@ -364,6 +386,8 @@
     const API_BASE = '/api/import';
     const DETAILS_BASE = @json(route('vendor.import.enhanced'));
     const IMPORT_MANAGEMENT_URL = @json(route('vendor.import.enhanced'));
+    const UPLOAD_LOCK_KEY = 'import_upload_lock_state_v1';
+    const UPLOAD_LOCK_DURATION_SECONDS = 300;
     const historyState = {
         page: 1,
         per_page: 10,
@@ -376,6 +400,8 @@
         from: 0,
         to: 0,
     };
+    let uploadTimerInterval = null;
+    let uploadStatusPollInterval = null;
 
     function createHttpClient() {
         if (window.axios) {
@@ -451,6 +477,8 @@
     document.addEventListener('DOMContentLoaded', () => {
         setupFileInputs();
         setupFormSubmit();
+        setupUploadLockTimerUi();
+        restoreUploadLockState();
         loadBatches();
         setupHistoryPagination();
         setupHistorySearch();
@@ -554,8 +582,270 @@
         document.getElementById('uploadForm').addEventListener('submit', submitUpload);
     }
 
+    function getUploadLockState() {
+        try {
+            const raw = localStorage.getItem(UPLOAD_LOCK_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function setUploadLockState(state) {
+        localStorage.setItem(UPLOAD_LOCK_KEY, JSON.stringify(state));
+    }
+
+    function clearUploadLockState() {
+        localStorage.removeItem(UPLOAD_LOCK_KEY);
+    }
+
+    function formatRemaining(seconds) {
+        const safe = Math.max(0, Number(seconds || 0));
+        const mm = String(Math.floor(safe / 60)).padStart(2, '0');
+        const ss = String(safe % 60).padStart(2, '0');
+        return `${mm}:${ss}`;
+    }
+
+    function setUploadFormLocked(locked) {
+        const uploadForm = document.getElementById('uploadForm');
+        if (!uploadForm) return;
+
+        uploadForm.querySelectorAll('input, button').forEach((element) => {
+            if (element.id === 'minimizeUploadTimer') {
+                return;
+            }
+            element.disabled = locked;
+        });
+
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        if (submitBtn && submitText) {
+            if (locked) {
+                submitBtn.disabled = true;
+                submitText.textContent = 'Please wait...';
+            } else {
+                submitBtn.disabled = false;
+                submitText.textContent = 'Upload Files';
+            }
+        }
+    }
+
+    function setupUploadLockTimerUi() {
+        document.getElementById('minimizeUploadTimer')?.addEventListener('click', () => {
+            const lock = getUploadLockState();
+            if (!lock) return;
+            lock.minimized = true;
+            setUploadLockState(lock);
+            renderUploadLock(lock);
+        });
+
+        document.getElementById('uploadTimerMinimized')?.addEventListener('click', () => {
+            const lock = getUploadLockState();
+            if (!lock) return;
+            lock.minimized = false;
+            setUploadLockState(lock);
+            renderUploadLock(lock);
+        });
+    }
+
+    function renderUploadLock(lockState) {
+        const widget = document.getElementById('uploadTimerWidget');
+        const expanded = document.getElementById('uploadTimerExpanded');
+        const minimized = document.getElementById('uploadTimerMinimized');
+        const countdown = document.getElementById('uploadTimerCountdown');
+        const message = document.getElementById('uploadTimerMessage');
+        const batchLabel = document.getElementById('uploadTimerBatch');
+
+        if (!widget || !expanded || !minimized || !countdown || !message || !batchLabel) {
+            return;
+        }
+
+        if (!lockState) {
+            widget.classList.add('hidden');
+            expanded.classList.remove('hidden');
+            minimized.classList.add('hidden');
+            return;
+        }
+
+        widget.classList.remove('hidden');
+
+        const remaining = Math.max(0, Math.floor((Number(lockState.expiresAt || 0) - Date.now()) / 1000));
+        const timeText = formatRemaining(remaining);
+        countdown.textContent = timeText;
+        minimized.textContent = `Processing ${timeText}`;
+        batchLabel.textContent = `Batch #${lockState.batchId || '-'} is processing`;
+
+        const statusText = (lockState.status || 'processing').toLowerCase();
+        if (statusText === 'failed') {
+            message.textContent = 'Processing failed. Please re-upload after checking content.';
+        } else if (statusText === 'completed') {
+            message.textContent = 'Processing completed successfully.';
+        } else {
+            message.textContent = 'Upload is being processed. You can continue browsing other screens.';
+        }
+
+        if (lockState.minimized) {
+            expanded.classList.add('hidden');
+            minimized.classList.remove('hidden');
+        } else {
+            expanded.classList.remove('hidden');
+            minimized.classList.add('hidden');
+        }
+    }
+
+    function stopUploadLockIntervals() {
+        if (uploadTimerInterval) {
+            clearInterval(uploadTimerInterval);
+            uploadTimerInterval = null;
+        }
+        if (uploadStatusPollInterval) {
+            clearInterval(uploadStatusPollInterval);
+            uploadStatusPollInterval = null;
+        }
+    }
+
+    function releaseUploadLock(finalStatus, withMessage = true) {
+        stopUploadLockIntervals();
+        const lock = getUploadLockState();
+
+        setUploadFormLocked(false);
+        clearUploadLockState();
+        renderUploadLock(null);
+
+        if (!withMessage) {
+            return;
+        }
+
+        if (finalStatus === 'completed') {
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Import Completed',
+                    text: 'Import completed successfully. You can upload again.',
+                });
+            } else {
+                showToast('Import completed successfully. You can upload again.', 'success');
+            }
+        } else if (finalStatus === 'failed') {
+            showToast('Import failed. Please re-upload after checking content.', 'error');
+        } else if (finalStatus === 'timeout') {
+            showToast('Import did not complete in 5 minutes. Please re-upload after checking content.', 'error');
+        } else if (lock?.status) {
+            showToast(`Import status changed to ${lock.status}.`, 'info');
+        }
+    }
+
+    async function pollUploadStatus() {
+        const lock = getUploadLockState();
+        if (!lock?.batchId) {
+            return;
+        }
+
+        try {
+            const response = await http.get(`${API_BASE}/${lock.batchId}/status`, {
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                }
+            });
+
+            const status = (response?.data?.data?.status || '').toLowerCase();
+            if (!status) {
+                return;
+            }
+
+            lock.status = status;
+            setUploadLockState(lock);
+            renderUploadLock(lock);
+
+            if (status === 'completed' || status === 'failed') {
+                releaseUploadLock(status, true);
+            }
+        } catch (error) {
+            console.error('Status polling failed:', error);
+        }
+    }
+
+    function startUploadLock(batchId) {
+        const now = Date.now();
+        const lock = {
+            batchId,
+            startedAt: now,
+            expiresAt: now + (UPLOAD_LOCK_DURATION_SECONDS * 1000),
+            minimized: false,
+            status: 'processing',
+        };
+
+        setUploadLockState(lock);
+        setUploadFormLocked(true);
+        renderUploadLock(lock);
+        stopUploadLockIntervals();
+
+        uploadTimerInterval = setInterval(() => {
+            const state = getUploadLockState();
+            if (!state) {
+                stopUploadLockIntervals();
+                return;
+            }
+
+            const remaining = Math.floor((Number(state.expiresAt || 0) - Date.now()) / 1000);
+            if (remaining <= 0) {
+                releaseUploadLock('timeout', true);
+                return;
+            }
+
+            renderUploadLock(state);
+        }, 1000);
+
+        pollUploadStatus();
+        uploadStatusPollInterval = setInterval(pollUploadStatus, 10000);
+    }
+
+    function restoreUploadLockState() {
+        const lock = getUploadLockState();
+        if (!lock) {
+            setUploadFormLocked(false);
+            renderUploadLock(null);
+            return;
+        }
+
+        const remaining = Math.floor((Number(lock.expiresAt || 0) - Date.now()) / 1000);
+        if (remaining <= 0) {
+            releaseUploadLock('timeout', false);
+            return;
+        }
+
+        setUploadFormLocked(true);
+        renderUploadLock(lock);
+
+        stopUploadLockIntervals();
+        uploadTimerInterval = setInterval(() => {
+            const state = getUploadLockState();
+            if (!state) {
+                stopUploadLockIntervals();
+                return;
+            }
+
+            const left = Math.floor((Number(state.expiresAt || 0) - Date.now()) / 1000);
+            if (left <= 0) {
+                releaseUploadLock('timeout', true);
+                return;
+            }
+
+            renderUploadLock(state);
+        }, 1000);
+
+        pollUploadStatus();
+        uploadStatusPollInterval = setInterval(pollUploadStatus, 10000);
+    }
+
     async function submitUpload(e) {
         e.preventDefault();
+
+        const existingLock = getUploadLockState();
+        if (existingLock) {
+            showError('Please wait until current import completes or fails. You can upload again after that.');
+            return;
+        }
         
         const excelFile = document.getElementById('excelFile').files[0];
         const pptFile = document.getElementById('pptFile').files[0];
@@ -592,6 +882,13 @@
             document.getElementById('uploadForm').reset();
             document.getElementById('excelFileName').classList.add('hidden');
             document.getElementById('pptFileName').classList.add('hidden');
+
+            const uploadedBatchId = response?.data?.batch_id || response?.data?.data?.batch_id;
+            if (uploadedBatchId) {
+                startUploadLock(uploadedBatchId);
+                showToast('Please wait. Processing started and upload is locked for up to 5 minutes.', 'info');
+            }
+
             await loadBatches();
         } catch (error) {
             const errors = error.response?.data?.errors || {};

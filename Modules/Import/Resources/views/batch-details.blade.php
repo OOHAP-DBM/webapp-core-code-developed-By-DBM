@@ -105,6 +105,22 @@
             <tbody id="rowsBody" class="divide-y divide-gray-200"></tbody>
         </table>
     </div>
+    <div class="p-4 border-t border-gray-200 flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-2">
+            <label for="rowsPerPage" class="text-sm text-gray-600">Rows per page</label>
+            <select id="rowsPerPage" class="border rounded-lg p-1.5 text-sm">
+                <option value="10">10</option>
+                <option value="15" selected>15</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="rowsPrevBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+            <span id="rowsPageLabel" class="text-sm text-gray-600">Page 1 / 1</span>
+            <button id="rowsNextBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+        </div>
+    </div>
 </div>
 
 @php
@@ -123,6 +139,18 @@ const INITIAL_BATCH_STATUS = @json($batch->status);
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 let currentRowsById = {};
 let currentBatchStatus = (INITIAL_BATCH_STATUS || '').toLowerCase();
+let rowsQueryState = {
+    page: 1,
+    per_page: 15,
+    search: '',
+    status: '',
+};
+let rowsPaginationState = {
+    total: 0,
+    per_page: 15,
+    current_page: 1,
+    last_page: 1,
+};
 
 function notify(message, type = 'success') {
     const container = document.getElementById('toastContainer');
@@ -211,13 +239,36 @@ function applyBatchUiState(status, loading = false) {
     }
 }
 
-async function loadRows() {
-    const search = document.getElementById('searchInput').value.trim();
-    const status = document.getElementById('statusFilter').value;
+function renderRowsPagination() {
+    const prevBtn = document.getElementById('rowsPrevBtn');
+    const nextBtn = document.getElementById('rowsNextBtn');
+    const pageLabel = document.getElementById('rowsPageLabel');
 
-    const query = new URLSearchParams({ per_page: '200' });
-    if (search) query.append('search', search);
-    if (status) query.append('status', status);
+    if (prevBtn) {
+        prevBtn.disabled = (rowsPaginationState.current_page || 1) <= 1;
+    }
+
+    if (nextBtn) {
+        nextBtn.disabled = (rowsPaginationState.current_page || 1) >= (rowsPaginationState.last_page || 1);
+    }
+
+    if (pageLabel) {
+        pageLabel.textContent = `Page ${rowsPaginationState.current_page || 1} / ${rowsPaginationState.last_page || 1}`;
+    }
+}
+
+async function loadRows(page = rowsQueryState.page) {
+    rowsQueryState.page = Math.max(1, Number(page || 1));
+    rowsQueryState.search = document.getElementById('searchInput').value.trim();
+    rowsQueryState.status = document.getElementById('statusFilter').value;
+    rowsQueryState.per_page = Number(document.getElementById('rowsPerPage')?.value || rowsQueryState.per_page || 15);
+
+    const query = new URLSearchParams({
+        page: String(rowsQueryState.page),
+        per_page: String(rowsQueryState.per_page),
+    });
+    if (rowsQueryState.search) query.append('search', rowsQueryState.search);
+    if (rowsQueryState.status) query.append('status', rowsQueryState.status);
 
     try {
         const result = await api(`${API_BASE}/${BATCH_ID}?${query.toString()}`);
@@ -225,6 +276,13 @@ async function loadRows() {
         const rows = payload.rows || [];
         const pagination = payload.pagination || {};
         const batch = payload.batch || {};
+
+        rowsPaginationState = {
+            total: pagination.total || 0,
+            per_page: pagination.per_page || rowsQueryState.per_page,
+            current_page: pagination.current_page || rowsQueryState.page,
+            last_page: pagination.last_page || 1,
+        };
 
         currentRowsById = rows.reduce((accumulator, row) => {
             accumulator[row.id] = row;
@@ -234,8 +292,11 @@ async function loadRows() {
         document.getElementById('validCount').textContent = batch.valid_rows ?? '-';
         document.getElementById('invalidCount').textContent = batch.invalid_rows ?? '-';
         document.getElementById('batchStatusText').textContent = batch.status ?? '-';
-        document.getElementById('paginationInfo').textContent = `Showing ${rows.length} of ${pagination.total ?? rows.length}`;
+        const from = rows.length ? (((rowsPaginationState.current_page - 1) * rowsPaginationState.per_page) + 1) : 0;
+        const to = rows.length ? (from + rows.length - 1) : 0;
+        document.getElementById('paginationInfo').textContent = `Showing ${from}-${to} of ${rowsPaginationState.total}`;
         applyBatchUiState(batch.status || currentBatchStatus, false);
+        renderRowsPagination();
 
         const body = document.getElementById('rowsBody');
         if (!rows.length) {
@@ -552,11 +613,22 @@ document.addEventListener('DOMContentLoaded', () => {
     applyBatchUiState(currentBatchStatus, false);
     loadRows();
 
-    document.getElementById('applyFilter').addEventListener('click', loadRows);
+    document.getElementById('applyFilter').addEventListener('click', () => loadRows(1));
     document.getElementById('resetFilter').addEventListener('click', () => {
         document.getElementById('searchInput').value = '';
         document.getElementById('statusFilter').value = '';
-        loadRows();
+        loadRows(1);
+    });
+    document.getElementById('rowsPerPage')?.addEventListener('change', () => loadRows(1));
+    document.getElementById('rowsPrevBtn')?.addEventListener('click', () => {
+        if (rowsPaginationState.current_page > 1) {
+            loadRows(rowsPaginationState.current_page - 1);
+        }
+    });
+    document.getElementById('rowsNextBtn')?.addEventListener('click', () => {
+        if (rowsPaginationState.current_page < rowsPaginationState.last_page) {
+            loadRows(rowsPaginationState.current_page + 1);
+        }
     });
     document.getElementById('rowForm').addEventListener('submit', submitRow);
     document.getElementById('resetRowForm').addEventListener('click', resetRowForm);
