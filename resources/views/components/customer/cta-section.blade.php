@@ -75,7 +75,7 @@
 
             <div id="stats-section" class="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white rounded-2xl shadow-xl p-8">
                 <div class="text-center">
-                    <div class="text-4xl font-bold theme-gradient-text">
+                    <div class="text-4xl font-bold theme-gradient-text mb-2">
                         <span class="stat-number" data-target="{{ $totalHoardings }}" data-suffix="{{ $hoardingsSuffix }}">0</span>{{ $hoardingsSuffix }}
                     </div>
                     <div class="text-sm text-gray-600 font-medium">Hoardings</div>
@@ -93,7 +93,7 @@
                     <div class="text-sm text-gray-600 font-medium">Bookings</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-4xl font-bold text-btn-color">
+                    <div class="text-4xl font-bold text-btn-color mb-2">
                         <span class="stat-number" data-target="{{ $totalCities }}" data-suffix="">0</span>
                     </div>
                     <div class="text-sm text-gray-600 font-medium">Cities</div>
