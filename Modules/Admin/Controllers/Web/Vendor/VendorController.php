@@ -453,4 +453,97 @@ class VendorController extends Controller
             'message' => 'Selected vendors enabled successfully'
         ]);
     }
+    public function export(Request $request)
+    {
+        $status = $request->get('status', 'approved');
+        $format = $request->get('format', 'csv');
+
+        $vendors = VendorProfile::with('user')
+            ->where('onboarding_status', $status)
+            ->get();
+
+        $columns = ['ID', 'Name', 'Email', 'Phone', 'Company', 'City', 'State', 'Status'];
+
+        $rows = $vendors->map(function ($vendor) {
+            return [
+                $vendor->id,
+                $vendor->user->name ?? '',
+                $vendor->user->email ?? '',
+                $vendor->user->phone ?? '',
+                $vendor->company_name ?? '',
+                $vendor->city ?? '',
+                $vendor->state ?? '',
+                $vendor->onboarding_status ?? '',
+            ];
+        });
+
+        $filename = "vendors_{$status}_" . now()->format('Ymd_His');
+
+        if ($format === 'excel') {
+
+            $html = '<table>';
+            $html .= '<tr>' . implode('', array_map(fn($col) => "<th>{$col}</th>", $columns)) . '</tr>';
+            foreach ($rows as $row) {
+                $html .= '<tr>' . implode('', array_map(fn($cell) => "<td>{$cell}</td>", $row)) . '</tr>';
+            }
+            $html .= '</table>';
+
+            return response($html, 200, [
+                'Content-Type'        => 'application/vnd.ms-excel',
+                'Content-Disposition' => "attachment; filename={$filename}.xls",
+                'Pragma'              => 'no-cache',
+                'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            ]);
+
+        } elseif ($format === 'pdf') {
+
+            $html = '<!DOCTYPE html><html><head><style>
+                body { font-family: Arial, sans-serif; font-size: 12px; }
+                h2 { margin-bottom: 10px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
+                th { background: #f3f4f6; font-weight: bold; }
+            </style></head><body>';
+            $html .= "<h2>Vendors Export - " . ucfirst(str_replace('_', ' ', $status)) . "</h2>";
+            $html .= '<table><thead><tr>';
+            foreach ($columns as $col) {
+                $html .= "<th>{$col}</th>";
+            }
+            $html .= '</tr></thead><tbody>';
+            foreach ($rows as $row) {
+                $html .= '<tr>';
+                foreach ($row as $cell) {
+                    $html .= "<td>" . htmlspecialchars((string) $cell) . "</td>";
+                }
+                $html .= '</tr>';
+            }
+            $html .= '</tbody></table></body></html>';
+
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
+            $pdf->setPaper('a4', 'landscape');
+
+            return $pdf->download("{$filename}.pdf");
+
+        } else {
+
+            $headers = [
+                'Content-Type'        => 'text/csv',
+                'Content-Disposition' => "attachment; filename={$filename}.csv",
+                'Pragma'              => 'no-cache',
+                'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+                'Expires'             => '0',
+            ];
+
+            $callback = function () use ($columns, $rows) {
+                $file = fopen('php://output', 'w');
+                fputcsv($file, $columns);
+                foreach ($rows as $row) {
+                    fputcsv($file, $row);
+                }
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        }
+    }
 }

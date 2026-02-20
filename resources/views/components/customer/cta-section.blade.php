@@ -59,14 +59,18 @@
                     return $count > 100 ? 100 : $count;
                 };
 
-                $totalHoardings = $formatCount($stats['total_hoardings'] ?? 0);
-                $totalVendors   = $formatCount($stats['total_vendors'] ?? 0);
-                $totalBookings  = $formatCount($stats['total_bookings'] ?? 0);
-                $totalCities    = 50;
-
-                $hoardingsSuffix = ($stats['total_hoardings'] ?? 0) > 100 ? '+' : '';
-                $vendorsSuffix   = ($stats['total_vendors'] ?? 0) > 100 ? '+' : '';
-                $bookingsSuffix  = ($stats['total_bookings'] ?? 0) > 100 ? '+' : '';
+                // $totalHoardings = $formatCount($stats['total_hoardings'] ?? 0);
+                // $totalVendors   = $formatCount($stats['total_vendors'] ?? 0);
+                // $totalBookings  = $formatCount($stats['total_bookings'] ?? 0);
+                // $totalCities    = 50;
+                $totalHoardings = 50000;
+                $hoardingsSuffix = '+';
+                $totalVendors   = 500;
+                $vendorsSuffix = '+';
+                $totalBookings  = 2000;
+                $bookingsSuffix = '+';
+                $totalCities    = 500;
+                $citiesSuffix = '+';
             @endphp
 
             <div id="stats-section" class="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white rounded-2xl shadow-xl p-8">
@@ -96,7 +100,8 @@
                 </div>
             </div>
 
-            <!-- CTA Button -->
+            <!-- CTA Button (only for guests) -->
+            @guest
             <div class="text-center mt-12">
                 <a href="{{ route('register.role-selection') }}"
                     class="inline-flex items-center px-8 py-4
@@ -110,6 +115,7 @@
                         </svg>
                 </a>
             </div>
+            @endguest
         </div>
     </div>
 </section>

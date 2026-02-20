@@ -339,7 +339,11 @@ class HoardingController extends Controller
         $activeTab = $request->query('tab', 'all');
 
         $search = $request->input('search');
-        $letter = $request->input('letter'); 
+        $letter = $request->input('letter');
+        // Dynamic pagination size
+        $perPage = (int) $request->input('per_page', 10);
+        if ($perPage < 1) $perPage = 10;
+
         $totalCount = Hoarding::where('vendor_id', $vendor->id)->count();
         if ($totalCount === 0) {
             return view('hoardings.vendor.empty');
@@ -354,7 +358,7 @@ class HoardingController extends Controller
             if ($letter) {
                 $query->whereRaw('UPPER(LEFT(title, 1)) = ?', [mb_strtoupper(mb_substr($letter, 0, 1))]);
             }
-            $data = $query->orderBy('title')->paginate(10)->withQueryString();
+            $data = $query->orderBy('title')->paginate($perPage)->withQueryString();
         } else {
             $filters = [
                 'vendor_id' => $vendor->id,
@@ -366,7 +370,7 @@ class HoardingController extends Controller
             if ($letter) {
                 $filters['letter'] = mb_strtoupper(mb_substr($letter, 0, 1));
             }
-            $data = $this->hoardingService->getAll($filters, 10);
+            $data = $this->hoardingService->getAll($filters, $perPage);
             // If letter is set and no results, show empty (not all hoardings)
             if ($letter && $data->total() === 0) {
                 $data = $data->setCollection(collect([]));
@@ -391,7 +395,8 @@ class HoardingController extends Controller
 
         return view('hoardings.vendor.list', [
             'hoardings' => $data,
-            'activeTab' => $activeTab
+            'activeTab' => $activeTab,
+            'perPage' => $perPage
         ]);
     }
 

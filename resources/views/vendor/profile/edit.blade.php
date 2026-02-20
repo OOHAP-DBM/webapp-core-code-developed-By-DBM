@@ -45,7 +45,7 @@
                 <div class="flex items-center gap-3 mt-2">
                     @if(auth()->user()->avatar)
                         <img
-                            src="{{ route('vendor.view-avatar', auth()->user()->id) }}?t={{ time() }}"
+                            src="{{ route('view-avatar', auth()->user()->id) }}?t={{ time() }}"
                             alt="Avatar"
                             class="w-17 h-17 rounded-full object-cover border border-gray-300"
                         >

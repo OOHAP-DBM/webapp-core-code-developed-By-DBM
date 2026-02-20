@@ -27,7 +27,7 @@
                     @if(auth()->user()->avatar)
                         <img
                             id="avatarPreview"
-                            src="{{ route('vendor.view-avatar', auth()->user()->id) }}?t={{ time() }}"
+                            src="{{ route('view-avatar', auth()->user()->id) }}?t={{ time() }}"
                             alt="Avatar"
                             class="w-16 h-16 rounded-full object-cover border-2 border-gray-300"
                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
