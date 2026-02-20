@@ -1,4 +1,5 @@
 @extends('layouts.vendor')
+@section('title', 'Import Inventory')
 
 @section('content')
 <!-- Page Header -->
@@ -125,23 +126,13 @@
                     </div>
                 </div>
 
-                <!-- Info Card -->
-                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <h3 class="font-semibold text-blue-900 mb-2">Upload Guidelines</h3>
-                    <ul class="text-sm text-blue-800 space-y-1">
-                        <li>✓ Excel file up to 20MB</li>
-                        <li>✓ PowerPoint file up to 50MB</li>
-                        <li>✓ Select import type</li>
-                        <li>✓ Both Excel and PowerPoint are required</li>
-                    </ul>
-                </div>
             </div>
 
             <!-- Stats Cards -->
             <div class="lg:col-span-2">
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <!-- Total Batches -->
-                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div onclick="openImportManagement('')" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-600 text-sm font-medium">Total Batches</p>
@@ -159,7 +150,7 @@
                     </div>
 
                     <!-- Processing -->
-                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div onclick="openImportManagement('processing')" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-600 text-sm font-medium">Processing</p>
@@ -176,7 +167,7 @@
                     </div>
 
                     <!-- Completed -->
-                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div onclick="openImportManagement('completed')" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-600 text-sm font-medium">Completed</p>
@@ -193,7 +184,7 @@
                     </div>
 
                     <!-- Failed -->
-                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div onclick="openImportManagement('failed')" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-600 text-sm font-medium">Failed</p>
@@ -221,18 +212,37 @@
                         </button>
                         <button onclick="filterByStatus('processed')"
                             class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm font-medium">
-                            Pending Approval
+                            Manage Inventory
                         </button>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-5">
+                    <h3 class="font-semibold text-blue-900 mb-2">Upload Guidance</h3>
+                    <ul class="text-sm text-blue-800 space-y-1 mb-4">
+                        <li>✓ Excel file up to 20MB</li>
+                        <li>✓ PowerPoint file up to 50MB</li>
+                        <li>✓ Use sample template columns exactly for smooth import</li>
+                        <li>✓ For DOOH, include additional pricing fields</li>
+                    </ul>
+
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'ooh']) }}" class="px-4 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
+                            Download OOH Sample (CSV)
+                        </a>
+                        <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'dooh']) }}" class="px-4 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
+                            Download DOOH Sample (CSV)
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Batch List Section -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden hidden">
             <div class="px-6 py-6 border-b border-gray-200">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-2xl font-bold text-gray-900">Import Batches</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">Import History</h2>
                     <div class="flex items-center space-x-4">
                         <!-- Search Bar -->
                         <input type="text" id="searchInput" placeholder="Search batches..."
@@ -274,6 +284,15 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                <p id="historyPageInfo" class="text-sm text-gray-600">Showing 0-0 of 0</p>
+                <div class="flex items-center space-x-2">
+                    <button id="historyPrevBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                    <span id="historyPageLabel" class="text-sm text-gray-600">Page 1 / 1</span>
+                    <button id="historyNextBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+                </div>
             </div>
         </div>
 
@@ -343,6 +362,20 @@
 
 <script>
     const API_BASE = '/api/import';
+    const DETAILS_BASE = @json(route('vendor.import.enhanced'));
+    const IMPORT_MANAGEMENT_URL = @json(route('vendor.import.enhanced'));
+    const historyState = {
+        page: 1,
+        per_page: 10,
+        search: '',
+    };
+    const historyPagination = {
+        total: 0,
+        current_page: 1,
+        last_page: 1,
+        from: 0,
+        to: 0,
+    };
 
     function createHttpClient() {
         if (window.axios) {
@@ -419,9 +452,39 @@
         setupFileInputs();
         setupFormSubmit();
         loadBatches();
+        setupHistoryPagination();
+        setupHistorySearch();
         // Refresh every 5 seconds
-        setInterval(loadBatches, 5000);
+        setInterval(() => loadBatches(historyState.page), 15000);
     });
+
+    function setupHistoryPagination() {
+        document.getElementById('historyPrevBtn')?.addEventListener('click', () => {
+            if (historyPagination.current_page > 1) {
+                loadBatches(historyPagination.current_page - 1);
+            }
+        });
+
+        document.getElementById('historyNextBtn')?.addEventListener('click', () => {
+            if (historyPagination.current_page < historyPagination.last_page) {
+                loadBatches(historyPagination.current_page + 1);
+            }
+        });
+    }
+
+    function setupHistorySearch() {
+        const searchInput = document.getElementById('searchInput');
+        if (!searchInput) return;
+
+        let timer;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                historyState.search = (e.target.value || '').trim();
+                loadBatches(1);
+            }, 350);
+        });
+    }
 
     // File input handlers
     function setupFileInputs() {
@@ -563,19 +626,62 @@
     }
 
     // Load batches
-    async function loadBatches() {
+    async function loadBatches(page = historyState.page) {
         try {
-            const response = await http.get(API_BASE, {
+            historyState.page = Math.max(1, Number(page || 1));
+            const params = new URLSearchParams({
+                page: String(historyState.page),
+                per_page: String(historyState.per_page),
+            });
+
+            if (historyState.search) {
+                params.append('search', historyState.search);
+            }
+
+            const response = await http.get(`${API_BASE}?${params.toString()}`, {
                 headers: {
                     'X-CSRF-TOKEN': csrfToken
                 }
             });
 
             const batches = response.data.data || [];
-            renderBatches(batches);
-            updateStats(batches);
+            const pagination = response.data.pagination || {};
+            historyPagination.total = pagination.total || 0;
+            historyPagination.current_page = pagination.current_page || 1;
+            historyPagination.last_page = pagination.last_page || 1;
+            historyPagination.from = pagination.from || 0;
+            historyPagination.to = pagination.to || 0;
+
+            const summary = response.data.summary || null;
+            updateStats(batches, summary);
+
+            const tableContainer = document.getElementById('batchesTableBody');
+            if (tableContainer && !tableContainer.closest('.hidden')) {
+                renderBatches(batches);
+                renderHistoryPagination();
+            }
         } catch (error) {
             console.error('Failed to load batches:', error);
+        }
+    }
+
+    function renderHistoryPagination() {
+        const info = document.getElementById('historyPageInfo');
+        const label = document.getElementById('historyPageLabel');
+        const prevBtn = document.getElementById('historyPrevBtn');
+        const nextBtn = document.getElementById('historyNextBtn');
+
+        if (info) {
+            info.textContent = `Showing ${historyPagination.from}-${historyPagination.to} of ${historyPagination.total}`;
+        }
+        if (label) {
+            label.textContent = `Page ${historyPagination.current_page} / ${historyPagination.last_page}`;
+        }
+        if (prevBtn) {
+            prevBtn.disabled = historyPagination.current_page <= 1;
+        }
+        if (nextBtn) {
+            nextBtn.disabled = historyPagination.current_page >= historyPagination.last_page;
         }
     }
 
@@ -601,7 +707,7 @@
 
         tbody.innerHTML = batches.map(batch => `
             <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4 text-sm font-mono text-blue-600">#${batch.id}</td>
+                <td class="px-6 py-4 text-sm font-mono text-blue-600">#${batch.batch_id}</td>
                 <td class="px-6 py-4 text-sm">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                         batch.media_type === 'ooh' 
@@ -626,19 +732,7 @@
                 </td>
                 <td class="px-6 py-4 text-sm">
                     <div class="flex items-center space-x-2">
-                        ${batch.status === 'processed' ? `
-                            <button onclick="openApproveModal(${batch.id}, ${batch.valid_rows})" 
-                                class="px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors text-xs font-medium">
-                                Approve
-                            </button>
-                        ` : ''}
-                        ${batch.invalid_rows > 0 ? `
-                            <button onclick="openErrorModal(${batch.id})" 
-                                class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors text-xs font-medium">
-                                Errors
-                            </button>
-                        ` : ''}
-                        <button onclick="loadBatchDetails(${batch.id})" 
+                        <button onclick="loadBatchDetails(${batch.batch_id})" 
                             class="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-xs font-medium">
                             View
                         </button>
@@ -648,11 +742,11 @@
         `).join('');
     }
 
-    function updateStats(batches) {
-        const total = batches.length;
-        const processing = batches.filter(b => b.status === 'processing').length;
-        const completed = batches.filter(b => b.status === 'completed').length;
-        const failed = batches.filter(b => b.status === 'failed').length;
+    function updateStats(batches, summary = null) {
+        const total = summary?.total ?? (historyPagination.total || batches.length);
+        const processing = summary?.processing ?? batches.filter(b => b.status === 'processing').length;
+        const completed = summary?.completed ?? batches.filter(b => b.status === 'completed').length;
+        const failed = summary?.failed ?? batches.filter(b => b.status === 'failed').length;
 
         document.getElementById('totalBatches').textContent = total;
         document.getElementById('processingBatches').textContent = processing;
@@ -822,32 +916,18 @@
     }
 
     function filterByStatus(status) {
-        loadBatches(); // In production, add status filter parameter
-        showToast(`Filtered by: ${status}`, 'info');
+        openImportManagement(status);
+    }
+
+    function openImportManagement(status = '') {
+        const url = new URL(IMPORT_MANAGEMENT_URL, window.location.origin);
+        url.searchParams.set('tab', 'batches');
+        window.location.href = url.toString();
     }
 
     async function loadBatchDetails(batchId) {
-        try {
-            const response = await http.get(`${API_BASE}/${batchId}/details`, {
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken
-                }
-            });
-            console.log('Batch details:', response.data);
-            showToast('Batch details loaded', 'info');
-        } catch (error) {
-            showToast('Failed to load batch details', 'error');
-        }
+        window.location.href = `${DETAILS_BASE}/batches/${batchId}`;
     }
-
-    // Search functionality
-    document.getElementById('searchInput')?.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        document.querySelectorAll('#batchesTableBody tr').forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm) ? '' : 'none';
-        });
-    });
 </script>
 
 <style>

@@ -29,9 +29,45 @@ class InventoryImportStaging extends Model
         'media_type',
         'code',
         'city',
+        'category',
+        'address',
+        'locality',
+        'landmark',
+        'state',
+        'pincode',
+        'latitude',
+        'longitude',
         'width',
         'height',
+        'measurement_unit',
+        'lighting_type',
+        'screen_type',
         'image_name',
+        'base_monthly_price',
+        'monthly_price',
+        'weekly_price_1',
+        'weekly_price_2',
+        'weekly_price_3',
+        'price_per_slot',
+        'slot_duration_seconds',
+        'screen_run_time',
+        'total_slots_per_day',
+        'min_slots_per_day',
+        'min_booking_duration',
+        'minimum_booking_amount',
+        'commission_percent',
+        'graphics_charge',
+        'survey_charge',
+        'printing_charge',
+        'mounting_charge',
+        'remounting_charge',
+        'lighting_charge',
+        'discount_type',
+        'discount_value',
+        'availability',
+        'currency',
+        'available_from',
+        'available_to',
         'extra_attributes',
         'status',
         'error_message',
@@ -43,8 +79,32 @@ class InventoryImportStaging extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'latitude' => 'decimal:7',
+        'longitude' => 'decimal:7',
         'width' => 'decimal:2',
         'height' => 'decimal:2',
+        'base_monthly_price' => 'decimal:2',
+        'monthly_price' => 'decimal:2',
+        'weekly_price_1' => 'decimal:2',
+        'weekly_price_2' => 'decimal:2',
+        'weekly_price_3' => 'decimal:2',
+        'price_per_slot' => 'decimal:2',
+        'minimum_booking_amount' => 'decimal:2',
+        'commission_percent' => 'decimal:2',
+        'graphics_charge' => 'decimal:2',
+        'survey_charge' => 'decimal:2',
+        'printing_charge' => 'decimal:2',
+        'mounting_charge' => 'decimal:2',
+        'remounting_charge' => 'decimal:2',
+        'lighting_charge' => 'decimal:2',
+        'discount_value' => 'decimal:2',
+        'slot_duration_seconds' => 'integer',
+        'screen_run_time' => 'integer',
+        'total_slots_per_day' => 'integer',
+        'min_slots_per_day' => 'integer',
+        'min_booking_duration' => 'integer',
+        'available_from' => 'date',
+        'available_to' => 'date',
         'extra_attributes' => 'array',
     ];
 
@@ -171,6 +231,10 @@ class InventoryImportStaging extends Model
      */
     public function getExtraAttribute($key, $default = null)
     {
+        if (array_key_exists($key, $this->attributes) && $this->attributes[$key] !== null) {
+            return $this->{$key};
+        }
+
         $attributes = $this->extra_attributes ?? [];
         return $attributes[$key] ?? $default;
     }

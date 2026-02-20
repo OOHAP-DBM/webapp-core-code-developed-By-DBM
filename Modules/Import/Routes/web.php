@@ -19,4 +19,15 @@ Route::middleware(['permission:import.manage'])->group(function () {
 
     Route::get('/enhanced', [ImportController::class, 'enhancedDashboard'])
         ->name('enhanced');
+
+    Route::get('/enhanced/batches/{batch}', [ImportController::class, 'enhancedBatchShow'])
+        ->name('enhanced.batch.show');
+
+    Route::get('/enhanced/batches/{batch}/image/{imageName}', [ImportController::class, 'serveBatchImage'])
+        ->where('imageName', '.*')
+        ->name('enhanced.batch.image');
+
+    Route::get('/sample-template/{mediaType}', [ImportController::class, 'downloadSampleTemplate'])
+        ->where('mediaType', 'ooh|dooh')
+        ->name('sample-template');
 });

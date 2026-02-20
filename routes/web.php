@@ -33,6 +33,17 @@ Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->nam
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
 
+Route::get('/brand/oohapp-logo', function () {
+    $path = public_path('assets/images/logo/logo_image.jpeg');
+
+    abort_unless(file_exists($path), 404);
+
+    return response()->file($path, [
+        'Cache-Control' => 'public, max-age=31536000, immutable',
+        'ETag' => '"' . md5_file($path) . '"',
+    ]);
+})->name('brand.oohapp-logo');
+
 
 /*
 |--------------------------------------------------------------------------

@@ -262,11 +262,47 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'batch_id' => $this->batch->id,
                 'vendor_id' => $this->batch->vendor_id,
                 'media_type' => $this->batch->media_type,
-                'code' => $this->toNullableString($row['code'] ?? ''),
-                'city' => $this->toNullableString($row['city'] ?? ''),
-                'width' => isset($row['width']) ? (float) $row['width'] : null,
-                'height' => isset($row['height']) ? (float) $row['height'] : null,
+                'code' => $this->toNullableString($this->rowValue($row, ['code', 'media_id', 'Media ID'], '')),
+                'city' => $this->toNullableString($this->rowValue($row, ['city', 'City'], '')),
+                'category' => $this->toNullableString($this->rowValue($row, ['category', 'media_type_name', 'Media Type'])),
+                'address' => $this->toNullableString($this->rowValue($row, ['address', 'full_address', 'Full Address'])),
+                'locality' => $this->toNullableString($this->rowValue($row, ['locality', 'Locality'])),
+                'landmark' => $this->toNullableString($this->rowValue($row, ['landmark', 'Landmark'])),
+                'state' => $this->toNullableString($this->rowValue($row, ['state', 'State'])),
+                'pincode' => $this->toNullableString($this->rowValue($row, ['pincode', 'Pincode'])),
+                'latitude' => $this->toNullableDecimal($this->rowValue($row, ['latitude', 'Latitude']), 7),
+                'longitude' => $this->toNullableDecimal($this->rowValue($row, ['longitude', 'Longitude']), 7),
+                'width' => $this->toNullableDecimal($this->rowValue($row, ['width', 'Width']), 2),
+                'height' => $this->toNullableDecimal($this->rowValue($row, ['height', 'Height']), 2),
+                'measurement_unit' => $this->toNullableString($this->rowValue($row, ['measurement_unit', 'unit', 'Unit'])),
+                'lighting_type' => $this->toNullableString($this->rowValue($row, ['lighting_type', 'illumination', 'Illumination'])),
+                'screen_type' => $this->toNullableString($this->rowValue($row, ['screen_type', 'Screen Type'])),
                 'image_name' => $this->toNullableString($row['image_name'] ?? null),
+                'base_monthly_price' => $this->toNullableDecimal($this->rowValue($row, ['base_monthly_price', 'dcpm_or_price', 'DCPM / Price']), 2),
+                'monthly_price' => $this->toNullableDecimal($this->rowValue($row, ['monthly_price', 'monthly_sale_price', 'Monthly Sale Price']), 2),
+                'weekly_price_1' => $this->toNullableDecimal($this->rowValue($row, ['weekly_price_1']), 2),
+                'weekly_price_2' => $this->toNullableDecimal($this->rowValue($row, ['weekly_price_2']), 2),
+                'weekly_price_3' => $this->toNullableDecimal($this->rowValue($row, ['weekly_price_3']), 2),
+                'price_per_slot' => $this->toNullableDecimal($this->rowValue($row, ['price_per_slot', 'price_per_spot', 'Price Per Spot (₹)']), 2),
+                'slot_duration_seconds' => $this->toNullableInt($this->rowValue($row, ['slot_duration_seconds', 'ad_duration_sec', 'Ad Duration (Sec)'])),
+                'screen_run_time' => $this->toNullableInt($this->rowValue($row, ['screen_run_time', 'daily_play_hours', 'Daily Play Hours'])),
+                'total_slots_per_day' => $this->toNullableInt($this->rowValue($row, ['total_slots_per_day', 'spots_per_day', 'Spots Per Day'])),
+                'min_slots_per_day' => $this->toNullableInt($this->rowValue($row, ['min_slots_per_day'])),
+                'min_booking_duration' => $this->toNullableInt($this->rowValue($row, ['min_booking_duration', 'minimum_duration_days', 'Minimum Duration (Days)'])),
+                'minimum_booking_amount' => $this->toNullableDecimal($this->rowValue($row, ['minimum_booking_amount']), 2),
+                'commission_percent' => $this->toNullableDecimal($this->rowValue($row, ['commission_percent']), 2),
+                'graphics_charge' => $this->toNullableDecimal($this->rowValue($row, ['graphics_charge', 'designing_charge', 'Designing Charge']), 2),
+                'survey_charge' => $this->toNullableDecimal($this->rowValue($row, ['survey_charge']), 2),
+                'printing_charge' => $this->toNullableDecimal($this->rowValue($row, ['printing_charge', 'Printing Charge']), 2),
+                'mounting_charge' => $this->toNullableDecimal($this->rowValue($row, ['mounting_charge', 'Mounting Charge']), 2),
+                'remounting_charge' => $this->toNullableDecimal($this->rowValue($row, ['remounting_charge']), 2),
+                'lighting_charge' => $this->toNullableDecimal($this->rowValue($row, ['lighting_charge']), 2),
+                'discount_type' => $this->toNullableString($this->rowValue($row, ['discount_type', 'Discount Type'])),
+                'discount_value' => $this->toNullableDecimal($this->rowValue($row, ['discount_value', 'Discount Value']), 2),
+                'availability' => $this->toNullableString($this->rowValue($row, ['availability', 'Availability'])),
+                'currency' => $this->toNullableString($this->rowValue($row, ['currency'], 'INR')),
+                'available_from' => $this->toNullableDate($this->rowValue($row, ['available_from'])),
+                'available_to' => $this->toNullableDate($this->rowValue($row, ['available_to'])),
                 'extra_attributes' => $this->extractExtraAttributes($row),
                 'status' => 'valid',
                 'error_message' => null,
@@ -278,11 +314,47 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'batch_id' => $this->batch->id,
                 'vendor_id' => $this->batch->vendor_id,
                 'media_type' => $this->batch->media_type,
-                'code' => $this->toNullableString($row['code'] ?? 'UNKNOWN') ?? 'UNKNOWN',
+                'code' => $this->toNullableString($this->rowValue($row, ['code', 'media_id', 'Media ID'], 'UNKNOWN')) ?? 'UNKNOWN',
                 'city' => null,
+                'category' => null,
+                'address' => null,
+                'locality' => null,
+                'landmark' => null,
+                'state' => null,
+                'pincode' => null,
+                'latitude' => null,
+                'longitude' => null,
                 'width' => null,
                 'height' => null,
+                'measurement_unit' => null,
+                'lighting_type' => null,
+                'screen_type' => null,
                 'image_name' => null,
+                'base_monthly_price' => null,
+                'monthly_price' => null,
+                'weekly_price_1' => null,
+                'weekly_price_2' => null,
+                'weekly_price_3' => null,
+                'price_per_slot' => null,
+                'slot_duration_seconds' => null,
+                'screen_run_time' => null,
+                'total_slots_per_day' => null,
+                'min_slots_per_day' => null,
+                'min_booking_duration' => null,
+                'minimum_booking_amount' => null,
+                'commission_percent' => null,
+                'graphics_charge' => null,
+                'survey_charge' => null,
+                'printing_charge' => null,
+                'mounting_charge' => null,
+                'remounting_charge' => null,
+                'lighting_charge' => null,
+                'discount_type' => null,
+                'discount_value' => null,
+                'availability' => null,
+                'currency' => null,
+                'available_from' => null,
+                'available_to' => null,
                 'extra_attributes' => null,
                 'status' => 'invalid',
                 'error_message' => $this->toNullableString($e->getMessage()) ?? 'Invalid row',
@@ -300,7 +372,9 @@ class ProcessInventoryImportJob implements ShouldQueue
      */
     protected function validateRowFields(array $row): void
     {
-        if (empty($row['code'])) {
+        $code = $this->rowValue($row, ['code', 'media_id', 'Media ID']);
+
+        if (empty($code)) {
             throw new Exception('Code field is required');
         }
 
@@ -323,10 +397,87 @@ class ProcessInventoryImportJob implements ShouldQueue
     {
         $standardFields = [
             'code',
+            'media_id',
+            'Media ID',
             'city',
+            'City',
+            'category',
+            'media_type_name',
+            'Media Type',
+            'address',
+            'full_address',
+            'Full Address',
+            'locality',
+            'Locality',
+            'landmark',
+            'Landmark',
+            'state',
+            'State',
+            'pincode',
+            'Pincode',
+            'latitude',
+            'Latitude',
+            'longitude',
+            'Longitude',
             'width',
+            'Width',
             'height',
+            'Height',
+            'measurement_unit',
+            'unit',
+            'Unit',
+            'lighting_type',
+            'illumination',
+            'Illumination',
+            'screen_type',
+            'Screen Type',
             'image_name',
+            'base_monthly_price',
+            'dcpm_or_price',
+            'DCPM / Price',
+            'monthly_price',
+            'monthly_sale_price',
+            'Monthly Sale Price',
+            'weekly_price_1',
+            'weekly_price_2',
+            'weekly_price_3',
+            'price_per_slot',
+            'price_per_spot',
+            'Price Per Spot (₹)',
+            'slot_duration_seconds',
+            'ad_duration_sec',
+            'Ad Duration (Sec)',
+            'screen_run_time',
+            'daily_play_hours',
+            'Daily Play Hours',
+            'total_slots_per_day',
+            'spots_per_day',
+            'Spots Per Day',
+            'min_slots_per_day',
+            'min_booking_duration',
+            'minimum_duration_days',
+            'Minimum Duration (Days)',
+            'minimum_booking_amount',
+            'commission_percent',
+            'graphics_charge',
+            'designing_charge',
+            'Designing Charge',
+            'survey_charge',
+            'printing_charge',
+            'Printing Charge',
+            'mounting_charge',
+            'Mounting Charge',
+            'remounting_charge',
+            'lighting_charge',
+            'discount_type',
+            'Discount Type',
+            'discount_value',
+            'Discount Value',
+            'availability',
+            'Availability',
+            'currency',
+            'available_from',
+            'available_to',
             'status',
             'errors',
             'error_message',
@@ -367,6 +518,83 @@ class ProcessInventoryImportJob implements ShouldQueue
 
         $stringValue = trim((string) $value);
         return $stringValue === '' ? null : $stringValue;
+    }
+
+    /**
+     * Return first matching value from a row using an ordered list of keys.
+     *
+     * @param array $row
+     * @param array $keys
+     * @param mixed $default
+     * @return mixed
+     */
+    protected function rowValue(array $row, array $keys, $default = null)
+    {
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $row) && $row[$key] !== null && $row[$key] !== '') {
+                return $row[$key];
+            }
+        }
+
+        return $default;
+    }
+
+    /**
+     * Convert mixed value to nullable decimal string.
+     *
+     * @param mixed $value
+     * @param int $scale
+     * @return string|null
+     */
+    protected function toNullableDecimal($value, int $scale = 2): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (!is_numeric($value)) {
+            return null;
+        }
+
+        return number_format((float) $value, $scale, '.', '');
+    }
+
+    /**
+     * Convert mixed value to nullable integer.
+     *
+     * @param mixed $value
+     * @return int|null
+     */
+    protected function toNullableInt($value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (!is_numeric($value)) {
+            return null;
+        }
+
+        return (int) $value;
+    }
+
+    /**
+     * Convert mixed value to nullable date (Y-m-d).
+     *
+     * @param mixed $value
+     * @return string|null
+     */
+    protected function toNullableDate($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            return \Carbon\Carbon::parse((string) $value)->toDateString();
+        } catch (Exception $e) {
+            return null;
+        }
     }
 
     /**

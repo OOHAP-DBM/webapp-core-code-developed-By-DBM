@@ -2,6 +2,7 @@
 
 namespace Modules\Import\Http\Controllers;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Modules\Import\Entities\InventoryImportBatch;
@@ -10,6 +11,8 @@ use Exception;
 
 class ImportApprovalController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * @var ImportApprovalService
      */
@@ -45,15 +48,29 @@ class ImportApprovalController extends Controller
             // Process approval through service
             $result = $this->approvalService->approveBatch($batch);
 
+            if (!($result['success'] ?? false)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message'] ?? 'Failed to approve import batch',
+                    'data' => [
+                        'batch_id' => $batch->id,
+                        'created_count' => $result['created_count'] ?? 0,
+                        'failed_count' => $result['failed_count'] ?? 0,
+                        'total_processed' => $result['total_processed'] ?? 0,
+                        'status' => $result['status'] ?? $batch->fresh()->status,
+                    ],
+                ], 422);
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => 'Import approved and hoardings created successfully',
+                'message' => $result['message'] ?? 'Import approved and hoardings created successfully',
                 'data' => [
                     'batch_id' => $batch->id,
                     'created_count' => $result['created_count'],
                     'failed_count' => $result['failed_count'],
                     'total_processed' => $result['total_processed'],
-                    'status' => $batch->fresh()->status,
+                    'status' => $result['status'] ?? $batch->fresh()->status,
                 ],
             ], 200);
         } catch (Exception $e) {

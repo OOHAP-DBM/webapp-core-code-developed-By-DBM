@@ -5,9 +5,21 @@
             <h1 class="text-xl font-semibold text-gray-800">
                 @yield('page_title', 'Dashboard')
             </h1>
-            @hasSection('breadcrumb')
+            @if (Request::routeIs('admin.dashboard'))
+                <!-- No breadcrumb on dashboard -->
+            @elseif (Request::routeIs('admin.import.enhanced.batch.show'))
+                <div class="text-xs text-gray-500 mt-1">
+                    <a href="{{ route('admin.dashboard') }}">Dashboard</a> &rarr;
+                    <a href="{{ route('admin.import.enhanced') }}">Import Management</a> &rarr;
+                    <span>Inventory Details</span>
+                </div>
+            @elseif (View::hasSection('breadcrumb'))
                 <div class="mt-[-3px]">
                     @yield('breadcrumb')
+                </div>
+            @else
+                <div class="text-xs text-gray-500 mt-1">
+                    <a href="{{ route('admin.dashboard') }}">Dashboard</a> &rarr; @yield('page_title', 'Dashboard')
                 </div>
             @endif
         </div>
