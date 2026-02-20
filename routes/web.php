@@ -37,6 +37,17 @@ Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->nam
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
 
+Route::get('/brand/oohapp-logo', function () {
+    $path = public_path('assets/images/logo/logo_image.jpeg');
+
+    abort_unless(file_exists($path), 404);
+
+    return response()->file($path, [
+        'Cache-Control' => 'public, max-age=31536000, immutable',
+        'ETag' => '"' . md5_file($path) . '"',
+    ]);
+})->name('brand.oohapp-logo');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -691,7 +702,6 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     
     // Profile
     Route::get('/profile', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::get('/avatar/{user}', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewAvatar'])->name('view-avatar');
     Route::get('/vendor/pan/{vendor}',[\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewPan'])->name('pan.view');
     Route::put('/profile', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/send-otp',[\App\Http\Controllers\Web\Vendor\ProfileController::class,'sendProfileOtp'])->name('profile.send-otp');
@@ -699,6 +709,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::post('/delete/send-otp',[\App\Http\Controllers\Web\Vendor\ProfileController::class, 'sendDeleteOtp'])->name('profile.delete.sendOtp');
 
 }); // End of vendor middleware group
+    Route::get('/avatar/{user}', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewAvatar'])->name('view-avatar');
 
 // ============================================
 // ADMIN PANEL (Authenticated)
@@ -713,6 +724,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/vendors', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'index'])->name('vendors.index');
     Route::get('/vendors/create', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'create'])->name('vendors.create');
     Route::post('/vendors', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'store'])->name('vendors.store');
+    Route::get('/vendors/export', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'export'])->name('vendors.export');
     // Route::get('/vendors/requested', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'requestedVendors'])->name('vendors.requested');
     Route::get('/vendors/{id}', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'show'])->name('vendors.show');
     Route::post('/vendors/bulk-approve', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'bulkApprove'])->name('vendors.bulk-approve');
@@ -1127,3 +1139,8 @@ Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->grou
         return view('pages.coming-soon');
     })->name('coming-soon');
 
+// Admin Hoarding Auto Approval Settings
+Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin.settings.')->group(function () {
+    Route::get('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'edit'])->name('hoarding_auto_approval.edit');
+    Route::post('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'update'])->name('hoarding_auto_approval.update');
+});

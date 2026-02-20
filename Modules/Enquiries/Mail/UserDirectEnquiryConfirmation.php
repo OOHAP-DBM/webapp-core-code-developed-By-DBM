@@ -15,16 +15,16 @@ class UserDirectEnquiryConfirmation extends Mailable
 
     public function __construct(DirectEnquiry $enquiry)
     {
-        $this->enquiry = $enquiry;
+        // IMPORTANT: always reload fresh model for queued mail
+        $this->enquiry = DirectEnquiry::find($enquiry->id);
     }
 
     public function build()
     {
-        return $this->subject('Your Hoarding Enquiry Has Been Received')
+        return $this->subject('Your OOHAPP Enquiry Confirmation')
             ->markdown('enquiries.emails.user-direct-enquiry-confirmation')
             ->with([
                 'enquiry' => $this->enquiry,
-                 'action_url' => route('vendor.enquiries.show', $this->enquiry->id)
             ]);
     }
 }

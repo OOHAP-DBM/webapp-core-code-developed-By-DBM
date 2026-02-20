@@ -73,7 +73,7 @@
                 class="bg-[#F59E0B] text-white px-4 py-2 rounded-lg text-sm">
                 Disable Vendor
             </button>
-            <button class="bg-[#16A34A] text-white px-6 py-2 rounded-lg text-sm">
+            <button onclick="showExportFormatPrompt()" class="bg-[#16A34A] text-white px-6 py-2 rounded-lg text-sm">
                 Export
             </button>
         @elseif($status === 'suspended')
@@ -81,11 +81,11 @@
                 class="bg-[#008ae0] text-white px-6 py-2 rounded-lg text-sm">
                 Enable
             </button>
-            <button class="bg-[#16A34A] text-white px-6 py-2 rounded-lg text-sm">
+            <button onclick="showExportFormatPrompt()" class="bg-[#16A34A] text-white px-6 py-2 rounded-lg text-sm">
                 Export
             </button>
         @elseif($status === 'rejected')
-            <button class="bg-[#16A34A] text-white px-6 py-2 rounded-lg text-sm">
+            <button onclick="showExportFormatPrompt()" class="bg-[#16A34A] text-white px-6 py-2 rounded-lg text-sm">
                 Export
             </button>
         @endif
@@ -339,6 +339,45 @@ function sendBulkEnable(ids){
             setTimeout(()=>location.reload(),1200);
         }else{
             showToast('error',data.message);
+        }
+    });
+}
+</script>
+<script>
+    function showExportFormatPrompt() {
+    Swal.fire({
+        title: 'Export Vendors',
+        text: 'Select the format you want to export:',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Export',
+        confirmButtonColor: '#16a34a',
+        cancelButtonText: 'Cancel',
+        input: 'radio',
+        inputOptions: {
+            'csv': 'CSV',
+            'excel': 'Excel',
+            'pdf': 'PDF'
+        },
+        customClass: {
+            input: 'cursor-pointer'
+        },
+        inputValidator: (value) => {
+            if (!value) {
+                return 'Please select a format!';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed && result.value) {
+            let format = result.value;
+            let url = "{{ route('admin.vendors.export', ['status' => $status]) }}";
+            // Add format as query param
+            if (url.indexOf('?') === -1) {
+                url += '?format=' + encodeURIComponent(format);
+            } else {
+                url += '&format=' + encodeURIComponent(format);
+            }
+            window.location.href = url;
         }
     });
 }

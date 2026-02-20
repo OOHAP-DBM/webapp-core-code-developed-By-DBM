@@ -652,13 +652,21 @@ public function getActiveHoardingsCountAttribute(): int
     return $this->activeHoardings()->count();
 }
 
-/**
- * Get pending enquiries count for vendor
- */
-public function getPendingEnquiriesCountAttribute(): int
-{
-    return $this->assignedEnquiries()
-        ->where('status', 'new')
-        ->count();
-}
+    /**
+     * Get pending enquiries count for vendor
+     */
+    public function getPendingEnquiriesCountAttribute(): int
+    {
+        return $this->assignedEnquiries()
+            ->where('status', 'new')
+            ->count();
+    }
+      /**
+     * Send vendor emails using a Mailable instance
+     * @param \Illuminate\Mail\Mailable $mailable
+     */
+    public function sendVendorEmails($mailable)
+    {
+        \Mail::to($this->email)->send($mailable);
+    }
 }

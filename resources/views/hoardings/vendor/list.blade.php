@@ -241,18 +241,24 @@
             
             <div class="bg-white px-6 py-4 flex items-center justify-between border-t border-gray-50 text-[12px] text-gray-500">
                 <div class="flex items-center gap-3 font-medium">
-                    <select class="bg-[#F3F4F6] border-none rounded-md px-3 py-1 text-gray-700 font-bold">
-                        <option>08</option>
-                        <option>10</option>
-                    </select>
+                    <form id="perPageForm" method="GET" action="" class="flex items-center gap-2">
+                        @foreach(request()->except('page', 'per_page') as $key => $val)
+                            <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                        @endforeach
+                        <label for="perPageSelect" class="mr-1 text-gray-500">Show</label>
+                        <select id="perPageSelect" name="per_page" onchange="document.getElementById('perPageForm').submit()" class="bg-[#F3F4F6] border-none rounded-md px-3 py-1 text-gray-700 font-bold">
+                            @foreach([5, 10, 20, 50, 100] as $size)
+                                <option value="{{ $size }}" {{ $perPage == $size ? 'selected' : '' }}>{{ $size }}</option>
+                            @endforeach
+                        </select>
+                        <span class="ml-2">per page</span>
+                    </form>
                     <span>
                         Showing {{ ($hoardings->firstItem() ?? 0) }} to {{ ($hoardings->lastItem() ?? count($hoardings)) }} of {{ ($hoardings->total() ?? count($hoardings)) }} records
                     </span>
                 </div>
-                <div class="flex items-center gap-1">
-                    <button class="w-7 h-7 flex items-center justify-center rounded text-gray-300"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>
-                    <button class="w-7 h-7 flex items-center justify-center rounded bg-[#00A86B] text-white font-bold">1</button>
-                    <button class="w-7 h-7 flex items-center justify-center rounded text-gray-400"><i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+                <div>
+                    {{ $hoardings->appends(request()->except('page'))->links() }}
                 </div>
             </div>
         </div>

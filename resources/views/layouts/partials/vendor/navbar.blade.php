@@ -15,6 +15,14 @@
                     </h1>
                     @if (Request::routeIs('vendor.dashboard'))
                         <!-- No breadcrumb on dashboard -->
+                    @elseif (Request::routeIs('vendor.import.enhanced.batch.show'))
+                        <div class="text-xs text-gray-500 mt-1">
+                            <a href="{{ route('vendor.dashboard') }}">Dashboard</a> &rarr;
+                            <a href="{{ route('vendor.import.enhanced') }}">Import Management</a> &rarr;
+                            <span>Inventory Details</span>
+                        </div>
+                    @elseif (View::hasSection('breadcrumb'))
+                        <!-- Custom breadcrumb section rendered above -->
                     @else
                         <div class="text-xs text-gray-500 mt-1">
                             <a href="{{ route('vendor.dashboard') }}" class="">Dashboard</a> &rarr; @yield('title', 'Dashboard')
