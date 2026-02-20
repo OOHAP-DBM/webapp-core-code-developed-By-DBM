@@ -187,12 +187,14 @@ class DOOHController extends Controller
 
             $result = $service->storeStep3($draft, $request->all());
             if ($result['success']) {
-                $draft->hoarding->status = Hoarding::STATUS_PENDING_APPROVAL;
                 $draft->hoarding->current_step = 3; // Mark as finished
                 $draft->save();
-
+                $status = $draft->hoarding->status;
+                $successMsg = ($status === Hoarding::STATUS_ACTIVE)
+                    ? 'Hoarding submitted successfully! It is published.'
+                    : 'Hoarding submitted successfully! It is now under review and will be published once approved';
                 return redirect()->route('vendor.hoardings.myHoardings', ['step' => 3])
-                    ->with('success', 'Hoarding submitted successfully! It is now under review and will be published once approved.');
+                    ->with('success', $successMsg);
             }
             return back()->withErrors($result['errors'])->withInput();
         }

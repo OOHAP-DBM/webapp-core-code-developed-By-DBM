@@ -247,24 +247,31 @@ class DOOHScreenService
             $parentHoarding->survey_charge = $data['survey_charge'] ?? null;
             $parentHoarding->hoarding_visibility = $data['hoarding_visibility'] ?? null;
             $parentHoarding->current_step = 3;
-            $parentHoarding->status = 'pending_approval';
+            $autoApproval = env('Auto_Hoarding_Approval', false);
+            $newStatus = $autoApproval ? 'active' : 'pending_approval';
+            $parentHoarding->status = $newStatus;
             $parentHoarding->save();
-            // 🔔 Notify all admins (DOOH pending approval)
+            // 🔔 Notify all admins (DOOH status update)
             try {
                 $admins = User::role(['admin'])->get();
-
                 foreach ($admins as $admin) {
                     $admin->notify(
                         new NewHoardingPendingApprovalNotification($parentHoarding)
                     );
                 }
-
-                Log::info('DOOH pending approval notification sent to admins', [
+                Log::info('DOOH status notification sent to admins', [
                     'hoarding_id' => $parentHoarding->id,
                     'screen_id'   => $screen->id,
                 ]);
+                // Notify vendor (in-app and email)
+                $vendor = $parentHoarding->vendor;
+                if ($vendor) {
+                    $statusText = $newStatus === 'active' ? 'Your DOOH screen is now active and published.' : 'Your DOOH screen is pending approval.';
+                    $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parentHoarding));
+                    $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parentHoarding, $statusText));
+                }
             } catch (\Throwable $e) {
-                Log::error('DOOH pending approval notification failed', [
+                Log::error('DOOH status notification failed', [
                     'hoarding_id' => $parentHoarding->id,
                     'screen_id'   => $screen->id,
                     'error'       => $e->getMessage(),
@@ -476,8 +483,8 @@ class DOOHScreenService
                 // 'weekly_price_2' => $data['weekly_price_2']?? null,
                 // 'weekly_price_3' => $data['weekly_price_3']?? null,
                 'monthly_price' => $data['monthly_price'] ?? $hoarding->monthly_price,
-                 'base_monthly_price' => $data['base_monthly_price'] ?? $hoarding->base_monthly_price,
-               'discount_type' => $data['discount_type'] ?? null,
+                'base_monthly_price' => $data['base_monthly_price'] ?? $hoarding->base_monthly_price,
+                'discount_type' => $data['discount_type'] ?? null,
                 'discount_value' => $data['discount_value'] ?? null,
 
             ]);

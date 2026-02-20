@@ -1122,3 +1122,8 @@ Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->grou
         return view('pages.coming-soon');
     })->name('coming-soon');
 
+// Admin Hoarding Auto Approval Settings
+Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin.settings.')->group(function () {
+    Route::get('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'edit'])->name('hoarding_auto_approval.edit');
+    Route::post('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'update'])->name('hoarding_auto_approval.update');
+});

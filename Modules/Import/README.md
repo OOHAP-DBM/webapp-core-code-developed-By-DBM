@@ -55,6 +55,9 @@ IMPORT_MAX_FILE_SIZE_PPT=51200    # KB
 QUEUE_CONNECTION=database         # For async processing
 ```
 
+
+Uncomment zip extension in php.ini
+run Import Seeder
 ## 📡 API Workflow
 
 ### 1️⃣ Upload File

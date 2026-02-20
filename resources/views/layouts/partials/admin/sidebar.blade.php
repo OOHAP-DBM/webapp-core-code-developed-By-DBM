@@ -373,6 +373,19 @@
                 </div>
             </div>        
         </div>
+        <div class="mt-6 mb-2 text-xs font-bold tracking-wider px-2">SETTINGS</div>
+        <div class="space-y-1">
+            <a
+                href="{{ route('admin.settings.hoarding_auto_approval.edit') }}"
+                class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('admin.settings.hoarding_auto_approval.edit') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
+            >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 15.5C13.933 15.5 15.5 13.933 15.5 12C15.5 10.067 13.933 8.5 12 8.5C10.067 8.5 8.5 10.067 8.5 12C8.5 13.933 10.067 15.5 12 15.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M19.4 15A1.65 1.65 0 0 0 21 13.35V10.65A1.65 1.65 0 0 0 19.4 9L17.55 8.13A1.65 1.65 0 0 0 16.24 6.76L15.37 4.9A1.65 1.65 0 0 0 13.35 3.5H10.65A1.65 1.65 0 0 0 9 4.9L8.13 6.76A1.65 1.65 0 0 0 6.76 8.13L4.9 9A1.65 1.65 0 0 0 3.5 10.65V13.35A1.65 1.65 0 0 0 4.9 15L6.76 15.87A1.65 1.65 0 0 0 8.13 17.24L9 19.1A1.65 1.65 0 0 0 10.65 20.5H13.35A1.65 1.65 0 0 0 15 19.1L15.87 17.24A1.65 1.65 0 0 0 17.24 15.87L19.4 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Hoarding Auto Approval
+            </a>
+        </div>
         <div class="mt-6 mb-2 text-xs font-bold tracking-wider px-2">PEOPLES</div>
         <div class="space-y-1"> 
             <div

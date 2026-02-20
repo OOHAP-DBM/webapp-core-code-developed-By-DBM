@@ -241,18 +241,24 @@ class HoardingListService
             //     $this->repo->storePackages($hoarding->id, $data);
             // }
 
-            // Set parent hoarding status to pending_approval
+            // Set parent hoarding status based on env
             $parent = $hoarding->hoarding;
-
-           
-            if ($parent && $parent->status !== \App\Models\Hoarding::STATUS_PENDING_APPROVAL) {
-                $parent->status = \App\Models\Hoarding::STATUS_PENDING_APPROVAL;
-                
+            $autoApproval = env('Auto_Hoarding_Approval', false);
+            $newStatus = $autoApproval ? \App\Models\Hoarding::STATUS_ACTIVE : \App\Models\Hoarding::STATUS_PENDING_APPROVAL;
+            if ($parent && $parent->status !== $newStatus) {
+                $parent->status = $newStatus;
                 $parent->save();
                 // Notify all admins
                 $admins = \App\Models\User::role(['admin'])->get();
                 foreach ($admins as $admin) {
                     $admin->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
+                }
+                // Notify vendor (in-app and email)
+                $vendor = $parent->vendor;
+                if ($vendor) {
+                    $statusText = $newStatus === \App\Models\Hoarding::STATUS_ACTIVE ? 'Your OOH hoarding is now active and published.' : 'Your OOH hoarding is pending approval.';
+                    $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
+                    $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parent, $statusText));
                 }
             }
             return ['success' => true, 'hoarding' => $hoarding->fresh(['packages'])];

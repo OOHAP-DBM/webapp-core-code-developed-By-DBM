@@ -112,8 +112,12 @@ class OOHListingController extends Controller
                             $q->where('vendor_id', $vendor->id);
                         })->firstOrFail();
                     $this->hoardingService->storeStep3($screen, $request->all());
+                    $status = $screen->hoarding->status;
+                    $successMsg = ($status === Hoarding::STATUS_ACTIVE)
+                        ? 'Hoarding submitted successfully! It is published.'
+                        : 'Hoarding submitted successfully! It is now under review and will be published once approved.';
                     return redirect()->route('vendor.hoardings.myHoardings', ['step' => 3])
-                        ->with('success', 'Hoarding submitted successfully! It is now under review and will be published once approved.');
+                        ->with('success', $successMsg);
 
                 default:
                     return redirect()->back()->withErrors(['message' => 'Invalid step provided']);

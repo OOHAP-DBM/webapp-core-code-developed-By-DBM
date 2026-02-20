@@ -19,18 +19,28 @@ class NewHoardingPendingApprovalNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database']; // ✅ ONLY DB
+        return ['database'];
     }
 
     public function toDatabase($notifiable)
     {
+        $status = $this->hoarding->status;
+        $isActive = ($status === 'active');
+        $type = $isActive ? 'hoarding_active' : 'new_hoarding_pending_approval';
+        $title = $isActive ? 'Hoarding Activated' : 'New Hoarding Pending Approval';
+        $message = $isActive
+            ? 'Your hoarding is now active and published.'
+            : 'A new vendor hoarding is pending approval.';
+        $actionUrl = $isActive
+            ? route('vendor.hoardings.myHoardings')
+            : route('admin.vendor-hoardings.index');
         return [
-            'type'        => 'new_hoarding_pending_approval',
-            'title'       => 'New Hoarding Pending Approval',
-            'message'     => 'A new vendor hoarding is pending approval.',
+            'type'        => $type,
+            'title'       => $title,
+            'message'     => $message,
             'hoarding_id' => $this->hoarding->id,
             'address'     => $this->hoarding->address,
-            'action_url'  => route('admin.vendor-hoardings.index'),
+            'action_url'  => $actionUrl,
         ];
     }
 }
