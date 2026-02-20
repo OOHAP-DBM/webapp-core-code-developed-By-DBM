@@ -219,7 +219,8 @@ html, body {
                 </div>
 
                 <button type="submit" class="btn btn-continue w-100 mt-3" id="continueBtn" disabled>
-                    Continue
+                    <span id="continueBtnText">Continue</span>
+                    <span id="continueBtnLoader" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
                 </button>
             </form>
 
@@ -464,6 +465,14 @@ html, body {
 
             enteredEmail = emailInput.value;
 
+            // Show loader
+            const btn = document.getElementById('continueBtn');
+            const btnText = document.getElementById('continueBtnText');
+            const btnLoader = document.getElementById('continueBtnLoader');
+            btn.disabled = true;
+            btnText.classList.add('d-none');
+            btnLoader.classList.remove('d-none');
+
             fetch("{{ route('register.sendEmailOtp') }}", {
                 method: "POST",
                 headers: {
@@ -474,6 +483,11 @@ html, body {
             })
             .then(r => r.json())
             .then(res => {
+                // Hide loader
+                btn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnLoader.classList.add('d-none');
+
                 if (!res.success) return showGlobalError(res.message);
 
                 signupForm.style.display = 'none';
@@ -485,6 +499,12 @@ html, body {
                 otpUI.classList.remove('d-none');
                 otpBoxes[0].focus();
                 startResendTimer();
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnLoader.classList.add('d-none');
+                showGlobalError('Something went wrong. Please try again.');
             });
         });
 

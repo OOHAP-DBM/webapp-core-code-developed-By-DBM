@@ -57,7 +57,7 @@
                         <th class="px-4 py-3 text-center">Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y">
+                <tbody>
                     @forelse($enquiries as $index => $enquiry)
                         <tr class="hover:bg-gray-50">
 

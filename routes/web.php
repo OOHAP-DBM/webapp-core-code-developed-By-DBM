@@ -691,7 +691,6 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     
     // Profile
     Route::get('/profile', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::get('/avatar/{user}', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewAvatar'])->name('view-avatar');
     Route::get('/vendor/pan/{vendor}',[\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewPan'])->name('pan.view');
     Route::put('/profile', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/send-otp',[\App\Http\Controllers\Web\Vendor\ProfileController::class,'sendProfileOtp'])->name('profile.send-otp');
@@ -699,6 +698,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::post('/delete/send-otp',[\App\Http\Controllers\Web\Vendor\ProfileController::class, 'sendDeleteOtp'])->name('profile.delete.sendOtp');
 
 }); // End of vendor middleware group
+    Route::get('/avatar/{user}', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewAvatar'])->name('view-avatar');
 
 // ============================================
 // ADMIN PANEL (Authenticated)
