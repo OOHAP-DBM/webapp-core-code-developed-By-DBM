@@ -37,6 +37,8 @@ class DatabaseSeeder extends Seeder
             CancellationRefundPolicySeeder::class,
             AboutPageSeeder::class,
             AboutLeaderSeeder::class,
+            ImportPermissionSeeder::class,
+            InvoiceSettingsSeeder::class,
         ]);
     }
 }

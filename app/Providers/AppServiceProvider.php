@@ -119,6 +119,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\App\Models\CommissionLog::class, \App\Policies\CommissionLogPolicy::class);
         Gate::policy(\App\Models\QuoteRequest::class, \App\Policies\QuoteRequestPolicy::class);
         Gate::policy(\App\Models\Offer::class, \Modules\Offers\Policies\OfferPolicy::class);
+        Gate::policy(\Modules\Import\Entities\InventoryImportBatch::class, \Modules\Import\Policies\ImportPolicy::class);
 
         // Register event listeners
         Event::listen(

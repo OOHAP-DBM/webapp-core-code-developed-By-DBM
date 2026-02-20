@@ -37,6 +37,17 @@ Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->nam
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
 
+Route::get('/brand/oohapp-logo', function () {
+    $path = public_path('assets/images/logo/logo_image.jpeg');
+
+    abort_unless(file_exists($path), 404);
+
+    return response()->file($path, [
+        'Cache-Control' => 'public, max-age=31536000, immutable',
+        'ETag' => '"' . md5_file($path) . '"',
+    ]);
+})->name('brand.oohapp-logo');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -1119,3 +1130,8 @@ Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->grou
         return view('pages.coming-soon');
     })->name('coming-soon');
 
+// Admin Hoarding Auto Approval Settings
+Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin.settings.')->group(function () {
+    Route::get('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'edit'])->name('hoarding_auto_approval.edit');
+    Route::post('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'update'])->name('hoarding_auto_approval.update');
+});
