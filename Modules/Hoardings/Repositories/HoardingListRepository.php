@@ -6,6 +6,7 @@ use App\Models\Hoarding;
 use Modules\Hoardings\Models\HoardingMedia;
 use Modules\Hoardings\Models\HoardingPackage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class HoardingListRepository
 {
@@ -94,6 +95,36 @@ class HoardingListRepository
     }
 
     /**
+     * Delete media files by comma-separated ID string, scoped to a hoarding.
+     */
+    public function deleteMedia(int $hoardingId, string $deletedIdsString): void
+    {
+        $deleteIds = array_filter(
+            array_map('intval', explode(',', $deletedIdsString))
+        );
+
+        if (empty($deleteIds)) {
+            return;
+        }
+
+        $mediaToDelete = HoardingMedia::whereIn('id', $deleteIds)
+            ->where('hoarding_id', $hoardingId)
+            ->get();
+
+        foreach ($mediaToDelete as $media) {
+            if ($media->file_path && Storage::disk('public')->exists($media->file_path)) {
+                Storage::disk('public')->delete($media->file_path);
+            }
+            $media->delete();
+        }
+
+        \Log::info('Hoarding media deleted', [
+            'hoarding_id' => $hoardingId,
+            'deleted_ids' => $deleteIds,
+        ]);
+    }
+
+    /**
      * Handle brand logo storage.
      */
     // public function storeBrandLogos(int $hoardingId, array $files): void
@@ -106,22 +137,59 @@ class HoardingListRepository
     //     }
     // }
 
-    public function storeBrandLogos($childhoardingId, array $logoFiles): array
+    public function storeBrandLogos($parentId, array $logoFiles): array
     {
-        $hoarding = \Modules\Hoardings\Models\OOHHoarding::findOrFail($childhoardingId);
+        // dd($parentId);
+        $hoarding = Hoarding::findOrFail($parentId);
         $saved = [];
         foreach ($logoFiles as $index => $file) {
             $uuid = \Illuminate\Support\Str::uuid()->toString();
             $ext  = strtolower($file->getClientOriginalExtension());
-            $directory = "oohHoardings/brand_logos/{$childhoardingId}";
+            $directory = "oohHoardings/brand_logos/{$parentId}";
             $filename  = "{$uuid}.{$ext}";
             $path = $file->storeAs($directory, $filename, 'public');
-            $saved[] = $hoarding->oohBrandLogos()->create([
+            $saved[] = $hoarding->brandLogos()->create([
                 'file_path'  => $path,
                 'sort_order' => $index,
             ]);
         }
         return $saved;
+    }
+
+    /**
+     * Delete brand logos by comma-separated ID string.
+     * Handles both OOH (Spatie Media Library) and DOOH (custom table).
+     */
+    /**
+     * Delete brand logos by comma-separated ID string — manual file + DB deletion.
+     */
+    public function deleteBrandLogos(Hoarding $hoarding, string $deletedIdsString): void
+    {
+        $deleteIds = array_filter(
+            array_map('intval', explode(',', $deletedIdsString))
+        );
+
+        if (empty($deleteIds)) {
+            return;
+        }
+
+        $logos = $hoarding->brandLogos()
+            ->whereIn('id', $deleteIds)
+            ->get();
+
+        foreach ($logos as $logo) {
+            // ✅ Delete file from disk manually
+            if (!empty($logo->file_path) && Storage::disk('public')->exists($logo->file_path)) {
+                Storage::disk('public')->delete($logo->file_path);
+            }
+            // ✅ Delete DB record
+            $logo->delete();
+        }
+
+        \Log::info('Brand logos manually deleted', [
+            'hoarding_id' => $hoarding->id,
+            'deleted_ids' => $deleteIds,
+        ]);
     }
 
     // public function updateStep3($hoarding, array $data)

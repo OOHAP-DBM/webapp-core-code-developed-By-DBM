@@ -8,6 +8,7 @@
     <title>@yield('title', 'Dashboard') - OOHAPP Customer</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
+    <link rel="icon" type="image/png" href="/assets/images/favicon/Vector (1).png" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">

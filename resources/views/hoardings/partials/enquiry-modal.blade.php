@@ -224,7 +224,8 @@
                                name="preferred_start_date"
                                id="enquiryStartDate"
                                class="enquiry-input"
-                               required>
+                               required
+                               min="{{ date('Y-m-d') }}">
                     </div>
 
                     <div id="monthWrapper">

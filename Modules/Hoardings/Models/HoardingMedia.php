@@ -34,4 +34,27 @@ class HoardingMedia extends Model
         }
         return 'application/octet-stream';
     }
+
+
+    public function normalizedMimeType(): string
+    {
+        $raw = $this->mime_type ?? $this->media_type ?? '';
+        if ($raw === 'video') {
+            $ext = pathinfo($this->file_path, PATHINFO_EXTENSION);
+            return $ext === 'webm' ? 'video/webm' : 'video/mp4';
+        } elseif ($raw === 'image') {
+            $ext = pathinfo($this->file_path, PATHINFO_EXTENSION);
+            return match($ext) {
+                'png'  => 'image/png',
+                'webp' => 'image/webp',
+                default => 'image/jpeg',
+            };
+        }
+        return $raw;
+    }
+
+    public function isVideo(): bool
+    {
+        return str_starts_with($this->normalizedMimeType(), 'video');
+    }
 }

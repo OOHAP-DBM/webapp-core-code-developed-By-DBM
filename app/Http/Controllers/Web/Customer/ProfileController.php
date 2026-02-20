@@ -159,15 +159,13 @@ class ProfileController extends Controller
             }
         }
 
+
         $otp = random_int(1000, 9999);
         $cacheKey = "otp:{$user->id}:{$identifier}";
         Cache::put($cacheKey, $otp, now()->addMinute());
         try {
             if ($isEmail) {
-                Mail::raw(
-                    "Your OOHAPP OTP is {$otp}. This OTP will expire in 1 minute.\n\n– Team OOHAPP",
-                    fn ($msg) => $msg->to($identifier)->subject('OOHAPP OTP')
-                );
+                Mail::to($identifier)->send(new \Modules\Mail\OtpVerificationMail($otp));
             } else {
                 $twilio = new Client(
                     env('TWILIO_SID'),

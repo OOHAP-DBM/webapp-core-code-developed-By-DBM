@@ -41,7 +41,7 @@ class VendorDirectEnquiryNotification extends Notification implements ShouldQueu
             'enquiry_id' => $this->enquiry->id,
             'city' => $this->enquiry->location_city,
             'message' => 'New direct web enquiry received in ' . ($this->enquiry->location_city ?? ''),
-            'action_url' => route('vendor.direct_enquiries.show', $this->enquiry->id),
+            'action_url' => route('vendor.direct-enquiries.index'),
         ];
     }
 }

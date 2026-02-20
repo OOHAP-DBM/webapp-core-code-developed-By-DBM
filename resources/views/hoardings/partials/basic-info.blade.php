@@ -55,7 +55,7 @@
 
     </p>
 
-    {{-- EXTRA META FOR DOOH --}}
+    <!-- {{-- EXTRA META FOR DOOH --}}
     @if($isDOOH && $dooh)
         <p class="text-xs text-gray-500">
             Resolution:
@@ -63,7 +63,7 @@
             {{ $dooh->resolution_unit ?? 'px' }}
             • Slot {{ $dooh->slot_duration_seconds ?? '—' }}s
         </p>
-    @endif
+    @endif -->
 
     {{-- RATING (static for now) --}}
     <div class="flex items-center gap-2 text-sm">

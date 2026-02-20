@@ -368,7 +368,7 @@
                     >
 
 
-                        - Direct Enquiry
+                        - Direct Enquiries
                     </a>
                 </div>
             </div>        

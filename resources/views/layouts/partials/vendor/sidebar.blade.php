@@ -31,7 +31,7 @@
                 <div class="w-14 h-14 rounded-full border {{ request()->routeIs('vendor.profile.*') ? 'border-white' : 'border-gray-300' }} overflow-hidden flex items-center justify-center {{ request()->routeIs('vendor.profile.*') ? 'bg-opacity-20 bg-white' : 'bg-gray-100' }}">
                     @if(auth()->user()->avatar)
                         <img
-                            src="{{ route('vendor.view-avatar', auth()->user()->id) }}?v={{ optional(auth()->user()->updated_at)->timestamp ?? '' }}"
+                            src="{{ route('view-avatar', auth()->user()->id) }}?t={{ time() }}"
                             alt="Profile Image"
                             class="w-full h-full object-cover block"
                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"

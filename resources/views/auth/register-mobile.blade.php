@@ -7,6 +7,15 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
 <style>
+/* Loader state for continue button */
+.btn-continue.loading,
+.btn-continue.loading:disabled {
+    background: #2bb57c !important;
+    color: #fff !important;
+    border-color: #2bb57c !important;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
 html, body {
     width: 100%;
     height: 100%;
@@ -205,7 +214,8 @@ html, body {
             </div>
 
             <button class="btn btn-continue w-100 mt-3" id="sendOtpBtn" disabled>
-                Continue
+                <span id="sendOtpBtnText">Continue</span>
+                <span id="sendOtpBtnLoader" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
             </button>
             <div class="divider"><span>OR</span></div>
 
@@ -450,6 +460,15 @@ html, body {
                 return;
             }
 
+            // Show loader
+            const btnText = document.getElementById('sendOtpBtnText');
+            const btnLoader = document.getElementById('sendOtpBtnLoader');
+
+            sendOtpBtn.classList.add('loading');
+            sendOtpBtn.disabled = true;
+            btnText.classList.add('d-none');
+            btnLoader.classList.remove('d-none');
+
             fetch("{{ route('register.sendPhoneOtp') }}", {
                 method: 'POST',
                 headers: {
@@ -460,6 +479,13 @@ html, body {
             })
             .then(r => r.json())
             .then(res => {
+                // Hide loader
+
+                sendOtpBtn.classList.remove('loading');
+                sendOtpBtn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnLoader.classList.add('d-none');
+
                 if (!res.success) {
                     showError(res.message || 'Failed to send OTP');
                     return;
@@ -472,7 +498,13 @@ html, body {
                 otpBoxes[0].focus();
                 startResendTimer();
             })
-            .catch(() => showError('Something went wrong. Try again.'));
+            .catch(() => {
+                sendOtpBtn.classList.remove('loading');
+                sendOtpBtn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnLoader.classList.add('d-none');
+                showError('Something went wrong. Try again.');
+            });
         });
 
         /* ================= OTP INPUT ================= */

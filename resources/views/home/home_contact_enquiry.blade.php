@@ -233,7 +233,7 @@
                     <button type="submit" 
                             id="submitBtn" 
                             disabled
-                            class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm sm:text-base">
+                            class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm sm:text-base cursor-pointer">
                         <span id="submitBtnText">Submit Enquiry</span>
                     </button>
 
@@ -290,12 +290,12 @@
             <div class="flex gap-3">
                 <button type="button" 
                         onclick="closeOtpModal()" 
-                        class="flex-1 bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-300 transition-colors">
+                        class="flex-1 bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-300 transition-colors cursor-pointer">
                     Cancel
                 </button>
                 <button type="button" 
                         id="verifyOtpBtn" 
-                        class="flex-1 bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-all">
+                        class="flex-1 bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-all cursor-pointer">
                     Verify
                 </button>
             </div>
@@ -370,6 +370,10 @@ function closeOtpModal() {
     document.getElementById('otpModal').classList.add('hidden');
     document.getElementById('otpInput').value = '';
     document.getElementById('otpMessage').textContent = '';
+    // Allow the auto-trigger to fire again if they change the number
+    otpSentAutomatically = false;
+    otpCooldown = false;
+    
     if (resendInterval) {
         clearInterval(resendInterval);
     }
@@ -380,6 +384,22 @@ function closeSuccessModal() {
     closeDirectEnquiryModal();
 }
 
+
+// Add this inside your <script> tag
+phoneInput.addEventListener('input', function() {
+    // If the user changes the number, we reset the state
+    phoneVerified = false;
+    otpSentAutomatically = false;
+    phoneVerifiedInput.value = '0';
+    
+    // UI Resets
+    phoneInput.readOnly = false;
+    phoneInput.classList.remove('bg-gray-50', 'cursor-not-allowed');
+    document.getElementById('phoneStatusIndicator').classList.add('hidden');
+    
+    // Re-validate submit button
+    updateSubmitButtonState();
+});
 // =====================================================
 // AUTO-OTP TRIGGER
 // =====================================================
@@ -434,7 +454,7 @@ async function sendOTPAutomatically(phone) {
         // Start 60 second cooldown
         setTimeout(() => {
             otpCooldown = false;
-        }, 60000);
+        }, 5000);
 
     } catch (error) {
         console.error('OTP Send Error:', error);

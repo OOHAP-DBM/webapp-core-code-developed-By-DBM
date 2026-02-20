@@ -33,13 +33,13 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
-    .action-dropdown{
-        position: absolute;
-        right: 0;
+    .action-dropdown {
+        position: fixed;
         min-width: 240px;
         transform-origin: top right;
+        z-index: 9999;
     }
-    td.relative{
+    td.relative {
         overflow: visible !important;
     }
 </style>
@@ -71,7 +71,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
                 </button>
-                <div x-show="open" @click.outside="open = false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
+                <div x-show="open" @click.outside="open = false"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
                     <div class="py-1">
                         <button onclick="bulkApprove()" class="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-blue-600 font-medium flex items-center gap-3 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,12 +99,6 @@
                             Deactivate Selected
                         </button>
                         <div class="border-t border-gray-100 my-1"></div>
-                        <!-- <button onclick="bulkUpdateSlugs()" class="w-full text-left px-4 py-2.5 hover:bg-yellow-50 text-yellow-700 font-medium flex items-center gap-3 transition-colors">
-                            <svg class="w-5 h-5 mt-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 01-8 0m8 0a4 4 0 00-8 0m8 0V5a4 4 0 00-8 0v2m8 0a4 4 0 01-8 0" />
-                            </svg>
-                            Generate/Update Slugs
-                        </button> -->
                         <button onclick="bulkDelete()" class="w-full text-left px-4 py-2.5 hover:bg-red-50 text-red-600 font-medium flex items-center gap-3 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -197,10 +198,8 @@
                         <th class="px-5 py-4 text-left">Hoarding Title</th>
                         <th class="px-5 py-4">Type</th>
                         <th class="px-5 py-4">Published By</th>
-                        {{-- <th class="px-5 py-4">Overall Commission</th> --}}
                         <th class="px-5 py-4">Hoarding Commission</th>
                         <th class="px-5 py-4">Location</th>
-                        {{-- <th class="px-5 py-4 text-center"># of Bookings</th> --}}
                         <th class="px-5 py-4 text-left md:ml-2">Status</th>
                         <th class="px-5 py-4">Progress</th>
                         <th class="px-5 py-4 text-right">Action</th>
@@ -273,11 +272,6 @@
                             </div>
                         </td>
 
-                        {{-- Overall Commission --}}
-                        {{-- <td class="px-5 py-4 text-blue-600">
-                            {{ $overallCommission }}
-                        </td> --}}
-
                         {{-- Hoarding Commission --}}
                         <td class="px-5 py-4">
                             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 text-green-700 font-semibold text-xs">
@@ -299,11 +293,6 @@
                             </div>
                         </td>
 
-                        {{-- Bookings --}}
-                        {{-- <td class="px-4 py-3 text-center">
-                            {{ $hoarding->bookings_count ?? 0 }}
-                        </td> --}}
-
                         {{-- Status --}}
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-3">
@@ -316,15 +305,6 @@
                             </div>
                         </td>
 
-                        {{-- Expiry --}}
-                        <!-- <td class="px-5 py-4">
-                            <div class="flex items-center gap-2 text-sm text-gray-600">
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                {{ $hoarding->expiry_date ? $hoarding->expiry_date->format('d M, Y') : '—' }}
-                            </div>
-                        </td> -->
                         {{-- Progress --}}
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-2">
@@ -338,108 +318,135 @@
                         </td>
 
                         {{-- Action --}}
-                        <td class="px-5 py-4 text-right relative" x-data="dropdownManager">
+                        <td class="px-5 py-4 text-right relative">
+                            <div x-data="{ open: false }" class="inline-block">
+                                <button
+                                    @click.stop="
+                                        open = !open;
+                                        if (open) {
+                                            $nextTick(() => {
+                                                const btn = $el;
+                                                const dropdown = $refs.dropdown;
+                                                const btnRect = btn.getBoundingClientRect();
+                                                const dropdownHeight = dropdown.offsetHeight || 200;
+                                                const spaceBelow = window.innerHeight - btnRect.bottom;
 
-                            <button @click="toggleDropdown($event)"
-                                class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
-                                </svg>
-                            </button>
+                                                dropdown.style.left = (btnRect.right - 240) + 'px';
 
-                           <div x-show="open"
-                                x-ref="dropdown"
-                                @click.outside="open = false"
-                                class="action-dropdown absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden"
-                                x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 scale-95"
-                                x-transition:enter-end="opacity-100 scale-100"
-                                x-transition:leave="transition ease-in duration-150"
-                                x-transition:leave-start="opacity-100 scale-100"
-                                x-transition:leave-end="opacity-0 scale-95">
+                                                if (spaceBelow < dropdownHeight && btnRect.top > dropdownHeight) {
+                                                    dropdown.style.top = (btnRect.top - dropdownHeight) + 'px';
+                                                } else {
+                                                    dropdown.style.top = (btnRect.bottom + 4) + 'px';
+                                                }
+                                            });
+                                        }
+                                    "
+                                    class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                                    </svg>
+                                </button>
 
+                                <div
+                                    x-ref="dropdown"
+                                    x-show="open"
+                                    @click.outside="open = false"
+                                    x-transition:enter="transition ease-out duration-200"
+                                    x-transition:enter-start="opacity-0 scale-95"
+                                    x-transition:enter-end="opacity-100 scale-100"
+                                    x-transition:leave="transition ease-in duration-150"
+                                    x-transition:leave-start="opacity-100 scale-100"
+                                    x-transition:leave-end="opacity-0 scale-95"
+                                    class="action-dropdown bg-white rounded-lg shadow-xl border border-gray-200"
+                                    style="display: none;">
 
-                                <div class="py-1">
+                                    <div class="py-1">
 
+                                        @if($hoarding->status === 'pending_approval')
+                                            <button
+                                                @click="open = false"
+                                                onclick="approveAndActivateSingle({{ $hoarding->id }})"
+                                                class="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-blue-600 font-medium flex items-center gap-3 transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                Approve & Activate
+                                            </button>
+                                        @elseif($hoarding->status === 'active')
+                                            <button
+                                                @click="open = false"
+                                                onclick="deactivateSingle({{ $hoarding->id }})"
+                                                class="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-gray-600 font-medium flex items-center gap-3 transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                Deactivate
+                                            </button>
+                                        @elseif($hoarding->status === 'inactive' || $hoarding->status === 'suspended')
+                                            <button
+                                                @click="open = false"
+                                                onclick="activateSingle({{ $hoarding->id }})"
+                                                class="w-full text-left px-4 py-2.5 hover:bg-green-50 text-green-600 font-medium flex items-center gap-3 transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                                Activate
+                                            </button>
+                                        @endif
 
-                                    @if($hoarding->status === 'pending_approval')
-                                        <button 
-                                            onclick="approveAndActivateSingle({{ $hoarding->id }})"
-                                            class="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-blue-600 font-medium flex items-center gap-3 transition-colors">
+                                        @if($hoarding->status !== 'suspended')
+                                            <button
+                                                @click="open = false"
+                                                onclick="suspendSingle({{ $hoarding->id }})"
+                                                class="w-full text-left px-4 py-2.5 hover:bg-orange-50 text-orange-600 font-medium flex items-center gap-3 transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                                </svg>
+                                                Suspend
+                                            </button>
+                                        @endif
+
+                                        <button
+                                            class="w-full text-left px-4 py-2.5 hover:bg-green-50 text-green-600 font-medium flex items-center gap-3 transition-colors"
+                                            @click="
+                                                open = false;
+                                                window.dispatchEvent(
+                                                    new CustomEvent('open-hoarding-commission', {
+                                                        detail: {
+                                                            id: {{ $hoarding->id }},
+                                                            title: '{{ addslashes($hoarding->title) }}',
+                                                            source: '{{ $hoarding->source }}'
+                                                        }
+                                                    })
+                                                )
+                                            ">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                             </svg>
-                                            Approve & Activate
+                                            Update Commission
                                         </button>
-                                    @elseif($hoarding->status === 'active')
-                                        <button 
-                                            onclick="deactivateSingle({{ $hoarding->id }})"
-                                            class="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-gray-600 font-medium flex items-center gap-3 transition-colors">
+
+                                        <div class="border-t border-gray-100 my-1"></div>
+
+                                        <button
+                                            @click="open = false"
+                                            onclick="deleteSingle({{ $hoarding->id }})"
+                                            class="w-full text-left px-4 py-2.5 hover:bg-red-50 text-red-600 font-medium flex items-center gap-3 transition-colors">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                             </svg>
-                                            Deactivate
+                                            Delete
                                         </button>
-                                    @elseif($hoarding->status === 'inactive' || $hoarding->status === 'suspended')
-                                        <button 
-                                            onclick="activateSingle({{ $hoarding->id }})"
-                                            class="w-full text-left px-4 py-2.5 hover:bg-green-50 text-green-600 font-medium flex items-center gap-3 transition-colors">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                            </svg>
-                                            Activate
-                                        </button>
-                                    @endif
-                                    @if($hoarding->status !== 'suspended')
-                                        <button 
-                                            onclick="suspendSingle({{ $hoarding->id }})"
-                                            class="w-full text-left px-4 py-2.5 hover:bg-orange-50 text-orange-600 font-medium flex items-center gap-3 transition-colors">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                            </svg>
-                                            Suspend
-                                        </button>
-                                    @endif
 
-                                    <button
-                                        class="w-full text-left px-4 py-2.5 hover:bg-green-50 text-green-600 font-medium flex items-center gap-3 transition-colors"
-                                        @click="
-                                            open = false;
-                                            window.dispatchEvent(
-                                                new CustomEvent('open-hoarding-commission', {
-                                                    detail: {
-                                                        id: {{ $hoarding->id }},
-                                                        title: '{{ $hoarding->title }}',
-                                                        source: '{{ $hoarding->source }}'
-                                                    }
-                                                })
-                                            )
-                                        ">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        Update Commission
-                                    </button>
-
-                                    <div class="border-t border-gray-100 my-1"></div>
-
-                                    <button 
-                                        onclick="deleteSingle({{ $hoarding->id }})"
-                                        class="w-full text-left px-4 py-2.5 hover:bg-red-50 text-red-600 font-medium flex items-center gap-3 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                        </svg>
-                                        Delete
-                                    </button>
-
+                                    </div>
                                 </div>
                             </div>
                         </td>
                     </tr>
 
-                 @empty
+                @empty
                     <tr>
-                        <td colspan="13" class="px-6 py-20">
+                        <td colspan="10" class="px-6 py-20">
                             <div class="flex flex-col items-center justify-center text-center">
                                 <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
@@ -474,780 +481,509 @@
 @include('hoardings.admin.modals.vendor-commission-modal')
 @include('hoardings.admin.modals.hoarding-commission-modal')
 @endsection
+
 @push('scripts')
 <script>
-    document.addEventListener('alpine:init', () => {
-
-        Alpine.data('dropdownManager', () => ({
-            open: false,
-
-            toggleDropdown(event) {
-
-                // close all open dropdowns
-                document.querySelectorAll('.action-dropdown').forEach(d => {
-                    d.style.display = 'none';
-                });
-
-                this.open = !this.open;
-                if (!this.open) return;
-
-                const button = event.currentTarget;
-                const dropdown = this.$refs.dropdown;
-
-                // show temporarily for height calculation
-                dropdown.style.display = 'block';
-
-                const rect = button.getBoundingClientRect();
-                const dropdownHeight = dropdown.offsetHeight;
-
-                const spaceBelow = window.innerHeight - rect.bottom;
-                const spaceAbove = rect.top;
-
-                // direction decide
-                if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
-                    // open UP
-                    dropdown.style.top = 'auto';
-                    dropdown.style.bottom = 'calc(100% - 4px)';
-
-                } else {
-                    // open DOWN
-                    dropdown.style.bottom = 'auto';
-                    dropdown.style.top = 'calc(100% - 4px)';
-                }
-
-                // auto close on scroll
-                const closeOnScroll = () => {
-                    dropdown.style.display = 'none';
-                    this.open = false;
-                    window.removeEventListener('scroll', closeOnScroll, true);
-                };
-
-                window.addEventListener('scroll', closeOnScroll, true);
+    // Close all dropdowns when clicking outside or scrolling
+    document.addEventListener('click', function () {
+        document.querySelectorAll('[x-data]').forEach(el => {
+            if (el._x_dataStack) {
+                // handled by alpine click.outside
             }
-        }))
-    });
-</script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-
-            document.querySelectorAll('.status-toggle').forEach(button => {
-
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const btn = e.currentTarget;
-
-                    if (btn.dataset.loading === '1') return;
-                    btn.dataset.loading = '1';
-
-                    const id = btn.dataset.id;
-                    const source = btn.dataset.source;
-                    const hoardingCommission = btn.dataset.hoardingCommission;
-
-                    // ❌ RULE 1: Hoarding commission NOT set → open modal
-                    if (!hoardingCommission || hoardingCommission == 0) {
-                        btn.dataset.loading = '0';
-
-                        window.dispatchEvent(
-                            new CustomEvent('open-hoarding-commission', {
-                                detail: {
-                                    id: id,
-                                    title: 'Set Hoarding Commission',
-                                    source: source
-                                }
-                            })
-                        );
-                        return;
-                    }
-
-                    const toggleUrl = '/admin/vendor-hoardings/' + id + '/toggle-status';
-                    fetch(toggleUrl, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                    .then(res => {
-                        if (!res.ok) throw new Error();
-                        return res.json();
-                    })
-                    .then(data => {
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Status Updated',
-                            text: data.status === 'active'
-                                ? 'Hoarding has been published successfully.'
-                                : 'Hoarding has been unpublished successfully.',
-                            confirmButtonColor: '#16a34a',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1800);
-
-                    })
-                    .catch(() => {
-                        btn.dataset.loading = '0';
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Update Failed',
-                            text: 'Unable to update hoarding status'
-                        });
-                    });
-
-                });
-
-            });
-
         });
+    });
 
-        // Bulk Actions Functionality
-        function toggleSelectAll(checkbox) {
-            const checkboxes = document.querySelectorAll('.hoarding-checkbox');
-            checkboxes.forEach(cb => cb.checked = checkbox.checked);
-            updateBulkActions();
+    document.addEventListener('DOMContentLoaded', () => {
+
+        document.querySelectorAll('.status-toggle').forEach(button => {
+
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const btn = e.currentTarget;
+
+                if (btn.dataset.loading === '1') return;
+                btn.dataset.loading = '1';
+
+                const id = btn.dataset.id;
+                const source = btn.dataset.source;
+                const hoardingCommission = btn.dataset.hoardingCommission;
+
+                if (!hoardingCommission || hoardingCommission == 0) {
+                    btn.dataset.loading = '0';
+
+                    window.dispatchEvent(
+                        new CustomEvent('open-hoarding-commission', {
+                            detail: {
+                                id: id,
+                                title: 'Set Hoarding Commission',
+                                source: source
+                            }
+                        })
+                    );
+                    return;
+                }
+
+                const toggleUrl = '/admin/vendor-hoardings/' + id + '/toggle-status';
+                fetch(toggleUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error();
+                    return res.json();
+                })
+                .then(data => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Status Updated',
+                        text: data.status === 'active'
+                            ? 'Hoarding has been published successfully.'
+                            : 'Hoarding has been unpublished successfully.',
+                        confirmButtonColor: '#16a34a',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1800);
+                })
+                .catch(() => {
+                    btn.dataset.loading = '0';
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Update Failed',
+                        text: 'Unable to update hoarding status'
+                    });
+                });
+            });
+        });
+    });
+
+    // Bulk Actions Functionality
+    function toggleSelectAll(checkbox) {
+        const checkboxes = document.querySelectorAll('.hoarding-checkbox');
+        checkboxes.forEach(cb => cb.checked = checkbox.checked);
+        updateBulkActions();
+    }
+
+    function updateBulkActions() {
+        const checkboxes = document.querySelectorAll('.hoarding-checkbox:checked');
+        const count = checkboxes.length;
+        const bulkContainer = document.getElementById('bulkActionsContainer');
+        const selectedCount = document.getElementById('selectedCount');
+        
+        if (count > 0) {
+            bulkContainer.classList.remove('hidden');
+            bulkContainer.classList.add('flex');
+            selectedCount.textContent = count;
+        } else {
+            bulkContainer.classList.add('hidden');
+            bulkContainer.classList.remove('flex');
         }
+        
+        const allCheckboxes = document.querySelectorAll('.hoarding-checkbox');
+        const selectAllCheckbox = document.getElementById('selectAll');
+        selectAllCheckbox.checked = count === allCheckboxes.length && count > 0;
+    }
 
-        function updateBulkActions() {
-            const checkboxes = document.querySelectorAll('.hoarding-checkbox:checked');
-            const count = checkboxes.length;
-            const bulkContainer = document.getElementById('bulkActionsContainer');
-            const selectedCount = document.getElementById('selectedCount');
-            
-            if (count > 0) {
-                bulkContainer.classList.remove('hidden');
-                bulkContainer.classList.add('flex');
-                selectedCount.textContent = count;
-            } else {
-                bulkContainer.classList.add('hidden');
-                bulkContainer.classList.remove('flex');
+    function getSelectedIds() {
+        const checkboxes = document.querySelectorAll('.hoarding-checkbox:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    function bulkApprove() {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
+
+        Swal.fire({
+            title: 'Approve & Activate Hoardings',
+            html: `
+                <p class="mb-4">Set commission for ${ids.length} hoarding(s) and activate them.</p>
+                <input 
+                    id="bulkCommission" 
+                    type="number" 
+                    min="0" 
+                    max="100" 
+                    step="0.01" 
+                    placeholder="Enter commission (%)"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Approve & Activate',
+            cancelButtonText: 'Cancel',
+            preConfirm: () => {
+                const commission = document.getElementById('bulkCommission').value;
+                if (!commission || commission < 0 || commission > 100) {
+                    Swal.showValidationMessage('Please enter a valid commission (0-100)');
+                    return false;
+                }
+                return commission;
             }
-            
-            // Update select all checkbox state
-            const allCheckboxes = document.querySelectorAll('.hoarding-checkbox');
-            const selectAllCheckbox = document.getElementById('selectAll');
-            selectAllCheckbox.checked = count === allCheckboxes.length && count > 0;
-        }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const commission = result.value;
+                
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Please wait while we approve the hoardings',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
 
-        function getSelectedIds() {
-            const checkboxes = document.querySelectorAll('.hoarding-checkbox:checked');
-            return Array.from(checkboxes).map(cb => cb.value);
-        }
-
-        function bulkApprove() {
-            const ids = getSelectedIds();
-            if (ids.length === 0) return;
-
-            Swal.fire({
-                title: 'Approve & Activate Hoardings',
-                html: `
-                    <p class="mb-4">Set commission for ${ids.length} hoarding(s) and activate them.</p>
-                    <input 
-                        id="bulkCommission" 
-                        type="number" 
-                        min="0" 
-                        max="100" 
-                        step="0.01" 
-                        placeholder="Enter commission (%)"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    >
-                `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Approve & Activate',
-                cancelButtonText: 'Cancel',
-                preConfirm: () => {
-                    const commission = document.getElementById('bulkCommission').value;
-                    if (!commission || commission < 0 || commission > 100) {
-                        Swal.showValidationMessage('Please enter a valid commission (0-100)');
-                        return false;
+                fetch('/admin/vendor-hoardings/bulk-approve', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids, commission })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: 'Success!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
                     }
-                    return commission;
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const commission = result.value;
-                    
-                    Swal.fire({
-                        title: 'Processing...',
-                        text: 'Please wait while we approve the hoardings',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
+                })
+                .catch(() => {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to approve hoardings' });
+                });
+            }
+        });
+    }
 
-                    fetch('/admin/vendor-hoardings/bulk-approve', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ ids, commission })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Success!',
-                                text: data.message,
-                                confirmButtonColor: '#16a34a'
-                            }).then(() => location.reload());
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: data.message
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Failed to approve hoardings'
-                        });
-                    });
-                }
-            });
-        }
+    function bulkDelete() {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
 
-        function bulkDelete() {
-            const ids = getSelectedIds();
-            if (ids.length === 0) return;
+        Swal.fire({
+            title: 'Delete Hoardings?',
+            text: `Are you sure you want to delete ${ids.length} hoarding(s)? This action cannot be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, delete them',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Deleting...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-            Swal.fire({
-                title: 'Delete Hoardings?',
-                text: `Are you sure you want to delete ${ids.length} hoarding(s)? This action cannot be undone.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, delete them',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Deleting...',
-                        text: 'Please wait',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                    fetch('/admin/vendor-hoardings/bulk-delete', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ ids })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Deleted!',
-                                text: data.message,
-                                confirmButtonColor: '#16a34a'
-                            }).then(() => location.reload());
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: data.message
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Failed to delete hoardings'
-                        });
-                    });
-                }
-            });
-        }
-
-        function bulkActivate() {
-            const ids = getSelectedIds();
-            if (ids.length === 0) return;
-
-            Swal.fire({
-                title: 'Activate Hoardings?',
-                text: `Activate ${ids.length} hoarding(s)? Note: Commission must be set first.`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#16a34a',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, activate',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Activating...',
-                        text: 'Please wait',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                    fetch('/admin/vendor-hoardings/bulk-activate', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ ids })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Activated!',
-                                text: data.message,
-                                confirmButtonColor: '#16a34a'
-                            }).then(() => location.reload());
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: data.message,
-                                confirmButtonColor: '#dc2626'
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Failed to activate hoardings'
-                        });
-                    });
-                }
-            });
-        }
-
-        function bulkDeactivate() {
-            const ids = getSelectedIds();
-            if (ids.length === 0) return;
-
-            Swal.fire({
-                title: 'Deactivate Hoardings?',
-                text: `Deactivate ${ids.length} hoarding(s)?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#6b7280',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, deactivate',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Deactivating...',
-                        text: 'Please wait',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                    fetch('/admin/vendor-hoardings/bulk-deactivate', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ ids })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Deactivated!',
-                                text: data.message,
-                                confirmButtonColor: '#16a34a'
-                            }).then(() => location.reload());
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: data.message
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Failed to deactivate hoardings'
-                        });
-                    });
-                }
-            });
-        }
-
-        // Single hoarding actions
-        function approveAndActivateSingle(id) {
-            Swal.fire({
-                title: 'Approve & Activate Hoarding',
-                html: `
-                    <p class="mb-4">Set commission and activate this hoarding.</p>
-                    <input 
-                        id="singleCommission" 
-                        type="number" 
-                        min="0" 
-                        max="100" 
-                        step="0.01" 
-                        placeholder="Enter commission (%)"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    >
-                `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Approve & Activate',
-                cancelButtonText: 'Cancel',
-                preConfirm: () => {
-                    const commission = document.getElementById('singleCommission').value;
-                    if (!commission || commission < 0 || commission > 100) {
-                        Swal.showValidationMessage('Please enter a valid commission (0-100)');
-                        return false;
+                fetch('/admin/vendor-hoardings/bulk-delete', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: 'Deleted!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
                     }
-                    return commission;
+                })
+                .catch(() => {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete hoardings' });
+                });
+            }
+        });
+    }
+
+    function bulkActivate() {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
+
+        Swal.fire({
+            title: 'Activate Hoardings?',
+            text: `Activate ${ids.length} hoarding(s)? Note: Commission must be set first.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, activate',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Activating...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+                fetch('/admin/vendor-hoardings/bulk-activate', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: 'Activated!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Failed', text: data.message, confirmButtonColor: '#dc2626' });
+                    }
+                })
+                .catch(() => {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to activate hoardings' });
+                });
+            }
+        });
+    }
+
+    function bulkDeactivate() {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
+
+        Swal.fire({
+            title: 'Deactivate Hoardings?',
+            text: `Deactivate ${ids.length} hoarding(s)?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#6b7280',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, deactivate',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Deactivating...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+                fetch('/admin/vendor-hoardings/bulk-deactivate', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: 'Deactivated!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
+                    }
+                })
+                .catch(() => {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to deactivate hoardings' });
+                });
+            }
+        });
+    }
+
+    // Single hoarding actions
+    function approveAndActivateSingle(id) {
+        Swal.fire({
+            title: 'Approve & Activate Hoarding',
+            html: `
+                <p class="mb-4">Set commission and activate this hoarding.</p>
+                <input 
+                    id="singleCommission" 
+                    type="number" 
+                    min="0" 
+                    max="100" 
+                    step="0.01" 
+                    placeholder="Enter commission (%)"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Approve & Activate',
+            cancelButtonText: 'Cancel',
+            preConfirm: () => {
+                const commission = document.getElementById('singleCommission').value;
+                if (!commission || commission < 0 || commission > 100) {
+                    Swal.showValidationMessage('Please enter a valid commission (0-100)');
+                    return false;
                 }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Processing...',
-                        text: 'Please wait',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
+                return commission;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Processing...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-                    fetch('/admin/vendor-hoardings/bulk-approve', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ ids: [id], commission: result.value })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Success!',
-                                text: data.message,
-                                confirmButtonColor: '#16a34a'
-                            }).then(() => location.reload());
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: data.message
-                            });
-                        }
-                    });
-                }
-            });
-        }
+                fetch('/admin/vendor-hoardings/bulk-approve', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: [id], commission: result.value })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: 'Success!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
+                    }
+                });
+            }
+        });
+    }
 
-        function activateSingle(id) {
-            Swal.fire({
-                title: 'Activate Hoarding?',
-                text: 'Commission must be set first.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#16a34a',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, activate',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Activating...',
-                        text: 'Please wait',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
+    function activateSingle(id) {
+        Swal.fire({
+            title: 'Activate Hoarding?',
+            text: 'Commission must be set first.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, activate',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Activating...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-                    fetch('/admin/vendor-hoardings/bulk-activate', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ ids: [id] })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Activated!',
-                                text: data.message,
-                                confirmButtonColor: '#16a34a'
-                            }).then(() => location.reload());
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: data.message,
-                                confirmButtonColor: '#dc2626'
-                            });
-                        }
-                    });
-                }
-            });
-        }
+                fetch('/admin/vendor-hoardings/bulk-activate', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: [id] })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: 'Activated!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Failed', text: data.message, confirmButtonColor: '#dc2626' });
+                    }
+                });
+            }
+        });
+    }
 
-        function deactivateSingle(id) {
-            Swal.fire({
-                title: 'Deactivate Hoarding?',
-                text: 'This will unpublish the hoarding.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#6b7280',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, deactivate',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Deactivating...',
-                        text: 'Please wait',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
+    function deactivateSingle(id) {
+        Swal.fire({
+            title: 'Deactivate Hoarding?',
+            text: 'This will unpublish the hoarding.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#6b7280',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, deactivate',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Deactivating...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-                    fetch('/admin/vendor-hoardings/bulk-deactivate', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ ids: [id] })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Deactivated!',
-                                text: data.message,
-                                confirmButtonColor: '#16a34a'
-                            }).then(() => location.reload());
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: data.message
-                            });
-                        }
-                    });
-                }
-            });
-        }
+                fetch('/admin/vendor-hoardings/bulk-deactivate', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: [id] })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: 'Deactivated!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
+                    }
+                });
+            }
+        });
+    }
 
-        function deleteSingle(id) {
-            Swal.fire({
-                title: 'Delete Hoarding?',
-                text: 'This action cannot be undone.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, delete it',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Deleting...',
-                        text: 'Please wait',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
+    function deleteSingle(id) {
+        Swal.fire({
+            title: 'Delete Hoarding?',
+            text: 'This action cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, delete it',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Deleting...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-                    fetch('/admin/vendor-hoardings/bulk-delete', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ ids: [id] })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Deleted!',
-                                text: data.message,
-                                confirmButtonColor: '#16a34a'
-                            }).then(() => location.reload());
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: data.message
-                            });
-                        }
-                    });
-                }
-            });
-        }
+                fetch('/admin/vendor-hoardings/bulk-delete', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: [id] })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: 'Deleted!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
+                    }
+                });
+            }
+        });
+    }
 
-        function suspendSingle(id) {
-            Swal.fire({
-                title: 'Suspend Hoarding?',
-                text: 'This will temporarily suspend the hoarding.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ea580c',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, suspend it',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Suspending...',
-                        text: 'Please wait',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
+    function suspendSingle(id) {
+        Swal.fire({
+            title: 'Suspend Hoarding?',
+            text: 'This will temporarily suspend the hoarding.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ea580c',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, suspend it',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Suspending...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-                    fetch(`/admin/vendor-hoardings/${id}/suspend`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Suspended!',
-                                text: data.message,
-                                confirmButtonColor: '#16a34a'
-                            }).then(() => location.reload());
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: data.message
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Failed to suspend hoarding'
-                        });
-                    });
-                }
-            });
-        }
-
-            // function bulkUpdateSlugs() {
-            //     const ids = getSelectedIds();
-            //     if (ids.length === 0) return;
-
-            //     Swal.fire({
-            //         title: 'Generate/Update Slugs?',
-            //         text: `Update slugs for ${ids.length} hoarding(s)?`,
-            //         icon: 'question',
-            //         showCancelButton: true,
-            //         confirmButtonColor: '#eab308',
-            //         cancelButtonColor: '#6b7280',
-            //         confirmButtonText: 'Yes, update slugs',
-            //         cancelButtonText: 'Cancel'
-            //     }).then((result) => {
-            //         if (result.isConfirmed) {
-            //             Swal.fire({
-            //                 title: 'Updating...',
-            //                 text: 'Please wait',
-            //                 allowOutsideClick: false,
-            //                 didOpen: () => {
-            //                     Swal.showLoading();
-            //                 }
-            //             });
-
-            //             fetch('/admin/vendor-hoardings/bulk-update-slugs', {
-            //                 method: 'POST',
-            //                 headers: {
-            //                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            //                     'Accept': 'application/json',
-            //                     'Content-Type': 'application/json'
-            //                 },
-            //                 body: JSON.stringify({ ids })
-            //             })
-            //             .then(res => res.json())
-            //             .then(data => {
-            //                 if (data.success) {
-            //                     Swal.fire({
-            //                         icon: 'success',
-            //                         title: 'Slugs Updated!',
-            //                         text: data.message,
-            //                         confirmButtonColor: '#16a34a'
-            //                     }).then(() => location.reload());
-            //                 } else {
-            //                     Swal.fire({
-            //                         icon: 'error',
-            //                         title: 'Failed',
-            //                         text: data.message
-            //                     });
-            //                 }
-            //             })
-            //             .catch(error => {
-            //                 Swal.fire({
-            //                     icon: 'error',
-            //                     title: 'Error',
-            //                     text: 'Failed to update slugs'
-            //                 });
-            //             });
-            //         }
-            //     });
-            // }
-    </script>
+                fetch(`/admin/vendor-hoardings/${id}/suspend`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: 'Suspended!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
+                    }
+                })
+                .catch(() => {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to suspend hoarding' });
+                });
+            }
+        });
+    }
+</script>
 @endpush

@@ -186,7 +186,7 @@ class ProfileService
     protected function dispatchOtp(string $identifier, int $otp): void
     {
         if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
-            Mail::to($identifier)->send(new OtpMail($otp, 'email verification'));
+            Mail::to($identifier)->send(new \Modules\Mail\OtpVerificationMail($otp));
         } else {
             // Use TwilioService for SMS
             $message = "Your OOHAPP verification code is: {$otp}. Valid for 5 minutes.";

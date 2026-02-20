@@ -176,14 +176,14 @@
            <div class="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 pb-10">
                 <button type="submit" 
                         id="submitBtn" 
-                        class="w-full md:w-48 py-3 rounded-lg font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-all active:scale-95 flex items-center justify-center">
+                        class="cursor-pointer w-full md:w-48 py-3 rounded-lg font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-all active:scale-95 flex items-center justify-center">
                     <span>Continue</span>
                 </button>
 
                 <button type="button" 
                         onclick="skipBusinessInfo()" 
                         id="skipBtn"
-                        class="w-full md:w-48 py-3 rounded-lg font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-all flex items-center justify-center">
+                        class="cursor-pointer w-full md:w-48 py-3 rounded-lg font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-all flex items-center justify-center">
                     Skip for Now
                 </button>
             </div>
