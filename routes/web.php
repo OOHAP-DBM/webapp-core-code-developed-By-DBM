@@ -713,6 +713,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/vendors', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'index'])->name('vendors.index');
     Route::get('/vendors/create', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'create'])->name('vendors.create');
     Route::post('/vendors', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'store'])->name('vendors.store');
+    Route::get('/vendors/export', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'export'])->name('vendors.export');
     // Route::get('/vendors/requested', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'requestedVendors'])->name('vendors.requested');
     Route::get('/vendors/{id}', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'show'])->name('vendors.show');
     Route::post('/vendors/bulk-approve', [\Modules\Admin\Controllers\Web\Vendor\VendorController::class, 'bulkApprove'])->name('vendors.bulk-approve');
