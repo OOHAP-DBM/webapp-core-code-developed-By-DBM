@@ -16,7 +16,9 @@
         <div class="flex items-start justify-between gap-2">
             <div>
                 <p class="text-sm font-semibold text-blue-900">Please wait</p>
-                <p id="uploadTimerMessage" class="text-xs text-blue-700 mt-1">Upload is being processed. You can continue browsing other screens.</p>
+                <p id="uploadTimerMessage" class="text-xs text-blue-700 mt-1">
+                    Upload is being processed. Please wait 5 minutes before starting a new upload. You can continue browsing other screens.
+                </p>
             </div>
             <div class="flex items-center gap-1">
                 <button id="minimizeUploadTimer" type="button" class="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100">_</button>
