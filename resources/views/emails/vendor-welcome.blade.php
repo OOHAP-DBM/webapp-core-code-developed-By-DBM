@@ -65,7 +65,7 @@
         <!-- BUTTON -->
         <tr>
         <td align="center" style="padding:25px 40px;">
-            <a href="https://staging.oohapp.io/"
+            <a href="https://staging.oohapp.io/vendor/dashboard"
                style="background:#16a34a;
                       color:#ffffff;
                       padding:12px 24px;
@@ -102,7 +102,7 @@
 
         <!-- VENDOR DISCLAIMER -->
         <tr>
-        <td style="padding:10px 40px 0 40px;">
+        <td style="padding:10px 40px 7px 40px;">
             <div style="
                 margin-top: 25px;
                 padding-top: 12px;

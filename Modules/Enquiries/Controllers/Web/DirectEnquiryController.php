@@ -84,70 +84,48 @@ class DirectEnquiryController extends Controller
         ]);
     }
 
-        public function sendOtp(Request $request, GuestOtpService $otpService)
-    {
-        $request->validate([
-            'identifier' => 'required|string'
-        ]);
+     public function sendOtp(Request $request, GuestOtpService $otpService)
+{
+    $request->validate([
+        'identifier' => 'required|string'
+    ]);
 
-        $identifier = $request->identifier;
+    $identifier = $request->identifier;
 
-        // Validate phone format (Indian mobile numbers: 10 digits starting with 6-9)
-        if (!preg_match('/^[6-9][0-9]{9}$/', $identifier)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid phone number format. Must be 10 digits starting with 6-9.'
-            ], 422);
-        }
-
-        try {
-            // Rate limiting check (60 seconds between OTPs)
-            $recentOtp = DB::table('guest_user_otps')
-                ->where('identifier', $identifier)
-                ->where('purpose', 'direct_enquiry')
-                ->latest('created_at')
-                ->first();
-
-            if ($recentOtp) {
-                $createdAt = Carbon::parse($recentOtp->created_at);
-                $waitTime = config('app.otp_wait_time', 1); // Default 60 seconds
-
-                if (now()->diffInSeconds($createdAt) < $waitTime) {
-                    $remaining = $waitTime - now()->diffInSeconds($createdAt);
-                    return response()->json([
-                        'success' => false,
-                        'message' => "Please wait {$remaining} seconds before requesting another OTP",
-                        'retry_after' => $remaining
-                    ], 429);
-                }
-            }
-
-            // Generate and send OTP (no user creation needed!)
-            $otpService->generate($identifier, 'direct_enquiry');
-
-            Log::info('OTP sent for direct enquiry', [
-                'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
-                'ip' => $request->ip()
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'OTP sent successfully to +91-' . substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2)
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('OTP Send Failed', [
-                'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
-                'error' => $e->getMessage()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to send OTP. Please try again later.'
-            ], 500);
-        }
+    // Validate phone format (Indian mobile numbers: 10 digits starting with 6-9)
+    if (!preg_match('/^[6-9][0-9]{9}$/', $identifier)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid phone number format. Must be 10 digits starting with 6-9.'
+        ], 422);
     }
 
+    try {
+        // Generate and send OTP
+        $otpService->generate($identifier, 'direct_enquiry');
+
+        Log::info('OTP sent for direct enquiry', [
+            'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
+            'ip' => $request->ip()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP sent successfully to +91-' . substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2)
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('OTP Send Failed', [
+            'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
+            'error' => $e->getMessage()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to send OTP. Please try again later.'
+        ], 500);
+    }
+}
     /**
      * Verify OTP
      * NO USER LOOKUP NEEDED - works directly with phone number
@@ -498,10 +476,15 @@ class DirectEnquiryController extends Controller
             ->whereNotNull('vendor_id');
         
         // Match city (with fuzzy tolerance)
-        $hoardingQuery->where(function ($q) use ($city) {
-            $q->where('city', 'like', "%{$city}%")
-              ->orWhere('city', 'like', $this->getFuzzyPattern($city));
+        $columns = ['city', 'state', 'locality'];
+
+        $hoardingQuery->where(function ($q) use ($city, $columns) {
+            foreach ($columns as $column) {
+                $q->orWhere($column, 'like', "%{$city}%")
+                ->orWhere($column, 'like', $this->getFuzzyPattern($city));
+            }
         });
+
         
         // Match locality if specified (excluding "To be discussed")
         if (!empty($localities) && $localities[0] !== 'To be discussed') {

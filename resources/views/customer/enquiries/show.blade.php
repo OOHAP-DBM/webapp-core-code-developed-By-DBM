@@ -89,29 +89,64 @@
         </div>
         <div x-show="openTop" x-transition class="px-6 py-1 bg-[#f7f7f7]">
             {{-- ===== TOP INFO SECTION: 3 Columns ===== --}}
-            <div class="grid grid-cols-12 gap-8 bg-[#f7f7f7]">
+            <div class="grid grid-cols-12 gap-8 bg-[#f7f7f7] my-3">
 
                 {{-- Column 1: Vendor Details (Multiple vendors if applicable) --}}
                 <div class="col-span-4">
                     <h3 class="text-sm font-semibold mb-4">Vendor Details</h3>
+
                     @php
                         $vendors = $enquiry->items->map(function($item) {
                             return optional($item->hoarding)->vendor;
                         })->filter()->unique('id')->values();
                     @endphp
+
                     <div class="space-y-3 text-xs">
+
                         @forelse($vendors as $vendor)
-                            <div class=" pb-3 mb-3">
-                                <div>Name : <span class="font-medium">{{ $vendor->name ?? 'N/A' }}</span></div>
-                                <div>Business Name : <span>{{ $vendor->company_name ?? 'N/A' }}</span></div>
-                                <div>GSTIN : <span>{{ $vendor->gstin ?? 'N/A' }}</span></div>
-                                <div>Mobile : <span>{{ $vendor->phone ?? 'N/A' }}</span></div>
-                                <div>Email : <span>{{ $vendor->email ?? 'N/A' }}</span></div>
-                                <div>Address : <span>{{ $vendor->address ?? 'N/A' }}</span></div>
+
+                        <details class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            <!-- Heading -->
+                            <summary class="cursor-pointer font-semibold text-sm text-gray-800 flex justify-between items-center">
+                                <span>Vendor: {{ $vendor->name ?? 'N/A' }}</span>
+                                <span class="text-gray-400 text-[11px]">Click to view</span>
+                            </summary>
+
+                            <!-- Hidden Content -->
+                            <div class="mt-3 space-y-2 text-xs text-gray-700">
+
+                                <div>
+                                    <strong>Business Name:</strong>
+                                    {{ $vendor->vendorProfile->company_name ?? $vendor->company_name ?? 'N/A' }}
+                                </div>
+
+                                <div>
+                                    <strong>GSTIN:</strong>
+                                    {{ $vendor->vendorProfile->gstin ?? $vendor->gstin ?? 'N/A' }}
+                                </div>
+
+                                <div>
+                                    <strong>Mobile:</strong>
+                                    {{ $vendor->phone ?? 'N/A' }}
+                                </div>
+
+                                <div>
+                                    <strong>Email:</strong>
+                                    {{ $vendor->email ?? 'N/A' }}
+                                </div>
+
+                                <div class="pb-2">
+                                    <strong>Address:</strong>
+                                    {{ $vendor->vendorProfile->registered_address ?? $vendor->address ?? 'N/A' }}
+                                </div>
+
                             </div>
+                        </details>
+
                         @empty
                             <span class="text-gray-400">No vendors found</span>
                         @endforelse
+
                     </div>
                 </div>
 

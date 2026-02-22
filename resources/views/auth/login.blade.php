@@ -157,13 +157,9 @@
 
                 <h3 class="text-start">Login to your account</h3>
 
-              @if ($errors->any())
-                    <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative" style="font-size:15px;">
-                        <ul class="mb-2 ps-3 ms-0">
-                            @foreach ($errors->all() as $error)
-                                <li class="mb-1">{{ $error }}</li>
-                            @endforeach
-                        </ul>
+                @if ($errors->has('credentials'))
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative">
+                        {{ $errors->first('credentials') }}
 
                         <div class="text-end mt-2">
                             <a href="{{ route('password.request') }}"
@@ -177,7 +173,18 @@
                             onclick="this.closest('.alert').remove()">
                         </button>
                     </div>
-              @endif
+                @endif
+                @if ($errors->has('account_status'))
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative">
+                        {{ $errors->first('account_status') }}
+
+                        <button type="button"
+                            class="btn-close position-absolute top-0 end-0 mt-2 me-2"
+                            onclick="this.closest('.alert').remove()">
+                        </button>
+                    </div>
+                @endif
+
 
 
                 <form method="POST" action="{{ route('login.submit') }}" id="signupForm">

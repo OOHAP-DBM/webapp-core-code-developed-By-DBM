@@ -4,7 +4,9 @@
 
 return [
     // Main SEO-friendly search route pattern
-    'pattern' => env('SEO_SEARCH_ROUTE_PATTERN', '/outdoor-advertising/{city}/{locality?}'),
+    // 'pattern' => env('SEO_SEARCH_ROUTE_PATTERN', '/outdoor-advertising/{city}/{locality?}'),
+    'pattern' => env('SEO_SEARCH_ROUTE_PATTERN', '/outdoor-advertising'),
+
 
     // You can add more patterns or options as needed
 ];

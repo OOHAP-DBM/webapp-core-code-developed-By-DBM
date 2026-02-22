@@ -281,7 +281,7 @@
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Batch ID</th>
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Type</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Hoarding Type</th>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Total</th>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Valid</th>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Invalid</th>
@@ -1013,7 +1013,7 @@
                             ? 'bg-purple-100 text-purple-800' 
                             : 'bg-indigo-100 text-indigo-800'
                     }">
-                        ${batch.media_type?.toUpperCase() || 'N/A'}
+                        ${batch.media_type?.toUpperCase() || 'DOOH'}
                     </span>
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600">${batch.total_rows}</td>

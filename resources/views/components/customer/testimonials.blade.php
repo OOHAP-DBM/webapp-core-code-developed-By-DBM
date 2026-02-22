@@ -82,7 +82,7 @@
                     opacity-0 group-hover:opacity-100
                     shadow-[0_6px_18px_rgba(0,0,0,0.35)]
                     hover:shadow-[0_10px_28px_rgba(0,0,0,0.45)]
-                    transition-all duration-300">
+                    transition-all duration-300 cursor-pointer">
                 ‹
             </button>
 
@@ -97,7 +97,7 @@
                     opacity-0 group-hover:opacity-100
                     shadow-[0_6px_18px_rgba(0,0,0,0.35)]
                     hover:shadow-[0_10px_28px_rgba(0,0,0,0.45)]
-                    transition-all duration-300">
+                    transition-all duration-300 cursor-pointer">
                 ›
             </button>
 
@@ -106,115 +106,199 @@
     </div>
 </section>
 <script>
-    let testimonialIndex = 0;
-    let autoInterval;
+(function () {
+    'use strict';
 
-    const track = document.getElementById('testimonialTrack');
+    const track   = document.getElementById('testimonialTrack');
+    if (!track) return;
 
-    const getSlides = () => [...track.children];
+    const GAP       = 24;      // gap-6 = 24px
+    const ANIM_MS   = 700;
+    const AUTO_MS   = 3500;
 
-    const visibleSlides = () => {
-        if (window.innerWidth >= 1024) return 3;
-        if (window.innerWidth >= 768) return 2;
+    // Grab original slides before any cloning
+    const ORIG      = Array.from(track.querySelectorAll('.testimonial-slide'));
+    const TOTAL     = ORIG.length;
+
+    let perView     = 1;
+    let index       = 0;   // current index within ORIG (0 … TOTAL-1)
+    let animating   = false;
+    let autoTimer   = null;
+
+    /* ── How many slides are visible at this viewport width ── */
+    function calcPerView() {
+        const w = window.innerWidth;
+        if (w >= 1024) return Math.min(3, TOTAL);
+        if (w >= 768)  return Math.min(2, TOTAL);
         return 1;
-    };
+    }
 
-    const slideWidth = () => {
-        const slide = track.children[0];
-        return slide ? slide.offsetWidth + 24 : 0; // gap-6 = 24px
-    };
+    /* ── Width of a single slide in px ── */
+    function slideW() {
+        return (track.parentElement.clientWidth - GAP * (perView - 1)) / perView;
+    }
 
-    // 🔁 Clone first slides for infinite effect
-    const initClones = () => {
-        const slides = getSlides();
-        const cloneCount = visibleSlides();
-
-        slides.slice(0, cloneCount).forEach(slide => {
-            track.appendChild(slide.cloneNode(true));
+    /* ── Apply px width to every slide (originals + clones) ── */
+    function applySizes() {
+        const w = slideW();
+        Array.from(track.querySelectorAll('.testimonial-slide')).forEach(s => {
+            s.style.width    = w + 'px';
+            s.style.minWidth = w + 'px';
         });
-    };
-
-    const updateTestimonial = (animate = true) => {
-    const slides = getSlides();
-    const slideW = slideWidth();
-    const containerCenter =
-        (testimonialIndex * slideW) + (slideW * visibleSlides() / 2);
-
-    track.style.transition = animate
-        ? 'transform 0.8s cubic-bezier(.4,0,.2,1)'
-        : 'none';
-
-    track.style.transform = `translateX(-${testimonialIndex * slideW}px)`;
-
-    slides.forEach((slide, i) => {
-        const card = slide.querySelector('div.relative');
-
-        // slide ka center position
-        const slideCenter = (i * slideW) + (slideW / 2);
-
-        // distance from viewport center
-        const distance = Math.abs(slideCenter - containerCenter);
-
-            if (distance < slideW / 2) {
-                // ✅ ONLY TRUE CENTER SLIDE
-                card.classList.add('scale-105', 'opacity-100', 'shadow-2xl');
-                card.classList.remove('scale-95', 'opacity-70');
-                } else {
-                    // ❌ ALL OTHERS NORMAL
-                    card.classList.remove('scale-105', 'opacity-100', 'shadow-2xl');
-                    card.classList.add('scale-95', 'opacity-70');
-                }
-            });
-        };
-
-
-    function nextTestimonial() {
-        testimonialIndex++;
-        updateTestimonial();
-
-        const total = getSlides().length;
-        const resetPoint = total - visibleSlides();
-
-        if (testimonialIndex >= resetPoint) {
-            setTimeout(() => {
-                testimonialIndex = 0;
-                updateTestimonial(false);
-            }, 800);
-        }
     }
 
-    function prevTestimonial() {
-        if (testimonialIndex === 0) {
-            testimonialIndex = getSlides().length - visibleSlides();
-            updateTestimonial(false);
-        }
-        testimonialIndex--;
-        updateTestimonial();
+    /* ── Clone slides for seamless infinite loop ── */
+    function buildClones() {
+        Array.from(track.querySelectorAll('[data-clone]')).forEach(n => n.remove());
+
+        // Prepend clones of the LAST perView originals
+        [...ORIG].slice(-perView).reverse().forEach(s => {
+            const c = s.cloneNode(true);
+            c.setAttribute('data-clone', 'pre');
+            track.prepend(c);
+        });
+
+        // Append clones of the FIRST perView originals
+        [...ORIG].slice(0, perView).forEach(s => {
+            const c = s.cloneNode(true);
+            c.setAttribute('data-clone', 'post');
+            track.appendChild(c);
+        });
     }
 
-    function startAutoScroll() {
-        stopAutoScroll();
-        autoInterval = setInterval(nextTestimonial, 3500);
+    /* ── DOM index of current slide (offset by prepended clones) ── */
+    function domIdx() { return perView + index; }
+
+    /* ── Translate the track ── */
+    function moveTo(dIdx, animate) {
+        const offset = dIdx * (slideW() + GAP);
+        track.style.transition = animate
+            ? `transform ${ANIM_MS}ms cubic-bezier(.4,0,.2,1)`
+            : 'none';
+        track.style.transform  = `translateX(-${offset}px)`;
     }
 
-    function stopAutoScroll() {
-        clearInterval(autoInterval);
+    /* ── Zoom ONLY the center card, dim everything else ── */
+    function refreshCards() {
+        const allSlides = Array.from(track.querySelectorAll('.testimonial-slide'));
+
+        // Center original index when perView is odd → middle slot
+        // When perView is even → right-of-center slot
+        const centerSlot = Math.floor(perView / 2);
+        const centerOrigIdx = index + centerSlot;
+
+        allSlides.forEach((slide, di) => {
+            const card    = slide.querySelector('div'); // the inner card div
+            if (!card) return;
+
+            const origIdx = di - perView; // map DOM index → original index
+            const isCenter = origIdx === centerOrigIdx;
+
+            if (isCenter) {
+                card.style.transform = 'scale(1.06)';
+                card.style.opacity   = '1';
+                card.style.boxShadow = '0 20px 60px rgba(0,0,0,0.15)';
+            } else {
+                card.style.transform = 'scale(0.95)';
+                card.style.opacity   = '0.65';
+                card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+            }
+        });
     }
 
-    // 🧠 Events
-    track.parentElement.addEventListener('mouseenter', stopAutoScroll);
-    track.parentElement.addEventListener('mouseleave', startAutoScroll);
+    /* ── Navigate ── */
+    function next() {
+        if (animating) return;
+        animating = true;
 
-    window.addEventListener('load', () => {
-        initClones();
-        updateTestimonial(false);
-        startAutoScroll();
+        moveTo(domIdx() + 1, true);
+
+        setTimeout(() => {
+            index = (index + 1) % TOTAL;
+            if (index === 0) moveTo(domIdx(), false); // silent jump to real start
+            refreshCards();
+            animating = false;
+        }, ANIM_MS);
+    }
+
+    function prev() {
+        if (animating) return;
+        animating = true;
+
+        moveTo(domIdx() - 1, true);
+
+        setTimeout(() => {
+            index = (index - 1 + TOTAL) % TOTAL;
+            if (index === TOTAL - 1) moveTo(domIdx(), false); // silent jump to real end
+            refreshCards();
+            animating = false;
+        }, ANIM_MS);
+    }
+
+    /* ── Auto scroll ── */
+    function startAuto() {
+        stopAuto();
+        if (TOTAL <= perView) return;
+        autoTimer = setInterval(next, AUTO_MS);
+    }
+    function stopAuto() { clearInterval(autoTimer); autoTimer = null; }
+
+    /* ── Touch / swipe ── */
+    let tx = 0, ty = 0;
+    track.addEventListener('touchstart', e => {
+        tx = e.touches[0].clientX;
+        ty = e.touches[0].clientY;
+        stopAuto();
+    }, { passive: true });
+    track.addEventListener('touchend', e => {
+        const dx = tx - e.changedTouches[0].clientX;
+        const dy = Math.abs(ty - e.changedTouches[0].clientY);
+        if (Math.abs(dx) > 40 && Math.abs(dx) > dy) dx > 0 ? next() : prev();
+        startAuto();
+    }, { passive: true });
+
+    /* ── Pause on hover ── */
+    track.parentElement.addEventListener('mouseenter', stopAuto);
+    track.parentElement.addEventListener('mouseleave', startAuto);
+
+    /* ── Expose to onclick handlers in HTML ── */
+    window.nextTestimonial = () => { stopAuto(); next(); startAuto(); };
+    window.prevTestimonial = () => { stopAuto(); prev(); startAuto(); };
+
+    /* ── Keyboard ── */
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft')  { stopAuto(); prev(); startAuto(); }
+        if (e.key === 'ArrowRight') { stopAuto(); next(); startAuto(); }
     });
 
+    /* ── Resize ── */
+    let resizeTimer;
     window.addEventListener('resize', () => {
-        testimonialIndex = 0;
-        updateTestimonial(false);
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(init, 200);
     });
+
+    /* ── Init ── */
+    function init() {
+        stopAuto();
+        animating = false;
+        index     = 0;
+        perView   = calcPerView();
+
+        buildClones();
+        applySizes();
+        moveTo(domIdx(), false);
+        refreshCards();
+        startAuto();
+    }
+
+    if (document.readyState === 'complete') {
+        init();
+    } else {
+        window.addEventListener('load', init);
+    }
+
+})();
 </script>
 
 @endif

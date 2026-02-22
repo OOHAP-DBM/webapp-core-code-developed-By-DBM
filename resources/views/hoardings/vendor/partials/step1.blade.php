@@ -14,7 +14,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
         <!-- Hoarding Type -->
         <div class="space-y-2">
-            <label class="block text-sm font-semibold text-gray-700">
+            <label class="text-sm font-bold text-gray-700">
                 Hoarding Type <span class="text-red-500">*</span>
             </label>
           <div class="w-full bg-[#0094FF] border border-[#0094FF] rounded-xl px-4 py-2.5 text-white font-bold">
@@ -25,7 +25,7 @@
         <!-- Category -->
         <div class="space-y-2">
           <!-- <label class="text-sm font-semibold text-gray-700"> <span class="text-red-500">*</span></label> -->
-          <label class="block text-sm font-semibold text-gray-700">
+          <label class="text-sm font-bold text-gray-700">
                 Category <span class="text-red-500">*</span>
             </label>
           <select name="category" required
@@ -44,7 +44,7 @@
 
       <!-- Screen Size -->
       <div class="mt-8">
-          <label class="block text-sm font-semibold text-gray-700">
+          <label class="text-sm font-bold text-gray-700">
                 Hoarding Size 
             </label>
         <div class="grid grid-cols-4 gap-4 items-end">
@@ -90,7 +90,7 @@
     <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
       <h3 class="text-lg font-bold text-[#009A5C] mb-2 flex items-center">
         <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
-        Pricing<span class="text-red-500 ml-1">*</span>
+        Pricing
       </h3>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -166,8 +166,8 @@
                               @endif
 
                               <button type="button"
-                                      onclick="removeExistingMedia({{ $media->id }})"
-                                      class="absolute top-1 right-1 bg-white rounded-full p-1 shadow text-red-600 hover:bg-red-100">
+                                  onclick="removeExistingMedia({{ $media->id }}, '{{ Str::startsWith($media->mime_type, 'video') ? 'video' : 'image' }}', this)"
+                                  class="absolute top-1 right-1 bg-white rounded-full p-1 shadow text-red-600 hover:bg-red-100">
                                   ✕
                               </button>
                           </div>
@@ -205,227 +205,258 @@
 {{-- </div> --}}
 
 <script>
-/* MAP + GEOCODING */
-// let map, marker;
-
-// const addressInput  = document.querySelector('input[name="address"]');
-// const localityInput = document.querySelector('input[name="locality"]');
-// const cityInput     = document.querySelector('input[name="city"]');
-// const stateInput    = document.querySelector('input[name="state"]');
-// const pincodeInput  = document.querySelector('input[name="pincode"]');
-// const latInput   = document.getElementById('lat');
-// const lngInput   = document.getElementById('lng');
-// const errorBox   = document.getElementById('location-error');
-// const geotagBtn  = document.getElementById('geotagBtn');
-
-// const INDIA_CENTER = [20.5937, 78.9629];
-
-// map = L.map('map').setView(INDIA_CENTER, 5);
-// L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-//   attribution: '© OpenStreetMap'
-// }).addTo(map);
-
-// marker = L.marker(INDIA_CENTER, { draggable: true }).addTo(map);
-
-// marker.on('dragend', () => {
-//   const pos = marker.getLatLng();
-//   latInput.value = pos.lat.toFixed(6);
-//   lngInput.value = pos.lng.toFixed(6);
-// });
-
-// // Restore map if lat/lng exist
-// document.addEventListener('DOMContentLoaded', function() {
-//   const savedLat = latInput.value;
-//   const savedLng = lngInput.value;
-  
-//   if (savedLat && savedLng) {
-//     const lat = parseFloat(savedLat);
-//     const lng = parseFloat(savedLng);
-//     if (!isNaN(lat) && !isNaN(lng)) {
-//       map.setView([lat, lng], 15);
-//       marker.setLatLng([lat, lng]);
-//       document.getElementById('geotagSuccess').classList.remove('hidden');
-//     }
-//   }
-  
-//   // Auto-calculate size preview
-//   updateSizePreview();
-  
-//   // Initialize upload count
-//   updateUploadCount();
-// });
-
-// function buildAddress() {
-//   return [
-//     localityInput.value,
-//     cityInput.value,
-//     stateInput.value,
-//     pincodeInput.value,
-//     'India'
-//   ].filter(Boolean).join(', ');
-// }
-
-// function showError(msg) {
-//   errorBox.textContent = msg;
-//   errorBox.classList.remove('hidden');
-// }
-
-// function hideError() {
-//   errorBox.textContent = '';
-//   errorBox.classList.add('hidden');
-// }
-
-// async function geocodeAddress() {
-//   hideError();
-//   const address = buildAddress();
-
-//   if (address.length < 10) {
-//     showError('Please enter complete address details.');
-//     return;
-//   }
-
-//   const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=in&q=${encodeURIComponent(address)}`;
-
-//   try {
-//     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-//     const data = await res.json();
-
-//     if (!data.length) {
-//       showError('Location not found. Please refine address.');
-//       return;
-//     }
-
-//     const result = data[0];
-//     const lat = parseFloat(result.lat);
-//     const lng = parseFloat(result.lon);
-
-//     latInput.value = lat.toFixed(6);
-//     lngInput.value = lng.toFixed(6);
-//     map.setView([lat, lng], 15);
-//     marker.setLatLng([lat, lng]);
-//     document.getElementById('geotagSuccess').classList.remove('hidden');
-//   } catch (e) {
-//     showError('Unable to fetch location. Try again.');
-//   }
-// }
-
-// geotagBtn.addEventListener('click', geocodeAddress);
-
-// Size Preview
-const widthInput = document.getElementById('width');
+/* ── Size Preview ── */
+const widthInput  = document.getElementById('width');
 const heightInput = document.getElementById('height');
-const unitSelect = document.getElementById('unit');
+const unitSelect  = document.getElementById('unit');
 const sizePreview = document.getElementById('sizePreview');
 
 function updateSizePreview() {
-  const width = widthInput.value || 0;
+  const width  = widthInput.value  || 0;
   const height = heightInput.value || 0;
-  const unit = unitSelect.value === 'sqft' ? 'sq.ft' : 'sq.m';
+  const unit   = unitSelect.value === 'sqft' ? 'sq.ft' : 'sq.m';
   sizePreview.value = `${width} x ${height} ${unit}`;
 }
-
 widthInput.addEventListener('input', updateSizePreview);
 heightInput.addEventListener('input', updateSizePreview);
 unitSelect.addEventListener('change', updateSizePreview);
 
-/* ===============================================
-   MEDIA UPLOAD WITH VIDEO SUPPORT
-   - Accumulates files using DataTransfer
-   - Supports one-by-one and batch uploads  
-   - Enforces 10-file limit (existing + new)
-   - Video duration validation (max 30s)
-   - Horizontal preview layout with remove buttons
-   =============================================== */
+/* ── Media Upload ── */
+let deletedMediaIds    = [];
+let newImageFiles      = [];
+let newVideoFile       = null;
+let existingVideoCount = {{ isset($draft) && $draft->hoarding->oohMedia ? $draft->hoarding->oohMedia->filter(fn($m) => str_starts_with($m->mime_type, 'video'))->count() : 0 }};
 
-let deletedMediaIds = [];
-let newFiles = [];
-const maxFiles = 10;
-const maxFileSize = 5 * 1024 * 1024;
+const MAX_IMAGES    = 10;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-const mediaInput = document.getElementById('mediaInput');
-const newMediaPreview = document.getElementById('newMediaPreview');
-const existingMediaPreview = document.getElementById('existingMediaPreview');
-const deletedMediaIdsInput = document.getElementById('deletedMediaIds');
+const mediaInput          = document.getElementById('mediaInput');
+const newMediaPreview     = document.getElementById('newMediaPreview');
+const existingMediaPreview= document.getElementById('existingMediaPreview');
+const deletedMediaIdsInput= document.getElementById('deletedMediaIds');
 
-function renderNewPreviews() {
-  newMediaPreview.innerHTML = '';
-  newFiles.forEach((file, idx) => {
-    const url = URL.createObjectURL(file);
-    let el;
-    if (file.type.startsWith('image')) {
-      el = `<div class='relative w-28 h-28 rounded overflow-hidden border bg-gray-50 flex items-center justify-center'>
-        <img src='${url}' class='object-cover w-full h-full'>
-        <button type='button' class='absolute top-1 right-1 bg-white rounded-full shadow p-1 text-red-600 hover:bg-red-100' onclick='removeNewFile(${idx})' title='Remove'>
-          <svg xmlns='http://www.w3.org/2000/svg' class='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' /></svg>
-        </button>
-      </div>`;
-    } else if (file.type.startsWith('video')) {
-      el = `<div class='relative w-28 h-28 rounded overflow-hidden border bg-gray-50 flex items-center justify-center'>
-        <video src='${url}' controls class='object-cover w-full h-full'></video>
-        <button type='button' class='absolute top-1 right-1 bg-white rounded-full shadow p-1 text-red-600 hover:bg-red-100' onclick='removeNewFile(${idx})' title='Remove'>
-          <svg xmlns='http://www.w3.org/2000/svg' class='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' /></svg>
-        </button>
-      </div>`;
-    }
-    newMediaPreview.insertAdjacentHTML('beforeend', el);
-  });
+/* ── Error toast ── */
+function showMediaError(msg) {
+  // reuse existing error box if present, else create one above the file input
+  let box = document.getElementById('mediaErrorBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'mediaErrorBox';
+    box.className = 'mb-3 px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl';
+    mediaInput.parentElement.insertBefore(box, mediaInput.previousElementSibling);
+  }
+  box.textContent = msg;
+  box.style.display = 'block';
+  clearTimeout(box._timer);
+  box._timer = setTimeout(() => { box.style.display = 'none'; }, 5000);
 }
 
-function removeNewFile(idx) {
-  newFiles.splice(idx, 1);
-  updateInputFiles();
-  renderNewPreviews();
-}
-
-function removeExistingMedia(id) {
-  deletedMediaIds.push(id);
-  deletedMediaIdsInput.value = deletedMediaIds.join(',');
-  const el = existingMediaPreview.querySelector(`[onclick*='removeExistingMedia(${id})']`).parentElement;
-  if (el) el.remove();
-}
-
-function updateInputFiles() {
-  // Sync newFiles to input
+/* ── Sync all chosen files into the real form input ── */
+function syncFormInput() {
   const dt = new DataTransfer();
-  newFiles.forEach(f => dt.items.add(f));
+  newImageFiles.forEach(f => dt.items.add(f));
+  if (newVideoFile) dt.items.add(newVideoFile);
   mediaInput.files = dt.files;
 }
 
-mediaInput.addEventListener('change', function(e) {
-  const files = Array.from(e.target.files);
-  for (const file of files) {
-    if (newFiles.length >= maxFiles) break;
-    if (!['image/jpeg','image/png','image/webp','video/mp4','video/webm'].includes(file.type)) continue;
-    if (file.size > maxFileSize) continue;
-    newFiles.push(file);
+/* ── Remove button factory ── */
+function makeRemoveBtn(onClick) {
+  const btn = document.createElement('button');
+  btn.type      = 'button';
+  btn.className = 'absolute top-1 right-1 bg-white rounded-full shadow p-1 text-red-600 hover:bg-red-100 z-20';
+  btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+    viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+  </svg>`;
+  btn.addEventListener('click', onClick);
+  return btn;
+}
+
+/* ── Video thumbnail via canvas ── */
+function getVideoThumbnail(file) {
+  return new Promise((resolve) => {
+    const blobUrl = URL.createObjectURL(file);
+    const video   = document.createElement('video');
+    video.muted       = true;
+    video.playsInline = true;
+    video.preload     = 'auto';
+
+    let resolved = false;
+    const done = (result) => {
+      if (resolved) return;
+      resolved = true;
+      URL.revokeObjectURL(blobUrl);
+      video.src = '';
+      resolve(result);
+    };
+
+    video.addEventListener('loadedmetadata', () => {
+      video.currentTime = Math.min(0.5, video.duration * 0.1 || 0.1);
+    });
+
+    video.addEventListener('seeked', () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 112;
+        canvas.getContext('2d').drawImage(video, 0, 0, 112, 112);
+        done(canvas.toDataURL('image/jpeg', 0.85));
+      } catch (e) { done(null); }
+    });
+
+    video.addEventListener('error', () => done(null));
+    setTimeout(() => done(null), 8000);
+
+    video.src = blobUrl;
+    video.load();
+  });
+}
+
+/* ── Render all previews ── */
+function renderNewPreviews() {
+  newMediaPreview.innerHTML = '';
+
+  // Images
+  newImageFiles.forEach((file, idx) => {
+    const wrapper     = document.createElement('div');
+    wrapper.className = 'relative w-28 h-28 rounded overflow-hidden border flex-shrink-0 bg-gray-100';
+    const img         = document.createElement('img');
+    img.src           = URL.createObjectURL(file);
+    img.className     = 'w-full h-full object-cover';
+    wrapper.appendChild(img);
+    wrapper.appendChild(makeRemoveBtn(() => {
+      newImageFiles.splice(idx, 1);
+      syncFormInput();
+      renderNewPreviews();
+    }));
+    newMediaPreview.appendChild(wrapper);
+  });
+
+  // Video
+  if (newVideoFile) {
+    const wrapper     = document.createElement('div');
+    wrapper.className = 'relative w-28 h-28 rounded overflow-hidden border flex-shrink-0 bg-gray-800 flex items-center justify-center';
+    wrapper.innerHTML = `<svg class="animate-spin h-6 w-6 text-white opacity-60"
+      xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+    </svg>`;
+    newMediaPreview.appendChild(wrapper);
+
+    const removeBtn = makeRemoveBtn(() => {
+      newVideoFile = null;
+      syncFormInput();
+      renderNewPreviews();
+    });
+
+    getVideoThumbnail(newVideoFile).then((dataUrl) => {
+      wrapper.innerHTML = '';
+      if (dataUrl) {
+        const thumb     = document.createElement('img');
+        thumb.src       = dataUrl;
+        thumb.className = 'w-full h-full object-cover';
+        const overlay     = document.createElement('div');
+        overlay.className = 'absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none';
+        overlay.innerHTML = `<div class="bg-black/50 rounded-full p-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+          </svg></div>`;
+        wrapper.appendChild(thumb);
+        wrapper.appendChild(overlay);
+      } else {
+        wrapper.innerHTML = `<div class="flex flex-col items-center justify-center w-full h-full text-gray-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M4 8a2 2 0 012-2h9a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V8z"/>
+          </svg>
+          <span class="text-xs text-white">Video</span>
+        </div>`;
+      }
+      wrapper.appendChild(removeBtn);
+    });
   }
-  updateInputFiles();
+}
+
+/* ── Existing media remove ── */
+// ✅ FIXED — use button reference
+function removeExistingMedia(id, type, btnEl) {
+    deletedMediaIds.push(id);
+    deletedMediaIdsInput.value = deletedMediaIds.join(',');
+    const mediaItem = btnEl.closest('.relative');
+    if (mediaItem) {
+        mediaItem.style.transition = 'opacity 0.2s';
+        mediaItem.style.opacity = '0';
+        setTimeout(() => mediaItem.remove(), 200);
+    }
+    if (type === 'video') existingVideoCount = Math.max(0, existingVideoCount - 1);
+}
+
+/* ── Single file input handler ── */
+mediaInput.addEventListener('change', function (e) {
+  const files = Array.from(e.target.files);
+  this.value  = ''; // reset so same file can be picked again
+
+  files.forEach(file => {
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    // Size check
+    if (file.size > MAX_FILE_SIZE) {
+      showMediaError(`"${file.name}" exceeds the 10MB limit. Please compress it and try again.`);
+      return;
+    }
+
+    if (isImage) {
+      if (newImageFiles.length >= MAX_IMAGES) {
+        showMediaError(`Maximum ${MAX_IMAGES} images allowed.`);
+        return;
+      }
+      if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+        showMediaError(`"${file.name}" is not a supported image type.`);
+        return;
+      }
+      newImageFiles.push(file);
+
+    } else if (isVideo) {
+      if (newVideoFile || existingVideoCount > 0) {
+        showMediaError('Only 1 video is allowed. Remove the existing video first.');
+        return;
+      }
+      if (!['video/mp4','video/webm'].includes(file.type)) {
+        showMediaError(`"${file.name}" is not a supported video type. Use MP4 or WEBM.`);
+        return;
+      }
+      newVideoFile = file;
+
+    } else {
+      showMediaError(`"${file.name}" is not a supported file type.`);
+    }
+  });
+
+  syncFormInput();
   renderNewPreviews();
 });
 
-// Landmark Addition
-const addLandmarkBtn = document.getElementById('addLandmarkBtn');
+/* ── Landmark Addition ── */
+const addLandmarkBtn     = document.getElementById('addLandmarkBtn');
 const landmarksContainer = document.getElementById('landmarksContainer');
 
-addLandmarkBtn.addEventListener('click', function() {
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.name = 'landmarks[]';
+addLandmarkBtn.addEventListener('click', function () {
+  const input       = document.createElement('input');
+  input.type        = 'text';
+  input.name        = 'landmarks[]';
   input.placeholder = 'Enter landmark';
-  input.className = 'w-full border border-gray-200 rounded-xl px-4 py-2.5 outline-none mt-2';
+  input.className   = 'w-full border border-gray-200 rounded-xl px-4 py-2.5 outline-none mt-2';
   landmarksContainer.appendChild(input);
 });
 
-// Form Validation
-document.querySelector('form').addEventListener('submit', function(e) {
-  const latitude = latInput.value.trim();
+/* ── Form Validation ── */
+document.querySelector('form').addEventListener('submit', function (e) {
+  const latitude  = latInput.value.trim();
   const longitude = lngInput.value.trim();
-  
   if (!latitude || !longitude) {
     e.preventDefault();
     showError('Please confirm location on map before proceeding.');
     document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
   }
 });
 </script>

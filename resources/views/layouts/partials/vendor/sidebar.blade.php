@@ -31,7 +31,7 @@
                 <div class="w-14 h-14 rounded-full border {{ request()->routeIs('vendor.profile.*') ? 'border-white' : 'border-gray-300' }} overflow-hidden flex items-center justify-center {{ request()->routeIs('vendor.profile.*') ? 'bg-opacity-20 bg-white' : 'bg-gray-100' }}">
                     @if(auth()->user()->avatar)
                         <img
-                            src="{{ route('vendor.view-avatar', auth()->user()->id) }}?v={{ optional(auth()->user()->updated_at)->timestamp ?? '' }}"
+                            src="{{ route('view-avatar', auth()->user()->id) }}?t={{ time() }}"
                             alt="Profile Image"
                             class="w-full h-full object-cover block"
                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
@@ -354,21 +354,39 @@
                 </div>
             </div>
 
-            {{-- Import Menu Item --}}
+            {{-- Import Management Collapsible --}}
             @can('import.manage')
             <div class="space-y-1">
-                <a href="{{ route('vendor.import.dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.import.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="3" width="7" height="7" rx="1" fill="currentColor"/>
-                        <rect x="14" y="3" width="7" height="7" rx="1" fill="currentColor"/>
-                        <rect x="3" y="14" width="7" height="7" rx="1" fill="currentColor"/>
-                        <path opacity="0.5" d="M14 14L21 14M21 14L19 12M21 14L19 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                     Import Inventory
-                </a>
-                <a href="{{ route('vendor.import.enhanced') }}" class="block ml-9 px-3 py-1.5 text-sm rounded-lg {{ request()->routeIs('vendor.import.enhanced') || request()->routeIs('vendor.import.enhanced.batch.show') ? 'bg-emerald-50 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}">
-                     Import Management
-                </a>
+                <div x-data="{ open: @if(request()->routeIs('vendor.import.*')) true @else false @endif }" class="space-y-1">
+                    {{-- Parent: Import Management --}}
+                    <button
+                        type="button"
+                        @click="open = !open"
+                        class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 {{ request()->routeIs('vendor.import.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
+                    >
+                        <div class="flex items-center gap-3 {{ request()->routeIs('vendor.import.*') ? 'text-white' : 'text-gray-700' }}">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="3" y="3" width="7" height="7" rx="1" fill="currentColor"/>
+                                <rect x="14" y="3" width="7" height="7" rx="1" fill="currentColor"/>
+                                <rect x="3" y="14" width="7" height="7" rx="1" fill="currentColor"/>
+                                <path opacity="0.5" d="M14 14L21 14M21 14L19 12M21 14L19 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Import Management
+                        </div>
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    {{-- Children: Import Management --}}
+                    <div x-show="open" x-collapse x-cloak class="space-y-1 pl-3 mt-1">
+                        <a href="{{ route('vendor.import.dashboard') }}" class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('vendor.import.dashboard') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
+                            - Import Inventory
+                        </a>
+                        <a href="{{ route('vendor.import.enhanced') }}" class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('vendor.import.enhanced') || request()->routeIs('vendor.import.enhanced.batch.show') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
+                            - Import Management
+                        </a>
+                    </div>
+                </div>
             </div>
             @endcan
 

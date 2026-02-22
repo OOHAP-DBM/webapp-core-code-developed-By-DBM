@@ -65,7 +65,7 @@
                 <div class="flex items-center gap-3 mt-2">
                     @if($user->avatar)
                         <img
-                            src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/')) }}"
+                            src="{{ route('view-avatar', $user->id) }}"
                             alt="Avatar"
                             class="w-17 h-17 rounded-full object-cover border border-gray-300"
                         >

@@ -40,13 +40,7 @@
                     <button
                         type="button"
                         onclick="showDirectEnquiryModal()"
-                        class="w-[223px] h-[44px]
-                            flex items-center justify-center
-                            bg-[#1B84FF] hover:bg-[#0f6fe0]
-                            rounded-[6px]
-                            font-medium text-[16px] leading-[21px]
-                            text-white
-                            transition"
+                        class="w-[223px] h-[44px] flex items-center justify-center bg-[#1B84FF] hover:bg-[#0f6fe0] rounded-[6px] font-medium text-[16px] leading-[21px] text-white transition cursor-pointer"
                     >
                         Direct Enquiry
                     </button>
@@ -87,7 +81,7 @@
                             rounded-[6px]
                             font-medium text-[16px] leading-[21px]
                             text-white
-                            transition"
+                            transition cursor-pointer"
                     >
                         Direct Enquiry
                     </button>

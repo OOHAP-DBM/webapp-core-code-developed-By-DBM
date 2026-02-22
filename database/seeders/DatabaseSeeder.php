@@ -38,6 +38,7 @@ class DatabaseSeeder extends Seeder
             AboutPageSeeder::class,
             AboutLeaderSeeder::class,
             ImportPermissionSeeder::class,
+            InvoiceSettingsSeeder::class,
         ]);
     }
 }

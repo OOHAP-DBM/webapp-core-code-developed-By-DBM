@@ -1,4 +1,3 @@
-
 <section class="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
     <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
@@ -55,40 +54,54 @@
             </div>
 
             <!-- Stats Section -->
-             @php
+            @php
                 $formatCount = function ($count) {
-                    return $count > 100 ? '100+' : $count;
+                    return $count > 100 ? 100 : $count;
                 };
+
+                // $totalHoardings = $formatCount($stats['total_hoardings'] ?? 0);
+                // $totalVendors   = $formatCount($stats['total_vendors'] ?? 0);
+                // $totalBookings  = $formatCount($stats['total_bookings'] ?? 0);
+                // $totalCities    = 50;
+                $totalHoardings = 50000;
+                $hoardingsSuffix = '+';
+                $totalVendors   = 500;
+                $vendorsSuffix = '+';
+                $totalBookings  = 2000;
+                $bookingsSuffix = '+';
+                $totalCities    = 500;
+                $citiesSuffix = '+';
             @endphp
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white rounded-2xl shadow-xl p-8">
+            <div id="stats-section" class="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white rounded-2xl shadow-xl p-8">
                 <div class="text-center">
-                    <div class="text-4xl font-bold theme-gradient-text">
-                        {{ $formatCount($stats['total_hoardings'] ?? 0) }}
+                    <div class="text-4xl font-bold theme-gradient-text mb-2">
+                        <span class="stat-number" data-target="{{ $totalHoardings }}" data-suffix="{{ $hoardingsSuffix }}">0</span>{{ $hoardingsSuffix }}
                     </div>
                     <div class="text-sm text-gray-600 font-medium">Hoardings</div>
                 </div>
                 <div class="text-center">
                     <div class="text-4xl font-bold text-btn-color mb-2">
-                        {{ $formatCount($stats['total_vendors'] ?? 0) }}
+                        <span class="stat-number" data-target="{{ $totalVendors }}" data-suffix="{{ $vendorsSuffix }}">0</span>{{ $vendorsSuffix }}
                     </div>
                     <div class="text-sm text-gray-600 font-medium">Vendors</div>
                 </div>
                 <div class="text-center">
                     <div class="text-4xl font-bold text-btn-color mb-2">
-                        {{ $formatCount($stats['total_bookings'] ?? 0) }}
+                        <span class="stat-number" data-target="{{ $totalBookings }}" data-suffix="{{ $bookingsSuffix }}">0</span>{{ $bookingsSuffix }}
                     </div>
                     <div class="text-sm text-gray-600 font-medium">Bookings</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-4xl font-bold text-btn-color">
-                        50
+                    <div class="text-4xl font-bold text-btn-color mb-2">
+                        <span class="stat-number" data-target="{{ $totalCities }}" data-suffix="">0</span>
                     </div>
                     <div class="text-sm text-gray-600 font-medium">Cities</div>
                 </div>
             </div>
 
-            <!-- CTA Button -->
+            <!-- CTA Button (only for guests) -->
+            @guest
             <div class="text-center mt-12">
                 <a href="{{ route('register.role-selection') }}"
                     class="inline-flex items-center px-8 py-4
@@ -102,6 +115,57 @@
                         </svg>
                 </a>
             </div>
+            @endguest
         </div>
     </div>
 </section>
+
+<script>
+    (function () {
+        /**
+         * Animates a single element from 0 up to its data-target value.
+         * @param {HTMLElement} el
+         */
+        function animateStat(el) {
+            const target   = parseInt(el.dataset.target, 10);
+            const duration = 1800; // ms
+            const start    = performance.now();
+
+            function step(now) {
+                const elapsed  = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Ease-out cubic: starts fast, slows near the end
+                const eased  = 1 - Math.pow(1 - progress, 3);
+                const current = Math.floor(eased * target);
+
+                el.textContent = current;
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    el.textContent = target; // Ensure exact final value
+                }
+            }
+
+            requestAnimationFrame(step);
+        }
+
+        // Trigger animation when the stats section enters the viewport
+        const statsSection = document.getElementById('stats-section');
+        const statNumbers  = statsSection ? statsSection.querySelectorAll('.stat-number') : [];
+
+        if (!statsSection || !statNumbers.length) return;
+
+        const observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    statNumbers.forEach(animateStat);
+                    observer.unobserve(entry.target); // Only animate once
+                }
+            });
+        }, { threshold: 0.3 });
+
+        observer.observe(statsSection);
+    })();
+</script>

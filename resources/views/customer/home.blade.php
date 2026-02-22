@@ -210,7 +210,7 @@
                         <button
                             type="button"
                             @click="openFilter = true"
-                            class="px-4 py-2 border border-gray-300 bg-white text-gray-900 text-sm hover:bg-gray-100 font-medium"
+                            class="px-4 py-2 border border-gray-300 bg-white text-gray-900 text-sm hover:bg-gray-100 font-medium cursor-pointer"
                             >
                             Filter
                         </button>
@@ -361,7 +361,7 @@
                             <span></span>
                             <button
                                 @click="openFilter = false"
-                                class="text-gray-800 hover:text-black text-xl"
+                                class="text-gray-800 hover:text-black text-xl cursor-pointer"
                             >
                                 ✕
                             </button>
@@ -441,7 +441,7 @@
 
                                 <button
                                     type="submit"
-                                    class="px-6 py-2 bg-green-800 text-white text-sm font-semibold hover:bg-green-900"
+                                    class="px-6 py-2 bg-green-800 text-white text-sm font-semibold hover:bg-green-900 cursor-pointer"
                                 >
                                     Apply Filter
                                 </button>

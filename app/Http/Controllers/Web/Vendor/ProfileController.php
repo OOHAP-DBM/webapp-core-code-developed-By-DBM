@@ -403,21 +403,14 @@ class ProfileController extends Controller
 
             $otp = rand(1000, 9999);
 
-            if ($request->type === 'email') {
 
+            if ($request->type === 'email') {
                 Cache::put(
                     'delete_email_otp_'.$user->id,
                     $otp,
                     now()->addMinutes(2)
                 );
-
-                Mail::raw(
-                    "Your OOHAPP Delete Account OTP is: {$otp}",
-                    function ($m) use ($user) {
-                        $m->to($user->email)
-                        ->subject('OOHAPP Delete Account OTP');
-                    }
-                );
+                Mail::to($user->email)->send(new \Modules\Mail\OtpVerificationMail($otp));
             }
 
             if ($request->type === 'phone') {

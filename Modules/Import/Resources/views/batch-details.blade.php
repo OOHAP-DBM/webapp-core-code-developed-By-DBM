@@ -24,7 +24,7 @@
         <h2 class="text-lg font-semibold text-gray-900">Batch Summary</h2>
         @if(!$isAdmin)
             <button id="approveInventoryBtn" class="px-4 py-2 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed {{ $isApprovedBatch ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }}" {{ !in_array($batch->status, ['processed', 'completed']) || $isApprovedBatch ? 'disabled' : '' }}>
-                {{ $isApprovedBatch ? 'Approved' : 'Approve Inventory' }}
+                {{ $isApprovedBatch ? 'Approved' : 'Send For Approval' }}
             </button>
         @endif
     </div>
@@ -222,7 +222,7 @@ function setApproveButtonState(status, loading = false) {
     } else {
         approveBtn.classList.add('cursor-not-allowed');
     }
-    approveBtn.textContent = 'Approve Inventory';
+    approveBtn.textContent = 'Send For Approval';
 }
 
 function applyBatchUiState(status, loading = false) {

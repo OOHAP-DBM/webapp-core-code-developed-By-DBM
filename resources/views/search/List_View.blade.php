@@ -8,22 +8,32 @@
 
             @foreach($results as $item)
                  @php
-                    $images = collect($item->images ?? []);
+                    $mainImage = null;
+                    $thumbs = collect();
+                    if(($item->hoarding_type ?? '') === 'ooh'){
 
-                    $primary = $images->firstWhere('is_primary', 1)
-                        ?? $images->first();
+                        $allMedia = \Modules\Hoardings\Models\HoardingMedia::where('hoarding_id', $item->id)
+                            ->orderByDesc('is_primary')
+                            ->orderBy('sort_order')
+                            ->get();
+                        $primary = $allMedia->first();
+                        $mainImage = $primary ? asset('storage/'.$primary->file_path) : null;
 
-                    $hasImage = (bool) $primary;
+                        $thumbs = $allMedia->skip(1)->take(4);
+                    }
+                    elseif(($item->hoarding_type ?? '') === 'dooh'){
+                        $screen = \Modules\DOOH\Models\DOOHScreen::where('hoarding_id', $item->id)->first();
+                        if($screen){
+                            $allMedia = \Modules\DOOH\Models\DOOHScreenMedia::where('dooh_screen_id', $screen->id)
+                                ->orderByDesc('is_primary')
+                                ->orderBy('sort_order')
+                                ->get();
 
-                    $mainImage = $hasImage
-                        ? asset('storage/' . ltrim($primary->file_path, '/'))
-                        : null;
-
-                    $thumbs = $hasImage
-                        ? $images
-                            ->where('file_path', '!=', $primary->file_path)
-                            ->take(4)
-                        : collect();
+                            $primary = $allMedia->first();
+                            $mainImage = $primary ? asset('storage/'.$primary->file_path) : null;
+                            $thumbs = $allMedia->skip(1)->take(4);
+                        }
+                    }
                 @endphp
             <div class="bg-[#f0f0f0] rounded-xl p-5 mb-5 flex flex-col cursor-pointer"
                 onclick="if(event.target.closest('button, a') === null)
@@ -40,8 +50,15 @@
                         {{-- IMAGE --}}
                         <div class="w-[305px] flex-shrink-0">
                             <div class="relative group">
-                                <img src="{{ $mainImage }}"
-                                    class="w-full h-[190px] object-cover rounded-lg">
+                                <div class="w-full h-[190px] overflow-hidden rounded-lg bg-gray-100">
+                                    @if(isset($primary) && $primary)
+                                        <x-media-preview :media="$primary" :alt="$item->title ?? 'Hoarding'" />
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-sm bg-gray-200">
+                                            No Image
+                                        </div>
+                                    @endif
+                                </div>
 
                                 <!-- RECOMMENDED TAG -->
                                 <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded z-10">
@@ -110,14 +127,20 @@
 
                             <div class="flex gap-2 mt-2">
                                 @if($thumbs->isNotEmpty())
-                                    <div class="flex gap-2 mt-2">
+                                    <div class="flex gap-2 mt-2 overflow-x-auto">
                                         @foreach($thumbs as $thumb)
-                                            <img src="{{ asset('storage/' . ltrim($thumb->file_path, '/')) }}"
-                                                class="w-[70px] h-[48px] object-cover rounded"
-                                                alt="Thumbnail">
+                                            <div class="w-[70px] h-[48px] rounded overflow-hidden border border-gray-300 cursor-pointer list-thumb"
+                                                onclick="switchListMedia(this)">
+
+                                                <div class="hidden media-path">{{ asset('storage/'.$thumb->file_path) }}</div>
+                                                <div class="hidden media-type">{{ str_contains($thumb->mime_type ?? '', 'video') ? 'video' : 'image' }}</div>
+
+                                                <x-media-preview :media="$thumb" alt="" />
+
+                                            </div>
                                         @endforeach
                                     </div>
-                                @endif
+                                    @endif
                             </div>
 
                         </div>

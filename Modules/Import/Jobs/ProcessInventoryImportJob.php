@@ -278,7 +278,8 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'lighting_type' => $this->toNullableString($this->rowValue($row, ['lighting_type', 'illumination', 'Illumination'])),
                 'screen_type' => $this->toNullableString($this->rowValue($row, ['screen_type', 'Screen Type'])),
                 'image_name' => $this->toNullableString($row['image_name'] ?? null),
-                'base_monthly_price' => $this->toNullableDecimal($this->rowValue($row, ['base_monthly_price', 'dcpm_or_price', 'DCPM / Price']), 2),
+                // Map base_monthly_price from d_c_p_m if present, else fallback to other fields
+                'base_monthly_price' => $this->toNullableDecimal($this->rowValue($row, ['base_monthly_price', 'd_c_p_m', 'dcpm_or_price', 'DCPM / Price', 'price']), 2),
                 'monthly_price' => $this->toNullableDecimal($this->rowValue($row, ['monthly_price', 'monthly_sale_price', 'Monthly Sale Price']), 2),
                 'weekly_price_1' => $this->toNullableDecimal($this->rowValue($row, ['weekly_price_1']), 2),
                 'weekly_price_2' => $this->toNullableDecimal($this->rowValue($row, ['weekly_price_2']), 2),
@@ -287,10 +288,8 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'slot_duration_seconds' => $this->toNullableInt($this->rowValue($row, ['slot_duration_seconds', 'ad_duration_sec', 'Ad Duration (Sec)'])),
                 'screen_run_time' => $this->toNullableInt($this->rowValue($row, ['screen_run_time', 'daily_play_hours', 'Daily Play Hours'])),
                 'total_slots_per_day' => $this->toNullableInt($this->rowValue($row, ['total_slots_per_day', 'spots_per_day', 'Spots Per Day'])),
-                'min_slots_per_day' => $this->toNullableInt($this->rowValue($row, ['min_slots_per_day'])),
+                'total_slots_per_day' => $this->toNullableInt($this->rowValue($row, ['total_slots_per_day', 'spots_per_day', 'Spots Per Day'])),
                 'min_booking_duration' => $this->toNullableInt($this->rowValue($row, ['min_booking_duration', 'minimum_duration_days', 'Minimum Duration (Days)'])),
-                'minimum_booking_amount' => $this->toNullableDecimal($this->rowValue($row, ['minimum_booking_amount']), 2),
-                'commission_percent' => $this->toNullableDecimal($this->rowValue($row, ['commission_percent']), 2),
                 'graphics_charge' => $this->toNullableDecimal($this->rowValue($row, ['graphics_charge', 'designing_charge', 'Designing Charge']), 2),
                 'survey_charge' => $this->toNullableDecimal($this->rowValue($row, ['survey_charge']), 2),
                 'printing_charge' => $this->toNullableDecimal($this->rowValue($row, ['printing_charge', 'Printing Charge']), 2),
@@ -310,6 +309,7 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'updated_at' => now(),
             ];
         } catch (Exception $e) {
+            \Log::info('Import row keys/values', ['row' => $row]);
             return [
                 'batch_id' => $this->batch->id,
                 'vendor_id' => $this->batch->vendor_id,
@@ -339,10 +339,8 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'slot_duration_seconds' => null,
                 'screen_run_time' => null,
                 'total_slots_per_day' => null,
-                'min_slots_per_day' => null,
+                'total_slots_per_day' => null,
                 'min_booking_duration' => null,
-                'minimum_booking_amount' => null,
-                'commission_percent' => null,
                 'graphics_charge' => null,
                 'survey_charge' => null,
                 'printing_charge' => null,
@@ -395,6 +393,7 @@ class ProcessInventoryImportJob implements ShouldQueue
      */
     protected function extractExtraAttributes(array $row): ?string
     {
+        \Log::info('Extracting extra attributes from row', ['row' => $row]);
         $standardFields = [
             'code',
             'media_id',
@@ -453,12 +452,10 @@ class ProcessInventoryImportJob implements ShouldQueue
             'total_slots_per_day',
             'spots_per_day',
             'Spots Per Day',
-            'min_slots_per_day',
+            'total_slots_per_day',
             'min_booking_duration',
             'minimum_duration_days',
             'Minimum Duration (Days)',
-            'minimum_booking_amount',
-            'commission_percent',
             'graphics_charge',
             'designing_charge',
             'Designing Charge',

@@ -6,6 +6,8 @@ use Modules\Hoardings\Repositories\HoardingListRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class HoardingListService
 {
@@ -21,31 +23,39 @@ class HoardingListService
      */
     public function storeStep1($vendor, $data, $mediaFiles)
     {
-        // dd($data);
-
-
-
         // Backend safety check for offer price
         $errors = [];
         if (isset($data['monthly_offer_price']) && isset($data['base_monthly_price'])) {
-            if ($data['monthly_offer_price'] !== null && $data['monthly_offer_price'] >= $data['base_monthly_price']) {
-                $errors['monthly_offer_price'][] = 'Offer price must be less than the base monthly price.';
+            if ($data['monthly_offer_price'] !== null && $data['monthly_offer_price'] > $data['base_monthly_price']) {
+                $errors['monthly_offer_price'][] = 'Monthly discounted price must be less than or equal to the base monthly price.';
             }
         }
 
-        // Media validation (images only, no videos, max 5MB)
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-        $maxSize = 5 * 1024 * 1024; // 5MB
+        // Media validation (images + 1 video, max 10MB)
+        $allowedImageMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+        $allowedVideoMimes = ['video/mp4', 'video/webm'];
+        $maxSize = 10 * 1024 * 1024; // 10MB
+        $videoCount = 0;
+
         if (empty($mediaFiles)) {
-            $errors['media'][] = 'At least one image is required.';
+            $errors['media'][] = 'At least one image or video is required.';
         } else {
             foreach ($mediaFiles as $file) {
-                if (!in_array($file->getMimeType(), $allowedMimes)) {
-                    $errors['media'][] = 'Only JPG, JPEG, PNG, and WEBP images are allowed.';
+                $mime = $file->getMimeType();
+
+                if (in_array($mime, $allowedVideoMimes)) {
+                    $videoCount++;
+                    if ($videoCount > 1) {
+                        $errors['media'][] = 'Only 1 video is allowed.';
+                        break;
+                    }
+                } elseif (!in_array($mime, $allowedImageMimes)) {
+                    $errors['media'][] = 'Only JPG, PNG, WEBP images and MP4, WEBM videos are allowed.';
                     break;
                 }
+
                 if ($file->getSize() > $maxSize) {
-                    $errors['media'][] = 'Each image must not exceed 5MB.';
+                    $errors['media'][] = 'Each file must not exceed 10MB.';
                     break;
                 }
             }
@@ -102,30 +112,36 @@ class HoardingListService
      */
     public function storeStep2($hoarding, array $data, array $brandLogoFiles = []): array
     {
+        $parentHoarding = method_exists($hoarding, 'hoarding') && $hoarding->hoarding
+            ? $hoarding->hoarding
+            : $hoarding;
 
-        // dd($data);
-        // Always update the parent Hoarding model
-        $parentHoarding = method_exists($hoarding, 'hoarding') && $hoarding->hoarding ? $hoarding->hoarding : $hoarding;
-       \Log::info('Step2 parentHoarding', ['id' => $parentHoarding->id]);
-        $childHoarding = $hoarding;
-        \Log::info('Step2 childHoarding', ['id' => $childHoarding->id]);
-        // 1. Data Transformation (Mapping form inputs to DB columns)
         $formattedData = $this->mapHoardingStep2Data($data);
 
+        // ✅ Extract delete IDs BEFORE passing to repo — don't let fill() see it
+        $deleteBrandLogosRaw = $data['delete_brand_logos'] ?? null;
+        unset($formattedData['deleted_brand_logos']); // ✅ remove from fill() data
+
         try {
-            return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles) {
-                // 2. Persist main hoarding data (parent)
+            return \DB::transaction(function () use ($parentHoarding, $formattedData, $brandLogoFiles, $deleteBrandLogosRaw) {
+
+                // 1. Persist main hoarding data
                 $updatedHoarding = $this->repo->updateStep2($parentHoarding, $formattedData);
 
-                // 3. Handle Brand Logos via Repository (child)
+                // 2. Delete removed brand logos via repo
+                if (!empty($deleteBrandLogosRaw)) {
+                    $this->repo->deleteBrandLogos($parentHoarding, $deleteBrandLogosRaw);
+                }
+
+                // 3. Store new brand logos
                 if (!empty($brandLogoFiles)) {
-                    $this->repo->storeBrandLogos($childHoarding->id, $brandLogoFiles);
+                    $this->repo->storeBrandLogos($parentHoarding->id, $brandLogoFiles);
                 }
 
                 return [
                     'success'  => true,
                     'message'  => 'Hoarding details updated successfully.',
-                    'hoarding' => $updatedHoarding->fresh('brandLogos')
+                    'hoarding' => $updatedHoarding->fresh('brandLogos'),
                 ];
             });
         } catch (\Throwable $e) {
@@ -138,6 +154,7 @@ class HoardingListService
      */
     protected function mapHoardingStep2Data(array $data): array
     {
+        // dd($data);
         // \Log::info('Step2 incoming data', $data);
         $mapped = [
             // Legal
@@ -167,6 +184,7 @@ class HoardingListService
             'traffic_type'        => $data['traffic_type'] ?? null,
             'visibility_details'   => $data['visible_from'] ?? null,
             'located_at'   => $data['located_at'] ?? null,
+            'deleted_brand_logos' => $data['delete_brand_logos'] ?? null,
 
             // Step Management
             'current_step'         => 2,
@@ -241,18 +259,24 @@ class HoardingListService
             //     $this->repo->storePackages($hoarding->id, $data);
             // }
 
-            // Set parent hoarding status to pending_approval
+            // Set parent hoarding status based on env
             $parent = $hoarding->hoarding;
-
-           
-            if ($parent && $parent->status !== \App\Models\Hoarding::STATUS_PENDING_APPROVAL) {
-                $parent->status = \App\Models\Hoarding::STATUS_PENDING_APPROVAL;
-                
+            $autoApproval = env('Auto_Hoarding_Approval', false);
+            $newStatus = $autoApproval ? \App\Models\Hoarding::STATUS_ACTIVE : \App\Models\Hoarding::STATUS_PENDING_APPROVAL;
+            if ($parent && $parent->status !== $newStatus) {
+                $parent->status = $newStatus;
                 $parent->save();
                 // Notify all admins
                 $admins = \App\Models\User::role(['admin'])->get();
                 foreach ($admins as $admin) {
                     $admin->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
+                }
+                // Notify vendor (in-app and email)
+                $vendor = $parent->vendor;
+                if ($vendor) {
+                    $statusText = $newStatus === \App\Models\Hoarding::STATUS_ACTIVE ? 'Your OOH hoarding is now active and published.' : 'Your OOH hoarding is pending approval.';
+                    $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
+                    $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parent, $statusText));
                 }
             }
             return ['success' => true, 'hoarding' => $hoarding->fresh(['packages'])];
@@ -264,26 +288,23 @@ class HoardingListService
 
     public function updateStep1($hoarding, $oohHoarding, $data, $mediaFiles)
     {
-        // dd($data);
-        // Backend safety check for offer price
-        $errors = [];
+         $errors = [];
         if (isset($data['monthly_price']) && isset($data['base_monthly_price'])) {
-            if ($data['monthly_price'] >= $data['base_monthly_price']) {
-                $errors['monthly_price'][] = 'Offer price must be less than base price.';
+            if ($data['monthly_price'] > $data['base_monthly_price']) {
+                $errors['monthly_price'][] = 'Monthly discounted price must be less than or equal to the base monthly price.';
             }
         }
 
-        // Media validation (only if new files provided)
         if (!empty($mediaFiles)) {
-            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-            $maxSize = 5 * 1024 * 1024; // 5MB
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'video/mp4', 'video/webm'];
+            $maxSize = 10 * 1024 * 1024;
 
             foreach ($mediaFiles as $index => $file) {
                 if (!in_array($file->getMimeType(), $allowedMimes)) {
-                    $errors['media'][] = "File #{$index}: Invalid format. Only JPEG, PNG, and WEBP allowed.";
+                    $errors['media'][] = "File #{$index}: Invalid format. Only JPEG, PNG, WEBP, MP4, WEBM allowed.";
                 }
                 if ($file->getSize() > $maxSize) {
-                    $errors['media'][] = "File #{$index}: Exceeds 5MB size limit.";
+                    $errors['media'][] = "File #{$index}: Exceeds 10MB size limit.";
                 }
             }
         }
@@ -323,7 +344,12 @@ class HoardingListService
                 // 'calculated_area_sqft' => $areaSqft,
             ]);
 
-            // Handle media - only add new, don't delete existing unless specified
+
+            if (!empty($data['deleted_media_ids'])) {
+                $this->repo->deleteMedia($hoarding->id, $data['deleted_media_ids']);
+            }
+
+            // ✅ Store new media via repo
             if (!empty($mediaFiles)) {
                 $this->repo->storeMedia($hoarding->id, $mediaFiles);
             }

@@ -47,7 +47,6 @@ class Hoarding extends Model implements HasMedia
         'commission_percent',
         'graphics_charge',
         'survey_charge',
-        'wee'
     ];
 
     /* ===================== FILLABLE ===================== */
@@ -439,12 +438,8 @@ class Hoarding extends Model implements HasMedia
             // For DOOH, get brand logos from the child screen
             return $this->doohScreen->brandLogos()->orderBy('sort_order');
         }
-        if ($this->hoarding_type === self::TYPE_OOH && $this->ooh) {
-            // For OOH, get brand logos from the child hoarding
-            return $this->ooh->brandLogos()->orderBy('sort_order');
-        }
-        // Fallback: parent-level brand logos
-        return $this->hasMany(HoardingBrandLogo::class)->orderBy('sort_order');
+        return $this->hasMany(HoardingBrandLogo::class)
+        ->orderBy('sort_order');
     }
     /**
      * Get hero image URL (with fallback to primary_image column if exists).
@@ -996,4 +991,38 @@ class Hoarding extends Model implements HasMedia
         
         return true;
     }
+
+
+
+    /**
+ * Get the first media item for display (OOH or DOOH)
+ */
+public function primaryMediaItem()
+{
+    if ($this->hoarding_type === self::TYPE_OOH) {
+        return $this->hoardingMedia->first();
+    }
+
+    if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+        return $this->doohScreen->media->sortBy('sort_order')->first();
+    }
+
+    return null;
+}
+
+/**
+ * Get all media items for display (OOH or DOOH)
+ */
+public function allMediaItems()
+{
+    if ($this->hoarding_type === self::TYPE_OOH) {
+        return $this->hoardingMedia;
+    }
+
+    if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+        return $this->doohScreen->media->sortBy('sort_order');
+    }
+
+    return collect();
+}
 }
