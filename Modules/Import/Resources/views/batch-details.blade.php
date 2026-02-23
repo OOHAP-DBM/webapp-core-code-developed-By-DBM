@@ -85,12 +85,20 @@
 <div class="bg-white rounded-xl shadow overflow-hidden">
     <div class="p-4 border-b border-gray-200 flex items-center justify-between">
         <h2 class="text-lg font-semibold text-gray-900">Batch Rows</h2>
-        <p id="paginationInfo" class="text-sm text-gray-500"></p>
+        <div class="flex items-center gap-3">
+            <button id="bulkDeleteBtn" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                Delete Selected (0)
+            </button>
+            <p id="paginationInfo" class="text-sm text-gray-500"></p>
+        </div>
     </div>
     <div class="overflow-x-auto">
-        <table class="w-full min-w-[980px]">
+        <table class="w-full min-w-[1040px]">
             <thead class="bg-gray-50">
                 <tr>
+                    <th class="px-3 py-2 text-left text-sm">
+                        <input id="rowsSelectAll" type="checkbox" class="h-4 w-4 rounded border-gray-300" />
+                    </th>
                     <th class="px-3 py-2 text-left text-sm">ID</th>
                     <th class="px-3 py-2 text-left text-sm">Image</th>
                     <th class="px-3 py-2 text-left text-sm">Code</th>
@@ -138,6 +146,7 @@ const INITIAL_BATCH_STATUS = @json($batch->status);
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 let currentRowsById = {};
+let selectedRowIds = new Set();
 let currentBatchStatus = (INITIAL_BATCH_STATUS || '').toLowerCase();
 let rowsQueryState = {
     page: 1,
@@ -237,6 +246,77 @@ function applyBatchUiState(status, loading = false) {
             rowEditorSection.classList.remove('hidden');
         }
     }
+
+    const selectAll = document.getElementById('rowsSelectAll');
+    if (selectAll) {
+        selectAll.checked = false;
+        selectAll.disabled = currentBatchStatus === 'approved';
+    }
+
+    updateBulkDeleteButtonState();
+}
+
+function clearRowSelections() {
+    selectedRowIds.clear();
+    const selectAll = document.getElementById('rowsSelectAll');
+    if (selectAll) {
+        selectAll.checked = false;
+    }
+    updateBulkDeleteButtonState();
+}
+
+function updateBulkDeleteButtonState() {
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    if (!bulkDeleteBtn) return;
+
+    const selectedCount = selectedRowIds.size;
+    bulkDeleteBtn.textContent = `Delete Selected (${selectedCount})`;
+    bulkDeleteBtn.disabled = currentBatchStatus === 'approved' || selectedCount === 0;
+}
+
+function syncSelectAllCheckbox() {
+    const selectAll = document.getElementById('rowsSelectAll');
+    if (!selectAll) return;
+
+    const rowIds = Object.keys(currentRowsById);
+    if (!rowIds.length || currentBatchStatus === 'approved') {
+        selectAll.checked = false;
+        selectAll.disabled = true;
+        return;
+    }
+
+    selectAll.disabled = false;
+    selectAll.checked = rowIds.every((rowId) => selectedRowIds.has(Number(rowId)));
+}
+
+function toggleRowSelection(rowId, checked) {
+    const normalizedId = Number(rowId);
+    if (checked) {
+        selectedRowIds.add(normalizedId);
+    } else {
+        selectedRowIds.delete(normalizedId);
+    }
+
+    syncSelectAllCheckbox();
+    updateBulkDeleteButtonState();
+}
+
+function toggleSelectAllRows(checked) {
+    Object.keys(currentRowsById).forEach((rowId) => {
+        const normalizedId = Number(rowId);
+        if (checked) {
+            selectedRowIds.add(normalizedId);
+        } else {
+            selectedRowIds.delete(normalizedId);
+        }
+    });
+
+    document.querySelectorAll('.row-select-checkbox').forEach((checkbox) => {
+        checkbox.checked = checked;
+    });
+
+    syncSelectAllCheckbox();
+    updateBulkDeleteButtonState();
 }
 
 function renderRowsPagination() {
@@ -289,6 +369,8 @@ async function loadRows(page = rowsQueryState.page) {
             return accumulator;
         }, {});
 
+        clearRowSelections();
+
         document.getElementById('validCount').textContent = batch.valid_rows ?? '-';
         document.getElementById('invalidCount').textContent = batch.invalid_rows ?? '-';
         document.getElementById('batchStatusText').textContent = batch.status ?? '-';
@@ -300,7 +382,8 @@ async function loadRows(page = rowsQueryState.page) {
 
         const body = document.getElementById('rowsBody');
         if (!rows.length) {
-            body.innerHTML = '<tr><td colspan="9" class="px-3 py-6 text-center text-gray-500">No rows found</td></tr>';
+            body.innerHTML = '<tr><td colspan="10" class="px-3 py-6 text-center text-gray-500">No rows found</td></tr>';
+            syncSelectAllCheckbox();
             return;
         }
 
@@ -311,6 +394,11 @@ async function loadRows(page = rowsQueryState.page) {
 
             return `
                 <tr>
+                    <td class="px-3 py-2 text-sm">
+                        ${currentBatchStatus === 'approved'
+                            ? '<span class="text-gray-300">-</span>'
+                            : `<input type="checkbox" class="h-4 w-4 rounded border-gray-300 row-select-checkbox" onchange="toggleRowSelection(${row.id}, this.checked)" ${selectedRowIds.has(row.id) ? 'checked' : ''} />`}
+                    </td>
                     <td class="px-3 py-2 text-sm">${row.id}</td>
                     <td class="px-3 py-2 text-sm">${imageCell}</td>
                     <td class="px-3 py-2 text-sm">${escapeHtml(row.code)}</td>
@@ -327,9 +415,101 @@ async function loadRows(page = rowsQueryState.page) {
                 </tr>
             `;
         }).join('');
+
+        syncSelectAllCheckbox();
+        updateBulkDeleteButtonState();
     } catch (error) {
         notify(error.message, 'error');
     }
+}
+
+async function deleteSelectedRows() {
+    if (currentBatchStatus === 'approved') {
+        if (window.Swal) {
+            await Swal.fire({
+                icon: 'info',
+                title: 'Read-only Batch',
+                text: 'Approved batch rows cannot be deleted.',
+            });
+        }
+        return;
+    }
+
+    const selectedIds = Array.from(selectedRowIds);
+    if (!selectedIds.length) {
+        notify('Please select at least one row', 'error');
+        return;
+    }
+
+    const confirmation = window.Swal
+        ? await Swal.fire({
+            icon: 'warning',
+            title: `Delete ${selectedIds.length} selected row(s)?`,
+            text: 'This will remove selected rows and images if no other row uses them.',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete selected',
+            confirmButtonColor: '#dc2626',
+        })
+        : { isConfirmed: confirm(`Delete ${selectedIds.length} selected row(s)?`) };
+
+    if (!confirmation.isConfirmed) return;
+
+    if (window.Swal) {
+        Swal.fire({
+            title: 'Deleting selected rows...',
+            text: 'Please wait while we remove selected rows.',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => Swal.showLoading(),
+        });
+    }
+
+    let deletedCount = 0;
+    const failedIds = [];
+
+    for (const rowId of selectedIds) {
+        try {
+            await api(`${API_BASE}/${BATCH_ID}/rows/${rowId}`, { method: 'DELETE' });
+            deletedCount += 1;
+        } catch (error) {
+            failedIds.push(rowId);
+        }
+    }
+
+    if (window.Swal) {
+        Swal.close();
+    }
+
+    if (failedIds.length === 0) {
+        if (window.Swal) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Deleted',
+                text: `${deletedCount} row(s) deleted successfully`,
+                timer: 1800,
+                showConfirmButton: false,
+            });
+        } else {
+            notify(`${deletedCount} row(s) deleted`);
+        }
+    } else {
+        const failedText = failedIds.slice(0, 5).join(', ');
+        const suffix = failedIds.length > 5 ? '...' : '';
+        const errorMessage = `${deletedCount} deleted, ${failedIds.length} failed (IDs: ${failedText}${suffix})`;
+
+        if (window.Swal) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Bulk Delete Completed with Errors',
+                text: errorMessage,
+            });
+        } else {
+            notify(errorMessage, 'error');
+        }
+    }
+
+    clearRowSelections();
+    loadRows();
 }
 
 async function approveInventory() {
@@ -634,6 +814,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('resetRowForm').addEventListener('click', resetRowForm);
     document.getElementById('rowImageFile').addEventListener('change', handleImagePreviewChange);
     document.getElementById('approveInventoryBtn')?.addEventListener('click', approveInventory);
+    document.getElementById('rowsSelectAll')?.addEventListener('change', (event) => {
+        toggleSelectAllRows(event.target.checked);
+    });
+    document.getElementById('bulkDeleteBtn')?.addEventListener('click', deleteSelectedRows);
 });
 </script>
 @endsection

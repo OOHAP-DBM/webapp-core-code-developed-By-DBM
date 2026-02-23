@@ -1,5 +1,5 @@
 @extends($layout)
-@section('title', 'Import Management')
+@section('title', 'Manage Import')
 
 @section('content')
 <div class="mb-6">
