@@ -52,38 +52,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
                         Media Gallery
-                        <span class="text-sm text-gray-500 font-normal">({{ $hoarding->media_files->count() }} files)</span>
                     </h2>
-                    
-                    {{-- Main Image Display --}}
-                    @if($hoarding->media_files->isNotEmpty())
-                        <div class="mb-4">
-                            <img 
-                                id="mainPreviewImage" 
-                                src="{{ $hoarding->media_files->where('is_primary', true)->first()['url'] ?? $hoarding->media_files->first()['url'] }}" 
-                                alt="{{ $hoarding->title }}"
-                                class="w-full h-96 object-cover rounded-lg border border-gray-200"
-                            >
-                        </div>
-                        
-                        {{-- Thumbnail Gallery --}}
-                        @if($hoarding->media_files->count() > 1)
-                            <div class="grid grid-cols-4 gap-3">
-                                @foreach($hoarding->media_files as $index => $media)
-                                    <img 
-                                        src="{{ $media['url'] }}" 
-                                        alt="Thumbnail {{ $index + 1 }}"
-                                        class="w-full h-24 object-cover rounded-lg border-2 cursor-pointer hover:border-green-500 transition {{ $loop->first ? 'border-green-500' : 'border-gray-200' }}"
-                                        onclick="document.getElementById('mainPreviewImage').src = '{{ $media['url'] }}'; event.target.parentElement.querySelectorAll('img').forEach(img => img.classList.remove('border-green-500')); event.target.classList.add('border-green-500');"
-                                    >
-                                @endforeach
-                            </div>
-                        @endif
-                    @else
-                        <div class="flex items-center justify-center h-96 bg-gray-100 rounded-lg">
-                            <span class="text-gray-400">No media available</span>
-                        </div>
-                    @endif
+                    @include('hoardings.partials.gallery', ['hoarding' => $hoarding])
                 </div>
             </div>
 
@@ -426,18 +396,21 @@
                                         @endif
                                     </div>
                                     <div class="text-right">
-                                        @if($hoarding->hoarding_type === 'dooh')
-                                            <p class="text-lg font-bold text-green-600">
-                                                {{ $package->slots_per_month ?? '—' }} slots/month
-                                            </p>
-                                            @if($package->price_per_slot)
-                                                <p class="text-xs text-gray-500">₹{{ number_format($package->price_per_slot, 2) }}/slot</p>
-                                            @endif
-                                        @else
-                                            <p class="text-lg font-bold text-green-600">
-                                                ₹{{ number_format($package->base_monthly_price ?? 0, 2) }}
-                                            </p>
-                                            <p class="text-xs text-gray-500">/month</p>
+                                        @php
+                                            $duration = $package->min_booking_duration ?? 1;
+                                            $discount = $package->discount_percent ?? 0;
+                                            $basePrice = $hoarding->base_monthly_price ?? 0;
+                                            $total = $basePrice * $duration;
+                                            $discountAmount = ($total * $discount) / 100;
+                                            $finalPrice = $total - $discountAmount;
+                                            $durationUnit = $package->duration_unit ?? 'months';
+                                        @endphp
+                                        <p class="text-lg font-bold text-green-600">
+                                            ₹{{ number_format($finalPrice, 2) }}
+                                        </p>
+                                        <p class="text-xs text-gray-500">for {{ $duration }} {{ $durationUnit }}</p>
+                                        @if($discount > 0)
+                                            <p class="text-xs text-green-700">{{ $discount }}% discount applied</p>
                                         @endif
                                     </div>
                                 </div>
@@ -445,7 +418,7 @@
                                 <div class="grid grid-cols-3 gap-2 text-xs text-gray-600 mt-3">
                                     @if($package->min_booking_duration)
                                         <div>
-                                            <span class="font-semibold"> Duration:</span> {{ $package->min_booking_duration }} months
+                                            <span class="font-semibold"> Duration:</span> {{ $package->min_booking_duration }} {{ $durationUnit }}
                                         </div>
                                     @endif
                                     @if($package->discount_percent)
@@ -512,7 +485,7 @@
         {{-- RIGHT COLUMN (1/3 width) - Sidebar Info --}}
         <div class="lg:col-span-1 space-y-6">
             
-            <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
+            <div class="bg-white rounded-lg shadow-md p-6  top-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Pricing Summary</h2>
                 @php
                     $monthly = $hoarding->monthly_price;

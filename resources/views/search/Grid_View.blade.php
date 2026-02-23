@@ -122,7 +122,7 @@
                                 </div>
                             @endif
 
-                            <p class="text-xs text-gray-500 mt-2">Taxes excluded</p>
+                            <!-- <p class="text-xs text-gray-500 mt-2">Taxes excluded</p> -->
 
                             <p class="text-xs text-blue-500 mb-1">
                                 @if($item->available_from && \Carbon\Carbon::parse($item->available_from)->isFuture())
@@ -179,7 +179,7 @@
             </div>
 
             @if($results->total() > $results->perPage())
-                <div class="mt-6 flex justify-center">
+                <div class="mt-6 flex w-full justify-end">
                     {{ $results->links() }}
                 </div>
             @endif
@@ -192,20 +192,3 @@
 
     </div>
 </div>
-
-@guest
-    <div class="container mx-auto px-4"><hr class="border-gray-200"></div>
-    <section class="py-12 bg-gray-100">
-        <div class="container mx-auto px-4 text-center">
-            <h3 class="text-xl font-bold text-gray-900 mb-4">See Personalized Recommendations</h3>
-            <div class="flex flex-col items-center justify-center space-y-4">
-                <a href="{{ route('login') }}" class="px-24 py-3 bg-gray-900 text-white rounded font-semibold hover:bg-gray-800">Login</a>
-                <div class="flex items-center space-x-2">
-                    <span class="text-gray-500">New on OOHAPP?</span>
-                    <a href="{{ route('register.role-selection') }}" class="text-[#008ae0] font-semibold border-b border-[#008ae0]">Signup</a>
-                </div>
-            </div>
-        </div>
-    </section>
-    <div class="container mx-auto px-4"><hr class="border-gray-200"></div>
-@endguest

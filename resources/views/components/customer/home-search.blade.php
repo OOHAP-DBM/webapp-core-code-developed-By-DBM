@@ -21,7 +21,7 @@
                     <!-- Near Me Button -->
                     <button 
                         type="button" 
-                        class="flex items-center px-4 gap-2 py-2.5 text-sm text-gray-600 bg-gray-50  rounded hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                        class="flex items-center px-4 gap-2 py-2 text-sm text-gray-600 bg-[#dedede] rounded hover:text-gray-600 hover:bg-[#cfcfcf] transition-colors cursor-pointer"
                         onclick="getCurrentLocation()"
                     >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -47,6 +47,7 @@
                                 id="dateRange"
                                 class="bg-transparent border-none focus:outline-none focus:ring-0 text-xs text-gray-700 cursor-pointer p-0 leading-tight"
                                 readonly
+                                placeholder="Select date range"
                             >
                         </div>
                     </div>
@@ -100,20 +101,10 @@
             });
         }
 
-        function setDefaultDates() {
-            const today = new Date();
-            const tomorrow = new Date();
-            tomorrow.setDate(today.getDate() + 1);
+        // Remove default date selection
+        let defaultDates = [];
 
-            dateInput.value = `${formatDisplay(today)} - ${formatDisplay(tomorrow)}`;
-            fromInput.value = toLocalYMD(today);
-            toInput.value   = toLocalYMD(tomorrow);
-            return [today, tomorrow];
-        }
-
-        let defaultDates;
-
-        // ✅ If search already has dates → use them
+        // If search already has dates → use them
         if (urlFrom && urlTo) {
             const fromDate = new Date(urlFrom);
             const toDate   = new Date(urlTo);
@@ -123,10 +114,6 @@
             toInput.value   = urlTo;
 
             defaultDates = [fromDate, toDate];
-        } 
-        // ✅ else fallback to today
-        else {
-            defaultDates = setDefaultDates();
         }
 
         if (typeof flatpickr !== 'undefined') {
@@ -134,25 +121,31 @@
                 mode: "range",
                 dateFormat: "D, d M y",
                 defaultDate: defaultDates,
-
+                showMonths: 2, // Show two months side by side like Airbnb
+                minDate: "today", // Prevent selecting past dates
                 onChange: function (selectedDates) {
                     if (selectedDates.length === 2) {
                         fromInput.value = toLocalYMD(selectedDates[0]);
                         toInput.value   = toLocalYMD(selectedDates[1]);
                     }
                 },
-
                 onClose: function (selectedDates) {
                     if (selectedDates.length < 2) {
-                        setDefaultDates();
+                        dateInput.value = '';
+                        fromInput.value = '';
+                        toInput.value = '';
                     }
-                }
+                },
+                position: "auto center" // Try to center the calendar popup
             });
         }
 
+
         // clear filters support
         window.resetDateRange = function () {
-            setDefaultDates();
+            dateInput.value = '';
+            fromInput.value = '';
+            toInput.value = '';
         };
         function toLocalYMD(date) {
             const year  = date.getFullYear();
@@ -162,3 +155,9 @@
         }
     });
 </script>
+<style>
+.flatpickr-calendar {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+}
+</style>

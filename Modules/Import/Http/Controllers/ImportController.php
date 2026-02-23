@@ -156,8 +156,6 @@ class ImportController extends Controller
             'Illumination',
             'Latitude',
             'Longitude',
-            'Ad Duration (Sec)',
-            'Daily Play Hours',
             'Minimum Duration (Days)',
             'DCPM / Price',
             'Availability',
@@ -763,6 +761,148 @@ class ImportController extends Controller
     }
 
     /**
+     * Validation rules shared by createBatchRow and updateBatchRow.
+     * Covers every column in inventory_import_staging.
+     *
+     * @param bool $imageRequired
+     * @return array
+     */
+    private function stagingRowRules(bool $imageRequired = false): array
+    {
+        return [
+            // Core
+            'code'                    => ['required', 'string', 'max:255'],
+            'city'                    => ['nullable', 'string', 'max:255'],
+
+            // Address
+            'address'                 => ['nullable', 'string', 'max:500'],
+            'locality'                => ['nullable', 'string', 'max:255'],
+            'landmark'                => ['nullable', 'string', 'max:255'],
+            'state'                   => ['nullable', 'string', 'max:255'],
+            'pincode'                 => ['nullable', 'string', 'max:20'],
+
+            // Classification
+            'category'                => ['nullable', 'string', 'max:100'],
+            'lighting_type'           => ['nullable', 'string', 'max:100'],
+            'screen_type'             => ['nullable', 'string', 'max:100'],
+
+            // Dimensions
+            'width'                   => ['nullable', 'numeric', 'min:0'],
+            'height'                  => ['nullable', 'numeric', 'min:0'],
+            'measurement_unit'        => ['nullable', 'string', 'max:20'],
+
+            // Geo
+            'latitude'                => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude'               => ['nullable', 'numeric', 'between:-180,180'],
+
+            // Pricing
+            'base_monthly_price'      => ['nullable', 'numeric', 'min:0'],
+            'monthly_price'           => ['nullable', 'numeric', 'min:0'],
+            'weekly_price_1'          => ['nullable', 'numeric', 'min:0'],
+            'weekly_price_2'          => ['nullable', 'numeric', 'min:0'],
+            'weekly_price_3'          => ['nullable', 'numeric', 'min:0'],
+            'price_per_slot'          => ['nullable', 'numeric', 'min:0'],
+
+            // DOOH timing
+            'slot_duration_seconds'   => ['nullable', 'numeric', 'min:0'],
+            'screen_run_time'         => ['nullable', 'string', 'max:100'],
+            'total_slots_per_day'     => ['nullable', 'integer', 'min:0'],
+            'min_slots_per_day'       => ['nullable', 'integer', 'min:0'],
+            'daily_play_hours'        => ['nullable', 'string', 'max:100'],
+
+            // Booking
+            'min_booking_duration'    => ['nullable', 'numeric', 'min:0'],
+            'minimum_booking_amount'  => ['nullable', 'numeric', 'min:0'],
+            'availability'            => ['nullable', 'string', 'max:100'],
+            'commission_percent'      => ['nullable', 'numeric', 'min:0', 'max:100'],
+
+            // Charges
+            'graphics_charge'         => ['nullable', 'numeric', 'min:0'],
+            'survey_charge'           => ['nullable', 'numeric', 'min:0'],
+            'printing_charge'         => ['nullable', 'numeric', 'min:0'],
+            'mounting_charge'         => ['nullable', 'numeric', 'min:0'],
+            'remounting_charge'       => ['nullable', 'numeric', 'min:0'],
+            'lighting_charge'         => ['nullable', 'numeric', 'min:0'],
+
+            // Discount
+            'discount_type'           => ['nullable', 'string', 'max:50'],
+            'discount_value'          => ['nullable', 'numeric', 'min:0'],
+
+            // Other
+            'currency'                => ['nullable', 'string', 'max:10'],
+            'available_from'          => ['nullable', 'date'],
+            'available_to'            => ['nullable', 'date', 'after_or_equal:available_from'],
+
+            // Row status
+            'status'                  => ['required', Rule::in(['valid', 'invalid'])],
+            'error_message'           => ['nullable', 'string'],
+            'extra_attributes'        => ['nullable', 'array'],
+
+            // Image
+            'image'                   => [
+                $imageRequired ? 'required' : 'nullable',
+                'file', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120',
+            ],
+        ];
+    }
+
+    /**
+     * Extract all staging-column values from a validated request array.
+     *
+     * @param array $v
+     * @return array
+     */
+    private function stagingFieldsFromValidated(array $v): array
+    {
+        return [
+            'code'                   => $v['code'],
+            'city'                   => $v['city'] ?? null,
+            'address'                => $v['address'] ?? null,
+            'locality'               => $v['locality'] ?? null,
+            'landmark'               => $v['landmark'] ?? null,
+            'state'                  => $v['state'] ?? null,
+            'pincode'                => $v['pincode'] ?? null,
+            'category'               => $v['category'] ?? null,
+            'lighting_type'          => $v['lighting_type'] ?? null,
+            'screen_type'            => $v['screen_type'] ?? null,
+            'width'                  => $v['width'] ?? null,
+            'height'                 => $v['height'] ?? null,
+            'measurement_unit'       => $v['measurement_unit'] ?? null,
+            'latitude'               => $v['latitude'] ?? null,
+            'longitude'              => $v['longitude'] ?? null,
+            'base_monthly_price'     => $v['base_monthly_price'] ?? null,
+            'monthly_price'          => $v['monthly_price'] ?? null,
+            'weekly_price_1'         => $v['weekly_price_1'] ?? null,
+            'weekly_price_2'         => $v['weekly_price_2'] ?? null,
+            'weekly_price_3'         => $v['weekly_price_3'] ?? null,
+            'price_per_slot'         => $v['price_per_slot'] ?? null,
+            'slot_duration_seconds'  => $v['slot_duration_seconds'] ?? null,
+            'screen_run_time'        => $v['screen_run_time'] ?? null,
+            'total_slots_per_day'    => $v['total_slots_per_day'] ?? null,
+            'min_slots_per_day'      => $v['min_slots_per_day'] ?? null,
+            'daily_play_hours'       => $v['daily_play_hours'] ?? null,
+            'min_booking_duration'   => $v['min_booking_duration'] ?? null,
+            'minimum_booking_amount' => $v['minimum_booking_amount'] ?? null,
+            'availability'           => $v['availability'] ?? null,
+            'commission_percent'     => $v['commission_percent'] ?? null,
+            'graphics_charge'        => $v['graphics_charge'] ?? null,
+            'survey_charge'          => $v['survey_charge'] ?? null,
+            'printing_charge'        => $v['printing_charge'] ?? null,
+            'mounting_charge'        => $v['mounting_charge'] ?? null,
+            'remounting_charge'      => $v['remounting_charge'] ?? null,
+            'lighting_charge'        => $v['lighting_charge'] ?? null,
+            'discount_type'          => $v['discount_type'] ?? null,
+            'discount_value'         => $v['discount_value'] ?? null,
+            'currency'               => $v['currency'] ?? null,
+            'available_from'         => $v['available_from'] ?? null,
+            'available_to'           => $v['available_to'] ?? null,
+            'status'                 => $v['status'],
+            'error_message'          => $v['error_message'] ?? null,
+            'extra_attributes'       => $v['extra_attributes'] ?? null,
+        ];
+    }
+
+    /**
      * Create a staging row under a batch.
      *
      * @param Request $request
@@ -781,35 +921,18 @@ class ImportController extends Controller
                 ], 422);
             }
 
-            $validated = $request->validate([
-                'code' => ['required', 'string', 'max:255'],
-                'city' => ['nullable', 'string', 'max:255'],
-                'width' => ['nullable', 'numeric', 'min:0'],
-                'height' => ['nullable', 'numeric', 'min:0'],
-                'image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120'],
-                'status' => ['required', Rule::in(['valid', 'invalid'])],
-                'error_message' => ['nullable', 'string'],
-                'extra_attributes' => ['nullable', 'array'],
-            ]);
+            $validated = $request->validate($this->stagingRowRules());
 
-            $uploadedImageName = null;
+            $fields = $this->stagingFieldsFromValidated($validated);
+            $fields['batch_id']   = $batch->id;
+            $fields['vendor_id']  = $batch->vendor_id;
+            $fields['media_type'] = $batch->media_type;
+
             if ($request->hasFile('image')) {
-                $uploadedImageName = $this->storeBatchImage($batch, $request->file('image'));
+                $fields['image_name'] = $this->storeBatchImage($batch, $request->file('image'));
             }
 
-            $row = InventoryImportStaging::create([
-                'batch_id' => $batch->id,
-                'vendor_id' => $batch->vendor_id,
-                'media_type' => $batch->media_type,
-                'code' => $validated['code'],
-                'city' => $validated['city'] ?? null,
-                'width' => $validated['width'] ?? null,
-                'height' => $validated['height'] ?? null,
-                'image_name' => $uploadedImageName,
-                'status' => $validated['status'],
-                'error_message' => $validated['error_message'] ?? null,
-                'extra_attributes' => $validated['extra_attributes'] ?? null,
-            ]);
+            $row = InventoryImportStaging::create($fields);
 
             $this->refreshBatchCounts($batch);
 
@@ -860,35 +983,18 @@ class ImportController extends Controller
                 ], 422);
             }
 
-            $validated = $request->validate([
-                'code' => ['required', 'string', 'max:255'],
-                'city' => ['nullable', 'string', 'max:255'],
-                'width' => ['nullable', 'numeric', 'min:0'],
-                'height' => ['nullable', 'numeric', 'min:0'],
-                'image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120'],
-                'keep_previous_image' => ['nullable', 'boolean'],
-                'status' => ['required', Rule::in(['valid', 'invalid'])],
-                'error_message' => ['nullable', 'string'],
-                'extra_attributes' => ['nullable', 'array'],
-            ]);
+            $rules = $this->stagingRowRules();
+            $rules['keep_previous_image'] = ['nullable', 'boolean'];
+            $validated = $request->validate($rules);
 
-            $updatePayload = [
-                'code' => $validated['code'],
-                'city' => $validated['city'] ?? null,
-                'width' => $validated['width'] ?? null,
-                'height' => $validated['height'] ?? null,
-                'status' => $validated['status'],
-                'error_message' => $validated['error_message'] ?? null,
-                'extra_attributes' => $validated['extra_attributes'] ?? null,
-            ];
+            $updatePayload = $this->stagingFieldsFromValidated($validated);
 
             if ($request->hasFile('image')) {
                 $keepPreviousImage = filter_var($request->input('keep_previous_image', false), FILTER_VALIDATE_BOOLEAN);
 
                 if (!$keepPreviousImage) {
                     $oldImageName = $row->image_name;
-                    $newImageName = $this->storeBatchImage($batch, $request->file('image'));
-                    $updatePayload['image_name'] = $newImageName;
+                    $updatePayload['image_name'] = $this->storeBatchImage($batch, $request->file('image'));
 
                     if (!empty($oldImageName)) {
                         $this->deleteBatchImageIfUnused($batch, $oldImageName, $row->id);

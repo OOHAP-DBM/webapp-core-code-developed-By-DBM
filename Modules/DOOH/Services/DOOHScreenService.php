@@ -86,8 +86,12 @@ class DOOHScreenService
                 }
             }
 
+
+            if (!empty($mediaFiles)) {
+                $this->repo->storeMedia($screen->id, $mediaFiles);
+            }
+
             $screen->hoarding->current_step = 1;
-            
             $screen->save();
 
             return ['success' => true, 'screen' => $screen->fresh('media')];
@@ -318,7 +322,7 @@ class DOOHScreenService
             $parentHoarding->survey_charge = $data['survey_charge'] ?? null;
             $parentHoarding->hoarding_visibility = $data['hoarding_visibility'] ?? null;
             $parentHoarding->current_step = 3;
-            $autoApproval = env('Auto_Hoarding_Approval', false);
+            $autoApproval = \App\Models\Setting::get('auto_hoarding_approval', false);
             $newStatus = $autoApproval ? 'active' : 'pending_approval';
             $parentHoarding->status = $newStatus;
             $parentHoarding->save();
@@ -339,7 +343,10 @@ class DOOHScreenService
                 if ($vendor) {
                     $statusText = $newStatus === 'active' ? 'Your DOOH screen is now active and published.' : 'Your DOOH screen is pending approval.';
                     $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parentHoarding));
-                    $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parentHoarding, $statusText));
+                    // $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parentHoarding, $statusText));
+                    if($autoApproval) { 
+                        $vendor->sendVendorEmails(new \Modules\Mail\HoardingPublishedMail($parentHoarding));
+                    }
                 }
             } catch (\Throwable $e) {
                 Log::error('DOOH status notification failed', [
@@ -514,12 +521,15 @@ class DOOHScreenService
      */
     public function updateStep1($screen, $data, $mediaFiles)
     {
+        dd($data, $mediaFiles);
         $errors = [];
 
         // Media validation (only if new files provided)
         if (!empty($mediaFiles)) {
-            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-            $maxSize = 5 * 1024 * 1024; // 5MB
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp',
+                 'video/mp4', 'video/webm', 'video/quicktime',
+            ];
+            $maxSize = 10 * 1024 * 1024; // 5MB
 
             foreach ($mediaFiles as $index => $file) {
                 if (!in_array($file->getMimeType(), $allowedMimes)) {
@@ -711,5 +721,30 @@ class DOOHScreenService
 
             return ['success' => true, 'screen' => $screen->fresh(['packages', 'slots'])];
         });
+    }
+
+    public function deleteMediaOnly($screen, string $deletedIdsString): void
+    {
+        $deleteIds = array_filter(
+            array_map('intval', explode(',', $deletedIdsString))
+        );
+
+        if (empty($deleteIds)) return;
+
+        $mediaToDelete = \Modules\DOOH\Models\DOOHScreenMedia::whereIn('id', $deleteIds)
+            ->where('dooh_screen_id', $screen->id)
+            ->get();
+
+        foreach ($mediaToDelete as $media) {
+            if (!empty($media->file_path) && \Storage::disk('public')->exists($media->file_path)) {
+                \Storage::disk('public')->delete($media->file_path);
+            }
+            $media->delete();
+        }
+
+        \Log::info('DOOH media deleted on go_back', [
+            'screen_id'   => $screen->id,
+            'deleted_ids' => $deleteIds,
+        ]);
     }
 }

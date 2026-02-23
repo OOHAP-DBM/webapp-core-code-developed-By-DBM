@@ -26,93 +26,37 @@ class DOOHController extends Controller
     /**
      * Multi-step DOOH creation wizard (step 1-3)
      */
-    public function create(Request $request): View
+  public function create(Request $request): View
     {
-        // $vendor = Auth::user();
-        // $step = (int) $request->query('step', 1);
-        // $step = max(1, min(3, $step));
-
-        // $screenId = $request->query('screen_id');
-        // if ($step === 1) {
-        //     $draft = null;
-        // } else {
-        //     $draft = null;
-        //     if ($screenId) {
-        //         $draft = DOOHScreen::where('id', $screenId)
-        //             ->whereHas('hoarding', function ($q) use ($vendor) {
-        //                 $q->where('vendor_id', $vendor->id)
-        //                     ->where('status', 'draft');
-        //             })
-        //             ->first();
-        //     }else {
-        //         $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
-        //             $q->where('vendor_id', $vendor->id)
-        //                 ->where('status', 'draft');
-        //         })
-        //             ->orderByDesc('updated_at')
-        //             ->first();
-        //     }
-        // }
-        $vendor = Auth::user();
-        $step = (int) $request->query('step', 1);
-        $step = max(1, min(3, $step));
-
+        $vendor   = Auth::user();
+        $step     = (int) $request->query('step', 1);
+        $step     = max(1, min(3, $step));
         $screenId = $request->query('screen_id');
+
         $draft = null;
 
-        // ✅ Always try to load draft if screen_id is present (even on step 1)
+        // ✅ Only load draft if screen_id is explicitly in URL
         if ($screenId) {
-            $draft = DOOHScreen::where('id', $screenId)
+            $draft = DOOHScreen::with([
+                    'hoarding',
+                    'hoarding.brandLogos',  // for step 2
+                    'media',                // ✅ DOOHScreenMedia — belongs to DOOHScreen directly
+                ])
+                ->where('id', $screenId)
                 ->whereHas('hoarding', function ($q) use ($vendor) {
                     $q->where('vendor_id', $vendor->id);
                 })
                 ->first();
         }
 
-        // Fallback: load latest draft if no screen_id (only for steps > 1)
-        if (!$draft && $step > 1) {
-            $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
-                $q->where('vendor_id', $vendor->id)
-                    ->where('status', 'draft');
-            })
-            ->orderByDesc('updated_at')
-            ->first();
-        }
+        // ❌ REMOVE fallback that loads latest draft without screen_id
+        // It pre-fills old data on fresh creation
 
-
-
-        // If no draft, create a new one on step 1
-        // if (!$draft && $step === 1) {
-        //     $draft = new DOOHScreen();
-        //     $draft->vendor_id = $vendor->id;
-        //     $draft->status = DOOHScreen::STATUS_DRAFT;
-        //     $draft->current_step = 1;
-        //     $draft->save();
-        // }
-        // if (!$draft && $step === 1) {
-
-        //     $hoarding = \App\Models\Hoarding::create([
-        //         'vendor_id' => $vendor->id,
-        //         'hoarding_type' => 'dooh',
-        //         'status' => 'draft',
-        //         'approval_status' => 'pending',
-        //         'current_step' => 1,
-        //     ]);
-
-        //     $draft = DOOHScreen::create([
-        //         'hoarding_id' => $hoarding->id,
-        //         // 'status' => DOOHScreen::STATUS_DRAFT,
-              
-        //     ]);
-        // }
-
-
-        // Fetch attributes for form dropdowns (categories, etc.)
         $attributes = \Modules\Hoardings\Models\HoardingAttribute::groupedByType();
 
         return view('dooh.vendor.create', [
-            'step' => $step,
-            'draft' => $draft,
+            'step'       => $step,
+            'draft'      => $draft,
             'attributes' => $attributes,
         ]);
     }
@@ -120,91 +64,190 @@ class DOOHController extends Controller
     /**
      * Save current step as draft and move to next step
      */
+    // public function store(Request $request, \Modules\DOOH\Services\DOOHScreenService $service)
+    // {
+    //     // dd($request->all());
+    //   $vendor   = Auth::user();
+    // $step     = (int) $request->input('step', 1);
+    // $step     = max(1, min(3, $step));
+    // $screenId = $request->input('screen_id');
+
+    // // ── Handle Previous button ──
+    // if ($request->input('go_back') === '1') {
+    //     $previousStep = max(1, $step - 1);
+    //     return redirect()->route('vendor.dooh.create', [
+    //         'step'      => $previousStep,
+    //         'screen_id' => $screenId, // ✅ always pass screen_id back
+    //     ]);
+    // }
+
+    // if ($step === 1) {
+    //     // ✅ If screen_id exists, UPDATE instead of CREATE
+    //     if ($screenId) {
+    //         $screen = DOOHScreen::where('id', $screenId)
+    //             ->whereHas('hoarding', function ($q) use ($vendor) {
+    //                 $q->where('vendor_id', $vendor->id);
+    //             })->first();
+
+    //         if ($screen) {
+    //             $result = $service->updateStep1($screen, $request->all(), $request->file('media', []));
+    //             if ($result['success']) {
+    //                 return redirect()->route('vendor.dooh.create', [
+    //                     'step'      => 2,
+    //                     'screen_id' => $screen->id,
+    //                 ])->with('success', 'Step 1 updated. Proceed to next step.');
+    //             }
+    //             return back()->withErrors($result['errors'] ?? [])->withInput();
+    //         }
+    //     }
+
+    //     // No screen_id → fresh CREATE
+    //     $result = $service->storeStep1($vendor, $request->all(), $request->file('media', []));
+    //     if ($result['success']) {
+    //         $screen   = $result['screen'] ?? null;
+    //         $screenId = $screen ? $screen->id : null;
+    //         return redirect()->route('vendor.dooh.create', [
+    //             'step'      => 2,
+    //             'screen_id' => $screenId,
+    //         ])->with('success', 'Step 1 completed. Proceed to next step.');
+    //     }
+    //     return back()->withErrors($result['errors'] ?? [])->withInput();
+    // }
+
+    // if ($step === 2) {
+    //     $screen = DOOHScreen::where('id', $screenId)
+    //         ->whereHas('hoarding', function ($q) use ($vendor) {
+    //             $q->where('vendor_id', $vendor->id);
+    //         })->firstOrFail();
+
+    //     $result = $service->storeStep2($screen, $request->all(), $request->file('brand_logos', []));
+
+    //     return redirect()->route('vendor.dooh.create', [
+    //         'step'      => 3,
+    //         'screen_id' => $screenId,
+    //     ])->with('success', 'Step 2 completed. Proceed to next step.');
+    // }
+
+    // if ($step === 3) {
+    //     $screen = DOOHScreen::where('id', $screenId)
+    //         ->whereHas('hoarding', function ($q) use ($vendor) {
+    //             $q->where('vendor_id', $vendor->id);
+    //         })->firstOrFail();
+
+    //         $result = $service->storeStep3($draft, $request->all());
+    //         if ($result['success']) {
+    //             $draft->hoarding->current_step = 3; // Mark as finished
+    //             $draft->save();
+    //             $status = $draft->hoarding->status;
+    //             $successMsg = ($status === Hoarding::STATUS_ACTIVE)
+    //                 ? 'Hoarding submitted successfully! It is published.'
+    //                 : 'Hoarding submitted successfully! It is now under review and will be published once approved';
+    //             return redirect()->route('vendor.hoardings.myHoardings', ['step' => 3])
+    //                 ->with('success', $successMsg);
+    //         }
+    //         return back()->withErrors($result['errors'])->withInput();
+    //     }
+    //     return back()->withErrors($result['errors'] ?? [])->withInput();
+    // }
+    // }
+
     public function store(Request $request, \Modules\DOOH\Services\DOOHScreenService $service)
     {
-        // dd($request->all());
-      $vendor   = Auth::user();
-    $step     = (int) $request->input('step', 1);
-    $step     = max(1, min(3, $step));
-    $screenId = $request->input('screen_id');
+        $vendor   = Auth::user();
+        $step     = (int) $request->input('step', 1);
+        $step     = max(1, min(3, $step));
+        $screenId = $request->input('screen_id');
 
-    // ── Handle Previous button ──
-    if ($request->input('go_back') === '1') {
-        $previousStep = max(1, $step - 1);
-        return redirect()->route('vendor.dooh.create', [
-            'step'      => $previousStep,
-            'screen_id' => $screenId, // ✅ always pass screen_id back
-        ]);
-    }
+        if ($request->input('go_back') === '1') {
+            $prevStep = max(1, $step - 1);
 
-    if ($step === 1) {
-        // ✅ If screen_id exists, UPDATE instead of CREATE
-        if ($screenId) {
+            // ✅ Process media deletions when going back to step 1
+            if ($prevStep === 1 && $request->input('deleted_media_ids') && $screenId) {
+                $screen = DOOHScreen::where('id', $screenId)
+                    ->whereHas('hoarding', fn($q) => $q->where('vendor_id', $vendor->id))
+                    ->first();
+
+                if ($screen) {
+                    $service->deleteMediaOnly($screen, $request->input('deleted_media_ids'));
+                }
+            }
+
+            return redirect()->route('vendor.dooh.create', [
+                'step'      => $prevStep,
+                'screen_id' => $screenId ?: null,
+            ]);
+        }
+        if ($step === 1) {
+            if ($screenId) {
+                $screen = DOOHScreen::where('id', $screenId)
+                    ->whereHas('hoarding', function ($q) use ($vendor) {
+                        $q->where('vendor_id', $vendor->id);
+                    })->first();
+
+                if ($screen) {
+                    $result = $service->updateStep1($screen, $request->all(), $request->file('media', []));
+                    if ($result['success']) {
+                        return redirect()->route('vendor.dooh.create', [
+                            'step'      => 2,
+                            'screen_id' => $screen->id,
+                        ])->with('success', 'Step 1 updated.');
+                    }
+
+                    return back()->withErrors($result['errors'] ?? [])->withInput();
+                }
+            }
+
+            $result = $service->storeStep1($vendor, $request->all(), $request->file('media', []));
+            if ($result['success']) {
+                $screen   = $result['screen'] ?? null;
+                $screenId = $screen ? $screen->id : null;
+
+                return redirect()->route('vendor.dooh.create', [
+                    'step'      => 2,
+                    'screen_id' => $screenId,
+                ])->with('success', 'Step 1 completed.');
+            }
+
+            return back()->withErrors($result['errors'] ?? [])->withInput();
+        }
+
+        if ($step === 2) {
             $screen = DOOHScreen::where('id', $screenId)
                 ->whereHas('hoarding', function ($q) use ($vendor) {
                     $q->where('vendor_id', $vendor->id);
-                })->first();
+                })->firstOrFail();
 
-            if ($screen) {
-                $result = $service->updateStep1($screen, $request->all(), $request->file('media', []));
-                if ($result['success']) {
-                    return redirect()->route('vendor.dooh.create', [
-                        'step'      => 2,
-                        'screen_id' => $screen->id,
-                    ])->with('success', 'Step 1 updated. Proceed to next step.');
-                }
-                return back()->withErrors($result['errors'] ?? [])->withInput();
-            }
-        }
+            $service->storeStep2($screen, $request->all(), $request->file('brand_logos', []));
 
-        // No screen_id → fresh CREATE
-        $result = $service->storeStep1($vendor, $request->all(), $request->file('media', []));
-        if ($result['success']) {
-            $screen   = $result['screen'] ?? null;
-            $screenId = $screen ? $screen->id : null;
             return redirect()->route('vendor.dooh.create', [
-                'step'      => 2,
+                'step'      => 3,
                 'screen_id' => $screenId,
-            ])->with('success', 'Step 1 completed. Proceed to next step.');
+            ])->with('success', 'Step 2 completed.');
         }
-        return back()->withErrors($result['errors'] ?? [])->withInput();
-    }
 
-    if ($step === 2) {
-        $screen = DOOHScreen::where('id', $screenId)
-            ->whereHas('hoarding', function ($q) use ($vendor) {
-                $q->where('vendor_id', $vendor->id);
-            })->firstOrFail();
+        if ($step === 3) {
+            $screen = DOOHScreen::where('id', $screenId)
+                ->whereHas('hoarding', function ($q) use ($vendor) {
+                    $q->where('vendor_id', $vendor->id);
+                })->firstOrFail();
 
-        $result = $service->storeStep2($screen, $request->all(), $request->file('brand_logos', []));
-
-        return redirect()->route('vendor.dooh.create', [
-            'step'      => 3,
-            'screen_id' => $screenId,
-        ])->with('success', 'Step 2 completed. Proceed to next step.');
-    }
-
-    if ($step === 3) {
-        $screen = DOOHScreen::where('id', $screenId)
-            ->whereHas('hoarding', function ($q) use ($vendor) {
-                $q->where('vendor_id', $vendor->id);
-            })->firstOrFail();
-
-            $result = $service->storeStep3($draft, $request->all());
+            $result = $service->storeStep3($screen, $request->all());
             if ($result['success']) {
-                $draft->hoarding->current_step = 3; // Mark as finished
-                $draft->save();
-                $status = $draft->hoarding->status;
+                $screen->hoarding->current_step = 3;
+                $screen->hoarding->save();
+
+                $status = $screen->hoarding->status;
                 $successMsg = ($status === Hoarding::STATUS_ACTIVE)
                     ? 'Hoarding submitted successfully! It is published.'
-                    : 'Hoarding submitted successfully! It is now under review and will be published once approved';
+                    : 'Hoarding submitted successfully! It is now under review and will be published once approved.';
                 return redirect()->route('vendor.hoardings.myHoardings', ['step' => 3])
                     ->with('success', $successMsg);
             }
-            return back()->withErrors($result['errors'])->withInput();
+
+            return back()->withErrors($result['errors'] ?? [])->withInput();
         }
-        return back()->withErrors($result['errors'] ?? [])->withInput();
-    }
+
+        return back();
     }
 
     /**
@@ -285,9 +328,18 @@ class DOOHController extends Controller
         $step = max(1, min(3, $step));
 
         // Find the DOOH screen belonging to this vendor
-        $screen = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+        // $screen = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+        //     $q->where('vendor_id', $vendor->id);
+        // })->findOrFail($id);
+        $screen = DOOHScreen::with([
+            'hoarding',
+            'hoarding.brandLogos',
+            'media',  // ✅ DOOHScreenMedia
+        ])
+        ->whereHas('hoarding', function ($q) use ($vendor) {
             $q->where('vendor_id', $vendor->id);
-        })->findOrFail($id);
+        })
+        ->findOrFail($id);
 
         $hoarding = $screen->hoarding;
 

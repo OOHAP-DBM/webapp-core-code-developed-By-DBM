@@ -23,7 +23,12 @@ class VendorController extends Controller
     {
         $status = $request->get('status', 'pending_approval');
         $search = $request->get('search');
-        $query = VendorProfile::with('user')
+        $query = VendorProfile::with(['user' => function($q) {
+            $q->withCount([
+                'hoardings',
+                'activeHoardings as active_hoardings_count'
+            ]);
+        }])
         ->where(function ($main) use ($status, $search) {
             $main->where('onboarding_status', $status);
             if (!empty($search)) {
@@ -41,6 +46,12 @@ class VendorController extends Controller
         });
 
         $vendors = $query->latest()->paginate(15)->withQueryString();
+
+        // Attach hoarding counts to each vendor profile for blade compatibility
+        foreach ($vendors as $vendor) {
+            $vendor->total_hoardings_count = $vendor->user->hoardings_count ?? 0;
+            $vendor->active_hoardings_count = $vendor->user->active_hoardings_count ?? 0;
+        }
         $counts = VendorProfile::selectRaw("
             SUM(onboarding_status = 'pending_approval') as requested,
             SUM(onboarding_status = 'approved') as active,
@@ -71,13 +82,18 @@ class VendorController extends Controller
 
     public function show($id)
     {
-        // 1️⃣ User ko fetch karo (vendor role ke sath)
+        // Fetch vendor user with profile
         $user = User::role('vendor')
             ->with('vendorProfile')
             ->findOrFail($id);
 
-        // 2️⃣ Vendor profile ko alag variable me le lo (easy blade access)
         $vendorProfile = $user->vendorProfile;
+
+        // Total hoardings (OOH + DOOH)
+        $totalHoardings = \App\Models\Hoarding::where('vendor_id', $user->id)->count();
+
+        // Commission percentage
+        $commission = $vendorProfile->commission_percentage ?? 0;
 
         $businessTypes = [
             'proprietorship' => 'Proprietorship',
@@ -88,7 +104,7 @@ class VendorController extends Controller
             'other'          => 'Other',
         ];
 
-        return view('admin.vendors.show', compact('user', 'vendorProfile', 'businessTypes'));
+        return view('admin.vendors.show', compact('user', 'vendorProfile', 'businessTypes', 'totalHoardings', 'commission'));
     }
 
 
@@ -545,5 +561,31 @@ class VendorController extends Controller
 
             return response()->stream($callback, 200, $headers);
         }
+    }
+    public function hoardings($vendorId)
+    {
+        $vendor = User::with('vendorProfile')->findOrFail($vendorId);
+        $search = request('search');
+
+        $approvedQuery = $vendor->hoardings()->whereIn('status', ['active', 'inactive']);
+        $pendingQuery = $vendor->hoardings()->where('status', 'Pending_Approval');
+
+                if ($search) {
+                        $approvedQuery->where(function($q) use ($search) {
+                                $q->where('title', 'like', "%$search%")
+                                    ->orWhere('city', 'like', "%$search%")
+                                    ;
+                        });
+                        $pendingQuery->where(function($q) use ($search) {
+                                $q->where('title', 'like', "%$search%")
+                                    ->orWhere('city', 'like', "%$search%")
+                                    ;
+                        });
+                }
+
+        $approvedHoardings = $approvedQuery->orderByDesc('id')->paginate(10, ['*'], 'approved_page');
+        $pendingHoardings = $pendingQuery->orderByDesc('id')->paginate(10, ['*'], 'pending_page');
+
+        return view('admin.vendors.hoardings', compact('vendor', 'approvedHoardings', 'pendingHoardings'));
     }
 }

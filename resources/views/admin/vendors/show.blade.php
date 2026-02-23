@@ -2,6 +2,14 @@
 
 @section('title', 'Vendor Details')
 
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'Vendors Management', 'route' => route('admin.vendors.index')],
+    ['label' => $user->name]
+]" />
+@endsection
+
 @section('content')
 <div class="space-y-6">
 
@@ -38,9 +46,9 @@
         @php
             $stats = [
                 ['Total Earnings', '₹0'],
-                ['Total Hoardings', $vendorProfile->total_hoardings ?? 0],
+                ['Total Hoardings', $totalHoardings ?? 0],
                 ['Ongoing Orders', 0],
-                ['Commission', ($vendorProfile->commission_percentage ?? 0) . '%'],
+                ['Commission', ($commission ?? 0) . '%'],
             ];
         @endphp
         @foreach($stats as [$label, $value])
@@ -67,11 +75,22 @@
                         <img
                             src="{{ route('view-avatar', $user->id) }}"
                             alt="Avatar"
-                            class="w-17 h-17 rounded-full object-cover border border-gray-300"
+                            class="avatar-img"
                         >
                     @else
                         <span class="text-gray-400 text-xs">No avatar</span>
                     @endif
+                </script>
+                <style>
+                .avatar-img {
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 2px solid #e5e7eb;
+                    display: block;
+                }
+                </style>
                 </div>
             </div>
             <div>
