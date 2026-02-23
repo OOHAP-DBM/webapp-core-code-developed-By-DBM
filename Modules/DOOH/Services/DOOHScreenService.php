@@ -318,7 +318,7 @@ class DOOHScreenService
             $parentHoarding->survey_charge = $data['survey_charge'] ?? null;
             $parentHoarding->hoarding_visibility = $data['hoarding_visibility'] ?? null;
             $parentHoarding->current_step = 3;
-            $autoApproval = env('Auto_Hoarding_Approval', false);
+            $autoApproval = \App\Models\Setting::get('auto_hoarding_approval', false);
             $newStatus = $autoApproval ? 'active' : 'pending_approval';
             $parentHoarding->status = $newStatus;
             $parentHoarding->save();
@@ -711,5 +711,30 @@ class DOOHScreenService
 
             return ['success' => true, 'screen' => $screen->fresh(['packages', 'slots'])];
         });
+    }
+
+    public function deleteMediaOnly($screen, string $deletedIdsString): void
+    {
+        $deleteIds = array_filter(
+            array_map('intval', explode(',', $deletedIdsString))
+        );
+
+        if (empty($deleteIds)) return;
+
+        $mediaToDelete = \Modules\DOOH\Models\DOOHScreenMedia::whereIn('id', $deleteIds)
+            ->where('dooh_screen_id', $screen->id)
+            ->get();
+
+        foreach ($mediaToDelete as $media) {
+            if (!empty($media->file_path) && \Storage::disk('public')->exists($media->file_path)) {
+                \Storage::disk('public')->delete($media->file_path);
+            }
+            $media->delete();
+        }
+
+        \Log::info('DOOH media deleted on go_back', [
+            'screen_id'   => $screen->id,
+            'deleted_ids' => $deleteIds,
+        ]);
     }
 }

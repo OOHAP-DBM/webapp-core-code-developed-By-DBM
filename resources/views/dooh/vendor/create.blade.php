@@ -135,8 +135,11 @@
     }
 
     // ── Forward submit (Next / Publish) ──
-    form.addEventListener('submit', function () {
-        if (goBackInput.value === '1') return; // skip if going back
+    form.addEventListener('submit', function (e) {
+        if (goBackInput.value === '1') return;
+
+        // ✅ Don't show overlay if media validation cancelled the submit
+        if (e.defaultPrevented) return;
 
         if (currentStep < 3) {
             showOverlay('Saving Step ' + currentStep + '...');

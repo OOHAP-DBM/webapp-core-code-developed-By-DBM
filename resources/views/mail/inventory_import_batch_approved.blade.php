@@ -8,7 +8,7 @@
     <h2>Inventory Import Batch Approved</h2>
     <p>Dear Vendor,</p>
     <p>Your inventory import batch (Batch ID: {{ $batch->id }}) has been <strong>approved</strong> and
-    @php $autoApproval = env('Auto_Hoarding_Approval', false); @endphp
+    @php $autoApproval = \App\Models\Setting::get('auto_hoarding_approval', false); @endphp
     @if($autoApproval)
         all valid hoardings have been published and are now <strong>active</strong> , please check.
     @else

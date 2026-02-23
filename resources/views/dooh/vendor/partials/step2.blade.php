@@ -1,7 +1,9 @@
 <!-- Step 2: Settings & Attributes -->
 {{-- <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6"> --}}
 
-    {{-- @dump($parentHoarding) --}}
+@php
+  $parentHoarding = $screen->hoarding?? $draft->hoarding?? null;
+@endphp
   <!-- Body -->
   <div class="md:p-8 space-y-8">
     <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
@@ -218,15 +220,16 @@
                 <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
                 <h3 class="text-xl font-bold text-gray-800">Recently Booked by</h3>
             </div>
-            <p class="text-xs text-gray-400 mb-4">Upload up to 10 brand logos.</p>
 
             {{-- Existing brand logos with remove --}}
             @php
                 $existingLogos = collect();
 
+
                 if (isset($parentHoarding)) {
                     if ($parentHoarding->hoarding_type === 'dooh' && $parentHoarding->doohScreen) {
                         $existingLogos = $parentHoarding->doohScreen->brandLogos ?? collect();
+
                     } elseif ($parentHoarding->hoarding_type === 'ooh' && $parentHoarding->hasMedia('brand_logos')) {
                         $existingLogos = $parentHoarding->getMedia('brand_logos')->map(function($m) {
                             return (object)[
@@ -238,7 +241,6 @@
                     }
                 }
             @endphp
-
             @if($existingLogos->isNotEmpty())
                 <div class="mb-4 flex flex-row flex-wrap gap-4" id="existingBrandLogos">
                     @foreach($existingLogos as $logo)

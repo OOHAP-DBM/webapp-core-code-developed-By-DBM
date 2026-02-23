@@ -748,7 +748,7 @@ class Hoarding extends Model implements HasMedia
             $this->landmark ? 'Near ' . $this->landmark : null,
             $this->city,
             $this->state,
-            $this->country,
+            // $this->country,
         ]);
 
         return implode(', ', $parts);
@@ -994,35 +994,51 @@ class Hoarding extends Model implements HasMedia
 
 
 
+        /**
+     * Get the first media item for display (OOH or DOOH)
+     */
+    public function primaryMediaItem()
+    {
+        if ($this->hoarding_type === self::TYPE_OOH) {
+            return $this->hoardingMedia->first();
+        }
+
+        if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+            return $this->doohScreen->media->sortBy('sort_order')->first();
+        }
+
+        return null;
+    }
+
     /**
- * Get the first media item for display (OOH or DOOH)
- */
-public function primaryMediaItem()
-{
-    if ($this->hoarding_type === self::TYPE_OOH) {
-        return $this->hoardingMedia->first();
+     * Get all media items for display (OOH or DOOH)
+     */
+    public function allMediaItems()
+    {
+        if ($this->hoarding_type === self::TYPE_OOH) {
+            return $this->hoardingMedia;
+        }
+
+        if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+            return $this->doohScreen->media->sortBy('sort_order');
+        }
+
+        return collect();
     }
 
-    if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
-        return $this->doohScreen->media->sortBy('sort_order')->first();
+    // Proper Eloquent relationship (used if you ever need ->with())
+    public function commissionSettings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\CommissionSetting::class, 'vendor_id', 'vendor_id')
+                    ->where(function ($q) {
+                        $q->where('hoarding_type', $this->hoarding_type)
+                        ->orWhere('hoarding_type', 'all');
+                    });
     }
 
-    return null;
-}
-
-/**
- * Get all media items for display (OOH or DOOH)
- */
-public function allMediaItems()
-{
-    if ($this->hoarding_type === self::TYPE_OOH) {
-        return $this->hoardingMedia;
+    // Accessor — resolves the single highest-priority rule
+    public function getEffectiveCommissionAttribute(): ?\App\Models\CommissionSetting
+    {
+        return \App\Models\CommissionSetting::resolveFor($this);
     }
-
-    if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
-        return $this->doohScreen->media->sortBy('sort_order');
-    }
-
-    return collect();
-}
 }
