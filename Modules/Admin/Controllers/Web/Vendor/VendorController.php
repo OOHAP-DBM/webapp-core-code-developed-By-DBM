@@ -82,13 +82,18 @@ class VendorController extends Controller
 
     public function show($id)
     {
-        // 1️⃣ User ko fetch karo (vendor role ke sath)
+        // Fetch vendor user with profile
         $user = User::role('vendor')
             ->with('vendorProfile')
             ->findOrFail($id);
 
-        // 2️⃣ Vendor profile ko alag variable me le lo (easy blade access)
         $vendorProfile = $user->vendorProfile;
+
+        // Total hoardings (OOH + DOOH)
+        $totalHoardings = \App\Models\Hoarding::where('vendor_id', $user->id)->count();
+
+        // Commission percentage
+        $commission = $vendorProfile->commission_percentage ?? 0;
 
         $businessTypes = [
             'proprietorship' => 'Proprietorship',
@@ -99,7 +104,7 @@ class VendorController extends Controller
             'other'          => 'Other',
         ];
 
-        return view('admin.vendors.show', compact('user', 'vendorProfile', 'businessTypes'));
+        return view('admin.vendors.show', compact('user', 'vendorProfile', 'businessTypes', 'totalHoardings', 'commission'));
     }
 
 
