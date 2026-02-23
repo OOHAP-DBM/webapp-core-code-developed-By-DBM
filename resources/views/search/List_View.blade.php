@@ -218,9 +218,9 @@
 
 
                             {{-- TAX NOTE --}}
-                            <p class="text-xs text-gray-500 my-2">
+                            <!-- <p class="text-xs text-gray-500 my-2">
                                 Taxes excluded
-                            </p>
+                            </p> -->
 
                             <p class="text-xs text-blue-500 mb-1">
                                 @if($item->available_from && \Carbon\Carbon::parse($item->available_from)->isFuture())

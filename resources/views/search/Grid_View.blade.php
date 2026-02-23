@@ -122,7 +122,7 @@
                                 </div>
                             @endif
 
-                            <p class="text-xs text-gray-500 mt-2">Taxes excluded</p>
+                            <!-- <p class="text-xs text-gray-500 mt-2">Taxes excluded</p> -->
 
                             <p class="text-xs text-blue-500 mb-1">
                                 @if($item->available_from && \Carbon\Carbon::parse($item->available_from)->isFuture())
