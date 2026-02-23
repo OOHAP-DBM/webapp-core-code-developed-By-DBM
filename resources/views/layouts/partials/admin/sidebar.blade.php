@@ -502,6 +502,20 @@
                     </a>
                 </div>
             </div> 
+
+            <div>
+                <a href="{{ route('admin.commission.index') }}"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg
+                    {{ request()->routeIs('admin.commission.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/>
+                            <path d="M11 9h2V7h-2v2zm0 8h2v-6h-2v6z" fill="none"/>
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        Commission
+                </a>
+            </div>
            
               <div class="space-y-1">
             <div x-data="{ open: @if(request()->routeIs('admin.settings.*')) true @else false @endif }" class="space-y-1">
