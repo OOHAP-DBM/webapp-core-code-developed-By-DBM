@@ -86,8 +86,12 @@ class DOOHScreenService
                 }
             }
 
+
+            if (!empty($mediaFiles)) {
+                $this->repo->storeMedia($screen->id, $mediaFiles);
+            }
+
             $screen->hoarding->current_step = 1;
-            
             $screen->save();
 
             return ['success' => true, 'screen' => $screen->fresh('media')];
@@ -517,6 +521,7 @@ class DOOHScreenService
      */
     public function updateStep1($screen, $data, $mediaFiles)
     {
+        dd($data, $mediaFiles);
         $errors = [];
 
         // Media validation (only if new files provided)
