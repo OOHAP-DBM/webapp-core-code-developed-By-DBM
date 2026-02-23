@@ -26,93 +26,37 @@ class DOOHController extends Controller
     /**
      * Multi-step DOOH creation wizard (step 1-3)
      */
-    public function create(Request $request): View
+  public function create(Request $request): View
     {
-        // $vendor = Auth::user();
-        // $step = (int) $request->query('step', 1);
-        // $step = max(1, min(3, $step));
-
-        // $screenId = $request->query('screen_id');
-        // if ($step === 1) {
-        //     $draft = null;
-        // } else {
-        //     $draft = null;
-        //     if ($screenId) {
-        //         $draft = DOOHScreen::where('id', $screenId)
-        //             ->whereHas('hoarding', function ($q) use ($vendor) {
-        //                 $q->where('vendor_id', $vendor->id)
-        //                     ->where('status', 'draft');
-        //             })
-        //             ->first();
-        //     }else {
-        //         $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
-        //             $q->where('vendor_id', $vendor->id)
-        //                 ->where('status', 'draft');
-        //         })
-        //             ->orderByDesc('updated_at')
-        //             ->first();
-        //     }
-        // }
-        $vendor = Auth::user();
-        $step = (int) $request->query('step', 1);
-        $step = max(1, min(3, $step));
-
+        $vendor   = Auth::user();
+        $step     = (int) $request->query('step', 1);
+        $step     = max(1, min(3, $step));
         $screenId = $request->query('screen_id');
+
         $draft = null;
 
-        // ✅ Always try to load draft if screen_id is present (even on step 1)
+        // ✅ Only load draft if screen_id is explicitly in URL
         if ($screenId) {
-            $draft = DOOHScreen::where('id', $screenId)
+            $draft = DOOHScreen::with([
+                    'hoarding',
+                    'hoarding.brandLogos',  // for step 2
+                    'media',                // ✅ DOOHScreenMedia — belongs to DOOHScreen directly
+                ])
+                ->where('id', $screenId)
                 ->whereHas('hoarding', function ($q) use ($vendor) {
                     $q->where('vendor_id', $vendor->id);
                 })
                 ->first();
         }
 
-        // Fallback: load latest draft if no screen_id (only for steps > 1)
-        if (!$draft && $step > 1) {
-            $draft = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
-                $q->where('vendor_id', $vendor->id)
-                    ->where('status', 'draft');
-            })
-            ->orderByDesc('updated_at')
-            ->first();
-        }
+        // ❌ REMOVE fallback that loads latest draft without screen_id
+        // It pre-fills old data on fresh creation
 
-
-
-        // If no draft, create a new one on step 1
-        // if (!$draft && $step === 1) {
-        //     $draft = new DOOHScreen();
-        //     $draft->vendor_id = $vendor->id;
-        //     $draft->status = DOOHScreen::STATUS_DRAFT;
-        //     $draft->current_step = 1;
-        //     $draft->save();
-        // }
-        // if (!$draft && $step === 1) {
-
-        //     $hoarding = \App\Models\Hoarding::create([
-        //         'vendor_id' => $vendor->id,
-        //         'hoarding_type' => 'dooh',
-        //         'status' => 'draft',
-        //         'approval_status' => 'pending',
-        //         'current_step' => 1,
-        //     ]);
-
-        //     $draft = DOOHScreen::create([
-        //         'hoarding_id' => $hoarding->id,
-        //         // 'status' => DOOHScreen::STATUS_DRAFT,
-              
-        //     ]);
-        // }
-
-
-        // Fetch attributes for form dropdowns (categories, etc.)
         $attributes = \Modules\Hoardings\Models\HoardingAttribute::groupedByType();
 
         return view('dooh.vendor.create', [
-            'step' => $step,
-            'draft' => $draft,
+            'step'       => $step,
+            'draft'      => $draft,
             'attributes' => $attributes,
         ]);
     }
@@ -215,13 +159,24 @@ class DOOHController extends Controller
         $screenId = $request->input('screen_id');
 
         if ($request->input('go_back') === '1') {
-            $previousStep = max(1, $step - 1);
+            $prevStep = max(1, $step - 1);
+
+            // ✅ Process media deletions when going back to step 1
+            if ($prevStep === 1 && $request->input('deleted_media_ids') && $screenId) {
+                $screen = DOOHScreen::where('id', $screenId)
+                    ->whereHas('hoarding', fn($q) => $q->where('vendor_id', $vendor->id))
+                    ->first();
+
+                if ($screen) {
+                    $service->deleteMediaOnly($screen, $request->input('deleted_media_ids'));
+                }
+            }
+
             return redirect()->route('vendor.dooh.create', [
-                'step'      => $previousStep,
-                'screen_id' => $screenId,
+                'step'      => $prevStep,
+                'screen_id' => $screenId ?: null,
             ]);
         }
-
         if ($step === 1) {
             if ($screenId) {
                 $screen = DOOHScreen::where('id', $screenId)
@@ -373,9 +328,18 @@ class DOOHController extends Controller
         $step = max(1, min(3, $step));
 
         // Find the DOOH screen belonging to this vendor
-        $screen = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+        // $screen = DOOHScreen::whereHas('hoarding', function ($q) use ($vendor) {
+        //     $q->where('vendor_id', $vendor->id);
+        // })->findOrFail($id);
+        $screen = DOOHScreen::with([
+            'hoarding',
+            'hoarding.brandLogos',
+            'media',  // ✅ DOOHScreenMedia
+        ])
+        ->whereHas('hoarding', function ($q) use ($vendor) {
             $q->where('vendor_id', $vendor->id);
-        })->findOrFail($id);
+        })
+        ->findOrFail($id);
 
         $hoarding = $screen->hoarding;
 

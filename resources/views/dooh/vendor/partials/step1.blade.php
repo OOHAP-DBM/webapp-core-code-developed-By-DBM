@@ -13,7 +13,9 @@
     $existingMedia = $draft->media ?? collect();
     $source = $draft->hoarding ?? null;
     $isWeeklyEnabled = old('enable_weekly_booking', $source->enable_weekly_booking ?? false);
-@endphp
+    
+ @endphp
+
 <div class="min-h-screen bg-gray-50 py-4 sm:py-6 lg:py-8">
     <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -66,7 +68,7 @@
                                     @if(isset($attributes['category']))
                                         @foreach($attributes['category'] as $cat)
                                             <option value="{{ $cat->value }}"
-                                                {{ old('category', $screen->hoarding->category ?? '') == $cat->value ? 'selected' : '' }}>
+                                                {{ old('category', $screen->hoarding->category ?? $hoarding->category ?? '') == $cat->value ? 'selected' : '' }}>
                                                 {{ $cat->value }}
                                             </option>
                                         @endforeach
@@ -352,13 +354,8 @@
             <!-- ========================================
                  SECTION 4: MEDIA UPLOAD
             ======================================== -->
-            <div class="bg-white rounded-2xl lg:rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
-                <!-- <div class="flex items-center mb-6 lg:mb-8">
-                    <span class="w-1.5 h-6 sm:h-7 bg-[#009A5C] rounded-full mr-3"></span>
-                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#009A5C]">
-                        Upload Media
-                    </h3>
-                </div> -->
+            <!-- <div class="bg-white rounded-2xl lg:rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
+              
                  <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
                     <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
                     Upload Media <span class="text-red-500">*</span>
@@ -368,13 +365,21 @@
                     Upload high-quality images or videos showcasing your screen (Max 10 files, 5MB each)
                 </p>
 
-                <!-- Existing Media Preview -->
-                @if(isset($screen) && $screen->media && $screen->media->count())
+                 @php
+                    $existingMedia = collect();
+
+                    if (isset($screen) && $screen->media) {
+                        $existingMedia = $screen->media;
+                    } elseif (isset($hoarding) && $hoarding->doohScreen && $hoarding->doohScreen->media) {
+                        $existingMedia = $hoarding->doohScreen->media;
+              }
+                @endphp
+                @if($existingMedia->count())
                     <div class="mb-6">
                         <h3 class="text-sm font-semibold text-gray-700 mb-3">Existing Media</h3>
 
                         <div class="flex flex-wrap gap-3" id="existingMediaPreview">
-                            @foreach($screen->media as $media)
+                            @foreach($existingMedia as $media)
                                 <div class="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-xl overflow-hidden 
                                             border-2 border-gray-200 bg-gray-50 flex-shrink-0 group">
                                     @if(Str::startsWith($media->media_type, 'image'))
@@ -416,10 +421,8 @@
 
                 <input type="hidden" name="deleted_media_ids" id="deletedMediaIds">
 
-                <!-- New Media Preview -->
                 <div id="newMediaPreview" class="flex flex-wrap gap-3 mb-6 empty:mb-0"></div>
 
-                <!-- Upload Area -->
                 <label for="mediaInput"
                     class="flex items-center justify-between w-full px-4 sm:px-6 py-4 sm:py-5
                            border-2 border-dashed border-gray-300 rounded-xl cursor-pointer
@@ -447,6 +450,103 @@
                     <span class="font-medium">Supported formats:</span> JPG, PNG, WEBP, MP4, WEBM • 
                     <span class="font-medium">Max:</span> 10 files, 5MB each
                 </p>
+            </div> -->
+            <!-- SECTION 4: MEDIA UPLOAD -->
+            <div class="bg-white rounded-2xl lg:rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
+                <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
+                    <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
+                    Upload Media <span class="text-red-500 ml-1">*</span>
+                </h3>
+
+                <p class="text-sm sm:text-base text-gray-600 mb-6">
+                    Upload high-quality images or videos showcasing your screen (Max 10 files, 5MB each)
+                </p>
+
+                @php
+                    // ✅ Single unified source — works for both create ($draft) and edit ($screen)
+                    $doohScreen    = $screen ?? $draft ?? null;
+                    $existingMedia = $doohScreen?->media ?? collect();
+                @endphp
+
+                @if($existingMedia->isNotEmpty())
+                    <div class="mb-6">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-3">Existing Media</h3>
+                        <div class="flex flex-wrap gap-3" id="existingMediaPreview">
+                            @foreach($existingMedia as $media)
+                                <div class="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-xl overflow-hidden
+                                            border-2 border-gray-200 bg-gray-50 flex-shrink-0 group"
+                                    id="existing-media-{{ $media->id }}">
+
+                                    @if(Str::startsWith($media->media_type, 'image'))
+                                        <img src="{{ asset('storage/' . $media->file_path) }}"
+                                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200">
+                                    @else
+                                        <video src="{{ asset('storage/' . $media->file_path) }}"
+                                            class="w-full h-full object-cover"
+                                            muted playsinline preload="metadata"
+                                            onloadedmetadata="this.currentTime=0.5"></video>
+                                        <div class="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                                            <div class="bg-black/50 rounded-full p-1.5">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M8 5v14l11-7z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <button type="button"
+                                        onclick="removeExistingMedia({{ $media->id }}, this)"
+                                        class="absolute top-2 right-2 bg-white/90 backdrop-blur rounded-full p-1.5
+                                            shadow-lg text-red-600 hover:bg-red-50 hover:scale-110 transition-all duration-200">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <input type="hidden" name="deleted_media_ids" id="deletedMediaIds" value="">
+
+                <!-- New Media Preview -->
+                <div id="newMediaPreview" class="flex flex-wrap gap-3 mb-6 empty:mb-0"></div>
+
+                <!-- Upload Area -->
+                <label for="mediaInput"
+                    class="flex items-center justify-between w-full px-4 sm:px-6 py-4 sm:py-5
+                        border-2 border-dashed border-gray-300 rounded-xl cursor-pointer
+                        hover:border-[#009A5C] hover:bg-gray-50 transition-all duration-200 group">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-gray-100 rounded-lg p-2.5 group-hover:bg-[#009A5C]/10 transition-colors">
+                            <svg class="w-6 h-6 text-gray-600 group-hover:text-[#009A5C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="block text-sm sm:text-base font-semibold text-gray-700">Choose files to upload</span>
+                            <span class="block text-xs sm:text-sm text-gray-500 mt-0.5">or drag and drop</span>
+                        </div>
+                    </div>
+                    <span class="text-sm font-medium text-[#009A5C] hidden sm:inline">Browse</span>
+                </label>
+
+                {{-- ✅ Required only when no existing media --}}
+                <input id="mediaInput" type="file" name="media[]" multiple
+                    accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+                    class="hidden"
+                    @if($existingMedia->isEmpty()) required @endif>
+
+                {{-- ✅ Server-side validation error --}}
+                @error('media')
+                    <p class="text-red-500 text-sm mt-2 font-medium flex items-center gap-1">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        {{ $message }}
+                    </p>
+                @enderror
             </div>
 
         </div>
@@ -601,17 +701,15 @@ function removeNewFile(idx) {
 //     }
 // }
 function removeExistingMedia(id, btnEl) {
-    // Track the ID
     deletedMediaIds.push(id);
     deletedMediaIdsInput.value = deletedMediaIds.join(',');
 
-    // ✅ Use the button reference directly — no DOM query needed
-    const mediaItem = btnEl.closest('.relative');
-    if (mediaItem) {
-        // Fade out then remove
-        mediaItem.style.transition = 'opacity 0.2s';
-        mediaItem.style.opacity = '0';
-        setTimeout(() => mediaItem.remove(), 200);
+    // ✅ Find by stable ID — not fragile class selector
+    const wrapper = document.getElementById('existing-media-' + id);
+    if (wrapper) {
+        wrapper.style.transition = 'opacity 0.2s';
+        wrapper.style.opacity = '0';
+        setTimeout(() => wrapper.remove(), 200);
     }
 }
 
@@ -805,5 +903,119 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initial calculation
     updateDiscountSymbol();
     updatePricing();
+});
+</script>
+
+<script>
+// ============================================
+// FRONTEND MEDIA VALIDATION
+// ============================================
+document.addEventListener('DOMContentLoaded', function () {
+
+    const form = document.querySelector('form');
+    if (!form) return;
+
+    // ✅ Remove HTML5 required so browser doesn't silently block — we handle it in JS
+    const mediaInputEl = document.getElementById('mediaInput');
+    if (mediaInputEl) mediaInputEl.removeAttribute('required');
+
+    function countTotal() {
+        const existingCount = document.querySelectorAll('[id^="existing-media-"]').length;
+        const newCount = (typeof newFiles !== 'undefined') ? newFiles.length : 0;
+        return existingCount + newCount;
+    }
+
+    // ✅ Show error immediately when last existing image is removed
+    // We hook into removeExistingMedia by watching DOM changes
+    const observer = new MutationObserver(function () {
+        if (countTotal() === 0) {
+            showMediaError('At least one image or video is required before proceeding.');
+        } else {
+            clearMediaError();
+        }
+    });
+
+    const existingPreview = document.getElementById('existingMediaPreview');
+    if (existingPreview) {
+        observer.observe(existingPreview, { childList: true, subtree: false });
+    }
+
+    // ✅ Clear error when new file added
+    mediaInputEl?.addEventListener('change', function () {
+        if ((typeof newFiles !== 'undefined') && newFiles.length > 0) {
+            clearMediaError();
+        }
+    });
+
+    // ✅ AFTER — note the true at the end (useCapture) and stopImmediatePropagation
+    form.addEventListener('submit', function (e) {
+        const stepInput = form.querySelector('input[name="step"]');
+        const currentStep = stepInput ? parseInt(stepInput.value) : 1;
+        if (currentStep !== 1) return;
+
+        const goBackInput = form.querySelector('input[name="go_back"]');
+        if (goBackInput && goBackInput.value === '1') return;
+
+        if (countTotal() === 0) {
+            e.preventDefault();
+            e.stopImmediatePropagation(); // ✅ stops create.blade.php overlay listener
+
+            showMediaError('At least one image or video is required before proceeding.');
+
+            const errorEl = document.getElementById('media-validation-error');
+            if (errorEl) {
+                errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                document.querySelector('label[for="mediaInput"]')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return false;
+        }
+
+        clearMediaError();
+    }, true); // ✅ useCapture: true — fires BEFORE the create.blade.php listener
+
+    function showMediaError(message) {
+        // ✅ Insert error BEFORE the upload label (visible), not after hidden input
+        let errorEl = document.getElementById('media-validation-error');
+        if (!errorEl) {
+            errorEl = document.createElement('p');
+            errorEl.id        = 'media-validation-error';
+            errorEl.className = 'text-red-500 text-sm mb-3 font-medium flex items-center gap-2';
+            errorEl.innerHTML = `
+                <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span id="media-error-text"></span>`;
+
+            // ✅ Insert BEFORE the upload label, not after hidden input
+            const uploadLabel = document.querySelector('label[for="mediaInput"]');
+            if (uploadLabel) {
+                uploadLabel.parentNode.insertBefore(errorEl, uploadLabel);
+            }
+        }
+
+        document.getElementById('media-error-text').textContent = message;
+        errorEl.classList.remove('hidden');
+
+        // Highlight upload area
+        const uploadLabel = document.querySelector('label[for="mediaInput"]');
+        if (uploadLabel) {
+            uploadLabel.classList.add('border-red-400', 'bg-red-50');
+            uploadLabel.classList.remove('border-gray-300');
+        }
+    }
+
+    function clearMediaError() {
+        const errorEl = document.getElementById('media-validation-error');
+        if (errorEl) errorEl.classList.add('hidden');
+
+        const uploadLabel = document.querySelector('label[for="mediaInput"]');
+        if (uploadLabel) {
+            uploadLabel.classList.remove('border-red-400', 'bg-red-50');
+            uploadLabel.classList.add('border-gray-300');
+        }
+    }
+
 });
 </script>
