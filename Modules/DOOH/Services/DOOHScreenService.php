@@ -339,7 +339,10 @@ class DOOHScreenService
                 if ($vendor) {
                     $statusText = $newStatus === 'active' ? 'Your DOOH screen is now active and published.' : 'Your DOOH screen is pending approval.';
                     $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parentHoarding));
-                    $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parentHoarding, $statusText));
+                    // $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parentHoarding, $statusText));
+                    if($autoApproval) { 
+                        $vendor->sendVendorEmails(new \Modules\Mail\HoardingPublishedMail($parentHoarding));
+                    }
                 }
             } catch (\Throwable $e) {
                 Log::error('DOOH status notification failed', [

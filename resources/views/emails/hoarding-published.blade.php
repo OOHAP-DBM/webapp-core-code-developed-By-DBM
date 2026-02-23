@@ -77,7 +77,7 @@
 
 <tr>
     <td style="padding:10px; font-size:13px;"><strong>Category</strong></td>
-    <td style="padding:10px; font-size:13px;">
+    <td style="padding:10px; font-size:13px; text-transform:uppercase;">
         {{ ucfirst($hoarding->hoarding_type ?? 'N/A') }}
     </td>
 </tr>
@@ -89,14 +89,14 @@
     </td>
 </tr>
 
-<tr>
+<!-- <tr>
     <td style="padding:10px; font-size:13px;"><strong>Commission Rate</strong></td>
     <td style="padding:10px; font-size:13px;">
         <span style="background:#fef9c3; padding:3px 6px; font-weight:bold;">
             {{ $hoarding_commission ?? 'Not Set' }}%
         </span>
     </td>
-</tr>
+</tr> -->
 
 </table>
 </td>
