@@ -9,14 +9,14 @@
 
 <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
-<div class="mb-6 border-b border-gray-200">
+<!-- <div class="mb-6 border-b border-gray-200">
     <nav class="-mb-px flex space-x-6" aria-label="Tabs">
         <button id="tabBatches" class="tab-btn border-b-2 border-blue-500 py-2 px-1 text-sm font-medium text-blue-600" data-target="batchesPanel">Imported Inventories</button>
         @if($isAdmin)
             <button id="tabPermissions" class="tab-btn border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700" data-target="permissionsPanel">Role Permissions</button>
         @endif
     </nav>
-</div>
+</div> -->
 
 <div id="batchesPanel" class="tab-panel">
     <div class="bg-white rounded-xl shadow overflow-hidden">
@@ -364,7 +364,7 @@ async function loadBatches(page = batchQueryState.page) {
             return `
                 <tr>
                     <td class="px-4 py-3">#${batch.batch_id}</td>
-                    <td class="px-4 py-3">${batch.media_type}</td>
+                    <td class="px-4 py-3 uppercase">${batch.media_type}</td>
                     <td class="px-4 py-3">${batch.status ?? '-'}</td>
                     <td class="px-4 py-3">${batch.valid_rows}/${batch.total_rows}</td>
                     <td class="px-4 py-3">${new Date(batch.created_at).toLocaleString()}</td>

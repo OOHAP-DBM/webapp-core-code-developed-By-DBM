@@ -170,7 +170,7 @@ class ImportApprovalService
         if ($baseMonthlyPrice === null || $baseMonthlyPrice === '' || $baseMonthlyPrice == 0) {
             $baseMonthlyPrice = $this->stagingValue($stagingRow, 'd_c_p_m', 0);
         }
-        $autoApproval = env('Auto_Hoarding_Approval', false);
+        $autoApproval = \App\Models\Setting::get('auto_hoarding_approval', false);
         $hoardingStatus = $autoApproval ? 'active' : 'pending_approval';
         $hoarding = Hoarding::create([
             'vendor_id' => $batch->vendor_id,

@@ -17,14 +17,23 @@
 
 @php
     $isApprovedBatch = $batch->status === 'approved';
+    $autoApprove = \App\Models\Setting::get('auto_hoarding_approval', false);
 @endphp
 
 <div id="rowEditorSection" class="bg-white rounded-xl shadow mb-6 {{ $isApprovedBatch ? 'hidden' : '' }}">
     <div class="p-4 border-b border-gray-200 flex items-center justify-between gap-3 flex-wrap">
         <h2 class="text-lg font-semibold text-gray-900">Batch Summary</h2>
         @if(!$isAdmin)
-            <button id="approveInventoryBtn" class="px-4 py-2 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed {{ $isApprovedBatch ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }}" {{ !in_array($batch->status, ['processed', 'completed']) || $isApprovedBatch ? 'disabled' : '' }}>
-                {{ $isApprovedBatch ? 'Approved' : 'Send For Approval' }}
+            <button 
+                id="approveInventoryBtn"
+                data-auto-approve="{{ $autoApprove ? '1' : '0' }}"
+                class="px-4 py-2 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed {{ $isApprovedBatch ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }}"
+                {{ !in_array($batch->status, ['processed', 'completed']) || $isApprovedBatch ? 'disabled' : '' }}
+            >
+                {{ $isApprovedBatch 
+                    ? 'Approved' 
+                    : ($autoApprove ? 'Publish' : 'Send For Approval') 
+                }}
             </button>
         @endif
     </div>
@@ -198,31 +207,30 @@ function setApproveButtonState(status, loading = false) {
     const approveBtn = document.getElementById('approveInventoryBtn');
     if (!approveBtn) return;
 
+    const autoApprove = approveBtn.dataset.autoApprove === '1';
+
     approveBtn.classList.remove('bg-green-600', 'hover:bg-green-700', 'bg-gray-400');
 
     if (loading) {
         approveBtn.disabled = true;
         approveBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
-        approveBtn.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>Approving...</span>';
+        approveBtn.innerHTML = autoApprove 
+            ? 'Publishing...' 
+            : 'Approving...';
         return;
     }
 
     if (status === 'approved') {
         approveBtn.disabled = true;
         approveBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
-        approveBtn.textContent = 'Approved';
+        approveBtn.textContent = autoApprove ? 'Published' : 'Approved';
         return;
     }
 
     const canApprove = ['processed', 'completed'].includes(status);
     approveBtn.disabled = !canApprove;
     approveBtn.classList.add('bg-green-600');
-    if (canApprove) {
-        approveBtn.classList.add('hover:bg-green-700');
-    } else {
-        approveBtn.classList.add('cursor-not-allowed');
-    }
-    approveBtn.textContent = 'Send For Approval';
+    approveBtn.textContent = autoApprove ? 'Publish' : 'Send For Approval';
 }
 
 function applyBatchUiState(status, loading = false) {
@@ -334,19 +342,24 @@ async function loadRows(page = rowsQueryState.page) {
 
 async function approveInventory() {
     const approveBtn = document.getElementById('approveInventoryBtn');
+    const autoApprove = approveBtn.dataset.autoApprove === '1';
     if (!approveBtn || approveBtn.disabled) {
         return;
     }
 
-    const confirmation = window.Swal
-        ? await Swal.fire({
-            icon: 'question',
-            title: 'Do you want to publish this inventory?',
-            text: 'This will submit your hoardings for admin approval before website publishing.',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, publish',
-        })
-        : { isConfirmed: confirm('Approve inventory for this batch?') };
+  const confirmation = window.Swal
+    ? await Swal.fire({
+        icon: 'question',
+        title: autoApprove 
+            ? 'Do you want to publish this inventory?' 
+            : 'Send inventory for admin approval?',
+        text: autoApprove 
+            ? 'This will directly publish hoardings to website.'
+            : 'This will submit your hoardings for admin approval.',
+        showCancelButton: true,
+        confirmButtonText: autoApprove ? 'Yes, publish' : 'Yes, send',
+    })
+    : { isConfirmed: confirm('Proceed?') };
 
     if (!confirmation.isConfirmed) {
         return;
@@ -356,8 +369,10 @@ async function approveInventory() {
 
     if (window.Swal) {
         Swal.fire({
-            title: 'Approving inventory...',
-            text: 'Please wait while we process valid rows.',
+            title: autoApprove ? 'Publishing inventory...' : 'Sending for approval...',
+            text: autoApprove 
+                ? 'Please wait while we publish valid hoardings.'
+                : 'Please wait while we send hoardings for admin review.',
             allowOutsideClick: false,
             allowEscapeKey: false,
             didOpen: () => Swal.showLoading(),
