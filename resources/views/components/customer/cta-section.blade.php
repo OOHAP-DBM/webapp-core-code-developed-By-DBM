@@ -1,8 +1,8 @@
-<section class="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
+<section class="py-8 bg-gradient-to-br from-blue-50 to-purple-50">
     <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
             <!-- Section Header -->
-            <div class="text-center mb-16">
+            <div class="text-center mb-8">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                     Why Choose OOHAPP?
                 </h2>

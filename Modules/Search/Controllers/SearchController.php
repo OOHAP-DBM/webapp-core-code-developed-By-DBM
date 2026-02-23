@@ -214,7 +214,7 @@ class SearchController extends Controller
             default:
                 $query->orderByDesc('hoardings.created_at');
         }
-        $results = $query->paginate(10)->withQueryString();
+        $results = $query->paginate(8)->withQueryString();
         $hoardingIds = $results->pluck('id')->toArray();
 
         $oohImages = DB::table('hoarding_media')

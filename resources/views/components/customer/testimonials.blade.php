@@ -1,5 +1,5 @@
 @if(isset($testimonials) && $testimonials->count())
-<section class="py-20 bg-white overflow-hidden">
+<section class="py-8 bg-white overflow-hidden">
     <div class="container mx-auto px-4">
 
         {{-- Heading --}}

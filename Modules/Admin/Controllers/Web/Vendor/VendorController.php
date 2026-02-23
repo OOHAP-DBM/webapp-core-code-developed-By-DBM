@@ -23,7 +23,12 @@ class VendorController extends Controller
     {
         $status = $request->get('status', 'pending_approval');
         $search = $request->get('search');
-        $query = VendorProfile::with('user')
+        $query = VendorProfile::with(['user' => function($q) {
+            $q->withCount([
+                'hoardings',
+                'activeHoardings as active_hoardings_count'
+            ]);
+        }])
         ->where(function ($main) use ($status, $search) {
             $main->where('onboarding_status', $status);
             if (!empty($search)) {
@@ -41,6 +46,12 @@ class VendorController extends Controller
         });
 
         $vendors = $query->latest()->paginate(15)->withQueryString();
+
+        // Attach hoarding counts to each vendor profile for blade compatibility
+        foreach ($vendors as $vendor) {
+            $vendor->total_hoardings_count = $vendor->user->hoardings_count ?? 0;
+            $vendor->active_hoardings_count = $vendor->user->active_hoardings_count ?? 0;
+        }
         $counts = VendorProfile::selectRaw("
             SUM(onboarding_status = 'pending_approval') as requested,
             SUM(onboarding_status = 'approved') as active,
@@ -545,5 +556,31 @@ class VendorController extends Controller
 
             return response()->stream($callback, 200, $headers);
         }
+    }
+    public function hoardings($vendorId)
+    {
+        $vendor = User::with('vendorProfile')->findOrFail($vendorId);
+        $search = request('search');
+
+        $approvedQuery = $vendor->hoardings()->whereIn('status', ['active', 'inactive']);
+        $pendingQuery = $vendor->hoardings()->where('status', 'Pending_Approval');
+
+                if ($search) {
+                        $approvedQuery->where(function($q) use ($search) {
+                                $q->where('title', 'like', "%$search%")
+                                    ->orWhere('city', 'like', "%$search%")
+                                    ;
+                        });
+                        $pendingQuery->where(function($q) use ($search) {
+                                $q->where('title', 'like', "%$search%")
+                                    ->orWhere('city', 'like', "%$search%")
+                                    ;
+                        });
+                }
+
+        $approvedHoardings = $approvedQuery->orderByDesc('id')->paginate(10, ['*'], 'approved_page');
+        $pendingHoardings = $pendingQuery->orderByDesc('id')->paginate(10, ['*'], 'pending_page');
+
+        return view('admin.vendors.hoardings', compact('vendor', 'approvedHoardings', 'pendingHoardings'));
     }
 }

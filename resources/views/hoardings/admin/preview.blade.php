@@ -426,18 +426,21 @@
                                         @endif
                                     </div>
                                     <div class="text-right">
-                                        @if($hoarding->hoarding_type === 'dooh')
-                                            <p class="text-lg font-bold text-green-600">
-                                                {{ $package->slots_per_month ?? '—' }} slots/month
-                                            </p>
-                                            @if($package->price_per_slot)
-                                                <p class="text-xs text-gray-500">₹{{ number_format($package->price_per_slot, 2) }}/slot</p>
-                                            @endif
-                                        @else
-                                            <p class="text-lg font-bold text-green-600">
-                                                ₹{{ number_format($package->base_monthly_price ?? 0, 2) }}
-                                            </p>
-                                            <p class="text-xs text-gray-500">/month</p>
+                                        @php
+                                            $duration = $package->min_booking_duration ?? 1;
+                                            $discount = $package->discount_percent ?? 0;
+                                            $basePrice = $hoarding->base_monthly_price ?? 0;
+                                            $total = $basePrice * $duration;
+                                            $discountAmount = ($total * $discount) / 100;
+                                            $finalPrice = $total - $discountAmount;
+                                            $durationUnit = $package->duration_unit ?? 'months';
+                                        @endphp
+                                        <p class="text-lg font-bold text-green-600">
+                                            ₹{{ number_format($finalPrice, 2) }}
+                                        </p>
+                                        <p class="text-xs text-gray-500">for {{ $duration }} {{ $durationUnit }}</p>
+                                        @if($discount > 0)
+                                            <p class="text-xs text-green-700">{{ $discount }}% discount applied</p>
                                         @endif
                                     </div>
                                 </div>
@@ -445,7 +448,7 @@
                                 <div class="grid grid-cols-3 gap-2 text-xs text-gray-600 mt-3">
                                     @if($package->min_booking_duration)
                                         <div>
-                                            <span class="font-semibold"> Duration:</span> {{ $package->min_booking_duration }} months
+                                            <span class="font-semibold"> Duration:</span> {{ $package->min_booking_duration }} {{ $durationUnit }}
                                         </div>
                                     @endif
                                     @if($package->discount_percent)

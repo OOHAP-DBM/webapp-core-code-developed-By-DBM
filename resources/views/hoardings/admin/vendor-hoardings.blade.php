@@ -605,36 +605,15 @@
 
         Swal.fire({
             title: 'Approve & Activate Hoardings',
-            html: `
-                <p class="mb-4">Set commission for ${ids.length} hoarding(s) and activate them.</p>
-                <input 
-                    id="bulkCommission" 
-                    type="number" 
-                    min="0" 
-                    max="100" 
-                    step="0.01" 
-                    placeholder="Enter commission (%)"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                >
-            `,
+            text: `Are you sure you want to approve and activate ${ids.length} hoarding(s)?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#2563eb',
             cancelButtonColor: '#6b7280',
             confirmButtonText: 'Approve & Activate',
-            cancelButtonText: 'Cancel',
-            preConfirm: () => {
-                const commission = document.getElementById('bulkCommission').value;
-                if (!commission || commission < 0 || commission > 100) {
-                    Swal.showValidationMessage('Please enter a valid commission (0-100)');
-                    return false;
-                }
-                return commission;
-            }
+            cancelButtonText: 'Cancel'
         }).then((result) => {
             if (result.isConfirmed) {
-                const commission = result.value;
-                
                 Swal.fire({
                     title: 'Processing...',
                     text: 'Please wait while we approve the hoardings',
@@ -649,7 +628,7 @@
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ ids, commission })
+                    body: JSON.stringify({ ids })
                 })
                 .then(res => res.json())
                 .then(data => {
@@ -793,32 +772,13 @@
     function approveAndActivateSingle(id) {
         Swal.fire({
             title: 'Approve & Activate Hoarding',
-            html: `
-                <p class="mb-4">Set commission and activate this hoarding.</p>
-                <input 
-                    id="singleCommission" 
-                    type="number" 
-                    min="0" 
-                    max="100" 
-                    step="0.01" 
-                    placeholder="Enter commission (%)"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                >
-            `,
+            text: 'Are you sure you want to approve and activate this hoarding?',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#2563eb',
             cancelButtonColor: '#6b7280',
             confirmButtonText: 'Approve & Activate',
-            cancelButtonText: 'Cancel',
-            preConfirm: () => {
-                const commission = document.getElementById('singleCommission').value;
-                if (!commission || commission < 0 || commission > 100) {
-                    Swal.showValidationMessage('Please enter a valid commission (0-100)');
-                    return false;
-                }
-                return commission;
-            }
+            cancelButtonText: 'Cancel'
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({ title: 'Processing...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
@@ -830,7 +790,7 @@
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ ids: [id], commission: result.value })
+                    body: JSON.stringify({ ids: [id] })
                 })
                 .then(res => res.json())
                 .then(data => {

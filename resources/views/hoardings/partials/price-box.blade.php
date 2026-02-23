@@ -52,7 +52,7 @@
                 <p class="font-medium">{{ $pkg->package_name }}</p>
 
                 <p class="text-xs text-gray-500">
-                    {{ $pkg->min_booking_duration }} Month Package
+                    {{ $pkg->min_booking_duration }} {{$pkg->duration_unit}} Package
                     @if($pkg->discount_percent)
                         • {{ $pkg->discount_percent }}% OFF
                     @endif

@@ -343,16 +343,14 @@ class VendorHoardingController extends Controller
     {
         $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'required|integer|exists:hoardings,id',
-            'commission' => 'required|numeric|min:0|max:100'
+            'ids.*' => 'required|integer|exists:hoardings,id'
         ]);
 
         try {
             $hoardings = Hoarding::whereIn('id', $request->ids)->get();
 
-            // Set commission and activate
+            // Only activate
             foreach ($hoardings as $hoarding) {
-                $hoarding->commission_percent = $request->commission;
                 $hoarding->status = 'active';
                 $hoarding->save();
 

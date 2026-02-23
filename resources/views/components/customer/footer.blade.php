@@ -1,5 +1,5 @@
 <!-- Newsletter Subscription -->
-<section class="py-12 bg-gray-900">
+<section class="py-12 bg-gray-900" id="newsletter">
     <div class="container mx-auto px-4">
         <div class="mx-auto max-w-7xl px-6">
             <div class="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -159,8 +159,8 @@
         </div>
 
         <!-- OOHAPP Hoardings Section -->
-        <div class="border-t border-gray-200 pt-8 mb-8">
-            <h3 class="text-gray-900 text-base font-bold mb-6">OOHAPP Hoardings</h3>
+        <div class="border-t border-gray-200 pt-4 mb-4">
+            <h3 class="text-gray-900 text-base font-bold mb-3">OOHAPP Hoardings</h3>
                 @php
                     // Dynamic city list from active hoardings (top 10 + special entries)
                     $dynamicCities = \App\Models\Hoarding::select('city')
@@ -181,7 +181,7 @@
                     $cities = $dynamicCities;
                 @endphp
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-y-2 text-sm text-gray-600">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-y-1 text-sm text-gray-600">
                 @foreach($cities as $city)
 
                     {{-- NEAR ME --}}
@@ -231,7 +231,7 @@
         </div> -->
     </div>
 </footer>
-<center class="text-gray-500 py-2" style="background-color:#e8e8e8;">© {{ date('Y') }} www.oohapp.io. All rights reserved.</center>
+<center class="text-gray-500 py-1" style="background-color:#e8e8e8;" id="copyright">© {{ date('Y') }} www.oohapp.io. All rights reserved.</center>
    
 <!-- Bottom Bar
 <div class="pt-8 border-t border-gray-800">
