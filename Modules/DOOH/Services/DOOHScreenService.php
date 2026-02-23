@@ -521,8 +521,10 @@ class DOOHScreenService
 
         // Media validation (only if new files provided)
         if (!empty($mediaFiles)) {
-            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-            $maxSize = 5 * 1024 * 1024; // 5MB
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp',
+                 'video/mp4', 'video/webm', 'video/quicktime',
+            ];
+            $maxSize = 10 * 1024 * 1024; // 5MB
 
             foreach ($mediaFiles as $index => $file) {
                 if (!in_array($file->getMimeType(), $allowedMimes)) {
