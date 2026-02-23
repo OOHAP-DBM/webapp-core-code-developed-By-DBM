@@ -21,7 +21,7 @@
                     <!-- Near Me Button -->
                     <button 
                         type="button" 
-                        class="flex items-center px-4 gap-2 py-2 text-sm text-gray-600 bg-[#dedede] rounded hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                        class="flex items-center px-4 gap-2 py-2 text-sm text-gray-600 bg-[#dedede] rounded hover:text-gray-600 hover:bg-[#cfcfcf] transition-colors cursor-pointer"
                         onclick="getCurrentLocation()"
                     >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
