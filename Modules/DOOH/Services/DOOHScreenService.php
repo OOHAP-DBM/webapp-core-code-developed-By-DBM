@@ -318,7 +318,7 @@ class DOOHScreenService
             $parentHoarding->survey_charge = $data['survey_charge'] ?? null;
             $parentHoarding->hoarding_visibility = $data['hoarding_visibility'] ?? null;
             $parentHoarding->current_step = 3;
-            $autoApproval = env('Auto_Hoarding_Approval', false);
+            $autoApproval = \App\Models\Setting::get('auto_hoarding_approval', false);
             $newStatus = $autoApproval ? 'active' : 'pending_approval';
             $parentHoarding->status = $newStatus;
             $parentHoarding->save();

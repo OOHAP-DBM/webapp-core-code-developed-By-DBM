@@ -383,7 +383,7 @@
                             - Import Inventory
                         </a>
                         <a href="{{ route('vendor.import.enhanced') }}" class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('vendor.import.enhanced') || request()->routeIs('vendor.import.enhanced.batch.show') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
-                            - Import Management
+                            - Manage Imports
                         </a>
                     </div>
                 </div>
