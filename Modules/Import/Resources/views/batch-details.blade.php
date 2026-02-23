@@ -17,14 +17,23 @@
 
 @php
     $isApprovedBatch = $batch->status === 'approved';
+    $autoApprove = \App\Models\Setting::get('auto_hoarding_approval', false);
 @endphp
 
 <div id="rowEditorSection" class="bg-white rounded-xl shadow mb-6 {{ $isApprovedBatch ? 'hidden' : '' }}">
     <div class="p-4 border-b border-gray-200 flex items-center justify-between gap-3 flex-wrap">
         <h2 class="text-lg font-semibold text-gray-900">Batch Summary</h2>
         @if(!$isAdmin)
-            <button id="approveInventoryBtn" class="px-4 py-2 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed {{ $isApprovedBatch ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }}" {{ !in_array($batch->status, ['processed', 'completed']) || $isApprovedBatch ? 'disabled' : '' }}>
-                {{ $isApprovedBatch ? 'Approved' : 'Send For Approval' }}
+            <button 
+                id="approveInventoryBtn"
+                data-auto-approve="{{ $autoApprove ? '1' : '0' }}"
+                class="px-4 py-2 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed {{ $isApprovedBatch ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }}"
+                {{ !in_array($batch->status, ['processed', 'completed']) || $isApprovedBatch ? 'disabled' : '' }}
+            >
+                {{ $isApprovedBatch 
+                    ? 'Approved' 
+                    : ($autoApprove ? 'Publish' : 'Send For Approval') 
+                }}
             </button>
         @endif
     </div>
@@ -85,12 +94,20 @@
 <div class="bg-white rounded-xl shadow overflow-hidden">
     <div class="p-4 border-b border-gray-200 flex items-center justify-between">
         <h2 class="text-lg font-semibold text-gray-900">Batch Rows</h2>
-        <p id="paginationInfo" class="text-sm text-gray-500"></p>
+        <div class="flex items-center gap-3">
+            <button id="bulkDeleteBtn" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                Delete Selected (0)
+            </button>
+            <p id="paginationInfo" class="text-sm text-gray-500"></p>
+        </div>
     </div>
     <div class="overflow-x-auto">
-        <table class="w-full min-w-[980px]">
+        <table class="w-full min-w-[1040px]">
             <thead class="bg-gray-50">
                 <tr>
+                    <th class="px-3 py-2 text-left text-sm">
+                        <input id="rowsSelectAll" type="checkbox" class="h-4 w-4 rounded border-gray-300" />
+                    </th>
                     <th class="px-3 py-2 text-left text-sm">ID</th>
                     <th class="px-3 py-2 text-left text-sm">Image</th>
                     <th class="px-3 py-2 text-left text-sm">Code</th>
@@ -138,6 +155,7 @@ const INITIAL_BATCH_STATUS = @json($batch->status);
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 let currentRowsById = {};
+let selectedRowIds = new Set();
 let currentBatchStatus = (INITIAL_BATCH_STATUS || '').toLowerCase();
 let rowsQueryState = {
     page: 1,
@@ -198,31 +216,30 @@ function setApproveButtonState(status, loading = false) {
     const approveBtn = document.getElementById('approveInventoryBtn');
     if (!approveBtn) return;
 
+    const autoApprove = approveBtn.dataset.autoApprove === '1';
+
     approveBtn.classList.remove('bg-green-600', 'hover:bg-green-700', 'bg-gray-400');
 
     if (loading) {
         approveBtn.disabled = true;
         approveBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
-        approveBtn.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>Approving...</span>';
+        approveBtn.innerHTML = autoApprove 
+            ? 'Publishing...' 
+            : 'Approving...';
         return;
     }
 
     if (status === 'approved') {
         approveBtn.disabled = true;
         approveBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
-        approveBtn.textContent = 'Approved';
+        approveBtn.textContent = autoApprove ? 'Published' : 'Approved';
         return;
     }
 
     const canApprove = ['processed', 'completed'].includes(status);
     approveBtn.disabled = !canApprove;
     approveBtn.classList.add('bg-green-600');
-    if (canApprove) {
-        approveBtn.classList.add('hover:bg-green-700');
-    } else {
-        approveBtn.classList.add('cursor-not-allowed');
-    }
-    approveBtn.textContent = 'Send For Approval';
+    approveBtn.textContent = autoApprove ? 'Publish' : 'Send For Approval';
 }
 
 function applyBatchUiState(status, loading = false) {
@@ -237,6 +254,77 @@ function applyBatchUiState(status, loading = false) {
             rowEditorSection.classList.remove('hidden');
         }
     }
+
+    const selectAll = document.getElementById('rowsSelectAll');
+    if (selectAll) {
+        selectAll.checked = false;
+        selectAll.disabled = currentBatchStatus === 'approved';
+    }
+
+    updateBulkDeleteButtonState();
+}
+
+function clearRowSelections() {
+    selectedRowIds.clear();
+    const selectAll = document.getElementById('rowsSelectAll');
+    if (selectAll) {
+        selectAll.checked = false;
+    }
+    updateBulkDeleteButtonState();
+}
+
+function updateBulkDeleteButtonState() {
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    if (!bulkDeleteBtn) return;
+
+    const selectedCount = selectedRowIds.size;
+    bulkDeleteBtn.textContent = `Delete Selected (${selectedCount})`;
+    bulkDeleteBtn.disabled = currentBatchStatus === 'approved' || selectedCount === 0;
+}
+
+function syncSelectAllCheckbox() {
+    const selectAll = document.getElementById('rowsSelectAll');
+    if (!selectAll) return;
+
+    const rowIds = Object.keys(currentRowsById);
+    if (!rowIds.length || currentBatchStatus === 'approved') {
+        selectAll.checked = false;
+        selectAll.disabled = true;
+        return;
+    }
+
+    selectAll.disabled = false;
+    selectAll.checked = rowIds.every((rowId) => selectedRowIds.has(Number(rowId)));
+}
+
+function toggleRowSelection(rowId, checked) {
+    const normalizedId = Number(rowId);
+    if (checked) {
+        selectedRowIds.add(normalizedId);
+    } else {
+        selectedRowIds.delete(normalizedId);
+    }
+
+    syncSelectAllCheckbox();
+    updateBulkDeleteButtonState();
+}
+
+function toggleSelectAllRows(checked) {
+    Object.keys(currentRowsById).forEach((rowId) => {
+        const normalizedId = Number(rowId);
+        if (checked) {
+            selectedRowIds.add(normalizedId);
+        } else {
+            selectedRowIds.delete(normalizedId);
+        }
+    });
+
+    document.querySelectorAll('.row-select-checkbox').forEach((checkbox) => {
+        checkbox.checked = checked;
+    });
+
+    syncSelectAllCheckbox();
+    updateBulkDeleteButtonState();
 }
 
 function renderRowsPagination() {
@@ -289,6 +377,8 @@ async function loadRows(page = rowsQueryState.page) {
             return accumulator;
         }, {});
 
+        clearRowSelections();
+
         document.getElementById('validCount').textContent = batch.valid_rows ?? '-';
         document.getElementById('invalidCount').textContent = batch.invalid_rows ?? '-';
         document.getElementById('batchStatusText').textContent = batch.status ?? '-';
@@ -300,7 +390,8 @@ async function loadRows(page = rowsQueryState.page) {
 
         const body = document.getElementById('rowsBody');
         if (!rows.length) {
-            body.innerHTML = '<tr><td colspan="9" class="px-3 py-6 text-center text-gray-500">No rows found</td></tr>';
+            body.innerHTML = '<tr><td colspan="10" class="px-3 py-6 text-center text-gray-500">No rows found</td></tr>';
+            syncSelectAllCheckbox();
             return;
         }
 
@@ -311,6 +402,11 @@ async function loadRows(page = rowsQueryState.page) {
 
             return `
                 <tr>
+                    <td class="px-3 py-2 text-sm">
+                        ${currentBatchStatus === 'approved'
+                            ? '<span class="text-gray-300">-</span>'
+                            : `<input type="checkbox" class="h-4 w-4 rounded border-gray-300 row-select-checkbox" onchange="toggleRowSelection(${row.id}, this.checked)" ${selectedRowIds.has(row.id) ? 'checked' : ''} />`}
+                    </td>
                     <td class="px-3 py-2 text-sm">${row.id}</td>
                     <td class="px-3 py-2 text-sm">${imageCell}</td>
                     <td class="px-3 py-2 text-sm">${escapeHtml(row.code)}</td>
@@ -327,26 +423,123 @@ async function loadRows(page = rowsQueryState.page) {
                 </tr>
             `;
         }).join('');
+
+        syncSelectAllCheckbox();
+        updateBulkDeleteButtonState();
     } catch (error) {
         notify(error.message, 'error');
     }
 }
 
-async function approveInventory() {
-    const approveBtn = document.getElementById('approveInventoryBtn');
-    if (!approveBtn || approveBtn.disabled) {
+async function deleteSelectedRows() {
+    if (currentBatchStatus === 'approved') {
+        if (window.Swal) {
+            await Swal.fire({
+                icon: 'info',
+                title: 'Read-only Batch',
+                text: 'Approved batch rows cannot be deleted.',
+            });
+        }
+        return;
+    }
+
+    const selectedIds = Array.from(selectedRowIds);
+    if (!selectedIds.length) {
+        notify('Please select at least one row', 'error');
         return;
     }
 
     const confirmation = window.Swal
         ? await Swal.fire({
-            icon: 'question',
-            title: 'Do you want to publish this inventory?',
-            text: 'This will submit your hoardings for admin approval before website publishing.',
+            icon: 'warning',
+            title: `Delete ${selectedIds.length} selected row(s)?`,
+            text: 'This will remove selected rows and images if no other row uses them.',
             showCancelButton: true,
-            confirmButtonText: 'Yes, publish',
+            confirmButtonText: 'Yes, delete selected',
+            confirmButtonColor: '#dc2626',
         })
-        : { isConfirmed: confirm('Approve inventory for this batch?') };
+        : { isConfirmed: confirm(`Delete ${selectedIds.length} selected row(s)?`) };
+
+    if (!confirmation.isConfirmed) return;
+
+    if (window.Swal) {
+        Swal.fire({
+            title: 'Deleting selected rows...',
+            text: 'Please wait while we remove selected rows.',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => Swal.showLoading(),
+        });
+    }
+
+    let deletedCount = 0;
+    const failedIds = [];
+
+    for (const rowId of selectedIds) {
+        try {
+            await api(`${API_BASE}/${BATCH_ID}/rows/${rowId}`, { method: 'DELETE' });
+            deletedCount += 1;
+        } catch (error) {
+            failedIds.push(rowId);
+        }
+    }
+
+    if (window.Swal) {
+        Swal.close();
+    }
+
+    if (failedIds.length === 0) {
+        if (window.Swal) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Deleted',
+                text: `${deletedCount} row(s) deleted successfully`,
+                timer: 1800,
+                showConfirmButton: false,
+            });
+        } else {
+            notify(`${deletedCount} row(s) deleted`);
+        }
+    } else {
+        const failedText = failedIds.slice(0, 5).join(', ');
+        const suffix = failedIds.length > 5 ? '...' : '';
+        const errorMessage = `${deletedCount} deleted, ${failedIds.length} failed (IDs: ${failedText}${suffix})`;
+
+        if (window.Swal) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Bulk Delete Completed with Errors',
+                text: errorMessage,
+            });
+        } else {
+            notify(errorMessage, 'error');
+        }
+    }
+
+    clearRowSelections();
+    loadRows();
+}
+
+async function approveInventory() {
+    const approveBtn = document.getElementById('approveInventoryBtn');
+    const autoApprove = approveBtn.dataset.autoApprove === '1';
+    if (!approveBtn || approveBtn.disabled) {
+        return;
+    }
+
+  const confirmation = window.Swal
+    ? await Swal.fire({
+        icon: 'question',
+        title: autoApprove 
+            ? 'Do you want to publish this inventory?' 
+            : 'Send inventory for admin approval?',
+        text: autoApprove 
+            ? 'This will directly publish hoardings to website.'
+            : 'This will submit your hoardings for admin approval.',
+        showCancelButton: true,
+        confirmButtonText: autoApprove ? 'Yes, publish' : 'Yes, send',
+    })
+    : { isConfirmed: confirm('Proceed?') };
 
     if (!confirmation.isConfirmed) {
         return;
@@ -356,8 +549,10 @@ async function approveInventory() {
 
     if (window.Swal) {
         Swal.fire({
-            title: 'Approving inventory...',
-            text: 'Please wait while we process valid rows.',
+            title: autoApprove ? 'Publishing inventory...' : 'Sending for approval...',
+            text: autoApprove 
+                ? 'Please wait while we publish valid hoardings.'
+                : 'Please wait while we send hoardings for admin review.',
             allowOutsideClick: false,
             allowEscapeKey: false,
             didOpen: () => Swal.showLoading(),
@@ -634,6 +829,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('resetRowForm').addEventListener('click', resetRowForm);
     document.getElementById('rowImageFile').addEventListener('change', handleImagePreviewChange);
     document.getElementById('approveInventoryBtn')?.addEventListener('click', approveInventory);
+    document.getElementById('rowsSelectAll')?.addEventListener('change', (event) => {
+        toggleSelectAllRows(event.target.checked);
+    });
+    document.getElementById('bulkDeleteBtn')?.addEventListener('click', deleteSelectedRows);
 });
 </script>
 @endsection

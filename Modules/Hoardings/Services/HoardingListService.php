@@ -261,7 +261,7 @@ class HoardingListService
 
             // Set parent hoarding status based on env
             $parent = $hoarding->hoarding;
-            $autoApproval = env('Auto_Hoarding_Approval', false);
+            $autoApproval = \App\Models\Setting::get('auto_hoarding_approval', false);
             $newStatus = $autoApproval ? \App\Models\Hoarding::STATUS_ACTIVE : \App\Models\Hoarding::STATUS_PENDING_APPROVAL;
             if ($parent && $parent->status !== $newStatus) {
                 $parent->status = $newStatus;
