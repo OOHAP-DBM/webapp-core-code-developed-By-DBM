@@ -14,9 +14,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // List enquiries (customer sees theirs, vendor sees their hoarding's, admin sees all)
     Route::get('/', [\Modules\Enquiries\Controllers\Api\EnquiryController::class, 'index']);
     
-    // Create enquiry (customer only)
+    // Create enquiry (customer and vendor)
     Route::post('/', [\Modules\Enquiries\Controllers\Api\EnquiryController::class, 'store'])
-        ->middleware('role:customer');
+        ->middleware('role:customer,vendor');
     
     // View single enquiry
     Route::get('/{id}', [\Modules\Enquiries\Controllers\Api\EnquiryController::class, 'show']);
