@@ -23,7 +23,7 @@
     {{-- ── Agreement banner (shown when commission just set and pending agreement) ── --}}
     @if($pendingAgreement)
     @php $notifData = $pendingAgreement->data; @endphp
-    <div class="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5" id="agreement-banner">
+    <!-- <div class="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5" id="agreement-banner">
         <div class="flex items-start gap-4">
             <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,7 +55,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <div id="agreement-confirm-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/40" onclick="closeAgreementConfirmModal()"></div>
@@ -173,7 +173,7 @@
         @if($globalRules->isNotEmpty())
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 bg-gradient-to-r from-[#E8F7F0] to-white border-b border-gray-100 flex items-center gap-3">
-                <span class="w-6 h-6 rounded-full bg-[#009A5C] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">1</span>
+                <!-- <span class="w-6 h-6 rounded-full bg-[#009A5C] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">1</span> -->
                 <div>
                     <span class="font-bold text-gray-900 text-sm">Base Rates</span>
                     <span class="text-xs text-gray-400 ml-2">— applies across all your hoardings</span>
@@ -199,7 +199,7 @@
         @if($stateRules->isNotEmpty())
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 bg-gradient-to-r from-amber-50 to-white border-b border-gray-100 flex items-center gap-3">
-                <span class="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">2</span>
+                <!-- <span class="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">2</span> -->
                 <div>
                     <span class="font-bold text-gray-900 text-sm">State-Specific Rates</span>
                     <span class="text-xs text-gray-400 ml-2">— override base rates for these states</span>
@@ -234,7 +234,7 @@
         @if($cityRules->isNotEmpty())
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 bg-gradient-to-r from-orange-50 to-white border-b border-gray-100 flex items-center gap-3">
-                <span class="w-6 h-6 rounded-full bg-[#F97316] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">3</span>
+                <!-- <span class="w-6 h-6 rounded-full bg-[#F97316] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">3</span> -->
                 <div>
                     <span class="font-bold text-gray-900 text-sm">City-Specific Rates</span>
                     <span class="text-xs text-gray-400 ml-2">— override state rates for these cities</span>
@@ -271,7 +271,7 @@
         @if($hoardingOverrides->isNotEmpty())
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 bg-gradient-to-r from-red-50 to-white border-b border-gray-100 flex items-center gap-3">
-                <span class="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">4</span>
+                <!-- <span class="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">4</span> -->
                 <div>
                     <span class="font-bold text-gray-900 text-sm">Individual Hoarding Rates</span>
                     <span class="text-xs text-gray-400 ml-2">— set specifically for these hoardings</span>

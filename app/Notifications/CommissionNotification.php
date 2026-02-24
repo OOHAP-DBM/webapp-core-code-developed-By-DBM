@@ -80,9 +80,12 @@ class CommissionNotification extends Notification implements ShouldQueue
             'title'              => $this->type === 'set'
                                         ? 'Commission Set'
                                         : 'Commission Updated',
+            // 'message'            => $this->type === 'set'
+            //                             ? "Your commission has been set. Please agree to proceed."
+            //                             : "Your commission has been updated. Please agree to proceed.",
             'message'            => $this->type === 'set'
-                                        ? "Your commission has been set. Please agree to proceed."
-                                        : "Your commission has been updated. Please agree to proceed.",
+                                    ? "Your commission has been set."
+                                        : "Your commission has been updated.",
             'commission'         => $this->commission,
             'commission_type'    => $this->commissionType,
             'ooh_commission'     => $this->oohCommission,

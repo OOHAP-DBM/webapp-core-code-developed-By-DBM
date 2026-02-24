@@ -60,12 +60,12 @@
                 </svg>
             </div>
 
-            <button type="submit"
+            <!-- <button type="submit"
                 class="px-4 py-2.5 bg-[#E8F7F0] text-[#009A5C] rounded-xl border border-[#009A5C]/20 hover:bg-[#009A5C] hover:text-white transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
                 </svg>
-            </button>
+            </button> -->
         </div>
     </form>
 
@@ -74,9 +74,6 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-50 border-b border-gray-100">
                 <tr>
-                    <th class="px-6 py-3 text-left">
-                        <input type="checkbox" class="rounded border-gray-300" id="selectAllVendors">
-                    </th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">S.N</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
                         <div class="flex items-center gap-1">
@@ -94,7 +91,7 @@
                             </svg> -->
                         </div>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">#OF HOARDINGS</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase"> NO. OF HOARDINGS</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">PHONE NUMBER</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ACTION</th>
                 </tr>
@@ -102,9 +99,6 @@
             <tbody class="divide-y divide-gray-50">
                 @forelse($vendors as $i => $vendor)
                 <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4">
-                        <input type="checkbox" class="vendor-checkbox rounded border-gray-300" value="{{ $vendor->id }}">
-                    </td>
                     <td class="px-6 py-4 text-gray-500">
                         {{ str_pad($vendors->firstItem() + $i, 2, '0', STR_PAD_LEFT) }}
                     </td>
@@ -115,7 +109,7 @@
                         </a>
                     </td>
                     <td class="px-6 py-4 text-gray-600">
-                        {{ $vendor->hoardings->pluck('city')->unique()->filter()->first() ?? '—' }}
+                        {{ $vendor->city ?? $vendor->vendorProfile->city ?? '—' }}
                     </td>
                     <td class="px-6 py-4 text-gray-700 font-medium">{{ $vendor->hoardings_count }}</td>
                     <td class="px-6 py-4 text-gray-600">{{ $vendor->phone ?? '—' }}</td>
@@ -125,11 +119,11 @@
                                 class="px-4 py-1.5 bg-[#009A5C] text-white rounded-lg text-xs font-semibold hover:bg-[#007a49] transition">
                                 View All
                             </a>
-                            <button class="text-gray-400 hover:text-gray-600">
+                            <!-- <button class="text-gray-400 hover:text-gray-600">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                                 </svg>
-                            </button>
+                            </button> -->
                         </div>
                     </td>
                 </tr>
