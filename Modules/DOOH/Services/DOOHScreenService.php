@@ -521,7 +521,7 @@ class DOOHScreenService
      */
     public function updateStep1($screen, $data, $mediaFiles)
     {
-        dd($data, $mediaFiles);
+        // dd($data);
         $errors = [];
 
         // Media validation (only if new files provided)
@@ -529,14 +529,14 @@ class DOOHScreenService
             $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp',
                  'video/mp4', 'video/webm', 'video/quicktime',
             ];
-            $maxSize = 10 * 1024 * 1024; // 5MB
+            $maxSize = 10 * 1024 * 1024; // 10MB
 
             foreach ($mediaFiles as $index => $file) {
                 if (!in_array($file->getMimeType(), $allowedMimes)) {
                     $errors['media'][] = "File #{$index}: Invalid format.";
                 }
                 if ($file->getSize() > $maxSize) {
-                    $errors['media'][] = "File #{$index}: Exceeds 5MB.";
+                    $errors['media'][] = "File #{$index}: Exceeds 10MB.";
                 }
             }
         }
