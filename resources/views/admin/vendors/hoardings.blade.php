@@ -121,9 +121,6 @@
                 <!-- Pagination -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 text-sm text-[#6B7280]">
                     <div class="flex items-center gap-2">
-                        <select class="border rounded-md px-2 py-1 text-sm">
-                            <option>10</option>
-                        </select>
                         <span>
                             Showing {{ $approvedHoardings->firstItem() }} to {{ $approvedHoardings->lastItem() }}
                             of {{ $approvedHoardings->total() }} records
@@ -208,9 +205,6 @@
                 <!-- Pagination -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 text-sm text-[#6B7280]">
                     <div class="flex items-center gap-2">
-                        <select class="border rounded-md px-2 py-1 text-sm">
-                            <option>10</option>
-                        </select>
                         <span>
                             Showing {{ $pendingHoardings->firstItem() }} to {{ $pendingHoardings->lastItem() }}
                             of {{ $pendingHoardings->total() }} records
