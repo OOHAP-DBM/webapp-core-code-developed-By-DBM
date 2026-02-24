@@ -9,10 +9,20 @@ class NotificationRedirectController extends Controller
     public function open($id)
     {
         $notification = auth()->user()->notifications()->findOrFail($id);
-        if (!$notification->read_at) {
+
+        $type = data_get($notification->data, 'type');
+        $isCommissionAgreementNotification = in_array($type, ['commission_set', 'commission_updated'], true);
+
+        if (!$isCommissionAgreementNotification && !$notification->read_at) {
             $notification->markAsRead();
         }
-        $url = $notification->data['action_url'] ?? '/';
+
+        $url = $isCommissionAgreementNotification
+            ? url('/vendor/commission/my-commission')
+            : (data_get($notification->data, 'action_url')
+                ?? data_get($notification->data, 'actionUrl')
+                ?? '/');
+
         return redirect($url);
     }
 }

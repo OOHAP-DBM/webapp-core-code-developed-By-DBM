@@ -142,6 +142,15 @@ Route::prefix('vendor/direct-enquiries')->name('vendor.direct-enquiries.')->midd
     Route::get('/{enquiry}', [\Modules\Enquiries\Controllers\Web\DirectEnquiryController::class, 'vendorDirectShow'])->name('show');
 });
 
+Route::prefix('vendor/commission')->name('vendor.commission.')->middleware(['auth', 'role:vendor'])->group(function () {
+    Route::get('/my-commission', [\App\Http\Controllers\Vendor\VendorCommissionController::class, 'index'])
+     ->name('index');
+    Route::post('/commission/agree/{notification}', [\App\Http\Controllers\Vendor\VendorCommissionController::class, 'agree'])
+     ->name('agree');
+
+});
+
+
 // ADMIN POS WEB ROUTES
 Route::prefix('admin/pos')->middleware(['auth', 'role:admin'])->name('admin.pos.')->group(function () {
     Route::get('/dashboard', [\Modules\POS\Controllers\Web\AdminPosController::class, 'dashboard'])->name('dashboard');
@@ -804,6 +813,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
             Route::post('/hoarding/{hoarding}/commission',   [\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'saveHoardingCommission'])->name('hoarding.commission');
         Route::delete('/{commission}',[\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'destroy'])->name('destroy');
         Route::get('/cities',[\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'getCities'])->name('cities');
+        Route::get('/vendor/{vendor}/rules', [\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'vendorRules'])
+            ->name('vendor.rules');
     });
 
     // Invoice Management (PROMPT 64)
