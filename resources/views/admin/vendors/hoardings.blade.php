@@ -239,15 +239,42 @@
                         btn.innerText = 'Approved';
                         btn.classList.remove('bg-[#F59E0B]');
                         btn.classList.add('bg-green-600');
-                        setTimeout(() => location.reload(), 800);
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: data.message || 'Hoarding approved!',
+                            showConfirmButton: false,
+                            timer: 1800,
+                            timerProgressBar: true
+                        });
+                        setTimeout(() => location.reload(), 1000);
                     } else {
                         btn.innerText = 'Error';
                         btn.disabled = false;
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: data.message || 'Error approving hoarding',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
                     }
                 })
                 .catch(() => {
                     btn.innerText = 'Error';
                     btn.disabled = false;
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error',
+                        title: 'Network error. Please try again.',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
                 });
             });
         });

@@ -180,6 +180,11 @@ class VendorHoardingController extends Controller
             // Fire event for notification (single)
             event(new HoardingStatusChanged(collect([$hoarding]), $hoarding->status, auth()->user()));
 
+            // Send database notification to vendor
+            if ($hoarding->vendor) {
+                $hoarding->vendor->notify(new HoardingApproved($hoarding));
+            }
+
             return response()->json([
                 'success' => true,
                 'status'  => $hoarding->status
@@ -367,6 +372,10 @@ class VendorHoardingController extends Controller
                             'error' => $e->getMessage(),
                         ]);
                     }
+                }
+                // Send database notification to vendor
+                if ($hoarding->vendor) {
+                    $hoarding->vendor->notify(new HoardingApproved($hoarding));
                 }
             }
 

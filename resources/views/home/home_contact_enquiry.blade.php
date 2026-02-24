@@ -398,6 +398,10 @@ phoneInput.addEventListener('blur', function() {
         }
     }
 });
+// Reset otpSentAutomatically if phone input changes
+phoneInput.addEventListener('input', function() {
+    otpSentAutomatically = false;
+});
 
 // Reset otpSentAutomatically if phone input changes
 phoneInput.addEventListener('input', function() {
