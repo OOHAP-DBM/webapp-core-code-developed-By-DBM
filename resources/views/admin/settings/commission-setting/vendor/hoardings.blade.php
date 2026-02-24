@@ -15,16 +15,18 @@
 @section('content')
 <div class="p-6">
 
+<!-- @dump($vendor, $hoardings, $resolvedCommissions, $hasExistingCommission) -->
     {{-- Vendor Details --}}
+   
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
         <h2 class="text-base font-bold text-gray-900 mb-3">Vendor Details</h2>
         <div class="grid grid-cols-2 gap-y-1 text-sm text-gray-600">
             <div><span class="font-medium text-gray-800">Name:</span> {{ $vendor->name }}</div>
-            <div><span class="font-medium text-gray-800">Business Name:</span> {{ $vendor->business_name ?? '—' }}</div>
-            <div><span class="font-medium text-gray-800">GSTIN:</span> {{ $vendor->gstin ?? '—' }}</div>
-            <div><span class="font-medium text-gray-800">Mobile Number:</span> {{ $vendor->phone ?? '—' }}</div>
-            <div><span class="font-medium text-gray-800">Email:</span> {{ $vendor->email }}</div>
-            <div><span class="font-medium text-gray-800">Address:</span> {{ $vendor->address ?? '—' }}</div>
+            <div><span class="font-medium text-gray-800">Business Name:</span> {{ $vendor->vendorProfile->company_name ?? '—' }}</div>
+            <div><span class="font-medium text-gray-800">GSTIN:</span> {{ $vendor->vendorProfile->gstin ?? $vendor->gstin ?? '—' }}</div>
+            <div><span class="font-medium text-gray-800">Mobile Number:</span> {{ $vendor->phone ?? $vendor->vendorProfile->contact_person_phone ?? '—' }}</div>
+            <div><span class="font-medium text-gray-800">Email:</span> {{ $vendor->email ?? $vendor->vendorProfile->contact_person_email ?? '—' }}</div>
+            <div><span class="font-medium text-gray-800">Address:</span> {{ $vendor->address ?? $vendor->vendorProfile->registered_address ?? '—' }}</div>
         </div>
     </div>
 
@@ -69,7 +71,7 @@
                     <option value="ooh"  {{ request('type') == 'ooh'  ? 'selected' : '' }}>OOH</option>
                     <option value="dooh" {{ request('type') == 'dooh' ? 'selected' : '' }}>DOOH</option>
                 </select>
-                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </div>
@@ -81,7 +83,7 @@
                         <option value="{{ $s }}" {{ request('state') == $s ? 'selected' : '' }}>{{ $s }}</option>
                     @endforeach
                 </select>
-                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </div>
@@ -93,16 +95,16 @@
                         <option value="{{ $c }}" {{ request('city') == $c ? 'selected' : '' }}>{{ $c }}</option>
                     @endforeach
                 </select>
-                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </div>
-            <button type="submit"
+            <!-- <button type="submit"
                 class="px-4 py-2.5 bg-[#E8F7F0] text-[#009A5C] rounded-xl border border-[#009A5C]/20 hover:bg-[#009A5C] hover:text-white transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
                 </svg>
-            </button>
+            </button> -->
         </div>
     </form>
 

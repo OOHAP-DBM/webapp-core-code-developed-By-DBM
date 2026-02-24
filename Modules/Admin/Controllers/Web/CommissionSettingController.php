@@ -67,7 +67,9 @@ class CommissionSettingController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%")
                   ->orWhere('city', 'like', "%$search%")
-                  ->orWhere('location', 'like', "%$search%");
+                  ->orWhere('state', 'like', "%$search%")
+                  ->orWhere('address', 'like', "%$search%")
+                  ->orWhere('locality', 'like', "%$search%");
             });
         }
 

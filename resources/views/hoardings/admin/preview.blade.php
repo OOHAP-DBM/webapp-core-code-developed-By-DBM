@@ -1,5 +1,14 @@
 @extends('layouts.admin')
+
 @section('title', 'Hoarding Preview - ' . $hoarding->title)
+
+@section('breadcrumb')
+    <x-breadcrumb :items="[
+        ['label' => 'Home', 'route' => route('admin.dashboard')],
+        ['label' => 'All Hoardings', 'route' => route('admin.my-hoardings')],
+        ['label' => $hoarding->title]
+    ]" />
+@endsection
 
 @section('content')
 <div class="px-6 py-6 max-w-7xl">
