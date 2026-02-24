@@ -366,7 +366,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     // Home/Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('dashboard');
-    Route::get('/home', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('home');
+    // Route::get('/home', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('home');
     Route::post('/customer/profile/send-otp', [ProfileController::class, 'sendOtp'])->name('profile.send-otp');
     Route::post('/customer/profile/verify-otp', [ProfileController::class, 'verifyOtp'])->name('profile.verify-otp');
     
