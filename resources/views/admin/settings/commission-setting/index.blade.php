@@ -1,6 +1,16 @@
 {{-- resources/views/admin/commission/index.blade.php --}}
 @extends('layouts.admin')
 
+@section('title', 'Commission Settings')
+@section('page_title', 'Commission Settings')
+
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'Commission Settings']
+]" />
+@endsection
+
 @section('content')
 <div class="p-6">
 
