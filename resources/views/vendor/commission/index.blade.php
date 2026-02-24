@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-<div class="p-6 max-w-7xl mx-auto">
+<div class="p-6">
 
     {{-- ── Page header ── --}}
     <div class="mb-8">
