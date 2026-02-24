@@ -121,9 +121,6 @@
                 <!-- Pagination -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 text-sm text-[#6B7280]">
                     <div class="flex items-center gap-2">
-                        <select class="border rounded-md px-2 py-1 text-sm">
-                            <option>10</option>
-                        </select>
                         <span>
                             Showing {{ $approvedHoardings->firstItem() }} to {{ $approvedHoardings->lastItem() }}
                             of {{ $approvedHoardings->total() }} records
@@ -208,9 +205,6 @@
                 <!-- Pagination -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 text-sm text-[#6B7280]">
                     <div class="flex items-center gap-2">
-                        <select class="border rounded-md px-2 py-1 text-sm">
-                            <option>10</option>
-                        </select>
                         <span>
                             Showing {{ $pendingHoardings->firstItem() }} to {{ $pendingHoardings->lastItem() }}
                             of {{ $pendingHoardings->total() }} records
@@ -245,15 +239,42 @@
                         btn.innerText = 'Approved';
                         btn.classList.remove('bg-[#F59E0B]');
                         btn.classList.add('bg-green-600');
-                        setTimeout(() => location.reload(), 800);
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: data.message || 'Hoarding approved!',
+                            showConfirmButton: false,
+                            timer: 1800,
+                            timerProgressBar: true
+                        });
+                        setTimeout(() => location.reload(), 1000);
                     } else {
                         btn.innerText = 'Error';
                         btn.disabled = false;
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: data.message || 'Error approving hoarding',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
                     }
                 })
                 .catch(() => {
                     btn.innerText = 'Error';
                     btn.disabled = false;
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error',
+                        title: 'Network error. Please try again.',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
                 });
             });
         });

@@ -84,48 +84,90 @@ class DirectEnquiryController extends Controller
         ]);
     }
 
-     public function sendOtp(Request $request, GuestOtpService $otpService)
-{
-    $request->validate([
-        'identifier' => 'required|string'
-    ]);
+    //  public function sendOtp(Request $request, GuestOtpService $otpService)
+    // {
+    //     $request->validate([
+    //         'identifier' => 'required|string'
+    //     ]);
 
-    $identifier = $request->identifier;
+    //     $identifier = $request->identifier;
 
-    // Validate phone format (Indian mobile numbers: 10 digits starting with 6-9)
-    if (!preg_match('/^[6-9][0-9]{9}$/', $identifier)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid phone number format. Must be 10 digits starting with 6-9.'
-        ], 422);
+    //     // Validate phone format (Indian mobile numbers: 10 digits starting with 6-9)
+    //     if (!preg_match('/^[6-9][0-9]{9}$/', $identifier)) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Invalid phone number format. Must be 10 digits starting with 6-9.'
+    //         ], 422);
+    //     }
+
+    //     try {
+    //         // Generate and send OTP
+    //         $otpService->generate($identifier, 'direct_enquiry');
+
+    //         Log::info('OTP sent for direct enquiry', [
+    //             'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
+    //             'ip' => $request->ip()
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'OTP sent successfully to +91-' . substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2)
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         Log::error('OTP Send Failed', [
+    //             'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
+    //             'error' => $e->getMessage()
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to send OTP. Please try again later.'
+    //         ], 500);
+    //     }
+    // }
+        public function sendOtp(Request $request, GuestOtpService $otpService)
+    {
+        $request->validate([
+            'identifier' => 'required|string'
+        ]);
+
+        $identifier = $request->identifier;
+
+        // Validate phone format (Indian mobile numbers: 10 digits starting with 6-9)
+        if (!preg_match('/^[6-9][0-9]{9}$/', $identifier)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid phone number format. Must be 10 digits starting with 6-9.'
+            ], 422);
+        }
+
+        try {
+            // Generate and send OTP
+            $otpService->generate($identifier, 'direct_enquiry');
+
+            Log::info('OTP sent for direct enquiry', [
+                'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
+                'ip' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP sent successfully to +91-' . substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2)
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('OTP Send Failed', [
+                'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send OTP. Please try again later.'
+            ], 500);
+        }
     }
-
-    try {
-        // Generate and send OTP
-        $otpService->generate($identifier, 'direct_enquiry');
-
-        Log::info('OTP sent for direct enquiry', [
-            'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
-            'ip' => $request->ip()
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'OTP sent successfully to +91-' . substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2)
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('OTP Send Failed', [
-            'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
-            'error' => $e->getMessage()
-        ]);
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to send OTP. Please try again later.'
-        ], 500);
-    }
-}
     /**
      * Verify OTP
      * NO USER LOOKUP NEEDED - works directly with phone number

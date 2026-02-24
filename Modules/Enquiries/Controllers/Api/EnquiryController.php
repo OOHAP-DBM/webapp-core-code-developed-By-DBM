@@ -122,6 +122,19 @@ class EnquiryController extends Controller
                 $user = Auth::user();
                 $itemsData = $request->items;
 
+                // Restrict vendors from creating enquiries for their own hoardings
+                if ($user->hasRole('vendor')) {
+                    foreach ($itemsData as $item) {
+                        $hoarding = Hoarding::find($item['hoarding_id']);
+                        if ($hoarding && $hoarding->vendor_id == $user->id) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Vendors cannot create enquiries for their own hoardings.'
+                            ], 403);
+                        }
+                    }
+                }
+
                 // 3. Create Enquiry Header
                 $enquiry = Enquiry::create([
                     'customer_id'    => $user->id,
@@ -135,7 +148,6 @@ class EnquiryController extends Controller
                 foreach ($itemsData as $item) {
                     $hoarding = Hoarding::with('doohScreen')->findOrFail($item['hoarding_id']);
                     $startDate = Carbon::parse($item['preferred_start_date']);
-                    
                     // 4. Resolve Duration and Package
                     $unit = $item['duration_unit']; // days, weeks, months
                     $value = (int) $item['duration_value'];
@@ -267,7 +279,7 @@ class EnquiryController extends Controller
     $user = Auth::user();
 
     // Must be authenticated
-    if (! $user) {
+    if (!$user) {
         return response()->json([
             'success' => false,
             'message' => 'Unauthenticated'

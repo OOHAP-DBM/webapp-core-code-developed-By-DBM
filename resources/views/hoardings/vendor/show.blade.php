@@ -1,5 +1,5 @@
 @extends('layouts.vendor')
-@section('title', 'Preview: ' . $hoarding->title)
+@section('title', 'Preview: ' . \Illuminate\Support\Str::limit($hoarding->title, 30))
 
 @section('content')
 <div class="hoarding-wrapper">

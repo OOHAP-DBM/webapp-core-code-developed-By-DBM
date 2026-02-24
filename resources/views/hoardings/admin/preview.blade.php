@@ -1,5 +1,14 @@
 @extends('layouts.admin')
+
 @section('title', 'Hoarding Preview - ' . $hoarding->title)
+
+@section('breadcrumb')
+    <x-breadcrumb :items="[
+        ['label' => 'Home', 'route' => route('admin.dashboard')],
+        ['label' => 'All Hoardings', 'route' => route('admin.my-hoardings')],
+        ['label' => $hoarding->title]
+    ]" />
+@endsection
 
 @section('content')
 <div class="px-6 py-6 max-w-7xl">
@@ -52,38 +61,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
                         Media Gallery
-                        <span class="text-sm text-gray-500 font-normal">({{ $hoarding->media_files->count() }} files)</span>
                     </h2>
-                    
-                    {{-- Main Image Display --}}
-                    @if($hoarding->media_files->isNotEmpty())
-                        <div class="mb-4">
-                            <img 
-                                id="mainPreviewImage" 
-                                src="{{ $hoarding->media_files->where('is_primary', true)->first()['url'] ?? $hoarding->media_files->first()['url'] }}" 
-                                alt="{{ $hoarding->title }}"
-                                class="w-full h-96 object-cover rounded-lg border border-gray-200"
-                            >
-                        </div>
-                        
-                        {{-- Thumbnail Gallery --}}
-                        @if($hoarding->media_files->count() > 1)
-                            <div class="grid grid-cols-4 gap-3">
-                                @foreach($hoarding->media_files as $index => $media)
-                                    <img 
-                                        src="{{ $media['url'] }}" 
-                                        alt="Thumbnail {{ $index + 1 }}"
-                                        class="w-full h-24 object-cover rounded-lg border-2 cursor-pointer hover:border-green-500 transition {{ $loop->first ? 'border-green-500' : 'border-gray-200' }}"
-                                        onclick="document.getElementById('mainPreviewImage').src = '{{ $media['url'] }}'; event.target.parentElement.querySelectorAll('img').forEach(img => img.classList.remove('border-green-500')); event.target.classList.add('border-green-500');"
-                                    >
-                                @endforeach
-                            </div>
-                        @endif
-                    @else
-                        <div class="flex items-center justify-center h-96 bg-gray-100 rounded-lg">
-                            <span class="text-gray-400">No media available</span>
-                        </div>
-                    @endif
+                    @include('hoardings.partials.gallery', ['hoarding' => $hoarding])
                 </div>
             </div>
 
@@ -515,7 +494,7 @@
         {{-- RIGHT COLUMN (1/3 width) - Sidebar Info --}}
         <div class="lg:col-span-1 space-y-6">
             
-            <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
+            <div class="bg-white rounded-lg shadow-md p-6  top-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Pricing Summary</h2>
                 @php
                     $monthly = $hoarding->monthly_price;

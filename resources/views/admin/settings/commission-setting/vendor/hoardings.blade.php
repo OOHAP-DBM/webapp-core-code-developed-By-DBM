@@ -1,38 +1,65 @@
-{{-- resources/views/admin/commission/vendor_hoardings.blade.php --}}
+{{-- resources/views/admin/settings/commission-setting/vendor/hoardings.blade.php --}}
 @extends('layouts.admin')
+
+@section('title', 'Vendor Hoardings Commission')
+@section('page_title', 'Vendor Hoardings Commission')
+
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'Commission Settings', 'route' => route('admin.commission.index')],
+    ['label' => 'Vendor Hoardings']
+]" />
+@endsection
 
 @section('content')
 <div class="p-6">
 
+<!-- @dump($vendor, $hoardings, $resolvedCommissions, $hasExistingCommission) -->
     {{-- Vendor Details --}}
+   
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
         <h2 class="text-base font-bold text-gray-900 mb-3">Vendor Details</h2>
         <div class="grid grid-cols-2 gap-y-1 text-sm text-gray-600">
             <div><span class="font-medium text-gray-800">Name:</span> {{ $vendor->name }}</div>
-            <div><span class="font-medium text-gray-800">Business Name:</span> {{ $vendor->business_name ?? '—' }}</div>
-            <div><span class="font-medium text-gray-800">GSTIN:</span> {{ $vendor->gstin ?? '—' }}</div>
-            <div><span class="font-medium text-gray-800">Mobile Number:</span> {{ $vendor->phone ?? '—' }}</div>
-            <div><span class="font-medium text-gray-800">Email:</span> {{ $vendor->email }}</div>
-            <div><span class="font-medium text-gray-800">Address:</span> {{ $vendor->address ?? '—' }}</div>
+            <div><span class="font-medium text-gray-800">Business Name:</span> {{ $vendor->vendorProfile->company_name ?? '—' }}</div>
+            <div><span class="font-medium text-gray-800">GSTIN:</span> {{ $vendor->vendorProfile->gstin ?? $vendor->gstin ?? '—' }}</div>
+            <div><span class="font-medium text-gray-800">Mobile Number:</span> {{ $vendor->phone ?? $vendor->vendorProfile->contact_person_phone ?? '—' }}</div>
+            <div><span class="font-medium text-gray-800">Email:</span> {{ $vendor->email ?? $vendor->vendorProfile->contact_person_email ?? '—' }}</div>
+            <div><span class="font-medium text-gray-800">Address:</span> {{ $vendor->address ?? $vendor->vendorProfile->registered_address ?? '—' }}</div>
         </div>
     </div>
 
     {{-- Header + Set Vendor Commission Button --}}
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-bold text-gray-900">All Hoardings ({{ $hoardings->total() }})</h2>
+    
         <button onclick="openVendorCommissionModal()"
             class="px-5 py-2.5 {{ ($hasExistingCommission ?? false) ? 'bg-[#F97316] hover:bg-[#ea6c0a]' : 'bg-[#009A5C] hover:bg-[#007a49]' }} text-black rounded-xl font-semibold text-sm transition">
             {{ ($hasExistingCommission ?? false) ? 'Update Commission' : 'Set Vendor Commission' }}
         </button>
+
+         <a href="{{ route('admin.commission.vendor.rules', $vendor) }}"
+            class="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-semibold text-sm hover:bg-gray-200 transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            View Rules
+        </a>
     </div>
+
+
 
     {{-- Search & Filter Bar --}}
     <form method="GET" action="{{ route('admin.commission.vendor.hoardings', $vendor) }}">
         <div class="flex gap-3 mb-6">
             <div class="flex-1 relative">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
                 <input type="text" name="search" value="{{ request('search') }}"
                     placeholder="Search by hoarding type, city, location..."
                     class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#009A5C]">
@@ -44,7 +71,7 @@
                     <option value="ooh"  {{ request('type') == 'ooh'  ? 'selected' : '' }}>OOH</option>
                     <option value="dooh" {{ request('type') == 'dooh' ? 'selected' : '' }}>DOOH</option>
                 </select>
-                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </div>
@@ -56,7 +83,7 @@
                         <option value="{{ $s }}" {{ request('state') == $s ? 'selected' : '' }}>{{ $s }}</option>
                     @endforeach
                 </select>
-                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </div>
@@ -68,16 +95,16 @@
                         <option value="{{ $c }}" {{ request('city') == $c ? 'selected' : '' }}>{{ $c }}</option>
                     @endforeach
                 </select>
-                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </div>
-            <button type="submit"
+            <!-- <button type="submit"
                 class="px-4 py-2.5 bg-[#E8F7F0] text-[#009A5C] rounded-xl border border-[#009A5C]/20 hover:bg-[#009A5C] hover:text-white transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
                 </svg>
-            </button>
+            </button> -->
         </div>
     </form>
 
@@ -96,15 +123,23 @@
             </thead>
             <tbody class="divide-y divide-gray-50">
                 @forelse($hoardings as $i => $hoarding)
+                @php
+                    // Use pre-resolved commission from controller (centralized, no extra queries)
+                    $effectiveCommission = $resolvedCommissions[$hoarding->id] ?? null;
+                    $hasOverride         = $hoarding->commission_percent !== null && (float)$hoarding->commission_percent > 0;
+                @endphp
                 <tr class="hover:bg-gray-50 transition" id="hoarding-row-{{ $hoarding->id }}">
                     <td class="px-6 py-4 text-gray-500">
                         {{ str_pad($hoardings->firstItem() + $i, 2, '0', STR_PAD_LEFT) }}
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
+                            @php
+                                $thumbUrl = $hoarding->heroImage()?? ($hoarding->image ?? null);
+                            @endphp
                             <div class="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
-                                @if($hoarding->image)
-                                    <img src="{{ $hoarding->image }}" alt="" class="w-full h-full object-cover">
+                                @if($thumbUrl)
+                                    <img src="{{ $thumbUrl }}" alt="" class="w-full h-full object-cover">
                                 @else
                                     <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,16 +159,32 @@
                     </td>
                     <td class="px-6 py-4 text-gray-600">{{ $hoarding->city }}</td>
                     <td class="px-6 py-4 text-gray-500 text-xs max-w-xs truncate">{{ $hoarding->display_location }}</td>
-                    <td class="px-6 py-4">
-                        <span id="commission-display-{{ $hoarding->id }}"
-                            class="font-bold {{ $hoarding->commission ? 'text-[#009A5C]' : 'text-gray-400' }}">
-                            {{ $hoarding->commission ? $hoarding->commission . '%' : '—' }}
-                        </span>
+
+                    {{-- Commission display cell --}}
+                    <td class="px-6 py-4" id="commission-cell-{{ $hoarding->id }}">
+                        @if($effectiveCommission !== null)
+                            <div class="flex flex-col gap-0.5">
+                                <span class="font-bold text-[#009A5C] text-sm">{{ number_format($effectiveCommission, 2) }}%</span>
+                                @if($hasOverride)
+                                    <span class="text-xs text-[#F97316] font-medium">Hoarding override</span>
+                                @else
+                                    <span class="text-xs text-gray-400">From vendor rules</span>
+                                @endif
+                            </div>
+                        @else
+                            <span class="text-gray-300 font-bold text-sm">—</span>
+                        @endif
                     </td>
+
                     <td class="px-6 py-4">
-                        <button onclick="openHoardingCommissionModal({{ $hoarding->id }}, '{{ addslashes($hoarding->name) }}', {{ $hoarding->commission ?? 'null' }})"
-                            class="px-4 py-1.5 bg-[#F97316]  rounded-lg text-xs font-semibold hover:bg-[#ea6c0a] transition">
-                            Set Commission
+                        <button
+                            onclick="openHoardingCommissionModal(
+                                {{ $hoarding->id }},
+                                '{{ addslashes($hoarding->title ?? $hoarding->name) }}',
+                                {{ $hasOverride ? $hoarding->commission_percent : 'null' }}
+                            )"
+                            class="w-36 text-center px-4 py-1.5 {{ $hasOverride ? 'bg-[#F97316]' : 'bg-[#009A5C]' }} text-black rounded-lg text-xs font-semibold hover:opacity-90 transition">
+                            {{ $hasOverride ? 'Update Commission' : 'Set Commission' }}
                         </button>
                     </td>
                 </tr>
@@ -146,11 +197,9 @@
         </table>
 
         <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-500">
-                    Showing {{ $hoardings->firstItem() }} to {{ $hoardings->lastItem() }} of {{ $hoardings->total() }} records
-                </span>
-            </div>
+            <span class="text-sm text-gray-500">
+                Showing {{ $hoardings->firstItem() }} to {{ $hoardings->lastItem() }} of {{ $hoardings->total() }} records
+            </span>
             {{ $hoardings->links() }}
         </div>
     </div>
@@ -162,16 +211,18 @@
 <div id="hoardingModal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-gray-900">Set Commission</h2>
+            <h2 class="text-lg font-bold text-gray-900" id="hoardingModalTitle">Set Commission</h2>
             <button onclick="closeAllModals()" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
             </button>
         </div>
         <p id="hoardingModalName" class="text-sm text-gray-500 mb-5"></p>
 
         <label class="text-sm font-semibold text-gray-700 mb-2 block">Commission %</label>
         <div class="relative mb-6">
-            <input type="number" id="hoardingCommissionInput" min="0" max="100" step="0.01"
+            <input type="number" id="hoardingCommissionInput" min="0.01" max="99" step="0.01"
                 placeholder="e.g. 15"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-[#009A5C] text-sm">
             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">%</span>
@@ -188,10 +239,10 @@
 </div>
 
 {{-- ══════════════════════════════════════════════════════════════
-     FLOW B: VENDOR commission modals (5 steps)
+     FLOW B: VENDOR commission modals
 ══════════════════════════════════════════════════════════════ --}}
 
-{{-- Step 1: Enter base commission --}}
+{{-- Step 1: Base commission --}}
 <div id="vModal1" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div class="flex items-center justify-between mb-1">
@@ -204,8 +255,7 @@
 
         <label class="text-sm font-semibold text-gray-700 mb-2 block">Commission %</label>
         <div class="relative mb-6">
-            <input type="number" id="vBaseCommission" min="0" max="100" step="0.01"
-                placeholder="e.g. 15"
+            <input type="number" id="vBaseCommission" min="0.01" max="99" step="0.01" placeholder="e.g. 15"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-[#009A5C] text-sm">
             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">%</span>
         </div>
@@ -217,7 +267,7 @@
     </div>
 </div>
 
-{{-- Step 2: OOH + DOOH same or separate? --}}
+{{-- Step 2: OOH + DOOH --}}
 <div id="vModal2" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div class="flex items-center justify-between mb-1">
@@ -239,12 +289,11 @@
             </button>
         </div>
 
-        {{-- Separate OOH/DOOH inputs --}}
         <div id="vTypeInputs" class="hidden space-y-4 mb-6">
             <div>
                 <label class="text-sm font-semibold text-gray-700 mb-2 block">OOH Commission %</label>
                 <div class="relative">
-                    <input type="number" id="vOohCommission" min="0" max="100" step="0.01" placeholder="e.g. 12"
+                    <input type="number" id="vOohCommission" min="0.01" max="99" step="0.01" placeholder="e.g. 12"
                         class="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-[#009A5C] text-sm">
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">%</span>
                 </div>
@@ -252,7 +301,7 @@
             <div>
                 <label class="text-sm font-semibold text-gray-700 mb-2 block">DOOH Commission %</label>
                 <div class="relative">
-                    <input type="number" id="vDoohCommission" min="0" max="100" step="0.01" placeholder="e.g. 18"
+                    <input type="number" id="vDoohCommission" min="0.01" max="99" step="0.01" placeholder="e.g. 18"
                         class="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-[#009A5C] text-sm">
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">%</span>
                 </div>
@@ -266,7 +315,7 @@
     </div>
 </div>
 
-{{-- Step 3: All states? --}}
+{{-- Step 3: States --}}
 <div id="vModal3" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div class="flex items-center justify-between mb-1">
@@ -297,7 +346,7 @@
     </div>
 </div>
 
-{{-- Step 4: All cities? --}}
+{{-- Step 4: Cities --}}
 <div id="vModal4" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg">
         <div class="flex items-center justify-between mb-1">
@@ -331,7 +380,7 @@
     </div>
 </div>
 
-{{-- Success Modal (shared) --}}
+{{-- Success Modal --}}
 <div id="modalSuccess" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
     <div class="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-sm text-center">
         <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -339,8 +388,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
             </svg>
         </div>
-        <h3 class="text-lg font-bold text-gray-900 mb-2">Commission Saved!</h3>
-        <p id="successMessage" class="text-sm text-gray-500 mb-6">Commission settings have been applied successfully.</p>
+        <h3 class="text-lg font-bold text-gray-900 mb-2" id="successTitle">Commission Saved!</h3>
+        <p id="successMessage" class="text-sm text-gray-500 mb-2"></p>
+        <p id="successCommissionDetail" class="text-sm font-semibold text-[#009A5C] mb-6"></p>
         <button onclick="closeAllModals()" class="w-full py-2.5 bg-[#009A5C] text-white rounded-xl font-semibold text-sm">Done</button>
     </div>
 </div>
@@ -350,23 +400,75 @@
 @push('scripts')
 <script>
 // ═══════════════════════════════════════════════════════
-// SHARED STATE
+// CONFIG — injected from PHP
 // ═══════════════════════════════════════════════════════
-const vendorStates  = @json($states);
-const vendorId      = {{ $vendor->id }};
-const csrfToken     = '{{ csrf_token() }}';
-const citiesUrl     = '{{ route('admin.commission.cities') }}';
-const saveUrl       = '{{ route('admin.commission.save') }}';
-const commissionMap = @json($commissionMap ?? []);
+const vendorStates   = @json($states);
+const vendorId       = {{ $vendor->id }};
+const csrfToken      = '{{ csrf_token() }}';
+const citiesUrl      = '{{ route('admin.commission.cities') }}';
+const saveUrl        = '{{ route('admin.commission.save') }}';
+const commissionMap  = @json($commissionMap ?? []);
+const hasExisting    = {{ ($hasExistingCommission ?? false) ? 'true' : 'false' }};
+const MIN_COMMISSION = 0.01;
+const MAX_COMMISSION = 99;
 
-// Helper: look up an existing commission value from the map
-// key format: "type|state|city"  (empty string for null)
+// ═══════════════════════════════════════════════════════
+// CENTRALIZED COMMISSION DISPLAY
+// Updates a hoarding row's commission cell without reload
+// ═══════════════════════════════════════════════════════
+function updateCommissionDisplay(hoardingId, commission, isOverride) {
+    const cell = document.getElementById(`commission-cell-${hoardingId}`);
+    if (!cell) return;
+
+    // Treat 0 or null as "no commission set"
+    const hasValue = commission !== null && commission !== undefined && parseFloat(commission) > 0;
+
+    if (hasValue) {
+        const formatted  = parseFloat(commission).toFixed(2);
+        const label      = isOverride ? 'Hoarding override' : 'From vendor rules';
+        const labelColor = isOverride ? 'text-[#F97316]' : 'text-gray-400';
+
+        cell.innerHTML = `
+            <div class="flex flex-col gap-0.5">
+                <span class="font-bold text-[#009A5C] text-sm">${formatted}%</span>
+                <span class="text-xs ${labelColor} font-medium">${label}</span>
+            </div>`;
+    } else {
+        cell.innerHTML = `<span class="text-gray-300 font-bold text-sm">—</span>`;
+    }
+
+    // Update action button
+    const actionBtn = cell.closest('tr')?.querySelector('button[onclick^="openHoardingCommissionModal"]');
+    if (actionBtn) {
+        actionBtn.textContent = (hasValue && isOverride) ? 'Update' : 'Set Commission';
+        actionBtn.className   = `w-36 text-center px-4 py-1.5 ${(hasValue && isOverride) ? 'bg-[#F97316]' : 'bg-[#009A5C]'} text-white rounded-lg text-xs font-semibold hover:opacity-90 transition`;
+    }
+}
+
+// Bulk update all hoarding commission cells (used after vendor-level save)
+// function updateAllCommissionDisplays(resolvedMap) {
+//     Object.entries(resolvedMap).forEach(([hoardingId, commission]) => {
+//         // vendor-level save never sets override flag
+//         updateCommissionDisplay(parseInt(hoardingId), commission, false);
+//     });
+// }
+function updateAllCommissionDisplays(resolvedMap) {
+    Object.entries(resolvedMap).forEach(([hoardingId, meta]) => {
+        // meta is now { commission, is_override } — respect existing hoarding overrides
+        updateCommissionDisplay(parseInt(hoardingId), meta.commission, meta.is_override);
+    });
+}
+// ═══════════════════════════════════════════════════════
+// COMMISSION MAP HELPERS
+// ═══════════════════════════════════════════════════════
 function getExisting(type, state, city) {
     const key = `${type}|${state ?? ''}|${city ?? ''}`;
     return (commissionMap[key] !== undefined) ? commissionMap[key] : null;
 }
 
-// Vendor commission wizard state
+// ═══════════════════════════════════════════════════════
+// WIZARD STATE
+// ═══════════════════════════════════════════════════════
 const vState = {
     baseCommission: null,
     applyAllTypes:  null,
@@ -378,9 +480,9 @@ const vState = {
     cityData:       [],
 };
 
-// Current hoarding being edited (Flow A)
-let currentHoardingId   = null;
-let currentHoardingName = null;
+let currentHoardingId      = null;
+let currentHoardingName    = null;
+let currentHoardingHasValue = false;
 
 // ═══════════════════════════════════════════════════════
 // MODAL HELPERS
@@ -393,34 +495,73 @@ function switchModal(closeId, openId) { closeModal(closeId); openModal(openId); 
 function highlightChoice(yesId, noId, isYes) {
     const active   = ['border-[#009A5C]', 'bg-green-50', 'text-[#009A5C]'];
     const inactive = ['border-gray-200', 'text-gray-700'];
-    const yesEl = document.getElementById(yesId);
-    const noEl  = document.getElementById(noId);
-    yesEl.classList.remove(...active, ...inactive);
-    noEl.classList.remove(...active, ...inactive);
-    if (isYes) {
-        yesEl.classList.add(...active);
-        noEl.classList.add(...inactive);
-    } else {
-        noEl.classList.add(...active);
-        yesEl.classList.add(...inactive);
+    [yesId, noId].forEach(id => {
+        document.getElementById(id).classList.remove(...active, ...inactive);
+    });
+    document.getElementById(isYes ? yesId : noId).classList.add(...active);
+    document.getElementById(isYes ? noId : yesId).classList.add(...inactive);
+}
+
+// ═══════════════════════════════════════════════════════
+// SUCCESS MODAL HELPER
+// ═══════════════════════════════════════════════════════
+function showSuccess(title, message, detail = '') {
+    document.getElementById('successTitle').textContent            = title;
+    document.getElementById('successMessage').textContent          = message;
+    document.getElementById('successCommissionDetail').textContent = detail;
+    openModal('modalSuccess');
+}
+
+function isValidCommissionValue(value) {
+    return !Number.isNaN(value) && value >= MIN_COMMISSION && value <= MAX_COMMISSION;
+}
+
+function validateDynamicCommissionInputs(selector) {
+    const inputs = Array.from(document.querySelectorAll(selector));
+    for (const input of inputs) {
+        if (input.value === '') continue;
+        const value = parseFloat(input.value);
+        if (!isValidCommissionValue(value)) {
+            alert(`Commission must be between ${MIN_COMMISSION}% and ${MAX_COMMISSION}%.`);
+            input.focus();
+            return false;
+        }
     }
+    return true;
+}
+
+function getRuleCoverageForTypes(types) {
+    let hasStateRule = false;
+    let hasCityRule = false;
+
+    Object.keys(commissionMap || {}).forEach((key) => {
+        const [type = '', state = '', city = ''] = key.split('|');
+        if (!types.includes(type)) return;
+        if (state && !city) hasStateRule = true;
+        if (state && city) hasCityRule = true;
+    });
+
+    return { hasStateRule, hasCityRule };
 }
 
 // ═══════════════════════════════════════════════════════
 // FLOW A: SINGLE HOARDING
 // ═══════════════════════════════════════════════════════
 function openHoardingCommissionModal(id, name, existing) {
-    currentHoardingId   = id;
-    currentHoardingName = name;
-    document.getElementById('hoardingModalName').textContent = 'Hoarding: ' + name;
-    document.getElementById('hoardingCommissionInput').value = (existing !== null && existing !== undefined) ? existing : '';
+    currentHoardingId       = id;
+    currentHoardingName     = name;
+    currentHoardingHasValue = (existing !== null && existing !== undefined);
+
+    document.getElementById('hoardingModalTitle').textContent = currentHoardingHasValue ? 'Update Commission' : 'Set Commission';
+    document.getElementById('hoardingModalName').textContent  = `Hoarding: ${name}`;
+    document.getElementById('hoardingCommissionInput').value  = currentHoardingHasValue ? existing : '';
     openModal('hoardingModal');
 }
 
 async function saveHoardingCommission() {
     const val = parseFloat(document.getElementById('hoardingCommissionInput').value);
-    if (isNaN(val) || val < 0 || val > 100) {
-        alert('Please enter a valid commission between 0 and 100.');
+    if (!isValidCommissionValue(val)) {
+        alert(`Please enter a valid commission between ${MIN_COMMISSION} and ${MAX_COMMISSION}.`);
         return;
     }
 
@@ -430,7 +571,7 @@ async function saveHoardingCommission() {
 
     try {
         const url = `/admin/commission/hoarding/${currentHoardingId}/commission`;
-        const res = await fetch(url, {
+        const res  = await fetch(url, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
             body:    JSON.stringify({ commission: val }),
@@ -438,18 +579,26 @@ async function saveHoardingCommission() {
         const data = await res.json();
 
         if (data.success) {
-            const display = document.getElementById(`commission-display-${currentHoardingId}`);
-            if (display) {
-                display.textContent = data.commission + '%';
-                display.className   = 'font-bold text-[#009A5C]';
-            }
+            // Update the row display using centralized function
+            updateCommissionDisplay(currentHoardingId, data.commission, true);
+
             closeModal('hoardingModal');
-            document.getElementById('successMessage').textContent = `Commission of ${val}% set for "${currentHoardingName}".`;
-            openModal('modalSuccess');
+
+            const actionLabel = currentHoardingHasValue ? 'Updated' : 'Set';
+            const msg         = currentHoardingHasValue
+                ? `Commission for "${currentHoardingName}" has been updated.`
+                : `Commission for "${currentHoardingName}" has been set. A notification has been sent to the vendor.`;
+
+            showSuccess(
+                `Commission ${actionLabel}!`,
+                msg,
+                `Commission Rate: ${val}%`
+            );
         } else {
             alert(data.message || 'Failed to save.');
         }
     } catch (e) {
+        console.error('Commission save error:', e);
         alert('Network error. Please try again.');
     } finally {
         btn.disabled    = false;
@@ -461,37 +610,36 @@ async function saveHoardingCommission() {
 // FLOW B: VENDOR-LEVEL COMMISSION
 // ═══════════════════════════════════════════════════════
 function openVendorCommissionModal() {
-    // ── Detect what was previously saved ──
     const existingAll  = getExisting('all',  null, null);
     const existingOoh  = getExisting('ooh',  null, null);
     const existingDooh = getExisting('dooh', null, null);
 
-    // Was "same for both types" previously saved?
     const wasSameForBoth = existingAll !== null;
-    // Were separate OOH/DOOH previously saved?
     const wasSeparate    = !wasSameForBoth && (existingOoh !== null || existingDooh !== null);
 
-    // ── Reset wizard state, but pre-populate from existing ──
     Object.assign(vState, {
         baseCommission: wasSameForBoth ? existingAll : (existingOoh ?? existingDooh ?? null),
         applyAllTypes:  wasSameForBoth ? true : (wasSeparate ? false : null),
         oohCommission:  existingOoh  ?? null,
         doohCommission: existingDooh ?? null,
-        applyAllStates: null,
-        stateData:      [],
-        applyAllCities: null,
-        cityData:       [],
+        applyAllStates: null, stateData: [],
+        applyAllCities: null, cityData: [],
     });
 
-    // ── Prefill commission inputs ──
+    if (vState.applyAllTypes !== null) {
+        const types = vState.applyAllTypes ? ['all'] : ['ooh', 'dooh'];
+        const { hasStateRule, hasCityRule } = getRuleCoverageForTypes(types);
+        vState.applyAllStates = !(hasStateRule || hasCityRule);
+        vState.applyAllCities = !hasCityRule;
+    }
+
     document.getElementById('vBaseCommission').value = vState.baseCommission ?? '';
     document.getElementById('vOohCommission').value  = existingOoh  ?? '';
     document.getElementById('vDoohCommission').value = existingDooh ?? '';
-
-    // ── Show/hide separate OOH/DOOH inputs based on previous choice ──
     document.getElementById('vTypeInputs').classList.toggle('hidden', !wasSeparate);
+    document.getElementById('vStateInputsWrap').classList.add('hidden');
+    document.getElementById('vCityInputsWrap').classList.add('hidden');
 
-    // ── Highlight previously chosen type button ──
     ['vAllTypesYes','vAllTypesNo','vAllStatesYes','vAllStatesNo','vAllCitiesYes','vAllCitiesNo']
         .forEach(id => {
             const el = document.getElementById(id);
@@ -502,75 +650,73 @@ function openVendorCommissionModal() {
     if (wasSameForBoth) highlightChoice('vAllTypesYes', 'vAllTypesNo', true);
     if (wasSeparate)    highlightChoice('vAllTypesYes', 'vAllTypesNo', false);
 
-    // ── Hide state/city wrap sections (always start from step 1) ──
-    document.getElementById('vStateInputsWrap').classList.add('hidden');
-    document.getElementById('vCityInputsWrap').classList.add('hidden');
-
-    // Reset states modal button label
     const modal3Btn = document.getElementById('vModal3NextBtn');
     if (modal3Btn) modal3Btn.textContent = 'Next';
 
     openModal('vModal1');
 }
 
-// ── Step 1: Enter base commission ──
+// Step 1
 function vStep1Next() {
     const val = parseFloat(document.getElementById('vBaseCommission').value);
-    if (isNaN(val) || val < 0 || val > 100) {
-        alert('Please enter a valid commission between 0 and 100.');
+    if (!isValidCommissionValue(val)) {
+        alert(`Please enter a valid commission between ${MIN_COMMISSION} and ${MAX_COMMISSION}.`);
         return;
     }
     vState.baseCommission = val;
     switchModal('vModal1', 'vModal2');
 }
 
-// ── Step 2: OOH / DOOH ──
+// Step 2
 function vSetAllTypes(yes) {
     vState.applyAllTypes = yes;
     document.getElementById('vTypeInputs').classList.toggle('hidden', yes);
     highlightChoice('vAllTypesYes', 'vAllTypesNo', yes);
+
+    const types = yes ? ['all'] : ['ooh', 'dooh'];
+    const { hasStateRule, hasCityRule } = getRuleCoverageForTypes(types);
+    vState.applyAllStates = !(hasStateRule || hasCityRule);
+    vState.applyAllCities = !hasCityRule;
 }
 
 function vStep2Next() {
     if (vState.applyAllTypes === null) { alert('Please select an option.'); return; }
 
     if (vState.applyAllTypes) {
-        // YES — same commission for both OOH & DOOH → save immediately, close all modals
-        vState.stateData      = [];
-        vState.applyAllStates = true;
-        vState.applyAllCities = true;
+        // YES — save immediately, skip all further modals
+        vState.stateData = []; vState.applyAllStates = true; vState.applyAllCities = true;
         vSaveNow(true, []);
         return;
     }
 
-    // NO — separate OOH/DOOH rates → validate then go to states modal
+    // NO — validate separate OOH/DOOH then go to states
     const ooh  = parseFloat(document.getElementById('vOohCommission').value);
     const dooh = parseFloat(document.getElementById('vDoohCommission').value);
-    if (isNaN(ooh)  || ooh  < 0 || ooh  > 100) { alert('Please enter a valid OOH commission.');  return; }
-    if (isNaN(dooh) || dooh < 0 || dooh > 100) { alert('Please enter a valid DOOH commission.'); return; }
+    if (!isValidCommissionValue(ooh))  { alert(`Please enter valid OOH commission between ${MIN_COMMISSION} and ${MAX_COMMISSION}.`);  return; }
+    if (!isValidCommissionValue(dooh)) { alert(`Please enter valid DOOH commission between ${MIN_COMMISSION} and ${MAX_COMMISSION}.`); return; }
     vState.oohCommission  = ooh;
     vState.doohCommission = dooh;
 
     buildStateInputs();
+    if (vState.applyAllStates !== null) {
+        vSetAllStates(vState.applyAllStates);
+    }
     switchModal('vModal2', 'vModal3');
 }
 
-// ── Step 3: States ──
+// Step 3
 function vSetAllStates(yes) {
     vState.applyAllStates = yes;
     document.getElementById('vStateInputsWrap').classList.toggle('hidden', yes);
     highlightChoice('vAllStatesYes', 'vAllStatesNo', yes);
-
-    // Change the Next button to "Save Commission" when Yes is chosen
-    const btn = document.getElementById('vModal3NextBtn');
-    btn.textContent = yes ? 'Save Commission' : 'Next';
+    document.getElementById('vModal3NextBtn').textContent = yes ? 'Save Commission' : 'Next';
 }
 
 function buildStateInputs() {
     const wrap = document.getElementById('vStateInputsWrap');
     wrap.innerHTML = '';
     if (!vendorStates.length) {
-        wrap.innerHTML = '<p class="text-xs text-gray-400">Hoarding has not been added by this vendor</p>';
+        wrap.innerHTML = '<p class="text-xs text-gray-400">No states found for this vendor.</p>';
         return;
     }
     vendorStates.forEach(s => {
@@ -582,28 +728,28 @@ function buildStateInputs() {
             div.innerHTML = `
                 <p class="text-sm font-semibold text-gray-700 mb-2">${s}</p>
                 <div class="relative">
-                    <input type="number" placeholder="Commission %" min="0" max="100" step="0.01"
+                    <input type="number" placeholder="Commission %" min="0.01" max="99" step="0.01"
                         value="${existing !== null ? existing : ''}"
                         data-state="${s}" data-field="commission"
                         class="state-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
                     <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
                 </div>`;
         } else {
-            const existingOoh  = getExisting('ooh',  s, null);
-            const existingDooh = getExisting('dooh', s, null);
+            const eo = getExisting('ooh',  s, null);
+            const ed = getExisting('dooh', s, null);
             div.innerHTML = `
                 <p class="text-sm font-semibold text-gray-700 mb-2">${s}</p>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="relative">
-                        <input type="number" placeholder="OOH %" min="0" max="100" step="0.01"
-                            value="${existingOoh !== null ? existingOoh : ''}"
+                        <input type="number" placeholder="OOH %" min="0.01" max="99" step="0.01"
+                            value="${eo !== null ? eo : ''}"
                             data-state="${s}" data-field="ooh_commission"
                             class="state-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
                     </div>
                     <div class="relative">
-                        <input type="number" placeholder="DOOH %" min="0" max="100" step="0.01"
-                            value="${existingDooh !== null ? existingDooh : ''}"
+                        <input type="number" placeholder="DOOH %" min="0.01" max="99" step="0.01"
+                            value="${ed !== null ? ed : ''}"
                             data-state="${s}" data-field="dooh_commission"
                             class="state-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
@@ -617,18 +763,19 @@ function buildStateInputs() {
 async function vStep3Next() {
     if (vState.applyAllStates === null) { alert('Please select an option.'); return; }
 
+    if (!validateDynamicCommissionInputs('.state-inp')) {
+        return;
+    }
+
     if (vState.applyAllStates) {
-        // YES — all states: save immediately, skip city modal entirely
         vState.stateData = [];
         await vSaveNow(true, []);
         return;
     }
 
-    // NO — collect per-state values, then go to city modal
     const map = {};
     document.querySelectorAll('.state-inp').forEach(inp => {
-        const s = inp.dataset.state;
-        const f = inp.dataset.field;
+        const s = inp.dataset.state, f = inp.dataset.field;
         if (!map[s]) map[s] = { name: s };
         if (inp.value !== '') map[s][f] = parseFloat(inp.value);
     });
@@ -637,10 +784,13 @@ async function vStep3Next() {
     );
 
     await buildCityInputs();
+    if (vState.applyAllCities !== null) {
+        vSetAllCities(vState.applyAllCities);
+    }
     switchModal('vModal3', 'vModal4');
 }
 
-// ── Step 4: Cities ──
+// Step 4
 function vSetAllCities(yes) {
     vState.applyAllCities = yes;
     document.getElementById('vCityInputsWrap').classList.toggle('hidden', yes);
@@ -652,11 +802,7 @@ async function buildCityInputs() {
     const wrap = document.getElementById('vCityInputsWrap');
     wrap.innerHTML = '<p class="text-xs text-gray-400 py-2">Loading cities...</p>';
 
-    // When applyAllStates was No, load cities only for selected states
-    const statesToLoad = vState.applyAllStates
-        ? vendorStates
-        : vState.stateData.map(s => s.name);
-
+    const statesToLoad = vState.applyAllStates ? vendorStates : vState.stateData.map(s => s.name);
     if (!statesToLoad.length) {
         wrap.innerHTML = '<p class="text-xs text-gray-400 py-2">No states selected.</p>';
         return;
@@ -664,66 +810,67 @@ async function buildCityInputs() {
 
     wrap.innerHTML = '';
     for (const stateName of statesToLoad) {
-        const res    = await fetch(`${citiesUrl}?state=${encodeURIComponent(stateName)}&vendor_id=${vendorId}`);
-        const cities = await res.json();
-        if (!cities.length) continue;
+        try {
+            const res    = await fetch(`${citiesUrl}?state=${encodeURIComponent(stateName)}&vendor_id=${vendorId}`);
+            const cities = await res.json();
+            if (!cities.length) continue;
 
-        const section = document.createElement('div');
-        section.innerHTML = `<p class="text-xs font-bold text-gray-500 uppercase mb-2 mt-2">${stateName}</p>`;
+            const section = document.createElement('div');
+            section.innerHTML = `<p class="text-xs font-bold text-gray-500 uppercase mb-2 mt-2">${stateName}</p>`;
 
-        cities.forEach(city => {
-            const row = document.createElement('div');
-            row.className = 'bg-gray-50 rounded-xl p-3 mb-2';
+            cities.forEach(city => {
+                const row = document.createElement('div');
+                row.className = 'bg-gray-50 rounded-xl p-3 mb-2';
 
-            if (vState.applyAllTypes) {
-                const existing = getExisting('all', stateName, city);
-                row.innerHTML = `
-                    <p class="text-sm font-semibold text-gray-700 mb-2">${city}</p>
-                    <div class="relative">
-                        <input type="number" placeholder="Commission %" min="0" max="100" step="0.01"
-                            value="${existing !== null ? existing : ''}"
-                            data-state="${stateName}" data-city="${city}" data-field="commission"
-                            class="city-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
-                    </div>`;
-            } else {
-                const existingOoh  = getExisting('ooh',  stateName, city);
-                const existingDooh = getExisting('dooh', stateName, city);
-                row.innerHTML = `
-                    <p class="text-sm font-semibold text-gray-700 mb-2">${city}</p>
-                    <div class="grid grid-cols-2 gap-3">
+                if (vState.applyAllTypes) {
+                    const existing = getExisting('all', stateName, city);
+                    row.innerHTML = `
+                        <p class="text-sm font-semibold text-gray-700 mb-2">${city}</p>
                         <div class="relative">
-                            <input type="number" placeholder="OOH %" min="0" max="100" step="0.01"
-                                value="${existingOoh !== null ? existingOoh : ''}"
-                                data-state="${stateName}" data-city="${city}" data-field="ooh_commission"
+                            <input type="number" placeholder="Commission %" min="0.01" max="99" step="0.01"
+                                value="${existing !== null ? existing : ''}"
+                                data-state="${stateName}" data-city="${city}" data-field="commission"
                                 class="city-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
-                        </div>
-                        <div class="relative">
-                            <input type="number" placeholder="DOOH %" min="0" max="100" step="0.01"
-                                value="${existingDooh !== null ? existingDooh : ''}"
-                                data-state="${stateName}" data-city="${city}" data-field="dooh_commission"
-                                class="city-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
-                        </div>
-                    </div>`;
-            }
-            section.appendChild(row);
-        });
-        wrap.appendChild(section);
+                        </div>`;
+                } else {
+                    const eo = getExisting('ooh',  stateName, city);
+                    const ed = getExisting('dooh', stateName, city);
+                    row.innerHTML = `
+                        <p class="text-sm font-semibold text-gray-700 mb-2">${city}</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="relative">
+                                <input type="number" placeholder="OOH %" min="0.01" max="99" step="0.01"
+                                    value="${eo !== null ? eo : ''}"
+                                    data-state="${stateName}" data-city="${city}" data-field="ooh_commission"
+                                    class="city-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+                            </div>
+                            <div class="relative">
+                                <input type="number" placeholder="DOOH %" min="0.01" max="99" step="0.01"
+                                    value="${ed !== null ? ed : ''}"
+                                    data-state="${stateName}" data-city="${city}" data-field="dooh_commission"
+                                    class="city-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+                            </div>
+                        </div>`;
+                }
+                section.appendChild(row);
+            });
+            wrap.appendChild(section);
+        } catch (e) {
+            console.error(`Failed to load cities for ${stateName}:`, e);
+        }
     }
 }
 
-// ── Shared save function ──
-// applyAllCities: boolean
-// cityData: array of city objects (empty array if applyAllCities = true)
+// ─── Shared save ───────────────────────────────────────
 async function vSaveNow(applyAllCities, cityData) {
-    const btn = document.getElementById('vSaveBtn');
+    const btn       = document.getElementById('vSaveBtn');
     const modal3Btn = document.getElementById('vModal3NextBtn');
 
-    // Disable whichever save button is visible
-    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
-    if (modal3Btn && vState.applyAllStates) { modal3Btn.disabled = true; modal3Btn.textContent = 'Saving...'; }
+    if (btn)                                  { btn.disabled = true;       btn.textContent = 'Saving...'; }
+    if (modal3Btn && vState.applyAllStates)   { modal3Btn.disabled = true; modal3Btn.textContent = 'Saving...'; }
 
     try {
         const res = await fetch(saveUrl, {
@@ -744,23 +891,50 @@ async function vSaveNow(applyAllCities, cityData) {
         const data = await res.json();
 
         if (data.success) {
+            // Bulk-refresh all commission displays using centralized function
+            if (data.resolved_commissions) {
+                updateAllCommissionDisplays(data.resolved_commissions);
+            }
+
             closeAllModals();
-            document.getElementById('successMessage').textContent = 'Vendor commission settings have been applied successfully.';
-            openModal('modalSuccess');
+
+            // Build a human-readable commission detail string
+            let detail = '';
+            if (vState.applyAllTypes) {
+                detail = `Commission Rate: ${vState.baseCommission}% (OOH & DOOH)`;
+            } else {
+                const parts = [];
+                if (vState.oohCommission  !== null) parts.push(`OOH: ${vState.oohCommission}%`);
+                if (vState.doohCommission !== null) parts.push(`DOOH: ${vState.doohCommission}%`);
+                detail = parts.join('  |  ');
+            }
+
+            const isUpdate = hasExisting;
+            showSuccess(
+                isUpdate ? 'Commission Updated!' : 'Commission Set!',
+                isUpdate
+                    ? 'Vendor commission has been updated. A notification has been sent to the vendor.'
+                    : 'Vendor commission has been set. The vendor has been notified and asked to agree.',
+                // detail
+            );
         } else {
             alert(data.message || 'Something went wrong.');
         }
     } catch (e) {
+        console.error('Commission save error:', e);
         alert('Network error. Please try again.');
     } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'Save Commission'; }
+        if (btn)       { btn.disabled = false;       btn.textContent = 'Save Commission'; }
         if (modal3Btn) { modal3Btn.disabled = false; modal3Btn.textContent = vState.applyAllStates ? 'Save Commission' : 'Next'; }
     }
 }
 
-// ── Submit from city modal ──
 async function vSubmit() {
     if (vState.applyAllCities === null) { alert('Please select an option.'); return; }
+
+    if (!validateDynamicCommissionInputs('.city-inp')) {
+        return;
+    }
 
     let cityData = [];
     if (!vState.applyAllCities) {

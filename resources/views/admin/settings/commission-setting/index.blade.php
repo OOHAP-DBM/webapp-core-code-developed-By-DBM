@@ -1,6 +1,16 @@
 {{-- resources/views/admin/commission/index.blade.php --}}
 @extends('layouts.admin')
 
+@section('title', 'Commission Settings')
+@section('page_title', 'Commission Settings')
+
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'Commission Settings']
+]" />
+@endsection
+
 @section('content')
 <div class="p-6">
 
@@ -13,10 +23,10 @@
     </div>
 
     {{-- Search & Filter Bar --}}
-    <form method="GET" action="{{ route('admin.commission.index') }}" id="filterForm">
+    <form method="GET" action="{{ route('admin.commission.index') }}" id="filterForm" class="bg-white pt-5 pb-2 mb-3 rounded-md px-5">
         <div class="flex gap-3 mb-6">
             <div class="flex-1 relative">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute left-3 mt-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input type="text" name="search" value="{{ request('search') }}"
@@ -32,7 +42,7 @@
                         <option value="{{ $state }}" {{ request('state') == $state ? 'selected' : '' }}>{{ $state }}</option>
                     @endforeach
                 </select>
-                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </div>
@@ -45,17 +55,17 @@
                         <option value="{{ $city }}" {{ request('city') == $city ? 'selected' : '' }}>{{ $city }}</option>
                     @endforeach
                 </select>
-                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </div>
 
-            <button type="submit"
+            <!-- <button type="submit"
                 class="px-4 py-2.5 bg-[#E8F7F0] text-[#009A5C] rounded-xl border border-[#009A5C]/20 hover:bg-[#009A5C] hover:text-white transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
                 </svg>
-            </button>
+            </button> -->
         </div>
     </form>
 
@@ -64,27 +74,24 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-50 border-b border-gray-100">
                 <tr>
-                    <th class="px-6 py-3 text-left">
-                        <input type="checkbox" class="rounded border-gray-300" id="selectAllVendors">
-                    </th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">S.N</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
                         <div class="flex items-center gap-1">
                             Vendor Name
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <!-- <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
-                            </svg>
+                            </svg> -->
                         </div>
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
                         <div class="flex items-center gap-1">
                             City
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <!-- <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
-                            </svg>
+                            </svg> -->
                         </div>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">#OF HOARDINGS</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase"> NO. OF HOARDINGS</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">PHONE NUMBER</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ACTION</th>
                 </tr>
@@ -92,9 +99,6 @@
             <tbody class="divide-y divide-gray-50">
                 @forelse($vendors as $i => $vendor)
                 <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4">
-                        <input type="checkbox" class="vendor-checkbox rounded border-gray-300" value="{{ $vendor->id }}">
-                    </td>
                     <td class="px-6 py-4 text-gray-500">
                         {{ str_pad($vendors->firstItem() + $i, 2, '0', STR_PAD_LEFT) }}
                     </td>
@@ -105,7 +109,7 @@
                         </a>
                     </td>
                     <td class="px-6 py-4 text-gray-600">
-                        {{ $vendor->hoardings->pluck('city')->unique()->filter()->first() ?? '—' }}
+                        {{ $vendor->city ?? $vendor->vendorProfile->city ?? '—' }}
                     </td>
                     <td class="px-6 py-4 text-gray-700 font-medium">{{ $vendor->hoardings_count }}</td>
                     <td class="px-6 py-4 text-gray-600">{{ $vendor->phone ?? '—' }}</td>
@@ -115,11 +119,11 @@
                                 class="px-4 py-1.5 bg-[#009A5C] text-white rounded-lg text-xs font-semibold hover:bg-[#007a49] transition">
                                 View All
                             </a>
-                            <button class="text-gray-400 hover:text-gray-600">
+                            <!-- <button class="text-gray-400 hover:text-gray-600">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                                 </svg>
-                            </button>
+                            </button> -->
                         </div>
                     </td>
                 </tr>

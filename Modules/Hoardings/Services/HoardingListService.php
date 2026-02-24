@@ -276,7 +276,10 @@ class HoardingListService
                 if ($vendor) {
                     $statusText = $newStatus === \App\Models\Hoarding::STATUS_ACTIVE ? 'Your OOH hoarding is now active and published.' : 'Your OOH hoarding is pending approval.';
                     $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
-                    $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parent, $statusText));
+                    // $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parent, $statusText));
+                    if($autoApproval) { 
+                        $vendor->sendVendorEmails(new \Modules\Mail\HoardingPublishedMail($parent));
+                    }
                 }
             }
             return ['success' => true, 'hoarding' => $hoarding->fresh(['packages'])];

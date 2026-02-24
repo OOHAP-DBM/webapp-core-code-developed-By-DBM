@@ -19,6 +19,22 @@ class DOOHScreenMedia extends Model
     {
         return $this->belongsTo(DOOHScreen::class);
     }
+    // Add this to DOOHScreenMedia model
+    public function getMimeTypeAttribute(): string
+    {
+        $extension = strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION));
+
+        $imageExtensions = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
+        $videoExtensions = ['mp4', 'webm', 'mov'];
+
+        if (in_array($extension, $imageExtensions)) {
+            return 'image/' . ($extension === 'jpg' ? 'jpeg' : $extension);
+        }
+        if (in_array($extension, $videoExtensions)) {
+            return $extension === 'mov' ? 'video/mp4' : 'video/' . $extension;
+        }
+        return 'application/octet-stream';
+    }
 
     public function normalizedMimeType(): string
     {

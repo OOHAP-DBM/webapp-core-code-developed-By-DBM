@@ -1,4 +1,4 @@
-<div id="mapView" class="bg-white  min-h-screen">
+<div id="mapView" class="bg-white">
         <div class="max-w-[1460px] mx-auto px-6 py-6">
             <h2 class="text-lg text-black font-semibold mb-4">
                 {{ $results->total() }} Hoardings in {{ request('location') ?? 'India' }}
@@ -183,9 +183,9 @@
                                             </span>
                                         </div>
                                     @endif
-                                    <p class="text-xs text-gray-500 my-2">
+                                    <!-- <p class="text-xs text-gray-500 my-2">
                                         Taxes excluded
-                                    </p>
+                                    </p> -->
 
                                     {{-- GAZEFLOW --}}
                                     @if($item->expected_eyeball)

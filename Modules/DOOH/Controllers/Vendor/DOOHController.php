@@ -340,7 +340,6 @@ class DOOHController extends Controller
             $q->where('vendor_id', $vendor->id);
         })
         ->findOrFail($id);
-
         $hoarding = $screen->hoarding;
 
         // If hoarding is not DOOH type, redirect to OOH edit

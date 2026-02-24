@@ -2,6 +2,14 @@
 
 @section('title', 'Vendor Details')
 
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'Vendors Management', 'route' => route('admin.vendors.index')],
+    ['label' => $user->name]
+]" />
+@endsection
+
 @section('content')
 <div class="space-y-6">
 
@@ -23,9 +31,10 @@
             </div>
 
             @if($vendorProfile?->onboarding_status === 'pending_approval')
-                <form method="POST" action="{{ route('admin.vendors.approve', $vendorProfile->id) }}">
+                <form id="approveVendorForm" method="POST" action="{{ route('admin.vendors.approve', $vendorProfile->id) }}">
                     @csrf
-                    <button class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg text-sm">
+                    <input type="hidden" name="commission_percentage" value="{{ $commission ?? 0 }}">
+                    <button type="submit" id="approveVendorBtn" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg text-sm">
                         Approve
                     </button>
                 </form>
@@ -38,9 +47,9 @@
         @php
             $stats = [
                 ['Total Earnings', '₹0'],
-                ['Total Hoardings', $vendorProfile->total_hoardings ?? 0],
+                ['Total Hoardings', $totalHoardings ?? 0],
                 ['Ongoing Orders', 0],
-                ['Commission', ($vendorProfile->commission_percentage ?? 0) . '%'],
+                ['Commission', ($commission ?? 0) . '%'],
             ];
         @endphp
         @foreach($stats as [$label, $value])
@@ -67,11 +76,22 @@
                         <img
                             src="{{ route('view-avatar', $user->id) }}"
                             alt="Avatar"
-                            class="w-17 h-17 rounded-full object-cover border border-gray-300"
+                            class="avatar-img"
                         >
                     @else
                         <span class="text-gray-400 text-xs">No avatar</span>
                     @endif
+                </script>
+                <style>
+                .avatar-img {
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 2px solid #e5e7eb;
+                    display: block;
+                }
+                </style>
                 </div>
             </div>
             <div>
@@ -201,3 +221,85 @@
 
 </div>
 @endsection
+  @push('scripts')
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const approveForm = document.getElementById('approveVendorForm');
+            if (approveForm) {
+                approveForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('approveVendorBtn');
+                    btn.disabled = true;
+                    btn.innerText = 'Approving...';
+                    fetch(approveForm.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': approveForm.querySelector('input[name="_token"]').value,
+                            'Accept': 'application/json',
+                        },
+                        body: new FormData(approveForm)
+                    })
+                    .then(res => res.json().then(data => ({ok: res.ok, data})))
+                    .then(({ok, data}) => {
+                        if (ok && data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: data.message || 'Vendor approved successfully!',
+                                toast: true,
+                                position: 'top-end',
+                                timer: 1800,
+                                showConfirmButton: false,
+                                customClass: {
+                                    popup: 'swal2-toast swal2-toast-custom'
+                                }
+                            });
+                            setTimeout(() => window.location.reload(), 1200);
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: data.message || 'Approval failed',
+                                toast: true,
+                                position: 'top-end',
+                                timer: 2500,
+                                showConfirmButton: false,
+                                customClass: {
+                                    popup: 'swal2-toast swal2-toast-custom'
+                                }
+                            });
+                            btn.disabled = false;
+                            btn.innerText = 'Approve';
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Server error. Please try again.',
+                            toast: true,
+                            position: 'top-end',
+                            timer: 2500,
+                            showConfirmButton: false,
+                            customClass: {
+                                popup: 'swal2-toast swal2-toast-custom'
+                            }
+                        });
+                                // Add custom CSS for top-right toast if needed
+                                const swalStyle = document.createElement('style');
+                                swalStyle.textContent = `
+                                    .swal2-toast.swal2-toast-custom {
+                                        top: 1.5rem !important;
+                                        right: 1.5rem !important;
+                                        left: auto !important;
+                                        border-radius: 0.75rem !important;
+                                        min-width: 320px;
+                                        box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10);
+                                    }
+                                `;
+                                document.head.appendChild(swalStyle);
+                        btn.disabled = false;
+                        btn.innerText = 'Approve';
+                    });
+                });
+            }
+        });
+        </script>
+        @endpush

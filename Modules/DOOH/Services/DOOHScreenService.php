@@ -86,8 +86,12 @@ class DOOHScreenService
                 }
             }
 
+
+            if (!empty($mediaFiles)) {
+                $this->repo->storeMedia($screen->id, $mediaFiles);
+            }
+
             $screen->hoarding->current_step = 1;
-            
             $screen->save();
 
             return ['success' => true, 'screen' => $screen->fresh('media')];
@@ -339,7 +343,10 @@ class DOOHScreenService
                 if ($vendor) {
                     $statusText = $newStatus === 'active' ? 'Your DOOH screen is now active and published.' : 'Your DOOH screen is pending approval.';
                     $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parentHoarding));
-                    $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parentHoarding, $statusText));
+                    // $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parentHoarding, $statusText));
+                    if($autoApproval) { 
+                        $vendor->sendVendorEmails(new \Modules\Mail\HoardingPublishedMail($parentHoarding));
+                    }
                 }
             } catch (\Throwable $e) {
                 Log::error('DOOH status notification failed', [
@@ -514,19 +521,22 @@ class DOOHScreenService
      */
     public function updateStep1($screen, $data, $mediaFiles)
     {
+        // dd($data);
         $errors = [];
 
         // Media validation (only if new files provided)
         if (!empty($mediaFiles)) {
-            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-            $maxSize = 5 * 1024 * 1024; // 5MB
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp',
+                 'video/mp4', 'video/webm', 'video/quicktime',
+            ];
+            $maxSize = 10 * 1024 * 1024; // 10MB
 
             foreach ($mediaFiles as $index => $file) {
                 if (!in_array($file->getMimeType(), $allowedMimes)) {
                     $errors['media'][] = "File #{$index}: Invalid format.";
                 }
                 if ($file->getSize() > $maxSize) {
-                    $errors['media'][] = "File #{$index}: Exceeds 5MB.";
+                    $errors['media'][] = "File #{$index}: Exceeds 10MB.";
                 }
             }
         }

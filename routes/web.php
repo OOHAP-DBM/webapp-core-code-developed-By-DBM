@@ -49,6 +49,17 @@ Route::get('/brand/oohapp-logo', function () {
 })->name('brand.oohapp-logo');
 
 
+// Admin Login Routes (do NOT affect /login)
+Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest:admin')->group(function () {
+    Route::get('/login', [Modules\Auth\Http\Controllers\AdminLoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [Modules\Auth\Http\Controllers\AdminLoginController::class, 'login'])->name('login.submit');
+});
+
+// Admin Protected Routes
+// Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware(['auth:admin', 'admin'])->group(function () {
+//     Route::get('/dashboard', [Modules\Admin\Controllers\Web\AdminDashboardController::class, 'index'])->name('dashboard');
+//     // ...other admin routes...
+// });
 /*
 |--------------------------------------------------------------------------
 | Direct Enquiry Routes
@@ -141,6 +152,15 @@ Route::prefix('vendor/direct-enquiries')->name('vendor.direct-enquiries.')->midd
     Route::get('/', [\Modules\Enquiries\Controllers\Web\DirectEnquiryController::class, 'vendorDirectIndex'])->name('index');
     Route::get('/{enquiry}', [\Modules\Enquiries\Controllers\Web\DirectEnquiryController::class, 'vendorDirectShow'])->name('show');
 });
+
+Route::prefix('vendor/commission')->name('vendor.commission.')->middleware(['auth', 'role:vendor'])->group(function () {
+    Route::get('/my-commission', [\App\Http\Controllers\Vendor\VendorCommissionController::class, 'index'])
+     ->name('index');
+    Route::post('/commission/agree/{notification}', [\App\Http\Controllers\Vendor\VendorCommissionController::class, 'agree'])
+     ->name('agree');
+
+});
+
 
 // ADMIN POS WEB ROUTES
 Route::prefix('admin/pos')->middleware(['auth', 'role:admin'])->name('admin.pos.')->group(function () {
@@ -346,7 +366,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     // Home/Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('dashboard');
-    Route::get('/home', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('home');
+    // Route::get('/home', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('home');
     Route::post('/customer/profile/send-otp', [ProfileController::class, 'sendOtp'])->name('profile.send-otp');
     Route::post('/customer/profile/verify-otp', [ProfileController::class, 'verifyOtp'])->name('profile.verify-otp');
     
@@ -804,6 +824,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
             Route::post('/hoarding/{hoarding}/commission',   [\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'saveHoardingCommission'])->name('hoarding.commission');
         Route::delete('/{commission}',[\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'destroy'])->name('destroy');
         Route::get('/cities',[\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'getCities'])->name('cities');
+        Route::get('/vendor/{vendor}/rules', [\Modules\Admin\Controllers\Web\CommissionSettingController::class, 'vendorRules'])
+            ->name('vendor.rules');
     });
 
     // Invoice Management (PROMPT 64)

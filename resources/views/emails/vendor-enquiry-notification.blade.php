@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
     <meta charset="UTF-8">
@@ -16,44 +17,46 @@
 @include('emails.partials.header')
 
 <!-- TITLE -->
+
 <tr>
 <td align="center" style="padding:20px 40px 0 40px;">
-    <h2 style="margin:0; color:#ea580c; font-weight:600;">
+    <h2 style="margin:0; color:#16a34a; font-weight:600;">
         🎉 New Enquiry Received!
     </h2>
-    <p style="margin-top:8px; color:#666; font-size:14px;">
+          🎉 New Enquiry Received!
         Hi {{ $vendor->name }}, an advertiser is interested in your media.
     </p>
-</td>
+          Hi {{ $vendor->name }}, an advertiser is interested in your media.
 </tr>
 
 <!-- INTRO -->
+
 <tr>
 <td style="padding:15px 40px; font-size:14px; color:#444; line-height:22px;">
     <p>
         You have received a new advertising enquiry. Please review the campaign details
         and confirm your availability.
     </p>
-</td>
 </tr>
 
 <!-- CUSTOMER DETAILS -->
+
 <tr>
 <td style="padding:10px 40px;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;">
-<tr style="background:#fff7ed;">
+<tr style="background:#f0fdf4;">
     <th align="left" colspan="2" style="padding:10px; font-size:13px;">Customer Information</th>
 </tr>
 
 <tr>
-    <td style="padding:10px; font-size:13px; width:35%;"><strong>Name</strong></td>
+        <td style="padding:10px; font-size:13px;"><strong>Customer Name</strong></td>
     <td style="padding:10px; font-size:13px;">{{ $enquiry->customer->name ?? 'Not provided' }}</td>
 </tr>
 
 <tr>
     <td style="padding:10px; font-size:13px;"><strong>Email</strong></td>
     <td style="padding:10px; font-size:13px;">
-        <a href="mailto:{{ $enquiry->customer->email }}" style="color:#ea580c; text-decoration:none;">
+        <a href="mailto:{{ $enquiry->customer->email }}" style="color:#16a34a; text-decoration:none;">
             {{ $enquiry->customer->email ?? 'Not provided' }}
         </a>
     </td>
@@ -69,11 +72,12 @@
 </tr>
 
 <!-- ENQUIRY DETAILS -->
+
 <tr>
 <td style="padding:20px 40px 0 40px;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;">
 <tr style="background:#f3f4f6;">
-    <th align="left" style="padding:10px; font-size:13px;">Enquiry Details</th>
+     <td style="padding:12px; font-size:14px; color:#065f46;">
     <th align="left" style="padding:10px; font-size:13px;">Information</th>
 </tr>
 
@@ -102,6 +106,7 @@
 </tr>
 
 <!-- HOARDINGS -->
+
 <tr>
 <td style="padding:20px 40px 0 40px;">
     <p style="font-size:14px; color:#444;"><strong>Your Hoardings in this Enquiry</strong></p>
@@ -109,12 +114,13 @@
 </tr>
 
 @foreach($items as $item)
+
 <tr>
 <td style="padding:10px 40px;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;">
 
-<tr style="background:#fff7ed;">
-<td style="padding:12px; font-size:14px; color:#9a3412;">
+<tr style="background:#f0fdf4;">
+<td style="padding:12px; font-size:14px; color:#166534;">
     <strong>{{ $item->hoarding->title ?? 'Hoarding #' . $item->hoarding_id }}</strong>
 </td>
 </tr>
@@ -132,6 +138,7 @@
 </tr>
 
 @if($item->package_type === 'package')
+
 <tr>
 <td style="padding:10px; font-size:13px;">
     <strong>Package:</strong> {{ $item->package_label ?? 'Standard Package' }}
@@ -140,6 +147,7 @@
 @endif
 
 @if($item->expected_duration)
+
 <tr>
 <td style="padding:10px; font-size:13px;">
     <strong>Campain Duration:</strong> {{ $item->expected_duration }}
@@ -148,8 +156,9 @@
 @endif
 
 @if($item->hoarding_type === 'dooh' && isset($item->meta['dooh_specs']))
+
 <tr>
-<td style="padding:10px; font-size:13px; background:#fef3c7;">
+<td style="padding:10px; font-size:13px; background:#dcfce7;">
     <strong>DOOH Specs:</strong><br>
     Video: {{ $item->meta['dooh_specs']['video_duration'] ?? 15 }} sec |
     Slots/Days: {{ $item->meta['dooh_specs']['slots_per_day'] ?? 120 }} |
@@ -164,7 +173,9 @@
 @endforeach
 
 <!-- CUSTOMER MESSAGE -->
+
 @if($enquiry->customer_note)
+
 <tr>
 <td style="padding:20px 40px;">
     <div style="background:#eff6ff; border-left:4px solid #2563eb; padding:12px; font-size:13px;">
@@ -176,9 +187,10 @@
 @endif
 
 <!-- ACTION BOX -->
+
 <tr>
 <td style="padding:20px 40px;">
-    <div style="background:#fff7ed; border-left:4px solid #ea580c; padding:14px; font-size:14px;">
+    <div style="background:#f0fdf4; border-left:4px solid #16a34a; padding:14px; font-size:14px;">
         <strong>Action Required:</strong><br>
         Please confirm your availability. After confirmation, quotation will be generated.
     </div>

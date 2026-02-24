@@ -20,7 +20,11 @@ class NewHoardingPendingApprovalNotification extends Notification implements Sho
 
     public function via($notifiable)
     {
-        return ['database', 'mail'];
+        // Only send mail to admins, vendors get only database notification
+        if ($notifiable->hasRole('admin')) {
+            return ['database', 'mail'];
+        }
+        return ['database'];
     }
     public function toMail($notifiable)
     {
@@ -33,10 +37,6 @@ class NewHoardingPendingApprovalNotification extends Notification implements Sho
                 $subject = 'Hoarding Auto Approved';
                 $line1 = 'A hoarding was auto-approved and is now live.';
                 $actionUrl = route('admin.hoardings.show', $this->hoarding->id);
-            } else {
-                $subject = 'Hoarding Activated';
-                $line1 = 'Your hoarding is now active and published.';
-                $actionUrl = route('vendor.hoardings.show', $this->hoarding->id);
             }
         } else {
             if ($isAdmin) {
@@ -74,8 +74,8 @@ class NewHoardingPendingApprovalNotification extends Notification implements Sho
             } else {
                 $type = 'hoarding_activated';
                 $title = 'Hoarding Activated';
-                $message = 'Your hoarding is now active and published.';
-                $actionUrl = route('vendor.hoardings.show', $this->hoarding->id);
+                $message = 'Your hoarding is approved  and published.';
+                $actionUrl = route('vendor.myHoardings.show', $this->hoarding->id);
             }
         } else {
             // Pending approval: Vendor gets "Pending", Admin gets "New Pending Approval"
@@ -84,11 +84,11 @@ class NewHoardingPendingApprovalNotification extends Notification implements Sho
                 $title = 'New Hoarding Pending Approval';
                 $message = 'A new hoarding has been submitted and its approval is pending.';
                 $actionUrl = route('admin.hoardings.show', $this->hoarding->id);
-            } else {
+            } elseif(!$isAdmin) {
                 $type = 'pending_approval';
                 $title = 'Hoarding Pending Approval';
                 $message = 'Your hoarding has been submitted and is pending admin approval.';
-                $actionUrl = route('vendor.hoardings.show', $this->hoarding->id);
+                $actionUrl = route('vendor.myHoardings.show', $this->hoarding->id);
             }
         }
         return [

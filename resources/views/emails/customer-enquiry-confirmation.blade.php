@@ -252,17 +252,17 @@
 
 <!-- BUTTON -->
 <tr>
-<td align="center" style="padding:25px 40px;">
-    <a href="https://staging.oohapp.io/customer/enquiries"
+<td align="center" style="padding:10px 40px;">
+    <a href="{{ route('customer.enquiries.show', $enquiry->id) }}"
        style="background:#16a34a; color:#ffffff; padding:12px 26px; font-size:14px; text-decoration:none; border-radius:6px; display:inline-block;">
-        View My Enquiries
+        View My Enquiry
     </a>
 </td>
 </tr>
 
 <!-- SUPPORT -->
 <tr>
-<td style="padding:0 40px 20px 40px; font-size:14px; color:#444; line-height:22px;">
+<td style="padding:0 20px 20px 40px; font-size:14px; color:#444; line-height:22px;">
     <p>If you have any questions, contact us at <strong>support@oohapp.com</strong></p>
     <p>Thank you for choosing OOHAPP.<br><strong>Team OOHAPP</strong></p>
 </td>

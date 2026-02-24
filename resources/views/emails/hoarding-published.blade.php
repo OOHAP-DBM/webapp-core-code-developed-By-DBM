@@ -77,7 +77,7 @@
 
 <tr>
     <td style="padding:10px; font-size:13px;"><strong>Category</strong></td>
-    <td style="padding:10px; font-size:13px;">
+    <td style="padding:10px; font-size:13px; text-transform:uppercase;">
         {{ ucfirst($hoarding->hoarding_type ?? 'N/A') }}
     </td>
 </tr>
@@ -89,14 +89,14 @@
     </td>
 </tr>
 
-<tr>
+<!-- <tr>
     <td style="padding:10px; font-size:13px;"><strong>Commission Rate</strong></td>
     <td style="padding:10px; font-size:13px;">
         <span style="background:#fef9c3; padding:3px 6px; font-weight:bold;">
             {{ $hoarding_commission ?? 'Not Set' }}%
         </span>
     </td>
-</tr>
+</tr> -->
 
 </table>
 </td>
@@ -118,7 +118,7 @@
 <!-- BUTTON -->
 <tr>
 <td align="center" style="padding:25px 40px;">
-    <a href="https://staging.oohapp.io/vendor/hoardings"
+    <a href="{{ route('vendor.myHoardings.show', $hoarding['id']) }}"
        style="background:#16a34a; color:#ffffff; padding:12px 26px; font-size:14px; text-decoration:none; border-radius:6px; display:inline-block;">
         View My Hoardings
     </a>
