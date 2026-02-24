@@ -390,6 +390,14 @@
             </div>
             @endcan
 
+            <a href="{{ route('vendor.commission.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.commission.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3L3 7.5L12 12L21 7.5L12 3Z" fill="currentColor" opacity="0.3"/>
+                    <path d="M3 12L12 16.5L21 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3 16.5L12 21L21 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Commission
+            </a>
             <div class="space-y-1">
                         <a href="{{ route('vendor.email-settings') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.email-settings') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

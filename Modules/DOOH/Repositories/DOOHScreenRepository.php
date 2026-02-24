@@ -138,11 +138,15 @@ class DOOHScreenRepository
             $filename  = "{$uuid}.{$ext}";
 
             $path = $file->storeAs($directory, $filename, 'public');
+            $mimeType  = $file->getMimeType(); // most reliable
+            $mediaType = str_starts_with($mimeType, 'video') 
+                ? 'video' 
+                : (in_array($ext, ['mp4', 'mov', 'webm']) ? 'video' : 'image');
 
             $savedMedia[] = DOOHScreenMedia::create([
                 'dooh_screen_id' => $screenId,
                 'file_path'      => $path,
-                'media_type'     => in_array($ext, ['mp4', 'mov']) ? 'video' : 'image',
+                'media_type'     => $mediaType,
                 'is_primary'     => $index === 0,
                 'sort_order'     => $index,
             ]);
