@@ -1,6 +1,6 @@
 {{-- Breadcrumb Navigation --}}
 @if(isset($breadcrumbs) && count($breadcrumbs) > 0)
-<nav class="mb-6" aria-label="Breadcrumb">
+<nav class="mb-6 hidden md:block" aria-label="Breadcrumb">
     <ol class="flex items-center space-x-2 text-sm">
         @foreach($breadcrumbs as $key => $breadcrumb)
             @if($loop->last)

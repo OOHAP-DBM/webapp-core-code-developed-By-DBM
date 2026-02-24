@@ -370,6 +370,7 @@ function closeOtpModal() {
     document.getElementById('otpModal').classList.add('hidden');
     document.getElementById('otpInput').value = '';
     document.getElementById('otpMessage').textContent = '';
+    otpSentAutomatically = false; // Allow OTP to be sent again
     if (resendInterval) {
         clearInterval(resendInterval);
     }
@@ -385,19 +386,22 @@ function closeSuccessModal() {
 // =====================================================
 phoneInput.addEventListener('blur', function() {
     const phone = this.value.trim();
-    
     // Validate phone number format
     if (phone.length === 10 && /^[6-9][0-9]{9}$/.test(phone)) {
         // Check if already verified
         if (phoneVerified) {
             return;
         }
-        
         // Check if OTP already sent for this number
         if (!otpSentAutomatically) {
             sendOTPAutomatically(phone);
         }
     }
+});
+
+// Reset otpSentAutomatically if phone input changes
+phoneInput.addEventListener('input', function() {
+    otpSentAutomatically = false;
 });
 
 async function sendOTPAutomatically(phone) {
