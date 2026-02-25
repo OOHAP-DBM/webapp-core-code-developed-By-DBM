@@ -65,9 +65,9 @@
     <div class="flex flex-wrap gap-4">
         <a
             href="{{ route('vendor.pos.create') }}"
-            class="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-lg btn-color text-white text-sm font-medium transition"
         >
-            ➕ Create New POS Booking
+            + Create New POS Booking
         </a>
 
         <a
@@ -79,7 +79,7 @@
     </div>
 
     <!-- Recent Bookings -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <div class="bg-white  shadow-sm border border-gray-200">
         <div class="px-6 py-4 border-b border-gray-200">
             <h5 class="text-lg font-semibold">Recent POS Bookings</h5>
         </div>
@@ -99,7 +99,7 @@
                         <th class="px-4 py-3 text-left">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="recent-bookings-body" class="divide-y">
+                <tbody id="recent-bookings-body" class="">
                     <tr>
                         <td colspan="9" class="px-4 py-6 text-center text-gray-500">
                             Loading...
@@ -111,7 +111,7 @@
     </div>
 
     <!-- Pending Payments Widget -->
-    <div id="pending-payments-widget" class="bg-white rounded-xl shadow-sm border border-gray-200 hidden">
+    <div id="pending-payments-widget" class="bg-white  shadow-sm border border-gray-200 hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-yellow-50">
             <h5 class="text-lg font-semibold text-yellow-800">Pending Payment</h5>
             <p class="text-sm text-yellow-700">Bookings with pending payment that need attention</p>
@@ -128,7 +128,7 @@
                         <th class="px-4 py-3 text-left">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="pending-payments-body" class="divide-y">
+                <tbody id="pending-payments-body" class="">
                 </tbody>
             </table>
         </div>

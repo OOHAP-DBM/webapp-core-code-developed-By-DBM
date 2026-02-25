@@ -1,7 +1,7 @@
-<div class="max-w-6xl mx-auto">
+<div class="w-full mx-auto">
     <div class="flex flex-col lg:flex-row gap-8">
         <!-- Items Table -->
-        <div class="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="flex-1 bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
             <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                 <h2 class="text-xl font-black text-gray-800">BOOKING PREVIEW</h2>
                 <button onclick="backToSelection()" class="text-sm font-bold text-[#2D5A43]">← Edit Selection</button>
@@ -36,18 +36,18 @@
 
         <!-- POS Checkout -->
         <div class="lg:w-80">
-            <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 sticky top-6">
+            <div class="bg-white rounded-md shadow-xl border border-gray-200 p-6 sticky top-6">
                 <h3 class="font-bold text-gray-800 mb-6">POS Checkout</h3>
                 
                 <div class="space-y-4">
                     <div>
                         <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Discount (₹)</label>
-                        <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0" class="w-full p-2 border rounded-lg font-bold text-red-600">
+                        <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0" class="w-full p-2 border border-gray-200 rounded-lg font-bold text-red-600">
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Payment Mode</label>
-                        <select id="pos-payment-mode" class="w-full p-2 border rounded-lg text-sm font-semibold">
+                        <select id="pos-payment-mode" class="w-full p-2 border border-gray-200 rounded-lg text-sm font-semibold">
                             <option value="cash">Cash</option>
                             <option value="bank_transfer">Bank Transfer</option>
                             <option value="online">UPI / Online</option>
@@ -245,3 +245,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var sel = document.getElementById('pos-payment-mode');
+        if (sel && !sel.parentElement.classList.contains('select-wrapper')) {
+            var wrapper = document.createElement('div');
+            wrapper.className = 'select-wrapper';
+            sel.parentNode.insertBefore(wrapper, sel);
+            wrapper.appendChild(sel);
+            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'custom-select-arrow');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', 'currentColor');
+            svg.setAttribute('stroke-width', '2');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.innerHTML = '<path d="M19 9l-7 7-7-7"/>';
+            wrapper.appendChild(svg);
+        }
+    });
+</script>
+<style>
+    /* Hide default arrow */
+    #pos-payment-mode {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: none;
+        background-color: #fff;
+        position: relative;
+    }
+    .custom-select-arrow {
+        pointer-events: none;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px;
+        height: 18px;
+        color: #2D5A43;
+    }
+    .select-wrapper { position: relative; }
+</style>

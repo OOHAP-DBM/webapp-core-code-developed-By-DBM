@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="px-6 py-6">
-    <div class="bg-white rounded-xl shadow border">
+    <div class="bg-white rounded-xl shadow">
 
         {{-- Header --}}
         <div class="px-6 py-4 bg-primary text-white rounded-t-xl">
@@ -290,7 +290,7 @@ function renderActionButtons(booking) {
     if (['unpaid', 'partial'].includes(booking.payment_status) && booking.status !== 'cancelled') {
         html += `
             <button onclick="openMarkPaidModal()"
-                class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 text-sm font-medium">
+                class="px-4 py-2 rounded-lg btn-color text-sm font-medium">
                 💰 Mark as Paid
             </button>`;
     } else if (booking.payment_status === 'paid') {
