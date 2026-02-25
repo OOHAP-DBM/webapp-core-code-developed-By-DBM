@@ -46,6 +46,7 @@
     {{-- Search + Actions --}}
     <div class="bg-white rounded-xl p-4 flex items-center gap-4 mb-4">
         <form method="GET" action="{{ route('admin.customers.index') }}" class="flex-1 flex items-center gap-2" id="customer-search-form">
+            <input type="hidden" name="tab" value="{{ $tab }}">
             <input class="flex-1 border rounded-lg px-4 py-2 text-sm" name="search" value="{{ request('search') }}" placeholder="Search Customer by Name, Email, Phone..." id="customer-search-input" autocomplete="off">
         </form>
         <script>
@@ -86,6 +87,8 @@
         @include('admin.customer.tab.disabled')
     @elseif($tab === 'deleted')
         @include('admin.customer.tab.deleted')
+    @else
+        <div class="bg-white rounded-xl p-8 text-center text-gray-400 text-lg">No any customer found</div>
     @endif
 
 </div>
