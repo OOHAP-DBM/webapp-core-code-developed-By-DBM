@@ -100,15 +100,20 @@
 
         <div class="lg:col-span-5">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6">
-                <div class="p-5 border-b flex justify-between items-center">
-                    <h3 class="font-bold text-gray-800">Inventory Available</h3>
+                <div class="px-5 pt-5 gap-3 flex">
+                    <h3 class="font-bold text-gray-800">Available Hoardings</h3>
                     <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-bold" id="available-count">0</span>
                 </div>
                 <div class="p-5">
-                    <div class="relative mb-5 border border-gray-300 rounded-lg">
-                        <input type="text" id="hoarding-search" placeholder="Filter inventory..." 
-                            class="w-full pl-10 rounded-lg border-gray-200 text-sm focus:ring-green-500">
-                        <span class="absolute left-3 top- text-gray-400">🔍</span>
+                    <div class="flex items-center gap-2 mb-5">
+                        <div class="relative flex-1">
+                            <input type="text" id="hoarding-search" placeholder="Search for available hoardings..." 
+                                class="w-full pl-10  border border-gray-300 text-sm focus:ring-green-500" style="height:40px;">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="pointer-events:none;">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-3.5-3.5"/></svg>
+                            </span>
+                        </div>
+                        <button type="button" class="border border-gray-300 bg-white  px-5 py-2 text-gray-700 text-sm font-medium hover:bg-gray-100 transition" style="height:40px;">Filter</button>
                     </div>
                     <div id="hoardings-grid" class="grid grid-cols-2 gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 custom-scrollbar">
                         </div>

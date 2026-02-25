@@ -6,10 +6,10 @@
 <div class="px-6 py-6 space-y-6">
 
     {{-- Header --}}
-    <div class="bg-white rounded-xl shadow border p-6 flex justify-between items-center">
+    <div class="bg-white rounded-xl shadow  p-6 flex justify-between items-center">
         <div>
             <h2 class="text-xl font-semibold">
-                👤 {{ $customer['name'] ?? 'Walk-in Customer' }}
+                {{ $customer['name'] ?? 'Walk-in Customer' }}
             </h2>
             <p class="text-sm text-gray-500 mt-1">
                 Customer ID: {{ $customer['id'] }}
@@ -17,15 +17,15 @@
         </div>
 
         <a href="{{ route('vendor.pos.create', ['customer_id' => $customer['id']]) }}"
-           class="px-4 py-2 bg-primary text-black rounded-lg text-sm hover:opacity-90">
-            ➕ New Booking
+           class="px-4 py-2 btn-color text-black rounded-lg text-sm hover:opacity-90">
+            + New Booking
         </a>
     </div>
 
     {{-- Customer Info --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        <div class="bg-white rounded-xl shadow border p-5">
+        <div class="bg-white rounded-xl shadow  p-5">
             <h4 class="font-semibold mb-3">📞 Contact</h4>
             <div class="text-sm space-y-2">
                 <div><strong>Phone:</strong> {{ $customer['phone'] ?? '—' }}</div>
@@ -33,7 +33,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow border p-5">
+        <div class="bg-white rounded-xl shadow  p-5">
             <h4 class="font-semibold mb-3">📊 Stats</h4>
             <div class="text-sm space-y-2">
                 <div><strong>Total Bookings:</strong> {{ $customer['total_bookings'] }}</div>
@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow border p-5">
+        <div class="bg-white rounded-xl shadow  p-5">
             <h4 class="font-semibold mb-3">⏱ Activity</h4>
             <div class="text-sm space-y-2">
                 <div>
@@ -65,8 +65,8 @@
     </div>
 
     {{-- Booking History --}}
-    <div class="bg-white rounded-xl shadow border">
-        <div class="px-6 py-4 border-b">
+    <div class="bg-white rounded-xl shadow ">
+        <div class="px-6 py-4">
             <h3 class="font-semibold">🧾 Booking History</h3>
         </div>
 

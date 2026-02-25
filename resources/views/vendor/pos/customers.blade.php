@@ -3,21 +3,20 @@
 @section('title', 'POS Customers')
 
 @section('content')
-<div class="px-6 py-6">
-    <div class="bg-white rounded-xl shadow border">
-
-        {{-- Header --}}
-        <div class="px-6 py-4 bg-primary text-white rounded-t-xl">
+<div class="px-2">
+         <div class="pb-4 px-2 bg-primary  rounded-t-xl">
             <h4 class="text-lg font-semibold flex items-center gap-2">
-                👥 POS Customers
+               POS Customers
             </h4>
-            <div class="mt-2 text-sm font-medium">
-                Total Customers: <span class="font-bold">{{ $totalCustomers }}</span>
-            </div>
         </div>
-
+    <div class="bg-white rounded-xl shadow">
+            <div class="px-6 bg-primary  rounded-t-xl">
+                <div class="pt-5 text-sm font-medium">
+                    Total Customers: <span class="font-bold">{{ $totalCustomers }}</span>
+                </div>
+            </div>
         {{-- Body --}}
-        <div class="p-6 overflow-x-auto">
+        <div class="p-6 m-5 overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
                     <tr class="text-left text-gray-600 uppercase text-xs tracking-wider">
@@ -88,12 +87,12 @@
                             <td class="px-4 py-3 text-right">
                                 <div class="inline-flex gap-2">
                                     <a href="{{ route('vendor.pos.customers.show', $customer['id']) }}"
-                                       class="px-3 py-1 rounded-lg border text-xs hover:bg-gray-100">
+                                       class="px-3 py-1 rounded-lg border border-gray-200 text-xs hover:bg-gray-100">
                                         View
                                     </a>
 
                                   <a href="{{ route('vendor.pos.create', ['customer_id' => $customer['id']]) }}"
-                                       class="px-3 py-1 rounded-lg bg-primary text-white text-xs hover:opacity-90">
+                                       class="px-3 py-1 rounded-lg bg-primary  text-xs hover:opacity-90">
                                         New Booking
                                     </a>
                                 </div>
