@@ -59,7 +59,6 @@ class HomeController extends Controller
         /* ================= ENQUIRIES (DASHBOARD) ================= */
 
         $enquiries = null;
-
         if (auth()->check() && auth()->user()->hasRole('customer')) {
             $query = Enquiry::where('customer_id', auth()->id())
                 ->with(['items.hoarding']);
