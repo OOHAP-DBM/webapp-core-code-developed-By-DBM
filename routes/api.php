@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RazorpayWebhookController;
 use App\Http\Controllers\Api\Customer\ShortlistController;
+use App\Http\Controllers\Api\Vendor\DashboardController;  
+use App\Http\Controllers\Api\Customer\CustomerHomeController;
 /**
  * OOHAPP API v1 Routes
  * 
@@ -45,6 +47,12 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         ]);
     });
 
+    Route::middleware(['auth:sanctum', 'role:customer'])->prefix('customer')->group(function () {
+        Route::get('/home', [CustomerHomeController::class, 'index']);
+    });
+    Route::middleware(['auth:sanctum', 'role:vendor'])->prefix('vendor')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+    });
     // Load module-specific API routes
     Route::prefix('auth')->group(base_path('routes/api_v1/auth.php'));
     Route::prefix('profile')->group(base_path('routes/api_v1/profile.php'));
