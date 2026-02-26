@@ -67,7 +67,7 @@
         @elseif($tab === 'disabled')
             <button class="bg-[#008ae0] text-white px-6 py-2 rounded-lg text-sm">Enable</button>
         @elseif($tab === 'deleted')
-            <button class="bg-[#16A34A] text-white px-6 py-2 rounded-lg text-sm">Export</button>
+            <button type="button" onclick="showExportFormatPrompt()" class="bg-[#16A34A] text-white px-6 py-2 rounded-lg text-sm">Export</button>
         @endif
         <a href="{{route('admin.customers.create')}}" class="bg-black text-white px-4 py-2 rounded-lg text-sm">
             + Add Customer
@@ -93,8 +93,6 @@
 
 </div>
 @endsection
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
 function deleteCustomer(id)
 {
@@ -147,4 +145,39 @@ function deleteCustomer(id)
         }
     });
 }
+</script>
+ <script>
+    function showExportFormatPrompt() {
+        Swal.fire({
+            title: 'Export Deleted Customers',
+            text: 'Select the format you want to export:',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Export',
+            confirmButtonColor: '#16A34A',
+            cancelButtonText: 'Cancel',
+            input: 'radio',
+            inputOptions: {
+                'csv': 'CSV',
+                'excel': 'Excel',
+                'pdf': 'PDF'
+            },
+            customClass: {
+                input: 'cursor-pointer'
+            },
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Please select a format!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                let format = result.value;
+                let url = new URL(window.location.href);
+                url.searchParams.set('export', '1');
+                url.searchParams.set('format', format);
+                window.location.href = url.toString();
+            }
+        });
+    }
 </script>
