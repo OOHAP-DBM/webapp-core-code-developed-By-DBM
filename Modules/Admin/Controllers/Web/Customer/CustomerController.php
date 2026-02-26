@@ -131,7 +131,9 @@ class CustomerController extends Controller
 
         // --- Export logic for deleted tab ---
         if ($tab === 'deleted' && $request->has('export') && $request->has('format')) {
-            $columns = ['ID', 'Name', 'Email', 'Phone', 'Country', 'Deleted At'];
+            $columns = [
+                'ID', 'Name', 'Email', 'Phone', 'Country', 'Address', 'State', 'City', 'Pincode', 'Created At', 'Deleted At'
+            ];
             $rows = $customers->map(function ($c) {
                 return [
                     $c->id,
@@ -139,6 +141,11 @@ class CustomerController extends Controller
                     $c->email,
                     $c->phone,
                     $c->country ?? '',
+                    $c->address ?? '',
+                    $c->state ?? '',
+                    $c->city ?? '',
+                    $c->pincode ?? '',
+                    $c->created_at ? $c->created_at->format('Y-m-d H:i:s') : '',
                     method_exists($c, 'trashed') && $c->trashed() && $c->deleted_at ? $c->deleted_at->format('Y-m-d H:i:s') : '',
                 ];
             });

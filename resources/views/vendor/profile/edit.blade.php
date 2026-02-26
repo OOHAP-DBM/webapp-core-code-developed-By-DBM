@@ -19,7 +19,7 @@
             </ul>
         </div>
     @endif
-
+<!-- 
     <div class="bg-[#e8fff2] rounded-xl shadow p-6">
         <h2 class="text-black text-lg font-semibold">Commission Offered</h2>
         <i class="text-gray-700">The offer is set by OOHAPP</i>
@@ -29,7 +29,7 @@
                 {{ $vendor->commission_percentage }}
             </span>
         </h3>
-    </div>
+    </div> -->
 
     {{-- PERSONAL INFO --}}
     <div class="bg-white rounded-xl shadow p-6">

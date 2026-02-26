@@ -3,8 +3,8 @@
 @section('title', 'My Hoardings')
 
 @section('content')
-<div class="bg-[#F8F9FA] min-h-screen pb-12">
-    <div class="sticky top-0 z-1 bg-white border-b border-gray-100 shadow-sm">
+<div class="bg-[#F8F9FA] min-h-screen">
+    <div class=" top-0 z-1 bg-white border-b border-gray-100 shadow-sm">
         <div class="max-w-[1600px] mx-auto px-6">
             <div class="flex gap-8">
                 <a href="{{ route('vendor.hoardings.myHoardings', ['tab' => 'all']) }}" 
@@ -57,7 +57,7 @@
         </div>
     </div>
 
-    <div class="max-w-[1600px] mx-auto p-6 space-y-5">
+    <div class="max-w-[1600px] mx-auto py-6 space-y-5">
         {{-- <div class="flex flex-wrap gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
             @foreach(range('A', 'Z') as $char)
                 <a href="#" class="hover:text-blue-500 {{ $char == 'H' ? 'text-blue-500 underline' : '' }}">{{ $char }}</a>
