@@ -52,12 +52,12 @@
         </span>
     </div>
     @if($hoarding->hoarding_type === 'dooh' && $hoarding->doohScreen)
-    <div class="grid grid-cols-3 gap-4">
+    <!-- <div class="grid grid-cols-3 gap-4">
         <span class="text-gray-500">Resolution</span>
         <span class="col-span-2 font-medium text-gray-900">
             {{ $hoarding->doohScreen->resolution_width ?? '-' }} × {{ $hoarding->doohScreen->resolution_height ?? '-' }} {{ $hoarding->doohScreen->resolution_unit ?? 'px' }}
         </span>
-    </div>
+    </div> -->
     <div class="grid grid-cols-3 gap-4">
         <span class="text-gray-500">Slot Duration</span>
         <span class="col-span-2 font-medium text-gray-900">{{ $hoarding->doohScreen->slot_duration_seconds ?? '-' }} sec</span>
