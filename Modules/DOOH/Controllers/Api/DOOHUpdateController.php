@@ -28,16 +28,16 @@ class DOOHUpdateController extends Controller
     public function show(int $id): JsonResponse
     {
         $vendor = Auth::user();
-
         $screen = DOOHScreen::with([
             'hoarding',
-            'hoarding.brandLogos',
+            'brandLogos',
             'media',
             'slots',
             'packages',
         ])
         ->whereHas('hoarding', fn($q) => $q->where('vendor_id', $vendor->id))
-        ->find($id);
+        ->where('hoarding_id', $id)  // filter by hoarding_id instead of primary key
+        ->first();
 
         if (!$screen) {
             return $this->errorResponse('DOOH screen not found.', 404);
