@@ -118,24 +118,67 @@ class ProcessInventoryImportJob implements ShouldQueue
                 );
             }
 
-            $apiLogPayload = $apiResponse;
-            unset($apiLogPayload['images_zip_base64']);
 
             \Log::info('Inventory import API data received', [
                 'batch_id' => $this->batch->id,
-                'api_response_without_base64_zip' => $apiLogPayload,
+                'api_response' => $apiResponse,
                 'received_data' => $apiResponse['data'] ?? [],
             ]);
 
-            // Store and extract image archive from Python response, if provided
-            // This should not fail the whole import when ZIP handling is unavailable.
-            try {
-                $this->ingestImageArchive($apiResponse);
-            } catch (Exception $e) {
-                \Log::warning('Image archive ingestion skipped', [
-                    'batch_id' => $this->batch->id,
-                    'reason' => $e->getMessage(),
-                ]);
+            // New: Extract image archive if images_zip_filename is present
+            if (!empty($apiResponse['images_zip_filename'] ?? null)) {
+                $filename = $apiResponse['images_zip_filename'];
+                $disk = \Storage::disk('local');
+                $batchRoot = "imports/{$this->batch->id}";
+                $imagesDir = "{$batchRoot}/images";
+                $zipPath = "{$batchRoot}/images_bundle.zip";
+
+                $disk->makeDirectory($imagesDir);
+
+                // Move/copy the ZIP from the images/ directory to the batch folder
+                $zipSourcePath = 'images/' . $filename;
+                if ($disk->exists($zipSourcePath)) {
+                    $disk->copy($zipSourcePath, $zipPath);
+                } else {
+                    \Log::warning('Expected images ZIP not found in storage', [
+                        'batch_id' => $this->batch->id,
+                        'zip_source_path' => $zipSourcePath,
+                    ]);
+                }
+
+                $zipAbsolutePath = $disk->path($zipPath);
+                $imagesAbsolutePath = $disk->path($imagesDir);
+
+                if (!is_dir($imagesAbsolutePath)) {
+                    mkdir($imagesAbsolutePath, 0755, true);
+                }
+
+                if (class_exists(\ZipArchive::class) && file_exists($zipAbsolutePath)) {
+                    $zip = new \ZipArchive();
+                    $openResult = $zip->open($zipAbsolutePath);
+                    if ($openResult === true) {
+                        $zip->extractTo($imagesAbsolutePath);
+                        $zip->close();
+                        $allExtractedFiles = $disk->allFiles($imagesDir);
+                        \Log::info('Extracted image archive for import batch', [
+                            'batch_id' => $this->batch->id,
+                            'images_dir' => $imagesDir,
+                            'zip_path' => $zipPath,
+                            'extracted_files_count' => count($allExtractedFiles),
+                            'extracted_files' => $allExtractedFiles,
+                        ]);
+                    } else {
+                        \Log::warning('Unable to open images ZIP archive', [
+                            'batch_id' => $this->batch->id,
+                            'zip_path' => $zipPath,
+                        ]);
+                    }
+                } else {
+                    \Log::warning('ZipArchive extension not available or ZIP file missing', [
+                        'batch_id' => $this->batch->id,
+                        'zip_path' => $zipPath,
+                    ]);
+                }
             }
 
             // Process rows with bulk insert
@@ -624,88 +667,7 @@ class ProcessInventoryImportJob implements ShouldQueue
      */
     protected function ingestImageArchive(array $apiResponse): void
     {
-        $zipBase64 = $apiResponse['images_zip_base64'] ?? null;
-        $zipUrl = $apiResponse['images_zip_url'] ?? null;
-
-        if (empty($zipBase64) && empty($zipUrl)) {
-            return;
-        }
-
-        $disk = Storage::disk('local');
-        $batchRoot = "imports/{$this->batch->id}";
-        $imagesDir = "{$batchRoot}/images";
-        $zipPath = "{$batchRoot}/images_bundle.zip";
-
-        $disk->makeDirectory($imagesDir);
-
-        $zipBinary = null;
-
-        if (!empty($zipBase64)) {
-            $payload = (string) $zipBase64;
-
-            if (str_starts_with($payload, 'data:')) {
-                $parts = explode(',', $payload, 2);
-                $payload = $parts[1] ?? '';
-            }
-
-            $decoded = base64_decode($payload, true);
-            if ($decoded === false) {
-                throw new Exception('Invalid images ZIP base64 payload from Python API');
-            }
-
-            $zipBinary = $decoded;
-        } elseif (!empty($zipUrl)) {
-            $response = Http::timeout((int) config('import.python_timeout', 300))
-                ->get((string) $zipUrl);
-
-            if ($response->failed()) {
-                throw new Exception('Failed to download images ZIP from Python API URL');
-            }
-
-            $zipBinary = $response->body();
-        }
-
-        if ($zipBinary === null || $zipBinary === '') {
-            throw new Exception('Empty images ZIP payload received from Python API');
-        }
-
-        $disk->put($zipPath, $zipBinary);
-
-        $zipAbsolutePath = $disk->path($zipPath);
-        $imagesAbsolutePath = $disk->path($imagesDir);
-
-        if (!is_dir($imagesAbsolutePath)) {
-            mkdir($imagesAbsolutePath, 0755, true);
-        }
-
-        if (!class_exists(ZipArchive::class)) {
-            \Log::warning('ZipArchive extension is not available; storing ZIP without extraction', [
-                'batch_id' => $this->batch->id,
-                'zip_path' => $zipPath,
-            ]);
-
-            return;
-        }
-
-        $zip = new ZipArchive();
-        $openResult = $zip->open($zipAbsolutePath);
-
-        if ($openResult !== true) {
-            throw new Exception('Unable to open images ZIP archive');
-        }
-
-        $zip->extractTo($imagesAbsolutePath);
-        $zip->close();
-
-        $allExtractedFiles = $disk->allFiles($imagesDir);
-
-        \Log::info('Extracted image archive for import batch', [
-            'batch_id' => $this->batch->id,
-            'images_dir' => $imagesDir,
-            'zip_path' => $zipPath,
-            'extracted_files_count' => count($allExtractedFiles),
-            'extracted_files' => $allExtractedFiles,
-        ]);
+        // Deprecated: No longer used. Image ZIP is now handled in handle() if images_zip_filename is present.
     }
 
     /**

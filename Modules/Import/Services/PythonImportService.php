@@ -62,9 +62,6 @@ class PythonImportService
             // Process and return structured response
             $processedResponse = $this->processResponse($response);
 
-            $logPayload = $processedResponse;
-            unset($logPayload['images_zip_base64']);
-
             \Log::info('Python import response received', [
                 'vendor_id' => $vendorId,
                 'media_type' => $mediaType,
@@ -73,11 +70,30 @@ class PythonImportService
                 'total_rows' => $processedResponse['total_rows'] ?? null,
                 'valid_rows' => $processedResponse['valid_rows'] ?? null,
                 'invalid_rows' => $processedResponse['invalid_rows'] ?? null,
-                'images_zip_url' => $processedResponse['images_zip_url'] ?? null,
-                'has_images_zip_base64' => !empty($processedResponse['images_zip_base64']),
+                'images_zip_filename' => $processedResponse['images_zip_filename'] ?? null,
                 'received_data' => $processedResponse['data'] ?? [],
-                'full_response_without_base64_zip' => $logPayload,
+                'full_response' => $processedResponse,
             ]);
+
+            // New: Download ZIP if images_zip_filename is present
+            if (!empty($processedResponse['images_zip_filename'] ?? null)) {
+                $filename = $processedResponse['images_zip_filename'];
+                $token = $this->getAuthToken();
+                $baseUrl = $this->getBaseUrl();
+                $zipResponse = \Illuminate\Support\Facades\Http::withToken($token)
+                    ->timeout(self::REQUEST_TIMEOUT)
+                    ->get(rtrim($baseUrl, '/') . "/download-images/{$vendorId}");
+                if ($zipResponse->successful()) {
+                    \Illuminate\Support\Facades\Storage::put('images/' . $filename, $zipResponse->body());
+                } else {
+                    \Log::error('Failed to download images ZIP from Python API', [
+                        'vendor_id' => $vendorId,
+                        'filename' => $filename,
+                        'status' => $zipResponse->status(),
+                        'body' => $zipResponse->body(),
+                    ]);
+                }
+            }
 
             return $processedResponse;
         } catch (ImportApiException $e) {
@@ -218,16 +234,6 @@ class PythonImportService
                 $rows = $data['data'];
             }
 
-            $imagesZipBase64 = $data['images_zip_base64']
-                ?? ($data['images']['zip_base64'] ?? null)
-                ?? ($data['data']['images_zip_base64'] ?? null)
-                ?? ($data['data']['images']['zip_base64'] ?? null);
-
-            $imagesZipUrl = $data['images_zip_url']
-                ?? ($data['images']['zip_url'] ?? null)
-                ?? ($data['data']['images_zip_url'] ?? null)
-                ?? ($data['data']['images']['zip_url'] ?? null);
-
             $normalizedRows = array_map(function ($row) {
                 $row = is_array($row) ? $row : [];
                 $errors = $row['errors'] ?? [];
@@ -262,8 +268,7 @@ class PythonImportService
                 'valid_rows' => (int) ($data['valid_rows'] ?? count(array_filter($normalizedRows, fn ($row) => ($row['status'] ?? '') === 'valid'))),
                 'invalid_rows' => (int) ($data['invalid_rows'] ?? count(array_filter($normalizedRows, fn ($row) => ($row['status'] ?? '') !== 'valid'))),
                 'errors' => $data['errors'] ?? [],
-                'images_zip_base64' => $imagesZipBase64,
-                'images_zip_url' => $imagesZipUrl,
+                'images_zip_filename' => $data['images_zip_filename'] ?? null,
             ];
         } catch (\Illuminate\Http\Client\DecodeException $e) {
             throw ImportApiException::invalidResponse(
