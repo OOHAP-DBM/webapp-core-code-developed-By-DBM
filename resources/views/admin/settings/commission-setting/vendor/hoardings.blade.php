@@ -257,7 +257,7 @@
         <div class="relative mb-6">
             <input type="number" id="vBaseCommission" min="0.01" max="99" step="0.01" placeholder="e.g. 15"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-[#009A5C] text-sm">
-            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">%</span>
+            <span class="absolute right-4 mt-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">%</span>
         </div>
 
         <div class="flex gap-3">
@@ -295,7 +295,7 @@
                 <div class="relative">
                     <input type="number" id="vOohCommission" min="0.01" max="99" step="0.01" placeholder="e.g. 12"
                         class="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-[#009A5C] text-sm">
-                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">%</span>
+                    <span class="absolute right-4 mt-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">%</span>
                 </div>
             </div>
             <div>
@@ -303,7 +303,7 @@
                 <div class="relative">
                     <input type="number" id="vDoohCommission" min="0.01" max="99" step="0.01" placeholder="e.g. 18"
                         class="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-[#009A5C] text-sm">
-                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">%</span>
+                    <span class="absolute right-4 mt-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">%</span>
                 </div>
             </div>
         </div>
@@ -732,7 +732,7 @@ function buildStateInputs() {
                         value="${existing !== null ? existing : ''}"
                         data-state="${s}" data-field="commission"
                         class="state-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+                    <span class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
                 </div>`;
         } else {
             const eo = getExisting('ooh',  s, null);
@@ -745,14 +745,14 @@ function buildStateInputs() {
                             value="${eo !== null ? eo : ''}"
                             data-state="${s}" data-field="ooh_commission"
                             class="state-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+                        <span class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
                     </div>
                     <div class="relative">
                         <input type="number" placeholder="DOOH %" min="0.01" max="99" step="0.01"
                             value="${ed !== null ? ed : ''}"
                             data-state="${s}" data-field="dooh_commission"
                             class="state-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+                        <span class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
                     </div>
                 </div>`;
         }
@@ -844,14 +844,14 @@ async function buildCityInputs() {
                                     value="${eo !== null ? eo : ''}"
                                     data-state="${stateName}" data-city="${city}" data-field="ooh_commission"
                                     class="city-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+                                <span class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
                             </div>
                             <div class="relative">
                                 <input type="number" placeholder="DOOH %" min="0.01" max="99" step="0.01"
                                     value="${ed !== null ? ed : ''}"
                                     data-state="${stateName}" data-city="${city}" data-field="dooh_commission"
                                     class="city-inp w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#009A5C] pr-8">
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+                                <span class="absolute right-3 mt-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
                             </div>
                         </div>`;
                 }

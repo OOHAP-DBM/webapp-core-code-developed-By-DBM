@@ -14,8 +14,8 @@
                     <!-- <th class="px-4 py-3">CITY</th> -->
                     <th class="px-4 py-3 text-left">EMAIL</th>
                     <th class="px-4 py-3">PHONE NUMBER</th>
-                    <th class="px-4 py-3">#OF HOARDINGS</th>
-                    <th class="px-4 py-3">#OF BOOKINGS</th>
+                    <th class="px-4 py-3"> NO. OF HOARDINGS</th>
+                    <th class="px-4 py-3"> NO OF BOOKINGS</th>
                 </tr>
             </thead>
 

@@ -30,6 +30,10 @@ class ShortlistController extends Controller
         $wishlistCount = auth()->user()->wishlist()->count();
         $wishlist = auth()->user()
             ->wishlist()
+            ->whereHas('hoarding', function ($q) {
+                $q->where('status', \App\Models\Hoarding::STATUS_ACTIVE)
+                  ->whereNull('deleted_at');
+            })
             ->with('hoarding')
             ->latest()
             ->paginate(12);
@@ -45,6 +49,14 @@ class ShortlistController extends Controller
      */
     public function store(int $hoardingId)
     {
+        $hoarding = \App\Models\Hoarding::where('id', $hoardingId)->whereNull('deleted_at')->first();
+        if (!$hoarding) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hoarding does not exist or has been deleted'
+            ], 404);
+        }
+
         auth()->user()->wishlist()->firstOrCreate([
             'hoarding_id' => $hoardingId
         ]);
@@ -54,7 +66,7 @@ class ShortlistController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Added to shortlist',
-            'count' => $count,
+            'count' => $count
         ]);
     }
 

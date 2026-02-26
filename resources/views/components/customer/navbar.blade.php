@@ -176,9 +176,15 @@
                         <path d="M5.5 0.75C2.877 0.75 0.75 3.01 0.75 5.797C0.75 11.375 9.75 17.75 9.75 17.75C9.75 17.75 18.75 11.375 18.75 5.797C18.75 2.344 16.623 0.75 14 0.75C12.14 0.75 10.53 1.886 9.75 3.54C8.97 1.886 7.36 0.75 5.5 0.75Z" stroke="#6E6E6E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                             @php
-                                $wishlistCount = auth()->check()
-                                    ? auth()->user()->wishlist()->count()
-                                    : 0;
+                                $wishlistCount = 0;
+                                if(auth()->check()) {
+                                    $wishlistCount = auth()->user()
+                                        ->wishlist()
+                                        ->whereHas('hoarding', function ($q) {
+                                            $q->whereNull('deleted_at');
+                                        })
+                                        ->count();
+                                }
                             @endphp
                       
                            @if($wishlistCount > 0)
@@ -197,7 +203,9 @@
                                 $cartCount = 0;
                                 if(auth()->check()) {
                                     $cartCount = \Illuminate\Support\Facades\DB::table('carts')
-                                        ->where('user_id', auth()->id())
+                                        ->join('hoardings', 'hoardings.id', '=', 'carts.hoarding_id')
+                                        ->where('carts.user_id', auth()->id())
+                                        ->whereNull('hoardings.deleted_at')
                                         ->count();
                                 }
                             @endphp
