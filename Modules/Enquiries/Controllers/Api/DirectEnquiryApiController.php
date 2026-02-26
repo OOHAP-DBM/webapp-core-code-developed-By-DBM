@@ -257,7 +257,6 @@ class DirectEnquiryApiController extends Controller
         if ($request->has('viewed')) {
             $query->wherePivot('has_viewed', $request->boolean('viewed'));
         }
-
         $perPage   = min((int) $request->input('per_page', 15), 50);
         $enquiries = $query->paginate($perPage);
 
