@@ -5,17 +5,17 @@
 @section('content')
 <div class="px-6 py-6">
 
-    <div class="bg-white rounded-xl shadow border">
+    <div class="bg-white rounded-md shadow ">
 
         {{-- Header --}}
-        <div class="flex justify-between items-center px-6 py-4 bg-primary text-white rounded-t-xl">
+        <div class="flex justify-between items-center px-6 py-4 bg-primary rounded-t-xl">
             <h4 class="text-lg font-semibold flex items-center gap-2">
                 📋 POS Bookings
             </h4>
 
             <a href="{{ route('vendor.pos.create') }}"
-                class="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-600 transition">
-                ➕ New Booking
+                class="btn-color text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                + New Booking
             </a>
 
         </div>
@@ -24,9 +24,9 @@
 
             {{-- Filters --}}
             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                <div class="md:col-span-3">
+                <div class="md:col-span-3 relative">
                     <select id="filter-status"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none">
+                        class="appearance-none w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none pr-8">
                         <option value="">All Status</option>
                         <option value="draft">Draft</option>
                         <option value="confirmed">Confirmed</option>
@@ -34,17 +34,27 @@
                         <option value="completed">Completed</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
+                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </span>
                 </div>
 
-                <div class="md:col-span-3">
+                <div class="md:col-span-3 relative">
                     <select id="filter-payment-status"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none">
+                        class="appearance-none w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none pr-8">
                         <option value="">All Payment Status</option>
                         <option value="paid">Paid</option>
                         <option value="unpaid">Unpaid</option>
                         <option value="partial">Partial</option>
                         <option value="credit">Credit Note</option>
                     </select>
+                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </span>
                 </div>
 
                 <div class="md:col-span-4">
@@ -62,23 +72,23 @@
             </div>
 
             {{-- Table --}}
-            <div class="overflow-x-auto border rounded-lg">
+            <div class="overflow-x-auto  rounded-lg shadow">
                 <table class="min-w-full text-sm">
                     <thead class="bg-gray-100 text-left">
                         <tr>
-                            <th class="border px-3 py-2">Invoice #</th>
-                            <th class="border px-3 py-2">Customer</th>
-                            <th class="border px-3 py-2">Hoarding Ids</th>
-                            <th class="border px-3 py-2">Dates</th>
-                            <th class="border px-3 py-2">Amount</th>
-                            <th class="border px-3 py-2">Payment</th>
-                            <th class="border px-3 py-2">Status</th>
-                            <th class="border px-3 py-2">Actions</th>
+                            <th class=" px-3 py-2">Invoice #</th>
+                            <th class=" px-3 py-2">Customer</th>
+                            <th class=" px-3 py-2">Hoarding Ids</th>
+                            <th class=" px-3 py-2">Dates</th>
+                            <th class=" px-3 py-2">Amount</th>
+                            <th class=" px-3 py-2">Payment</th>
+                            <th class=" px-3 py-2">Status</th>
+                            <th class=" px-3 py-2">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="bookings-table-body">
                         <tr>
-                            <td colspan="8" class="text-center py-6 text-gray-500">
+                            <td colspan="8" class="text-center pt-5 text-gray-500">
                                 Loading...
                             </td>
                         </tr>
@@ -153,37 +163,37 @@ function loadBookings(page = 1) {
                 data.data.data.forEach(booking => {
                 tbody.innerHTML += `
                 <tr class="hover:bg-gray-50">
-                    <td class="border px-3 py-2">${booking.invoice_number || 'N/A'}</td>
-                    <td class="border px-3 py-2">
+                    <td class=" px-3 py-2">${booking.invoice_number || 'N/A'}</td>
+                    <td class=" px-3 py-2">
                         <strong>${booking.customer_name}</strong><br>
                         <span class="text-xs text-gray-500">${booking.customer_phone ?? '-'}</span>
                     </td>
-                    <td class="border px-3 py-2">
+                    <td class=" px-3 py-2">
                         ${booking.hoarding
                             ? `<a href="/hoardings/${booking.hoarding.id}" target="_blank"
                                  class="text-primary underline">${booking.hoarding.title}</a>`
                             : 'N/A'}
                     </td>
-                    <td class="border px-3 py-2">
+                    <td class=" px-3 py-2">
                         ${formatDateDDMMYYYY(booking.start_date)}<br>
                         <span class="text-xs text-gray-500">
                             to ${formatDateDDMMYYYY(booking.end_date)}
                         </span>
                     </td>
-                    <td class="border px-3 py-2 font-medium">
+                    <td class=" px-3 py-2 font-medium">
                         ₹${parseFloat(booking.total_amount).toLocaleString()}
                     </td>
-                    <td class="border px-3 py-2">
+                    <td class=" px-3 py-2">
                         <span class="px-2 py-1 rounded text-xs font-semibold ${getPaymentStatusColor(booking.payment_status)}">
                             ${booking.payment_status}
                         </span>
                     </td>
-                    <td class="border px-3 py-2">
+                    <td class=" px-3 py-2">
                         <span class="px-2 py-1 rounded text-xs font-semibold ${getStatusColor(booking.status)}">
                             ${booking.status}
                         </span>
                     </td>
-                    <td class="border px-3 py-2 flex gap-1">
+                    <td class=" px-3 pb-2 pt-4 flex gap-1">
                         <a href="/vendor/pos/bookings/${booking.id}"
                            class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition">
                             View
@@ -241,7 +251,7 @@ function renderPagination(pagination) {
             <button onclick="loadBookings(${i})"
                 class="px-3 py-1 rounded border text-sm
                 ${i === pagination.current_page
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary'
                     : 'bg-white hover:bg-gray-100'}">
                 ${i}
             </button>`;

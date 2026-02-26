@@ -116,94 +116,212 @@ class VendorPosController extends Controller
      * Get vendor's available hoardings for POS booking
      * Web endpoint: GET /vendor/pos/api/hoardings
      */
+
     public function getHoardings(Request $request): JsonResponse
     {
         try {
             $vendorId = Auth::id();
-            
+
+            // ── Base query ────────────────────────────────────────────────
             $query = Hoarding::query()
                 ->where('vendor_id', $vendorId)
                 ->where('status', 'active');
 
-            // Optional: Filter by search term
+            // ── 1. Type filter (OOH / DOOH / ALL) ─────────────────────────
+            if ($request->filled('type') && $request->type !== 'ALL') {
+                $query->where('hoarding_type', strtolower($request->type));
+                // strtolower because DB stores 'ooh' / 'dooh' (lowercase)
+            }
+
+            // ── 2. Text search ─────────────────────────────────────────────
             if ($request->filled('search')) {
                 $search = $request->get('search');
                 $query->where(function ($q) use ($search) {
-                    $q->where('title', 'like', "%{$search}%")
-                        ->orWhere('city', 'like', "%{$search}%")
-                        ->orWhere('address', 'like', "%{$search}%");
+                    $q->where('title',   'like', "%{$search}%")
+                    ->orWhere('city',    'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%");
                 });
             }
 
-            // Optional: Filter by availability dates
+            // ── 3. Category filter (OOH only) ─────────────────────────────
+            // DB column: hoardings.category  (values: billboard, unipole, gantry, pole_kiosk)
+            if ($request->filled('category')) {
+                $categories = array_filter(explode(',', $request->get('category')));
+                if (!empty($categories)) {
+                    $query->whereIn('category', $categories);
+                }
+            }
+
+            // ── 4. Availability filter ─────────────────────────────────────
+            // "available"  → no active booking overlapping today
+            // "booked"     → has active booking overlapping today
+            if ($request->filled('availability')) {
+                $availabilityValues = array_filter(explode(',', $request->get('availability')));
+
+                // Only filter if exactly one option is chosen (both = no filter needed)
+                if (count($availabilityValues) === 1) {
+                    $today = now()->toDateString();
+
+                    if (in_array('available', $availabilityValues)) {
+                        // Hoardings with NO active booking today
+                        $query->whereDoesntHave('bookings', function ($q) use ($today) {
+                            $q->where('start_date', '<=', $today)
+                            ->where('end_date',   '>=', $today)
+                            ->whereIn('status', ['confirmed', 'active', 'payment_hold']);
+                        });
+                    } elseif (in_array('booked', $availabilityValues)) {
+                        // Hoardings WITH an active booking today
+                        $query->whereHas('bookings', function ($q) use ($today) {
+                            $q->where('start_date', '<=', $today)
+                            ->where('end_date',   '>=', $today)
+                            ->whereIn('status', ['confirmed', 'active', 'payment_hold']);
+                        });
+                    }
+                }
+            }
+
+            // ── 5. Surroundings filter ─────────────────────────────────────
+            // DB column: hoardings.located_at (JSON array)
+            // Values: crossroad, highway, market_area, commercial_complexes, main_road
+            if ($request->filled('surroundings')) {
+                $surroundings = array_filter(explode(',', $request->get('surroundings')));
+                if (!empty($surroundings)) {
+                    $query->where(function ($q) use ($surroundings) {
+                        foreach ($surroundings as $surrounding) {
+                            // JSON_CONTAINS for MySQL, or use LIKE for compatibility
+                            $q->orWhereRaw('JSON_CONTAINS(located_at, ?)', [json_encode($surrounding)]);
+                            // Fallback if not using JSON column:
+                            // $q->orWhere('located_at', 'like', "%{$surrounding}%");
+                        }
+                    });
+                }
+            }
+
+            // ── 6. Hoarding Size filter (OOH → ooh_hoardings.width * height) ─
+            // Join with ooh_hoardings to filter by size (width * height = sq.ft area)
+            $hoardingSizeMin = (int) $request->get('hoarding_size_min', 0);
+            $hoardingSizeMax = (int) $request->get('hoarding_size_max', 1000);
+
+            $hasHoardingSizeFilter = $hoardingSizeMin > 0 || $hoardingSizeMax < 1000;
+
+            if ($hasHoardingSizeFilter) {
+                $query->where(function ($q) use ($hoardingSizeMin, $hoardingSizeMax) {
+                    // OOH: join ooh_hoardings for width/height
+                    $q->whereHas('oohHoarding', function ($oohQ) use ($hoardingSizeMin, $hoardingSizeMax) {
+                        $oohQ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) >= ?', [$hoardingSizeMin])
+                            ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) <= ?', [$hoardingSizeMax]);
+                    })
+                    // OR DOOH: join dooh_screens for width/height
+                    ->orWhereHas('doohScreen', function ($doohQ) use ($hoardingSizeMin, $hoardingSizeMax) {
+                        $doohQ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) >= ?', [$hoardingSizeMin])
+                            ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) <= ?', [$hoardingSizeMax]);
+                    });
+                });
+            }
+
+            // ── 7. Screen Size filter (DOOH → dooh_screens.screen_size) ────
+            // Uses dooh_screens.screen_size column (in sq.ft or inches — adjust as needed)
+            $screenSizeMin = (int) $request->get('screen_size_min', 0);
+            $screenSizeMax = (int) $request->get('screen_size_max', 1000);
+
+            $hasScreenSizeFilter = $screenSizeMin > 0 || $screenSizeMax < 1000;
+
+            if ($hasScreenSizeFilter) {
+                $query->whereHas('doohScreen', function ($q) use ($screenSizeMin, $screenSizeMax) {
+                    // If you have a dedicated screen_size column:
+                    $q->where('screen_size', '>=', $screenSizeMin)
+                    ->where('screen_size', '<=', $screenSizeMax);
+
+                    // If you DON'T have screen_size column but have width/height:
+                    // $q->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) >= ?', [$screenSizeMin])
+                    //   ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) <= ?', [$screenSizeMax]);
+                });
+            }
+
+            // ── 8. Resolution filter (DOOH only) ──────────────────────────
+            // DB column: dooh_screens.resolution  (values: led, hd, ultra_hd)
+            if ($request->filled('resolution')) {
+                $resolutions = array_filter(explode(',', $request->get('resolution')));
+                if (!empty($resolutions)) {
+                    $query->whereHas('doohScreen', function ($q) use ($resolutions) {
+                        $q->whereIn('resolution', $resolutions);
+                    });
+                }
+            }
+
+            // ── 9. Date availability filter ────────────────────────────────
             if ($request->filled('start_date') && $request->filled('end_date')) {
                 $startDate = $request->get('start_date');
-                $endDate = $request->get('end_date');
+                $endDate   = $request->get('end_date');
 
                 $query->whereDoesntHave('bookings', function ($q) use ($startDate, $endDate) {
-                    $q->where(function ($query) use ($startDate, $endDate) {
-                        $query->whereBetween('start_date', [$startDate, $endDate])
+                    $q->where(function ($inner) use ($startDate, $endDate) {
+                        $inner->whereBetween('start_date', [$startDate, $endDate])
                             ->orWhereBetween('end_date', [$startDate, $endDate])
-                            ->orWhere(function ($q) use ($startDate, $endDate) {
-                                $q->where('start_date', '<=', $startDate)
-                                    ->where('end_date', '>=', $endDate);
+                            ->orWhere(function ($overlap) use ($startDate, $endDate) {
+                                $overlap->where('start_date', '<=', $startDate)
+                                        ->where('end_date', '>=', $endDate);
                             });
                     })
                     ->whereIn('status', ['confirmed', 'payment_hold', 'active']);
                 });
             }
 
+            // ── Execute & map ──────────────────────────────────────────────
             $hoardings = $query
                 ->select([
-                    'id',
-                    'title',
-                    'address',
-                    'city',
-                    'state',
-                    'hoarding_type',
-                    'base_monthly_price',
-                    'monthly_price',
+                    'id', 'title', 'address', 'city', 'state',
+                    'hoarding_type', 'category', 'located_at',
+                    'base_monthly_price', 'monthly_price',
                 ])
                 ->orderBy('title')
                 ->get()
                 ->map(function ($hoarding) {
-                    // Get image URL based on hoarding type
                     $imageUrl = $this->getHoardingImageUrl($hoarding);
 
-                    // Prefer monthly_price when it's a positive number; otherwise fall back to base_monthly_price
-                    $pricePerMonth = isset($hoarding->monthly_price) ? (float) $hoarding->monthly_price : null;
+                    $pricePerMonth = isset($hoarding->monthly_price)
+                        ? (float) $hoarding->monthly_price
+                        : null;
+
                     if (!$pricePerMonth || $pricePerMonth <= 0) {
                         $pricePerMonth = $hoarding->base_monthly_price ?? 0;
                     }
 
                     return [
-                        'id' => $hoarding->id,
-                        'title' => $hoarding->title,
-                        'location_address' => $hoarding->address,
-                        'location_city' => $hoarding->city,
-                        'location_state' => $hoarding->state,
-                        'type' => $hoarding->hoarding_type,
-                        'price_per_month' => $pricePerMonth,
-                        'image_url' => $imageUrl,
+                        'id'                  => $hoarding->id,
+                        'title'               => $hoarding->title,
+                        'location_address'    => $hoarding->address,
+                        'location_city'       => $hoarding->city,
+                        'location_state'      => $hoarding->state,
+                        'type'                => $hoarding->hoarding_type,
+                        'category'            => $hoarding->category,
+                        'price_per_month'     => $pricePerMonth,
+                        'image_url'           => $imageUrl,
                         'is_currently_booked' => $hoarding->bookings()
                             ->where('start_date', '<=', now())
-                            ->where('end_date', '>=', now())
+                            ->where('end_date',   '>=', now())
                             ->whereIn('status', ['confirmed', 'active'])
                             ->exists(),
                     ];
                 });
-            // Log::info('Hoardings fetched', ['vendor_id' => $vendorId, 'count' => $hoardings->count()]);
+
             return response()->json([
                 'success' => true,
-                'data' => $hoardings,
-                'count' => $hoardings->count(),
+                'data'    => $hoardings,
+                'count'   => $hoardings->count(),
+                'filters_applied' => $request->only([
+                    'type', 'category', 'resolution', 'availability',
+                    'surroundings', 'hoarding_size_min', 'hoarding_size_max',
+                    'screen_size_min', 'screen_size_max',
+                ]),
             ]);
+
         } catch (\Exception $e) {
-            Log::error('Error fetching hoardings', ['error' => $e->getMessage()]);
+            Log::error('Error fetching hoardings', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch hoardings',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -569,6 +687,32 @@ class VendorPosController extends Controller
                     'end_date' => $endDate,
                     'duration_days' => $durationDays,
                     'status' => 'pending',
+                ]);
+            }
+
+            try {
+                if (!empty($booking->customer_id)) {
+                    $customer = \App\Models\User::find($booking->customer_id);
+                    
+                    // DB Notification
+                    if ($customer && method_exists($customer, 'notify')) {
+                        $customer->notify(new \App\Notifications\PosBookingCreatedNotification($booking));
+                    }
+                    
+                    // Email — sirf tab bhejo jab valid email ho
+                    if ($customer && !empty($customer->email) && filter_var($customer->email, FILTER_VALIDATE_EMAIL)) {
+                        \Mail::to($customer->email)->send(new \App\Mail\PosBookingCreatedMail($booking, $customer));
+                    } else {
+                        \Log::info('POS email skipped - no valid email', [
+                            'customer_id' => $booking->customer_id,
+                            'email' => $customer->email ?? 'NULL'
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to send POS booking notification/email', [
+                    'error' => $e->getMessage(),
+                    'booking_id' => $booking->id ?? null,
                 ]);
             }
 

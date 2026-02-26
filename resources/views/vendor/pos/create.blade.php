@@ -18,13 +18,13 @@
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Customer Details</label>
                         
                         <div id="search-container" class="flex gap-2">
-                            <div class="relative flex-1 border border-gray-300 rounded-md mx-2">
+                            <div class="relative flex-1 border border-gray-300">
                                 <input type="text" id="customer-search" autocomplete="off" 
                                     placeholder="Search by name, email, or mobile..." 
-                                    class="w-full rounded-md border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2">
+                                    class="w-full  border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2">
                                 <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
                             </div>
-                            <button type="button" onclick="openCustomerModal()" class="bg-green-600 text-white px-4 rounded-md hover:bg-green-700 transition flex items-center">
+                            <button type="button" onclick="openCustomerModal()" class="bg-green-600 text-white px-4  hover:bg-green-700 transition flex items-center">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                 <span class="ml-1 text-sm font-semibold">New</span>
                             </button>
@@ -47,7 +47,7 @@
                             <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
                                 <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> OOH (Static)
                             </h4>
-                            <div class="overflow-x-auto border border-gray-100 rounded-xl">
+                            <div class="overflow-x-auto border border-gray-100">
                                 <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
                                     <thead class="bg-gray-50 text-gray-500">
                                         <tr>
@@ -69,7 +69,7 @@
                             <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
                                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span> Digital (DOOH)
                             </h4>
-                            <div class="overflow-x-auto border border-gray-100 rounded-xl">
+                            <div class="overflow-x-auto border border-gray-100">
                                 <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
                                     <thead class="bg-gray-50 text-gray-500">
                                         <tr>
@@ -89,8 +89,8 @@
                     </div>
 
                     <div class="flex gap-4 mt-12 pt-6 border-t border-gray-100">
-                        <button type="button" onclick="location.reload()" class="px-6 py-3 border border-gray-200 rounded-lg font-bold text-gray-500 hover:bg-gray-50 transition">Reset</button>
-                        <button id="submit-btn" class="flex-1 py-3 bg-[#2D5A43] text-white rounded-lg font-bold shadow-lg shadow-green-900/20 hover:bg-opacity-90 active:scale-[0.98] transition">
+                        <button type="button" onclick="location.reload()" class="flex-1 py-3 bg-[#7A9C89] border border-gray-200 font-bold text-white transition cursor-pointer">Cancel</button>
+                        <button id="submit-btn" class="flex-1 py-3 bg-[#2E5B42] text-white font-bold shadow-lg shadow-green-900/20 hover:bg-opacity-90 active:scale-[0.98] transition cursor-pointer">
                             Preview & Create Booking (<span id="btn-count">0</span>)
                         </button>
                     </div>
@@ -100,15 +100,21 @@
 
         <div class="lg:col-span-5">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6">
-                <div class="p-5 border-b flex justify-between items-center">
-                    <h3 class="font-bold text-gray-800">Inventory Available</h3>
+                <div class="px-5 pt-5 gap-3 flex">
+                    <h3 class="font-bold text-gray-800">Available Hoardings</h3>
                     <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-bold" id="available-count">0</span>
                 </div>
                 <div class="p-5">
-                    <div class="relative mb-5 border border-gray-300 rounded-lg">
-                        <input type="text" id="hoarding-search" placeholder="Filter inventory..." 
-                            class="w-full pl-10 rounded-lg border-gray-200 text-sm focus:ring-green-500">
-                        <span class="absolute left-3 top- text-gray-400">🔍</span>
+                    <div class="flex items-center gap-2 mb-5">
+                        <div class="relative flex-1">
+                            <input type="text" id="hoarding-search" placeholder="Search for available hoardings..." 
+                                class="w-full pl-10  border border-gray-300 text-sm focus:ring-green-500" style="height:40px;">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="pointer-events:none;">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-3.5-3.5"/></svg>
+                            </span>
+                        </div>
+                        <button type="button" class="border border-gray-300 bg-white  px-5 py-2 text-gray-700 text-sm font-medium hover:bg-gray-100 transition" style="height:40px;" onclick="openFilterModal()">Filter</button>
+                    @include('vendor.pos.filter_modal')
                     </div>
                     <div id="hoardings-grid" class="grid grid-cols-2 gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 custom-scrollbar">
                         </div>
@@ -128,7 +134,7 @@
 <div id="datePickerModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
     <div class="bg-black/50 absolute inset-0" onclick="closeDatePickerModal()"></div>
 
-    <div class="relative bg-white rounded-lg p-4 w-full max-w-sm z-50">
+    <div class="relative bg-white rounded-lg p-4 w-full max-w-[700px] z-50 flex flex-col" style="min-width: 600px; min-height: 420px;">
         <div class="flex justify-between items-center mb-4">
             <h3 id="datePickerTitle" class="font-bold text-gray-800">Select Dates</h3>
             <button class="text-gray-500" onclick="closeDatePickerModal()">✕</button>
@@ -160,6 +166,21 @@
 
 <script>
 /* --- CONFIG & STATE --- */
+// SweetAlert2 toast helper
+function showToast(message) {
+    if (window.Swal) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            icon: 'info',
+            title: message
+        });
+    } else {
+        alert(message);
+    }
+}
 const API_URL = '/vendor/pos/api';
 let hoardings = [];
 let selectedHoardings = new Map();
@@ -322,22 +343,26 @@ function clearSelectedCustomer() {
 }
 
 /* --- INVENTORY LOGIC --- */
-async function loadHoardings() {
-    const res = await fetchJSON(`${API_URL}/hoardings`);
-    hoardings = res.data?.data || res.data || [];
+async function loadHoardings(filters = {}) {
+    const query = new URLSearchParams(filters).toString();
+    const url   = `${API_URL}/hoardings${query ? '?' + query : ''}`;
+    const res   = await fetchJSON(url);
+    hoardings   = res.data?.data || res.data || [];
     renderHoardings(hoardings);
 }
+
+window.loadHoardings = loadHoardings;
 
 function renderHoardings(list) {
     const grid = document.getElementById('hoardings-grid');
     grid.innerHTML = list.map(h => {
         const isSelected = selectedHoardings.has(h.id);
         return `
-            <div class="relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} rounded-xl overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
+            <div class="relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
                 <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover">
                 <div class="p-2">
                     <h4 class="text-[10px] font-bold text-gray-800 truncate">${h.title}</h4>
-                    <span class="text-[10px] text-green-700 font-bold">${formatINR(h.price_per_month)}/mo</span>
+                    <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
                 </div>
             </div>`;
     }).join('');
@@ -374,23 +399,37 @@ function updateSummary() {
         selectedHoardings.forEach((h, id) => {
             const totalPrice = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
             const row = `
-                <tr class="hover:bg-gray-50 border-b">
+                <tr class="hover:bg-gray-50 border-b border-gray-200">
                     <td class="px-4 py-3">
                         <div class="text-xs font-bold text-gray-800">${h.title}</div>
                         <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
                     </td>
                     <td class="px-4 py-3 text-xs text-gray-500">${formatINR(h.price_per_month)}</td>
-                    <td class="px-4 py-3">
-                        <div class="flex items-center gap-1">
-                            <button onclick="openDatePickerForHoarding(${h.id})" class="px-2 py-1 border rounded bg-white text-[10px] font-semibold">
-                                ${h.startDate} - ${h.endDate}
-                            </button>
+                  <td class="px-4 py-3 align-middle">
+                        <div class="flex flex-col items-center justify-center">
+                            <div class="flex items-center justify-center whitespace-nowrap">
+                                <button 
+                                    onclick="openDatePickerForHoarding(${h.id})"
+                                    class="px-2 py-1 rounded bg-white text-[11px] font-semibold text-gray-700 hover:text-blue-600 transition leading-none">
+                                    ${toLocalYMD(h.startDate)} - ${toLocalYMD(h.endDate)}
+                                </button>
+                                <button 
+                                    onclick="openDatePickerForHoarding(${h.id})"
+                                    class="flex items-center justify-center w-6 h-6 rounded-full text-blue-500 hover:text-blue-700 transition"
+                                    title="Edit Dates">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="text-[11px] text-gray-400 mt-1 text-center leading-none">
+                                ${getTieredDurationLabel(h.startDate, h.endDate)}
+                            </div>
                         </div>
-                        <div class="text-[10px] text-gray-400 mt-1">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
                     </td>
                     <td class="px-4 py-3 font-bold text-xs text-green-700">${formatINR(totalPrice)}</td>
                     <td class="px-4 py-3 text-right">
-                        <button onclick="toggleHoarding(${h.id})" class="text-gray-300 hover:text-red-500">
+                        <button onclick="toggleHoarding(${h.id})" class="text-red-500 cursor-pointer">
                            <svg class="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
                     </td>
@@ -433,10 +472,10 @@ function enumerateDatesBetween(start, end) {
 }
 
 async function openDatePickerForHoarding(id) {
-    if (typeof flatpickr === 'undefined') { alert('Calendar library not loaded.'); return; }
+    if (typeof flatpickr === 'undefined') { showToast('Calendar library not loaded.'); return; }
     currentEditingHoardingId = id;
     const h = selectedHoardings.get(id);
-    if (!h) return alert('Please select the hoarding first');
+    if (!h) { showToast('Please select the hoarding first'); return; }
 
     // set modal title
     document.getElementById('datePickerTitle').innerText = h.title;
@@ -453,9 +492,9 @@ async function openDatePickerForHoarding(id) {
             const txt = await res.text().catch(() => '');
             console.error('Heatmap fetch failed', res.status, res.statusText, txt);
             if (res.status === 401 || res.status === 403) {
-                alert('Could not load availability (authentication required). Please login and try again.');
+                showToast('Could not load availability (authentication required). Please login and try again.');
             } else {
-                alert(`Could not load availability (HTTP ${res.status}). Please try again.`);
+                showToast(`Could not load availability (HTTP ${res.status}). Please try again.`);
             }
             return;
         }
@@ -476,6 +515,7 @@ async function openDatePickerForHoarding(id) {
             minDate: startStr,
             disable: disabledDates,
             defaultDate: [h.startDate, h.endDate],
+            showMonths: 2,
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 const date = toLocalYMD(dayElem.dateObj);
                 const status = currentHeatmapMap[date];
@@ -487,7 +527,7 @@ async function openDatePickerForHoarding(id) {
         });
     } catch (e) {
         console.error(e);
-        alert('Could not load availability. Please try again.');
+        showToast('Could not load availability. Please try again.');
     }
 }
 
@@ -498,7 +538,7 @@ function closeDatePickerModal() {
 async function confirmDateSelection() {
     if (!currentFlatpickr || !currentEditingHoardingId) return closeDatePickerModal();
     const dates = currentFlatpickr.selectedDates;
-    if (!dates || dates.length === 0) return alert('Please select a start and end date');
+    if (!dates || dates.length === 0) { showToast('Please select a start and end date'); return; }
 
     const start = toYMD(dates[0]);
     const end = toYMD(dates.length === 1 ? dates[0] : dates[1]);
@@ -515,7 +555,7 @@ async function confirmDateSelection() {
         if (!res.ok) {
             const text = await res.text();
             console.error('Availability check failed', res.status, res.statusText, text);
-            alert('Could not verify availability (server error). Please try again.');
+            showToast('Could not verify availability (server error). Please try again.');
             openDatePickerForHoarding(currentEditingHoardingId);
             return;
         }
@@ -523,7 +563,7 @@ async function confirmDateSelection() {
         const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
         console.log('response BEDORE booking for hoarding', currentEditingHoardingId, conflicts);
         if (conflicts.length > 0) {
-            alert('Selected range includes unavailable dates. Please choose a different range.');
+            showToast('Selected range includes unavailable dates. Please choose a different range.');
             // refresh calendar highlights
             openDatePickerForHoarding(currentEditingHoardingId);
             return;
@@ -541,7 +581,7 @@ async function confirmDateSelection() {
         closeDatePickerModal();
     } catch (e) {
         console.error(e);
-        alert('Error checking availability.');
+        showToast('Error checking availability.');
     }
 }
 
@@ -563,7 +603,7 @@ window.finalCheckAvailability = async function() {
             if (!res.ok) {
                 const txt = await res.text();
                 console.error('Final availability check failed', res.status, res.statusText, txt);
-                alert('Error checking final availability (server error). Please try again.');
+                showToast('Error checking final availability (server error). Please try again.');
                 return false;
             }
             const result = await res.json();
@@ -575,7 +615,7 @@ window.finalCheckAvailability = async function() {
             // }
         } catch (e) {
             console.error(e);
-            alert('Error checking final availability. Please try again.');
+            showToast('Error checking final availability. Please try again.');
             return false;
         }
     }
@@ -592,8 +632,8 @@ document.getElementById('create-booking-btn')?.addEventListener('click', async f
 }, true);
 
 document.getElementById('submit-btn').addEventListener('click', () => {
-    if (!selectedCustomer) return alert("Select a customer.");
-    if (selectedHoardings.size === 0) return alert("Select inventory.");
+    if (!selectedCustomer) { showToast("Select a customer."); return; }
+    if (selectedHoardings.size === 0) { showToast("Select inventory."); return; }
     
     populatePreview();
     document.getElementById('selection-screen').classList.add('hidden');
@@ -684,6 +724,14 @@ function populatePreview() {
     calculateFinalTotals();
 }
 
+</script>
+<script>
+    function openFilterModal() {
+        document.getElementById('filterModal').classList.remove('hidden');
+    }
+    function closeFilterModal() {
+        document.getElementById('filterModal').classList.add('hidden');
+    }
 </script>
 
 
