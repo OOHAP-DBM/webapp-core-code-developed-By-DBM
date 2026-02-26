@@ -139,7 +139,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Keep only the event listeners here
     document.getElementById('create-booking-btn')?.addEventListener('click', async () => {
        function populatePreview() {
-        if (!selectedCustomer) return alert('Select a customer');
+        if (!selectedCustomer) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Select a customer',
+                confirmButtonText: 'OK',
+                position: 'top-end',
+                toast: true,
+                timer: 3000,
+                showConfirmButton: false
+            });
+            return;
+        }
 
         safeSet('preview-cust-name', selectedCustomer.name);
         safeSet('preview-cust-phone', selectedCustomer.phone);
@@ -176,8 +187,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showPreview() {
-        if (!selectedCustomer) return alert("Please select a customer first!");
-        if (selectedHoardings.size === 0) return alert("Please select at least one hoarding!");
+        if (!selectedCustomer) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Please select a customer first!',
+                position: 'top-end',
+                toast: true,
+                timer: 3000,
+                showConfirmButton: false
+            });
+            return;
+        }
+        if (selectedHoardings.size === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Please select at least one hoarding!',
+                position: 'top-end',
+                toast: true,
+                timer: 3000,
+                showConfirmButton: false
+            });
+            return;
+        }
 
         document.getElementById('selection-screen')?.classList.add('hidden');
         document.getElementById('preview-screen')?.classList.remove('hidden');
@@ -234,10 +265,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await res.json();
             if (!res.ok) throw new Error(Object.values(result.errors || {}).flat().join('\n') || "Error");
 
-            alert("✅ Booking Success!");
-            window.location.href = "/vendor/pos/bookings";
+            Swal.fire({
+                icon: 'success',
+                title: 'Booking Success!',
+                position: 'top-end',
+                toast: true,
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                window.location.href = "/vendor/pos/bookings";
+            });
         } catch (e) {
-            alert(e.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: e.message,
+                position: 'top-end',
+                toast: true,
+                timer: 4000,
+                showConfirmButton: false
+            });
             btn.disabled = false;
             btn.innerText = "Finalize Booking";
         }

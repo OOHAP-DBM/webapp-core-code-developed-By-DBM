@@ -334,11 +334,15 @@ function clearSelectedCustomer() {
 }
 
 /* --- INVENTORY LOGIC --- */
-async function loadHoardings() {
-    const res = await fetchJSON(`${API_URL}/hoardings`);
-    hoardings = res.data?.data || res.data || [];
+async function loadHoardings(filters = {}) {
+    const query = new URLSearchParams(filters).toString();
+    const url   = `${API_URL}/hoardings${query ? '?' + query : ''}`;
+    const res   = await fetchJSON(url);
+    hoardings   = res.data?.data || res.data || [];
     renderHoardings(hoardings);
 }
+
+window.loadHoardings = loadHoardings;
 
 function renderHoardings(list) {
     const grid = document.getElementById('hoardings-grid');
