@@ -110,8 +110,6 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     // Hoarding Availability Calendar API (PROMPT 104 - Frontend calendar with availability status)
     require base_path('routes/api_v1/hoarding_availability.php');
 
-
-
     Route::prefix('enquiries')->group(function () {
         // Generate captcha (stateless, mobile-friendly)
         Route::get('captcha', [DirectEnquiryApiController::class, 'generateCaptcha']);
