@@ -12,6 +12,7 @@ use Modules\Hoardings\Models\HoardingMedia;
 use Modules\DOOH\Models\DOOHScreen;
 use Modules\DOOH\Models\DOOHScreenMedia;
 use Exception;
+use Modules\Import\Notifications\BulkImportApprovedNotification;
 
 class ImportApprovalService
 {
@@ -92,13 +93,25 @@ class ImportApprovalService
                 // Notify all admins ONCE for the batch
                 $admins = \App\Models\User::whereIn('active_role', ['admin', 'superadmin'])->get();
                 foreach ($admins as $admin) {
-                    $admin->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($batch));
+                    $admin->notify(
+                        new BulkImportApprovedNotification(
+                            $batch,
+                            $createdCount,
+                            $failedCount
+                        )
+                    );
                 }
 
                 // Notify vendor ONCE for the batch (email only, no in-app notification for bulk approval)
                 $vendor = $batch->vendor;
                 if ($vendor) {
-                    $vendor->notifyVendorEmails(new \Modules\Mail\InventoryImportBatchApprovedMail($batch));
+                    $vendor->notify(
+                        new \Modules\Import\Notifications\BulkImportApprovedForVendorNotification(
+                            $batch,
+                            $createdCount,
+                            $failedCount
+                        )
+                    );
                 }
             }
 
@@ -315,7 +328,7 @@ class ImportApprovalService
                 'price_per_slot' => $this->stagingValue($stagingRow, 'price_per_slot', 0),
                 'screen_run_time' => $this->stagingValue($stagingRow, 'screen_run_time', null),
                 'total_slots_per_day' => $this->stagingValue($stagingRow, 'total_slots_per_day', null),
-                'total_slots_per_day' => $this->stagingValue($stagingRow, 'total_slots_per_day', null),
+                // 'total_slots_per_day' => $this->stagingValue($stagingRow, 'total_slots_per_day', null),
                 // 'base_monthly_price' => $this->stagingValue($stagingRow, 'base_monthly_price', null),
                 // 'monthly_price' => $this->stagingValue($stagingRow, 'monthly_price', null),
             ]);
