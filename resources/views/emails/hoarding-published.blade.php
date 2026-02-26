@@ -118,7 +118,7 @@
 <!-- BUTTON -->
 <tr>
 <td align="center" style="padding:25px 40px;">
-    <a href="https://staging.oohapp.io/vendor/hoardings"
+    <a href="{{ route('vendor.myHoardings.show', $hoarding['id']) }}"
        style="background:#16a34a; color:#ffffff; padding:12px 26px; font-size:14px; text-decoration:none; border-radius:6px; display:inline-block;">
         View My Hoardings
     </a>

@@ -23,7 +23,9 @@ class CartService
         return $this->response('login_required', false, 'Please login to add item to cart');
     }
 
-    $hoarding = Hoarding::where('status', 'active')->findOrFail($hoardingId);
+    $hoarding = Hoarding::where('status', 'active')
+        ->whereNull('deleted_at')
+        ->findOrFail($hoardingId);
 
     // 🔥 FORCE ADD (idempotent behaviour optional)
     DB::table('carts')->updateOrInsert(
@@ -145,6 +147,8 @@ class CartService
         $items = DB::table('carts')
             ->join('hoardings', 'hoardings.id', '=', 'carts.hoarding_id')
             ->where('carts.user_id', Auth::id())
+            ->whereNull('hoardings.deleted_at')
+            ->where('hoardings.status', Hoarding::STATUS_ACTIVE)
             ->select(
                 'carts.id as cart_id',
                 'carts.package_id', 
@@ -158,7 +162,6 @@ class CartService
                 'hoardings.monthly_price',
                 'hoardings.base_monthly_price',
                 'hoardings.grace_period_days',
-
             )
             ->get();
 
