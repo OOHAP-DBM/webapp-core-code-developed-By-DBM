@@ -8,7 +8,7 @@
 .hoarding-image-box img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: fill;
     display: block;
 }
 
@@ -46,7 +46,7 @@
 .thumbnail-item video {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: fill;
     display: block;
 }
 </style>
@@ -89,12 +89,12 @@ function switchMedia(thumbEl, src, isVideo, mimeType) {
     // Update main display
     const box = document.querySelector('.hoarding-image-box');
     if (isVideo) {
-        box.innerHTML = `<video style="width:100%;height:100%;object-fit:cover;display:block;border-radius:12px;"
+        box.innerHTML = `<video style="width:100%;height:100%;object-fit:fill;display:block;border-radius:12px;"
             autoplay muted loop playsinline preload="metadata">
             <source src="${src}" type="${mimeType}">
         </video>`;
     } else {
-        box.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="Hoarding">`;
+        box.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:fill;display:block;" alt="Hoarding">`;
     }
 
     // Update active thumbnail border

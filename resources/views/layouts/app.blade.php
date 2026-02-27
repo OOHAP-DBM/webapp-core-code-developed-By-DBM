@@ -53,7 +53,7 @@
                     btn.textContent = 'Remove';
                     btn.classList.add('remove');
                 } else {
-                    btn.textContent = 'Add to Sortlist';
+                    btn.textContent = 'Add to Shortlist';
                     btn.classList.add('add');
                 }
             }
