@@ -56,8 +56,7 @@ Vendor Account Details
        autocomplete="off"
        autocorrect="off"
        autocapitalize="none"
-       spellcheck="false"
-       >
+       spellcheck="false">
 @error('email') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
 </div>
 
