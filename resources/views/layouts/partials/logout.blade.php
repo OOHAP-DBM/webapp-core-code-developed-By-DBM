@@ -44,14 +44,12 @@
                     Cancel
                 </button>
 
-                <form method="POST" action="{{ route('logout') }}" onsubmit="clearAllSessionBeforeLogout()">
-                    @csrf
-                    <button
-                        type="submit"
-                        class="w-40 logout-btn cursor-pointer font-semibold px-6 py-3 rounded-lg">
-                        Yes, Logout
-                    </button>
-                </form>
+                <button
+                    type="button"
+                    onclick="handleLogout()"
+                    class="w-40 logout-btn cursor-pointer font-semibold px-6 py-3 rounded-lg">
+                    Yes, Logout
+                </button>
 
            </div>
 
@@ -59,6 +57,27 @@
     </div>
 </div>
 <script>
+function handleLogout() {
+    clearAllSessionBeforeLogout();
+
+    fetch('{{ route("logout") }}', {
+        method: 'POST',
+        headers: {
+            // Meta tag se fresh CSRF token — stale form token nahi
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(() => {
+        window.location.href = '/login';
+    })
+    .catch(() => {
+        // Error aaye tab bhi login pe bhejo
+        window.location.href = '/login';
+    });
+}
+
 function clearAllSessionBeforeLogout() {
     sessionStorage.clear();
     localStorage.clear();
