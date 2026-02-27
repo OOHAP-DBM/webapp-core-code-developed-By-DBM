@@ -669,4 +669,9 @@ public function getActiveHoardingsCountAttribute(): int
     {
         \Mail::to($this->email)->send($mailable);
     }
+
+        public function posProfile()
+    {
+        return $this->hasOne(PosCustomer::class, 'user_id');
+    }
 }
