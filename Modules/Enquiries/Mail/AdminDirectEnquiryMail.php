@@ -7,8 +7,9 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
 use Modules\Enquiries\Models\DirectEnquiry;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class AdminDirectEnquiryMail extends Mailable
+class AdminDirectEnquiryMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

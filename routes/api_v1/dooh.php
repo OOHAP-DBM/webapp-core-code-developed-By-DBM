@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\DOOH\Controllers\Api\DOOHPackageBookingController;
 use Modules\DOOH\Controllers\Api\DOOHScreenController;
-
+use Modules\DOOH\Controllers\Api\DOOHUpdateController;
 /**
  * DOOH Package Booking API Routes (v1)
  * Base: /api/v1/dooh
@@ -37,6 +37,7 @@ Route::middleware(['auth:sanctum', 'role:customer'])->prefix('customer')->group(
     
     // Cancellation
     Route::post('/dooh/bookings/{id}/cancel', [DOOHPackageBookingController::class, 'cancelBooking']);
+
 });
 
 // ============================================
@@ -65,6 +66,28 @@ Route::middleware(['auth:sanctum', 'role:vendor', 'vendor.approved'])->prefix('v
     // API integration
     Route::post('/dooh/sync-screens', [DOOHPackageBookingController::class, 'syncScreens']);
     Route::get('/dooh/test-connection', [DOOHPackageBookingController::class, 'testConnection']);
+
+    Route::get('/show/{id}', [DOOHUpdateController::class, 'show']);
+
+    // ── Step 1: Basic info, dimensions, location, pricing, media ───
+    // PUT /api/v1/vendor/dooh/{id}/step1
+    // Content-Type: multipart/form-data (required — has file uploads)
+    Route::post('/edit/{id}/step1', [DOOHUpdateController::class, 'updateStep1']);
+
+    // ── Step 2: Permit, audience, visibility, brand logos ──────────
+    // PUT /api/v1/vendor/dooh/{id}/step2
+    // Content-Type: multipart/form-data (required — has file uploads)
+    Route::post('/edit/{id}/step2', [DOOHUpdateController::class, 'updateStep2']);
+
+    // ── Step 3: Graphics, slots, campaign packages ─────────────────
+    // PUT /api/v1/vendor/dooh/{id}/step3
+    // Content-Type: application/json OR multipart/form-data
+    Route::post('/edit/{id}/step3', [DOOHUpdateController::class, 'updateStep3']);
+
+    // ── Delete specific media files outside of step saves ──────────
+    // DELETE /api/v1/vendor/dooh/{id}/media
+    // Body: { "media_ids": "12,15,20" }
+    Route::delete('/{id}/media', [DOOHUpdateController::class, 'deleteMedia']);
 });
 
 
