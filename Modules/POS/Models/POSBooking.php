@@ -5,8 +5,8 @@ namespace Modules\POS\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Users\Models\User;
-use Modules\Hoardings\Models\Hoarding;
+use App\Models\User;
+use App\Models\Hoarding;
 
 
 use \App\Traits\Auditable;
@@ -44,8 +44,12 @@ class POSBooking extends Model
         'payment_mode',
         'payment_status',
         'paid_amount',
+         'payment_received_at',
         'payment_reference',
         'payment_notes',
+        'hold_expiry_at',
+        'reminder_count',
+        'last_reminder_at',
         'credit_note_number',
         'credit_note_date',
         'credit_note_due_date',
@@ -61,6 +65,8 @@ class POSBooking extends Model
         'notes',
         'cancellation_reason',
         'confirmed_at',
+        'started_at',
+        'completed_at',
         'cancelled_at',
     ];
 
@@ -80,6 +86,8 @@ class POSBooking extends Model
         'approved_at' => 'datetime',
         'confirmed_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     // Status constants
@@ -130,6 +138,29 @@ class POSBooking extends Model
     {
         return $this->belongsTo(Hoarding::class);
     }
+
+        /**
+     * Get all hoardings linked to this booking
+     */
+    public function hoardings()
+    {
+        return $this->belongsToMany(
+            Hoarding::class,
+            'pos_booking_hoardings',
+            'pos_booking_id',
+            'hoarding_id'
+        )->withPivot(['hoarding_price', 'hoarding_discount', 'hoarding_tax', 'hoarding_total', 'start_date', 'end_date', 'duration_days', 'status'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all booking hoarding records with details
+     */
+    public function bookingHoardings()
+    {
+        return $this->hasMany(POSBookingHoarding::class, 'pos_booking_id');
+    }
+
 
     /**
      * Get the approver
@@ -256,9 +287,40 @@ class POSBooking extends Model
      */
     public function scopeActive($query)
     {
-        return $query->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_ACTIVE]);
+        return $query->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_ACTIVE, self::STATUS_PAID]);
     }
 
+//     public function scopeActive($query)
+// {
+//     return $query->whereIn('status', ['confirmed', 'partial_paid', 'paid']);
+// }
+
+    public function scopeOverdue($query)
+    {
+        return $query->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_PARTIAL_PAID])
+            ->where('end_date', '<', now());
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', self::STATUS_COMPLETED);
+    }
+
+    public function getBookingsEligibleForWhatsappReminder(): Collection
+    {
+        return PosBooking::query()
+            ->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_PARTIAL_PAID])
+            ->where('payment_status', '!=', self::PAYMENT_STATUS_PAID)
+            ->where('reminder_count', '<', 3)
+            ->where(function ($q) {
+                $q->whereNull('last_reminder_at')
+                ->orWhere('last_reminder_at', '<', now()->subDay());
+            })
+            ->whereNull('cancelled_at')
+            ->select('id')
+            ->limit(50)
+            ->get();
+    }
     /**
      * Scope: Unpaid bookings
      */
@@ -275,4 +337,59 @@ class POSBooking extends Model
         return $query->where('payment_mode', self::PAYMENT_MODE_CREDIT_NOTE)
             ->where('credit_note_status', self::CREDIT_NOTE_STATUS_ACTIVE);
     }
+
+
+    // ADDITION (STEP 2): Accessors/Mutators for date conversion (UI: DD/MM/YYYY, DB: YYYY-MM-DD)
+    public function getStartDateUiAttribute()
+    {
+        return $this->start_date ? \Carbon\Carbon::parse($this->start_date)->format('d/m/Y') : null;
+    }
+    public function setStartDateUiAttribute($value)
+    {
+        $this->attributes['start_date'] = $value ? \Carbon\Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d') : null;
+    }
+    public function getEndDateUiAttribute()
+    {
+        return $this->end_date ? \Carbon\Carbon::parse($this->end_date)->format('d/m/Y') : null;
+    }
+    public function setEndDateUiAttribute($value)
+    {
+        $this->attributes['end_date'] = $value ? \Carbon\Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d') : null;
+    }
+
+    // ADDITION (STEP 2): Booking status helpers
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+    public function isPendingPayment(): bool
+    {
+        return $this->status === 'pending_payment';
+    }
+    public function isPaid(): bool
+    {
+        return $this->status === 'paid';
+    }
+    public function isReleased(): bool
+    {
+        return $this->status === 'released';
+    }
+
+    public function transitionTo(string $newStatus): bool
+    {
+        $validTransitions = [
+            'draft' => ['pending_payment', 'cancelled'],
+            'pending_payment' => ['paid', 'released', 'cancelled'],
+            'paid' => [],
+            'released' => [],
+            'cancelled' => [],
+        ];
+        if (!isset($validTransitions[$this->status]) || !in_array($newStatus, $validTransitions[$this->status])) {
+            throw new \Exception("Invalid status transition from {$this->status} to {$newStatus}");
+        }
+        $this->status = $newStatus;
+        return $this->save();
+    }
+
+    
 }

@@ -4,11 +4,12 @@ namespace Modules\Enquiries\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Str;
 
 
-class AdminEnquiryNotification extends Notification
+class AdminEnquiryNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

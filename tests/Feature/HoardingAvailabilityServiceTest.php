@@ -6,7 +6,7 @@ use App\Models\Booking;
 use App\Models\Hoarding;
 use App\Models\MaintenanceBlock;
 use App\Models\User;
-use App\Services\HoardingAvailabilityService;
+use Modules\Hoardings\Services\HoardingAvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
