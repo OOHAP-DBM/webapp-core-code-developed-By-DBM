@@ -3,7 +3,7 @@
 @section('title', 'My Hoardings')
 
 @section('content')
-<div class="bg-[#F8F9FA] min-h-screen">
+<div class="bg-[#F8F9FA] ">
     <div class=" top-0 z-1 bg-white border-b border-gray-100 shadow-sm">
         <div class="max-w-[1600px] mx-auto px-6">
             <div class="flex gap-8">
@@ -65,7 +65,7 @@
         </div> --}}
 
         <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" style="max-height: 597px; overflow-y: auto;">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="p-6">
