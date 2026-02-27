@@ -6,45 +6,104 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Str;
+
 
 class AdminEnquiryNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     protected $enquiry;
+    protected $totalItems;
+    protected $vendorCount;
+    protected $isMultiVendor;
+    protected $totalValue;
+    protected $customerName;
 
     public function __construct($enquiry)
     {
         $this->enquiry = $enquiry;
+
+        $items = $enquiry->items ?? collect();
+
+        $this->totalItems  = $items->count();
+        $this->vendorCount = $items->pluck('vendor_id')
+                                ->filter(fn($id) => !empty($id))
+                                ->unique()
+                                ->count();
+
+        $this->isMultiVendor = $this->vendorCount > 1;
+        $this->totalValue = $items->sum(fn ($item) => $item->meta['amount'] ?? 0);
+
+        $this->customerName = is_array($enquiry->meta ?? null) && isset($enquiry->meta['customer_name'])
+            ? $enquiry->meta['customer_name']
+            : 'New Client';
     }
 
     public function via($notifiable)
     {
         return ['mail', 'database'];
     }
-
     public function toMail($notifiable)
     {
-        $totalItems = $this->enquiry->items()->count();
-
         return (new MailMessage)
-            ->subject('PLATFORM ALERT: New Lead Generated #' . $this->enquiry->id)
+            ->subject(
+                ($this->isMultiVendor 
+                    ? '🚨 MULTI-VENDOR ALERT: ' 
+                    : '📩 SINGLE-VENDOR LEAD: ')
+                . 'New Enquiry #' . $this->enquiry->id
+            )
             ->greeting('Hello Admin,')
-            ->line('A new multi-item enquiry has been generated on the platform.')
-            ->line('**Client:** ' . (is_array($this->enquiry->meta) && isset($this->enquiry->meta['customer_name']) ? $this->enquiry->meta['customer_name'] : 'N/A'))
-            ->line('**Total Hoardings:** ' . $totalItems)
-            ->line('**Total Potential Value:** ' . number_format($this->enquiry->items->sum(fn($i) => $i->meta['amount'] ?? 0), 2))
-            ->action('Review in Admin Panel', url('/admin/enquiries/' . $this->enquiry->id))
-            ->line('Ensure vendors are responding to these leads promptly.');
+
+            ->line(
+                $this->isMultiVendor
+                    ? "🚨 Multi-vendor enquiry involving {$this->vendorCount} vendors."
+                    : "📩 Single-vendor enquiry."
+            )
+
+            ->line(
+                "Total Hoardings: {$this->totalItems}"
+            )
+
+            ->line(
+                "Client: {$this->customerName}"
+            )
+
+            ->line(
+                "Total Potential Value: ₹" . number_format($this->totalValue, 2)
+            )
+
+            ->action(
+                'Review in Admin Panel',
+                url('/admin/enquiries/' . $this->enquiry->id)
+            )
+
+            ->line(
+                $this->isMultiVendor
+                    ? '⚠️ Coordination between multiple vendors is required.'
+                    : 'Ensure the vendor responds promptly.'
+            );
     }
 
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
-        $totalItems = $this->enquiry->items()->count();
         return [
-            'enquiry_id' => $this->enquiry->id,
-            'message' => 'New platform lead generated for ' . $totalItems . ' items.',
-            'type' => 'platform_lead'
+            'enquiry_id'    => $this->enquiry->id,
+            'customer_name' => $this->customerName,
+            'item_count'    => $this->totalItems,
+            'vendor_count'  => $this->vendorCount,
+            'is_multi_vendor' => $this->isMultiVendor,
+            'total_value'   => $this->totalValue,
+
+            'message' => $this->isMultiVendor
+                ? "🚨 Multi-vendor enquiry ({$this->vendorCount} vendors, {$this->totalItems} hoardings)."
+                    : "📩 Single-vendor enquiry ({$this->totalItems} " 
+                      . Str::plural('hoarding', $this->totalItems) . ").",
+
+            'action_url' => route('admin.enquiries.show', $this->enquiry->id),
+            'role'       => 'admin',
         ];
     }
+
+
 }

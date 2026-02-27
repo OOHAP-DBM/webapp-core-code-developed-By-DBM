@@ -95,7 +95,9 @@ class QuoteRequestService
             ->get();
 
         foreach ($vendors as $vendor) {
-            $vendor->notify(new QuoteRequestPublishedNotification($quoteRequest));
+            // Send to all enabled emails if global preference is on
+            $notification = new \App\Notifications\QuoteRequestPublishedNotification($quoteRequest);
+            $vendor->notifyVendorEmails($notification);
         }
     }
 

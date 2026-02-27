@@ -8,11 +8,18 @@
     <title>@yield('title', 'Dashboard') - OOHAPP Customer</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
+    <link rel="icon" type="image/png" href="/assets/images/favicon/Vector (1).png" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
+    <style>
+    [x-cloak] {
+            display: none !important;
+        }
+    </style>
 </head>
 <body class="antialiased bg-gray-50">
     <!-- Toast Container (PROMPT 50) -->
@@ -60,8 +67,8 @@
 </style>
     <!-- Shortlist JavaScript (PROMPT 50) -->
     <script src="{{ asset('js/shortlist.js') }}"></script>
-    <script src="//unpkg.com/alpinejs" defer></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const sidebar   = document.getElementById('sidebar');

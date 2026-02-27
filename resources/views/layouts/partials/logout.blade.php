@@ -1,14 +1,18 @@
 <div id="logoutModal"
      class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60">
 
-    <div class="bg-white w-[90%] max-w-md rounded-2xl shadow-xl relative">
+    <div class="bg-white w-[70%] max-w-md rounded-2xl shadow-xl relative">
 
         <!-- CLOSE ICON -->
-        <button
-            onclick="closeLogoutModal()"
-            class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
-            ✕
-        </button>
+        <div class="h-12 bg-[#ededed] relative rounded-t-2xl">
+            <!-- CLOSE ICON -->
+            <button
+                onclick="closeLogoutModal()"
+                class="absolute top-2 right-3 w-10 h-10 flex items-center justify-center
+                       rounded-full font-semibold text-black text-xl leading-none cursor-pointer">
+                ×
+            </button>
+        </div>
 
         <!-- CONTENT -->
         <div class="p-8 text-center">
@@ -27,7 +31,7 @@
                 Comeback Soon!
             </h2>
 
-            <p class="text-gray-500 text-lg mb-6">
+            <p class="text-gray-500 text-lg mb-6 font-semibold">
                 Are you sure you want<br>
                 to logout from OOHAPP?
             </p>
@@ -36,15 +40,15 @@
                 <button
                     type="button"
                     onclick="closeLogoutModal()"
-                    class="text-gray-700 font-bold">
+                    class="w-40 px-6 py-3 rounded-lg text-black font-bold cursor-pointer hover:border">
                     Cancel
                 </button>
 
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout') }}" onsubmit="clearAllSessionBeforeLogout()">
                     @csrf
                     <button
                         type="submit"
-                        class="logout-btn font-semibold px-6 py-3 rounded-lg">
+                        class="w-40 logout-btn cursor-pointer font-semibold px-6 py-3 rounded-lg">
                         Yes, Logout
                     </button>
                 </form>
@@ -54,3 +58,16 @@
         </div>
     </div>
 </div>
+<script>
+function clearAllSessionBeforeLogout() {
+    sessionStorage.clear();
+    localStorage.clear();
+
+    // optional safety
+    document.cookie.split(";").forEach(c => {
+        document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+}
+</script>

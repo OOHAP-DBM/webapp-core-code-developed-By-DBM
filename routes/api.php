@@ -1,9 +1,10 @@
 <?php
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RazorpayWebhookController;
-
+use App\Http\Controllers\Api\Customer\ShortlistController;
+use App\Http\Controllers\Api\Vendor\DashboardController;  
+use App\Http\Controllers\Api\Customer\CustomerHomeController;
 /**
  * OOHAPP API v1 Routes
  * 
@@ -17,6 +18,23 @@ Route::middleware(['throttle:webhooks'])->group(function () {
     Route::post('/webhooks/razorpay', [RazorpayWebhookController::class, 'handle']);
 });
 
+
+
+Route::middleware(['auth:sanctum'])
+    ->prefix('v1/wishlist')
+    ->group(function () {
+
+        Route::get('/', [ShortlistController::class, 'index']);          // Get wishlist
+        Route::post('/{hoardingId}', [ShortlistController::class, 'store']); // Add
+        Route::delete('/{hoardingId}', [ShortlistController::class, 'destroy']); // Remove
+        Route::delete('/', [ShortlistController::class, 'clear']);       // Clear all
+
+        Route::post('/toggle/{hoardingId}', [ShortlistController::class, 'toggle']);
+        Route::get('/check/{hoardingId}', [ShortlistController::class, 'check']);
+        Route::get('/count', [ShortlistController::class, 'count']);
+});
+
+
 Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     
     // Health check
@@ -28,6 +46,12 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         ]);
     });
 
+    Route::middleware(['auth:sanctum', 'role:customer'])->prefix('customer')->group(function () {
+        Route::get('/home', [CustomerHomeController::class, 'index']);
+    });
+    Route::middleware(['auth:sanctum', 'role:vendor'])->prefix('vendor')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+    });
     // Load module-specific API routes
     Route::prefix('auth')->group(base_path('routes/api_v1/auth.php'));
     Route::prefix('profile')->group(base_path('routes/api_v1/profile.php'));
@@ -46,10 +70,17 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     Route::prefix('admin')->group(base_path('routes/api_v1/admin.php'));
     Route::prefix('settings')->group(base_path('routes/api_v1/settings.php'));
     Route::prefix('notifications')->group(base_path('routes/api_v1/notifications.php'));
+    Route::prefix('vendor/notifications')->group(base_path('routes/api_v1/vendor_notifications.php'));
+    Route::prefix('agency-notifications')->group(base_path('routes/api_v1/agency_notifications.php'));
+    Route::prefix('brand-manager-notifications')->group(base_path('routes/api_v1/brand_manager_notifications.php'));
     Route::prefix('reports')->group(base_path('routes/api_v1/reports.php'));
     Route::prefix('media')->group(base_path('routes/api_v1/media.php'));
     Route::prefix('search')->group(base_path('routes/api_v1/search.php'));
     Route::prefix('vendor/pos')->group(base_path('routes/api_v1/pos.php')); // POS Module
+    Route::prefix('pages')->group(base_path('routes/api_v1/cms.php')); // CMS Module
+
+
+
     
     // Thread Communication System (PROMPT 28)
     require base_path('routes/api_v1/threads.php');

@@ -1,170 +1,225 @@
 <!DOCTYPE html>
+
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #FF6B35; color: white; padding: 20px; border-radius: 5px; text-align: center; }
-        .content { padding: 20px 0; }
-        .section { margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #FF6B35; border-radius: 3px; }
-        .section h3 { margin-top: 0; color: #FF6B35; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        table, th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #f0f0f0; font-weight: bold; }
-        .customer-info { background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #ffc107; }
-        .hoarding-name { font-weight: bold; color: #FF6B35; font-size: 16px; }
-        .package-badge { display: inline-block; background-color: #FF6B35; color: white; padding: 5px 10px; border-radius: 3px; font-size: 12px; font-weight: bold; }
-        .amount { font-weight: bold; color: #333; font-size: 18px; }
-        .total-section { background-color: #f0f0f0; padding: 15px; border-radius: 5px; text-align: right; margin: 20px 0; }
-        .total-amount { font-size: 24px; font-weight: bold; color: #FF6B35; }
-        .button { display: inline-block; background-color: #FF6B35; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
-        .footer { text-align: center; color: #666; font-size: 12px; padding-top: 20px; border-top: 1px solid #ddd; margin-top: 20px; }
-        .alert { background-color: #e7f3ff; padding: 15px; border-left: 4px solid #17a2b8; border-radius: 3px; margin: 15px 0; }
-    </style>
+    <title>New Enquiry Received - OOHAPP</title>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎉 New Enquiry Received!</h1>
-        </div>
 
-        <div class="content">
-            <p>Hi {{ $vendor->name }},</p>
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, Helvetica, sans-serif;">
 
-            <p>Great news! You have received a new enquiry from an advertiser. Here are the details:</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8; padding:40px 0;">
+<tr>
+<td align="center">
 
-            <div class="customer-info">
-                <strong>👤 Customer Information</strong>
-                <table style="margin-top: 10px; border: none;">
-                    <tr style="border: none;">
-                        <td style="border: none; padding: 5px 0;"><strong>Name</strong></td>
-                        <td style="border: none; padding: 5px 0;">{{ $enquiry->customer->name ?? 'Not provided' }}</td>
-                    </tr>
-                    <tr style="border: none;">
-                        <td style="border: none; padding: 5px 0;"><strong>Email</strong></td>
-                        <td style="border: none; padding: 5px 0;">{{ $enquiry->customer->email ?? 'Not provided' }}</td>
-                    </tr>
-                    <tr style="border: none;">
-                        <td style="border: none; padding: 5px 0;"><strong>Contact</strong></td>
-                        <td style="border: none; padding: 5px 0;">{{ $enquiry->contact_number ?? 'Not provided' }}</td>
-                    </tr>
-                </table>
-            </div>
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 
-            <div class="section">
-                <h3>📋 Enquiry Details</h3>
-                <table>
-                    <tr>
-                        <td><strong>Enquiry ID</strong></td>
-                        <td>#{{ $enquiry->id }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Campaign Start Date</strong></td>
-                        <td>
-                            @php
-                                $startDate = $items->first()?->preferred_start_date;
-                                $formattedDate = is_string($startDate) ? \Carbon\Carbon::parse($startDate)->format('M d, Y') : ($startDate?->format('M d, Y') ?? 'N/A');
-                            @endphp
-                            {{ $formattedDate }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>Number of Your Hoardings</strong></td>
-                        <td>{{ $items->count() }}</td>
-                    </tr>
-                </table>
-            </div>
+@include('emails.partials.header')
 
-            <div class="section">
-                <h3>🏢 Your Hoardings in This Enquiry</h3>
-                @foreach($items as $item)
-                <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
-                    <div class="hoarding-name">
-                        <a href="{{ route('hoardings.show', $item->hoarding_id) }}" style="color: #FF6B35; text-decoration: underline;">
-                            {{ $item->hoarding->title ?? 'Hoarding #' . $item->hoarding_id }}
-                        </a>
-                    </div>
-                    <p style="margin: 8px 0; color: #666;">
-                        📍 {{ $item->hoarding->location ?? 'Location: N/A' }}
-                    </p>
-                    <table style="margin-top: 10px;">
-                        <tr>
-                            <td><strong>Type</strong></td>
-                            <td>{{ ucfirst($item->hoarding_type) }}</td>
-                        </tr>
-                        @if($item->package_type === 'package')
-                        <tr>
-                            <td><strong>Package</strong></td>
-                            <td><span class="package-badge">{{ $item->package_label ?? 'Standard Package' }}</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Duration</strong></td>
-                            <td>
-                                @php
-                                    $start = is_string($item->preferred_start_date) ? \Carbon\Carbon::parse($item->preferred_start_date) : $item->preferred_start_date;
-                                    $end = is_string($item->preferred_end_date) ? \Carbon\Carbon::parse($item->preferred_end_date) : $item->preferred_end_date;
-                                    $months = $start->diffInMonths($end);
-                                @endphp
-                                {{ $months }} month{{ $months !== 1 ? 's' : '' }} ({{ $start->format('M d') }} - {{ $end->format('M d, Y') }})
-                            </td>
-                        </tr>
-                        @else
-                        <tr>
-                            <td><strong>Duration</strong></td>
-                            <td>{{ $item->expected_duration ?? 'Custom Period' }}</td>
-                        </tr>
-                        @endif
-                    </table>
-                    @if($item->hoarding_type === 'dooh' && isset($item->meta['dooh_specs']))
-                    <div style="margin-top: 10px; padding: 10px; background-color: #e8f5e9; border-radius: 3px;">
-                        <strong>📺 DOOH Specifications Requested:</strong>
-                        <ul style="margin: 8px 0 0 20px; padding: 0;">
-                            <li>Video Duration: {{ $item->meta['dooh_specs']['video_duration'] ?? 15 }} seconds</li>
-                            <li>Slots per Day: {{ $item->meta['dooh_specs']['slots_per_day'] ?? 120 }}</li>
-                            <li>Total Days: {{ $item->meta['dooh_specs']['total_days'] ?? 0 }}</li>
-                        </ul>
-                    </div>
-                    @endif
-                </div>
-                @endforeach
-            </div>
+<!-- TITLE -->
 
-            @if($enquiry->customer_note)
-            <div class="section" style="border-left-color: #17a2b8;">
-                <h3 style="color: #17a2b8;">💬 Customer Message</h3>
-                <p>{{ $enquiry->customer_note }}</p>
-            </div>
-            @endif
+<tr>
+<td align="center" style="padding:20px 40px 0 40px;">
+    <h2 style="margin:0; color:#16a34a; font-weight:600;">
+        🎉 New Enquiry Received!
+    </h2>
+          🎉 New Enquiry Received!
+        Hi {{ $vendor->name }}, an advertiser is interested in your media.
+    </p>
+          Hi {{ $vendor->name }}, an advertiser is interested in your media.
+</tr>
 
-            <div class="alert">
-                <strong>⚡ Action Required</strong>
-                <p style="margin: 8px 0 0 0;">Please review this enquiry and confirm your availability. Once confirmed, a quotation will be generated.</p>
-            </div>
+<!-- INTRO -->
 
-            <p style="text-align: center; margin-top: 25px;">
-                <a href="https://staging.oohapp.io/vendor/enquiries" class="button">Review Enquiry & Respond</a>
-            </p>
+<tr>
+<td style="padding:15px 40px; font-size:14px; color:#444; line-height:22px;">
+    <p>
+        You have received a new advertising enquiry. Please review the campaign details
+        and confirm your availability.
+    </p>
+</tr>
 
-            <div class="section">
-                <h3>📌 Quick Tips</h3>
-                <ul style="margin: 10px 0; padding-left: 20px;">
-                    <li>Confirm quickly to show the customer you're interested</li>
-                    <li>Add any additional details or special offers if applicable</li>
-                    <li>Check hoarding availability before confirming</li>
-                    <li>Your response time matters - faster responses get priority</li>
-                </ul>
-            </div>
+<!-- CUSTOMER DETAILS -->
 
-            <p>Looking forward to growing your business through OOHApp.</p>
-            <p>Best,<br><strong>Team OOHApp</strong></p>
-        </div>
+<tr>
+<td style="padding:10px 40px;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;">
+<tr style="background:#f0fdf4;">
+    <th align="left" colspan="2" style="padding:10px; font-size:13px;">Customer Information</th>
+</tr>
 
-        <div class="footer">
-            <p>&copy; 2026 OOHApp. All rights reserved.</p>
-            <p>This is an automated email. Please do not reply directly.</p>
-        </div>
+<tr>
+        <td style="padding:10px; font-size:13px;"><strong>Customer Name</strong></td>
+    <td style="padding:10px; font-size:13px;">{{ $enquiry->customer->name ?? 'Not provided' }}</td>
+</tr>
+
+<tr>
+    <td style="padding:10px; font-size:13px;"><strong>Email</strong></td>
+    <td style="padding:10px; font-size:13px;">
+        <a href="mailto:{{ $enquiry->customer->email }}" style="color:#16a34a; text-decoration:none;">
+            {{ $enquiry->customer->email ?? 'Not provided' }}
+        </a>
+    </td>
+</tr>
+
+<tr>
+    <td style="padding:10px; font-size:13px;"><strong>Contact</strong></td>
+    <td style="padding:10px; font-size:13px;">{{ $enquiry->contact_number ?? 'Not provided' }}</td>
+</tr>
+
+</table>
+</td>
+</tr>
+
+<!-- ENQUIRY DETAILS -->
+
+<tr>
+<td style="padding:20px 40px 0 40px;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;">
+<tr style="background:#f3f4f6;">
+     <td style="padding:12px; font-size:14px; color:#065f46;">
+    <th align="left" style="padding:10px; font-size:13px;">Information</th>
+</tr>
+
+<tr>
+    <td style="padding:10px; font-size:13px;"><strong>Enquiry ID</strong></td>
+    <td style="padding:10px; font-size:13px;">{{ $enquiry->formatted_id }}</td>
+</tr>
+
+<tr>
+    <td style="padding:10px; font-size:13px;"><strong>Campaign Start</strong></td>
+    <td style="padding:10px; font-size:13px;">
+        @php
+            $startDate = $items->first()?->preferred_start_date;
+            echo $startDate ? \Carbon\Carbon::parse($startDate)->format('d M Y') : '-';
+        @endphp
+    </td>
+</tr>
+
+<tr>
+    <td style="padding:10px; font-size:13px;"><strong>Your Hoardings</strong></td>
+    <td style="padding:10px; font-size:13px;">{{ $items->count() }}</td>
+</tr>
+
+</table>
+</td>
+</tr>
+
+<!-- HOARDINGS -->
+
+<tr>
+<td style="padding:20px 40px 0 40px;">
+    <p style="font-size:14px; color:#444;"><strong>Your Hoardings in this Enquiry</strong></p>
+</td>
+</tr>
+
+@foreach($items as $item)
+
+<tr>
+<td style="padding:10px 40px;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;">
+
+<tr style="background:#f0fdf4;">
+<td style="padding:12px; font-size:14px; color:#166534;">
+    <strong>{{ $item->hoarding->title ?? 'Hoarding #' . $item->hoarding_id }}</strong>
+</td>
+</tr>
+
+<tr>
+<td style="padding:10px; font-size:13px;">
+    📍 {{ $item->hoarding->display_location ?? 'Location not specified' }}
+</td>
+</tr>
+
+<tr>
+<td style="padding:10px; font-size:13px;">
+    <strong>Type:</strong> {{ strtoupper($item->hoarding_type) }}
+</td>
+</tr>
+
+@if($item->package_type === 'package')
+
+<tr>
+<td style="padding:10px; font-size:13px;">
+    <strong>Package:</strong> {{ $item->package_label ?? 'Standard Package' }}
+</td>
+</tr>
+@endif
+
+@if($item->expected_duration)
+
+<tr>
+<td style="padding:10px; font-size:13px;">
+    <strong>Campain Duration:</strong> {{ $item->expected_duration }}
+</td>
+</tr>
+@endif
+
+@if($item->hoarding_type === 'dooh' && isset($item->meta['dooh_specs']))
+
+<tr>
+<td style="padding:10px; font-size:13px; background:#dcfce7;">
+    <strong>DOOH Specs:</strong><br>
+    Video: {{ $item->meta['dooh_specs']['video_duration'] ?? 15 }} sec |
+    Slots/Days: {{ $item->meta['dooh_specs']['slots_per_day'] ?? 120 }} |
+    Days: {{ $item->meta['dooh_specs']['total_days'] ?? 0 }}
+</td>
+</tr>
+@endif
+
+</table>
+</td>
+</tr>
+@endforeach
+
+<!-- CUSTOMER MESSAGE -->
+
+@if($enquiry->customer_note)
+
+<tr>
+<td style="padding:20px 40px;">
+    <div style="background:#eff6ff; border-left:4px solid #2563eb; padding:12px; font-size:13px;">
+        <strong>Customer Message:</strong><br>
+        {{ $enquiry->customer_note }}
     </div>
+</td>
+</tr>
+@endif
+
+<!-- ACTION BOX -->
+
+<tr>
+<td style="padding:20px 40px;">
+    <div style="background:#f0fdf4; border-left:4px solid #16a34a; padding:14px; font-size:14px;">
+        <strong>Action Required:</strong><br>
+        Please confirm your availability. After confirmation, quotation will be generated.
+    </div>
+</td>
+</tr>
+
+<tr>
+    <td style="padding:20px 40px;"><div style="
+    margin-top: 25px;
+    padding-top: 12px;
+    border-top: 1px dashed #ddd;
+    font-size: 9px;
+    color: #777;
+    line-height: 1.5;
+">
+    <strong style="color:#555;">Disclaimer:</strong>
+    OOHAPP provides a platform to connect you with interested advertisers.
+    All quotations, pricing, timelines, and execution details are shared by you directly.
+    Any discussion or confirmation happens between you and the advertiser.
+    OOHAPP acts as a facilitator and does not participate in pricing or execution decisions.
+</div></td>
+</tr>
+
+@include('emails.partials.footer')
+
+</table>
+</td>
+</tr>
+</table>
+
 </body>
 </html>

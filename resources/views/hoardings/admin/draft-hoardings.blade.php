@@ -1,6 +1,15 @@
 @extends('layouts.admin')
-@section('title', "Draft Hoardings")
 
+@section('title', 'All Hoardings')
+@section('page_title', "Draft Hoardings")
+
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'All Hoardings', 'route' => route('admin.my-hoardings')],
+    ['label' => 'Draft Hoardings']
+]" />
+@endsection
 @section('content')
 <div class="px-6 py-6">
     <h1 class="text-lg font-semibold text-gray-900 mb-4">

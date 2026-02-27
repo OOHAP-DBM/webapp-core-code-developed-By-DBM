@@ -22,8 +22,7 @@ class HoardingApproved extends Notification
             'hoarding_id' => $this->hoarding->id,
 
             // 👇 redirect vendor to My Hoardings page
-            'action_url' => route('vendor.hoardings.myHoardings'),
-
+            'action_url' => route('vendor.myHoardings.show', $this->hoarding->id),
         ];
     }
 }

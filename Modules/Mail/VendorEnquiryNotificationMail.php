@@ -7,8 +7,10 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Enquiries\Models\Enquiry;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
 
 class VendorEnquiryNotificationMail extends Mailable implements ShouldQueue
 {

@@ -2,109 +2,121 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OTP Verification</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .email-container {
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .logo h1 {
-            color: #2563eb;
-            margin: 0;
-            font-size: 28px;
-        }
-        .otp-box {
-            background-color: #f8fafc;
-            border: 2px solid #2563eb;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            margin: 30px 0;
-        }
-        .otp-code {
-            font-size: 36px;
-            font-weight: bold;
-            color: #2563eb;
-            letter-spacing: 8px;
-            margin: 10px 0;
-        }
-        .otp-label {
-            color: #64748b;
-            font-size: 14px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-        .warning {
-            background-color: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 15px;
-            margin: 20px 0;
-            font-size: 14px;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            color: #64748b;
-            font-size: 12px;
-        }
-        .validity {
-            color: #ef4444;
-            font-weight: bold;
-            font-size: 14px;
-            text-align: center;
-            margin-top: 15px;
-        }
-    </style>
+    <title>Email Verification - OOHAPP</title>
 </head>
-<body>
-    <div class="email-container">
-        <div class="logo">
-            <h1> OOHAPP</h1>
-        </div>
-        
-        <h2 style="color: #1e293b; margin-bottom: 20px;">Email Verification Required</h2>
-        
-        <p>Hello,</p>
-        
-        <p>You have requested to verify your email address for your OOHAPP account. Please use the following One-Time Password (OTP) to complete your verification:</p>
-        
-        <div class="otp-box">
-            <div class="otp-label">Your Verification Code</div>
-            <div class="otp-code">{{ $otp }}</div>
-        </div>
-        
-        <p class="validity">⏰ This code is valid for 5 minutes only</p>
-        
-        <div class="warning">
-            <strong>⚠️ Security Notice:</strong><br>
-            Never share this OTP with anyone. OOHAPP staff will never ask for your OTP.
-        </div>
-        
-        <p>If you did not request this verification, please ignore this email or contact our support team immediately.</p>
-        
-        <div class="footer">
-            <p><strong>OOHAPP - Out of Home Advertising Platform</strong></p>
-            <p>This is an automated email. Please do not reply to this message.</p>
-            <p>&copy; {{ date('Y') }} OOHAPP. All rights reserved.</p>
-        </div>
+
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, Helvetica, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8; padding:40px 0;">
+<tr>
+<td align="center">
+
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+@include('emails.partials.header')
+
+<!-- TITLE -->
+<tr>
+<td align="center" style="padding:20px 40px 0 40px;">
+    <h2 style="margin:0; color:#1e293b; font-weight:600;">
+        Email Verification Required
+    </h2>
+    <p style="margin-top:8px; color:#666; font-size:14px;">
+        Use the One-Time Password (OTP) below to verify your email address.
+    </p>
+</td>
+</tr>
+
+<!-- OTP BOX -->
+<tr>
+<td align="center" style="padding:30px 20px;">
+    <table cellpadding="0" cellspacing="0" style="background:#f8fafc; border:2px solid #2563eb; border-radius:8px;">
+        <tr>
+            <td align="center" style="padding:18px 40px;">
+                <div style="color:#64748b; font-size:13px; margin-bottom:8px;">
+                    Your Verification Code
+                </div>
+
+                <div style="
+                    color:#2563eb;
+                    font-size:34px;
+                    font-weight:bold;
+                    letter-spacing:8px;
+                ">
+                    {{ $otp }}
+                </div>
+            </td>
+        </tr>
+    </table>
+</td>
+</tr>
+
+<!-- VALIDITY -->
+<tr>
+<td align="center" style="padding:0 40px 10px 40px;">
+    <p style="margin:0; color:#ef4444; font-size:14px; font-weight:bold;">
+        ⏰ This code is valid for 5 minutes only
+    </p>
+</td>
+</tr>
+
+<!-- INFO -->
+<tr>
+<td style="padding:10px 40px; font-size:14px; color:#444; line-height:22px;">
+    <p>Hello,</p>
+
+    <p>
+        You requested to verify your email address for your OOHAPP account.
+        Please enter the above OTP on the verification screen to continue.
+    </p>
+</td>
+</tr>
+
+<!-- SECURITY WARNING -->
+<tr>
+<td style="padding:10px 40px;">
+    <div style="
+        background:#fef3c7;
+        border-left:4px solid #f59e0b;
+        padding:14px;
+        font-size:13px;
+        color:#7c2d12;
+    ">
+        <strong>Security Notice:</strong><br>
+        Never share this OTP with anyone. OOHAPP team will never ask for your OTP via phone, email, or message.
     </div>
+</td>
+</tr>
+
+<!-- IGNORE MESSAGE -->
+<tr>
+<td style="padding:15px 40px; font-size:14px; color:#444; line-height:22px;">
+    <p>
+        If you did not request this verification, you can safely ignore this email
+        or contact our support team immediately.
+    </p>
+</td>
+</tr>
+
+<!-- SUPPORT -->
+<tr>
+<td align="center" style="padding:20px 40px 10px 40px;">
+    <p style="margin:0; color:#333; font-weight:600;">Need help?</p>
+    <p style="margin:8px 0 0 0; color:#666; font-size:14px;">
+        Contact us at
+        <a href="mailto:care@oohapp.com" style="color:#2563eb; text-decoration:none;">
+            care@oohapp.com
+        </a>
+    </p>
+</td>
+</tr>
+
+@include('emails.partials.footer')
+
+</table>
+</td>
+</tr>
+</table>
+
 </body>
 </html>

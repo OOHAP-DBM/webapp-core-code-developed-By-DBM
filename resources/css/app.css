@@ -49,99 +49,108 @@
    Sidebar Hover (NON-ACTIVE ONLY)
 ================================= */
 
-.admin-sidebar .sidebar-link:hover:not(.active) {
+/* .admin-sidebar .sidebar-link:hover:not(.active) {
     background-color: rgba(34, 197, 94, 0.12);
     color: var(--btn-color);
-}
+} */
 
 /* =================================
    Sidebar Active (FIGMA STYLE)
 ================================= */
 
-.admin-sidebar .sidebar-link.active {
+/* .admin-sidebar .sidebar-link.active {
     background-color: var(--btn-color-dark) !important;
     color: #ffffff !important;
     font-weight: 600 !important;
     border-radius: 0.75rem !important;
-}
+} */
 
 /* Active Collapsible Buttons */
-.admin-sidebar button.active {
+/* .admin-sidebar button.active {
     background-color: var(--btn-color-dark) !important;
     color: #ffffff !important;
     font-weight: 600 !important;
     border-radius: 0.75rem !important;
-}
+} */
 
 /* Parent Button Green When Any Submenu Item is Active */
-.admin-sidebar li:has(.sidebar-submenu-item.active) > button {
+/* .admin-sidebar li:has(.sidebar-submenu-item.active) > button {
     background-color: var(--btn-color-dark) !important;
     color: #ffffff !important;
     font-weight: 600 !important;
     border-radius: 0.75rem !important;
-}
+} */
 
 /* Parent Button SVG White When Any Submenu Item is Active */
-.admin-sidebar li:has(.sidebar-submenu-item.active) > button svg,
+/* .admin-sidebar li:has(.sidebar-submenu-item.active) > button svg,
 .admin-sidebar li:has(.sidebar-submenu-item.active) > button svg path,
 .admin-sidebar li:has(.sidebar-submenu-item.active) > button svg * {
     fill: #ffffff !important;
     color: #ffffff !important;
-}
+} */
 
 /* Hover State for Dropdown Buttons */
-.admin-sidebar button:hover:not(.active) {
+/* .admin-sidebar button:hover:not(.active) {
     background-color: rgba(34, 197, 94, 0.12);
     color: var(--btn-color);
-}
+} */
 
 /* Active Submenu Links */
-.admin-sidebar .sidebar-submenu-item.active {
+/* .admin-sidebar .sidebar-submenu-item.active {
     background-color: var(--btn-color-dark) !important;
     color: #ffffff !important;
-}
+} */
 
 /* Hover State for Submenu Items */
-.admin-sidebar .sidebar-submenu-item:hover:not(.active) {
+/* .admin-sidebar .sidebar-submenu-item:hover:not(.active) {
     background-color: rgba(34, 197, 94, 0.12);
     color: var(--btn-color);
-}
+} */
 
 /* Active SVG Icons */
-.admin-sidebar .sidebar-link.active svg,
+/* .admin-sidebar .sidebar-link.active svg,
 .admin-sidebar .sidebar-link.active svg path,
 .admin-sidebar .sidebar-link.active svg rect,
 .admin-sidebar .sidebar-link.active svg g path,
 .admin-sidebar .sidebar-link.active svg * {
     fill: #ffffff !important;
     color: #ffffff !important;
-}
+} */
 
-.admin-sidebar button.active svg,
+/* .admin-sidebar button.active svg,
 .admin-sidebar button.active svg path,
 .admin-sidebar button.active svg rect,
 .admin-sidebar button.active svg g path,
 .admin-sidebar button.active svg * {
     fill: #ffffff !important;
     color: #ffffff !important;
-}
+} */
 
-.admin-sidebar .sidebar-submenu-item.active svg,
+/* .admin-sidebar button.active svg,
+.admin-sidebar button.active svg path,
+.admin-sidebar button.active svg rect,
+.admin-sidebar button.active svg g path,
+.admin-sidebar button.active svg * {
+    fill: #ffffff !important;
+    color: #ffffff !important;
+} */
+
+/* .admin-sidebar .sidebar-submenu-item.active svg,
 .admin-sidebar .sidebar-submenu-item.active svg * {
     fill: #ffffff !important;
-}
+} */
 
-.admin-sidebar .sidebar-link.active i,
+/* .admin-sidebar .sidebar-link.active i,
 .admin-sidebar button.active i,
 .admin-sidebar .sidebar-submenu-item.active i {
     color: #ffffff !important;
-}
+} */
 
 /* =================================
    Sidebar Section Titles
 ================================= */
 
-.admin-sidebar .sidebar-submenu-title {
+/* .admin-sidebar .sidebar-submenu-title {
     font-size: 0.95rem;
     font-weight: 600;
     color: #6b7280;
@@ -150,7 +159,7 @@
 
 .submenu-item-indent {
     margin-left: 25px;
-}
+} */
 
 .logout-btn {
     color: #ffffff !important;
@@ -269,4 +278,21 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     color: transparent;
+}
+/* Default (not wishlisted) */
+.shortlist-btn .wishlist-icon path {
+    fill: none;
+    stroke: white;
+    transition: fill 0.25s ease, stroke 0.25s ease, transform 0.2s ease;
+}
+
+/* Wishlisted state */
+.shortlist-btn.is-wishlisted .wishlist-icon path {
+    fill: #14c871;
+    stroke: #14c871;
+}
+
+/* Optional hover animation */
+.shortlist-btn:hover .wishlist-icon {
+    transform: scale(1.05);
 }

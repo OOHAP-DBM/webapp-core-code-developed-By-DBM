@@ -10,8 +10,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use Modules\POS\Models\PosCustomer;
-
+use Illuminate\Mail\Mailable;
+use Illuminate\Support\Facades\Mail;
+use Modules\Enquiries\Models\DirectEnquiry;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasApiTokens, HasRoles, SoftDeletes;
@@ -54,6 +56,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'active_role',
         'previous_role',
         'last_role_switch_at',
+        // Notification preferences
+        'notification_email',
+        'notification_push',
+        'notification_whatsapp',
     ];
 
     /**
@@ -81,6 +87,9 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_login_at' => 'datetime',
             'last_role_switch_at' => 'datetime',
             'password' => 'hashed',
+            'notification_email' => 'boolean',
+            'notification_push' => 'boolean',
+            'notification_whatsapp' => 'boolean',
         ];
     }
 
@@ -115,8 +124,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function generateOTP(): string
     {
-        // $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $otp =1234;
+        $otp = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        // $otp =1234;
         
         $this->update([
             'otp' => $otp,
@@ -509,48 +518,155 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-        public function vendorEmails(): HasMany
+
+       /**
+     * Get IDs of hoardings owned by the user (vendor, vendor_staff, agency, agency_staff)
+     */
+    public function getOwnedHoardingIds(): array
     {
-        return $this->hasMany(VendorEmail::class, 'user_id');
+        // If user is vendor or vendor_staff, get hoardings where vendor_id = user id
+        if ($this->hasRole('vendor') || $this->hasRole('vendor_staff')) {
+            return $this->hoardings()->pluck('id')->toArray();
+        }
+        // If user is agency or agency_staff, get hoardings where agency_id = user id (if such a relation exists)
+        if ($this->hasRole('agency') || $this->hasRole('agency_staff')) {
+            if (method_exists($this, 'agencyHoardings')) {
+                return $this->agencyHoardings()->pluck('id')->toArray();
+            }
+            // fallback: try to get hoardings where agency_id = user id
+            return \App\Models\Hoarding::where('agency_id', $this->id)->pluck('id')->toArray();
+        }
+        return [];
     }
 
-     public function getPrimaryVerifiedEmail(): ?VendorEmail
+     /**
+     * Get all emails for this vendor (primary + additional verified emails)
+     */
+    public function getAllEmailsAttribute(): array
     {
-        return $this->vendorEmails()
-            ->verified()
-            ->where('is_primary', true)
-            ->first();
+        $emails = [$this->email];
+        
+        if ($this->vendorProfile) {
+            $emails = array_merge($emails, $this->vendorProfile->verified_emails);
+        }
+        
+        return array_unique($emails);
     }
 
     /**
-     * Check if vendor has at least one verified email
+     * Get all emails that should receive notifications
      */
-    public function hasVerifiedEmail(): bool
+    public function getNotificationEmailsAttribute(): array
     {
-        return $this->vendorEmails()
-            ->verified()
-            ->exists();
+        if (!$this->notification_email) {
+            return [];
+        }
+
+        if ($this->vendorProfile) {
+            return $this->vendorProfile->notification_emails;
+        }
+        
+        return [$this->email];
     }
+
+    
+    /**
+     * Send a notification to all enabled vendor emails if global preference is enabled
+     */
+ 
+    public function notifyVendorEmails(Mailable $mailable)
+    {
+        if (!$this->notification_email) {
+            return;
+        }
+
+        $emails = $this->vendorProfile?->notification_emails ?? [$this->email];
+
+        foreach ($emails as $email) {
+            Mail::to($email)->send($mailable);
+        }
+    }
+
+
+/**
+ * Get active hoardings only
+ */
+public function activeHoardings(): HasMany
+{
+    return $this->hasMany(Hoarding::class, 'vendor_id')
+        ->where('status', 'active');
+}
+
+/**
+ * Get available hoardings (active and not on hold)
+ */
+public function availableHoardings(): HasMany
+{
+    return $this->hasMany(Hoarding::class, 'vendor_id')
+        ->available();
+}
+
+/**
+ * Get enquiries assigned to this vendor
+ */
+public function assignedEnquiries(): BelongsToMany
+{
+    return $this->belongsToMany(DirectEnquiry::class, 'enquiry_vendor', 'vendor_id', 'enquiry_id')
+        ->withPivot('has_viewed', 'viewed_at', 'response_status', 'vendor_notes')
+        ->withTimestamps();
+}
+
+/**
+ * Get new unviewed enquiries for vendor
+ */
+public function newEnquiries(): BelongsToMany
+{
+    return $this->belongsToMany(DirectEnquiry::class, 'enquiry_vendor', 'vendor_id', 'enquiry_id')
+        ->wherePivot('has_viewed', false)
+        ->withPivot('has_viewed', 'viewed_at', 'response_status', 'vendor_notes')
+        ->withTimestamps();
+}
+
+
+/**
+ * Check if user is an admin
+ */
+public function isAdmin(): bool
+{
+    return in_array($this->active_role, ['admin', 'superadmin']);
+}
+
+/**
+ * Get total hoardings count for vendor
+ */
+public function getTotalHoardingsAttribute(): int
+{
+    return $this->hoardings()->count();
+}
+
+/**
+ * Get active hoardings count for vendor
+ */
+public function getActiveHoardingsCountAttribute(): int
+{
+    return $this->activeHoardings()->count();
+}
 
     /**
-     * Check if mobile is verified
+     * Get pending enquiries count for vendor
      */
-    public function isMobileVerified(): bool
+    public function getPendingEnquiriesCountAttribute(): int
     {
-        return $this->phone_verified_at !== null;
+        return $this->assignedEnquiries()
+            ->where('status', 'new')
+            ->count();
     }
-
-    /**
-     * Check if vendor is fully verified (mobile + email)
+      /**
+     * Send vendor emails using a Mailable instance
+     * @param \Illuminate\Mail\Mailable $mailable
      */
-    public function isFullyVerified(): bool
+    public function sendVendorEmails($mailable)
     {
-        return $this->hasVerifiedEmail() && $this->isMobileVerified();
+        \Mail::to($this->email)->send($mailable);
     }
-
-     public function posProfile()
-    {
-        return $this->hasOne(PosCustomer::class, 'user_id');
-    }
-
 }

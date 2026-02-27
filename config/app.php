@@ -40,7 +40,7 @@ return [
     */
 
     'debug' => (bool) env('APP_DEBUG', false),
-
+    'auto_approve_hoarding' => env('AUTO_APPROVE_HOARDING', false),
     /*
     |--------------------------------------------------------------------------
     | Application URL
@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Kolkata',
 
     /*
     |--------------------------------------------------------------------------

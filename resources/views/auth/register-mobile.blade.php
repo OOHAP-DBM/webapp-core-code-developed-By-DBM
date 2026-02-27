@@ -7,6 +7,15 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
 <style>
+/* Loader state for continue button */
+.btn-continue.loading,
+.btn-continue.loading:disabled {
+    background: #2bb57c !important;
+    color: #fff !important;
+    border-color: #2bb57c !important;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
 html, body {
     width: 100%;
     height: 100%;
@@ -144,6 +153,27 @@ html, body {
     cursor: not-allowed;
     border-color: #323335 !important;
 }
+.otp-box.error {
+    border: 1px solid #dc3545 !important;
+    background-color: #fff5f5 !important;
+}
+#otpInlineError{
+    font-size:12px;
+    color:#dc3545;
+    margin-top:6px;
+    display:none;
+}
+@keyframes otpShake{
+    0%{transform:translateX(0)}
+    25%{transform:translateX(-4px)}
+    50%{transform:translateX(4px)}
+    75%{transform:translateX(-4px)}
+    100%{transform:translateX(0)}
+}
+.otp-shake{
+    animation:otpShake .25s ease;
+}
+
 
 
 
@@ -184,7 +214,8 @@ html, body {
             </div>
 
             <button class="btn btn-continue w-100 mt-3" id="sendOtpBtn" disabled>
-                Continue
+                <span id="sendOtpBtnText">Continue</span>
+                <span id="sendOtpBtnLoader" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
             </button>
             <div class="divider"><span>OR</span></div>
 
@@ -206,8 +237,8 @@ html, body {
                 <br>
                 <small>
                     By clicking continue button, you agree with the
-                    <a href="{{ route('terms') }}">Terms & Conditions</a> and
-                    <a href="{{ route('privacy') }}">Privacy policy</a> of OOHAPP.
+                    <a href="{{ route('terms') }}" class="text-dark font-semibold">Terms & Conditions</a> and
+                    <a href="{{ route('privacy') }}" class="text-dark font-semibold">Privacy policy</a> of OOHAPP.
                 </small>
             </div>
             
@@ -215,12 +246,12 @@ html, body {
 
         <!-- ================= OTP ================= -->
         <div id="otp-section" class="d-none mt-4 otp-section">
+            <div id="otpError" class="alert alert-danger d-none mb-2"></div>
              <div class="mb-3 otp-text">
                 <div class="otp-icon">
                     <i class="fa-solid fa-envelope text-success fs-3"></i>
                 </div>
             </div>
-          <div id="otpError" class="alert alert-danger d-none mb-2"></div>
             <div class="otp-text">
                 <h6 class="fw-semibold mb-1 fs-4">Verify with OTP</h6>
                 <p class="text-muted small mb-3">
@@ -234,6 +265,7 @@ html, body {
                 <input class="otp-box form-control" maxlength="1">
                 <input class="otp-box form-control" maxlength="1">
             </div>
+            <div id="otpInlineError">Invalid OTP. Please try again.</div>
             <div class="otp-text">
                 <small class="text-muted">
 
@@ -400,7 +432,23 @@ html, body {
             otpErrorBox.innerText = '';
             otpErrorBox.classList.add('d-none');
         }
-
+        const otpInlineError = document.getElementById('otpInlineError');
+        function markOtpInvalid(message='Invalid OTP. Please try again.'){
+            otpBoxes.forEach(box=>{
+                box.classList.add('error','otp-shake');
+            });
+            otpInlineError.innerText = message;
+            otpInlineError.style.display = 'block';
+            setTimeout(()=>{
+                otpBoxes.forEach(box=>box.classList.remove('otp-shake'));
+            },300);
+        }
+        function clearOtpHighlight(){
+            otpBoxes.forEach(box=>{
+                box.classList.remove('error');
+            });
+            otpInlineError.style.display = 'none';
+        }
         /* ================= SEND OTP ================= */
 
         sendOtpBtn.addEventListener('click', () => {
@@ -412,6 +460,15 @@ html, body {
                 return;
             }
 
+            // Show loader
+            const btnText = document.getElementById('sendOtpBtnText');
+            const btnLoader = document.getElementById('sendOtpBtnLoader');
+
+            sendOtpBtn.classList.add('loading');
+            sendOtpBtn.disabled = true;
+            btnText.classList.add('d-none');
+            btnLoader.classList.remove('d-none');
+
             fetch("{{ route('register.sendPhoneOtp') }}", {
                 method: 'POST',
                 headers: {
@@ -422,6 +479,13 @@ html, body {
             })
             .then(r => r.json())
             .then(res => {
+                // Hide loader
+
+                sendOtpBtn.classList.remove('loading');
+                sendOtpBtn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnLoader.classList.add('d-none');
+
                 if (!res.success) {
                     showError(res.message || 'Failed to send OTP');
                     return;
@@ -434,7 +498,13 @@ html, body {
                 otpBoxes[0].focus();
                 startResendTimer();
             })
-            .catch(() => showError('Something went wrong. Try again.'));
+            .catch(() => {
+                sendOtpBtn.classList.remove('loading');
+                sendOtpBtn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnLoader.classList.add('d-none');
+                showError('Something went wrong. Try again.');
+            });
         });
 
         /* ================= OTP INPUT ================= */
@@ -444,6 +514,7 @@ html, body {
             box.addEventListener('input', () => {
                 clearError();
                 clearOtpError();
+                clearOtpHighlight(); 
 
                 box.value = box.value.replace(/\D/g, '');
 
@@ -480,7 +551,7 @@ html, body {
             .then(res => {
                 if (!res.success) {
                     clearError();
-                    showOtpError(res.message || 'Invalid OTP');
+                    markOtpInvalid(res.message || 'Invalid OTP');
 
                     otpBoxes.forEach(b => b.value = '');
                     otpBoxes[0].focus();
@@ -587,6 +658,7 @@ html, body {
             resendBtn.addEventListener('click', () => {
 
                 clearOtpError();
+                clearOtpHighlight();
 
                 fetch("{{ route('register.sendPhoneOtp') }}", {
                     method: 'POST',

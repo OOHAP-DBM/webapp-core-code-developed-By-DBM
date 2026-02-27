@@ -171,8 +171,8 @@ body {
 
                     <small class="text-muted">
                         By clicking continue button, you agree with the
-                        <a href="{{ route('terms') }}" class="text-dark">Terms & Conditions</a> and
-                        <a href="{{ route('privacy') }}" class="text-dark">Privacy Policy</a>
+                        <a href="{{ route('terms') }}" class="text-dark font-semibold">Terms & Conditions</a> and
+                        <a href="{{ route('privacy') }}" class="text-dark font-semibold">Privacy Policy</a>
                         of OOHAPP App.
                     </small>
                 </div>

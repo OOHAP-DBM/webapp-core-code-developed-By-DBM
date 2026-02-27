@@ -49,7 +49,7 @@ class DOOHScreen extends Model
         /* Pricing */
         'price_per_slot',
         // 'price_per_slot',
-        'display_price_per_30s',
+        'screen_run_time',
         'minimum_booking_amount',
 
         'base_monthly_price',
@@ -91,7 +91,7 @@ class DOOHScreen extends Model
         'min_slots_per_day' => 'integer',
 
         'price_per_slot' => 'decimal:2',
-        'display_price_per_30s' => 'decimal:2',
+        'screen_run_time' => 'decimal:2',
         // 'price_per_slot' => 'decimal:2',
         'minimum_booking_amount' => 'decimal:2',
 
@@ -166,6 +166,24 @@ class DOOHScreen extends Model
     {
         return $this->hasMany(DOOHScreenMedia::class, 'dooh_screen_id');
     }
+    protected function mediaUrl(string $path): string
+    {
+        return asset(
+            str_starts_with($path, 'storage/')
+                ? $path
+                : 'storage/' . ltrim($path, '/')
+        );
+    }
+
+    public function getHeroImageUrlAttribute(): ?string
+    {
+        $media = $this->media
+            ->sortByDesc('is_primary')
+            ->first();
+
+        return $media ? $this->mediaUrl($media->file_path) : null;
+    }
+
     public function brandLogos(): HasMany
     {
         return $this->hasMany(DOOHScreenBrandLogo::class, 'dooh_screen_id');
@@ -195,6 +213,6 @@ class DOOHScreen extends Model
      */
     public function categoryAttribute()
     {
-        return $this->belongsTo(\App\Models\HoardingAttribute::class, 'category_id');
+        return $this->belongsTo(\Modules\Hoardings\Models\HoardingAttribute::class, 'category_id');
     }
 }

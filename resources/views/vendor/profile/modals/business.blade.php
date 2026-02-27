@@ -60,7 +60,7 @@
             <input
                 type="text"
                 name="pan"
-                value="{{ $user->pan }}"
+                value="{{ $vendor->pan ?: ($vendor->user->pan ?? '') }}"
                 class="w-full px-3 py-2 border border-gray-200 rounded-md"
             >
         </div>
@@ -91,7 +91,7 @@
         <button
             type="button"
             @click="showModal = false"
-            class="px-5 py-2 border rounded-md text-sm"
+            class="px-5 py-2 border rounded-md text-sm border-gray-300 text-gray-600"
         >
             Cancel
         </button>

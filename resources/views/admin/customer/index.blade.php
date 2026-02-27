@@ -1,113 +1,183 @@
 @extends('layouts.admin')
 
-@section('title', 'Total Customers')
+@section('title', 'Customers Management')
 
+@section('breadcrumb')
+<x-breadcrumb :items="[
+    ['label' => 'Home', 'route' => route('admin.dashboard')],
+    ['label' => 'Customers Management', 'route' => route('admin.customers.index')],
+    ['label' => ucfirst(str_replace('_',' ', $tab)) . ' Customers']
+]" />
+@endsection
 @section('content')
-<div class="min-h-screen bg-[#F9FAFB] -m-6 p-6 font-poppins">
-    
-    {{-- Top Header Section --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-[20px] font-bold text-[#1E1B18]">Customer Management</h1>
-            <p class="text-[12px] text-[#949291] mt-1 font-medium">
-                Home > Customers Management > <span class="text-[#1E1B18] font-bold">Total Customers</span>
-            </p>
-        </div>
-        
-        <div class="flex items-center gap-3">
-            <div class="relative">
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                <input type="text" placeholder="Search customer..." class="pl-9 pr-4 py-2 bg-white border border-[#DADADA] rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#10B981]">
-            </div>
-            <button class="bg-[#10B981] text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-[#0da673] transition-all">
-                <i class="fas fa-plus"></i> Create Profile
-            </button>
+<div class="bg-[#F7F7F7] w-full min-h-screen">
+
+
+    {{-- Tabs --}}
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex gap-6 text-sm font-medium border-b border-[#E5E7EB]">
+            <a href="{{ route('admin.customers.index',['tab'=>'total']) }}"
+               class="pb-3 {{ $tab=='total' ? 'text-[#2563EB] border-b-2 border-[#2563EB]' : 'text-[#9CA3AF]' }}">
+                Total Customers ({{ $totalCustomers }})
+            </a>
+            <a href="{{ route('admin.customers.index',['tab'=>'week']) }}"
+               class="pb-3 {{ $tab=='week' ? 'text-[#2563EB] border-b-2 border-[#2563EB]' : 'text-[#9CA3AF]' }}">
+                Joined This Week ({{ $joinedThisWeek }})
+            </a>
+            <a href="{{ route('admin.customers.index',['tab'=>'month']) }}"
+               class="pb-3 {{ $tab=='month' ? 'text-[#2563EB] border-b-2 border-[#2563EB]' : 'text-[#9CA3AF]' }}">
+                Joined This Month ({{ $joinedThisMonth }})
+            </a>
+            <a href="{{ route('admin.customers.index',['tab'=>'deletion']) }}"
+               class="pb-3 {{ $tab=='deletion' ? 'text-[#2563EB] border-b-2 border-[#2563EB]' : 'text-[#9CA3AF]' }}">
+                Account Deletion Request ({{ $deletionRequests }})
+            </a>
+            <a href="{{ route('admin.customers.index',['tab'=>'disabled']) }}"
+               class="pb-3 {{ $tab=='disabled' ? 'text-[#2563EB] border-b-2 border-[#2563EB]' : 'text-[#9CA3AF]' }}">
+                Disabled ({{ $disabled }})
+            </a>
+            <a href="{{ route('admin.customers.index',['tab'=>'deleted']) }}"
+               class="pb-3 {{ $tab=='deleted' ? 'text-red-500 border-b-2 border-red-500' : 'text-[#9CA3AF]' }}">
+                Deleted ({{ $deleted }})
+            </a>
         </div>
     </div>
 
-    @if($totalCustomerCount === 0)
-        {{-- [Keep your existing empty state code here] --}}
+    {{-- Search + Actions --}}
+    <div class="bg-white rounded-xl p-4 flex items-center gap-4 mb-4">
+        <form method="GET" action="{{ route('admin.customers.index') }}" class="flex-1 flex items-center gap-2" id="customer-search-form">
+            <input type="hidden" name="tab" value="{{ $tab }}">
+            <input class="flex-1 border rounded-lg px-4 py-2 text-sm" name="search" value="{{ request('search') }}" placeholder="Search Customer by Name, Email, Phone..." id="customer-search-input" autocomplete="off">
+        </form>
+        <script>
+        (function() {
+            var input = document.getElementById('customer-search-input');
+            var form = document.getElementById('customer-search-form');
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    form.submit();
+                }
+            });
+        })();
+        </script>
+         
+        @if($tab === 'deletion')
+            <button class="bg-[#F59E0B] text-white px-6 py-2 rounded-lg text-sm">Approve All Deletions</button>
+        @elseif($tab === 'disabled')
+            <button class="bg-[#008ae0] text-white px-6 py-2 rounded-lg text-sm">Enable</button>
+        @elseif($tab === 'deleted')
+            <button type="button" onclick="showExportFormatPrompt()" class="bg-[#16A34A] text-white px-6 py-2 rounded-lg text-sm">Export</button>
+        @endif
+        <a href="{{route('admin.customers.create')}}" class="bg-black text-white px-4 py-2 rounded-lg text-sm">
+            + Add Customer
+        </a>
+    </div>
+
+    {{-- TABLE --}}
+    @if($tab === 'total')
+        @include('admin.customer.tab.total')
+    @elseif($tab === 'week')
+        @include('admin.customer.tab.week')
+    @elseif($tab === 'month')
+        @include('admin.customer.tab.month')
+    @elseif($tab === 'deletion')
+        @include('admin.customer.tab.deletion')
+    @elseif($tab === 'disabled')
+        @include('admin.customer.tab.disabled')
+    @elseif($tab === 'deleted')
+        @include('admin.customer.tab.deleted')
     @else
-        {{-- Figma Node 10-14424: Customer Table --}}
-        <div class="bg-white border border-[#DADADA] rounded-xl overflow-hidden shadow-sm">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-[#F9FAFB]">
-                            <th class="px-6 py-4 text-[12px] font-bold text-[#949291] uppercase border-b border-[#DADADA]">Image</th>
-                            <th class="px-6 py-4 text-[12px] font-bold text-[#949291] uppercase border-b border-[#DADADA]">Customer ID</th>
-                            <th class="px-6 py-4 text-[12px] font-bold text-[#949291] uppercase border-b border-[#DADADA]">Name</th>
-                            <th class="px-6 py-4 text-[12px] font-bold text-[#949291] uppercase border-b border-[#DADADA]">Email</th>
-                            <th class="px-6 py-4 text-[12px] font-bold text-[#949291] uppercase border-b border-[#DADADA]">Mobile Number</th>
-                            <th class="px-6 py-4 text-[12px] font-bold text-[#949291] uppercase border-b border-[#DADADA]">Gender</th>
-                            <th class="px-6 py-4 text-[12px] font-bold text-[#949291] uppercase border-b border-[#DADADA]">Status</th>
-                            <th class="px-6 py-4 text-[12px] font-bold text-[#949291] uppercase border-b border-[#DADADA] text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-[#DADADA]">
-                        @foreach($customers as $customer)
-                        <tr class="hover:bg-gray-50/50 transition-colors">
-                            <td class="px-6 py-4">
-                                <img src="{{ $customer->image_url ?? 'https://ui-avatars.com/api/?name='.$customer->name }}" 
-                                     class="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm" alt="User">
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="text-[13px] font-bold text-[#10B981]">#CUST-{{ str_pad($customer->id, 4, '0', STR_PAD_LEFT) }}</span>
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                <a
-                                    href="{{ route('admin.customers.show', $customer->id) }}"
-                                    class="inline-flex items-center justify-center gap-1
-                                        text-[13px] font-bold text-[#2563EB]
-                                        hover:text-blue-800 underline
-                                        transition-all cursor-pointer"
-                                >
-                                    {{ $customer->name }}
-                                </a>
-                            </td>
-
-
-                            <td class="px-6 py-4 text-[13px] text-[#949291] font-medium">
-                                {{ $customer->email }}
-                            </td>
-                            <td class="px-6 py-4 text-[13px] text-[#1E1B18] font-semibold">
-                                {{ $customer->phone ?? '+91 00000 00000' }}
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="text-[13px] text-[#1E1B18] font-medium">{{ $customer->gender ?? 'Male' }}</span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="px-3 py-1 rounded-full text-[11px] font-bold {{ $customer->status == 'active' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }}">
-                                    {{ strtoupper($customer->status ?? 'ACTIVE') }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center justify-center gap-2">
-                                    <button class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all">
-                                        <i class="fas fa-eye text-[12px]"></i>
-                                    </button>
-                                    <button class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center hover:bg-orange-600 hover:text-white transition-all">
-                                        <i class="fas fa-edit text-[12px]"></i>
-                                    </button>
-                                    <button class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all">
-                                        <i class="fas fa-trash text-[12px]"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            {{-- Pagination --}}
-            <div class="px-6 py-4 flex items-center justify-between border-t border-[#DADADA]">
-                <span class="text-[12px] text-[#949291] font-medium">Showing 1 to {{ $customers->count() }} of {{ $totalCustomerCount }} entries</span>
-                <div class="flex gap-2">
-                    {{-- {{ $customers->links() }} --}}
-                </div>
-            </div>
-        </div>
+        <div class="bg-white rounded-xl p-8 text-center text-gray-400 text-lg">No any customer found</div>
     @endif
+
 </div>
 @endsection
+<script>
+function deleteCustomer(id)
+{
+    Swal.fire({
+        title: "Are you sure?",
+        text: "You really want to delete this customer?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            fetch(`/admin/customers/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+                    "Accept": "application/json"
+                }
+            })
+            .then(res => res.json())
+            .then(response => {
+
+                if(response.status){
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: response.message,
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+
+                }else{
+                    Swal.fire("Error!", response.message, "error");
+                }
+
+            })
+            .catch(() => {
+                Swal.fire("Error!", "Server error occurred", "error");
+            });
+
+        }
+    });
+}
+</script>
+ <script>
+    function showExportFormatPrompt() {
+        Swal.fire({
+            title: 'Export Deleted Customers',
+            text: 'Select the format you want to export:',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Export',
+            confirmButtonColor: '#16A34A',
+            cancelButtonText: 'Cancel',
+            input: 'radio',
+            inputOptions: {
+                'csv': 'CSV',
+                'excel': 'Excel',
+                'pdf': 'PDF'
+            },
+            customClass: {
+                input: 'cursor-pointer'
+            },
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Please select a format!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                let format = result.value;
+                let url = new URL(window.location.href);
+                url.searchParams.set('export', '1');
+                url.searchParams.set('format', format);
+                window.location.href = url.toString();
+            }
+        });
+    }
+</script>

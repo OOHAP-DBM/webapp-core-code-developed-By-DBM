@@ -18,14 +18,7 @@ class TermsAndConditionsSeeder extends Seeder
             'section_title' => 'Terms and Conditions',
             'content' => <<<'HTML'
 
-<style>
-    .tc-section h2 {
-        margin-bottom: 6px;
-    }
-    .tc-section .section-content {
-        margin-top: 8px;
-    }
-</style>
+
 
 <div class="tc-section">
 

@@ -158,6 +158,26 @@ html, body {
     width: 100%;
     z-index: 50;
 }
+.otp-box.error{
+    border:1px solid #dc3545 !important;
+    background:#fff5f5 !important;
+}
+#otpInlineErrorEmail{
+    font-size:12px;
+    color:#dc3545;
+    margin-top:6px;
+    display:none;
+}
+@keyframes otpShake{
+    0%{transform:translateX(0)}
+    25%{transform:translateX(-4px)}
+    50%{transform:translateX(4px)}
+    75%{transform:translateX(-4px)}
+    100%{transform:translateX(0)}
+}
+.otp-shake{
+    animation:otpShake .25s ease;
+}
 
 </style>
 @endpush
@@ -199,7 +219,8 @@ html, body {
                 </div>
 
                 <button type="submit" class="btn btn-continue w-100 mt-3" id="continueBtn" disabled>
-                    Continue
+                    <span id="continueBtnText">Continue</span>
+                    <span id="continueBtnLoader" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
                 </button>
             </form>
 
@@ -223,21 +244,21 @@ html, body {
                 <br>
                 <small>
                     By clicking continue button, you agree with the
-                    <a href="{{ route('terms') }}">Terms & Conditions</a> and
-                    <a href="{{ route('privacy') }}">Privacy policy</a> of OOHAPP.
+                    <a href="{{ route('terms') }}" class="text-dark font-semibold">Terms & Conditions</a> and
+                    <a href="{{ route('privacy') }}" class="text-dark font-semibold">Privacy policy</a> of OOHAPP.
                 </small>
             </div>
 
             <!-- OTP VERIFY UI (FIGMA STYLE) -->
-           <div id="otp-ui" class="d-none mt-4 otp-wrapper">
 
+           <div id="otp-ui" class="d-none mt-4 otp-wrapper">
+            <div id="otpErrorInline" class="alert alert-danger d-none mb-2"></div>
             <!-- ICON -->
             <div class="mb-3 otp-text">
                 <div class="otp-icon">
                     <i class="fa-solid fa-envelope text-success fs-3"></i>
                 </div>
             </div>
-
             <!-- TEXT -->
             <div class="otp-text">
                 <h6 class="fw-semibold mb-1 fs-4">Verify with OTP</h6>
@@ -246,7 +267,6 @@ html, body {
                     <strong id="otp-email-text"></strong>
                 </p>
             </div>
-
             <!-- OTP BOXES -->
             <div class="d-flex gap-2 my-3 otp-text">
                 <input class="otp-box" maxlength="1" inputmode="numeric">
@@ -254,23 +274,20 @@ html, body {
                 <input class="otp-box" maxlength="1" inputmode="numeric">
                 <input class="otp-box" maxlength="1" inputmode="numeric">
             </div>
-
+            <div id="otpInlineErrorEmail" class="text-left">Invalid OTP. Please try again.</div>
             <!-- RESEND -->
             <div class="otp-text">
                 <small class="text-muted">
                     <span id="resendText">
                         Resend OTP in <span class="text-success fw-bold" id="otpTimer">00:30</span>
                     </span>
-
                     <a href="javascript:void(0)"
                     id="resendBtn"
                     class="text-success fw-bold d-none">
                         Resend OTP
                     </a>
                 </small>
-
             </div>
-
             </div>
 
 
@@ -448,6 +465,14 @@ html, body {
 
             enteredEmail = emailInput.value;
 
+            // Show loader
+            const btn = document.getElementById('continueBtn');
+            const btnText = document.getElementById('continueBtnText');
+            const btnLoader = document.getElementById('continueBtnLoader');
+            btn.disabled = true;
+            btnText.classList.add('d-none');
+            btnLoader.classList.remove('d-none');
+
             fetch("{{ route('register.sendEmailOtp') }}", {
                 method: "POST",
                 headers: {
@@ -458,6 +483,11 @@ html, body {
             })
             .then(r => r.json())
             .then(res => {
+                // Hide loader
+                btn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnLoader.classList.add('d-none');
+
                 if (!res.success) return showGlobalError(res.message);
 
                 signupForm.style.display = 'none';
@@ -469,23 +499,58 @@ html, body {
                 otpUI.classList.remove('d-none');
                 otpBoxes[0].focus();
                 startResendTimer();
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnLoader.classList.add('d-none');
+                showGlobalError('Something went wrong. Please try again.');
             });
         });
 
         /* ===================== OTP ===================== */
 
+        function showOtpInlineError(msg) {
+            const otpError = document.getElementById('otpErrorInline');
+            if (!otpError) return;
+            otpError.innerText = msg || 'Something went wrong';
+            otpError.classList.remove('d-none');
+        }
+        function clearOtpInlineError() {
+            const otpError = document.getElementById('otpErrorInline');
+            if (!otpError) return;
+            otpError.innerText = '';
+            otpError.classList.add('d-none');
+        }
+        const otpInlineErrorEmail = document.getElementById('otpInlineErrorEmail');
+        function markEmailOtpInvalid(msg='Invalid OTP. Please try again.'){
+            otpBoxes.forEach(box=>{
+                box.classList.add('error','otp-shake');
+            });
+
+            otpInlineErrorEmail.innerText = msg;
+            otpInlineErrorEmail.style.display = 'block';
+
+            setTimeout(()=>{
+                otpBoxes.forEach(box=>box.classList.remove('otp-shake'));
+            },300);
+        }
+
+        function clearEmailOtpHighlight(){
+            otpBoxes.forEach(box=>box.classList.remove('error'));
+            otpInlineErrorEmail.style.display = 'none';
+        }
         otpBoxes.forEach((box, index) => {
             box.addEventListener('input', () => {
                 box.value = box.value.replace(/\D/g, '');
-
+                clearOtpInlineError();
+                clearEmailOtpHighlight();
                 if (box.value && otpBoxes[index + 1]) {
                     otpBoxes[index + 1].focus();
                 }
-
                 const otp = Array.from(otpBoxes).map(b => b.value).join('');
                 if (otp.length === 4) verifyOtp(otp);
             });
-
             box.addEventListener('keydown', e => {
                 if (e.key === 'Backspace' && !box.value && otpBoxes[index - 1]) {
                     otpBoxes[index - 1].focus();
@@ -494,11 +559,11 @@ html, body {
         });
 
         function verifyOtp(otp) {
+            clearOtpInlineError();
             if (!/^\d{4}$/.test(otp)) {
-                showGlobalError('OTP must be 4 digits');
+                showOtpInlineError('OTP must be 4 digits');
                 return;
             }
-
             fetch("{{ route('register.verifyEmailOtp') }}", {
                 method: "POST",
                 headers: {
@@ -509,7 +574,14 @@ html, body {
             })
             .then(r => r.json())
             .then(res => {
-                if (!res.success) return showGlobalError(res.message);
+                if (!res.success) {
+                    clearOtpInlineError();    
+                    markEmailOtpInvalid(res.message || 'Invalid OTP');
+                    otpBoxes.forEach(b=>b.value='');
+                    otpBoxes[0].focus();
+                    return;
+                }
+                clearOtpInlineError();
                 errorBox.classList.add('d-none');
                 errorBox.classList.remove('otp-error');
                 errorBox.innerText = '';
@@ -520,15 +592,14 @@ html, body {
         }
 
         function showGlobalError(msg) {
+            // If OTP UI is visible, show inline error instead
+            if (!otpUI.classList.contains('d-none')) {
+                showOtpInlineError(msg);
+                return;
+            }
             errorBox.innerText = msg || 'Something went wrong';
             errorBox.classList.remove('d-none');
-
-            // ✅ ONLY float error during OTP
-            if (!otpUI.classList.contains('d-none')) {
-                errorBox.classList.add('otp-error');
-            } else {
-                errorBox.classList.remove('otp-error');
-            }
+            errorBox.classList.remove('otp-error');
         }
 
 
@@ -632,7 +703,7 @@ function updateTimerText() {
 /* ===================== RESEND OTP CLICK ===================== */
 
 resendBtn.addEventListener('click', function () {
-
+    clearEmailOtpHighlight();
     resendBtn.classList.add('d-none');
     resendText.classList.remove('d-none');
 

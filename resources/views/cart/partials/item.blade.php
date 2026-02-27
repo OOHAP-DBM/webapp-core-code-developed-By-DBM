@@ -74,7 +74,7 @@
                                 <div class="relative inline-block">
                                     <button
                                         type="button"
-                                        class="text-blue-500 hover:underline"
+                                        class="text-blue-500 hover:underline cursor-pointer"
                                         onclick="toggleShareMenu(this)">
                                         Share
                                     </button>
@@ -84,27 +84,27 @@
                                             <a
                                                 href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}"
                                                 target="_blank"
-                                                class="text-blue-700 hover:underline">
+                                                class="text-blue-700 hover:underline cursor-pointer">
                                                 Facebook
                                             </a>
 
                                             <a
                                                 href="https://twitter.com/intent/tweet?url={{ urlencode(route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}&text={{ urlencode($item->title) }}"
                                                 target="_blank"
-                                                class="text-sky-500 hover:underline">
+                                                class="text-sky-500 hover:underline cursor-pointer">
                                                 Twitter
                                             </a>
 
                                             <a
                                                 href="https://api.whatsapp.com/send?text={{ urlencode($item->title . ' - ' . route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}"
                                                 target="_blank"
-                                                class="text-green-600 hover:underline">
+                                                class="text-green-600 hover:underline cursor-pointer">
                                                 WhatsApp
                                             </a>
 
                                             <button
                                                 type="button"
-                                                class="text-gray-700 hover:underline text-left"
+                                                class="text-gray-700 hover:underline text-left cursor-pointer"
                                                 onclick="copyCartLink('{{ route('hoardings.show', $item->slug ?? $item->hoarding_id) }}')">
                                                 Copy Link
                                             </button>
@@ -153,98 +153,102 @@
             </div>
         @endif
         <div class="flex justify-end text-right mr-2 sm:mr-4 md:mr-6 lg:mr-8 mb-4 mt-2 sm:mt-0 lg:-mt-6">
-            {{-- OOH --}}
-            @if($item->hoarding_type === 'ooh')
-                <div>
-                    @php
-                        $finalPrice = !empty($item->monthly_price) && $item->monthly_price > 0
-                            ? $item->monthly_price
-                            : ($item->base_monthly_price ?? 0);
-                    @endphp
+            @php
+                $finalPrice = (!empty($item->monthly_price) && $item->monthly_price > 0)
+                    ? $item->monthly_price
+                    : $item->base_monthly_price;
+                $basePrice = $item->base_monthly_price ?? 0;
+                $unit = '/ Month';
+            @endphp
 
-                    @if(!empty($item->base_monthly_price) && $item->base_monthly_price > $finalPrice)
-                        <p
-                            id="base-price-{{ $item->hoarding_id }}"
-                            data-base-price="{{ $item->base_monthly_price }}"
-                            class="text-sm text-gray-400 line-through"
-                        >
-                            ₹{{ number_format($item->base_monthly_price) }}
-                        </p>
-                    @endif
 
-                    <p
-                        id="final-price-{{ $item->hoarding_id }}"
-                        data-default-price="{{ $finalPrice }}"
-                        class="text-lg font-semibold text-gray-900"
-                    >
-                        ₹{{ number_format($finalPrice) }}
-                        <span class="text-sm text-gray-400">/ Month</span>
-                    </p>
-                </div>
-            @endif
-
-            {{-- DOOH --}}
-            @if($item->hoarding_type === 'dooh')
-                <div>
+            <div>
+                @if($basePrice > $finalPrice)
                     <p
                         id="base-price-{{ $item->hoarding_id }}"
-                        data-base-price="{{ $item->slot_price }}"
-                        class="text-sm text-gray-400 line-through hidden"
+                        data-base-price="{{ $basePrice }}"
+                        class="text-sm text-gray-400 line-through"
                     >
-                        ₹{{ number_format($item->slot_price) }}
+                        ₹{{ number_format($basePrice) }}
                     </p>
-                    <p
-                        id="final-price-{{ $item->hoarding_id }}"
-                        data-default-price="{{ $item->slot_price }}"
-                        class="text-lg font-semibold text-gray-900"
-                    >
-                        ₹{{ number_format($item->slot_price) }}
-                        <span class="text-sm text-gray-400">/ sec  slot</span>
-                    </p>
-                </div>
-            @endif
+                @endif
 
+                <p
+                    id="final-price-{{ $item->hoarding_id }}"
+                    data-default-price="{{ $finalPrice }}"
+                    class="text-lg font-semibold text-gray-900"
+                >
+                    ₹{{ number_format($finalPrice) }}
+                    <span class="text-sm text-gray-400">{{ $unit }}</span>
+                </p>
+            </div>
         </div>
+
 </div>
 
 <script>
-function copyCartLink(link) {
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(link).then(() => {
-            alert('Link copied to clipboard!');
+    function copyCartLink(link) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(link).then(() => {
+                if (window.Swal) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Link copied to clipboard!',
+                        showConfirmButton: false,
+                        timer: 1800,
+                        timerProgressBar: true
+                    });
+                } else {
+                    alert('Link copied to clipboard!');
+                }
+            });
+        } else {
+            const tempInput = document.createElement('input');
+            tempInput.value = link;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            if (window.Swal) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Link copied to clipboard!',
+                    showConfirmButton: false,
+                    timer: 1800,
+                    timerProgressBar: true
+                });
+            } else {
+                alert('Link copied to clipboard!');
+            }
+    
+        }
+    }
+
+    function toggleShareMenu(btn) {
+        // close all other menus
+        document.querySelectorAll('.cart-share-menu').forEach(menu => {
+            if (menu !== btn.nextElementSibling) {
+                menu.classList.add('hidden');
+            }
         });
-    } else {
-        const tempInput = document.createElement('input');
-        tempInput.value = link;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempInput);
-        alert('Link copied to clipboard!');
-    }
-}
 
-function toggleShareMenu(btn) {
-    // close all other menus
-    document.querySelectorAll('.cart-share-menu').forEach(menu => {
-        if (menu !== btn.nextElementSibling) {
-            menu.classList.add('hidden');
+        const menu = btn.nextElementSibling;
+        menu.classList.toggle('hidden');
+
+        // close on outside click
+        function outsideClick(e) {
+            if (!menu.contains(e.target) && e.target !== btn) {
+                menu.classList.add('hidden');
+                document.removeEventListener('mousedown', outsideClick);
+            }
         }
-    });
 
-    const menu = btn.nextElementSibling;
-    menu.classList.toggle('hidden');
-
-    // close on outside click
-    function outsideClick(e) {
-        if (!menu.contains(e.target) && e.target !== btn) {
-            menu.classList.add('hidden');
-            document.removeEventListener('mousedown', outsideClick);
-        }
+        setTimeout(() => {
+            document.addEventListener('mousedown', outsideClick);
+        }, 0);
     }
-
-    setTimeout(() => {
-        document.addEventListener('mousedown', outsideClick);
-    }, 0);
-}
 </script>

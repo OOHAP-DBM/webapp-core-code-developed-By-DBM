@@ -105,16 +105,42 @@
     }
     .price-badge {
         background: #1dbf73;
-        color: #fff;
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 600;
-        box-shadow: 0 2px 6px rgba(0,0,0,.35);
-        white-space: nowrap;
-        display: inline-block;
-        width: auto;
+        color: #000000;
+        display:flex;
+        padding:5px;
+        border-radius:20px;
     }
+    .map-marker {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Black location pin */
+    .map-marker .pin {
+        width: 26px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* OOHAPP logo circle */
+    .map-marker .pill .logo {
+        width: 22px;
+        height: 22px;
+        background: #16a34a; /* darker green */
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Price text */
+    .map-marker .pill .price {
+        color: #000;
+    }
+
 </style>
 @extends('layouts.app')
 @section('title', 'Home - Seamless Hoarding Booking')
@@ -335,16 +361,35 @@
             ) return;
 
             const priceHTML = `
-                <div class="price-badge">
-                    ₹${item.price}
+                <div class="map-marker">
+                    <div class="pin">
+                        <svg width="22" height="30" viewBox="0 0 26 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.7735 16.7652C13.6517 16.7652 14.4037 16.4366 15.0296 15.7794C15.6544 15.1233 15.9669 14.3342 15.9669 13.4122C15.9669 12.4901 15.6544 11.7004 15.0296 11.0432C14.4037 10.3872 13.6517 10.0591 12.7735 10.0591C11.8953 10.0591 11.1438 10.3872 10.519 11.0432C9.89306 11.7004 9.58011 12.4901 9.58011 13.4122C9.58011 14.3342 9.89306 15.1233 10.519 15.7794C11.1438 16.4366 11.8953 16.7652 12.7735 16.7652ZM12.7735 33.5304C8.48904 29.7023 5.28929 26.1464 3.17421 22.8627C1.05807 19.5801 0 16.5417 0 13.7475C0 9.55616 1.28427 6.21709 3.8528 3.73026C6.42027 1.24342 9.39383 0 12.7735 0C16.1531 0 19.1267 1.24342 21.6942 3.73026C24.2627 6.21709 25.547 9.55616 25.547 13.7475C25.547 16.5417 24.4894 19.5801 22.3743 22.8627C20.2582 26.1464 17.0579 29.7023 12.7735 33.5304Z" fill="#222222"/>
+                        </svg>
+                    </div>
+
+                    <div class="price-badge">
+                    <div class="logo">
+                        <svg width="16" height="16" viewBox="0 0 24 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1.54039 8.76063C1.40235 9.45417 1.32996 10.1714 1.32996 10.9057C1.32996 16.9287 6.20208 21.8113 12.2121 21.8113C18.2222 21.8113 23.0943 16.9287 23.0943 10.9057C23.0943 4.88263 18.2222 0 12.2121 0C11.2271 0 10.2726 0.13116 9.36518 0.377003V5.95482C10.2029 5.46996 11.1752 5.19251 12.2121 5.19251C15.3607 5.19251 17.913 7.75037 17.913 10.9057C17.913 14.0609 15.3607 16.6188 12.2121 16.6188C9.06365 16.6188 6.51129 14.0609 6.51129 10.9057C6.51129 10.147 6.65884 9.42294 6.92674 8.76063H1.54039Z" fill="#222222"/>
+                        <path d="M0 0.666389L7.85513 1.97146V7.39999L0 6.09492L0 0.666389Z" fill="#00B711"/>
+                        </svg>
+                    </div>
+
+                    <div class="price font-semibold">
+                        ₹${item.price}
+                    </div>
+                    </div>
                 </div>
             `;
 
+
             const icon = L.divIcon({
                 html: priceHTML,
-                className: '',    
-                iconAnchor: [0, 0] 
+                className: '',
+                iconAnchor: [30, 15] // center-ish
             });
+
 
             L.marker([item.lat, item.lng], { icon }).addTo(map);
             bounds.push([item.lat, item.lng]);
@@ -366,20 +411,37 @@
         const listView  = document.getElementById('listView');
         const gridView  = document.getElementById('gridView');
         const toggle    = document.getElementById('mapViewToggle');
+        const currentView = "{{ $currentView }}"; // list | grid
 
         if (toggle.checked) {
-            // 🔒 Map ON → sirf map dikhe
+            // Save state
+            try {
+                localStorage.setItem('view', 'map');
+            } catch (e) {}
+            // Update URL
+            const url = new URL(window.location.href);
+            url.searchParams.set('view', 'map');
+            window.history.replaceState({}, '', url);
+
             if (mapView)  mapView.style.display = 'block';
             if (listView) listView.style.display = 'none';
             if (gridView) gridView.style.display = 'none';
 
-            setTimeout(initPriceMap, 300);
+            setTimeout(() => {
+                if (!window.mapReady) initPriceMap();
+            }, 300);
         } else {
-            // 🔓 Map OFF → URL ke hisaab se view dikhe
+            // Remove state
+            try {
+                localStorage.removeItem('view');
+            } catch (e) {}
+            // Remove ?view=map from URL
+            const url = new URL(window.location.href);
+            if (url.searchParams.get('view') === 'map') {
+                url.searchParams.delete('view');
+                window.history.replaceState({}, '', url);
+            }
             if (mapView) mapView.style.display = 'none';
-
-            const currentView = "{{ $currentView }}"; // list | grid
-
             if (currentView === 'grid') {
                 if (gridView) gridView.style.display = 'block';
                 if (listView) listView.style.display = 'none';
@@ -389,6 +451,34 @@
             }
         }
     }
+    // On page load, persist Map View state
+    document.addEventListener('DOMContentLoaded', function () {
+        const mapView   = document.getElementById('mapView');
+        const listView  = document.getElementById('listView');
+        const gridView  = document.getElementById('gridView');
+        const toggle    = document.getElementById('mapViewToggle');
+        const url = new URL(window.location.href);
+        let shouldShowMap = false;
+        if (url.searchParams.get('view') === 'map') {
+            shouldShowMap = true;
+        } else {
+            try {
+                if (localStorage.getItem('view') === 'map') {
+                    shouldShowMap = true;
+                }
+            } catch (e) {}
+        }
+        if (shouldShowMap && toggle) {
+            toggle.checked = true;
+            if (mapView)  mapView.style.display = 'block';
+            if (listView) listView.style.display = 'none';
+            if (gridView) gridView.style.display = 'none';
+            setTimeout(() => {
+                if (!window.mapReady) initPriceMap();
+            }, 300);
+        }
+    });
+
     function openFilterModal() {
         document.getElementById('filterModal').classList.remove('hidden');
         document.body.style.overflow = 'hidden';

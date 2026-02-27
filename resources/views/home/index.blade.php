@@ -12,10 +12,10 @@
     {{-- @include('components.customer.search-bar') --}}
 
     <!-- Best Hoardings Section -->
-    <section class="py-12 bg-gray-50">
+    <section class="py-6 bg-gray-50">
         <div class="container mx-auto px-4">
             <!-- Section Header -->
-            <div class="mb-6">
+            <div class="mb-3">
                 <h2 class="text-2xl font-bold text-gray-900">Best Hoardings</h2>
             </div>
 
@@ -67,7 +67,7 @@
       <div class="container mx-auto px-4">
           <hr class="border-gray-200">
       </div>
-       <section class="py-12 bg-white">
+       <section class="py-6 bg-white">
             <div class="container mx-auto px-4 text-center">
                 <h3 class="text-xl font-bold text-gray-900 mb-4">
                     See Personalized Recommendations
@@ -75,7 +75,7 @@
 
                     <div class="flex flex-col items-center justify-center space-y-4">
                         <a href="{{ route('login') }}"
-                        class="px-24 py-3 bg-gray-900 text-white rounded font-semibold hover:bg-gray-800">
+                        class="px-20 py-2 bg-gray-900 text-white rounded font-semibold hover:bg-gray-800">
                             Login
                         </a>
                         <div class="flex items-center space-x-2">
@@ -93,33 +93,11 @@
             <hr class="border-gray-200">
        </div>
     @endguest
-
     @include('home.home_contact_enquiry')
-    
-     <!-- Top DOOH Section -->
-    {{-- <section class="py-16 bg-gray-50">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Top DOOHs</h2>
-                <p class="text-gray-600">Digital out-of-home advertising screens</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                @foreach($topDOOHs as $dooh)
-                    @include('components.customer.dooh-card', ['dooh' => $dooh])
-                @endforeach
-            </div>
-        </div>
-    </section> --}}
-
-  
-
-   
-
     <!-- Featured Categories -->
-    <section class="py-16 bg-white">
+    <section class="py-6 bg-white">
         <div class="container mx-auto px-4">
-            <div class=" mb-12">
+            <div class=" mb-6">
                 <!-- <h2 class="text-lg md:text-4xl font-bold text-gray-900 mb-3">Top Spots</h2> -->
                 <h2 class="text-2xl font-bold text-gray-900">Top Spots</h2>
                 <!-- <p class="text-gray-600">Explore advertising opportunities in major cities</p> -->
@@ -139,6 +117,4 @@
     @if(isset($testimonials) && $testimonials->count())
      @include('components.customer.testimonials')
     @endif
-    <!-- Footer -->
-    @include('components.customer.footer')
 @endsection

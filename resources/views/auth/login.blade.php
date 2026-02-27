@@ -106,8 +106,8 @@
     }
 
     .footer-text a {
-        text-decoration: none;
-        font-weight: 500;
+        /* text-decoration: none; */
+        font-weight: 700;
     }
 
     @media (max-width: 768px) {
@@ -157,13 +157,9 @@
 
                 <h3 class="text-start">Login to your account</h3>
 
-              @if ($errors->any())
-                    <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative" style="font-size:15px;">
-                        <ul class="mb-2 ps-3 ms-0">
-                            @foreach ($errors->all() as $error)
-                                <li class="mb-1">{{ $error }}</li>
-                            @endforeach
-                        </ul>
+                @if ($errors->has('credentials'))
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative">
+                        {{ $errors->first('credentials') }}
 
                         <div class="text-end mt-2">
                             <a href="{{ route('password.request') }}"
@@ -177,7 +173,18 @@
                             onclick="this.closest('.alert').remove()">
                         </button>
                     </div>
-              @endif
+                @endif
+                @if ($errors->has('account_status'))
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative">
+                        {{ $errors->first('account_status') }}
+
+                        <button type="button"
+                            class="btn-close position-absolute top-0 end-0 mt-2 me-2"
+                            onclick="this.closest('.alert').remove()">
+                        </button>
+                    </div>
+                @endif
+
 
 
                 <form method="POST" action="{{ route('login.submit') }}" id="signupForm">
@@ -211,7 +218,7 @@
                             <span class="position-absolute top-50 end-0 translate-middle-y me-3"
                                 style="cursor:pointer;"
                                 id="togglePassword">
-                                <i class="fa-solid fa-eye text-muted pb-3"></i>
+                                <i class="fa-solid fa-eye text-muted pb-4"></i>
                             </span>
                             <small>Enter your password</small>
                         </div>
@@ -250,8 +257,8 @@
                     </p>
                     <small>
                         By clicking continue button, you agree with the
-                        <a href="{{ route('terms') }}">Terms & Conditions</a> and
-                        <a href="{{ route('privacy') }}">Privacy policy</a> of OOHAPP.
+                        <a href="{{ route('terms') }}" class="text-dark font-semibold">Terms & Conditions</a> and
+                        <a href="{{ route('privacy') }}" class="text-dark font-semibold">Privacy policy</a> of OOHAPP.
                     </small>
                 </div>
 
@@ -329,12 +336,14 @@
         passwordInp.setAttribute('type', isPassword ? 'text' : 'password');
 
         this.innerHTML = isPassword
-            ? '<i class="fa-solid fa-eye-slash text-muted pb-3"></i>'
-            : '<i class="fa-solid fa-eye text-muted pb-3"></i>';
+            ? '<i class="fa-solid fa-eye-slash text-muted pb-4"></i>'
+            : '<i class="fa-solid fa-eye text-muted pb-4"></i>';
     });
 
 
     });
 </script>
-
+<script>
+    setTimeout(() => window.location.reload(), 25 * 60 * 1000);
+</script>
 @endpush

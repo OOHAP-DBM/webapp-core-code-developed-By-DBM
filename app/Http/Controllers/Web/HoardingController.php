@@ -48,13 +48,16 @@ class HoardingController extends Controller
     /**
      * Display the specified hoarding.
      */
-    public function show(int $id)
+
+    public function show(string $slug)
     {
         $hoarding = Hoarding::with([
-        'vendor',
-        'hoardingMedia',       
-        'doohScreen.media',     
-        ])->findOrFail($id);
+            'vendor',
+            'hoardingMedia',
+            'doohScreen.media',
+        ])->where('slug', $slug)
+         ->orWhere('id', is_numeric($slug) ? $slug : 0)
+         ->firstOrFail();
 
         if (!$hoarding || !$hoarding->isActive()) {
             abort(404);
@@ -113,8 +116,6 @@ class HoardingController extends Controller
         if (Auth::check() && Auth::user()->hasRole('customer')) {
             $isInCart = $this->cartService->exists($hoarding->id);
         }
-
-
         return view('hoardings.show', compact('hoarding', 'isInCart'));
     }
 

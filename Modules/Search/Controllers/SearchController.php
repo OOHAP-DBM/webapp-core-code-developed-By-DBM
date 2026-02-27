@@ -32,7 +32,9 @@ class SearchController extends Controller
             ->where('hoardings.status', 'active')
             ->whereNull('hoardings.deleted_at')
             ->select([
+                'hoardings.slug',
                 'hoardings.id',
+                'hoardings.vendor_id',
                 'hoardings.title',
                 'hoardings.address',
                 'hoardings.city',
@@ -66,38 +68,32 @@ class SearchController extends Controller
                     CASE
                         WHEN hoardings.base_monthly_price IS NOT NULL
                         AND hoardings.base_monthly_price > 0
-
-                        /* 🔒 PRICE MUST BE > 0 (OOH + DOOH) */
                         AND (
                             CASE
-                                WHEN hoardings.hoarding_type = 'dooh'
-                                    THEN COALESCE(dooh_screens.price_per_slot, 0)
-                                ELSE hoardings.monthly_price
+                                WHEN hoardings.monthly_price IS NOT NULL AND hoardings.monthly_price > 0
+                                    THEN hoardings.monthly_price
+                                ELSE hoardings.base_monthly_price
                             END
                         ) > 0
-
-                        /* 🔒 REAL DISCOUNT ONLY */
                         AND (
                             CASE
-                                WHEN hoardings.hoarding_type = 'dooh'
-                                    THEN COALESCE(dooh_screens.price_per_slot, 0)
-                                ELSE hoardings.monthly_price
+                                WHEN hoardings.monthly_price IS NOT NULL AND hoardings.monthly_price > 0
+                                    THEN hoardings.monthly_price
+                                ELSE hoardings.base_monthly_price
                             END
                         ) < hoardings.base_monthly_price
-
                         THEN ROUND(
                             (
                                 hoardings.base_monthly_price -
                                 (
                                     CASE
-                                        WHEN hoardings.hoarding_type = 'dooh'
-                                            THEN COALESCE(dooh_screens.price_per_slot, 0)
-                                        ELSE hoardings.monthly_price
+                                        WHEN hoardings.monthly_price IS NOT NULL AND hoardings.monthly_price > 0
+                                            THEN hoardings.monthly_price
+                                        ELSE hoardings.base_monthly_price
                                     END
                                 )
                             ) / hoardings.base_monthly_price * 100
                         )
-
                         ELSE NULL
                     END AS discount_percent
                 "),
@@ -115,13 +111,8 @@ class SearchController extends Controller
                         WHEN '{$request->duration}' = 'weekly'
                             THEN hoardings.weekly_price_1
 
-                        /* MONTHLY MODE - DOOH */
-                        WHEN hoardings.hoarding_type = 'dooh'
-                            THEN COALESCE(dooh_screens.price_per_slot, 0)
-
-                        /* MONTHLY MODE - OOH */
-                        WHEN hoardings.monthly_price IS NOT NULL
-                            AND hoardings.monthly_price > 0
+                        /* MONTHLY MODE - unified for OOH/DOOH */
+                        WHEN hoardings.monthly_price IS NOT NULL AND hoardings.monthly_price > 0
                             THEN hoardings.monthly_price
 
                         /* FALLBACK */
@@ -223,7 +214,7 @@ class SearchController extends Controller
             default:
                 $query->orderByDesc('hoardings.created_at');
         }
-        $results = $query->paginate(10)->withQueryString();
+        $results = $query->paginate(8)->withQueryString();
         $hoardingIds = $results->pluck('id')->toArray();
 
         $oohImages = DB::table('hoarding_media')
@@ -256,5 +247,24 @@ class SearchController extends Controller
             'results' => $results,
             'cartHoardingIds' => $cartHoardingIds,
         ]);
+    }
+
+        /**
+     * SEO-friendly search handler. Accepts city and area as route parameters.
+     * Allows SEO developer to change URL structure via config.
+     */
+    public function seoSearch(Request $request, CartService $cartService, $city = null, $locality = null)
+    {
+        $mergeParams = [];
+        if ($city && strtolower($city) !== 'india') {
+            $mergeParams['location'] = $city;
+        }
+        if (isset($locality) && $locality !== '') {
+            $mergeParams['locality'] = $locality;
+        }
+        if (!empty($mergeParams)) {
+            $request->merge($mergeParams);
+        }
+        return $this->index($request, $cartService);
     }
 }

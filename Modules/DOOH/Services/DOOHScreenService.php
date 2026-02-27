@@ -33,17 +33,19 @@ class DOOHScreenService
         $validator = Validator::make($data, [
             'category'          => 'required|string|max:100',
             'screen_type'       => 'required|string|max:50',
-            'width'             => 'required|numeric|min:0.1',
-            'height'            => 'required|numeric|min:0.1',
+            'width'             => 'required|numeric|min:0.1|max:4000',
+            'height'            => 'required|numeric|min:0.1|max:4000',
             'measurement_unit'  => 'required|in:sqft,sqm',
             'address'           => 'required|string|max:255',
             'pincode'           => 'required|string|max:20',
             'locality'          => 'required|string|max:100',
             'price_per_slot'    => 'required|numeric|min:1',
-            // 'price_per_30_sec_slot'    => 'required|numeric|min:1',
-            'resolution_type' => 'required|string',
-            'resolution_width' => 'required_if:resolution_type,custom|nullable|integer|min:1',
-            'resolution_height' => 'required_if:resolution_type,custom|nullable|integer|min:1',
+            'base_monthly_price'    => 'required|numeric|min:1',
+            'monthly_price'    => 'required|numeric|min:1',
+            'spot_duration'    => 'required|numeric|min:1',
+            'spots_per_day'    => 'required|numeric|min:1',
+            // 'loop_duration_seconds'    => 'required|numeric|min:1',
+              'daily_runtime' => 'nullable|numeric|min:0|max:24',
         ]);
 
         // Normalize mediaFiles to always be an array
@@ -69,7 +71,23 @@ class DOOHScreenService
             $screen = $this->repo->createStep1($vendor, $data);
             
             // Only store media if files are present
-            if (!empty($mediaFiles) && is_array($mediaFiles)) {
+            if (!empty($data['deleted_media_ids'])) {
+                $deleteIds = array_filter(
+                    array_map('intval', explode(',', $data['deleted_media_ids']))
+                );
+                if (!empty($deleteIds)) {
+                    $mediaToDelete = \Modules\DOOH\Models\DOOHScreenMedia::whereIn('id', $deleteIds)
+                        ->where('dooh_screen_id', $screen->id)
+                        ->get();
+                    foreach ($mediaToDelete as $media) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($media->file_path);
+                        $media->delete();
+                    }
+                }
+            }
+
+
+            if (!empty($mediaFiles)) {
                 $this->repo->storeMedia($screen->id, $mediaFiles);
             }
 
@@ -80,102 +98,80 @@ class DOOHScreenService
         });
     }
 
-    protected function normalizeResolution(array $data): array
-    {
-        if ($data['resolution_type'] !== 'custom') {
-            [$width, $height] = explode('x', $data['resolution_type']);
-        } else {
-            $width = $data['resolution_width'];
-            $height = $data['resolution_height'];
-        }
-
-        return [
-            'resolution_width'  => (int) $width,
-            'resolution_height' => (int) $height,
-            'aspect_ratio'      => round($width / $height, 2),
-        ];
-    }
-
-    /**
-     * Store Step 2 (Additional Settings, Visibility & Brand Logos)
-     */
-    // public function storeStep2($screen, array $data, array $brandLogoFiles = [])
+    // public function storeStep2($screen, array $data, array $brandLogoFiles = []): array
     // {
-    //     return DB::transaction(function () use ($screen, $data, $brandLogoFiles) {
-    //         try {
-    //             $update = [
-    //                 'nagar_nigam_approved' => $data['nagar_nigam_approved'] ?? null,
-    //                 'block_dates'          => $data['block_dates'] ?? null,
-    //                 'grace_period'         => $data['grace_period'] ?? null,
-    //                 'audience_types'       => $data['audience_types'] ?? null,
-    //                 'visible_from'         => $data['visible_from'] ?? null,
-    //                 'located_at'           => $data['located_at'] ?? null,
-    //                 'hoarding_visibility'  => $data['hoarding_visibility'] ?? null,
-    //                 'visibility_details'   => $data['visibility_details'] ?? null,
-    //             ];
 
-    //             $screen = $this->repo->updateStep2($screen, $update);
+    //     // Always update the parent Hoarding model
+    //     $parentHoarding = method_exists($screen, 'hoarding') && $screen->hoarding ? $screen->hoarding : $screen;
+    //     $childHoarding = $screen;
+    //     // 1. Data Transformation (Mapping form inputs to DB columns)
+    //     $formattedData = $this->mapHoardingStep2Data($data);
 
-    //             if (!empty($brandLogoFiles)) {
-    //                 $this->repo->storeBrandLogos($screen->id, $brandLogoFiles);
+    //     return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles) {
+    //         // 1. Persist main hoarding data
+    //         $updatedHoarding = $this->repo->updateStep2($parentHoarding, $formattedData);
+
+    //         // 2. Handle deleted brand logos
+    //         if (!empty($data['delete_brand_logos'])) {
+    //             $deleteIds = array_filter(explode(',', $data['delete_brand_logos']));
+    //             if (!empty($deleteIds)) {
+    //                 \Modules\DOOH\Models\DOOHScreenBrandLogo::whereIn('id', $deleteIds)
+    //                     ->where('dooh_screen_id', $childHoarding->id)
+    //                     ->delete();
     //             }
-
-    //             $screen->current_step = 2;
-    //             $screen->save();
-
-    //             return ['success' => true, 'screen' => $screen->fresh(['brandLogos'])];
-    //         } catch (\Throwable $e) {
-    //             Log::error('DOOH step2 failed', ['error' => $e->getMessage()]);
-    //             return ['success' => false, 'errors' => ['step2' => ['Failed to save step 2 settings.']]];
     //         }
-    //     });
-    //     return DB::transaction(function () use ($screen, $data, $brandLogoFiles) {
-    //         try {
-    //         $update = [
-    //             'nagar_nigam_approved' => isset($data['nagar_nigam_approved']),
-    //             'grace_period'         => isset($data['grace_period']) ? (int)$data['grace_period'] : null,
-    //             'block_dates'          => $data['block_dates'] ?? null,
-    //             'audience_types'       => $data['audience_types'] ?? null,
-    //             'visible_from'         => $data['visible_from'] ?? null,
-    //             'located_at'           => $data['located_at'] ?? null,
-    //             'hoarding_visibility'  => $data['hoarding_visibility'] ?? null,
-    //             'visibility_details'   => $data['visibility_details'] ?? null,
-    //         ];
 
-    //         $screen = $this->repo->updateStep2($screen, $update);
-
+    //         // 3. Handle new brand logos
     //         if (!empty($brandLogoFiles)) {
-    //             $this->repo->storeBrandLogos($screen->id, $brandLogoFiles);
+    //             $this->repo->storeBrandLogos($childHoarding->id, $brandLogoFiles);
     //         }
-
-    //         $screen->hoarding->current_step = 2;
-    //         $screen->save();
 
     //         return [
-    //             'success' => true,
-    //             'screen'  => $screen->fresh('brandLogos')
+    //             'success'  => true,
+    //             'message'  => 'Hoarding details updated successfully.',
+    //             'hoarding' => $updatedHoarding->fresh('brandLogos')
     //         ];
-    //         } catch (\Throwable $e) {
-    //                     Log::error('DOOH step2 failed', ['error' => $e->getMessage()]);
-    //                     return ['success' => false, 'errors' => ['step2' => ['Failed to save step 2 settings.']]];
-    //                 }
-    //         });
+    //     });
     // }
-
     public function storeStep2($screen, array $data, array $brandLogoFiles = []): array
     {
-
-        // Always update the parent Hoarding model
-        $parentHoarding = method_exists($screen, 'hoarding') && $screen->hoarding ? $screen->hoarding : $screen;
+        $parentHoarding = method_exists($screen, 'hoarding') && $screen->hoarding 
+            ? $screen->hoarding 
+            : $screen;
         $childHoarding = $screen;
-        // 1. Data Transformation (Mapping form inputs to DB columns)
+
         $formattedData = $this->mapHoardingStep2Data($data);
 
-        return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles) {
-            // 2. Persist main hoarding data (parent)
+        // ✅ Pass $data into the closure so deleted logo IDs are accessible
+        return \DB::transaction(function () use ($parentHoarding, $childHoarding, $formattedData, $brandLogoFiles, $data) {
+
+            // 1. Persist main hoarding data
             $updatedHoarding = $this->repo->updateStep2($parentHoarding, $formattedData);
 
-            // 3. Handle Brand Logos via Repository (child)
+            // 2. ✅ Handle deleted brand logos
+            if (!empty($data['delete_brand_logos'])) {
+                $deleteIds = array_filter(
+                    array_map('intval', explode(',', $data['delete_brand_logos']))
+                );
+
+                if (!empty($deleteIds)) {
+                    $logosToDelete = \Modules\DOOH\Models\DOOHScreenBrandLogo::whereIn('id', $deleteIds)
+                        ->where('dooh_screen_id', $childHoarding->id)
+                        ->get();
+
+                    foreach ($logosToDelete as $logo) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($logo->file_path);
+                        $logo->delete();
+                    }
+
+                    Log::info('Brand logos deleted', [
+                        'screen_id'   => $childHoarding->id,
+                        'deleted_ids' => $deleteIds,
+                    ]);
+                }
+            }
+
+            // 3. Handle new brand logos
             if (!empty($brandLogoFiles)) {
                 $this->repo->storeBrandLogos($childHoarding->id, $brandLogoFiles);
             }
@@ -183,7 +179,7 @@ class DOOHScreenService
             return [
                 'success'  => true,
                 'message'  => 'Hoarding details updated successfully.',
-                'hoarding' => $updatedHoarding->fresh('brandLogos')
+                'hoarding' => $updatedHoarding->fresh('brandLogos'),
             ];
         });
     }
@@ -317,8 +313,6 @@ class DOOHScreenService
 
             // ---- Hoarding fields ----
             $parentHoarding = $screen->hoarding;
-            $parentHoarding->base_monthly_price = $data['base_monthly_price'] ?? 0;
-            $parentHoarding->monthly_price = $data['monthly_offered_price'] ?? 0;
             // $parentHoarding->enable_weekly_booking = isset($data['enable_weekly_booking']) ? 1 : 0;
             // $parentHoarding->weekly_price_1 = $data['weekly_price_1'] ?? null;
             // $parentHoarding->weekly_price_2 = $data['weekly_price_2'] ?? null;
@@ -328,24 +322,34 @@ class DOOHScreenService
             $parentHoarding->survey_charge = $data['survey_charge'] ?? null;
             $parentHoarding->hoarding_visibility = $data['hoarding_visibility'] ?? null;
             $parentHoarding->current_step = 3;
-            $parentHoarding->status = 'pending_approval';
+            $autoApproval = \App\Models\Setting::get('auto_hoarding_approval', false);
+            $newStatus = $autoApproval ? 'active' : 'pending_approval';
+            $parentHoarding->status = $newStatus;
             $parentHoarding->save();
-            // 🔔 Notify all admins (DOOH pending approval)
+            // 🔔 Notify all admins (DOOH status update)
             try {
                 $admins = User::role(['admin'])->get();
-
                 foreach ($admins as $admin) {
                     $admin->notify(
                         new NewHoardingPendingApprovalNotification($parentHoarding)
                     );
                 }
-
-                Log::info('DOOH pending approval notification sent to admins', [
+                Log::info('DOOH status notification sent to admins', [
                     'hoarding_id' => $parentHoarding->id,
                     'screen_id'   => $screen->id,
                 ]);
+                // Notify vendor (in-app and email)
+                $vendor = $parentHoarding->vendor;
+                if ($vendor) {
+                    $statusText = $newStatus === 'active' ? 'Your DOOH screen is now active and published.' : 'Your DOOH screen is pending approval.';
+                    $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parentHoarding));
+                    // $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parentHoarding, $statusText));
+                    if($autoApproval) { 
+                        $vendor->sendVendorEmails(new \Modules\Mail\HoardingPublishedMail($parentHoarding));
+                    }
+                }
             } catch (\Throwable $e) {
-                Log::error('DOOH pending approval notification failed', [
+                Log::error('DOOH status notification failed', [
                     'hoarding_id' => $parentHoarding->id,
                     'screen_id'   => $screen->id,
                     'error'       => $e->getMessage(),
@@ -447,7 +451,7 @@ class DOOHScreenService
                 'resolution_width' => $screen->resolution_width,
                 'resolution_height' => $screen->resolution_height,
                 'price_per_slot' => $screen->price_per_slot,
-                'display_price_per_30s' => $screen->display_price_per_30s,
+                // 'display_price_per_30s' => $screen->display_price_per_30s,
                 'status' => $screen->status,
                 'hoarding' => $hoarding ? [
                     'id' => $hoarding->id,
@@ -517,19 +521,22 @@ class DOOHScreenService
      */
     public function updateStep1($screen, $data, $mediaFiles)
     {
+        // dd($data);
         $errors = [];
 
         // Media validation (only if new files provided)
         if (!empty($mediaFiles)) {
-            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-            $maxSize = 5 * 1024 * 1024; // 5MB
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp',
+                 'video/mp4', 'video/webm', 'video/quicktime',
+            ];
+            $maxSize = 10 * 1024 * 1024; // 10MB
 
             foreach ($mediaFiles as $index => $file) {
                 if (!in_array($file->getMimeType(), $allowedMimes)) {
                     $errors['media'][] = "File #{$index}: Invalid format.";
                 }
                 if ($file->getSize() > $maxSize) {
-                    $errors['media'][] = "File #{$index}: Exceeds 5MB.";
+                    $errors['media'][] = "File #{$index}: Exceeds 10MB.";
                 }
             }
         }
@@ -538,8 +545,32 @@ class DOOHScreenService
             throw ValidationException::withMessages($errors);
         }
 
+
+
         return DB::transaction(function () use ($screen, $data, $mediaFiles) {
             $hoarding = $screen->hoarding;
+
+              if (!empty($data['deleted_media_ids'])) {
+                $deleteIds = array_filter(
+                    array_map('intval', explode(',', $data['deleted_media_ids']))
+                );
+
+                if (!empty($deleteIds)) {
+                    $mediaToDelete = \Modules\DOOH\Models\DOOHScreenMedia::whereIn('id', $deleteIds)
+                        ->where('dooh_screen_id', $screen->id)
+                        ->get();
+
+                    foreach ($mediaToDelete as $media) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($media->file_path);
+                        $media->delete();
+                    }
+
+                    Log::info('DOOH media deleted', [
+                        'screen_id'   => $screen->id,
+                        'deleted_ids' => $deleteIds,
+                    ]);
+                }
+            }
 
             // Update parent hoarding
             $hoarding->update([
@@ -552,14 +583,20 @@ class DOOHScreenService
                 'pincode' => $data['pincode'] ?? $hoarding->pincode,
                 'lat' => $data['lat'] ?? $hoarding->lat,
                 'lng' => $data['lng'] ?? $hoarding->lng,
-                'enable_weekly_booking' => isset($data['enable_weekly_booking']) ? $data['enable_weekly_booking'] : 0,
-                'weekly_price_1' => $data['weekly_price_1'],
-                'weekly_price_2' => $data['weekly_price_2'],
-                'weekly_price_3' => $data['weekly_price_3'],
-            ]);
+                // 'enable_weekly_booking' => isset($data['enable_weekly_booking']) ? $data['enable_weekly_booking'] : 0,
+                // 'weekly_price_1' => $data['weekly_price_1']?? null,
+                // 'weekly_price_2' => $data['weekly_price_2']?? null,
+                // 'weekly_price_3' => $data['weekly_price_3']?? null,
+                'monthly_price' => $data['monthly_price'] ?? $hoarding->monthly_price,
+                'base_monthly_price' => $data['base_monthly_price'] ?? $hoarding->base_monthly_price,
+                'discount_type' => $data['discount_type'] ?? null,
+                'discount_value' => $data['discount_value'] ?? null,
 
+            ]);
+      
+            
             // Normalize resolution
-            $normalized = $this->normalizeResolution($data);
+            // $normalized = $this->normalizeResolution($data);
 
             // Update DOOH screen
             $screen->update([
@@ -567,9 +604,12 @@ class DOOHScreenService
                 'width' => $data['width'] ?? $screen->width,
                 'height' => $data['height'] ?? $screen->height,
                 'measurement_unit' => $data['measurement_unit'] ?? $screen->measurement_unit,
-                'resolution_width' => $normalized['resolution_width'],
-                'resolution_height' => $normalized['resolution_height'],
+                // 'resolution_width' => $normalized['resolution_width'],
+                // 'resolution_height' => $normalized['resolution_height'],
                 'price_per_slot' => $data['price_per_slot'] ?? $screen->price_per_slot,
+                'slot_duration_seconds' => $data['spot_duration'] ?? $hoarding->spot_duration,
+                 'total_slots_per_day' => $data['spots_per_day'] ?? $hoarding->spots_per_day,
+                 'screen_run_time' => $data['daily_runtime'] ?? $hoarding->daily_runtime,
              
             ]);
 
@@ -602,6 +642,7 @@ class DOOHScreenService
             $hoarding->update([
                 'graphics_included' => isset($data['graphics_included']),
                 'graphics_price' => $data['graphics_price'] ?? 0,
+                'current_step' => 3,
             ]);
 
 // dd($data);
@@ -680,5 +721,30 @@ class DOOHScreenService
 
             return ['success' => true, 'screen' => $screen->fresh(['packages', 'slots'])];
         });
+    }
+
+    public function deleteMediaOnly($screen, string $deletedIdsString): void
+    {
+        $deleteIds = array_filter(
+            array_map('intval', explode(',', $deletedIdsString))
+        );
+
+        if (empty($deleteIds)) return;
+
+        $mediaToDelete = \Modules\DOOH\Models\DOOHScreenMedia::whereIn('id', $deleteIds)
+            ->where('dooh_screen_id', $screen->id)
+            ->get();
+
+        foreach ($mediaToDelete as $media) {
+            if (!empty($media->file_path) && \Storage::disk('public')->exists($media->file_path)) {
+                \Storage::disk('public')->delete($media->file_path);
+            }
+            $media->delete();
+        }
+
+        \Log::info('DOOH media deleted on go_back', [
+            'screen_id'   => $screen->id,
+            'deleted_ids' => $deleteIds,
+        ]);
     }
 }

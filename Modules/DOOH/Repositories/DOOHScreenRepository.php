@@ -14,54 +14,19 @@ use Illuminate\Support\Facades\DB;
 
 class DOOHScreenRepository
 {
-    // public function createStep1($vendor, $data)
-    // {
-    //     $width = floatval($data['width']);
-    //     $height = floatval($data['height']);
-    //     $measurement_unit = $data['measurement_unit'] ?? $data['unit'] ?? null;
-    //     $areaSqft = $measurement_unit === 'sqm'
-    //         ? round($width * $height * 10.7639, 2)
-    //         : round($width * $height, 2);
-
-    //     return DOOHScreen::create([
-    //         'vendor_id'        => $vendor->id,
-    //         'category'         => $data['category'],
-    //         'screen_type'      => $data['screen_type'],
-    //         'width'            => $width,
-    //         'height'           => $height,
-    //         'measurement_unit' => $measurement_unit,
-    //         'area_sqft'        => $areaSqft,
-
-    //         'address'          => $data['address'],
-    //         'pincode'          => $data['pincode'],
-    //         'locality'         => $data['locality'],
-    //         'city'             => $data['city'] ?? null,
-    //         'state'            => $data['state'] ?? null,
-    //         'lat'              => $data['lat'] ?? null,
-    //         'lng'              => $data['lng'] ?? null,
-    //         'price_per_slot'      => $data['price_per_slot'],
-    //         'status'              => DOOHScreen::STATUS_DRAFT,
-    //         'current_step'        => 1,
-    //     ]);
-    // }
 
     public function createStep1($vendor, $data)
     {
         return \DB::transaction(function () use ($vendor, $data) {
-
             /** -------------------------------
              * 1. Create Parent Hoarding
              * -------------------------------- */
-          
             $hoarding = Hoarding::create([
                 'vendor_id'      => $vendor->id,
-                'title'          => $data['name'] ?? null,
-                'name'        => $data['name'] ?? 'DOOH Screen',
+                'name'           => $data['name'] ?? 'DOOH Screen',
                 'description'    => $data['description'] ?? null,
                 'hoarding_type'  => 'dooh',
                 'category'       => $data['category'],
-
-                // Location
                 'address'        => $data['address'],
                 'locality'       => $data['locality'],
                 'city'           => $data['city'] ?? null,
@@ -70,59 +35,37 @@ class DOOHScreenRepository
                 'country'        => 'India',
                 'latitude'       => $data['lat'] ?? null,
                 'longitude'      => $data['lng'] ?? null,
-
-                // Booking & rules
-                // 'grace_period_days' => $data['grace_period_days'] ?? 0,
-                // 'audience_types'    => $data['audience_types'] ?? null,
-                'enable_weekly_booking' => $data['enable_weekly_booking'],
-                'weekly_price_1' => $data['weekly_price_1'],
-                'weekly_price_2' => $data['weekly_price_2'],
-                'weekly_price_3' => $data['weekly_price_3'],
-
+                'enable_weekly_booking' => $data['enable_weekly_booking']?? false,
+                'weekly_price_1' => $data['weekly_price_1']?? null,
+                'weekly_price_2' => $data['weekly_price_2']?? null,
+                'weekly_price_3' => $data['weekly_price_3']?? null,
+                'base_monthly_price' => $data['base_monthly_price']?? 0,
+                'monthly_price' => $data['monthly_price']?? 0,
+                'discount_type' => $data['discount_type'] ?? null,
+                'discount_value' => $data['discount_value'] ?? null,
                 'status' => 'draft',
                 'approval_status' => 'pending',
                 'current_step'   => 1,
             ]);
+            
 
             /** -------------------------------
              * 2. Create DOOH Screen
              * -------------------------------- */
-         
-            // dd($areaSqft);
-            // Inline resolution normalization logic
-            if (($data['resolution_type'] ?? '') !== 'custom') {
-                $preset = $data['resolution_type'] ?? '';
-                if (strpos($preset, 'x') !== false) {
-                    [$resWidth, $resHeight] = explode('x', $preset);
-                } else {
-                    $resWidth = null;
-                    $resHeight = null;
-                }
-            } else {
-                $resWidth = $data['resolution_width'] ?? null;
-                $resHeight = $data['resolution_height'] ?? null;
-            }
             $width  = (float) $data['width'];
             $height = (float) $data['height'];
             $measurement_unit = $data['measurement_unit'] ?? null;
-
-            $areaSqft = ($measurement_unit === 'sqm')
-                ? round($width * $height * 10.7639, 2)
-                : round($width * $height, 2);
             return DOOHScreen::create([
                 'hoarding_id' => $hoarding->id,
                 'screen_type' => $data['screen_type'],
                 'width' => $width,
                 'height' => $height,
                 'measurement_unit' => $measurement_unit,
-                'resolution_width'  => $resWidth,
-                'resolution_height' => $resHeight,
-                'calculated_area_sqft' => $areaSqft,
+                'screen_run_time' => $data['daily_runtime'] ?? null,
+                'slot_duration_seconds' => $data['spot_duration'] ?? null,
+                'total_slots_per_day' => $data['spots_per_day'] ?? null,
                 'price_per_slot' => $data['price_per_slot'],
-                // 'display_price_per_30s' => $data['price_per_30_sec_slot']?? 0,
-              
             ]);
-
         });
     }
     public function getOrCreateHoardingDraft($vendor, array $data)
@@ -157,7 +100,8 @@ class DOOHScreenRepository
                 'current_step'   => 1,
                 'status' => 'draft',
                 'approval_status' => 'pending',
-
+                 'base_monthly_price' => $data['base_monthly_price']?? 0,
+                'monthly_price' => $data['monthly_price']?? 0,
                 // Booking & audience
                 'grace_period_days' => $data['grace_period_days'] ?? 0,
                 'audience_types'    => $data['audience_types'] ?? null,
@@ -194,11 +138,15 @@ class DOOHScreenRepository
             $filename  = "{$uuid}.{$ext}";
 
             $path = $file->storeAs($directory, $filename, 'public');
+            $mimeType  = $file->getMimeType(); // most reliable
+            $mediaType = str_starts_with($mimeType, 'video') 
+                ? 'video' 
+                : (in_array($ext, ['mp4', 'mov', 'webm']) ? 'video' : 'image');
 
             $savedMedia[] = DOOHScreenMedia::create([
                 'dooh_screen_id' => $screenId,
                 'file_path'      => $path,
-                'media_type'     => in_array($ext, ['mp4', 'mov']) ? 'video' : 'image',
+                'media_type'     => $mediaType,
                 'is_primary'     => $index === 0,
                 'sort_order'     => $index,
             ]);
@@ -245,6 +193,7 @@ class DOOHScreenRepository
         ];
         $screen->fill(array_intersect_key($data, array_flip($allowed)));
         $screen->save();
+
         return $screen;
     }
 

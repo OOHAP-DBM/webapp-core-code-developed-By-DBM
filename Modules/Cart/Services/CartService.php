@@ -5,6 +5,7 @@ namespace Modules\Cart\Services;
 use App\Models\Hoarding;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Wishlist;
 
 class CartService
  
@@ -22,7 +23,9 @@ class CartService
         return $this->response('login_required', false, 'Please login to add item to cart');
     }
 
-    $hoarding = Hoarding::where('status', 'active')->findOrFail($hoardingId);
+    $hoarding = Hoarding::where('status', 'active')
+        ->whereNull('deleted_at')
+        ->findOrFail($hoardingId);
 
     // 🔥 FORCE ADD (idempotent behaviour optional)
     DB::table('carts')->updateOrInsert(
@@ -35,7 +38,10 @@ class CartService
             'updated_at' => now(),
         ]
     );
-
+    DB::table('wishlists')
+        ->where('user_id', Auth::id())
+        ->where('hoarding_id', $hoardingId)
+        ->delete();
     $priceData = $this->resolveFinalPrice($hoarding, $packageId, $packageSource);
 
     return $this->response(
@@ -68,19 +74,21 @@ class CartService
         ?int $packageId,
         ?string $source
     ): array {
-
-        return match ($hoarding->hoarding_type) {
-            'ooh'  => $this->resolveOOHPrice($hoarding, $packageId, $source),
-            'dooh' => $this->resolveDOOHPrice($hoarding, $packageId, $source),
-            default => throw new \Exception('Invalid hoarding type'),
-        };
+        // Unified pricing for both OOH and DOOH
+        return $this->resolveOOHPrice($hoarding, $packageId, $source);
     }
 
-    /* ================= OOH ================= */
-    private function resolveOOHPrice(Hoarding $hoarding, ?int $packageId, ?string $source): array
+    private function resolveOOHPrice(Hoarding $hoarding, ?int $packageId, ?string $source): array 
     {
-        if ($source === 'ooh_package' && $packageId) {
+        if (is_null($hoarding->base_monthly_price)) {
+            throw new \Exception('Base monthly price not set for hoarding');
+        }
 
+        $basePrice = (float) $hoarding->base_monthly_price;
+        $monthlyPrice = (float) ($hoarding->monthly_price ?? 0);
+
+        // ================= PACKAGE CASE =================
+        if (($source === 'ooh_package' || $source === 'dooh_package') && $packageId) {
             $pkg = DB::table('hoarding_packages')
                 ->where('id', $packageId)
                 ->where('hoarding_id', $hoarding->id)
@@ -88,52 +96,27 @@ class CartService
                 ->first();
 
             if (!$pkg) {
-                throw new \Exception('OOH package not found');
+                throw new \Exception('Package not found');
             }
 
-            $final = $pkg->base_price_per_month
-                - ($pkg->base_price_per_month * $pkg->discount_percent / 100);
-
+            $final = $basePrice - ($basePrice * ($pkg->discount_percent ?? 0) / 100);
             return $this->priceResponse('monthly', $final);
         }
 
-        return $this->priceResponse('monthly', $hoarding->monthly_price);
+        // ================= NO PACKAGE =================
+        if ($monthlyPrice > 0) {
+            return $this->priceResponse('monthly', $monthlyPrice);
+        }
+
+        return $this->priceResponse('monthly', $basePrice);
     }
+
 
     /* ================= DOOH ================= */
     private function resolveDOOHPrice(Hoarding $hoarding, ?int $packageId, ?string $source): array
     {
-        $screen = DB::table('dooh_screens')
-            ->where('hoarding_id', $hoarding->id)
-            ->whereNull('deleted_at')
-            ->first();
-
-        if (!$screen) {
-            throw new \Exception('DOOH screen not found');
-        }
-
-        if ($source === 'dooh_package' && $packageId) {
-
-            $pkg = DB::table('dooh_packages')
-                ->where('id', $packageId)
-                ->where('dooh_screen_id', $screen->id)
-                ->where('is_active', 1)
-                ->first();
-
-            if (!$pkg) {
-                throw new \Exception('DOOH package not found');
-            }
-
-            $final = $pkg->price_per_month
-                - ($pkg->price_per_month * $pkg->discount_percent / 100);
-
-            return $this->priceResponse('package', $final);
-        }
-
-        return $this->priceResponse(
-            'slot',
-            $screen->display_price_per_30s ?: $screen->price_per_slot
-        );
+        // Unified pricing: use OOH logic for DOOH
+        return $this->resolveOOHPrice($hoarding, $packageId, $source);
     }
 
     /* =====================================================
@@ -164,6 +147,8 @@ class CartService
         $items = DB::table('carts')
             ->join('hoardings', 'hoardings.id', '=', 'carts.hoarding_id')
             ->where('carts.user_id', Auth::id())
+            ->whereNull('hoardings.deleted_at')
+            ->where('hoardings.status', Hoarding::STATUS_ACTIVE)
             ->select(
                 'carts.id as cart_id',
                 'carts.package_id', 
@@ -177,7 +162,6 @@ class CartService
                 'hoardings.monthly_price',
                 'hoardings.base_monthly_price',
                 'hoardings.grace_period_days',
-
             )
             ->get();
 
@@ -381,43 +365,44 @@ class CartService
         PRICE LOGIC (DOOH)
         ===================================================== */
         if ($item->hoarding_type === 'dooh') {
+            // Unified pricing logic for DOOH (same as OOH)
+            $item->base_monthly_price = round((float) ($item->base_monthly_price ?? 0), 2);
+            $item->monthly_price      = round((float) ($item->monthly_price ?? 0), 2);
 
-            $screen = DB::table('dooh_screens')
-                ->where('hoarding_id', $item->hoarding_id)
-                ->whereNull('deleted_at')
-                ->first();
-
-            $slotPrice = round(
-                (float) (
-                    $screen
-                        ? ($screen->display_price_per_30s ?: $screen->price_per_slot)
-                        : 0
-                ),
-                2
-            );
-
-            // Set base price same as slot price for package calculations
-            $item->slot_price = $slotPrice;
-            $item->base_monthly_price = $slotPrice;
-            $item->monthly_price = $slotPrice;
-            $item->final_price = $slotPrice;
-
-            // Handle selected package with discount
-            $item->discounted_monthly_price = null;
+            $item->discounted_monthly_price = $item->base_monthly_price;
             $item->discount_amount = 0;
 
             if ($item->selected_package) {
                 $discountPercent = (float) ($item->selected_package->discount_percent ?? 0);
-                if ($discountPercent > 0 && $slotPrice > 0) {
+                if ($discountPercent > 0 && $item->base_monthly_price > 0) {
                     $item->discount_amount = round(
-                        ($slotPrice * $discountPercent) / 100,
+                        ($item->base_monthly_price * $discountPercent) / 100,
                         2
                     );
-                    $item->final_price = round($slotPrice - $item->discount_amount, 2);
+                    $item->discounted_monthly_price = round(
+                        $item->base_monthly_price - $item->discount_amount,
+                        2
+                    );
                 }
             }
 
-            $item->package_details = null;
+            // Final price: monthly_price if > 0, else base_monthly_price
+            $item->final_price = ($item->monthly_price > 0)
+                ? $item->monthly_price
+                : $item->base_monthly_price;
+
+            $item->package_details = $item->selected_package
+                ? (object) [
+                    'id'                   => $item->selected_package->id,
+                    'package_name'         => $item->selected_package->package_name,
+                    'discount_percent'     => (float) $item->selected_package->discount_percent,
+                    'min_booking_duration' => (int) $item->selected_package->min_booking_duration,
+                    'duration_unit'        => $item->selected_package->duration_unit,
+                    'services_included'    => is_string($item->selected_package->services_included)
+                        ? json_decode($item->selected_package->services_included, true)
+                        : ($item->selected_package->services_included ?? []),
+                ]
+                : null;
         }
 
         return $item;

@@ -143,7 +143,7 @@
         color: #fff; /* white */
     }
 </style>
-<form method="GET" action="{{ route('search') }}" id="filterForm">
+<form method="GET" action="{{ route('search.seo', ['city' => request('location', 'india'), 'area' => request('area')]) }}" id="filterForm">
     <div id="filterModal" class="fixed inset-0 z-[9999] hidden p-4 sm:p-6 md:p-8 lg:p-0">
 
         <!-- Overlay -->
@@ -161,7 +161,7 @@
                 <button
                     type="button"
                     onclick="closeFilterModal()"
-                    class="ml-auto text-xl"
+                    class="ml-auto text-xl cursor-pointer"
                 >
                     &times;
                 </button>
@@ -372,7 +372,7 @@
                         max="40"
                         step="1"
                         id="minRange"
-                        value="{{ request('min_height',12) }}"
+                        value="{{ strlen(request('min_height')) ? request('min_height') : 8 }}"
                     >
 
                     <input
@@ -381,7 +381,7 @@
                         max="40"
                         step="1"
                         id="maxRange"
-                        value="{{ request('max_height',16) }}"
+                        value="{{ strlen(request('max_height')) ? request('max_height') : (strlen(request('min_height')) ? request('min_height')+1 : 9) }}"
                     >
 
                     <div class="range-base">
@@ -452,7 +452,7 @@
 
             {{-- FOOTER --}}
             <div class="flex items-center justify-between px-6 py-4 border border-gray-200">
-                <a href="{{ route('search') }}" class="text-lg text-black">Clear all</a>
+                <a href="{{ route('search.seo', ['city' => 'india']) }}" class="text-lg text-black">Clear all</a>
                 <button type="submit"
                     class="btn-color text-white px-14 py-2 rounded" style="cursor:pointer;">
                     Apply

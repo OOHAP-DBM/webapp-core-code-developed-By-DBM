@@ -1,40 +1,11 @@
-<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col h-full" onclick="if(event.target.closest('button') === null) window.location.href='{{ route('hoardings.show', $hoarding->id) }}';">
-    <!-- Image -->
-    <div class="relative h-48 overflow-hidden bg-gray-100">
-    @php
-        $imageUrl = null;
+<div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col h-full" onclick="if(event.target.closest('button') === null) window.location.href='{{ route('hoardings.show', $hoarding->slug ?? $hoarding->id) }}';">
+<!-- Image / Video -->
+<div class="relative h-48 overflow-hidden bg-gray-100">
+    @php $mediaItem = $hoarding->primaryMediaItem(); @endphp
 
-        if ($hoarding->hoarding_type === 'ooh'
-            && $hoarding->hoardingMedia->isNotEmpty()) {
-
-            $imageUrl = asset(
-                'storage/' . $hoarding->hoardingMedia->first()->file_path
-            );
-        }
-
-        if (
-                $hoarding->hoarding_type === 'dooh'
-                && $hoarding->doohScreen
-                && $hoarding->doohScreen->media->isNotEmpty()
-            ) {
-                $imageUrl = asset(
-                    'storage/' . $hoarding->doohScreen->media
-                        ->sortBy('sort_order')
-                        ->first()
-                        ->file_path
-                );
-            }
-        @endphp
-
-    @if($imageUrl)
-        <img src="{{ $imageUrl }}"
-            class="w-full h-full object-cover">
-    @else
-        <div class="w-full h-full flex items-center justify-center bg-gray-200">
-            No Image {{ $hoarding->id }} | {{ $hoarding->hoarding_type }}
-        </div>
-    @endif
-
+        @if($mediaItem)
+            <x-media-preview :media="$mediaItem" :alt="$hoarding->title ?? 'Hoarding'" />
+        @endif
 
 
         
@@ -48,11 +19,61 @@
         <!-- Top Right Icons -->
         <div class="absolute top-3 right-3 flex items-center space-x-2">
             <!-- Bookmark Icon -->
+             @php
+                $isWishlisted = auth()->check()
+                    ? auth()->user()->wishlist()->where('hoarding_id', $hoarding->id)->exists()
+                    : false;
+            @endphp
+            @php
+                $isOwnerVendor = false;
+                if (
+                    auth()->check()
+                    && optional(auth()->user())->active_role === 'vendor'
+                    && isset($hoarding->vendor_id)
+                    && auth()->id() === (int) $hoarding->vendor_id
+                ) {
+                    $isOwnerVendor = true;
+                }
+            @endphp
+            @if(!$isOwnerVendor)
+            <button
+                class="w-8 h-8 rounded-full flex items-center justify-center shortlist-btn
+                    {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }} {{ $isOwnerVendor ? 'cursor-not-allowed opacity-50' : 'cursor-pointer' }}"
+                data-id="{{ $hoarding->id }}"
+                data-auth="{{ auth()->check() ? '1' : '0' }}"
+                data-role="{{ auth()->check() ? auth()->user()->role : '' }}"
+                @if($isOwnerVendor)
+                    disabled
+                @else
+                    onclick="event.stopPropagation(); toggleShortlist(this);"
+                @endif
+            >
+            
+
+                    <svg
+                        class="wishlist-icon"
+                        width="20"
+                        height="19"
+                        viewBox="0 0 20 19"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            d="M5.5 0.75C2.877 0.75 0.75 3.01 0.75 5.797C0.75 11.375 9.75 17.75 9.75 17.75C9.75 17.75 18.75 11.375 18.75 5.797C18.75 2.344 16.623 0.75 14 0.75C12.14 0.75 10.53 1.886 9.75 3.54C8.97 1.886 7.36 0.75 5.5 0.75Z"
+                            stroke="white"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                </button>
+                @endif
+
+<!-- 
             <button class="w-8 h-8 bg-[#9e9e9b] backdrop-blur-sm rounded-full flex items-center justify-center" onclick="event.stopPropagation();">
                 <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M5.5 0.75C2.877 0.75 0.75 3.01 0.75 5.797C0.75 11.375 9.75 17.75 9.75 17.75C9.75 17.75 18.75 11.375 18.75 5.797C18.75 2.344 16.623 0.75 14 0.75C12.14 0.75 10.53 1.886 9.75 3.54C8.97 1.886 7.36 0.75 5.5 0.75Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-            </button>
+            </button> -->
             <!-- Info Icon -->
             <!-- <button class="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors" onclick="event.stopPropagation();">
                 <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,7 +126,7 @@
         <!-- Price -->
         <div class="mb-3">
 
-            @if($hoarding->hoarding_type === 'ooh')
+          
 
             @php
                 $base  = $hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price;
@@ -146,16 +167,7 @@
                 </div>
             @endif
 
-            {{-- ================= DOOH ================= --}}
-            @else
-                <div class="flex items-baseline">
-                    <span class="text-xl font-semibold text-gray-900">
-                        ₹{{ number_format(optional($hoarding->doohScreen)->price_per_slot) }}
-                    </span>
-                    <span class="text-lg text-black font-bold ml-1">/Second</span>
-                </div>
-            @endif
-
+           
 
         </div>
 
@@ -164,12 +176,12 @@
             use Carbon\Carbon;
         @endphp
 
-        <p class="text-xs text-gray-600 mb-1">
+        <p class="text-xs text-blue-500 mb-1">
             @if($hoarding->available_from && Carbon::parse($hoarding->available_from)->isFuture())
                 Hoarding Available from
                 {{ Carbon::parse($hoarding->available_from)->format('F d, Y') }}
             @else
-                Hoarding Available Now
+                Available
             @endif
         </p>
 
@@ -188,53 +200,68 @@
         @if($packageCount > 0)
             <p class="text-xs text-teal-600 font-medium mb-3">{{ $packageCount }} {{ Str::plural('Package', $packageCount) }} Available</p>
         @else
-            <p class="text-xs text-teal-600 font-medium mb-3">No packages are in this hoarding</p>
+            <p class="text-xs text-teal-600 font-medium mb-3">No packages</p>
         @endif
 
         <!-- Action Buttons -->
-        <div class="flex items-center space-x-2 mb-2 mt-auto">
+        <div class="flex items-center space-x-2 mb-2 mt-auto cursor-pointer">
             @php
                 $isInCart = in_array($hoarding->id, $cartIds ?? []);
             @endphp
-
-            <button
-                id="cart-btn-{{ $hoarding->id }}"
-                data-in-cart="{{ $isInCart ? '1' : '0' }}"
-                onclick="event.stopPropagation(); event.preventDefault(); toggleCart(this, {{ $hoarding->id }})"
-                class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded"
-            >
-            </button>
-
-
-
-
-
-            @auth
+            @php
+                $isOwnerVendor = false;
+                if (
+                    auth()->check()
+                    && optional(auth()->user())->active_role === 'vendor'
+                    && isset($hoarding->vendor_id)
+                    && auth()->id() === (int) $hoarding->vendor_id
+                ) {
+                    $isOwnerVendor = true;
+                }
+            @endphp
+            @if(!$isOwnerVendor)
                 <button
-                    type="button"
-                    class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn"
-                    data-hoarding-id="{{ $hoarding->id }}"
-                    data-grace-days="{{ (int) $hoarding->grace_period_days }}"
-                    data-base-price="{{ ($hoarding->hoarding_type === 'dooh')
-                        ? ($hoarding->doohScreen->price_per_slot ?? 0)
-                        : ((!empty($hoarding->monthly_price) && $hoarding->monthly_price > 0)
-                            ? $hoarding->monthly_price
-                            : ($hoarding->base_monthly_price ?? 0))
-                    }}"
-                    data-base-monthly-price="{{ $hoarding->base_monthly_price ?? 0 }}"
-                    data-hoarding-type="{{ $hoarding->hoarding_type}}"
+                    id="cart-btn-{{ $hoarding->id }}"
+                    data-in-cart="{{ $isInCart ? '1' : '0' }}"
+                    onclick="event.stopPropagation(); event.preventDefault(); toggleCart(this, {{ $hoarding->id }})"
+                    class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded cursor-pointer"
                 >
-                    Enquiry Now
                 </button>
+
+                @auth
+                    <button
+                        type="button"
+                        class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn cursor-pointer"
+                        data-hoarding-id="{{ $hoarding->id }}"
+                        data-grace-days="{{ (int) $hoarding->grace_period_days }}"
+                        data-base-price="{{ (!empty($hoarding->monthly_price) && $hoarding->monthly_price > 0)
+                            ? $hoarding->monthly_price
+                            : ($hoarding->base_monthly_price ?? 0)
+                        }}"
+                        data-slot-duration="{{ $hoarding->doohScreen->slot_duration_seconds ?? '' }}"
+                        data-total-slots="{{ $hoarding->doohScreen->total_slots_per_day ?? '' }}"
+                        data-base-monthly-price="{{ $hoarding->base_monthly_price ?? 0 }}"
+                        data-hoarding-type="{{ $hoarding->hoarding_type}}"
+                    >
+                        Enquiry Now
+                    </button>
+                @else
+                    <button
+                        type="button"
+                        class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded cursor-pointer"
+                        onclick="event.stopPropagation(); event.preventDefault(); window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
+                    >
+                        Enquiry Now
+                    </button> 
+                @endauth
             @else
-                <button
-                    type="button"
-                    class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded"
-                    onclick="event.stopPropagation(); event.preventDefault(); window.location.href='/login?message=' + encodeURIComponent('Please login to raise an enquiry.');"
-                >
-                    Enquiry Now
-                </button> 
-            @endauth
+            <div class="w-full flex justify-center">
+                <button class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded cursor-pointer"
+                    onclick="event.stopPropagation(); window.location.href='{{ route('hoardings.show', $hoarding->id) }}';">
+                    View Details
+                </button>
+            </div>
+            @endif
         </div>
         <!-- Enquire Link -->
         <!-- <a href="#" class="block text-center text-xs text-teal-600 hover:text-teal-700 font-medium" onclick="event.stopPropagation();">

@@ -20,9 +20,8 @@
                         id="userDropdownBtn"
                         class="text-gray-400 hover:text-gray-600 transition-colors"
                         title="Login">
-                            <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M0.5 14.5C0.5 13.4391 0.921427 12.4217 1.67157 11.6716C2.42172 10.9214 3.43913 10.5 4.5 10.5H12.5C13.5609 10.5 14.5783 10.9214 15.3284 11.6716C16.0786 12.4217 16.5 13.4391 16.5 14.5C16.5 15.0304 16.2893 15.5391 15.9142 15.9142C15.5391 16.2893 15.0304 16.5 14.5 16.5H2.5C1.96957 16.5 1.46086 16.2893 1.08579 15.9142C0.710714 15.5391 0.5 15.0304 0.5 14.5Z" stroke="#484848" stroke-linejoin="round"/>
-                            <path d="M8.5 6.5C10.1569 6.5 11.5 5.15685 11.5 3.5C11.5 1.84315 10.1569 0.5 8.5 0.5C6.84315 0.5 5.5 1.84315 5.5 3.5C5.5 5.15685 6.84315 6.5 8.5 6.5Z" stroke="#484848"/>
+                            <svg width="20" height="19" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.5 4.25C3.5 3.69188 3.60993 3.13923 3.82351 2.6236C4.03709 2.10796 4.35015 1.63945 4.7448 1.2448C5.13944 0.850147 5.60796 0.537094 6.1236 0.323512C6.63923 0.109929 7.19188 0 7.75 0C8.30812 0 8.86077 0.109929 9.3764 0.323512C9.89204 0.537094 10.3606 0.850147 10.7552 1.2448C11.1499 1.63945 11.4629 2.10796 11.6765 2.6236C11.8901 3.13923 12 3.69188 12 4.25C12 5.37717 11.5522 6.45817 10.7552 7.2552C9.95817 8.05223 8.87717 8.5 7.75 8.5C6.62283 8.5 5.54183 8.05223 4.7448 7.2552C3.94777 6.45817 3.5 5.37717 3.5 4.25ZM7.75 1.5C7.02065 1.5 6.32118 1.78973 5.80546 2.30546C5.28973 2.82118 5 3.52065 5 4.25C5 4.97935 5.28973 5.67882 5.80546 6.19454C6.32118 6.71027 7.02065 7 7.75 7C8.47935 7 9.17882 6.71027 9.69454 6.19454C10.2103 5.67882 10.5 4.97935 10.5 4.25C10.5 3.52065 10.2103 2.82118 9.69454 2.30546C9.17882 1.78973 8.47935 1.5 7.75 1.5ZM3.75 11.5C3.15326 11.5 2.58097 11.7371 2.15901 12.159C1.73705 12.581 1.5 13.1533 1.5 13.75V14.938C1.5 14.956 1.513 14.972 1.531 14.975C5.65 15.647 9.851 15.647 13.969 14.975C13.9775 14.9731 13.9851 14.9684 13.9907 14.9617C13.9963 14.955 13.9996 14.9467 14 14.938V13.75C14 13.1533 13.7629 12.581 13.341 12.159C12.919 11.7371 12.3467 11.5 11.75 11.5H11.41C11.3832 11.5005 11.3567 11.5045 11.331 11.512L10.466 11.795C8.70118 12.3713 6.79882 12.3713 5.034 11.795L4.168 11.512C4.14296 11.5047 4.11708 11.5006 4.091 11.5H3.75ZM0 13.75C0 12.7554 0.395088 11.8016 1.09835 11.0983C1.80161 10.3951 2.75544 10 3.75 10H4.09C4.27667 10.0007 4.458 10.0293 4.634 10.086L5.5 10.369C6.96203 10.8463 8.53797 10.8463 10 10.369L10.866 10.086C11.041 10.029 11.225 10 11.409 10H11.75C12.7446 10 13.6984 10.3951 14.4017 11.0983C15.1049 11.8016 15.5 12.7554 15.5 13.75V14.938C15.5 15.692 14.954 16.334 14.21 16.455C9.93164 17.1534 5.56836 17.1534 1.29 16.455C0.930184 16.3958 0.603047 16.2108 0.366821 15.9331C0.130596 15.6553 0.000609175 15.3027 0 14.938V13.75Z" fill="#6E6E6E"/>
                             </svg>
                 </a>
 
@@ -56,17 +55,27 @@
                             @auth
                                 @php
                                     $dashboardUrl = '#';
+                                    $profileUrl   = '#';
 
-                                    if(auth()->user()->hasRole('admin')){
-                                        $dashboardUrl = route('admin.dashboard');
-                                    }elseif(auth()->user()->hasRole('vendor')){
-                                        $dashboardUrl = route('vendor.dashboard');
-                                    }else{
-                                        $dashboardUrl = route('customer.dashboard');
+                                    if(auth()->check()) {
+
+                                        if(auth()->user()->hasRole('admin')) {
+                                            $dashboardUrl = route('admin.dashboard');
+                                            $profileUrl   = $dashboardUrl;
+
+                                        } elseif(auth()->user()->hasRole('vendor')) {
+                                            $dashboardUrl = route('vendor.dashboard');
+                                            $profileUrl   = route('vendor.profile.edit');
+
+                                        } else {
+                                            $dashboardUrl = route('customer.dashboard');
+                                            $profileUrl   = route('customer.profile.index');
+                                        }
                                     }
                                 @endphp
 
-                                <a href="{{ $dashboardUrl }}" class="block">
+
+                                <a href="{{ $profileUrl }}" class="block">
                                     <div class="bg-black text-white rounded-md px-3 py-2 hover:bg-gray-900 transition">
                                         <p class="text-sm font-semibold">
                                             {{ auth()->user()->name }}
@@ -156,21 +165,47 @@
 
                     </div>
                         <!-- Saved/Bookmarks -->
-                    <a href="#" class="hidden md:block text-gray-400 hover:text-gray-600 transition-colors" title="Saved">
-                        <svg width="19" height="17" viewBox="0 0 19 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M2.24 8.25002C1.84461 7.85725 1.53134 7.38971 1.31845 6.87466C1.10556 6.3596 0.997308 5.80733 1 5.25002C1 4.12285 1.44777 3.04184 2.2448 2.24481C3.04183 1.44778 4.12283 1.00002 5.25 1.00002C6.83 1.00002 8.21 1.86002 8.94 3.14002H10.06C10.4311 2.48908 10.9681 1.94811 11.6163 1.57219C12.2645 1.19628 13.0007 0.998856 13.75 1.00002C14.8772 1.00002 15.9582 1.44778 16.7552 2.24481C17.5522 3.04184 18 4.12285 18 5.25002C18 6.42002 17.5 7.50002 16.76 8.25002L9.5 15.5L2.24 8.25002ZM17.46 8.96002C18.41 8.00002 19 6.70002 19 5.25002C19 3.85763 18.4469 2.52227 17.4623 1.53771C16.4777 0.553141 15.1424 1.8052e-05 13.75 1.8052e-05C12 1.8052e-05 10.45 0.850018 9.5 2.17002C9.0151 1.49652 8.37661 0.948336 7.63748 0.570946C6.89835 0.193557 6.0799 -0.00216431 5.25 1.8052e-05C3.85761 1.8052e-05 2.52226 0.553141 1.53769 1.53771C0.553123 2.52227 0 3.85763 0 5.25002C0 6.70002 0.59 8.00002 1.54 8.96002L9.5 16.92L17.46 8.96002Z" fill="#484848"/>
+                        <a href="javascript:void(0)"
+                        onclick="openWishlist(event)"
+                        class="relative inline-block text-gray-400 hover:text-gray-600"
+                        data-auth="{{ auth()->check() ? '1' : '0' }}"
+                        data-role="{{ auth()->check() ? auth()->user()->active_role : '' }}"
+                        title="Wishlist"
+                        >               
+                         <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5.5 0.75C2.877 0.75 0.75 3.01 0.75 5.797C0.75 11.375 9.75 17.75 9.75 17.75C9.75 17.75 18.75 11.375 18.75 5.797C18.75 2.344 16.623 0.75 14 0.75C12.14 0.75 10.53 1.886 9.75 3.54C8.97 1.886 7.36 0.75 5.5 0.75Z" stroke="#6E6E6E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
+                            @php
+                                $wishlistCount = 0;
+                                if(auth()->check()) {
+                                    $wishlistCount = auth()->user()
+                                        ->wishlist()
+                                        ->whereHas('hoarding', function ($q) {
+                                            $q->whereNull('deleted_at');
+                                        })
+                                        ->count();
+                                }
+                            @endphp
+                      
+                           @if($wishlistCount > 0)
+                                <span class="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                    {{$wishlistCount}}
+                                </span>
+                            @endif
                     </a>
+
                     <!-- Cart with Badge -->
                     <a href="{{ route('cart.index') }}" class="relative inline-block text-gray-400 hover:text-gray-600" title="Cart">
-                            <svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15 15C15.5304 15 16.0391 15.2107 16.4142 15.5858C16.7893 15.9609 17 16.4696 17 17C17 17.5304 16.7893 18.0391 16.4142 18.4142C16.0391 18.7893 15.5304 19 15 19C14.4696 19 13.9609 18.7893 13.5858 18.4142C13.2107 18.0391 13 17.5304 13 17C13 16.4696 13.2107 15.9609 13.5858 15.5858C13.9609 15.2107 14.4696 15 15 15ZM15 16C14.7348 16 14.4804 16.1054 14.2929 16.2929C14.1054 16.4804 14 16.7348 14 17C14 17.2652 14.1054 17.5196 14.2929 17.7071C14.4804 17.8946 14.7348 18 15 18C15.2652 18 15.5196 17.8946 15.7071 17.7071C15.8946 17.5196 16 17.2652 16 17C16 16.7348 15.8946 16.4804 15.7071 16.2929C15.5196 16.1054 15.2652 16 15 16ZM6 15C6.53043 15 7.03914 15.2107 7.41421 15.5858C7.78929 15.9609 8 16.4696 8 17C8 17.5304 7.78929 18.0391 7.41421 18.4142C7.03914 18.7893 6.53043 19 6 19C5.46957 19 4.96086 18.7893 4.58579 18.4142C4.21071 18.0391 4 17.5304 4 17C4 16.4696 4.21071 15.9609 4.58579 15.5858C4.96086 15.2107 5.46957 15 6 15ZM6 16C5.73478 16 5.48043 16.1054 5.29289 16.2929C5.10536 16.4804 5 16.7348 5 17C5 17.2652 5.10536 17.5196 5.29289 17.7071C5.48043 17.8946 5.73478 18 6 18C6.26522 18 6.51957 17.8946 6.70711 17.7071C6.89464 17.5196 7 17.2652 7 17C7 16.7348 6.89464 16.4804 6.70711 16.2929C6.51957 16.1054 6.26522 16 6 16ZM17 3H3.27L5.82 9H14C14.33 9 14.62 8.84 14.8 8.6L17.8 4.6C17.93 4.43 18 4.22 18 4C18 3.73478 17.8946 3.48043 17.7071 3.29289C17.5196 3.10536 17.2652 3 17 3ZM14 10H5.87L5.1 11.56L5 12C5 12.2652 5.10536 12.5196 5.29289 12.7071C5.48043 12.8946 5.73478 13 6 13H17V14H6C5.46957 14 4.96086 13.7893 4.58579 13.4142C4.21071 13.0391 4 12.5304 4 12C3.9997 11.6607 4.08573 11.3269 4.25 11.03L4.97 9.56L1.34 1H0V0H2L2.85 2H17C17.5304 2 18.0391 2.21071 18.4142 2.58579C18.7893 2.96086 19 3.46957 19 4C19 4.5 18.83 4.92 18.55 5.26L15.64 9.15C15.28 9.66 14.68 10 14 10Z" fill="#484848"/>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1.46 3.15018H16.674C18.052 3.15018 19.047 4.42018 18.669 5.69818L17.015 11.2982C16.76 12.1582 15.946 12.7502 15.02 12.7502H5.862C4.935 12.7502 4.12 12.1572 3.866 11.2982L1.46 3.15018ZM1.46 3.15018L0.75 0.750183M14.25 18.7502C14.6478 18.7502 15.0294 18.5921 15.3107 18.3108C15.592 18.0295 15.75 17.648 15.75 17.2502C15.75 16.8524 15.592 16.4708 15.3107 16.1895C15.0294 15.9082 14.6478 15.7502 14.25 15.7502C13.8522 15.7502 13.4706 15.9082 13.1893 16.1895C12.908 16.4708 12.75 16.8524 12.75 17.2502C12.75 17.648 12.908 18.0295 13.1893 18.3108C13.4706 18.5921 13.8522 18.7502 14.25 18.7502ZM6.25 18.7502C6.64782 18.7502 7.02936 18.5921 7.31066 18.3108C7.59196 18.0295 7.75 17.648 7.75 17.2502C7.75 16.8524 7.59196 16.4708 7.31066 16.1895C7.02936 15.9082 6.64782 15.7502 6.25 15.7502C5.85218 15.7502 5.47064 15.9082 5.18934 16.1895C4.90804 16.4708 4.75 16.8524 4.75 17.2502C4.75 17.648 4.90804 18.0295 5.18934 18.3108C5.47064 18.5921 5.85218 18.7502 6.25 18.7502Z" stroke="#6E6E6E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                             @php
                                 $cartCount = 0;
                                 if(auth()->check()) {
                                     $cartCount = \Illuminate\Support\Facades\DB::table('carts')
-                                        ->where('user_id', auth()->id())
+                                        ->join('hoardings', 'hoardings.id', '=', 'carts.hoarding_id')
+                                        ->where('carts.user_id', auth()->id())
+                                        ->whereNull('hoardings.deleted_at')
                                         ->count();
                                 }
                             @endphp
@@ -182,9 +217,9 @@
                     </a>
 
                 <!-- Mobile Menu Button -->
-                <button type="button" class="md:hidden text-gray-700" onclick="toggleMobileMenu()">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                <button type="button" class="md:hidden text-gray-700 -mt-1" onclick="toggleMobileMenu()">
+                    <svg class="w-6 h-7" fill="none" stroke="currentColor" viewBox="0 0 19 19">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
             </div>
@@ -211,16 +246,97 @@
         </div>
 
         <!-- Mobile Navigation Menu -->
-        <div id="mobile-menu" class="hidden md:hidden pb-4 border-t border-gray-100 mt-2">
-            <div class="flex flex-col space-y-3 pt-3">
-                <a href="{{ route('hoardings.index') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Hoardings</a>
-                <a href="{{ route('dooh.index') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">DOOH</a>
+        <div id="mobile-menu"
+            class="fixed top-0 left-0 h-full w-72 bg-white shadow-xl
+                    transform -translate-x-full transition-transform duration-300 ease-in-out
+                    z-50 md:hidden">
+
+            <!-- HEADER -->
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+                <a href="{{ route('home') }}" class="flex items-center">
+                    <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHAPP" width="140">
+                </a>
+
+                <button onclick="toggleMobileMenu()"
+                        class="text-gray-500 hover:text-gray-700 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- MENU LINKS -->
+            <div class="flex flex-col px-5 py-4 space-y-2 text-sm">
+
+                <!-- Hoardings -->
+                <a href="{{ route('search') }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-md
+                        text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M3 7h18M3 12h18M3 17h18"/>
+                    </svg>
+                    Hoardings
+                </a>
+
+                <!-- DOOH -->
+                <a href="{{ route('search', ['type' => 'dooh']) }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-md
+                        text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M9 17V7l7 5-7 5z"/>
+                    </svg>
+                    DOOH
+                </a>
+
                 @auth
-                    <a href="" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Saved Items</a>
-                    <a href="{{ url('/dashboard') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Dashboard</a>
+                    <!-- Saved -->
+                    <a href="#"
+                    class="flex items-center gap-3 px-3 py-2 rounded-md
+                            text-gray-700 hover:bg-gray-100 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M5 5v14l7-4 7 4V5z"/>
+                        </svg>
+                        Saved Items
+                    </a>
+
+                    <!-- Dashboard -->
+                    <a href="{{ $dashboardUrl }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-md
+                            text-gray-700 hover:bg-gray-100 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M3 12l2-2 4 4 8-8 4 4"/>
+                        </svg>
+                        Dashboard
+                    </a>
                 @else
-                    <a href="{{ route('login') }}" class="text-gray-700 hover:text-blue-600 font-medium px-2 py-1">Login</a>
-                    <a href="{{ route('register.role-selection') }}" class="text-blue-600 hover:text-blue-700 font-semibold px-2 py-1">Sign Up</a>
+                    <!-- Login -->
+                    <a href="{{ route('login') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-md
+                            text-gray-700 hover:bg-gray-100 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M10 17l5-5-5-5"/>
+                        </svg>
+                        Login
+                    </a>
+
+                    <!-- Signup -->
+                    <a href="{{ route('register.role-selection') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-md
+                            text-blue-600 font-semibold hover:bg-blue-50 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Sign Up
+                    </a>
                 @endauth
             </div>
         </div>
@@ -229,12 +345,21 @@
 
 @push('scripts')
 <script>
-    function toggleMobileMenu() {
-        const menu = document.getElementById('mobile-menu');
-        menu.classList.toggle('hidden');
-    }
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
 
+    if (menu.classList.contains('-translate-x-full')) {
+        menu.classList.remove('-translate-x-full');
+        menu.classList.add('translate-x-0');
+        document.body.style.overflow = 'hidden'; // background lock
+    } else {
+        menu.classList.add('-translate-x-full');
+        menu.classList.remove('translate-x-0');
+        document.body.style.overflow = '';
+    }
+}
 </script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -253,4 +378,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 </script>
+<script>
+function openWishlist(event) {
+    event.preventDefault();
+
+    const link = event.currentTarget;
+    const isAuth = link.dataset.auth === '1';
+    const role = link.dataset.role;
+
+    /* ❌ NOT LOGGED IN */
+    if (!isAuth) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Please login to view your wishlist',
+            showConfirmButton: false,
+            timer: 2500
+        });
+
+        setTimeout(() => {
+            window.location.href = "{{ route('login') }}";
+        }, 2000);
+        return;
+    }
+    window.location.href = "{{ route('shortlist') }}";
+}
+</script>
+
 @endpush

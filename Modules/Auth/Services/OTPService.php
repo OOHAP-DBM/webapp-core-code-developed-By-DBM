@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\EmailOTPNotification;
+use App\Services\TwilioService;
+use Modules\Auth\Models\UserOtp;
 
 class OTPService
 {
@@ -41,7 +44,6 @@ class OTPService
 
         // 3. Generate 4-digit OTP (This uses the method in your User model)
         $otp = $user->generateOTP();
-
         // 4. Send the OTP
         $this->sendOTP($user, $otp);
 
@@ -162,15 +164,14 @@ class OTPService
     protected function sendOTP(User $user, string $otp): void
     {
         
+        $message = "Your OOHAPP OTP is: {$otp}. Valid for 5 minutes.";
+
         if ($user->phone) {
-            // TODO: Implement SMS sending
-            // Example: Twilio::sendSMS($user->phone, "Your OOHAPP OTP is: {$otp}");
+            app(TwilioService::class)->sendSMS($user->phone, $message);
         }
 
-        // Fallback to email
         if ($user->email) {
-            // TODO: Implement email sending
-            // $user->notify(new OTPNotification($otp));
+            $user->notify(new EmailOTPNotification($otp));
         }
     }
 
@@ -369,8 +370,8 @@ class OTPService
             // SMS Provider
             // SMS::send($identifier, "Your OTP is {$otp}");
         } else {
-            // Email Provider
-            // Mail::to($identifier)->send(new OTPMail($otp));
+            // Email Provider (use OtpVerificationMail for OTP emails)
+            \Mail::to($identifier)->send(new \Modules\Mail\OtpVerificationMail($otp));
         }
     }
 }

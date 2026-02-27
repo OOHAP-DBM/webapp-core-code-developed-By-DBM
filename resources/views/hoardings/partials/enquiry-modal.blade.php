@@ -52,78 +52,82 @@
             height: 100%;
         }
     }
-</style>
+    /* ================= MOBILE ONLY STABILITY FIX ================= */
+    @media (max-width: 640px) {
 
+        /* modal container fixed & stable */
+        #enquiryModal {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100dvh; /* 🔥 IMPORTANT */
+            overflow: hidden;
+        }
 
-<style>
-/* ================= MOBILE ONLY STABILITY FIX ================= */
-@media (max-width: 640px) {
+        /* modal card full screen, no flex jump */
+        #enquiryModal .modal-card {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100dvh;
+            max-height: 100dvh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            border-radius: 0;
+        }
 
-    /* modal container fixed & stable */
-    #enquiryModal {
-        position: fixed;
+        /* stop horizontal movement completely */
+        html, body {
+            overflow-x: hidden;
+        }
+    }
+    #enquirySubmitBtn {
+        position: relative;
+        min-height: 48px;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    #enquiryLoader {
+        position: absolute;
         inset: 0;
-        width: 100vw;
-        height: 100dvh; /* 🔥 IMPORTANT */
-        overflow: hidden;
+        align-items: center;
+        justify-content: center;
+        background: rgba(47, 93, 70, 0.96);
+        z-index: 2;
     }
-
-    /* modal card full screen, no flex jump */
-    #enquiryModal .modal-card {
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100dvh;
-        max-height: 100dvh;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
-        border-radius: 0;
+    #enquiryLoaderText {
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        font-size: 1rem;
+        letter-spacing: 0.02em;
     }
-
-    /* stop horizontal movement completely */
-    html, body {
-        overflow-x: hidden;
+    .dot-one, .dot-two, .dot-three {
+        opacity: 0.2;
+        animation: blink 1.4s infinite both;
     }
-}
-#enquirySubmitBtn {
-    position: relative;
-    min-height: 48px;
-    font-size: 1rem;
-    line-height: 1.5;
-}
-#enquiryLoader {
-    position: absolute;
-    inset: 0;
-    align-items: center;
-    justify-content: center;
-    background: rgba(47, 93, 70, 0.96);
-    z-index: 2;
-}
-#enquiryLoaderText {
-    display: flex;
-    align-items: center;
-    font-weight: 500;
-    font-size: 1rem;
-    letter-spacing: 0.02em;
-}
-.dot-one, .dot-two, .dot-three {
-    opacity: 0.2;
-    animation: blink 1.4s infinite both;
-}
-.dot-two { animation-delay: 0.2s; }
-.dot-three { animation-delay: 0.4s; }
-@keyframes blink {
-    0%, 80%, 100% { opacity: 0.2; }
-    40% { opacity: 1; }
-}
+    .dot-two { animation-delay: 0.2s; }
+    .dot-three { animation-delay: 0.4s; }
+    @keyframes blink {
+        0%, 80%, 100% { opacity: 0.2; }
+        40% { opacity: 1; }
+    }
+    .enquiry-input.readonly-clean {
+        background: #ffffff !important;
+        color: #111827 !important;
+        opacity: 1 !important;
+        cursor: default !important;
+    }
+    .enquiry-input.readonly-clean:focus{
+        border-color:#E5E7EB !important;
+        box-shadow:none !important;
+    }
 </style>
 
 
 
 @php
-    // Only use $hoarding if it is set and not on homepage
-    // $modalHoarding is only used for SSR fallback. All dynamic data should be set by JS.
     $modalHoarding = null;
     $packages = collect();
 @endphp
@@ -146,7 +150,7 @@
                 </p>
             </div>
             <button type="button" onclick="closeEnquiryModal()"
-                    class="text-gray-500 hover:text-black text-xl">
+                    class="text-gray-500 hover:text-black text-xl cursor-pointer">
                 ✕
             </button>
         </div>
@@ -220,7 +224,8 @@
                                name="preferred_start_date"
                                id="enquiryStartDate"
                                class="enquiry-input"
-                               required>
+                               required
+                               min="{{ date('Y-m-d') }}">
                     </div>
 
                     <div id="monthWrapper">
@@ -264,16 +269,12 @@
                         <hr class="border-green-200 mb-3">
                     </div>
                     <div>
-                        <label class="font-medium text-gray-700">Video Duration (Seconds) *</label>
-                        <select name="video_duration" class="enquiry-input">
-                            <option value="">-- Select Duration --</option>
-                            <option value="15">15 Seconds</option>
-                            <option value="30">30 Seconds</option>
-                        </select>
+                        <label class="font-medium text-gray-700">Slot Duration (Seconds) *</label>
+                        <input type="number" name="video_duration" class="enquiry-input" value="" readonly>
                     </div>
                     <div>
-                        <label class="font-medium text-gray-700">Required Slots per day *</label>
-                        <input type="number" name="slots_count" class="enquiry-input" placeholder="e.g. 120" value="120" min="1" max="10000">
+                        <label class="font-medium text-gray-700">Slots per day *</label>
+                        <input type="number" name="slots_count" class="enquiry-input" value="" min="1" max="10000" readonly>
                     </div>
                 </div>
                 <div id="doohNote" class="p-3 bg-blue-50 border border-blue-100 rounded-lg" style="display:none;">
@@ -296,7 +297,7 @@
                         id="enquirySubmitBtn"
                         class="w-full bg-[#2F5D46] hover:bg-[#264B39]
                             text-white py-3 rounded-md font-semibold flex items-center justify-center relative overflow-hidden">
-                    <span id="enquiryBtnText" class="flex items-center justify-center w-full h-full">Enquire Now</span>
+                    <span id="enquiryBtnText" class="flex items-center justify-center w-full h-full cursor-pointer">Enquire Now</span>
                     <span
                         id="enquiryLoader"
                         class="hidden absolute inset-0 flex items-center justify-center bg-[#2f5d46] bg-opacity-90"
@@ -318,7 +319,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
         var email = document.getElementById('enquiryEmail');
         var phone = document.getElementById('enquiryMobile');
         var user = {
@@ -340,26 +341,6 @@
             phone.readOnly = false;
         }
 
-            // Show/hide Digital Ad Settings based on hoardingType
-            function toggleDoohFields() {
-                var hoardingType = document.getElementById('hoardingType')?.value || '';
-                var doohFields = document.getElementById('doohFields');
-                var doohNote = document.getElementById('doohNote');
-                // Use lowercase comparison for consistency
-                if (hoardingType.toLowerCase() === 'dooh') {
-                    if (doohFields) doohFields.style.display = '';
-                    if (doohNote) doohNote.style.display = '';
-                } else {
-                    if (doohFields) doohFields.style.display = 'none';
-                    if (doohNote) doohNote.style.display = 'none';
-                }
-            }
-            // Initial call
-            toggleDoohFields();
-            // Also call when modal opens (in case hoardingType changes dynamically)
-            document.getElementById('enquiryModal').addEventListener('modal:open', toggleDoohFields);
-            // Or poll for changes if needed
-            document.getElementById('hoardingType')?.addEventListener('change', toggleDoohFields);
 
             // Robust validation before submit
             document.getElementById('enquiryForm').addEventListener('submit', function(e) {
@@ -550,21 +531,99 @@
         document.getElementById('enquiryModal').addEventListener('modal:open', toggleDoohFields);
         // Or poll for changes if needed
         document.getElementById('hoardingType')?.addEventListener('change', toggleDoohFields);
-    });
+});
 </script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const enquiryForm = document.getElementById('enquiryForm');
-    const submitBtn = document.getElementById('enquirySubmitBtn');
-    const btnText = document.getElementById('enquiryBtnText');
-    const loader = document.getElementById('enquiryLoader');
+/* ===== DOOH FIELD AUTO SYNC (NO CONFLICT, NO DELAY) ===== */
+(function () {
 
-    if (enquiryForm && submitBtn && btnText && loader) {
-        enquiryForm.addEventListener('submit', function() {
-            submitBtn.disabled = true;
-            btnText.style.display = 'none';
-            loader.classList.remove('hidden');
-        });
+    const typeInput  = document.getElementById('hoardingType');
+    const doohFields = document.getElementById('doohFields');
+    const doohNote   = document.getElementById('doohNote');
+
+    if (!typeInput || !doohFields) return;
+
+    function applyDoohState() {
+        const type = (typeInput.value || '').toLowerCase();
+
+        if (type === 'dooh') {
+            doohFields.style.display = '';
+            if (doohNote) doohNote.style.display = '';
+        } else {
+            doohFields.style.display = 'none';
+            if (doohNote) doohNote.style.display = 'none';
+        }
     }
-});
+
+    /* --- 1️⃣ When modal opens (instant) --- */
+    document.addEventListener('click', function(e){
+        const btn = e.target.closest('.enquiry-btn');
+        const slotDuration = btn.dataset.slotDuration;
+        const totalSlots   = btn.dataset.totalSlots;
+        const videoInput = document.querySelector('input[name="video_duration"]');
+        const slotsInput = document.querySelector('input[name="slots_count"]');
+        if (videoInput && slotDuration) {
+            videoInput.value = slotDuration;
+        }
+        if (slotsInput && totalSlots) {
+            slotsInput.value = totalSlots;
+        }
+        if(!btn) return;
+
+        // wait 1 frame after openEnquiryModal sets value
+        requestAnimationFrame(applyDoohState);
+    }, true);
+
+    /* --- 2️⃣ When JS changes hoardingType (API response) --- */
+    const observer = new MutationObserver(applyDoohState);
+
+    observer.observe(typeInput, {
+        attributes: true,
+        attributeFilter: ['value']
+    });
+
+    /* --- 3️⃣ safety (initial render) --- */
+    setTimeout(applyDoohState, 50);
+
+})();
+</script>
+<script>
+/* ===== DOOH AUTO READONLY FIELDS ===== */
+(function(){
+
+    const typeInput = document.getElementById('hoardingType');
+
+    function applyReadonly(){
+        const isDooh = (typeInput.value || '').toLowerCase() === 'dooh';
+
+        const video  = document.querySelector('input[name="video_duration"]');
+        const slots  = document.querySelector('input[name="slots_count"]');
+
+        if(!video || !slots) return;
+
+        if(isDooh){
+            video.readOnly = true;
+            slots.readOnly = true;
+
+            video.classList.add('readonly-clean');
+            slots.classList.add('readonly-clean');
+        }else{
+            video.readOnly = false;
+            slots.readOnly = false;
+
+            video.classList.remove('readonly-clean');
+            slots.classList.remove('readonly-clean');
+        }
+    }
+    document.addEventListener('click', function(e){
+        if(e.target.closest('.enquiry-btn')){
+            requestAnimationFrame(applyReadonly);
+        }
+    }, true);
+    const observer = new MutationObserver(applyReadonly);
+    if(typeInput){
+        observer.observe(typeInput,{attributes:true,attributeFilter:['value']});
+    }
+    setTimeout(applyReadonly,100);
+})();
 </script>

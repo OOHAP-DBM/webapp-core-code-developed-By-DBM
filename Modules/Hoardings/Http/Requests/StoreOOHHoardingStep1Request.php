@@ -14,6 +14,7 @@ class StoreOOHHoardingStep1Request extends FormRequest
 
     public function rules()
     {
+         $oohId = $this->input('ooh_id');
         return [
             'category' => 'required|string|max:100',
             'width' => 'required|numeric|min:0.1',
@@ -22,24 +23,38 @@ class StoreOOHHoardingStep1Request extends FormRequest
             'address' => 'required|string|max:255',
             'pincode' => 'required|string|max:20',
             'locality' => 'required|string|max:100',
+            'city' => 'required|string|max:100',
             'state' => 'required|string|max:100',
             'base_monthly_price' => 'required|numeric|min:1',
             'lat' => ['required', 'numeric', 'between:-90,90'],
             'lng' => ['required', 'numeric', 'between:-180,180'],
+            'deleted_media_ids' => 'nullable',
             'monthly_price' => [
                 'nullable',
                 'numeric',
-                'lt:base_monthly_price',
+                'lte:base_monthly_price',
             ],
-            'media' => 'required|array',
-            'media.*' => 'file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/jpg,image/webp|max:5120',
+            'media'=> $oohId ? 'nullable|array' : 'required|array|min:1',
+           'media.*' => [
+                'file',
+                'max:10240',
+                function ($attribute, $value, $fail) {
+                    $allowed = [
+                        'image/jpeg', 'image/jpg', 'image/png', 'image/webp',
+                        'video/mp4', 'video/webm',
+                    ];
+                    if (!in_array($value->getMimeType(), $allowed)) {
+                        $fail('Only JPG, PNG, WEBP images and MP4, WEBM videos are allowed.');
+                    }
+                },
+           ],
         ];
     }
 
     public function messages()
     {
         return [
-            'monthly_price.lt' => 'Offer price must be less than the base monthly price.',
+            'monthly_price.lt' => 'Monthly Discounted Price  must be less than the Monthly Base Price (₹).',
             'media.required' => 'At least one image is required.',
             'media.*.mimes' => 'Only JPG, JPEG, PNG, and WEBP images are allowed.',
             'media.*.max' => 'Each image must not exceed 5MB.',

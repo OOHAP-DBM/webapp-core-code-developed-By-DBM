@@ -26,28 +26,72 @@ class EnquiryController extends Controller
      */
     public function __construct()
     {
-        $this->middleware(['auth', 'role:customer'])->except(['store']);
+        $this->middleware(['auth'])->except(['store']);
     }
 
     public function index(Request $request)
     {
-        if (!auth()->check() || !auth()->user()->hasRole('customer')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Only customers can view enquiries.'
-            ], 403);
-        }
-        $query = Enquiry::where('customer_id', Auth::id())
-            // ->with(['items.hoarding', 'quotation'])
-            ->with(['items.hoarding'])
+        // if (!auth()->check() || !auth()->user()->hasRole('customer')) {
+        //     abort(403, 'Only customers can view enquiries.');
+        // }
 
-            ->latest();
+        $query = Enquiry::where('customer_id', auth()->id())
+            ->with(['items.hoarding']);
 
+        /* ---------------- STATUS FILTER ---------------- */
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        $enquiries = $query->paginate(10);
+        $searchId = null;
+
+        /* ---------------- SEARCH BY ID ONLY ---------------- */
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $searchId = preg_replace('/\D/', '', $search);
+            if ($searchId !== '') {
+                $query->where('id', (int) $searchId);
+                $query->orderByRaw(
+                    "CASE WHEN id = ? THEN 0 ELSE 1 END",
+                    [(int) $searchId]
+                );
+            }
+        }
+
+        /* ---------------- DATE FILTER (created_at) ---------------- */
+        if ($request->filled('date_filter')) {
+
+            switch ($request->date_filter) {
+
+                case 'last_week':
+                    $query->where('created_at', '>=', Carbon::now()->subWeek());
+                    break;
+
+                case 'last_month':
+                    $query->where('created_at', '>=', Carbon::now()->subMonth());
+                    break;
+
+                case 'last_year':
+                    $query->where('created_at', '>=', Carbon::now()->subYear());
+                    break;
+
+                case 'custom':
+                    if ($request->filled('from_date') && $request->filled('to_date')) {
+                        $query->whereBetween('created_at', [
+                            Carbon::parse($request->from_date)->startOfDay(),
+                            Carbon::parse($request->to_date)->endOfDay(),
+                        ]);
+                    }
+                    break;
+            }
+        }
+
+        /* ---------------- DEFAULT ORDER ---------------- */
+        $query->orderBy('created_at', 'desc');
+
+        $enquiries = $query
+            ->paginate(10)
+            ->withQueryString();
 
         return view('customer.enquiries.index', compact('enquiries'));
     }

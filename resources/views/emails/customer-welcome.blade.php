@@ -2,57 +2,91 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #1dbf73; color: white; padding: 20px; border-radius: 5px; text-align: center; }
-        .content { padding: 20px 0; }
-        .button { display: inline-block; background-color: #1dbf73; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        table, th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #f0f0f0; }
-        .footer { text-align: center; color: #666; font-size: 12px; padding-top: 20px; border-top: 1px solid #ddd; margin-top: 20px; }
-    </style>
+    <title>Welcome to OOHAPP</title>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Welcome to OOHApp 👋</h1>
-        </div>
 
-        <div class="content">
-            <p>Hi {{ $user->name }},</p>
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, Helvetica, sans-serif;">
 
-            <p>Welcome to OOHApp! Glad to have you with us.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8; padding:40px 0;">
+<tr>
+<td align="center">
 
-            <p>If you're looking to put your brand out there — hoardings, DOOH screens, prime locations — you're in the right place. OOHApp makes outdoor advertising straightforward, without the usual back-and-forth and confusion.</p>
+    <!-- Main Container -->
+    <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 
-            <h3>Your Login Details:</h3>
-            <table>
-                <tr>
-                    <th>Field</th>
-                    <th>Details</th>
+        @include('emails.partials.header')
+
+        <!-- Title -->
+        <tr>
+            <td align="center" style="padding:10px 40px 0 40px;">
+                <h2 style="margin:0; color:#222; font-weight:600;">Welcome to OOHAPP 👋</h2>
+                <p style="margin-top:8px; color:#666; font-size:14px;">
+                    Glad to have you with us, {{ $user->name }}!
+                </p>
+            </td>
+        </tr>
+
+        <!-- Intro -->
+        <tr>
+            <td style="padding:20px 40px 10px 40px; font-size:14px; color:#444; line-height:22px;">
+                <p>
+                    If you're looking to put your brand out there — hoardings, DOOH screens, prime locations —
+                    you're in the right place. OOHAPP makes outdoor advertising straightforward,
+                    without the usual back-and-forth and confusion.
+                </p>
+            </td>
+        </tr>
+
+        <!-- LOGIN DETAILS TABLE -->
+        <tr>
+        <td style="padding:0 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;">
+                <tr style="background:#f3f4f6;">
+                    <th align="left" style="padding:10px; font-size:13px;">Field</th>
+                    <th align="left" style="padding:10px; font-size:13px;">Details</th>
                 </tr>
+
                 <tr>
-                    <td><strong>Email / User ID</strong></td>
-                    <td>{{ $user->email }}</td>
+                    <td style="padding:10px; font-size:13px;"><strong>Email / User ID</strong></td>
+                    <td style="padding:10px; font-size:13px;">{{ $user->email }}</td>
                 </tr>
+
                 <tr>
-                    <td><strong>Login URL</strong></td>
-                    <td><a href="https://staging.oohapp.io/" target="_blank">https://staging.oohapp.io/</a></td>
+                    <td style="padding:10px; font-size:13px;"><strong>Login URL</strong></td>
+                    <td style="padding:10px; font-size:13px;">
+                        <a href="https://staging.oohapp.io/" target="_blank">
+                            https://staging.oohapp.io/
+                        </a>
+                    </td>
                 </tr>
             </table>
+        </td>
+        </tr>
 
-            <p style="text-align: center;">
-                <a href="https://staging.oohapp.io/" class="button">Login to Your Dashboard</a>
-            </p>
+        <!-- BUTTON -->
+        <tr>
+        <td align="center" style="padding:25px 40px;">
+            <a href="https://staging.oohapp.io/customer/dashboard"
+               style="background:#16a34a;
+                      color:#ffffff;
+                      padding:12px 24px;
+                      font-size:14px;
+                      text-decoration:none;
+                      border-radius:6px;
+                      display:inline-block;">
+                Login to Your Dashboard
+            </a>
+        </td>
+        </tr>
 
-            <h3>Here's what you can do right away:</h3>
-            <ul>
-                <li>Browse real, verified hoardings and DOOH screens</li>
-                <li>Check locations, sizes, pricing, and availability</li>
-                <li>Shortlist options that fit your budget</li>
+        <!-- Features -->
+        <tr>
+        <td style="padding:0 40px 10px 40px; font-size:14px; color:#444; line-height:22px;">
+            <p><strong>Here's what you can do right away:</strong></p>
+            <ul style="padding-left:18px; margin:8px 0;">
+                <li>Browse verified hoardings and DOOH screens</li>
+                <li>Check locations, sizes, pricing and availability</li>
+                <li>Shortlist options as per your budget</li>
                 <li>Book campaigns faster and track everything in one place</li>
             </ul>
 
@@ -60,17 +94,38 @@
 
             <p><strong>Security tip:</strong> Keep your password confidential. We never ask for your password via email.</p>
 
-            <p>If you ever feel stuck or need suggestions, just reach out. We're happy to help at <strong>support@oohapp.com</strong>.</p>
+            <p>If you need help, contact us at <strong>support@oohapp.com</strong>.</p>
 
-            <p>Let's make sure your brand gets noticed.</p>
+            <p>Cheers,<br><strong>Team OOHAPP</strong></p>
+        </td>
+        </tr>
 
-            <p>Cheers,<br>Team OOHApp</p>
-        </div>
+        <!-- CUSTOMER DISCLAIMER (FOOTER KE JUST UPAR) -->
+        <tr>
+        <td style="padding:10px 40px 7px 40px;">
+            <div style="
+                margin-top: 25px;
+                padding-top: 12px;
+                border-top: 1px dashed #ddd;
+                font-size: 9px;
+                color: #777;
+                line-height: 1.5;
+            ">
+                <strong style="color:#555;">Disclaimer:</strong>
+                OOHAPP helps you discover and connect with verified advertising space owners.
+                All pricing, availability, and campaign details are shared directly by the vendor.
+                Any discussions or confirmations take place between you and the selected vendor.
+                OOHAPP remains a facilitating platform and does not take part in deal discussions or execution.
+            </div>
+        </td>
+        </tr>
 
-        <div class="footer">
-            <p>&copy; 2026 OOHApp. All rights reserved.</p>
-            <p>This is an automated email. Please do not reply directly.</p>
-        </div>
-    </div>
+        @include('emails.partials.footer')
+
+    </table>
+</td>
+</tr>
+</table>
+
 </body>
 </html>

@@ -21,14 +21,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'vendor.onboarding.complete' => \App\Http\Middleware\EnsureVendorOnboardingComplete::class,
             'vendor.approved' => \App\Http\Middleware\EnsureVendorOnboardingApproved::class,
         ]);
-        
-        // Add SetLocale middleware to web group (PROMPT 80)
+
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
-            \App\Http\Middleware\EnsureActiveRole::class, // PROMPT 96
+            \App\Http\Middleware\EnsureActiveRole::class,
+            \App\Http\Middleware\CheckVendorStatus::class, // 👈 Add this
         ]);
 
-        // Force JSON response for all API routes
         $middleware->api(prepend: [
             \App\Http\Middleware\ForceJsonResponse::class,
         ]);

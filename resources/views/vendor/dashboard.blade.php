@@ -478,7 +478,7 @@
                 Recent Hoardings
             </h4>
             <div class="text-xs text-gray-500 flex items-center gap-1">
-                <span class="text-black">SORT BY:</span>
+                <span class="text-black font-semibold">SORT BY:</span>
                 <select name="" id="">
                     <option value="">1 Month</option>
                     <option value="">6 Month</option>
@@ -895,9 +895,24 @@
     <h4 class="text-sm font-semibold text-gray-800 absolute top-6 left-6">
         Recent Transactions
     </h4>
-    <div class="flex items-center justify-center h-full">    
-            No Transactions
-    </div>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-14 h-14 text-black mb-2"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="7"/>
+                <path d="M9 9h6"/>
+                <path d="M9 12h4"/>
+                <path d="M12 12l3 3"/>
+                <path d="M5 7l-2 2 2 2"/>
+                <path d="M19 17l2-2-2-2"/>
+            </svg>
+            <p class="font-semibold text-[17px]">No Transactions</p>
+        </div>
 </div>
 
     <!-- Top 5 Customers -->
@@ -1033,6 +1048,20 @@
             </table>
         </div>
     </div> --}}
+    @if(session('swal_success'))
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        Swal.fire({
+            icon: '{{ session('swal_type', 'success') }}',
+            title: '{{ session('swal_type') === 'warning' ? 'Inactive!' : 'Success!' }}',
+            text: '{{ session('swal_success') }}',
+            showConfirmButton: false,
+            timer: 1800,
+            toast: true,
+            position: 'top-end'
+        });
+    </script>
+@endif
 @endsection
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -1042,7 +1071,7 @@
             data:{
                 labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
                 datasets:[{
-                    data:[12000,13000,5000,36000,26000,42000,32000,45000,36000,46000,48000,50000],
+                    data:[0,0,0,0,0,0,0,0,0,0,0,0],
                     borderColor:'#2563eb',
                     tension:.4,
                     fill:false
@@ -1056,7 +1085,7 @@
             data:{
                 labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
                 datasets:[{
-                    data:[12,14,8,12,36,25,45,35,45,46,48,50],
+                    data:[0,0,0,0,0,0,0,0,0,0,0,0],
                     borderColor:'#ec4899',
                     tension:.4,
                     fill:false

@@ -7,6 +7,7 @@
 
     <title>{{ config('app.name', 'OOHAPP') }} - @yield('title', 'Hoarding Marketplace')</title>
 
+    <link rel="icon" type="image/png" href="/assets/images/favicon/Vector (1).png" />
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
@@ -52,7 +53,7 @@
                     btn.textContent = 'Remove';
                     btn.classList.add('remove');
                 } else {
-                    btn.textContent = 'Add to cart';
+                    btn.textContent = 'Add to Sortlist';
                     btn.classList.add('add');
                 }
             }
@@ -304,5 +305,106 @@
         document.getElementById('logoutModal').classList.add('hidden');
     }
 </script>
+<script>
+function toggleShortlist(btn) {
+    const hoardingId = btn.dataset.id;
+    const isAuth = btn.dataset.auth === '1';
+
+    if (!hoardingId) return;
+
+    /* ❌ NOT LOGGED IN */
+    if (!isAuth) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Please login to save this hoarding',
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true
+        });
+
+        setTimeout(() => {
+            window.location.href = "{{ route('login') }}";
+        }, 2000);
+        return;
+    }
+
+    /* ✅ LOGGED IN USER ACTION */
+    fetch(`/shortlist/toggle/${hoardingId}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document
+                .querySelector('meta[name="csrf-token"]')
+                .getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => {
+        if (res.status === 401 || res.status === 419) {
+            throw new Error('Unauthorized');
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (!data.success) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: data.message || 'Something went wrong',
+                showConfirmButton: false,
+                timer: 2500
+            });
+            return;
+        }
+
+        const isAdded = data.action === 'added';
+
+        /* UI TOGGLE (instant feedback) */
+        if (isAdded) {
+            btn.classList.add('is-wishlisted', 'bg-[#daf2e7]');
+            btn.classList.remove('bg-[#9e9e9b]');
+        } else {
+            btn.classList.remove('is-wishlisted', 'bg-[#daf2e7]');
+            btn.classList.add('bg-[#9e9e9b]');
+        }
+
+        /* Toast */
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: isAdded ? 'success' : 'info',
+            title: isAdded
+                ? 'Added to wishlist'
+                : 'Removed from wishlist',
+            showConfirmButton: false,
+            timer: 1800
+        });
+
+        /* 🔄 RELOAD AFTER ACTION */
+        setTimeout(() => {
+            window.location.reload();
+        }, 1200);
+    })
+    .catch(() => {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'Session expired. Please login again.',
+            showConfirmButton: false,
+            timer: 2500
+        });
+
+        setTimeout(() => {
+            window.location.href = "{{ route('login') }}";
+        }, 2000);
+    });
+}
+</script>
+
+
+
 </body>
 </html>

@@ -35,8 +35,8 @@ class EnquiryItem extends Model
      * Casts
      */
     protected $casts = [
-        'start_date' => 'date',
-        'end_date'   => 'date',
+        'preferred_start_date' => 'date',
+        'preferred_end_date'   => 'date',
         'services'   => 'array',
         'meta'       => 'array',
     ];

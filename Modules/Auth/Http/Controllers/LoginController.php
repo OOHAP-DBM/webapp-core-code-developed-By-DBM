@@ -40,44 +40,41 @@ class LoginController extends Controller
         // Attempt authentication
         $user = User::where($loginType, $credentials['login'])->whereNull('deleted_at')->first();
 
+        // Credentials error (email/phone or password incorrect)
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'login' => ['The provided credentials are incorrect.'],
-            ]);
+            return back()->withErrors([
+                'credentials' => 'The provided credentials are incorrect.',
+            ])->withInput();
         }
-        // Check if user is suspended
+
+        // Account status error (suspended, pending, inactive, rejected, etc.)
         if ($user->isSuspended()) {
-            throw ValidationException::withMessages([
-                'login' => ['Your account has been suspended. Please contact support.'],
-            ]);
+            return back()->withErrors([
+                'account_status' => 'account suspended. Please contact support.',
+            ])->withInput();
         }
 
-        // Check if user is pending verification (except vendors)
         if ($user->status === 'pending_verification' && !$user->isVendor()) {
-            throw ValidationException::withMessages([
-                'login' => ['Your account is pending verification. Please check your email.'],
-            ]);
+            return back()->withErrors([
+                'account_status' => 'account is pending verification. Please check your email.',
+            ])->withInput();
         }
 
-        // Check if user is not active
         if ($user->status !== 'active') {
-            throw ValidationException::withMessages([
-                'login' => ['Your account is not active.'],
-            ]);
+            return back()->withErrors([
+                'account_status' => 'Your account is not active.',
+            ])->withInput();
         }
 
-      
         // Login the user
         Auth::login($user, $request->boolean('remember'));
-       
 
         // Update last login timestamp
         $user->updateLastLogin();
-       
+
         $request->session()->regenerate();
         \Log::info('Web login successful for user after  $request->session()->regenerate();: ' . $this->redirectBasedOnRole($user));
         // Role-based redirect
-        
         return $this->redirectBasedOnRole($user);
     }
 

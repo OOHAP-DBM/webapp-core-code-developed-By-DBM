@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Shortlisted Hoardings')
+@section('title', 'Cart Hoardings')
 
 @section('content')
 @include('components.customer.navbar')
@@ -14,7 +14,7 @@
 @endauth
 
 {{-- FULL HEIGHT LAYOUT --}}
-<div class="bg-white max-w-7xl mx-auto px-3 sm:px-4 md:px-6 p-4 sm:p-6 min-h-screen flex flex-col border-b border-gray-200">
+<div class="bg-white max-w-7xl mx-auto px-3 sm:px-4 md:px-6 p-4 sm:p-6  flex flex-col border-b border-gray-200">
 
     {{-- Breadcrumb --}}
     <p class="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4">
@@ -30,7 +30,7 @@
     </h1>
 
     {{-- MAIN CONTENT (NO PAGE SCROLL) --}}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 flex-1">
+    <div class="pb-12 pt-5 px-12 shadow bg-white grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 flex-1">
         @if($items->count() > 0)
             <div class="lg:col-span-8 overflow-y-auto">
                 @include('cart.partials.list', ['items' => $items])

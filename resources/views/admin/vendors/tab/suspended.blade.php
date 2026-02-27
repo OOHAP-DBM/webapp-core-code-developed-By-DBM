@@ -1,65 +1,67 @@
 <div class="bg-white rounded-xl overflow-hidden">
 
     <div class="overflow-x-auto">
-        <table class="w-full min-w-[1400px] text-sm">
+        <table class="w-full min-w-[1400px] text-sm text-center align-middle">
             <thead class="bg-[#F9FAFB] text-[#6B7280]">
                 <tr>
-                    <th class="px-4 py-3 text-left">
-                        <input type="checkbox" class="accent-green-600">
+                    <th class="px-4 py-3">
+                        <input type="checkbox" id="check-all" class="accent-green-600">
                     </th>
-                    <th class="px-4 py-3 text-left">S.N</th>
-                    <th class="px-4 py-3 text-left">VENDOR NAME</th>
-                    <th class="px-4 py-3 text-left">JOINING DATE</th>
-                    <th class="px-4 py-3 text-left">COMMISSION</th>
-                    <th class="px-4 py-3 text-left">CITY</th>
-                    <th class="px-4 py-3 text-left">EMAIL</th>
-                    <th class="px-4 py-3 text-left">PHONE NUMBER</th>
-                    <th class="px-4 py-3 text-left">#OF HOARDINGS</th>
-                    <th class="px-4 py-3 text-left">#OF BOOKINGS</th>
+                    <th class="px-4 py-3">S.N</th>
+                    <th class="px-4 py-3">VENDOR NAME</th>
+                    <th class="px-4 py-3">JOINING DATE</th>
+                    <th class="px-4 py-3">COMMISSION</th>
+                    <th class="px-4 py-3">CITY</th>
+                    <th class="px-4 py-3">EMAIL</th>
+                    <th class="px-4 py-3">PHONE NUMBER</th>
+                    <th class="px-4 py-3"> NO. OF HOARDINGS</th>
+                    <th class="px-4 py-3"> NO. OF BOOKINGS</th>
                 </tr>
             </thead>
 
-            <tbody class="divide-y">
+            <tbody class="divide-y text-center align-middle">
                 @forelse($vendors as $i => $vendor)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3">
-                            <input type="checkbox" class="accent-green-600">
+                    <tr class="hover:bg-gray-50 align-middle">
+                        <td class="px-4 py-3 align-middle">
+                            <input type="checkbox"
+                                class="row-checkbox accent-green-600"
+                                value="{{ $vendor->id }}">
                         </td>
 
-                        <td class="px-4 py-3">
+                        <td class="px-4 py-3 align-middle">
                             {{ $vendors->firstItem() + $i }}
                         </td>
 
-                        <td class="px-4 py-3 font-medium text-[#2563EB]">
+                        <td class="px-4 py-3 font-medium text-[#2563EB] align-middle">
                             {{ $vendor->user->name ?? '-' }}
                         </td>
 
-                        <td class="px-4 py-3">
+                        <td class="px-4 py-3 align-middle">
                             {{ $vendor->approved_at?->format('M d, Y') ?? '-' }}
                         </td>
 
-                        <td class="px-4 py-3 text-green-600 font-medium">
+                        <td class="px-4 py-3 text-green-600 font-medium align-middle">
                             {{ $vendor->commission_percentage ? $vendor->commission_percentage.'%' : '10–20%' }}
                         </td>
 
-                        <td class="px-4 py-3">
+                        <td class="px-4 py-3 align-middle">
                             {{ $vendor->city ?? '-' }}
                         </td>
 
-                        <td class="px-4 py-3 truncate max-w-[220px]">
+                        <td class="px-4 py-3 truncate max-w-[220px] align-middle">
                             {{ $vendor->user->email ?? '-' }}
                         </td>
 
-                        <td class="px-4 py-3">
+                        <td class="px-4 py-3 align-middle">
                             {{ $vendor->user->phone ?? '-' }}
                         </td>
 
-                        {{-- Inventory module abhi nahi hai – UI match ke liye static --}}
-                        <td class="px-4 py-3 text-[#2563EB] font-medium">
-                            {{ $vendor->hoardings_count ?? 0 }}
+                        <td class="px-4 py-3 text-[#2563EB] font-medium align-middle cursor-pointer hover:underline hover:text-blue-800"
+                            onclick="window.location='{{ route('admin.vendors.hoardings', $vendor->user->id) }}'">
+                            {{ ($vendor->active_hoardings_count ?? 0) . ' / ' . ($vendor->total_hoardings_count ?? 0) }}
                         </td>
 
-                        <td class="px-4 py-3 text-[#2563EB] font-medium">
+                        <td class="px-4 py-3 text-[#2563EB] font-medium align-middle">
                             {{ $vendor->bookings_count ?? 0 }}
                         </td>
                     </tr>

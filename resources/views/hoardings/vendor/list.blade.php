@@ -3,8 +3,8 @@
 @section('title', 'My Hoardings')
 
 @section('content')
-<div class="bg-[#F8F9FA] min-h-screen pb-12">
-    <div class="sticky top-0 z-1 bg-white border-b border-gray-100 shadow-sm">
+<div class="bg-[#F8F9FA] ">
+    <div class=" top-0 z-1 bg-white border-b border-gray-100 shadow-sm">
         <div class="max-w-[1600px] mx-auto px-6">
             <div class="flex gap-8">
                 <a href="{{ route('vendor.hoardings.myHoardings', ['tab' => 'all']) }}" 
@@ -19,24 +19,37 @@
 
             <div class="py-4 flex flex-col md:flex-row items-center gap-3">
 
-                <form method="GET" action="{{ route('vendor.hoardings.myHoardings', ['tab' => $activeTab]) }}" class="relative flex-1 flex items-center">
+                <form id="searchForm"
+                    method="GET"
+                    action="{{ route('vendor.hoardings.myHoardings', ['tab' => $activeTab]) }}"
+                    class="relative flex-1 flex items-center">
+
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
-                    <input type="text" name="search" value="{{ request('vendor.hoardings.index') }}" placeholder="Search hoardings..." 
-                        class="block w-full pl-9 pr-3 py-2 bg-[#F3F4F6] border-none rounded-md focus:ring-1 focus:ring-emerald-500 text-[13px]">
-                    <button type="submit" class="hidden"></button>
+
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Search by hoarding title or location....."
+                        onkeydown="autoSearchHoardings(event)"
+                        class="block w-full pl-9 pr-3 py-2 bg-[#F3F4F6] border-none rounded-md focus:ring-1 focus:ring-emerald-500 text-[13px]"
+                    >
                 </form>
 
+
                 <div class="flex items-center gap-2">
-                    <button class="p-2 bg-[#E6F6F0] text-[#00A86B] rounded-md border border-emerald-50">
-                        <i class="fa-solid fa-filter"></i>
-                    </button>
-                    {{-- <button class="px-10 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px]">
+                    <!-- <button class="p-2 bg-[#E6F6F0] text-[#00A86B] rounded-md border border-emerald-50">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M18.9132 3.18537C14.3186 2.65548 9.68118 2.65548 5.08664 3.18537C5.0162 3.19371 4.94922 3.22139 4.89269 3.26555C4.83616 3.3097 4.79214 3.3687 4.76524 3.43639C4.73834 3.50408 4.72954 3.57798 4.73976 3.65038C4.74997 3.72278 4.77883 3.79102 4.82332 3.84799L8.88513 9.0297C10.34 10.8857 11.1338 13.2007 11.1337 15.5879V19.0308L12.8661 20.3418V15.5867C12.8663 13.1999 13.66 10.8854 15.1147 9.0297L19.1765 3.84799C19.221 3.79102 19.2498 3.72278 19.2601 3.65038C19.2703 3.57798 19.2615 3.50408 19.2346 3.43639C19.2077 3.3687 19.1637 3.3097 19.1071 3.26555C19.0506 3.22139 18.9836 3.19371 18.9132 3.18537ZM4.89492 1.40848C9.61726 0.86384 14.3837 0.86384 19.106 1.40848C20.776 1.60154 21.581 3.62275 20.5243 4.9718L16.4625 10.1535C15.2566 11.6914 14.5986 13.6096 14.5984 15.5879V22.1055C14.5986 22.2708 14.5543 22.4329 14.4705 22.5738C14.3867 22.7146 14.2667 22.8288 14.1238 22.9035C13.9809 22.9782 13.8207 23.0106 13.6611 22.997C13.5014 22.9834 13.3486 22.9244 13.2195 22.8265L9.75477 20.2047C9.64513 20.1216 9.55601 20.013 9.49461 19.8878C9.43321 19.7625 9.40127 19.6241 9.40137 19.4837V15.5867C9.40137 13.6084 8.74307 11.6909 7.53851 10.1523L3.4767 4.97299C2.41881 3.62394 3.22262 1.60154 4.89492 1.40848Z" fill="#009A5C"/>
+                        </svg>
+                    </button> -->
+                    <button type="button" onclick="showExportFormatPrompt()" class="px-10 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px] cursor-pointer">
                         Export
-                    </button> --}}
+                    </button>
                     <a href="{{ route('vendor.hoardings.add') }}" 
-                        class="px-5 py-2 bg-[#0087D1] text-white font-medium rounded-md text-[13px] flex items-center">
+                        class="px-5 py-2 bg-black text-white font-medium rounded-md text-[13px] flex items-center">
                         + Add New Hoarding
                     </a>
                 </div>
@@ -44,7 +57,7 @@
         </div>
     </div>
 
-    <div class="max-w-[1600px] mx-auto p-6 space-y-5">
+    <div class="max-w-[1600px] mx-auto py-6 space-y-5">
         {{-- <div class="flex flex-wrap gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
             @foreach(range('A', 'Z') as $char)
                 <a href="#" class="hover:text-blue-500 {{ $char == 'H' ? 'text-blue-500 underline' : '' }}">{{ $char }}</a>
@@ -52,11 +65,45 @@
         </div> --}}
 
         <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" style="max-height: 597px; overflow-y: auto;">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-white border-b border-gray-100 text-[10px] font-black text-gray-600 uppercase tracking-widest">
-                            <th class="px-6 py-5 w-12"><input type="checkbox" class="rounded-sm border-gray-300"></th>
+                        <tr class="p-6">
+                            @php
+                                $selectedLetter = request('letter');
+                            @endphp
+                            <div class="flex flex-wrap gap-2 text-[11px] px-6 pt-6 font-bold text-gray-400 uppercase tracking-widest px-1">
+                                @foreach(range('A', 'Z') as $char)
+                                    <a
+                                        href="{{ route('vendor.hoardings.myHoardings', array_filter([
+                                            'tab' => $activeTab,
+                                            'letter' => $char,
+                                            'search' => request('search')
+                                        ])) }}"
+                                        class="
+                                            {{ $selectedLetter === $char
+                                                ? 'text-[#00A86B] underline'
+                                                : 'hover:text-[#00A86B]' }}
+                                        "
+                                    >
+                                        {{ $char }}
+                                    </a>
+                                @endforeach
+
+                                @if($selectedLetter)
+                                    <a
+                                        href="{{ route('vendor.hoardings.myHoardings', ['tab' => $activeTab]) }}"
+                                        class="ml-3 text-red-500 hover:underline"
+                                    >
+                                        Clear
+                                    </a>
+                                @endif
+                            </div>
+                        </tr>
+                        <tr class="bg-white border-b border-gray-100 text-[12px] font-black text-gray-600  tracking-widest">
+                            <th class="px-6 py-5 w-12">
+                                <input type="checkbox" id="select-all" class="rounded-sm border-gray-300">
+                            </th>
                             <th class="px-4 py-5">SN</th>
                             <th class="px-4 py-5">Hoarding Title</th>
                             <th class="px-4 py-5">Type</th>
@@ -74,9 +121,11 @@
                             $status = strtolower($hoarding['status']);
                             $isActive = in_array($status, ['active', 'published']);
                             $isPending = $status === 'pending_approval';
+                            $isDraft   = $status === 'draft';
+                            $canEdit   = $isDraft || $isPending;
                         @endphp
                         <tr class="hover:bg-[#F0F9FF] border-b border-gray-50 last:border-0 transition-colors">
-                            <td class="px-6 py-4"><input type="checkbox" class="rounded-sm border-gray-300"></td>
+                            <td class="px-6 py-4"><input type="checkbox" class="row-checkbox rounded-sm border-gray-300"></td>
                             <td class="px-4 py-4 text-gray-400 font-medium">{{ sprintf('%02d', $index + 1) }}</td>
                             <td class="px-4 py-4 text-gray-700">
                                 <a href="{{ route('vendor.myHoardings.show', $hoarding['id']) }}"
@@ -99,12 +148,15 @@
                             @endif
 
                             <td class="px-4 py-4">
-                            @if(!$isPending)
+                            @if(strtolower($hoarding['status']) === 'draft')
+                                <span class="text-gray-500 text-[11px] font-bold">Draft</span>
+                            @elseif($isPending)
+                                <span class="text-orange-500 text-[11px] font-bold">Pending Approval</span>
+                            @else
                                 <form action="{{ route('vendor.hoardings.toggle', $hoarding['id']) }}"
                                     method="POST"
                                     class="inline-flex items-center gap-2">
                                     @csrf
-
                                     <!-- TOGGLE -->
                                     <label class="relative inline-flex items-center cursor-pointer">
                                         <input
@@ -113,7 +165,6 @@
                                                 {{ $isActive ? 'checked' : '' }}
                                                 onclick="return confirmToggle(event, this)"
                                             >
-
                                         <div class="
                                             w-9 h-5 bg-gray-300 rounded-full
                                             peer-checked:bg-emerald-500
@@ -126,7 +177,6 @@
                                             peer-checked:after:translate-x-4
                                         "></div>
                                     </label>
-
                                     <!-- STATUS TEXT -->
                                     <span class="
                                         text-[11px] font-bold uppercase tracking-wide
@@ -135,10 +185,6 @@
                                         {{ $isActive ? 'Active' : 'Inactive' }}
                                     </span>
                                 </form>
-                            @else
-                                <span class="text-orange-500 text-[11px] font-bold uppercase italic">
-                                    Pending Approval
-                                </span>
                             @endif
                         </td>
 
@@ -154,12 +200,13 @@
                                     <div id="menu-{{ $hoarding['id'] }}" 
                                          class="hidden absolute right-0 -mt-[100px] w-44 bg-white rounded-lg shadow-xl border border-gray-100 z-[100] overflow-hidden">
                                         <div class="p-1 space-y-1 text-left">
-                                            {{-- Edit option for both draft and active/inactive hoardings --}}
-                                            <a href="{{ route('vendor.hoardings.edit', $hoarding['id']) }}" 
-                                               class="flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-blue-600 hover:bg-blue-50 rounded">
-                                                <i class="fa-solid fa-pen-to-square opacity-60"></i> 
-                                                {{ $activeTab === 'draft' ? 'Edit Draft' : 'Edit Hoarding' }}
-                                            </a>
+                                            @if($canEdit)
+                                                <a href="{{ route('vendor.hoardings.edit', $hoarding['id']) }}" 
+                                                class="flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-blue-600 hover:bg-blue-50 rounded">
+                                                    <i class="fa-solid fa-pen-to-square opacity-60"></i> 
+                                                    {{ $activeTab === 'draft' ? 'Edit Draft' : 'Edit Hoarding' }}
+                                                </a>
+                                            @endif
 
                                             {{-- Toggle Active/Inactive only for non-draft and non-pending hoardings --}}
                                             @if($activeTab !== 'draft' && !in_array($status, ['pending_approval']))
@@ -194,18 +241,24 @@
             
             <div class="bg-white px-6 py-4 flex items-center justify-between border-t border-gray-50 text-[12px] text-gray-500">
                 <div class="flex items-center gap-3 font-medium">
-                    <select class="bg-[#F3F4F6] border-none rounded-md px-3 py-1 text-gray-700 font-bold">
-                        <option>08</option>
-                        <option>10</option>
-                    </select>
+                    <form id="perPageForm" method="GET" action="" class="flex items-center gap-2">
+                        @foreach(request()->except('page', 'per_page') as $key => $val)
+                            <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                        @endforeach
+                        <label for="perPageSelect" class="mr-1 text-gray-500">Show</label>
+                        <select id="perPageSelect" name="per_page" onchange="document.getElementById('perPageForm').submit()" class="bg-[#F3F4F6] border-none rounded-md px-3 py-1 text-gray-700 font-bold">
+                            @foreach([5, 10, 20, 50, 100] as $size)
+                                <option value="{{ $size }}" {{ $perPage == $size ? 'selected' : '' }}>{{ $size }}</option>
+                            @endforeach
+                        </select>
+                        <span class="ml-2">per page</span>
+                    </form>
                     <span>
                         Showing {{ ($hoardings->firstItem() ?? 0) }} to {{ ($hoardings->lastItem() ?? count($hoardings)) }} of {{ ($hoardings->total() ?? count($hoardings)) }} records
                     </span>
                 </div>
-                <div class="flex items-center gap-1">
-                    <button class="w-7 h-7 flex items-center justify-center rounded text-gray-300"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>
-                    <button class="w-7 h-7 flex items-center justify-center rounded bg-[#00A86B] text-white font-bold">1</button>
-                    <button class="w-7 h-7 flex items-center justify-center rounded text-gray-400"><i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+                <div>
+                    {{ $hoardings->appends(request()->except('page'))->links() }}
                 </div>
             </div>
         </div>
@@ -247,6 +300,40 @@
 }
 
 </style>
+
+<script>
+    // Select/Deselect all checkboxes
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAll = document.getElementById('select-all');
+        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                rowCheckboxes.forEach(cb => {
+                    cb.checked = selectAll.checked;
+                });
+            });
+        }
+
+        // Keep parent in sync if all/none are checked
+        rowCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                const allChecked = Array.from(rowCheckboxes).every(c => c.checked);
+                const noneChecked = Array.from(rowCheckboxes).every(c => !c.checked);
+                if (allChecked) {
+                    selectAll.checked = true;
+                    selectAll.indeterminate = false;
+                } else if (noneChecked) {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = false;
+                } else {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = true;
+                }
+            });
+        });
+    });
+</script>
 
 <script>
     function closeAllMenus() {
@@ -343,8 +430,8 @@ function confirmToggle(e, checkbox) {
     Swal.fire({
         title: isActiveNow ? 'Active Hoarding?' : 'Inactive Hoarding?',
         html: isActiveNow
-            ? '<p class="text-sm text-gray-600">Are you sure you want to Active this hoarding? It will not be visible to customers until re-activated.</p>'
-            : '<p class="text-sm text-gray-600">Are you sure you want to Inactive this hoarding? It will be visible to customers.</p>',
+            ? '<p class="text-sm text-gray-600">Are you sure you want to Active this hoarding? It will be visible to customers.</p>'
+            : '<p class="text-sm text-gray-600">Are you sure you want to Inactive this hoarding? It will not be visible to customers until re-activated.</p>',
         width:'25rem',
         showCloseButton: true,
         showCancelButton: true,
@@ -371,6 +458,15 @@ function confirmToggle(e, checkbox) {
     return false;
 }
 </script>
+<script>
+function autoSearchHoardings(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('searchForm').submit();
+    }
+}
+</script>
+
 @if(session('swal_success'))
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -385,4 +481,40 @@ function confirmToggle(e, checkbox) {
         });
     </script>
 @endif
+<script>
+    function showExportFormatPrompt() {
+        Swal.fire({
+            title: 'Export Hoardings',
+            text: 'Select the format you want to export:',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Export',
+            confirmButtonColor: '#00A86B',
+            cancelButtonText: 'Cancel',
+            input: 'radio',
+            inputOptions: {
+                'csv': 'CSV',
+                'excel': 'Excel',
+                'pdf': 'PDF'
+            },
+            customClass: {
+                input: 'cursor-pointer'
+            },
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Please select a format!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                let format = result.value;
+                // Build export URL with current filters
+                let url = new URL(window.location.href);
+                url.searchParams.set('export', '1');
+                url.searchParams.set('format', format);
+                window.location.href = url.toString();
+            }
+        });
+    }
+</script>
 @endsection

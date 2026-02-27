@@ -112,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             class="offer_duration w-20 border rounded-l-xl px-4 py-3 text-sm"
                             value="${data.duration ?? ''}">
                         <select class="offer_unit flex-1 border border-l-0 rounded-r-xl px-3 py-3 text-sm">
-                            <option value="weeks" ${data.unit === 'weeks' ? 'selected' : ''}>Weeks</option>
                             <option value="months" ${data.unit === 'months' ? 'selected' : ''}>Months</option>
                         </select>
                     </div>
@@ -194,8 +193,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 valid = false;
             }
 
-            if (duration.value <= 0) {
-                showError(duration, 'Duration must be greater than 0');
+            if (duration.value < 1) {
+                showError(duration, 'Booking Duration must be at least 1');
                 valid = false;
             }
 

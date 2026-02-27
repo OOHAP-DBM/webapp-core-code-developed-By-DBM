@@ -105,12 +105,12 @@
             <div
                 x-data="{ open: {{ request()->routeIs('customer.profile*') ? 'true' : 'false' }} }"
                 class="space-y-1"
-            >
+                 >
                 {{-- Parent --}}
                 <button
                     type="button"
                     @click="open = !open"
-                    class="w-full flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium rounded-lg
+                    class="cursor-pointer w-full flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium rounded-lg
                     {{ request()->routeIs('customer.profile*') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50' }}"
                 >
                     <div class="flex items-center gap-3">
@@ -137,14 +137,30 @@
                 </button>
 
                 {{-- Children --}}
-                <div x-show="open" x-collapse class="space-y-1 mt-1">
+                <div
+                        x-show="open"
+                        x-collapse
+                        x-cloak
+                        class="space-y-1 pl-3 mt-1"
+                    >
                     <a
                         href="{{ route('customer.profile.index') }}"
-                        class="flex items-center gap-3 px-6 py-1 text-sm font-medium rounded-md 
-                        {{ request()->routeIs('customer.profile.index') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50' }}"
-                    >
-                        <span class="text-xs">•</span>
+                        class="block px-6 py-1 text-sm rounded-md transition
+                        {{ request()->routeIs('customer.profile.index')
+                            ? 'bg-emerald-50 text-gray-900 pl-5 font-semibold border-[#00995c]'
+                            : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}"
+
+                       >
                         Personal Info
+                    </a>
+                    <a
+                        href="{{ route('customer.profile.billing') }}"
+                        class="block px-6 py-1 text-sm rounded-md transition
+                        {{ request()->routeIs('customer.profile.billing')
+                            ? 'bg-emerald-50 text-gray-900 pl-5 font-semibold border-[#00995c]'
+                            : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}"
+                         >
+                        Billing Address
                     </a>
 
                 </div>
@@ -166,7 +182,7 @@
             <button
                 type="button"
                 onclick="openLogoutModal()"
-                class="block w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg
+                class="cursor-pointer block w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg
                     text-gray-700 hover:text-red-700 hover:bg-red-100"
                 >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

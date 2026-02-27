@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Home - OOHAPP')
+@section('title', 'Dashboard')
 
 @push('styles')
     <style>
@@ -91,266 +91,366 @@
     </style>
 @endpush
 @section('content')
-    <div class="p-6 bg-gray-50 " id="dashboardApp">
+    <div class="p-6 bg-gray-50 " id="dashboardApp" x-data="{ openFilter: false, dateFilter: '{{ request('date_filter', 'all') }}' }">
             <!-- TITLE -->
             <h2 class="text-xl font-bold text-gray-700 mb-6">
                 Dashboard
             </h2>
             <!-- STATS -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <!-- TOTAL CAMPAIGN -->
-                    <div class="bg-[#F3F4F6] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
-
-                        <!-- ICON -->
-                        <div class="w-10 h-10 rounded-full bg-[#E5E7EB] flex items-center justify-center flex-shrink-0">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z"
-                                    fill="#374151"/>
-                            </svg>
-                        </div>
-
-                        <!-- CONTENT -->
-                        <div>
-                            <p class="text-sm font-medium text-gray-700 leading-tight">
-                                Total Campaign
-                            </p>
-
-                            <p class="text-xl font-semibold text-gray-900 leading-snug mt-1" id="totalCampaign">
-                                ₹22K
-                            </p>
-
-                            <p class="text-xs text-gray-500 mt-0.5">
-                                Spend till date
-                            </p>
-                        </div>
-
+                <!-- TOTAL HOARDINGS -->
+                <div class="bg-[#F3F4F6] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+                    <div class="w-10 h-10 rounded-full bg-[#E5E7EB] flex items-center justify-center flex-shrink-0">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z" fill="#374151"/></svg>
                     </div>
-                    <!-- ACTIVE CAMPAIGN -->
-                    <div class="bg-[#DCFCE7] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
-
-                        <!-- ICON -->
-                        <div class="w-10 h-10 rounded-full bg-[#86EFAC] flex items-center justify-center flex-shrink-0">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z"
-                                    fill="#166534"/>
-                            </svg>
-                        </div>
-
-                        <!-- CONTENT -->
-                        <div>
-                            <p class="text-sm font-medium text-gray-900 leading-tight">
-                                Active Campaign
-                            </p>
-
-                            <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1" id="activeCampaign">
-                                15
-                            </p>
-
-                            <p class="text-xs text-gray-600 mt-0.5">
-                                All Active Campaign
-                            </p>
-                        </div>
-
-                    </div>
-                    <!-- LIVE CAMPAIGN -->
-                <div class="bg-[#DBEAFE] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
-
-                    <!-- ICON -->
-                    <div class="w-10 h-10 rounded-full bg-[#93C5FD] flex items-center justify-center flex-shrink-0">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z"
-                                    fill="#374151"/>
-                            </svg>
-                    </div>
-
-                    <!-- CONTENT -->
                     <div>
-                        <p class="text-sm font-medium text-gray-700 leading-tight">
-                            Live Campaign
-                        </p>
-
-                        <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1" id="liveCampaign">
-                            02
-                        </p>
+                        <p class="text-sm font-medium text-gray-700 leading-tight">Total Enquiry</p>
+                        <p class="text-xl font-semibold text-gray-900 leading-snug mt-1">{{ $stats['total_enquiries'] ?? 0 }}</p>
                     </div>
-
                 </div>
-                    <!-- ENDED CAMPAIGN -->
-                    <div class="bg-[#FECACA] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
-
-                        <!-- ICON -->
-                        <div class="w-10 h-10 rounded-full bg-[#F87171] flex items-center justify-center flex-shrink-0">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z"
-                                    fill="#374151"/>
-                            </svg>
-                        </div>
-
-                        <!-- CONTENT -->
-                        <div>
-                            <p class="text-sm font-medium text-gray-700 leading-tight">
-                                Ended Campaign
-                            </p>
-
-                            <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1" id="endedCampaign">
-                                0
-                            </p>
-                        </div>
-
+                <!-- CITIES -->
+                <!-- <div class="bg-[#DCFCE7] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+                    <div class="w-10 h-10 rounded-full bg-[#86EFAC] flex items-center justify-center flex-shrink-0">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z" fill="#166534"/></svg>
                     </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900 leading-tight">Cities</p>
+                        <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1">{{ $stats['cities'] ?? 0 }}</p>
+                        <p class="text-xs text-gray-600 mt-0.5">Cities with Hoardings</p>
+                    </div>
+                </div> -->
+                <!-- ACTIVE VENDORS -->
+                <!-- <div class="bg-[#DBEAFE] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+                    <div class="w-10 h-10 rounded-full bg-[#93C5FD] flex items-center justify-center flex-shrink-0">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z" fill="#374151"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-700 leading-tight">Active Vendors</p>
+                        <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1">{{ $stats['active_vendors'] ?? 0 }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Vendors on Platform</p>
+                    </div>
+                </div> -->
+                <!-- COMPLETED BOOKINGS -->
+                <!-- <div class="bg-[#FECACA] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+                    <div class="w-10 h-10 rounded-full bg-[#F87171] flex items-center justify-center flex-shrink-0">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z" fill="#374151"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-700 leading-tight">Completed Bookings</p>
+                        <p class="text-2xl font-semibold text-gray-900 leading-snug mt-1">{{ $stats['bookings'] ?? 0 }}</p>
+                        <p class="text-xs text-gray-700 mt-0.5">Total Completed</p>
+                    </div>
+                </div> -->
             </div>
             <!-- BOOKED STATISTICS -->
             <div class="bg-white rounded-xl p-5 shadow mb-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-semibold">Booked Statistics</h3>
-                    <span class="text-xs text-gray-500">9–15 Sep, 2024</span>
+                    <!-- <span class="text-xs text-gray-500">9–15 Sep, 2024</span> -->
                 </div>
-                <canvas id="bookingChart" height="90"></canvas>
+
+                @if($hasBookingStats ?? false)
+                    {{-- Chart --}}
+                    <canvas id="bookingChart" height="90"></canvas>
+                @else
+                    {{-- Empty State --}}
+                    <div class="flex flex-col items-center justify-center py-12 text-center">
+                        <!-- SVG -->
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="mb-3 text-gray-400">
+                            <path d="M3 3v18h18" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 15v-4M11 15v-7M15 15v-2"
+                                stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round"/>
+                        </svg>
+
+                        <p class="text-sm font-medium text-gray-600">
+                            No booking data available
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1">
+                            Your booking statistics will appear here
+                        </p>
+                    </div>
+                @endif
             </div>
 
-            <!-- ALL ENQUIRIES -->
-            <div class="bg-white rounded-xl p-5 shadow">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-semibold">All Enquiries</h3>
-                    <div class="relative w-56">
-                        <input
-                            type="text"
-                            placeholder="Search Campaign..."
-                            class="w-full border border-gray-300 rounded-md pl-3 pr-9 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-green-500"
-                            onkeyup="filterEnquiries(this.value)"
-                        >
 
-                        <!-- SEARCH ICON -->
-                        <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M21 21L16.65 16.65M19 11
-                                        C19 15.4183 15.4183 19 11 19
-                                        C6.58172 19 3 15.4183 3 11
-                                        C3 6.58172 6.58172 3 11 3
-                                        C15.4183 3 19 6.58172 19 11Z"
-                                    stroke="#9CA3AF"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"/>
-                            </svg>
-                        </div>
+            <!-- ENQUIRY TABLE (like Enquiry & Offers page) -->
+            <div class="bg-white rounded-xl p-5 shadow">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-lg text-gray-900">Recent Enquiries</h3>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <form method="GET" class="relative flex-1 md:w-72">
+                            <input
+                                type="text"
+                                name="search"
+                                value="{{ request('search') }}"
+                                placeholder="Search enquiry by enquiry ID..."
+                                class="w-full px-4 py-2 pr-10 border border-gray-300 text-sm
+                                    focus:outline-none focus:ring-2 focus:ring-green-500"
+                            >
+
+                            {{-- Search Icon --}}
+                            <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </span>
+                        </form>
+                        <button
+                            type="button"
+                            @click="openFilter = true"
+                            class="px-4 py-2 border border-gray-300 bg-white text-gray-900 text-sm hover:bg-gray-100 font-medium cursor-pointer"
+                            >
+                            Filter
+                        </button>
                     </div>
                 </div>
-                <div class="space-y-3" id="enquiryList"></div>
+                <div class="bg-white border border-gray-200 overflow-x-auto shadow-sm">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Sn</th>
+                                <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Enquiry ID</th>
+                                <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">Requirement</th>
+                                <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">No. of Locations</th>
+                                <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Status</th>
+                                <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @forelse($enquiries as $index => $enquiry)
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                   <td class="px-4 py-4 text-gray-700">
+                                        {{ $loop->iteration }}
+                                    </td>
+
+                                    <td class="px-4 py-4">
+                                        <a href="{{ route('customer.enquiries.show', $enquiry->id) }}" class="text-green-600 font-semibold hover:text-green-700 hover:underline">
+                                          {{ $enquiry->formatted_id }}
+                                        </a>
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            {{ $enquiry->created_at->format('d M, y') }}
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-4 text-center">
+                                        <span class="text-gray-900 font-semibold">
+                                            {{$enquiry->customer_note}}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-4 text-center">
+                                        @php
+                                            $locationCount = $enquiry->items->flatMap(function($item) {
+                                                $hoarding = optional($item->hoarding);
+                                                $locatedAt = $hoarding->located_at ?? [];
+                                                return is_array($locatedAt) ? $locatedAt : [];
+                                            })->unique()->count();
+                                        @endphp
+                                        <span class="text-gray-900 font-semibold">
+                                            {{ $locationCount }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <div class="space-y-1">
+
+                                            {{-- STATUS TEXT --}}
+                                            @if($enquiry->status === 'submitted')
+
+                                                <div class="flex">
+                                                    <i class="text-xs font-semibold text-gray-900">
+                                                        Enquiry Sent: &nbsp;
+                                                    </i>
+                                                    <div class="text-xs font-semibold text-[var(--waiting)]">
+                                                        Waiting for Vendor Response
+                                                    </div>
+                                                </div>
+
+                                            @else
+
+                                                {{-- OTHER STATUSES --}}
+                                                <div class="text-xs font-semibold
+                                                    @if($enquiry->status === 'responded')
+                                                        text-orange-600
+                                                    @elseif($enquiry->status === 'accepted')
+                                                        text-green-600
+                                                    @elseif($enquiry->status === 'rejected')
+                                                        text-red-600
+                                                    @else
+                                                        text-gray-600
+                                                    @endif
+                                                ">
+                                                    @if($enquiry->status === 'responded')
+                                                        Offers Received
+                                                    @elseif($enquiry->status === 'accepted')
+                                                        Accepted
+                                                    @elseif($enquiry->status === 'rejected')
+                                                        Rejected
+                                                    @else
+                                                        {{ ucwords(str_replace('_', ' ', $enquiry->status)) }}
+                                                    @endif
+                                                </div>
+
+                                            @endif
+
+                                            {{-- DATE --}}
+                                            <div class="text-xs text-gray-500">
+                                                {{ $enquiry->updated_at->format('d M, y | H:i') }}
+                                            </div>
+
+                                        </div>
+                                    </td>
+
+                                    <td class="px-4 py-4 text-center">
+                                        <div class="flex gap-2 justify-center flex-wrap">
+                                            <a href="{{ route('customer.enquiries.show', $enquiry->id) }}"
+                                               class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-xs  font-semibold inline-block whitespace-nowrap transition-colors">
+                                                View Details
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-4 py-12 text-center text-gray-500">
+                                        <div class="space-y-2">
+                                            <p class="font-medium">No enquiries found</p>
+                                            <p class="text-xs">You haven't made any enquiries yet</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                            @if($stats['total_enquiries'] > 5)
+                            <tr>
+                                <td colspan="6" class="py-4 text-center bg-gray-50">
+                                    <a href="{{ route('customer.enquiries.index') }}"
+                                    class="inline-flex items-center gap-2 text-sm font-semibold text-green-700 hover:text-green-900 hover:underline transition">
+                                        View More Enquiries
+                                    </a>
+                                </td>
+                            </tr>
+                            @endif
+
+                        </tbody>
+                    </table>
+                </div>
             </div>
+        <div
+                x-show="openFilter"
+                x-cloak
+                x-transition
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+                >
+
+
+                {{-- Modal Box --}}
+                <div
+                    @click.away="openFilter = false"
+                    class="bg-white w-full max-w-2xl rounded shadow-lg relative"
+                    >
+                        <div class="flex items-center justify-between h-10 bg-green-100 px-4 rounded-t">
+                            <span></span>
+                            <button
+                                @click="openFilter = false"
+                                class="text-gray-800 hover:text-black text-xl cursor-pointer"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <form method="GET" class="p-6 space-y-6">
+
+                            <h2 class="inline-block text-lg font-semibold text-gray-900 border-b border-gray-700 pb-1">
+                                Filter
+                            </h2>
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-800 mb-3">
+                                    Created Enquiry by date
+                                </h3>
+
+                                <div class="flex flex-wrap items-center gap-6 text-sm text-gray-700">
+
+                                    <label class="flex items-center gap-2">
+                                        <input type="radio" name="date_filter" value="all" x-model="dateFilter">
+                                        All
+                                    </label>
+
+                                    <label class="flex items-center gap-2">
+                                        <input type="radio" name="date_filter" value="last_week" x-model="dateFilter">
+                                        Last week
+                                    </label>
+
+                                    <label class="flex items-center gap-2">
+                                        <input type="radio" name="date_filter" value="last_month"x-model="dateFilter">
+                                        Last month
+                                    </label>
+
+                                    <label class="flex items-center gap-2">
+                                        <input type="radio" name="date_filter" value="last_year" x-model="dateFilter">
+                                        Last year
+                                    </label>
+
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="radio"
+                                            name="date_filter"
+                                            value="custom"
+                                            x-model="dateFilter"
+                                        >
+                                        Custom Date
+                                    </label>
+
+                                </div>
+
+                                {{-- Custom Date --}}
+                                <div
+                                    x-show="dateFilter === 'custom'"
+                                    x-transition
+                                    class="mt-4 flex gap-4"
+                                    >
+                                    <input
+                                        type="date"
+                                        name="from_date"
+                                        class="px-3 py-2 border border-gray-300 text-sm w-full"
+                                        placeholder="From"
+                                    >
+                                    <input
+                                        type="date"
+                                        name="to_date"
+                                        class="px-3 py-2 border border-gray-300 text-sm w-full"
+                                        placeholder="To"
+                                    >
+                                </div>
+                            </div>
+
+                            {{-- Footer --}}
+                            <div class="flex items-center justify-end gap-6 pt-4">
+
+                                <a href="{{route('customer.dashboard')}}"
+                                class="text-sm text-black font-semibold hover:underline">
+                                    Reset
+                                </a>
+
+                                <button
+                                    type="submit"
+                                    class="px-6 py-2 bg-green-800 text-white text-sm font-semibold hover:bg-green-900 cursor-pointer"
+                                >
+                                    Apply Filter
+                                </button>
+
+                            </div>
+
+                        </form>
+            </div>
+        </div>
     </div>
 @endsection
-@push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        /* ===== DUMMY DYNAMIC DATA ===== */
-        const dashboardData = {
-            stats: {
-                totalCampaign: 22000,
-                activeCampaign: 15,
-                liveCampaign: 2,
-                endedCampaign: 0,
-            },
-            chart: [12, 14, 10, 8, 38, 22, 45, 32, 41, 44, 46, 47],
-            enquiries: [
-                {
-                    title: "Bandra West Mumbai, 14360 Hoarding",
-                    duration: "Jan 8, 2025 - Feb 8, 2025",
-                    budget: "N/A",
-                    spend: "₹50,000",
-                    isNew: true
-                },
-                {
-                    title: "Hazratganj Hoarding Limited",
-                    duration: "Jan 8, 2025 - Feb 8, 2025",
-                    budget: "₹5,00,000",
-                    spend: "₹50,000",
-                    isNew: false
-                },
-                {
-                    title: "Hazratganj Hoarding Limited",
-                    duration: "Jan 8, 2025 - Feb 8, 2025",
-                    budget: "N/A",
-                    spend: "₹50,000",
-                    isNew: false
-                }
-            ]
-        };
-
-        /* ===== STATS FILL ===== */
-        document.getElementById('totalCampaign').innerText = dashboardData.stats.totalCampaign.toLocaleString();
-        document.getElementById('activeCampaign').innerText = dashboardData.stats.activeCampaign;
-        document.getElementById('liveCampaign').innerText = dashboardData.stats.liveCampaign;
-        document.getElementById('endedCampaign').innerText = dashboardData.stats.endedCampaign;
-
-        /* ===== CHART ===== */
-        new Chart(document.getElementById('bookingChart'), {
-            type: 'line',
-            data: {
-                labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-                datasets: [{
-                    data: dashboardData.chart,
-                    borderColor: '#ec4899',
-                    tension: 0.4,
-                    pointRadius: 3,
-                    fill: false
-                }]
-            },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
-
-        /* ===== ENQUIRIES RENDER ===== */
-        function renderEnquiries(list){
-            const container = document.getElementById('enquiryList');
-            container.innerHTML = '';
-
-            list.forEach(item => {
-                container.innerHTML += `
-                    <div class="border rounded-lg p-4 text-sm border-gray-300">
-                        <p class="font-medium">
-                            ${item.title}
-                            ${item.isNew ? `<span class="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">New</span>` : ``}
-                        </p>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2 text-xs text-gray-500">
-                            <div>
-                                <p>Duration</p>
-                                <p class="text-gray-700">${item.duration}</p>
-                            </div>
-                            <div>
-                                <p>Your Budget</p>
-                                <p class="text-gray-700">${item.budget}</p>
-                            </div>
-                            <div>
-                                <p>Spend</p>
-                                <p class="text-gray-700">${item.spend}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        /* ===== SEARCH FILTER ===== */
-        function filterEnquiries(keyword){
-            const filtered = dashboardData.enquiries.filter(e =>
-                e.title.toLowerCase().includes(keyword.toLowerCase())
-            );
-            renderEnquiries(filtered);
-        }
-
-        /* INIT */
-        renderEnquiries(dashboardData.enquiries);
-    </script>
-@endpush
+<!-- No scripts needed: all data is now rendered server-side. -->

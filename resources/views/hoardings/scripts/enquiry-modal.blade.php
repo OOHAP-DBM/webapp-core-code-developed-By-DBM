@@ -349,10 +349,18 @@ function populatePackageOptions(selectElement, packages, baseMonthlyPrice, hoard
             const discountPercent = pkg.discount_percent || 0;
             const months = pkg.months || pkg.duration || 1;
 
-            // Sahi calculation for OOH
-            let total = baseMonthlyPrice * months;
-            let discount = (discountPercent > 0) ? (total * discountPercent / 100) : 0;
-            let finalPrice = total - discount;
+            let total, finalPrice;
+            if (hoardingType === 'dooh') {
+                // Convert per slot (per second) to monthly price for DOOH
+                total = baseMonthlyPrice * months;
+                let discount = (discountPercent > 0) ? (total * discountPercent / 100) : 0;
+                finalPrice = total - discount;
+            } else {
+                // OOH logic unchanged
+                total = baseMonthlyPrice * months;
+                let discount = (discountPercent > 0) ? (total * discountPercent / 100) : 0;
+                finalPrice = total - discount;
+            }
 
             let optionText = `${pkg.name} for ${months} Month${months > 1 ? 's' : ''} – ₹${number_format(finalPrice)} <span class="badge">SAVE ${discountPercent}%</span>`;
 
@@ -455,50 +463,42 @@ window.openEnquiryModal = function (payload) {
                     apiHoardingType
                 );
                 
-                // Wait for Select2 to be initialized before proceeding
-                setTimeout(() => {
-                    // After packages are populated, restore previously selected package if it exists
-                    if (
-                        window.selectedPackageState &&
-                        window.selectedPackageState.id &&
-                        window.selectedPackageState.id !== 'base'
-                    ) {
-                        const packageId = window.selectedPackageState.id;
-                        const opt = enquiryPackage.querySelector(`option[value="${packageId}"]`);
-                        
-                        if (opt) {
-                            console.log('[DEBUG] Restoring previously selected package:', packageId);
-                            enquiryPackage.value = packageId;
-                            $(enquiryPackage).trigger('change');
-                            
-                            // Disable month selection for this package
-                            if (monthSelect) {
-                                const months = parseInt(opt.dataset.months || 1);
-                                monthSelect.value = months;
-                                monthSelect.disabled = true;
-                            }
-                            
-                            // Update state with correct data from option
-                            const price = parseInt(opt.dataset.price || 0);
+                // After packages are populated and Select2 is initialized, restore previously selected package if it exists
+                if (
+                    window.selectedPackageState &&
+                    window.selectedPackageState.id &&
+                    window.selectedPackageState.id !== 'base'
+                ) {
+                    const packageId = window.selectedPackageState.id;
+                    const opt = enquiryPackage.querySelector(`option[value="${packageId}"]`);
+                    if (opt) {
+                        console.log('[DEBUG] Restoring previously selected package:', packageId);
+                        enquiryPackage.value = packageId;
+                        $(enquiryPackage).trigger('change');
+                        // Disable month selection for this package
+                        if (monthSelect) {
                             const months = parseInt(opt.dataset.months || 1);
-                            const discountPercent = parseInt(opt.dataset.discountPercent || 0);
-                            window.selectedPackageState = {
-                                id: packageId,
-                                label: opt.dataset.label || opt.textContent.trim(),
-                                price: price,
-                                discountPercent: discountPercent,
-                                months: months,
-                                type: apiHoardingType
-                            };
-                            
-                            syncEnquiryHiddenFields();
-                            return;
+                            monthSelect.value = months;
+                            monthSelect.disabled = true;
                         }
+                        // Update state with correct data from option
+                        const price = parseInt(opt.dataset.price || 0);
+                        const months = parseInt(opt.dataset.months || 1);
+                        const discountPercent = parseInt(opt.dataset.discountPercent || 0);
+                        window.selectedPackageState = {
+                            id: packageId,
+                            label: opt.dataset.label || opt.textContent.trim(),
+                            price: price,
+                            discountPercent: discountPercent,
+                            months: months,
+                            type: apiHoardingType
+                        };
+                        syncEnquiryHiddenFields();
+                        return;
                     }
-                    
-                    // No previously selected package - use base price
-                    setBaseMode(payload.basePrice, apiHoardingType);
-                }, 100);
+                }
+                // No previously selected package - use base price
+                setBaseMode(payload.basePrice, apiHoardingType);
             } else {
                 console.warn('[WARN] No packages in API response');
                 setBaseMode(payload.basePrice, hoardingType);
@@ -541,13 +541,13 @@ window.openEnquiryModal = function (payload) {
     }
     window.selectedPackageState = {
         id: 'base',
-        label: hoardingType === 'dooh' ? `Base Price – ₹${base} (Per Second)` : `Base Price – ₹${base} (1 Month)`,
+        label: hoardingType === 'dooh' ? `Base Price – ₹${base} (1 Month)` : `Base Price – ₹${base} (1 Month)`,
         price: base,
         months: 1,
         type: hoardingType
     };
     baseOption.textContent = hoardingType === 'dooh'
-        ? `Base Price – ₹${base} (Per Second)`
+        ? `Base Price – ₹${base} (1 Month)`
         : `Base Price – ₹${base} (1 Month)`;
     /* ================= GRACE PERIOD ================= */
     if (payload.graceDays) {
@@ -577,6 +577,17 @@ window.openEnquiryModal = function (payload) {
     }, 50);
 };
 </script>
+<script>
+    function hideEnquiryLoader() {
+        const submitBtn = document.getElementById('enquirySubmitBtn');
+        const btnText = document.getElementById('enquiryBtnText');
+        const loader = document.getElementById('enquiryLoader');
+
+        if (submitBtn) submitBtn.disabled = false;
+        if (btnText) btnText.style.display = 'flex';
+        if (loader) loader.classList.add('hidden');
+    }
+</script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -594,6 +605,13 @@ window.openEnquiryModal = function (payload) {
         if (!form) return;
 
         form.addEventListener('submit', function (e) {
+            const submitBtn = document.getElementById('enquirySubmitBtn');
+            const btnText = document.getElementById('enquiryBtnText');
+            const loader = document.getElementById('enquiryLoader');
+
+            if (submitBtn) submitBtn.disabled = true;
+            if (btnText) btnText.style.display = 'none';
+            if (loader) loader.classList.remove('hidden');
             e.preventDefault();
             
             // Sync all hidden fields before submission
@@ -622,7 +640,7 @@ window.openEnquiryModal = function (payload) {
             })
             .then(({ status, data }) => {
                 console.log('[DEBUG] Response data:', data);
-                
+                hideEnquiryLoader();
                 if (!data.success) {
                     console.error('[ERROR] Validation failed:', data);
                     
@@ -643,8 +661,7 @@ window.openEnquiryModal = function (payload) {
 
                 enquiryToast.fire({
                     icon: 'success',
-                    title: 'Enquiry Submitted',
-                    html: `<small>Enquiry ID: <b>#${data.enquiry_id}</b></small>`
+                    title: 'Enquiry Submit SuccessFully',
                 });
 
                 closeEnquiryModal();
@@ -652,6 +669,7 @@ window.openEnquiryModal = function (payload) {
             })
             .catch((err) => {
                 console.error('[ERROR] Fetch error:', err);
+                hideEnquiryLoader();
                 enquiryToast.fire({
                     icon: 'error',
                     title: 'Network Error',

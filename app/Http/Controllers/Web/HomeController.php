@@ -326,7 +326,7 @@ class HomeController extends Controller
     private function getCityImage(string $city): string
     {
         $images = [
-            'LUCKNOW'    => 'https://images.unsplash.com/photo-1600654449027-1f4d6fded0df?w=400&h=300&fit=crop',
+            'LUCKNOW'    => 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=400&h=300&fit=crop',
             'DELHI'      => 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400&h=300&fit=crop',
             'MUMBAI'     => 'https://images.unsplash.com/photo-1566552881560-0be862a7c445?w=400&h=300&fit=crop',
             'BANGALORE'  => 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=400&h=300&fit=crop',

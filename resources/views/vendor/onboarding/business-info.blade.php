@@ -45,23 +45,43 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">GSTIN Number<span class="text-red-500">*</span></label>
-                        <input type="text" name="gstin" id="gstin" class="w-full border rounded-md p-2 uppercase" placeholder="22AAAAA0000A1Z5"  maxlength="15">
-                        <div class="error-msg text-red-500 text-xs mt-1 hidden">Please enter a valid 15-digit GSTIN.</div>
+                        @php
+                            $gstinHasError = $errors->has('gstin');
+                            $gstinOld = old('gstin');
+                            $gstinValue = $gstinHasError ? '' : $gstinOld;
+                        @endphp
+                        <input type="text" name="gstin" id="gstin"
+                            class="w-full border rounded-md p-2 uppercase @if($gstinHasError) border-red-500 bg-red-50 @elseif($gstinOld) border-green-500 @endif"
+                            placeholder="22AAAAA0000A1Z5" maxlength="15" value="{{ $gstinValue }}">
+                        @error('gstin')
+                            <div class="error-msg text-red-500 text-xs mt-1">{{ $message }}</div>
+                        @else
+                            <div class="error-msg text-red-500 text-xs mt-1 hidden">Please enter a valid 15-digit GSTIN.</div>
+                        @enderror
                     </div>
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">Business Type<span class="text-red-500">*</span></label>
-                        <select name="business_type" id="business_type" class="w-full border rounded-md p-2 bg-white" >
+                        @php $businessTypeOld = old('business_type'); @endphp
+                        <select name="business_type" id="business_type" class="w-full border rounded-md p-2 bg-white @error('business_type') border-red-500 bg-red-50 @elseif($businessTypeOld) border-green-500 @enderror">
                             <option value="">Choose Business Type</option>
-                            <option value="Proprietorship">Proprietorship</option>
-                            <option value="Partnership">Partnership</option>
-                            <option value="Private Limited">Private Limited</option>
+                            <option value="Proprietorship" {{ $businessTypeOld == 'Proprietorship' ? 'selected' : '' }}>Proprietorship</option>
+                            <option value="Partnership" {{ $businessTypeOld == 'Partnership' ? 'selected' : '' }}>Partnership</option>
+                            <option value="Private Limited" {{ $businessTypeOld == 'Private Limited' ? 'selected' : '' }}>Private Limited</option>
                         </select>
-                        <div class="error-msg text-red-500 text-xs mt-1 hidden">Please select a business type.</div>
+                        @error('business_type')
+                            <div class="error-msg text-red-500 text-xs mt-1">{{ $message }}</div>
+                        @else
+                            <div class="error-msg text-red-500 text-xs mt-1 hidden">Please select a business type.</div>
+                        @enderror
                     </div>
                     <div class="form-group md:col-span-2">
                         <label class="block text-sm font-medium mb-1">Business Name<span class="text-red-500">*</span></label>
-                        <input type="text" name="business_name" id="business_name" class="w-full border rounded-md p-2" placeholder="Legal Entity Name" >
-                        <div class="error-msg text-red-500 text-xs mt-1 hidden">Business name is required.</div>
+                        <input type="text" name="business_name" id="business_name" class="w-full border rounded-md p-2 @error('business_name') border-red-500 bg-red-50 @elseif(old('business_name')) border-green-500 @enderror" placeholder="Legal Entity Name" value="{{ old('business_name') }}">
+                        @error('business_name')
+                            <div class="error-msg text-red-500 text-xs mt-1">{{ $message }}</div>
+                        @else
+                            <div class="error-msg text-red-500 text-xs mt-1 hidden">Business name is required.</div>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -71,7 +91,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium mb-1">Street Address<span class="text-red-500">*</span></label>
-                        <input type="text" name="registered_address" id="registered_address" class="w-full border rounded-md p-2"  maxlength="64">
+                        <input type="text" name="registered_address" id="registered_address" class="w-full border rounded-md p-2 @error('registered_address') border-red-500 bg-red-50 @elseif(old('registered_address')) border-green-500 @enderror" maxlength="64" value="{{ old('registered_address') }}">
                         <div class="flex justify-between mt-1">
                             <span class="error-msg text-red-500 text-xs hidden">Address is required.</span>
                             <small id="addressCharCount" class="text-gray-400 text-xs ml-auto">0/64 Characters</small>
@@ -79,20 +99,24 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Pincode<span class="text-red-500">*</span></label>
-                        <input type="text" name="pincode" id="pincode" class="w-full border rounded-md p-2"  maxlength="6" pattern="[0-9]{6}">
-                        <div class="error-msg text-red-500 text-xs mt-1 hidden">Valid 6-digit pincode required.</div>
+                        <input type="text" name="pincode" id="pincode" class="w-full border rounded-md p-2 @error('pincode') border-red-500 bg-red-50 @elseif(old('pincode')) border-green-500 @enderror" maxlength="6" pattern="[0-9]{6}" value="{{ old('pincode') }}">
+                        @error('pincode')
+                            <div class="error-msg text-red-500 text-xs mt-1">{{ $message }}</div>
+                        @else
+                            <div class="error-msg text-red-500 text-xs mt-1 hidden">Valid 6-digit pincode required.</div>
+                        @enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">City<span class="text-red-500">*</span></label>
-                        <input type="text" name="city" id="city" class="w-full border rounded-md p-2" >
+                        <input type="text" name="city" id="city" class="w-full border rounded-md p-2 @error('city') border-red-500 bg-red-50 @elseif(old('city')) border-green-500 @enderror" readonly value="{{ old('city') }}">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">State<span class="text-red-500">*</span></label>
-                        <input type="text" name="state" id="state" class="w-full border rounded-md p-2" >
+                        <input type="text" name="state" id="state" class="w-full border rounded-md p-2 @error('state') border-red-500 bg-red-50 @elseif(old('state')) border-green-500 @enderror" readonly value="{{ old('state') }}">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Country</label>
-                        <input type="text" name="country" id="country" value="India" class="w-full border rounded-md p-2 bg-gray-50">
+                        <input type="text" name="country" id="country" value="{{ old('country', 'India') }}" class="w-full border rounded-md p-2 bg-gray-50">
                     </div>
                 </div>
             </div>
@@ -102,27 +126,25 @@
                 <p class="text-xs text-gray-500 mb-4 mt-1">Account name must match GSTIN registration name.</p>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-group">
+                        <label class="block text-sm font-medium mb-1">IFSC Code<span class="text-red-500">*</span></label>
+                        <input type="text" name="ifsc_code" id="ifsc_code" class="w-full border rounded-md p-2 uppercase @error('ifsc_code') border-red-500 bg-red-50 @elseif(old('ifsc_code')) border-green-500 @enderror"  placeholder="SBIN0001234" value="{{ old('ifsc_code') }}">
+                        @error('ifsc_code')
+                            <div class="error-msg text-red-500 text-xs mt-1">{{ $message }}</div>
+                        @else
+                            <div class="error-msg text-red-500 text-xs mt-1 hidden">Invalid IFSC format.</div>
+                        @enderror
+                    </div>
+                    <div class="form-group">
                         <label class="block text-sm font-medium mb-1">Bank Name<span class="text-red-500">*</span></label>
-                        <select name="bank_name" id="bank_name" class="w-full border rounded-md p-2 bg-white" >
-                            <option value="">Choose Bank</option>
-                            <option value="SBI">State Bank of India</option>
-                            <option value="HDFC">HDFC Bank</option>
-                            <option value="ICICI">ICICI Bank</option>
-                            <option value="Axis">Axis Bank</option>
-                        </select>
+                        <input type="text" name="bank_name" id="bank_name" class="w-full border rounded-md p-2 @error('bank_name') border-red-500 bg-red-50 @elseif(old('bank_name')) border-green-500 @enderror" readonly required value="{{ old('bank_name') }}">
                     </div>
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">Account Number<span class="text-red-500">*</span></label>
-                        <input type="password" name="account_number" id="account_number" class="w-full border rounded-md p-2" >
-                    </div>
-                    <div class="form-group">
-                        <label class="block text-sm font-medium mb-1">IFSC Code<span class="text-red-500">*</span></label>
-                        <input type="text" name="ifsc_code" id="ifsc_code" class="w-full border rounded-md p-2 uppercase"  placeholder="SBIN0001234">
-                        <div class="error-msg text-red-500 text-xs mt-1 hidden">Invalid IFSC format.</div>
+                        <input type="password" name="account_number" id="account_number" class="w-full border rounded-md p-2 @error('account_number') border-red-500 bg-red-50 @elseif(old('account_number')) border-green-500 @enderror" value="{{ old('account_number') }}">
                     </div>
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">Account Holder Name<span class="text-red-500">*</span></label>
-                        <input type="text" name="account_holder_name" id="account_holder_name" class="w-full border rounded-md p-2" >
+                        <input type="text" name="account_holder_name" id="account_holder_name" class="w-full border rounded-md p-2 @error('account_holder_name') border-red-500 bg-red-50 @elseif(old('account_holder_name')) border-green-500 @enderror" value="{{ old('account_holder_name') }}">
                     </div>
                 </div>
             </div>
@@ -134,8 +156,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">PAN Number<span class="text-red-500">*</span></label>
-                        <input type="text" name="pan_number" id="pan_number" class="w-full border rounded-md p-2 uppercase" placeholder="ABCDE1234F"  maxlength="10">
-                        <div class="error-msg text-red-500 text-xs mt-1 hidden">Enter a valid 10-digit PAN.</div>
+                        <input type="text" name="pan_number" id="pan_number" class="w-full border rounded-md p-2 uppercase @error('pan_number') border-red-500 bg-red-50 @elseif(old('pan_number')) border-green-500 @enderror" placeholder="ABCDE1234F"  maxlength="10" value="{{ old('pan_number') }}">
+                        @error('pan_number')
+                            <div class="error-msg text-red-500 text-xs mt-1">{{ $message }}</div>
+                        @else
+                            <div class="error-msg text-red-500 text-xs mt-1 hidden">Enter a valid 10-digit PAN.</div>
+                        @enderror
                     </div>
                     <div class="form-group">
                         <label class="block text-sm font-medium mb-1">Upload PAN (PDF/Image)<span class="text-red-500">*</span></label>
@@ -150,14 +176,14 @@
            <div class="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 pb-10">
                 <button type="submit" 
                         id="submitBtn" 
-                        class="w-full md:w-48 py-3 rounded-lg font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-all active:scale-95 flex items-center justify-center">
+                        class="cursor-pointer w-full md:w-48 py-3 rounded-lg font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-all active:scale-95 flex items-center justify-center">
                     <span>Continue</span>
                 </button>
 
                 <button type="button" 
                         onclick="skipBusinessInfo()" 
                         id="skipBtn"
-                        class="w-full md:w-48 py-3 rounded-lg font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-all flex items-center justify-center">
+                        class="cursor-pointer w-full md:w-48 py-3 rounded-lg font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-all flex items-center justify-center">
                     Skip for Now
                 </button>
             </div>
@@ -224,6 +250,7 @@
             // const inputs = form.querySelectorAll('[required]');
             let isFormValid = true;
 
+            
             // inputs.forEach(input => {
             //     if (!validateField(input)) isFormValid = false;
             // });
@@ -416,6 +443,109 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 };
 
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const ifscInput = document.getElementById("ifsc_code");
+    const bankInput = document.getElementById("bank_name");
+    let timer = null;
+    const ErrorToast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
+    ifscInput.addEventListener("input", function () {
+        let ifsc = this.value.toUpperCase().trim();
+        this.value = ifsc;
+        if (ifsc.length !== 11) {
+            bankInput.value = "";
+            ifscInput.classList.remove('border-red-500');
+            return;
+        }
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            fetch(`https://ifsc.razorpay.com/${ifsc}`, {
+                method: "GET",
+                mode: "cors"
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Invalid IFSC");
+                return response.json();
+            })
+            .then(data => {
+                bankInput.value = data.BANK ?? "";
+                ifscInput.classList.remove('border-red-500');
+            })
+            .catch(() => {
+                bankInput.value = "";
+                ifscInput.classList.add('border-red-500');
+                ErrorToast.fire({
+                    title: 'Invalid IFSC Code'
+                });
+            });
+        }, 700);
+    });
+    ifscInput.addEventListener('keydown', () => {
+        ifscInput.classList.remove('border-red-500');
+    });
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const pincodeInput = document.getElementById("pincode");
+    const cityInput = document.getElementById("city");
+    const stateInput = document.getElementById("state");
+    const countryInput = document.getElementById("country");
+    let pinTimer = null;
+    const PinErrorToast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
+    pincodeInput.addEventListener("input", function () {
+        let pincode = this.value.trim();
+        if (pincode.length !== 6) {
+            cityInput.value = "";
+            stateInput.value = "";
+            countryInput.value = "";
+            pincodeInput.classList.remove('border-red-500');
+            return;
+        }
+        clearTimeout(pinTimer);
+        pinTimer = setTimeout(() => {
+            fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data[0].Status !== "Success") {
+                    throw new Error("Invalid Pincode");
+                }
+                const postOffice = data[0].PostOffice[0];
+                cityInput.value = postOffice.District;
+                stateInput.value = postOffice.State;
+                countryInput.value = "India";
+                pincodeInput.classList.remove('border-red-500');
+            })
+            .catch(() => {
+                cityInput.value = "";
+                stateInput.value = "";
+                countryInput.value = "";
+                pincodeInput.classList.add('border-red-500');
+                PinErrorToast.fire({
+                    title: 'Invalid Pincode'
+                });
+            });
+        }, 700);
+    });
+    pincodeInput.addEventListener('keydown', () => {
+        pincodeInput.classList.remove('border-red-500');
+    });
 });
 </script>
 @endpush

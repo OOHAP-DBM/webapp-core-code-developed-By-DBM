@@ -25,7 +25,7 @@
 
             <!-- Explore Button (shows on hover) -->
             <div class="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <button class="px-4 py-2 bg-white text-gray-900 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors flex items-center">
+                <button class="px-4 py-2 bg-white text-gray-900 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors flex items-center cursor-pointer">
                     <span>Explore</span>
                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>

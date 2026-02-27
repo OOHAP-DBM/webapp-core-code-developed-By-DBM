@@ -6,8 +6,9 @@
             <thead class="bg-[#F9FAFB] text-[#6B7280]">
                 <tr>
                     <th class="px-4 py-3 text-left">
-                        <input type="checkbox" class="accent-green-600">
+                        <input type="checkbox" id="check-all" class="accent-green-600">
                     </th>
+
                     <th class="px-4 py-3 text-left">S.N</th>
                     <th class="px-4 py-3 text-left">VENDOR NAME</th>
                     <th class="px-4 py-3 text-left">REQUESTED DATE</th>
@@ -23,7 +24,9 @@
                 @forelse($vendors as $i => $vendor)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
-                            <input type="checkbox" class="accent-green-600">
+                            <input type="checkbox"
+                                class="row-checkbox accent-green-600"
+                                value="{{ $vendor->id }}">
                         </td>
 
                         <td class="px-4 py-3">
@@ -57,27 +60,10 @@
                         <td class="px-4 py-3 text-center">
                             <button
                                 class="bg-[#F59E0B] text-white px-6 py-2 rounded-lg text-sm"
-                                @click="
-                                    let commission = {{ (float) $vendor->commission_percentage ?? 0 }};
-                                    if (!commission || commission == 0) {
-                                        $dispatch('open-vendor-commission', {
-                                            vendorId: {{ $vendor->id }},
-                                            vendorName: '{{ $vendor->user->name }}',
-                                            commission: 0
-                                        });
-                                    } else {
-                                        $dispatch('open-vendor-commission', {
-                                            vendorId: {{ $vendor->id }},
-                                            vendorName: '{{ $vendor->user->name }}',
-                                            commission: commission
-                                        });
-                                    }
-                                "
+                                onclick="approveVendor({{ $vendor->id }})"
                             >
                                 Approve
                             </button>
-
-
                         </td>
 
                         <td class="px-4 py-3 text-center relative" x-data="{ open: false }">
@@ -138,56 +124,28 @@
     </div>
 
 </div>
-{{--vendor commision modal--}}
-<div
-    x-data="vendorCommissionModal()"
-    x-cloak
-    x-show="open"
-    x-transition
-    @open-vendor-commission.window="
-            $event.detail.commission > 0
-                ? approveDirect($event.detail)
-                : openModal($event.detail)
-        "    
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-        >
-    <div
-        @click.outside="close()"
-        class="bg-[#f5f5f5] w-full max-w-lg rounded-2xl shadow-xl relative px-10 py-8"
-    >
-        <!-- Close -->
-        <button
-            @click="close()"
-            class="absolute top-5 right-6 text-xl text-gray-700 hover:text-black"
-        >
-            ✕
-        </button>
 
-        <h2 class="text-2xl font-semibold text-center mb-2" x-text="vendorName"></h2>
-        <p class="text-center text-gray-700 mb-6">Set a Vendor Commission</p>
-
-        <div class="flex justify-center gap-6 mb-8">
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">From</label>
-                <input type="number" x-model="from"
-                       class="w-28 text-center border rounded-md px-3 py-2">
-            </div>
-
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">To</label>
-                <input type="number" x-model="to"
-                       class="w-28 text-center border rounded-md px-3 py-2">
-            </div>
-        </div>
-
-        <button
-            @click="apply()"
-            class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl text-lg font-medium"
-        >
-            Apply
-        </button>
-    </div>
-</div>
+<script>
+function approveVendor(id) {
+    fetch(`/admin/vendors/${id}/approve`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
+}
+</script>
 
 {{--vendor reject--}}
 <div id="reject-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden backdrop-blur-sm">
@@ -303,4 +261,3 @@
         .then(() => location.reload());
     });
 </script>
-

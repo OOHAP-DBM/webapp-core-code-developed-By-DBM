@@ -13,7 +13,7 @@
                     Please fill your general details
                 </p>
             </div>
-            <button onclick="closeRaiseEnquiryModal()" class="text-gray-500 hover:text-gray-800 text-xl">
+            <button onclick="closeRaiseEnquiryModal()" class="text-gray-500 hover:text-gray-800 text-xl cursor-pointer">
                 ✕
             </button>
         </div>
@@ -115,7 +115,7 @@
                     type="submit"
                     class="w-full py-3 bg-[#2f5d46] text-white font-semibold rounded-md hover:bg-[#274d3b] flex items-center justify-center relative overflow-hidden"
 >
-                    <span id="enquiryBtnText" class="flex items-center justify-center w-full h-full">Enquire Now</span>
+                    <span id="enquiryBtnText" class="flex items-center justify-center w-full h-full cursor-pointer">Enquire Now</span>
                     <span
                         id="enquiryLoader"
                         class="hidden absolute inset-0 flex items-center justify-center bg-[#2f5d46] bg-opacity-90"
@@ -320,7 +320,7 @@ document.getElementById('raiseEnquiryForm').addEventListener('submit', function(
             });
             setTimeout(() => {
                 closeRaiseEnquiryModal();
-                window.location.href = '/customer/enquiries';
+                window.location.href = '/my/enquiries';
             }, 1500);
         } else {
             Swal.fire({
@@ -389,5 +389,8 @@ document.getElementById('raiseEnquiryModal')?.addEventListener('click', function
 @keyframes blink {
     0%, 80%, 100% { opacity: 0.2; }
     40% { opacity: 1; }
+}
+#raiseEnquiryModal{
+    background: rgba(0,0,0,0.35);
 }
 </style>
