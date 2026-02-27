@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\VendorProfile;
 use Illuminate\Support\Facades\DB;
 
+
 // /**
 //  * @OA\Tag(
 //  *     name="Authentication",
@@ -283,7 +284,7 @@ class AuthController extends Controller
         }
 
         // Start Transaction
-            DB::beginTransaction();
+        DB::beginTransaction();
 
         try {
             // 3. Update Name, Password, and Status
@@ -312,6 +313,17 @@ class AuthController extends Controller
 
             // Everything went well, save changes permanently
             DB::commit();
+            if ($user->fcm_token) {
+
+                sendPushNotification(
+                    $user,
+                    'Welcome to OOHAPP🎉',
+                    'Your registration was successful. Explore our app to find the best advertising solutions',
+                    [
+                        'type' => 'register'
+                    ]
+                );
+            }
 
             return response()->json([
                 'success' => true,
@@ -507,7 +519,7 @@ class AuthController extends Controller
     }
 
 
-   
+
     /**
      * Get authenticated user
      * 
@@ -775,5 +787,4 @@ class AuthController extends Controller
             'message' => $result['message'],
         ]);
     }
-
 }

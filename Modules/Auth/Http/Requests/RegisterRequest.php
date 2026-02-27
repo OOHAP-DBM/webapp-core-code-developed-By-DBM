@@ -77,6 +77,7 @@ class RegisterRequest extends FormRequest
             'name' => 'required|string|max:100',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'nullable|string|in:customer,vendor',
+            'fcm_token' => 'nullable|string',
         ];
     }
 }
