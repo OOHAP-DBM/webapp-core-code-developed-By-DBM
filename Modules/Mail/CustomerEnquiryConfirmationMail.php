@@ -24,6 +24,6 @@ class CustomerEnquiryConfirmationMail extends Mailable
     public function build()
     {
         return $this->subject('Enquiry Confirmation - Your Campaign Details')
-                    ->view('emails.customer-enquiry-confirmation');
+            ->view('emails.customer-enquiry-confirmation');
     }
 }
