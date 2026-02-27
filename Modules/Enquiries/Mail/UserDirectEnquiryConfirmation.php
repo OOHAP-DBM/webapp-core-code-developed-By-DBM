@@ -6,8 +6,9 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Enquiries\Models\DirectEnquiry;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class UserDirectEnquiryConfirmation extends Mailable
+class UserDirectEnquiryConfirmation extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

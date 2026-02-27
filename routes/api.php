@@ -5,7 +5,6 @@ use App\Http\Controllers\Api\RazorpayWebhookController;
 use App\Http\Controllers\Api\Customer\ShortlistController;
 use App\Http\Controllers\Api\Vendor\DashboardController;  
 use App\Http\Controllers\Api\Customer\CustomerHomeController;
-    use Modules\Enquiries\Controllers\Api\DirectEnquiryApiController;
 /**
  * OOHAPP API v1 Routes
  * 
@@ -109,21 +108,4 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     
     // Hoarding Availability Calendar API (PROMPT 104 - Frontend calendar with availability status)
     require base_path('routes/api_v1/hoarding_availability.php');
-
-    Route::prefix('enquiries')->group(function () {
-        // Generate captcha (stateless, mobile-friendly)
-        Route::get('captcha', [DirectEnquiryApiController::class, 'generateCaptcha']);
-
-        // List all direct enquiries (admin)
-        Route::get('direct', [DirectEnquiryApiController::class, 'index']);
-
-        // Send OTP for direct enquiry
-        Route::post('direct/send-otp', [DirectEnquiryApiController::class, 'sendOtp']);
-
-        // Verify OTP for direct enquiry
-        Route::post('direct/verify-otp', [DirectEnquiryApiController::class, 'verifyOtp']);
-
-        // Store new direct enquiry
-        Route::post('direct', [DirectEnquiryApiController::class, 'store']);
-    });
 });

@@ -74,7 +74,7 @@
                     >
                         Choose Photo
                     </label>
-                    <p class="text-gray-500 text-xs mt-1" x-text="fileName ? `Selected: ${fileName}` : 'JPG, PNG or GIF (Max 2MB)'" ></p>
+                    <p class="text-gray-500 text-xs mt-1" x-text="fileName ? `Selected: ${fileName}` : 'JPG, PNG (Max 2MB)'" ></p>
                 </div>
             </div>
             <script>

@@ -46,7 +46,7 @@
 @endpush
 
 @section('content')
-<div class="px-6 py-6 bg-gray-50 min-h-screen">
+<div class="px-6 py-6 bg-gray-50 ">
 
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
@@ -185,7 +185,7 @@
     </div>
 
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <div class="overflow-x-auto -mx-4 sm:mx-0 relative">
+        <div class="overflow-x-auto -mx-4 sm:mx-0 relative" style="max-height: 400px; overflow-y: auto;">
             <table class="min-w-full w-full text-sm">
 
                 {{-- ================= THEAD ================= --}}

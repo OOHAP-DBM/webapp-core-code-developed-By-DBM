@@ -55,7 +55,7 @@
 <tr>
 <td align="center" style="padding:0 40px 10px 40px;">
     <p style="margin:0; color:#ef4444; font-size:14px; font-weight:bold;">
-        ⏰ This code is valid for 5 minutes only
+        ⏰ This code is valid for 1 minutes only
     </p>
 </td>
 </tr>
