@@ -291,18 +291,30 @@
                                                     class="flex gap-3 hover:bg-gray-50 transition cursor-pointer"
                                                     >
                                                     <div class="w-14 h-14 bg-gray-200 rounded overflow-hidden flex-shrink-0">
-                                                        @if($item->image_url)
-                                                            <img
-                                                                src="{{ $item->image_url }}"
-                                                                class="w-full h-full object-cover"
-                                                                alt="Hoarding"
-                                                            >
+                                                        @php
+                                                            $mediaItem = null;
+                                                            if (($item->hoarding->hoarding_type ?? '') === 'ooh') {
+                                                                $mediaItem = \Modules\Hoardings\Models\HoardingMedia::where('hoarding_id', $item->hoarding->id)
+                                                                    ->orderByDesc('is_primary')
+                                                                    ->orderBy('sort_order')
+                                                                    ->first();
+                                                            } elseif (($item->hoarding->hoarding_type ?? '') === 'dooh') {
+                                                                $screen = \Modules\DOOH\Models\DOOHScreen::where('hoarding_id', $item->hoarding->id)->first();
+                                                                if ($screen) {
+                                                                    $mediaItem = \Modules\DOOH\Models\DOOHScreenMedia::where('dooh_screen_id', $screen->id)
+                                                                        ->orderBy('sort_order')
+                                                                        ->first();
+                                                                }
+                                                            }
+                                                        @endphp
+                                                        @if($mediaItem)
+                                                            <x-media-preview :media="$mediaItem" :alt="$item->hoarding->title ?? 'Hoarding'" />
                                                         @else
                                                             <div class="w-full h-full bg-gray-300 flex items-center justify-center text-[9px] text-gray-500">
                                                                 No Image
                                                             </div>
                                                         @endif
-                                                    </div>                                              
+                                                    </div>
                                                     <div>
                                                         <p class="font-medium text-gray-900">{{ $item->hoarding->title ?? 'N/A' }}</p>
                                                         <p class="text-gray-500">{{ $item->hoarding->locality ?? 'N/A' }}</p>

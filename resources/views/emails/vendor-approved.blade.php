@@ -58,14 +58,14 @@
         </td>
     </tr>
 
-    <tr>
+    <!-- <tr>
         <td style="padding:10px; font-size:13px;"><strong>Commission Rate</strong></td>
         <td style="padding:10px; font-size:13px;">
             <span style="background:#fef9c3; padding:3px 6px; font-weight:bold;">
                 {{ env('ADMIN_COMMISSION_PERCENTAGE', 10) }}% - {{ $commissionPercentage }}%
             </span>
         </td>
-    </tr>
+    </tr> -->
 
     <tr>
         <td style="padding:10px; font-size:13px;"><strong>Status</strong></td>
@@ -114,9 +114,10 @@
 <tr>
 <td style="padding:0 40px 20px 40px; font-size:14px; color:#444; line-height:22px;">
     <p>
-        Your approved commission rate is
+        <!-- Your approved commission rate is
         <strong>{{ env('ADMIN_COMMISSION_PERCENTAGE', 10) }}% - {{ $commissionPercentage }}%</strong>.
-        This will be applied on successful bookings made via OOHAPP.
+        This will be applied on successful bookings made via OOHAPP. -->
+        Your Commission will be set By Admin
     </p>
 
     <p><strong>Need Help?</strong><br>

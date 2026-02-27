@@ -337,10 +337,8 @@ class HoardingController extends Controller
     {
         $vendor = Auth::user();
         $activeTab = $request->query('tab', 'all');
-
         $search = $request->input('search');
         $letter = $request->input('letter');
-        // Dynamic pagination size
         $perPage = (int) $request->input('per_page', 10);
         if ($perPage < 1) $perPage = 10;
 
@@ -349,6 +347,109 @@ class HoardingController extends Controller
             return view('hoardings.vendor.empty');
         }
 
+        // --- Export logic ---
+        if ($request->has('export') && $request->has('format')) {
+            // Build query for export (no pagination)
+            if ($activeTab === 'draft') {
+                $query = Hoarding::where('vendor_id', $vendor->id)
+                    ->where('status', 'Draft');
+                if ($search) {
+                    $query->search($search);
+                }
+                if ($letter) {
+                    $query->whereRaw('UPPER(LEFT(title, 1)) = ?', [mb_strtoupper(mb_substr($letter, 0, 1))]);
+                }
+                $hoardings = $query->orderBy('title')->get();
+            } else {
+                $filters = [
+                    'vendor_id' => $vendor->id,
+                    'status' => ['active', 'inactive', 'pending_approval'],
+                ];
+                if ($search) {
+                    $filters['search'] = $search;
+                }
+                if ($letter) {
+                    $filters['letter'] = mb_strtoupper(mb_substr($letter, 0, 1));
+                }
+                $hoardings = $this->hoardingService->getAll($filters, 10000)->getCollection();
+            }
+
+            $columns = ['ID', 'Title', 'Type', 'Location', 'Bookings', 'Status'];
+            $rows = $hoardings->map(function ($h) {
+                $parts = [];
+                if (!empty($h->locality)) $parts[] = $h->locality;
+                if (!empty($h->city)) $parts[] = $h->city;
+                return [
+                    $h->id,
+                    $h->title,
+                    $h->hoarding_type,
+                    $parts ? implode(', ', $parts) : '',
+                    $h->bookings_count ?? 0,
+                    ucfirst($h->status === "active" ? 'Published' : $h->status),
+                ];
+            });
+            $filename = 'my_hoardings_' . now()->format('Ymd_His');
+            $format = $request->input('format');
+
+            if ($format === 'excel') {
+                $html = '<table>';
+                $html .= '<tr>' . implode('', array_map(fn($col) => "<th>{$col}</th>", $columns)) . '</tr>';
+                foreach ($rows as $row) {
+                    $html .= '<tr>' . implode('', array_map(fn($cell) => "<td>{$cell}</td>", $row)) . '</tr>';
+                }
+                $html .= '</table>';
+                return response($html, 200, [
+                    'Content-Type'        => 'application/vnd.ms-excel',
+                    'Content-Disposition' => "attachment; filename={$filename}.xls",
+                    'Pragma'              => 'no-cache',
+                    'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+                ]);
+            } elseif ($format === 'pdf') {
+                $html = '<!DOCTYPE html><html><head><style>';
+                $html .= 'body { font-family: Arial, sans-serif; font-size: 12px; }';
+                $html .= 'h2 { margin-bottom: 10px; }';
+                $html .= 'table { width: 100%; border-collapse: collapse; }';
+                $html .= 'th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }';
+                $html .= 'th { background: #f3f4f6; font-weight: bold; }';
+                $html .= '</style></head><body>';
+                $html .= '<h2>My Hoardings Export</h2>';
+                $html .= '<table><thead><tr>';
+                foreach ($columns as $col) {
+                    $html .= "<th>{$col}</th>";
+                }
+                $html .= '</tr></thead><tbody>';
+                foreach ($rows as $row) {
+                    $html .= '<tr>';
+                    foreach ($row as $cell) {
+                        $html .= "<td>" . htmlspecialchars((string) $cell) . "</td>";
+                    }
+                    $html .= '</tr>';
+                }
+                $html .= '</tbody></table></body></html>';
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
+                $pdf->setPaper('a4', 'landscape');
+                return $pdf->download("{$filename}.pdf");
+            } else {
+                $headers = [
+                    'Content-Type'        => 'text/csv',
+                    'Content-Disposition' => "attachment; filename={$filename}.csv",
+                    'Pragma'              => 'no-cache',
+                    'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+                    'Expires'             => '0',
+                ];
+                $callback = function () use ($columns, $rows) {
+                    $file = fopen('php://output', 'w');
+                    fputcsv($file, $columns);
+                    foreach ($rows as $row) {
+                        fputcsv($file, $row);
+                    }
+                    fclose($file);
+                };
+                return response()->stream($callback, 200, $headers);
+            }
+        }
+
+        // --- Normal page logic ---
         if ($activeTab === 'draft') {
             $query = Hoarding::where('vendor_id', $vendor->id)
                 ->where('status', 'Draft');
@@ -371,7 +472,6 @@ class HoardingController extends Controller
                 $filters['letter'] = mb_strtoupper(mb_substr($letter, 0, 1));
             }
             $data = $this->hoardingService->getAll($filters, $perPage);
-            // If letter is set and no results, show empty (not all hoardings)
             if ($letter && $data->total() === 0) {
                 $data = $data->setCollection(collect([]));
             }
@@ -380,7 +480,6 @@ class HoardingController extends Controller
             $parts = [];
             if (!empty($h->locality)) $parts[] = $h->locality;
             if (!empty($h->city)) $parts[] = $h->city;
-
             return [
                 'id' => $h->id,
                 'title' => $h->title,
@@ -390,9 +489,7 @@ class HoardingController extends Controller
                 'status' => ucfirst($h->status === "active" ? 'Published' : $h->status),
             ];
         });
-
         $data->setCollection($hoardingList);
-
         return view('hoardings.vendor.list', [
             'hoardings' => $data,
             'activeTab' => $activeTab,
