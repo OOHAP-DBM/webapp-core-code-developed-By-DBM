@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Customer\ShortlistController;
 use App\Http\Controllers\Api\Vendor\DashboardController;  
 use App\Http\Controllers\Api\Customer\CustomerHomeController;
     use Modules\Enquiries\Controllers\Api\DirectEnquiryApiController;
+use App\Http\Controllers\Api\AccountController;
 /**
  * OOHAPP API v1 Routes
  * 
@@ -128,4 +129,9 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         // Store new direct enquiry
         Route::post('direct', [DirectEnquiryApiController::class, 'store']);
     });
+});
+Route::middleware(['auth:sanctum', 'throttle:authenticated'])->prefix('account')->group(function () {
+        Route::post('/delete/send-otp', [AccountController::class, 'sendDeleteOtp']);
+        Route::post('/delete/verify-otp', [AccountController::class, 'verifyDeleteOtp']);
+        Route::delete('/delete', [AccountController::class, 'deleteAccount']);
 });
