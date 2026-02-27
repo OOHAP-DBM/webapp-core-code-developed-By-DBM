@@ -331,7 +331,7 @@ class VendorController extends Controller
                 'terms_ip_address'          => request()->ip(),
 
                 // DEFAULT COMMISSION
-                'commission_percentage'     => 10,
+                // 'commission_percentage'     => 10,
             ]);
 
             DB::commit();
