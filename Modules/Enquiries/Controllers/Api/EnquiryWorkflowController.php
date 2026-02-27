@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\GracePeriodService;
 use Modules\Threads\Services\ThreadService;
 use Modules\Enquiries\Models\Enquiry;
-use Modules\Hoardings\Models\Hoarding;
+use App\Models\Hoarding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
