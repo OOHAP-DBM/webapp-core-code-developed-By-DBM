@@ -236,7 +236,7 @@
         @else
             {{-- EMPTY --}}
             <div class="bg-white rounded-xl p-16 text-center text-gray-500">
-                <h3 class="text-lg font-semibold mb-2">Your shortlist is empty</h3>
+                <h3 class="text-lg font-semibold mb-2">Your Wishlist is empty</h3>
                 <p class="mb-4">Start adding hoardings to your wishlist</p>
                 <a href="{{ route('home') }}" class="btn-color text-white px-6 py-2 rounded">
                     Browse Hoardings

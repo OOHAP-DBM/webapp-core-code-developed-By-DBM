@@ -14,6 +14,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Mail;
 use Modules\Enquiries\Models\DirectEnquiry;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Modules\POS\Models\PosCustomer;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasApiTokens, HasRoles, SoftDeletes;

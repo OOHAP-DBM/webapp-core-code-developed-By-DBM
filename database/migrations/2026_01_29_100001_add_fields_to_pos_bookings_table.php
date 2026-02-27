@@ -67,7 +67,14 @@ return new class extends Migration {
              | 5. Index
              |-------------------------------------------------
              */
-            $table->index(['vendor_id', 'customer_id']);
+            $indexExists = DB::select("
+                SHOW INDEX FROM pos_bookings 
+                WHERE Key_name = 'pos_bookings_vendor_id_customer_id_index'
+            ");
+
+            if (empty($indexExists)) {
+                $table->index(['vendor_id', 'customer_id']);
+            }
         });
     }
 
