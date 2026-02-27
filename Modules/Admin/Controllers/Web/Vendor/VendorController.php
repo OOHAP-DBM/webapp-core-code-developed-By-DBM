@@ -147,15 +147,14 @@ class VendorController extends Controller
     {
         // Use manual validator if you want total control, 
         // but $request->validate is fine as long as JS sends 'Accept: application/json'
-        $request->validate([
-            'commission_percentage' => 'required|numeric|min:0|max:100',
-        ]);
+        // $request->validate([
+        //     'commission_percentage' => 'nullable|numeric|min:0|max:100',
+        // ]);
 
         try {
             $profile = VendorProfile::findOrFail($id);
 
             $profile->update([
-                'commission_percentage' => $request->commission_percentage,
                 'onboarding_status'     => 'approved',
                 'approved_at'           => now(),
                 'approved_by'           => auth()->id(),
@@ -262,9 +261,9 @@ class VendorController extends Controller
         $request->validate([
             'name'          => 'required|string|max:255',
             'phone'         => 'required|string|max:20|unique:users,phone',
-            'email'         => 'required|email|unique:users,email',
+            // 'email'         => 'required|email|unique:users,email',
+            'email'         => 'nullable|email|unique:users,email',
             'password'      => 'required|min:4',
-
             'company_name'  => 'required|string|max:255',
             'gstin'         => 'nullable|string|max:20',
             'pan'           => 'nullable|string|max:20',
@@ -332,7 +331,7 @@ class VendorController extends Controller
                 'terms_ip_address'          => request()->ip(),
 
                 // DEFAULT COMMISSION
-                'commission_percentage'     => 10,
+                // 'commission_percentage'     => 10,
             ]);
 
             DB::commit();
@@ -350,18 +349,15 @@ class VendorController extends Controller
     {
         $request->validate([
             'vendor_ids' => 'required|array',
-            'commission_percentage' => 'required|numeric|min:1|max:100'
+            // 'commission_percentage' => 'required|numeric|min:1|max:100'
         ]);
 
         DB::beginTransaction();
 
         try {
-
             foreach ($request->vendor_ids as $vendorProfileId) {
-
                 $vendor = VendorProfile::find($vendorProfileId);
                 if(!$vendor) continue;
-
                 // vendor profile approve
                 $vendor->update([
                     'onboarding_status'      => 'approved',
@@ -369,13 +365,11 @@ class VendorController extends Controller
                     'approved_by'            => auth()->id(),
                     'kyc_verified'           => 1,
                     'kyc_verified_at'        => now(),
-                    'commission_percentage'  => $request->commission_percentage,
                     'onboarding_completed_at'=> now(),
                     'terms_accepted'         => 1,
                     'terms_accepted_at'      => now(),
                     'terms_ip_address'       => request()->ip(),
                 ]);
-
                 // user activate
                 $user = User::find($vendor->user_id);
                 if($user){
@@ -384,19 +378,27 @@ class VendorController extends Controller
                         'email_verified_at' => now(),
                         'phone_verified_at' => now(),
                     ]);
+                    // Send approval notification
+                    try {
+                        $user->notify(new \App\Notifications\VendorApprovedNotification(false));
+                    } catch (\Exception $e) {
+                        \Log::error('Bulk vendor approval notification failed: ' . $e->getMessage());
+                    }
+                    // Send approval email
+                    try {
+                        \Mail::to($user->email)->send(new \Modules\Mail\VendorApprovedMail($user, $vendor->commission_percentage ?? 10));
+                    } catch (\Exception $e) {
+                        \Log::error('Bulk vendor approval email failed: ' . $e->getMessage());
+                    }
                 }
             }
-
             DB::commit();
-
             return response()->json([
                 'success' => true,
                 'message' => 'Selected vendors approved successfully'
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-
             return response()->json([
                 'success' => false,
                 'message' => 'Approval failed'

@@ -44,7 +44,11 @@
                         </td>
 
                         <td class="px-4 py-3 text-green-600 font-medium align-middle">
-                            {{ $vendor->commission_percentage ? $vendor->commission_percentage.'%' : '10–20%' }}
+                            @if(!is_null($vendor->commission_percentage))
+                                {{ rtrim(rtrim(number_format($vendor->commission_percentage,2), '0'), '.') }}%
+                            @else
+                                -
+                            @endif
                         </td>
 
                         <!-- <td class="px-4 py-3 align-middle">

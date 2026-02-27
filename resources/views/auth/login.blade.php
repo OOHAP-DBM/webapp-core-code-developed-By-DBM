@@ -343,5 +343,7 @@
 
     });
 </script>
-
+<script>
+    setTimeout(() => window.location.reload(), 25 * 60 * 1000);
+</script>
 @endpush
