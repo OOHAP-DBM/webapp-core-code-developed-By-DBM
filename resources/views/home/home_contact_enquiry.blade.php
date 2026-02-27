@@ -141,7 +141,7 @@
                                 <input type="text" 
                                        name="preferred_locations[]" 
                                        placeholder="e.g. Hazratganj, Gomti Nagar"
-                                       class="w-full px-4py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                                       class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                             </div>
                         </div>
                         <button type="button" 
