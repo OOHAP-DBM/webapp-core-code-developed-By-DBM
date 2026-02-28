@@ -85,23 +85,23 @@ class AccountController extends Controller
         }
     }
 
-    // Final delete account (requires OTP verification)
     public function deleteAccount(Request $request)
     {
         $user = Auth::user();
+
         // Check OTP verification from user_otps table
         $emailOtpVerified = \DB::table('user_otps')
             ->where('user_id', $user->id)
             ->where('purpose', 'delete_account_email')
             ->whereNotNull('verified_at')
-            ->where('expires_at', '>', now())
+            ->where('verified_at', '>', now()->subMinute())
             ->exists();
 
         $phoneOtpVerified = \DB::table('user_otps')
             ->where('user_id', $user->id)
             ->where('purpose', 'delete_account_phone')
             ->whereNotNull('verified_at')
-            ->where('expires_at', '>', now())
+            ->where('verified_at', '>', now()->subMinute())
             ->exists();
 
         if (!$emailOtpVerified && !$phoneOtpVerified) {
@@ -114,20 +114,43 @@ class AccountController extends Controller
         // Optionally save reason if provided
         if ($request->filled('reason')) {
             $user->delete_reason = $request->input('reason');
-            $user->save();
+            $user->saveQuietly(); // saveQuietly to avoid triggering unnecessary events
         }
 
-        // Soft delete user and vendor profile if exists
-        $user->delete();
-        if (method_exists($user, 'vendorProfile') && $user->vendorProfile) {
-            $user->vendorProfile->delete();
+        // ── VENDOR CLEANUP ──────────────────────────────────────────
+        if ($user->active_role === 'vendor') {
+
+            // 1. Soft delete all hoardings (status inactive + deleted_at)
+            \DB::table('hoardings')
+                ->where('vendor_id', $user->id)
+                ->whereNull('deleted_at')
+                ->update([
+                    'status'     => 'inactive',
+                    'deleted_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            // 2. Soft delete vendor profile
+            \DB::table('vendor_profiles')
+                ->where('user_id', $user->id)
+                ->whereNull('deleted_at')
+                ->update([
+                    'deleted_at' => now(),
+                    'updated_at' => now(),
+                ]);
         }
 
-        Auth::logout();
+        // ── CUSTOMER CLEANUP ─────────────────────────────────────────
+        // if ($user->active_role === 'customer') {
+        //     — future: cancel active bookings, etc.
+        // }
+
+        // ── DELETE USER (works for both vendor & customer) ───────────
+        $user->delete(); // sets deleted_at via SoftDeletes
 
         return response()->json([
             'success' => true,
-            'title' => 'We’ll miss you 💔',
+            'title'   => "We'll miss you 💔",
             'message' => 'Your account has been deleted successfully.'
         ]);
     }
