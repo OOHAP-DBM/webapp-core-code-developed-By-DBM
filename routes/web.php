@@ -1217,17 +1217,21 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin
 
 
 use App\Services\FcmService;
+use Kreait\Firebase\Exception\Messaging\MessagingException;
 
-
-Route::get('/test-fcm', function (App\Services\FcmService $fcm) {
+Route::get('/test-fcm', function (FcmService $fcm) {
     try {
         return $fcm->sendToToken(
             'crMc4PvlSFScBNaXCD5ObT:APA91bGRHvWTCaq_Bhr8H7lPO5Gk6b8afJ5M6_FmS-A80ODDqx8BOGNkR4Xn4tcf7Nx72vKa1wixnrW0EmPt0YtR78EzgaegkX2xAKYuaMDmw9TQlEYOzfw',
-            'Test',
-            'Testing FCM',
-            ['test' => 'yes']
+            'Test Notification',
+            'Firebase is working 🚀',
+            ['type' => 'test']
         );
-    } catch (\Kreait\Firebase\Exception\Messaging\MessagingError $e) {
-        return $e->getMessage();
+    } catch (MessagingException $e) {
+        // Firebase messaging error
+        return response()->json(['error' => $e->getMessage()], 500);
+    } catch (\Exception $e) {
+        // Other errors (e.g., credentials file not found)
+        return response()->json(['error' => $e->getMessage()], 500);
     }
 });
