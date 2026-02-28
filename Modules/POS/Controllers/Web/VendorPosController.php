@@ -715,12 +715,10 @@ class VendorPosController extends Controller
             try {
                 if (!empty($booking->customer_id)) {
                     $customer = \App\Models\User::find($booking->customer_id);
-                    
                     // DB Notification
                     if ($customer && method_exists($customer, 'notify')) {
                         $customer->notify(new \App\Notifications\PosBookingCreatedNotification($booking));
                     }
-                    
                     // Email — sirf tab bhejo jab valid email ho
                     if ($customer && !empty($customer->email) && filter_var($customer->email, FILTER_VALIDATE_EMAIL)) {
                         \Mail::to($customer->email)->send(new \App\Mail\PosBookingCreatedMail($booking, $customer));
@@ -729,6 +727,36 @@ class VendorPosController extends Controller
                             'customer_id' => $booking->customer_id,
                             'email' => $customer->email ?? 'NULL'
                         ]);
+                    }
+                    // WhatsApp message — sirf tab bhejo jab valid phone ho
+                    if ($customer && !empty($customer->phone)) {
+                        try {
+                            $to = $customer->phone;
+                            // Ensure phone is in E.164 format, add country code if needed
+                            if (strpos($to, '+') !== 0) {
+                                $to = '+91' . ltrim($to, '0');
+                            }
+                            $messageBody = 'Hi ' . ($customer->name ?? 'Customer') . ', your POS booking (ID: ' . ($booking->invoice_number ?? $booking->id) . ') has been created successfully on OOHAPP.';
+                            $whatsappService = app(\App\Services\Whatsapp\TwilioWhatsappService::class);
+                            $sent = $whatsappService->send($to, $messageBody);
+                            if ($sent) {
+                                \Log::info('POS WhatsApp message sent', [
+                                    'customer_id' => $booking->customer_id,
+                                    'phone' => $to
+                                ]);
+                            } else {
+                                \Log::warning('Failed to send WhatsApp message (service returned false)', [
+                                    'customer_id' => $booking->customer_id,
+                                    'phone' => $to
+                                ]);
+                            }
+                        } catch (\Exception $ex) {
+                            \Log::warning('Failed to send WhatsApp message (exception)', [
+                                'error' => $ex->getMessage(),
+                                'customer_id' => $booking->customer_id,
+                                'phone' => $customer->phone
+                            ]);
+                        }
                     }
                 }
             } catch (\Exception $e) {
@@ -1061,6 +1089,28 @@ class VendorPosController extends Controller
                 ]);
                 DB::afterCommit(function () use ($user) {
                     event(new PosCustomerCreated($user, Auth::user()));
+
+                    // Send in-app notification (Laravel Notification)
+                    if (method_exists($user, 'notify')) {
+                        try {
+                            $user->notify(new \App\Notifications\PosCustomerCreatedNotification($user));
+                        } catch (\Exception $e) {
+                            Log::warning('Failed to send in-app notification to customer', [
+                                'customer_id' => $user->id,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    }
+
+                    // Send email to customer
+                    try {
+                        \Mail::to($user->email)->send(new \App\Mail\PosCustomerWelcome($user));
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to send welcome email to customer', [
+                            'customer_id' => $user->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 });
             } catch (\Exception $e) {
                 Log::warning('Failed to log POS customer creation', [
