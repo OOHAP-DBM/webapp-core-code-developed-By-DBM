@@ -270,7 +270,7 @@
 </div>
 
 {{-- ================= TOP 5 BEST SELLING HOARDINGS ================= --}}
-<div class="bg-white rounded-xl shadow-sm mb-6">
+<!-- <div class="bg-white rounded-xl shadow-sm mb-6">
     <div class="px-6 pt-5 pb-1 flex justify-between items-center">
         <div>
             <h4 class="text-sm font-semibold mb-4 text-gray-800">
@@ -322,7 +322,7 @@
             </tbody>
         </table>
     </div>
-</div>
+</div> -->
 
 {{-- ================= RECENTLY BOOKED HOARDING - POS ================= --}}
 <div class="bg-white rounded-xl shadow-sm mb-6">

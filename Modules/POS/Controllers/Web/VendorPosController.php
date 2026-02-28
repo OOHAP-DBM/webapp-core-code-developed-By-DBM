@@ -143,19 +143,16 @@ class VendorPosController extends Controller
     {
         try {
             $vendorId = Auth::id();
-
-            // ── Base query ────────────────────────────────────────────────
             $query = Hoarding::query()
                 ->where('vendor_id', $vendorId)
                 ->where('status', 'active');
 
-            // ── 1. Type filter (OOH / DOOH / ALL) ─────────────────────────
+            // ...existing code for filters (unchanged)...
+            // 1. Type filter
             if ($request->filled('type') && $request->type !== 'ALL') {
                 $query->where('hoarding_type', strtolower($request->type));
-                // strtolower because DB stores 'ooh' / 'dooh' (lowercase)
             }
-
-            // ── 2. Text search ─────────────────────────────────────────────
+            // 2. Text search
             if ($request->filled('search')) {
                 $search = $request->get('search');
                 $query->where(function ($q) use ($search) {
@@ -164,35 +161,25 @@ class VendorPosController extends Controller
                     ->orWhere('address', 'like', "%{$search}%");
                 });
             }
-
-            // ── 3. Category filter (OOH only) ─────────────────────────────
-            // DB column: hoardings.category  (values: billboard, unipole, gantry, pole_kiosk)
+            // 3. Category filter
             if ($request->filled('category')) {
                 $categories = array_filter(explode(',', $request->get('category')));
                 if (!empty($categories)) {
                     $query->whereIn('category', $categories);
                 }
             }
-
-            // ── 4. Availability filter ─────────────────────────────────────
-            // "available"  → no active booking overlapping today
-            // "booked"     → has active booking overlapping today
+            // 4. Availability filter
             if ($request->filled('availability')) {
                 $availabilityValues = array_filter(explode(',', $request->get('availability')));
-
-                // Only filter if exactly one option is chosen (both = no filter needed)
                 if (count($availabilityValues) === 1) {
                     $today = now()->toDateString();
-
                     if (in_array('available', $availabilityValues)) {
-                        // Hoardings with NO active booking today
                         $query->whereDoesntHave('bookings', function ($q) use ($today) {
                             $q->where('start_date', '<=', $today)
                             ->where('end_date',   '>=', $today)
                             ->whereIn('status', ['confirmed', 'active', 'payment_hold']);
                         });
                     } elseif (in_array('booked', $availabilityValues)) {
-                        // Hoardings WITH an active booking today
                         $query->whereHas('bookings', function ($q) use ($today) {
                             $q->where('start_date', '<=', $today)
                             ->where('end_date',   '>=', $today)
@@ -201,67 +188,44 @@ class VendorPosController extends Controller
                     }
                 }
             }
-
-            // ── 5. Surroundings filter ─────────────────────────────────────
-            // DB column: hoardings.located_at (JSON array)
-            // Values: crossroad, highway, market_area, commercial_complexes, main_road
+            // 5. Surroundings filter
             if ($request->filled('surroundings')) {
                 $surroundings = array_filter(explode(',', $request->get('surroundings')));
                 if (!empty($surroundings)) {
                     $query->where(function ($q) use ($surroundings) {
                         foreach ($surroundings as $surrounding) {
-                            // JSON_CONTAINS for MySQL, or use LIKE for compatibility
                             $q->orWhereRaw('JSON_CONTAINS(located_at, ?)', [json_encode($surrounding)]);
-                            // Fallback if not using JSON column:
-                            // $q->orWhere('located_at', 'like', "%{$surrounding}%");
                         }
                     });
                 }
             }
-
-            // ── 6. Hoarding Size filter (OOH → ooh_hoardings.width * height) ─
-            // Join with ooh_hoardings to filter by size (width * height = sq.ft area)
+            // 6. Hoarding Size filter
             $hoardingSizeMin = (int) $request->get('hoarding_size_min', 0);
             $hoardingSizeMax = (int) $request->get('hoarding_size_max', 1000);
-
             $hasHoardingSizeFilter = $hoardingSizeMin > 0 || $hoardingSizeMax < 1000;
-
             if ($hasHoardingSizeFilter) {
                 $query->where(function ($q) use ($hoardingSizeMin, $hoardingSizeMax) {
-                    // OOH: join ooh_hoardings for width/height
                     $q->whereHas('oohHoarding', function ($oohQ) use ($hoardingSizeMin, $hoardingSizeMax) {
                         $oohQ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) >= ?', [$hoardingSizeMin])
                             ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) <= ?', [$hoardingSizeMax]);
                     })
-                    // OR DOOH: join dooh_screens for width/height
                     ->orWhereHas('doohScreen', function ($doohQ) use ($hoardingSizeMin, $hoardingSizeMax) {
                         $doohQ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) >= ?', [$hoardingSizeMin])
                             ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) <= ?', [$hoardingSizeMax]);
                     });
                 });
             }
-
-            // ── 7. Screen Size filter (DOOH → dooh_screens.screen_size) ────
-            // Uses dooh_screens.screen_size column (in sq.ft or inches — adjust as needed)
+            // 7. Screen Size filter
             $screenSizeMin = (int) $request->get('screen_size_min', 0);
             $screenSizeMax = (int) $request->get('screen_size_max', 1000);
-
             $hasScreenSizeFilter = $screenSizeMin > 0 || $screenSizeMax < 1000;
-
             if ($hasScreenSizeFilter) {
                 $query->whereHas('doohScreen', function ($q) use ($screenSizeMin, $screenSizeMax) {
-                    // If you have a dedicated screen_size column:
                     $q->where('screen_size', '>=', $screenSizeMin)
                     ->where('screen_size', '<=', $screenSizeMax);
-
-                    // If you DON'T have screen_size column but have width/height:
-                    // $q->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) >= ?', [$screenSizeMin])
-                    //   ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) <= ?', [$screenSizeMax]);
                 });
             }
-
-            // ── 8. Resolution filter (DOOH only) ──────────────────────────
-            // DB column: dooh_screens.resolution  (values: led, hd, ultra_hd)
+            // 8. Resolution filter
             if ($request->filled('resolution')) {
                 $resolutions = array_filter(explode(',', $request->get('resolution')));
                 if (!empty($resolutions)) {
@@ -270,12 +234,10 @@ class VendorPosController extends Controller
                     });
                 }
             }
-
-            // ── 9. Date availability filter ────────────────────────────────
+            // 9. Date availability filter
             if ($request->filled('start_date') && $request->filled('end_date')) {
                 $startDate = $request->get('start_date');
                 $endDate   = $request->get('end_date');
-
                 $query->whereDoesntHave('bookings', function ($q) use ($startDate, $endDate) {
                     $q->where(function ($inner) use ($startDate, $endDate) {
                         $inner->whereBetween('start_date', [$startDate, $endDate])
@@ -289,47 +251,51 @@ class VendorPosController extends Controller
                 });
             }
 
-            // ── Execute & map ──────────────────────────────────────────────
-            $hoardings = $query
+            // ── Pagination ──
+            $perPage = (int) $request->get('per_page', 8);
+            $page = (int) $request->get('page', 1);
+            $paginator = $query
                 ->select([
                     'id', 'title', 'address', 'city', 'state',
                     'hoarding_type', 'category', 'located_at',
                     'base_monthly_price', 'monthly_price',
                 ])
                 ->orderBy('title')
-                ->get()
-                ->map(function ($hoarding) {
-                    $imageUrl = $this->getHoardingImageUrl($hoarding);
+                ->paginate($perPage, ['*'], 'page', $page);
 
-                    $pricePerMonth = isset($hoarding->monthly_price)
-                        ? (float) $hoarding->monthly_price
-                        : null;
-
-                    if (!$pricePerMonth || $pricePerMonth <= 0) {
-                        $pricePerMonth = $hoarding->base_monthly_price ?? 0;
-                    }
-
-                    return [
-                        'id'                  => $hoarding->id,
-                        'title'               => $hoarding->title,
-                        'location_address'    => $hoarding->address,
-                        'location_city'       => $hoarding->city,
-                        'location_state'      => $hoarding->state,
-                        'type'                => $hoarding->hoarding_type,
-                        'category'            => $hoarding->category,
-                        'price_per_month'     => $pricePerMonth,
-                        'image_url'           => $imageUrl,
-                        'is_currently_booked' => $hoarding->bookings()
-                            ->where('start_date', '<=', now())
-                            ->where('end_date',   '>=', now())
-                            ->whereIn('status', ['confirmed', 'active'])
-                            ->exists(),
-                    ];
-                });
+            $hoardings = $paginator->getCollection()->map(function ($hoarding) {
+                $imageUrl = $this->getHoardingImageUrl($hoarding);
+                $pricePerMonth = isset($hoarding->monthly_price)
+                    ? (float) $hoarding->monthly_price
+                    : null;
+                if (!$pricePerMonth || $pricePerMonth <= 0) {
+                    $pricePerMonth = $hoarding->base_monthly_price ?? 0;
+                }
+                return [
+                    'id'                  => $hoarding->id,
+                    'title'               => $hoarding->title,
+                    'location_address'    => $hoarding->address,
+                    'location_city'       => $hoarding->city,
+                    'location_state'      => $hoarding->state,
+                    'type'                => $hoarding->hoarding_type,
+                    'category'            => $hoarding->category,
+                    'price_per_month'     => $pricePerMonth,
+                    'image_url'           => $imageUrl,
+                    'is_currently_booked' => $hoarding->bookings()
+                        ->where('start_date', '<=', now())
+                        ->where('end_date',   '>=', now())
+                        ->whereIn('status', ['confirmed', 'active'])
+                        ->exists(),
+                ];
+            });
 
             return response()->json([
                 'success' => true,
                 'data'    => $hoardings,
+                'current_page' => $paginator->currentPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
                 'count'   => $hoardings->count(),
                 'filters_applied' => $request->only([
                     'type', 'category', 'resolution', 'availability',
@@ -337,7 +303,6 @@ class VendorPosController extends Controller
                     'screen_size_min', 'screen_size_max',
                 ]),
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error fetching hoardings', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([

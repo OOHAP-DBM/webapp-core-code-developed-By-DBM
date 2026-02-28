@@ -3,7 +3,7 @@
 @section('title', 'Create Pos Booking')
 
 @section('content')
-<div class="px-6 py-6 bg-gray-50 min-h-screen">
+<div class="px-6 py-6 bg-gray-50">
     <div id="selection-screen" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-7">
@@ -185,6 +185,10 @@ const API_URL = '/vendor/pos/api';
 let hoardings = [];
 let selectedHoardings = new Map();
 let selectedCustomer = null;
+// Pagination state
+let currentPage = 1;
+let totalPages = 1;
+let perPage = 10;
 
 
 
@@ -343,35 +347,96 @@ function clearSelectedCustomer() {
 }
 
 /* --- INVENTORY LOGIC --- */
+
+
 async function loadHoardings(filters = {}) {
+    filters.page = currentPage;
+    filters.per_page = perPage;
     const query = new URLSearchParams(filters).toString();
     const url   = `${API_URL}/hoardings${query ? '?' + query : ''}`;
     const res   = await fetchJSON(url);
-    hoardings   = res.data?.data || res.data || [];
+    // Read pagination metadata from top-level API response
+    if ('last_page' in res) {
+        hoardings = res.data || [];
+        totalPages = res.last_page || 1;
+        currentPage = res.current_page || 1;
+    } else if (res.data && typeof res.data === 'object' && 'data' in res.data && 'last_page' in res.data) {
+        hoardings = res.data.data;
+        totalPages = res.data.last_page || 1;
+    } else if (Array.isArray(res.data)) {
+        hoardings = res.data;
+        totalPages = 1;
+    } else {
+        hoardings = res.data?.data || res.data || [];
+        totalPages = 1;
+    }
     renderHoardings(hoardings);
+    renderPagination();
 }
 
 window.loadHoardings = loadHoardings;
 
+
 function renderHoardings(list) {
     const grid = document.getElementById('hoardings-grid');
-    grid.innerHTML = list.map(h => {
-        const isSelected = selectedHoardings.has(h.id);
-        return `
-            <div class="relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
-                <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover">
-                <div class="p-2">
-                    <h4 class="text-[10px] font-bold text-gray-800 truncate">${h.title}</h4>
-                    <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
-                </div>
-            </div>`;
-    }).join('');
+    if (!list.length) {
+        grid.innerHTML = '<div class="col-span-2 text-center text-gray-400 italic py-8 w-full">No hoardings found</div>';
+    } else {
+        grid.innerHTML = list.map(h => {
+            const isSelected = selectedHoardings.has(h.id);
+            return `
+                <div class="relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
+                    <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover">
+                    <div class="p-2">
+                        <h4 class="text-[10px] font-bold text-gray-800 truncate">${h.title}</h4>
+                        <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
+                    </div>
+                </div>`;
+        }).join('');
+    }
     document.getElementById('available-count').innerText = list.length;
 }
 
+function renderPagination() {
+    let container = document.getElementById('hoardings-pagination');
+    if (!container) {
+        // Create container if not present
+        const parent = document.querySelector('#hoardings-grid')?.parentElement;
+        if (!parent) return;
+        container = document.createElement('div');
+        container.id = 'hoardings-pagination';
+        container.className = 'flex justify-center items-center gap-2 mt-4';
+        parent.appendChild(container);
+    }
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+    let html = '';
+    html += `<button class="px-2 py-1 border rounded text-xs ${currentPage === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white'}" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>`;
+    // Show up to 5 page numbers
+    let start = Math.max(1, currentPage - 2);
+    let end = Math.min(totalPages, start + 4);
+    if (end - start < 4) start = Math.max(1, end - 4);
+    for (let i = start; i <= end; i++) {
+        html += `<button class="px-2 py-1 border rounded text-xs ${i === currentPage ? 'bg-green-600 text-white' : 'bg-white'}" onclick="changePage(${i})">${i}</button>`;
+    }
+    html += `<button class="px-2 py-1 border rounded text-xs ${currentPage === totalPages ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white'}" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+    container.innerHTML = html;
+}
+
+function changePage(page) {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    currentPage = page;
+    loadHoardings();
+}
+
+
 function filterInventory() {
     const q = document.getElementById('hoarding-search').value.toLowerCase();
-    renderHoardings(hoardings.filter(h => h.title.toLowerCase().includes(q) || (h.location_address || '').toLowerCase().includes(q)));
+    // Reset to first page on new search
+    currentPage = 1;
+    loadHoardings(q ? { search: q } : {});
 }
 
 function toggleHoarding(id) {
