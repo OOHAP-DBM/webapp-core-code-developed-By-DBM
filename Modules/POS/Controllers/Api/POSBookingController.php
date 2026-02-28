@@ -417,4 +417,211 @@ class POSBookingController extends Controller
             ], 500);
         }
     }
+
+     public function markAsPaid(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'payment_date' => 'nullable|date|before_or_equal:today',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $booking = POSBooking::where('vendor_id', Auth::id())->findOrFail($id);
+
+            // Validate current state
+            if (!in_array($booking->payment_status, ['unpaid', 'partial'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking is not in a payable state (status: ' . $booking->payment_status . ')',
+                ], 422);
+            }
+
+            if ($booking->status === POSBooking::STATUS_CANCELLED) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot mark payment for cancelled booking',
+                ], 422);
+            }
+
+            // Mark as paid
+            $updated = $this->posBookingService->markPaymentReceived(
+                $booking,
+                $validated['amount'],
+                $validated['payment_date'] ?? today(),
+                $validated['notes'] ?? null
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment marked as received successfully',
+                'data' => $updated,
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to mark payment', [
+                'booking_id' => $id,
+                'vendor_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to mark payment',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * CRITICAL: Release booking hold (cancel pending payment, free hoarding)
+     * Useful for: Order cancellations, customer rejections
+     * Transitions: unpaid → released, allows rebooking
+     */
+    public function releaseBooking(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'reason' => 'required|string|max:500',
+        ]);
+
+        try {
+            $booking = POSBooking::where('vendor_id', Auth::id())->findOrFail($id);
+
+            // Can only release if pending payment
+            if ($booking->payment_status !== POSBooking::PAYMENT_STATUS_UNPAID) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Can only release unpaid bookings (current status: ' . $booking->payment_status . ')',
+                ], 422);
+            }
+
+            if (!in_array($booking->status, ['draft', 'confirmed'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking already started, cannot release',
+                ], 422);
+            }
+
+            $released = $this->posBookingService->releaseBooking(
+                $booking,
+                $validated['reason']
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking released successfully. Hoarding is now available.',
+                'data' => $released,
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to release booking', [
+                'booking_id' => $id,
+                'vendor_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to release booking',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all bookings with pending payments (hold status)
+     * Used for dashboard pending orders section
+     */
+    public function getPendingPayments(): JsonResponse
+    {
+        try {
+            $bookings = POSBooking::where('vendor_id', Auth::id())
+                ->where('payment_status', POSBooking::PAYMENT_STATUS_UNPAID)
+                ->where(function ($query) {
+                    $query->whereNull('hold_expiry_at')
+                        ->orWhere('hold_expiry_at', '>', now());
+                })
+                ->with(['hoarding:id,title,location_city'])
+                ->orderBy('hold_expiry_at', 'asc')
+                ->get([
+                    'id',
+                    'customer_name',
+                    'customer_phone',
+                    'hoarding_id',
+                    'total_amount',
+                    'paid_amount',
+                    'start_date',
+                    'hold_expiry_at',
+                    'reminder_count',
+                    'created_at',
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $bookings,
+                'count' => $bookings->count(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch pending payments',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Send reminder for pending payment
+     * Limit to max 3 reminders per booking
+     */
+    public function sendReminder(int $id): JsonResponse
+    {
+        try {
+            $booking = POSBooking::where('vendor_id', Auth::id())->findOrFail($id);
+
+            if ($booking->payment_status !== POSBooking::PAYMENT_STATUS_UNPAID) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Can only send reminders for unpaid bookings',
+                ], 422);
+            }
+
+            if ($booking->reminder_count >= 3) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Maximum reminders already sent (3 limit)',
+                ], 422);
+            }
+
+            // Rate limit: at least 12 hours between reminders
+            if ($booking->last_reminder_at && now()->diffInHours($booking->last_reminder_at) < 12) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please wait before sending another reminder',
+                ], 429);
+            }
+
+            // Queue reminder
+            $booking->update([
+                'reminder_count' => $booking->reminder_count + 1,
+                'last_reminder_at' => now(),
+            ]);
+
+            // TODO: Queue WhatsApp notification job here
+            // Notification::send($booking->customer, new PaymentReminderNotification($booking));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reminder sent successfully',
+                'data' => [
+                    'reminder_count' => $booking->reminder_count,
+                    'last_reminder_at' => $booking->last_reminder_at,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send reminder',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

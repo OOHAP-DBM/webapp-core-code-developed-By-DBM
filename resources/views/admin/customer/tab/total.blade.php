@@ -11,7 +11,7 @@
         </tr>
     </thead>
     <tbody class="divide-y divide-[#DADADA]">
-        @foreach($customers as $customer)
+            @forelse($customers as $customer)
         <tr class="hover:bg-gray-50/50 transition-colors">
             <td class="px-6 py-4">
                 <img src="{{ $customer->image_url ?? 'https://ui-avatars.com/api/?name='.$customer->name }}" class="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm" alt="User">
@@ -52,6 +52,10 @@
                 </div>
             </td>
         </tr>
-        @endforeach
+            @empty
+            <tr>
+                <td colspan="7" class="text-center text-gray-400 py-8">No any customer found</td>
+            </tr>
+            @endforelse
     </tbody>
 </table>

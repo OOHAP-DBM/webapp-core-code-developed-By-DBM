@@ -467,16 +467,35 @@ class HoardingAvailabilityService
      */
     protected function getPOSBookingsInRange(int $hoardingId, Carbon $start, Carbon $end): Collection
     {
-        if (!class_exists(\Modules\POS\Models\POSBooking::class)) {
+        // POS bookings are stored in the `pos_booking_hoardings` table (model: POSBookingHoarding)
+        // where each hoarding entry belongs to a parent POSBooking which contains the authoritative status.
+        if (!class_exists(\Modules\POS\Models\POSBookingHoarding::class)) {
             return collect([]);
         }
 
-        return \Modules\POS\Models\POSBooking::where('hoarding_id', $hoardingId)
-            ->whereIn('status', ['confirmed', 'active'])
+        // Consider both parent booking status AND hoarding-level status (pos_booking_hoardings.status)
+        // Some POS entries record 'pending' at hoarding-level — treat these as unavailable for calendar
+        $hoardingStatusesToConsider = ['pending', 'confirmed', 'active', 'pending_payment'];
+        $parentBookingStatuses = ['confirmed', 'active', 'pending_payment'];
+
+        return \Modules\POS\Models\POSBookingHoarding::where('hoarding_id', $hoardingId)
+            ->where(function ($q) use ($parentBookingStatuses, $hoardingStatusesToConsider) {
+                // Either parent booking has an active status OR the hoarding-level status is in a blocking state
+                $q->whereHas('posBooking', function ($q2) use ($parentBookingStatuses) {
+                    $q2->whereIn('status', $parentBookingStatuses);
+                })
+                ->orWhereIn('status', $hoardingStatusesToConsider);
+            })
             ->where(function ($q) use ($start, $end) {
                 $q->where('start_date', '<=', $end->format('Y-m-d'))
                   ->where('end_date', '>=', $start->format('Y-m-d'));
             })
-            ->get();
+            ->with('posBooking:id,status')
+            ->get()
+            ->map(function ($rec) {
+                // Normalize status to use parent's booking status when available
+                $rec->status = $rec->posBooking->status ?? $rec->status;
+                return $rec;
+            });
     }
 }

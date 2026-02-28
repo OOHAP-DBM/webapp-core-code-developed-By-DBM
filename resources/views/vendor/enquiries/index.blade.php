@@ -197,7 +197,11 @@
                         <td class="px-4 py-4">
                             <div class="space-y-1">
                                 <div class="text-xs font-semibold {{ $enquiry->status_color['text'] }}">
-                                    {{ ucwords(str_replace('_', ' ', $enquiry->status)) }}
+                                    @if($enquiry->status === 'submitted')
+                                        <span class="text-green-600">Enquiry Received</span>
+                                    @else
+                                        {{ ucwords(str_replace('_', ' ', $enquiry->status)) }}
+                                    @endif
                                 </div>
                                 <div class="text-xs text-gray-500">
                                     {{ $enquiry->updated_at->format('d M, y | H:i') }}

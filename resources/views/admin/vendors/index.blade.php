@@ -138,38 +138,15 @@ function getSelectedVendors(){
 }
 
 function bulkApproveVendors(){
-
     let selected = getSelectedVendors();
-
     if(selected.length === 0){
         showToast('warning','Please select at least one vendor');
         return;
     }
-
-    Swal.fire({
-        title: 'Commission Percentage',
-        input: 'number',
-        inputPlaceholder: 'Enter commission (example 10)',
-        confirmButtonText: 'Approve Vendors',
-        showCancelButton: true,
-        confirmButtonColor:'#16a34a',
-        cancelButtonColor:'#ef4444',
-        inputValidator: (value)=>{
-            if(!value || value <= 0 || value > 100){
-                return 'Enter valid commission between 1 - 100';
-            }
-        }
-    }).then((result)=>{
-
-        if(result.isConfirmed){
-            sendBulkApprove(selected,result.value);
-        }
-
-    });
+    sendBulkApprove(selected);
 }
 
-function sendBulkApprove(ids,commission){
-
+function sendBulkApprove(ids){
     Swal.fire({
         title: 'Approving...',
         allowOutsideClick:false,
@@ -177,7 +154,6 @@ function sendBulkApprove(ids,commission){
             Swal.showLoading();
         }
     });
-
     fetch("{{ route('admin.vendors.bulk-approve') }}",{
         method:'POST',
         headers:{
@@ -186,22 +162,18 @@ function sendBulkApprove(ids,commission){
             'Accept':'application/json'
         },
         body:JSON.stringify({
-            vendor_ids:ids,
-            commission_percentage:commission
+            vendor_ids:ids
         })
     })
     .then(res=>res.json())
     .then(data=>{
-
         Swal.close();
-
         if(data.success){
             showToast('success',data.message);
             setTimeout(()=>location.reload(),1200);
         }else{
             showToast('error',data.message);
         }
-
     });
 }
 
