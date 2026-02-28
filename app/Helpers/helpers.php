@@ -105,42 +105,120 @@ function calculateDiscountedPrice(float $basePrice, float $discountPercent): flo
     return round($finalPrice, 2);
 }
 
-function send($target, string $title, string $body, array $data = []): bool
+// function send($target, string $title, string $body, array $data = []): bool
+// {
+//     try {
+//         $fcm = app(FcmService::class);
+
+//         if (is_array($target)) {
+//             // Multiple tokens
+//             $response = $fcm->sendToMultiple($target, $title, $body, $data);
+//             Log::info('FCM sent to multiple tokens', ['response' => $response]);
+//         } elseif (is_string($target) && str_starts_with($target, 'topic:')) {
+//             // Topic
+//             $topic = substr($target, 6);
+//             $response = $fcm->sendToTopic($topic, $title, $body, $data);
+//             Log::info("FCM sent to topic '{$topic}'", ['response' => $response]);
+//         } else {
+//             // Single token
+//             $response = $fcm->sendToToken($target, $title, $body, $data);
+//             Log::info("FCM sent to token '{$target}'", ['response' => $response]);
+//         }
+
+//         return true;
+//     } catch (MessagingException | FirebaseException $e) {
+//         Log::error('FCM Messaging Error: ' . $e->getMessage(), [
+//             'target' => $target,
+//             'title' => $title,
+//             'body' => $body,
+//             'data' => $data
+//         ]);
+//         return false;
+//     } catch (\Exception $e) {
+//         Log::error('FCM Unexpected Error: ' . $e->getMessage(), [
+//             'target' => $target,
+//             'title' => $title,
+//             'body' => $body,
+//             'data' => $data
+//         ]);
+//         return false;
+//     }
+// }
+
+function send($target, $title, $body, $data = [])
 {
     try {
         $fcm = app(FcmService::class);
 
+        /*
+        |--------------------------------------------------------------------------
+        | If Target is User Model
+        |--------------------------------------------------------------------------
+        */
+        if ($target instanceof \App\Models\User) {
+
+            // Push disabled
+            if (!$target->notification_push) {
+                return false;
+            }
+
+            // No token
+            if (empty($target->fcm_token)) {
+                return false;
+            }
+
+            $target = $target->fcm_token;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Multiple Tokens
+        |--------------------------------------------------------------------------
+        */
         if (is_array($target)) {
-            // Multiple tokens
             $response = $fcm->sendToMultiple($target, $title, $body, $data);
             Log::info('FCM sent to multiple tokens', ['response' => $response]);
-        } elseif (is_string($target) && str_starts_with($target, 'topic:')) {
-            // Topic
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Topic
+        |--------------------------------------------------------------------------
+        */ elseif (is_string($target) && str_starts_with($target, 'topic:')) {
             $topic = substr($target, 6);
             $response = $fcm->sendToTopic($topic, $title, $body, $data);
             Log::info("FCM sent to topic '{$topic}'", ['response' => $response]);
-        } else {
-            // Single token
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Single Token
+        |--------------------------------------------------------------------------
+        */ else {
             $response = $fcm->sendToToken($target, $title, $body, $data);
-            Log::info("FCM sent to token '{$target}'", ['response' => $response]);
+            Log::info("FCM sent to token", ['response' => $response]);
         }
 
         return true;
     } catch (MessagingException | FirebaseException $e) {
+
         Log::error('FCM Messaging Error: ' . $e->getMessage(), [
             'target' => $target,
             'title' => $title,
             'body' => $body,
             'data' => $data
         ]);
+
         return false;
     } catch (\Exception $e) {
+
         Log::error('FCM Unexpected Error: ' . $e->getMessage(), [
             'target' => $target,
             'title' => $title,
             'body' => $body,
             'data' => $data
         ]);
+
         return false;
     }
 }

@@ -229,69 +229,144 @@ class HoardingListService
     /**
      * Store Step 3 (Packages)
      */
+    // public function storeStep3($hoarding, $data)
+    // {
+    //     return \DB::transaction(function () use ($hoarding, $data) {
+    //         $hoarding = $this->repo->updateStep3($hoarding, $data);
+    //         // Support offers_json (JSON string) from web or API, like DOOH
+    //         // $offers = [];
+    //         // if (!empty($data['offers_json'])) {
+    //         //     $offers = json_decode($data['offers_json'], true);
+    //         // }
+    //         // // If not using offers_json, fallback to old array fields
+    //         // if (empty($offers) && !empty($data['offer_name'])) {
+    //         //     $count = is_array($data['offer_name']) ? count($data['offer_name']) : 0;
+    //         //     for ($i = 0; $i < $count; $i++) {
+    //         //         $offers[] = [
+    //         //             'name' => $data['offer_name'][$i] ?? '',
+    //         //             'min_booking_duration' => $data['offer_duration'][$i] ?? 1,
+    //         //             'duration_unit' => $data['offer_unit'][$i] ?? 'months',
+    //         //             'discount' => $data['offer_discount'][$i] ?? 0,
+    //         //             'start_date' => $data['offer_start_date'][$i] ?? null,
+    //         //             'end_date' => $data['offer_end_date'][$i] ?? null,
+    //         //             'services' => $data['offer_services'][$i] ?? [],
+    //         //         ];
+    //         //     }
+    //         // }
+
+    //         // if (!empty($offers)) {
+    //         //     $data['offers'] = $offers;
+    //         //     $this->repo->storePackages($hoarding->id, $data);
+    //         // }
+
+    //         // Set parent hoarding status based on env
+    //         $parent = $hoarding->hoarding;
+    //         $autoApproval = \App\Models\Setting::get('auto_hoarding_approval', false);
+    //         $newStatus = $autoApproval ? \App\Models\Hoarding::STATUS_ACTIVE : \App\Models\Hoarding::STATUS_PENDING_APPROVAL;
+    //         if ($parent && $parent->status !== $newStatus) {
+    //             $parent->status = $newStatus;
+    //             $parent->save();
+    //             // Notify all admins
+    //             $admins = \App\Models\User::role(['admin'])->get();
+    //             foreach ($admins as $admin) {
+    //                 $admin->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
+    //             }
+    //             // Notify vendor (in-app and email)
+    //             $vendor = $parent->vendor;
+    //             if ($vendor) {
+    //                 $statusText = $newStatus === \App\Models\Hoarding::STATUS_ACTIVE ? 'Your OOH hoarding is now active and published.' : 'Your OOH hoarding is pending approval.';
+    //                 $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
+    //                 // $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parent, $statusText));
+    //                 if ($autoApproval) {
+    //                     $vendor->sendVendorEmails(new \Modules\Mail\HoardingPublishedMail($parent));
+    //                 }
+    //                 if ($vendor->fcm_token) {
+    //                     $sent = send(
+    //                         $vendor->fcm_token,
+    //                         'OOH Hoarding Status',
+    //                         $statusText,
+    //                         [
+    //                             'hoarding_id' => $parent->id,
+    //                             'status' => $newStatus,
+    //                             'type' => 'vendor_hoarding'
+    //                         ]
+    //                     );
+
+    //                     if (!$sent) {
+    //                         \Log::warning("FCM push notification failed for vendor ID {$vendor->id}");
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         return ['success' => true, 'hoarding' => $hoarding->fresh(['packages'])];
+    //     });
+    // }
     public function storeStep3($hoarding, $data)
     {
         return \DB::transaction(function () use ($hoarding, $data) {
             $hoarding = $this->repo->updateStep3($hoarding, $data);
-            // Support offers_json (JSON string) from web or API, like DOOH
-            // $offers = [];
-            // if (!empty($data['offers_json'])) {
-            //     $offers = json_decode($data['offers_json'], true);
-            // }
-            // // If not using offers_json, fallback to old array fields
-            // if (empty($offers) && !empty($data['offer_name'])) {
-            //     $count = is_array($data['offer_name']) ? count($data['offer_name']) : 0;
-            //     for ($i = 0; $i < $count; $i++) {
-            //         $offers[] = [
-            //             'name' => $data['offer_name'][$i] ?? '',
-            //             'min_booking_duration' => $data['offer_duration'][$i] ?? 1,
-            //             'duration_unit' => $data['offer_unit'][$i] ?? 'months',
-            //             'discount' => $data['offer_discount'][$i] ?? 0,
-            //             'start_date' => $data['offer_start_date'][$i] ?? null,
-            //             'end_date' => $data['offer_end_date'][$i] ?? null,
-            //             'services' => $data['offer_services'][$i] ?? [],
-            //         ];
-            //     }
-            // }
-            
-            // if (!empty($offers)) {
-            //     $data['offers'] = $offers;
-            //     $this->repo->storePackages($hoarding->id, $data);
-            // }
 
             // Set parent hoarding status based on env
             $parent = $hoarding->hoarding;
             $autoApproval = \App\Models\Setting::get('auto_hoarding_approval', false);
             $newStatus = $autoApproval ? \App\Models\Hoarding::STATUS_ACTIVE : \App\Models\Hoarding::STATUS_PENDING_APPROVAL;
+
+            $parentStatusChanged = false;
             if ($parent && $parent->status !== $newStatus) {
                 $parent->status = $newStatus;
                 $parent->save();
+                $parentStatusChanged = true;
+
                 // Notify all admins
                 $admins = \App\Models\User::role(['admin'])->get();
                 foreach ($admins as $admin) {
                     $admin->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
                 }
-                // Notify vendor (in-app and email)
-                $vendor = $parent->vendor;
-                if ($vendor) {
-                    $statusText = $newStatus === \App\Models\Hoarding::STATUS_ACTIVE ? 'Your OOH hoarding is now active and published.' : 'Your OOH hoarding is pending approval.';
-                    $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
-                    // $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parent, $statusText));
-                    if($autoApproval) { 
-                        $vendor->sendVendorEmails(new \Modules\Mail\HoardingPublishedMail($parent));
-                    }
+            }
+
+            // Notify vendor (in-app, email, and push)
+            $vendor = $parent->vendor ?? null;
+            if ($vendor && $vendor->fcm_token) {
+
+                // Text depends on auto-approval
+                $statusText = $newStatus === \App\Models\Hoarding::STATUS_ACTIVE
+                    ? 'Your OOH hoarding is now active and published.'
+                    : 'Your OOH hoarding is pending approval.';
+
+                // In-app notification
+                $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parent));
+
+                // Email if auto-approved
+                if ($autoApproval) {
+                    $vendor->sendVendorEmails(new \Modules\Mail\HoardingPublishedMail($parent));
+                }
+
+                // ✅ Push notification for creation/update or auto-approve
+                $sent = send(
+                    $vendor->fcm_token,
+                    'OOH Hoarding Status',
+                    $statusText,
+                    [
+                        'hoarding_id' => $parent->id,
+                        'status' => $newStatus,
+                        'type' => 'vendor_hoarding'
+                    ]
+                );
+
+                if (!$sent) {
+                    \Log::warning("FCM push notification failed for vendor ID {$vendor->id}");
                 }
             }
+
             return ['success' => true, 'hoarding' => $hoarding->fresh(['packages'])];
         });
     }
 
 
 
-
     public function updateStep1($hoarding, $oohHoarding, $data, $mediaFiles)
     {
-         $errors = [];
+        $errors = [];
         if (isset($data['monthly_price']) && isset($data['base_monthly_price'])) {
             if ($data['monthly_price'] > $data['base_monthly_price']) {
                 $errors['monthly_price'][] = 'Monthly discounted price must be less than or equal to the base monthly price.';

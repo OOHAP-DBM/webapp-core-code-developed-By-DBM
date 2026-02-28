@@ -11,170 +11,177 @@ use App\Services\ProfileService;
 
 class ProfileController extends Controller
 {
-/**
- * @OA\Get(
- *     path="/profile/vendor/show",
- *     tags={"Vendor Profile"},
- *     summary="Get vendor profile",
- *     security={{"sanctum":{}}},
- *     @OA\Response(
- *         response=200,
- *         description="Successful operation",
- *         @OA\JsonContent(
- *             @OA\Property(property="user", type="object"),
- *             @OA\Property(property="vendor", type="object")
- *         )
- *     ),
- *     @OA\Response(response=401, description="Unauthenticated")
- * )
- */
-public function show(ProfileService $profileService)
-{
-    $user = Auth::user();
-    $vendor = $user->vendorProfile;
+    /**
+     * @OA\Get(
+     *     path="/profile/vendor/show",
+     *     tags={"Vendor Profile"},
+     *     summary="Get vendor profile",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="user", type="object"),
+     *             @OA\Property(property="vendor", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function show(ProfileService $profileService)
+    {
+        $user = Auth::user();
+        $vendor = $user->vendorProfile;
 
-    // Convert document paths to URLs
-    if ($vendor) {
-        $vendor->pan_card_document = $vendor->pan_card_document 
-            ? asset('storage/' . $vendor->pan_card_document) 
-            : null;
+        // Convert document paths to URLs
+        if ($vendor) {
+            $vendor->pan_card_document = $vendor->pan_card_document
+                ? asset('storage/' . $vendor->pan_card_document)
+                : null;
 
-        $vendor->aadhaar_card_document = $vendor->aadhaar_card_document 
-            ? asset('storage/' . $vendor->aadhaar_card_document) 
-            : null;
+            $vendor->aadhaar_card_document = $vendor->aadhaar_card_document
+                ? asset('storage/' . $vendor->aadhaar_card_document)
+                : null;
+        }
+
+        return response()->json([
+            'user' => $profileService->response($user),
+            'vendor' => $vendor,
+        ]);
     }
 
-    return response()->json([
-        'user' => $profileService->response($user),
-        'vendor' => $vendor,
-    ]);
-}
 
-
-/**
- * @OA\Post(
- *     path="/profile/vendor/update",
- *     tags={"Vendor Profile"},
- *     summary="Update vendor profile (only fields present in request are updated)",
- *     security={{"sanctum":{}}},
- *     @OA\RequestBody(
- *         required=false,
- *         @OA\JsonContent(
- *             @OA\Property(property="name", type="string"),
- *             @OA\Property(property="email", type="string"),
- *             @OA\Property(property="phone", type="string"),
- *             @OA\Property(property="avatar", type="string", format="binary"),
- *             @OA\Property(property="company_name", type="string"),
- *             @OA\Property(property="company_type", type="string"),
- *             @OA\Property(property="gstin", type="string"),
- *             @OA\Property(property="pan", type="string"),
- *             @OA\Property(property="pan_file", type="string", format="binary"),
- *             @OA\Property(property="bank_name", type="string"),
- *             @OA\Property(property="account_holder_name", type="string"),
- *             @OA\Property(property="account_number", type="string"),
- *             @OA\Property(property="ifsc_code", type="string"),
- *             @OA\Property(property="registered_address", type="string"),
- *             @OA\Property(property="city", type="string"),
- *             @OA\Property(property="state", type="string"),
- *             @OA\Property(property="pincode", type="string"),
- *             @OA\Property(property="country", type="string"),
- *             @OA\Property(property="password", type="string"),
- *             @OA\Property(property="otp", type="string"),
- *             @OA\Property(property="section", type="string", description="Section to update: personal, business, pan, bank, address, password, remove-avatar, delete")
- *         )
- *     ),
- *     @OA\Response(response=200, description="Profile updated successfully"),
- *     @OA\Response(response=401, description="Unauthenticated"),
- *     @OA\Response(response=422, description="Validation error")
- * )
- */
-public function update(Request $request, ProfileService $profileService)
-{
-    $user = Auth::user();
-    $vendor = $user->vendorProfile;
-    $section = $request->input('section');
-    switch ($section) {
-        case 'personal':
-            $data = $request->only(['name', 'email', 'phone', 'avatar']);
-            // Email/phone change: require OTP verification
-            if (isset($data['email']) && $data['email'] !== $user->email) {
-                $otp = $request->input('otp');
-                if (!$otp) {
-                    return response()->json(['message' => 'OTP is required to update email.'], 422);
+    /**
+     * @OA\Post(
+     *     path="/profile/vendor/update",
+     *     tags={"Vendor Profile"},
+     *     summary="Update vendor profile (only fields present in request are updated)",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="email", type="string"),
+     *             @OA\Property(property="phone", type="string"),
+     *             @OA\Property(property="avatar", type="string", format="binary"),
+     *             @OA\Property(property="company_name", type="string"),
+     *             @OA\Property(property="company_type", type="string"),
+     *             @OA\Property(property="gstin", type="string"),
+     *             @OA\Property(property="pan", type="string"),
+     *             @OA\Property(property="pan_file", type="string", format="binary"),
+     *             @OA\Property(property="bank_name", type="string"),
+     *             @OA\Property(property="account_holder_name", type="string"),
+     *             @OA\Property(property="account_number", type="string"),
+     *             @OA\Property(property="ifsc_code", type="string"),
+     *             @OA\Property(property="registered_address", type="string"),
+     *             @OA\Property(property="city", type="string"),
+     *             @OA\Property(property="state", type="string"),
+     *             @OA\Property(property="pincode", type="string"),
+     *             @OA\Property(property="country", type="string"),
+     *             @OA\Property(property="password", type="string"),
+     *             @OA\Property(property="otp", type="string"),
+     *             @OA\Property(property="section", type="string", description="Section to update: personal, business, pan, bank, address, password, remove-avatar, delete")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Profile updated successfully"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function update(Request $request, ProfileService $profileService)
+    {
+        $user = Auth::user();
+        $vendor = $user->vendorProfile;
+        $section = $request->input('section');
+        switch ($section) {
+            case 'personal':
+                $data = $request->only(['name', 'email', 'phone', 'avatar']);
+                // Email/phone change: require OTP verification
+                if (isset($data['email']) && $data['email'] !== $user->email) {
+                    $otp = $request->input('otp');
+                    if (!$otp) {
+                        return response()->json(['message' => 'OTP is required to update email.'], 422);
+                    }
+                    $profileService->verify($user, 'email', $data['email'], $otp);
                 }
-                $profileService->verify($user, 'email', $data['email'], $otp);
-            }
-            if (isset($data['phone']) && $data['phone'] !== $user->phone) {
-                $otp = $request->input('otp');
-                if (!$otp) {
-                    return response()->json(['message' => 'OTP is required to update phone.'], 422);
+                if (isset($data['phone']) && $data['phone'] !== $user->phone) {
+                    $otp = $request->input('otp');
+                    if (!$otp) {
+                        return response()->json(['message' => 'OTP is required to update phone.'], 422);
+                    }
+                    $profileService->verify($user, 'phone', $data['phone'], $otp);
                 }
-                $profileService->verify($user, 'phone', $data['phone'], $otp);
-            }
-            if ($request->hasFile('avatar')) {
-                $data['avatar'] = $profileService->updateAvatar($user, $request->file('avatar'));
-            } else {
-                unset($data['avatar']);
-            }
-            $user->fill($data);
-            $user->save();
-            break;
-        case 'business':
-            $data = $request->only(['company_name', 'company_type', 'gstin', 'pan', 'pan_file']);
-            $vendor->fill(array_filter($data));
-            if ($request->hasFile('pan_file')) {
-                $bucket = str_pad((int)($vendor->id / 100), 2, '0', STR_PAD_LEFT);
-                $vendor->pan_card_document = $request->file('pan_file')->store("media/vendors/documents/{$bucket}/{$vendor->id}", 'private');
-            }
-            $vendor->save();
-            break;
-        case 'pan':
-            $data = $request->only(['pan', 'pan_file']);
-            if ($request->hasFile('pan_file')) {
-                $bucket = str_pad((int)($vendor->id / 100), 2, '0', STR_PAD_LEFT);
-                $vendor->pan_card_document = $request->file('pan_file')->store("media/vendors/documents/{$bucket}/{$vendor->id}", 'private');
-            }
-            $vendor->fill(array_filter($data));
-            $vendor->save();
-            break;
-        case 'bank':
-            $data = $request->only(['bank_name', 'account_holder_name', 'account_number', 'ifsc_code']);
-            $vendor->fill(array_filter($data));
-            $vendor->save();
-            break;
-        case 'address':
-            $data = $request->only(['registered_address', 'city', 'state', 'pincode', 'country']);
-            $vendor->fill(array_filter($data));
-            $vendor->save();
-            if (isset($data['country'])) {
-                $user->country = $data['country'];
+                if ($request->hasFile('avatar')) {
+                    $data['avatar'] = $profileService->updateAvatar($user, $request->file('avatar'));
+                } else {
+                    unset($data['avatar']);
+                }
+                $user->fill($data);
                 $user->save();
-            }
-            break;
-        case 'password':
-            // Require OTP for password reset
-            $otp = $request->input('otp');
-            if (!$otp) {
-                return response()->json(['message' => 'OTP is required to reset password.'], 422);
-            }
-            $profileService->verify($user, 'phone', $user->phone, $otp);
-            $profileService->changePassword($user, $request->input('current_password'), $request->input('password'));
-            break;
-        case 'remove-avatar':
-            $user->avatar = null;
-            $user->save();
-            break;
-        case 'delete':
-            $user->delete();
-            if ($vendor) $vendor->delete();
-            Auth::logout();
-            return response()->json(['message' => 'Your account has been deleted successfully.']);
-        default:
-            abort(400, 'Invalid profile section');
-    }
+                // ✅ Push
+                send(
+                    $user,
+                    'Profile Updated',
+                    'Your personal profile details have been updated successfully.',
+                    ['type' => 'profile_update']
+                );
+                break;
+            case 'business':
+                $data = $request->only(['company_name', 'company_type', 'gstin', 'pan', 'pan_file']);
+                $vendor->fill(array_filter($data));
+                if ($request->hasFile('pan_file')) {
+                    $bucket = str_pad((int)($vendor->id / 100), 2, '0', STR_PAD_LEFT);
+                    $vendor->pan_card_document = $request->file('pan_file')->store("media/vendors/documents/{$bucket}/{$vendor->id}", 'private');
+                }
+                $vendor->save();
+                break;
+            case 'pan':
+                $data = $request->only(['pan', 'pan_file']);
+                if ($request->hasFile('pan_file')) {
+                    $bucket = str_pad((int)($vendor->id / 100), 2, '0', STR_PAD_LEFT);
+                    $vendor->pan_card_document = $request->file('pan_file')->store("media/vendors/documents/{$bucket}/{$vendor->id}", 'private');
+                }
+                $vendor->fill(array_filter($data));
+                $vendor->save();
+                break;
+            case 'bank':
+                $data = $request->only(['bank_name', 'account_holder_name', 'account_number', 'ifsc_code']);
+                $vendor->fill(array_filter($data));
+                $vendor->save();
+                break;
+            case 'address':
+                $data = $request->only(['registered_address', 'city', 'state', 'pincode', 'country']);
+                $vendor->fill(array_filter($data));
+                $vendor->save();
+                if (isset($data['country'])) {
+                    $user->country = $data['country'];
+                    $user->save();
+                }
+                break;
+            case 'password':
+                // Require OTP for password reset
+                $otp = $request->input('otp');
+                if (!$otp) {
+                    return response()->json(['message' => 'OTP is required to reset password.'], 422);
+                }
+                $profileService->verify($user, 'phone', $user->phone, $otp);
+                $profileService->changePassword($user, $request->input('current_password'), $request->input('password'));
+                break;
+            case 'remove-avatar':
+                $user->avatar = null;
+                $user->save();
+                break;
+            case 'delete':
+                $user->delete();
+                if ($vendor) $vendor->delete();
+                Auth::logout();
+                return response()->json(['message' => 'Your account has been deleted successfully.']);
+            default:
+                abort(400, 'Invalid profile section');
+        }
 
-    return response()->json(['message' => 'Profile updated successfully']);
-}
+        return response()->json(['message' => 'Profile updated successfully']);
+    }
 
     protected function updatePersonal(Request $request, User $user)
     {

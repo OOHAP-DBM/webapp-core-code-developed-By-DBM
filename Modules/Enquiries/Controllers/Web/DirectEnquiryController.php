@@ -35,9 +35,9 @@ class DirectEnquiryController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('location_city', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('location_city', 'like', "%{$search}%");
             });
         }
 
@@ -50,7 +50,7 @@ class DirectEnquiryController extends Controller
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
-        
+
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
@@ -77,7 +77,7 @@ class DirectEnquiryController extends Controller
         $num1 = rand(1, 9);
         $num2 = rand(1, 9);
         session(['captcha_answer' => $num1 + $num2]);
-        
+
         return response()->json([
             'num1' => $num1,
             'num2' => $num2
@@ -126,7 +126,7 @@ class DirectEnquiryController extends Controller
     //         ], 500);
     //     }
     // }
-        public function sendOtp(Request $request, GuestOtpService $otpService)
+    public function sendOtp(Request $request, GuestOtpService $otpService)
     {
         $request->validate([
             'identifier' => 'required|string'
@@ -155,7 +155,6 @@ class DirectEnquiryController extends Controller
                 'success' => true,
                 'message' => 'OTP sent successfully to +91-' . substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2)
             ]);
-
         } catch (\Exception $e) {
             Log::error('OTP Send Failed', [
                 'phone_masked' => substr($identifier, 0, 2) . 'XXXXXX' . substr($identifier, -2),
@@ -182,8 +181,8 @@ class DirectEnquiryController extends Controller
         try {
             // Verify OTP directly without user lookup
             $verified = $otpService->verify(
-                $request->identifier, 
-                $request->otp, 
+                $request->identifier,
+                $request->otp,
                 'direct_enquiry'
             );
 
@@ -207,7 +206,6 @@ class DirectEnquiryController extends Controller
                 'success' => true,
                 'message' => 'Phone number verified successfully'
             ]);
-
         } catch (\Exception $e) {
             Log::error('OTP Verification Failed', [
                 'phone_masked' => substr($request->identifier, 0, 2) . 'XXXXXX' . substr($request->identifier, -2),
@@ -279,14 +277,14 @@ class DirectEnquiryController extends Controller
 
             // Prepare data
             $data = $validator->validated();
-            
+
             // Normalize city name (handle spelling mistakes)
             $normalizedCity = $this->normalizeCityName($data['location_city']);
-            
+
             // Filter and clean preferred locations
-            $preferredLocations = !empty($data['preferred_locations']) 
+            $preferredLocations = !empty($data['preferred_locations'])
                 ? array_values(array_filter(
-                    array_map('trim', $data['preferred_locations']), 
+                    array_map('trim', $data['preferred_locations']),
                     fn($loc) => !empty($loc)
                 ))
                 : ['To be discussed'];
@@ -314,23 +312,39 @@ class DirectEnquiryController extends Controller
 
             // Find relevant vendors based on hoardings
             $vendors = $this->findRelevantVendors(
-                $normalizedCity, 
+                $normalizedCity,
                 $normalizedLocalities,
                 $data['hoarding_type']
             );
-            
+
             if ($vendors->isNotEmpty()) {
                 // Attach vendors to enquiry
                 $enquiry->assignedVendors()->attach($vendors->pluck('id'));
-                
+
                 // Send notifications to vendors (queued)
                 foreach ($vendors as $vendor) {
                     Mail::to($vendor->email)->queue(
                         new VendorDirectEnquiryMail($enquiry, $vendor)
                     );
                     $vendor->notify(new VendorDirectEnquiryNotification($enquiry, $vendor));
+                    if ($vendor->fcm_token) {
+                        $sent = send(
+                            $vendor->fcm_token,
+                            'New Direct Enquiry Received',
+                            'You have received a new enquiry in ' . $normalizedCity . '. Please check and respond quickly.',
+                            [
+                                'type' => 'direct_enquiry',
+                                'enquiry_id' => $enquiry->id,
+                                'city' => $normalizedCity
+                            ]
+                        );
+
+                        if (!$sent) {
+                            Log::warning("FCM failed for vendor ID {$vendor->id} (Direct Enquiry)");
+                        }
+                    }
                 }
-                
+
                 Log::info('Enquiry assigned to vendors', [
                     'enquiry_id' => $enquiry->id,
                     'vendor_count' => $vendors->count(),
@@ -377,10 +391,9 @@ class DirectEnquiryController extends Controller
                 'message' => 'Enquiry submitted successfully! You will receive quotes within 24-48 hours.',
                 'enquiry_id' => $enquiry->id
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             Log::error('Enquiry submission failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -400,7 +413,7 @@ class DirectEnquiryController extends Controller
     private function normalizeCityName(string $city): string
     {
         $city = trim(strtolower($city));
-        
+
         // Common city name mappings with variations
         $cityMappings = [
             // Uttar Pradesh
@@ -410,11 +423,11 @@ class DirectEnquiryController extends Controller
             'agra' => ['agra', 'agrah', 'aagra'],
             'prayagraj' => ['prayagraj', 'allahabad', 'ilahabad', 'prayag'],
             'ballia' => ['ballia', 'balliya', 'balia', 'balya'],
-            
+
             // Punjab
             'mohali' => ['mohali', 'sahibzada ajit singh nagar', 'sas nagar', 'mohalli'],
             'chandigarh' => ['chandigarh', 'chandigrah', 'chandigar'],
-            
+
             // Major Cities
             'mumbai' => ['mumbai', 'bombay', 'mumbay', 'mumby', 'mombai'],
             'delhi' => ['delhi', 'dilli', 'dehli', 'new delhi', 'newdelhi'],
@@ -462,7 +475,7 @@ class DirectEnquiryController extends Controller
 
         $locality = trim(strtolower($locality));
         $city = strtolower($city);
-        
+
         // City-specific locality mappings
         $localityMappings = [
             'lucknow' => [
@@ -489,7 +502,7 @@ class DirectEnquiryController extends Controller
                 if (in_array($locality, $variations)) {
                     return ucwords($standard);
                 }
-                
+
                 // Fuzzy match
                 foreach ($variations as $variation) {
                     if (levenshtein($locality, $variation) <= 2) {
@@ -510,42 +523,42 @@ class DirectEnquiryController extends Controller
     {
         // Convert hoarding types to lowercase for matching
         $hoardingTypes = array_map('strtolower', $hoardingTypes);
-        
+
         // Build query to find hoardings matching the criteria
         $hoardingQuery = DB::table('hoardings')
             ->select('vendor_id')
             ->where('status', 'active')
             ->whereNotNull('vendor_id');
-        
+
         // Match city (with fuzzy tolerance)
         $columns = ['city', 'state', 'locality'];
 
         $hoardingQuery->where(function ($q) use ($city, $columns) {
             foreach ($columns as $column) {
                 $q->orWhere($column, 'like', "%{$city}%")
-                ->orWhere($column, 'like', $this->getFuzzyPattern($city));
+                    ->orWhere($column, 'like', $this->getFuzzyPattern($city));
             }
         });
 
-        
+
         // Match locality if specified (excluding "To be discussed")
         if (!empty($localities) && $localities[0] !== 'To be discussed') {
             $hoardingQuery->where(function ($q) use ($localities) {
                 foreach ($localities as $locality) {
                     $q->orWhere('locality', 'like', "%{$locality}%")
-                      ->orWhere('address', 'like', "%{$locality}%")
-                      ->orWhere('landmark', 'like', "%{$locality}%");
+                        ->orWhere('address', 'like', "%{$locality}%")
+                        ->orWhere('landmark', 'like', "%{$locality}%");
                 }
             });
         }
-        
+
         // Match hoarding type (OOH or DOOH)
         $hoardingQuery->where(function ($q) use ($hoardingTypes) {
             foreach ($hoardingTypes as $type) {
                 $q->orWhere('hoarding_type', 'like', "%{$type}%");
             }
         });
-        
+
         // Get unique vendor IDs
         $vendorIds = $hoardingQuery
             ->distinct()
@@ -553,14 +566,14 @@ class DirectEnquiryController extends Controller
             ->filter()
             ->unique()
             ->toArray();
-        
+
         if (empty($vendorIds)) {
             Log::info('No hoardings found matching criteria', [
                 'city' => $city,
                 'localities' => $localities,
                 'hoarding_types' => $hoardingTypes
             ]);
-            
+
             // Fallback: Find vendors who have ANY hoarding in the city
             $vendorIds = DB::table('hoardings')
                 ->select('vendor_id')
@@ -571,7 +584,7 @@ class DirectEnquiryController extends Controller
                 ->pluck('vendor_id')
                 ->toArray();
         }
-        
+
         // Get vendor user details
         $vendors = User::whereIn('id', $vendorIds)
             ->where('active_role', 'vendor')
@@ -579,11 +592,11 @@ class DirectEnquiryController extends Controller
             ->whereNotNull('email')
             ->with(['hoardings' => function ($query) use ($city) {
                 $query->where('city', 'like', "%{$city}%")
-                      ->where('status', 'active')
-                      ->select('id', 'vendor_id', 'title', 'city', 'locality', 'hoarding_type');
+                    ->where('status', 'active')
+                    ->select('id', 'vendor_id', 'title', 'city', 'locality', 'hoarding_type');
             }])
             ->get();
-        
+
         Log::info('Vendors matched for enquiry', [
             'city' => $city,
             'localities' => $localities,
@@ -591,7 +604,7 @@ class DirectEnquiryController extends Controller
             'vendors_found' => $vendors->count(),
             'vendor_emails' => $vendors->pluck('email')->toArray()
         ]);
-        
+
         return $vendors;
     }
 
@@ -612,9 +625,9 @@ class DirectEnquiryController extends Controller
     public function vendorShow($enquiryId)
     {
         $vendor = auth()->user();
-        $enquiry = DirectEnquiry::whereHas('assignedVendors', function($q) use ($vendor) {
-                $q->where('vendor_id', $vendor->id);
-            })
+        $enquiry = DirectEnquiry::whereHas('assignedVendors', function ($q) use ($vendor) {
+            $q->where('vendor_id', $vendor->id);
+        })
             ->where('id', $enquiryId)
             ->firstOrFail();
 
@@ -627,32 +640,32 @@ class DirectEnquiryController extends Controller
     /**
      * List direct enquiries assigned to the vendor (with optional type filter)
      */
-   /**
+    /**
      * Display vendor's assigned enquiries
      */
     public function vendorDirectIndex(Request $request)
     {
         $vendor = Auth::user();
-        
+
         $query = $vendor->assignedEnquiries()
             ->with(['assignedVendors' => function ($q) use ($vendor) {
                 $q->where('users.id', $vendor->id);
             }])
             ->latest('direct_web_enquiries.created_at');
-        
+
         // Filter by status
         if ($request->filled('status')) {
             $query->wherePivot('response_status', $request->status);
         }
-        
+
         // Filter by viewed
         if ($request->filled('viewed')) {
             $viewed = $request->boolean('viewed');
             $query->wherePivot('has_viewed', $viewed);
         }
-        
+
         $enquiries = $query->paginate(15);
-        
+
         // Get counts for dashboard
         $counts = [
             'total' => $vendor->assignedEnquiries()->count(),
@@ -661,50 +674,50 @@ class DirectEnquiryController extends Controller
             'interested' => $vendor->assignedEnquiries()->wherePivot('response_status', 'interested')->count(),
             'quoted' => $vendor->assignedEnquiries()->wherePivot('response_status', 'quote_sent')->count(),
         ];
-        
+
         return view('enquiries.vendor.direct-enquiry-index', compact('enquiries', 'counts'));
     }
-    
+
     /**
      * Show single enquiry details
      */
     public function show(DirectEnquiry $enquiry)
     {
         $vendor = Auth::user();
-        
+
         // Check if vendor is assigned to this enquiry
         if (!$enquiry->assignedVendors()->where('users.id', $vendor->id)->exists()) {
             abort(403, 'Unauthorized access to this enquiry');
         }
-        
+
         // Mark as viewed
         $enquiry->markViewedBy($vendor->id);
-        
+
         // Load relationships
         $enquiry->load(['assignedVendors' => function ($q) use ($vendor) {
             $q->where('users.id', $vendor->id);
         }]);
-        
+
         // Get vendor's pivot data
         $vendorPivot = $enquiry->assignedVendors->first()->pivot;
-        
+
         return view('vendor.enquiries.show', compact('enquiry', 'vendorPivot'));
     }
-    
+
     /**
      * Update vendor's response to enquiry
      */
     public function respond(Request $request, DirectEnquiry $enquiry)
     {
         $vendor = Auth::user();
-        
+
         // Validate
         $request->validate([
             'response_status' => 'required|in:interested,quote_sent,declined',
             'vendor_notes' => 'nullable|string|max:1000',
             'quoted_price' => 'nullable|numeric|min:0|max:99999999.99',
         ]);
-        
+
         // Check if vendor is assigned
         if (!$enquiry->assignedVendors()->where('users.id', $vendor->id)->exists()) {
             return response()->json([
@@ -712,90 +725,89 @@ class DirectEnquiryController extends Controller
                 'message' => 'You are not assigned to this enquiry'
             ], 403);
         }
-        
+
         try {
             DB::beginTransaction();
-            
+
             // Prepare update data
             $updateData = [
                 'response_status' => $request->response_status,
                 'responded_at' => now(),
             ];
-            
+
             if ($request->filled('vendor_notes')) {
                 $updateData['vendor_notes'] = $request->vendor_notes;
             }
-            
+
             if ($request->filled('quoted_price')) {
                 $updateData['quoted_price'] = $request->quoted_price;
             }
-            
+
             if ($request->response_status === 'quote_sent') {
                 $updateData['quote_sent_at'] = now();
             }
-            
+
             // Update pivot table
             $enquiry->updateVendorResponse($vendor->id, $request->response_status, $updateData);
-            
+
             // Send notification to customer if interested or quote sent
             if (in_array($request->response_status, ['interested', 'quote_sent'])) {
                 Mail::to($enquiry->email)->queue(
                     new CustomerVendorResponseMail($enquiry, $vendor, $request->response_status, $request->quoted_price)
                 );
             }
-            
+
             // Notify admin
             $admins = User::whereIn('active_role', ['admin', 'superadmin'])->get();
             foreach ($admins as $admin) {
                 $admin->notify(new VendorRespondedNotification($enquiry, $vendor, $request->response_status));
             }
-            
+
             DB::commit();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Response submitted successfully'
             ]);
-            
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             Log::error('Vendor response failed', [
                 'vendor_id' => $vendor->id,
                 'enquiry_id' => $enquiry->id,
                 'error' => $e->getMessage()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to submit response'
             ], 500);
         }
     }
-    
+
     /**
      * Mark enquiry as viewed
      */
     public function markViewed(DirectEnquiry $enquiry)
     {
         $vendor = Auth::user();
-        
+
         if (!$enquiry->assignedVendors()->where('users.id', $vendor->id)->exists()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
-        
+
         $enquiry->markViewedBy($vendor->id);
-        
+
         return response()->json(['success' => true]);
     }
-    
+
     /**
      * Get vendor's enquiry statistics
      */
     public function statistics()
     {
         $vendor = Auth::user();
-        
+
         $stats = [
             'total_enquiries' => $vendor->assignedEnquiries()->count(),
             'new_enquiries' => $vendor->newEnquiries()->count(),
@@ -807,43 +819,43 @@ class DirectEnquiryController extends Controller
             'response_rate' => 0,
             'avg_response_time_hours' => 0,
         ];
-        
+
         // Calculate response rate
         if ($stats['total_enquiries'] > 0) {
             $stats['response_rate'] = round(($stats['responded'] / $stats['total_enquiries']) * 100, 2);
         }
-        
+
         // Calculate average response time
         $avgResponseTime = DB::table('enquiry_vendor')
             ->where('vendor_id', $vendor->id)
             ->whereNotNull('responded_at')
             ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, responded_at)) as avg_hours')
             ->value('avg_hours');
-        
+
         $stats['avg_response_time_hours'] = round($avgResponseTime ?? 0, 1);
-        
+
         return response()->json($stats);
     }
-    
+
     /**
      * Update vendor notes
      */
     public function updateNotes(Request $request, DirectEnquiry $enquiry)
     {
         $vendor = Auth::user();
-        
+
         $request->validate([
             'notes' => 'required|string|max:1000'
         ]);
-        
+
         if (!$enquiry->assignedVendors()->where('users.id', $vendor->id)->exists()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
-        
+
         $enquiry->assignedVendors()->updateExistingPivot($vendor->id, [
             'vendor_notes' => $request->notes
         ]);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Notes updated successfully'

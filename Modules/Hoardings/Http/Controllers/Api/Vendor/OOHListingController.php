@@ -11,7 +11,7 @@ use Modules\Hoardings\Models\OOHHoarding;
 use Modules\Hoardings\Http\Requests\StoreOOHHoardingStep1Request;
 use Modules\Hoardings\Http\Requests\StoreOOHHoardingStep2Request;
 use Modules\Hoardings\Http\Requests\StoreOOHHoardingStep3Request;
-use App\Models\Hoarding;    
+use App\Models\Hoarding;
 
 class OOHListingController extends Controller
 {
@@ -135,6 +135,21 @@ class OOHListingController extends Controller
         $child_hoarding = OOHHoarding::where('hoarding_id', $parent_id)->firstOrFail();
         $data = $request->validated();
         $result = $this->service->storeStep3($child_hoarding, $data);
+        // Example: Send push notification to the user associated with the hoarding or admin
+        $user = $child_hoarding->user; // assuming relation exists, adjust if needed
+
+        if ($user && $user->fcm_token) {
+            $sent = send(
+                $user->fcm_token,
+                'Hoarding Submitted',
+                'Your hoarding has been submitted for approval.',
+                ['hoarding_id' => $child_hoarding->id, 'status' => 'submitted']
+            );
+
+            if (!$sent) {
+                \Log::warning("FCM notification failed for user ID {$user->id}");
+            }
+        }
         return response()->json([
             'success' => true,
             'message' => 'Hoarding submitted for approval',
@@ -173,5 +188,5 @@ class OOHListingController extends Controller
     //     ]);
     // }
 
-   
+
 }
