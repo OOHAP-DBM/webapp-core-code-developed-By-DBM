@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Mail;
 use Modules\Enquiries\Models\DirectEnquiry;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\POS\Models\PosCustomer;
+
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasApiTokens, HasRoles, SoftDeletes;
@@ -61,6 +62,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'notification_email',
         'notification_push',
         'notification_whatsapp',
+        'fcm_token',
     ];
 
     /**
@@ -115,8 +117,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isOTPValid(string $otp): bool
     {
-        return $this->otp === $otp 
-            && $this->otp_expires_at 
+        return $this->otp === $otp
+            && $this->otp_expires_at
             && $this->otp_expires_at->isFuture();
     }
 
@@ -127,7 +129,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $otp = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
         // $otp =1234;
-        
+
         $this->update([
             'otp' => $otp,
             'otp_expires_at' => now()->addMinutes(10),
@@ -243,7 +245,7 @@ class User extends Authenticatable implements MustVerifyEmail
         // Use active role if available (PROMPT 96)
         $role = $this->active_role ?? $this->getPrimaryRole();
 
-        return match($role) {
+        return match ($role) {
             'super_admin', 'admin' => 'admin.dashboard',
             'vendor', 'subvendor' => 'vendor.dashboard',
             'staff' => 'staff.dashboard',
@@ -266,7 +268,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $role = $this->getActiveRole();
 
-        return match($role) {
+        return match ($role) {
             'super_admin', 'admin' => 'layouts.admin',
             'vendor', 'subvendor' => 'layouts.vendor',
             'staff' => 'layouts.staff',
@@ -280,15 +282,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function canSwitchRoles(): bool
     {
         $allRoles = $this->roles()->pluck('name')->toArray();
-        
+
         // Customer cannot switch
         if (in_array('customer', $allRoles) && count($allRoles) === 1) {
             return false;
         }
-        
+
         // Only admins with multiple roles can switch
         $hasAdmin = in_array('admin', $allRoles) || in_array('super_admin', $allRoles);
-        
+
         return $hasAdmin && count($allRoles) > 1;
     }
 
@@ -304,17 +306,17 @@ class User extends Authenticatable implements MustVerifyEmail
         $allRoles = $this->roles()->pluck('name')->toArray();
         $hasAdmin = in_array('admin', $allRoles) || in_array('super_admin', $allRoles);
         $hasVendor = in_array('vendor', $allRoles) || in_array('subvendor', $allRoles);
-        
+
         if ($hasAdmin && $hasVendor) {
             // Admin with vendor role - can switch between both
             return array_values(array_intersect($allRoles, ['super_admin', 'admin', 'vendor', 'subvendor']));
         }
-        
+
         if ($hasAdmin) {
             // Admin without vendor role - can switch between admin types only
             return array_values(array_intersect($allRoles, ['super_admin', 'admin']));
         }
-        
+
         return [];
     }
 
@@ -520,7 +522,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
 
-       /**
+    /**
      * Get IDs of hoardings owned by the user (vendor, vendor_staff, agency, agency_staff)
      */
     public function getOwnedHoardingIds(): array
@@ -540,17 +542,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return [];
     }
 
-     /**
+    /**
      * Get all emails for this vendor (primary + additional verified emails)
      */
     public function getAllEmailsAttribute(): array
     {
         $emails = [$this->email];
-        
+
         if ($this->vendorProfile) {
             $emails = array_merge($emails, $this->vendorProfile->verified_emails);
         }
-        
+
         return array_unique($emails);
     }
 
@@ -566,15 +568,15 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->vendorProfile) {
             return $this->vendorProfile->notification_emails;
         }
-        
+
         return [$this->email];
     }
 
-    
+
     /**
      * Send a notification to all enabled vendor emails if global preference is enabled
      */
- 
+
     public function notifyVendorEmails(Mailable $mailable)
     {
         if (!$this->notification_email) {
@@ -589,69 +591,69 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
 
-/**
- * Get active hoardings only
- */
-public function activeHoardings(): HasMany
-{
-    return $this->hasMany(Hoarding::class, 'vendor_id')
-        ->where('status', 'active');
-}
+    /**
+     * Get active hoardings only
+     */
+    public function activeHoardings(): HasMany
+    {
+        return $this->hasMany(Hoarding::class, 'vendor_id')
+            ->where('status', 'active');
+    }
 
-/**
- * Get available hoardings (active and not on hold)
- */
-public function availableHoardings(): HasMany
-{
-    return $this->hasMany(Hoarding::class, 'vendor_id')
-        ->available();
-}
+    /**
+     * Get available hoardings (active and not on hold)
+     */
+    public function availableHoardings(): HasMany
+    {
+        return $this->hasMany(Hoarding::class, 'vendor_id')
+            ->available();
+    }
 
-/**
- * Get enquiries assigned to this vendor
- */
-public function assignedEnquiries(): BelongsToMany
-{
-    return $this->belongsToMany(DirectEnquiry::class, 'enquiry_vendor', 'vendor_id', 'enquiry_id')
-        ->withPivot('has_viewed', 'viewed_at', 'response_status', 'vendor_notes')
-        ->withTimestamps();
-}
+    /**
+     * Get enquiries assigned to this vendor
+     */
+    public function assignedEnquiries(): BelongsToMany
+    {
+        return $this->belongsToMany(DirectEnquiry::class, 'enquiry_vendor', 'vendor_id', 'enquiry_id')
+            ->withPivot('has_viewed', 'viewed_at', 'response_status', 'vendor_notes')
+            ->withTimestamps();
+    }
 
-/**
- * Get new unviewed enquiries for vendor
- */
-public function newEnquiries(): BelongsToMany
-{
-    return $this->belongsToMany(DirectEnquiry::class, 'enquiry_vendor', 'vendor_id', 'enquiry_id')
-        ->wherePivot('has_viewed', false)
-        ->withPivot('has_viewed', 'viewed_at', 'response_status', 'vendor_notes')
-        ->withTimestamps();
-}
+    /**
+     * Get new unviewed enquiries for vendor
+     */
+    public function newEnquiries(): BelongsToMany
+    {
+        return $this->belongsToMany(DirectEnquiry::class, 'enquiry_vendor', 'vendor_id', 'enquiry_id')
+            ->wherePivot('has_viewed', false)
+            ->withPivot('has_viewed', 'viewed_at', 'response_status', 'vendor_notes')
+            ->withTimestamps();
+    }
 
 
-/**
- * Check if user is an admin
- */
-public function isAdmin(): bool
-{
-    return in_array($this->active_role, ['admin', 'superadmin']);
-}
+    /**
+     * Check if user is an admin
+     */
+    public function isAdmin(): bool
+    {
+        return in_array($this->active_role, ['admin', 'superadmin']);
+    }
 
-/**
- * Get total hoardings count for vendor
- */
-public function getTotalHoardingsAttribute(): int
-{
-    return $this->hoardings()->count();
-}
+    /**
+     * Get total hoardings count for vendor
+     */
+    public function getTotalHoardingsAttribute(): int
+    {
+        return $this->hoardings()->count();
+    }
 
-/**
- * Get active hoardings count for vendor
- */
-public function getActiveHoardingsCountAttribute(): int
-{
-    return $this->activeHoardings()->count();
-}
+    /**
+     * Get active hoardings count for vendor
+     */
+    public function getActiveHoardingsCountAttribute(): int
+    {
+        return $this->activeHoardings()->count();
+    }
 
     /**
      * Get pending enquiries count for vendor
@@ -662,7 +664,7 @@ public function getActiveHoardingsCountAttribute(): int
             ->where('status', 'new')
             ->count();
     }
-      /**
+    /**
      * Send vendor emails using a Mailable instance
      * @param \Illuminate\Mail\Mailable $mailable
      */

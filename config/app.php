@@ -27,6 +27,7 @@ return [
     */
 
     'env' => env('APP_ENV', 'production'),
+    'firebase_credentials' => env('FIREBASE_CREDENTIALS'),
 
     /*
     |--------------------------------------------------------------------------

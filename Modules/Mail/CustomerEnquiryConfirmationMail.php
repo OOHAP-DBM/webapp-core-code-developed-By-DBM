@@ -25,6 +25,6 @@ class CustomerEnquiryConfirmationMail extends Mailable implements ShouldQueue
     public function build()
     {
         return $this->subject('Enquiry Confirmation - Your Campaign Details')
-                    ->view('emails.customer-enquiry-confirmation');
+            ->view('emails.customer-enquiry-confirmation');
     }
 }
