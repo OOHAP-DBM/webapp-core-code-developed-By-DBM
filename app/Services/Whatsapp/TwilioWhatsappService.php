@@ -17,7 +17,7 @@ class TwilioWhatsappService
             config('services.twilio.token')
         );
 
-        $this->from = 'whatsapp:' . config('services.twilio.whatsapp_from');
+        $this->from = 'whatsapp:' . config('services.twilio.whatsapp');
     }
 
     public function send(string $to, string $message): bool

@@ -1,7 +1,7 @@
 @extends('layouts.vendor')
 
 @section('title', 'POS Booking Details')
-
+@include('vendor.pos.components.pos-timer-notification')
 @section('content')
 <div class="px-6 py-6">
     <div class="bg-white rounded-xl shadow">
@@ -204,8 +204,8 @@ async function loadBookingDetails() {
                 <div><strong>Customer:</strong> ${b.customer_name}</div>
                 <div><strong>Phone:</strong> ${b.customer_phone || '-'}</div>
                 <div><strong>Booking Date:</strong>
-                    ${new Date(b.start_date).toLocaleDateString()} -
-                    ${new Date(b.end_date).toLocaleDateString()}
+                    ${new Date(b.created_at).toLocaleDateString()} 
+                    
                 </div>
                 <div><strong>Notes:</strong> ${b.notes || '-'}</div>
             </div>

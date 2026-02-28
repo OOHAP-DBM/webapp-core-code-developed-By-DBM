@@ -47,9 +47,10 @@ return [
         'key' => env('DOOH_API_KEY'),
     ],
     'twilio' => [
-        'sid' => env('TWILIO_SID'),
-        'token' => env('TWILIO_TOKEN'),
-        'from' => env('TWILIO_FROM'),
+        'sid'             => env('TWILIO_SID'),
+        'token'           => env('TWILIO_TOKEN'),
+        'from'            => env('TWILIO_FROM'),
+        'whatsapp'        => env('TWILIO_WHATSAPP_FROM'),
     ],
 
 
