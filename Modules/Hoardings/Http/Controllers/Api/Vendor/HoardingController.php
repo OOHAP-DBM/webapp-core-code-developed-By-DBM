@@ -461,13 +461,13 @@ class HoardingController extends Controller
     }
 
 
-        public function destroy($id): JsonResponse
+    public function destroy($id): JsonResponse
     {
         try {
             DB::beginTransaction();
 
             $hoarding = Hoarding::find($id);
-            
+
             if (!$hoarding) {
                 return response()->json([
                     'success' => false,
@@ -480,6 +480,8 @@ class HoardingController extends Controller
                     'message' => 'Unauthorized action.',
                 ], 403);
             }
+            $vendor = $hoarding->vendor ?? null; // get vendor before deleting
+
 
             // Delete OOH hoarding and its related data (if exists)
             if ($hoarding->oohHoarding) {
@@ -488,10 +490,8 @@ class HoardingController extends Controller
                     $this->deleteFileFromStorage($logo->logo_path);
                 });
                 $hoarding->oohHoarding->brandLogos()->delete();
-
                 // Delete OOH packages
                 $hoarding->oohHoarding->packages()->delete();
-
                 // Soft delete OOH hoarding
                 $hoarding->oohHoarding->delete();
             }
@@ -536,15 +536,30 @@ class HoardingController extends Controller
             $hoarding->delete();
 
             DB::commit();
+            // ✅ Send push notification to vendor
+            if ($vendor && $vendor->fcm_token) {
+                $sent = send(
+                    $vendor->fcm_token,
+                    'OOH Hoarding Deleted',
+                    'Your hoarding has been deleted successfully.',
+                    [
+                        'hoarding_id' => $id,
+                        'type' => 'vendor_hoarding_deleted'
+                    ]
+                );
+
+                if (!$sent) {
+                    \Log::warning("FCM push notification failed for vendor ID {$vendor->id} on hoarding delete.");
+                }
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Hoarding deleted successfully',
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             Log::error('Failed to delete hoarding', [
                 'hoarding_id' => $id,
                 'error' => $e->getMessage(),
@@ -572,7 +587,7 @@ class HoardingController extends Controller
 
         // Clean the file path
         $cleanPath = ltrim($filePath, '/');
-        
+
         // Remove 'storage/' prefix if present
         if (str_starts_with($cleanPath, 'storage/')) {
             $cleanPath = substr($cleanPath, 8);
@@ -598,7 +613,7 @@ class HoardingController extends Controller
             DB::beginTransaction();
 
             $hoarding = Hoarding::withTrashed()->find($id);
-            
+
             if (!$hoarding) {
                 return response()->json([
                     'success' => false,
@@ -609,7 +624,7 @@ class HoardingController extends Controller
             // Force delete OOH hoarding and related data
             if ($hoarding->oohHoarding()->withTrashed()->exists()) {
                 $oohHoarding = $hoarding->oohHoarding()->withTrashed()->first();
-                
+
                 // Delete brand logos
                 $oohHoarding->brandLogos()->withTrashed()->each(function ($logo) {
                     $this->deleteFileFromStorage($logo->logo_path);
@@ -626,7 +641,7 @@ class HoardingController extends Controller
             // Force delete DOOH screen and related data
             if ($hoarding->doohScreen()->withTrashed()->exists()) {
                 $doohScreen = $hoarding->doohScreen()->withTrashed()->first();
-                
+
                 // Delete media files
                 $doohScreen->media()->withTrashed()->each(function ($media) {
                     $this->deleteFileFromStorage($media->file_path);
@@ -670,10 +685,9 @@ class HoardingController extends Controller
                 'success' => true,
                 'message' => 'Hoarding permanently deleted',
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             Log::error('Failed to force delete hoarding', [
                 'hoarding_id' => $id,
                 'error' => $e->getMessage(),
@@ -688,7 +702,7 @@ class HoardingController extends Controller
     }
 
 
-        /**
+    /**
      * @OA\Post(
      *     path="/hoardings/{id}/activate",
      *     operationId="activateHoarding",
@@ -738,11 +752,11 @@ class HoardingController extends Controller
             ], 404);
         }
         if ($hoarding->vendor_id !== auth()->id() && !auth()->user()->hasRole(['super_admin', 'admin'])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized action.',
-                ], 403);
-    }
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
 
         if (in_array($hoarding->status, ['pending_approval', 'suspended', 'active', 'draft'])) {
             return response()->json([
@@ -808,15 +822,15 @@ class HoardingController extends Controller
             ], 404);
         }
         if ($hoarding->vendor_id !== auth()->id() && !auth()->user()->hasRole(['super_admin', 'admin'])) {
-                return response()->json([
-                    'success' => false,
-                    '$hoarding->vendor_id' => $hoarding->vendor_id,
-                    'auth_id' => auth()->id(),
-                    'message' => 'Unauthorized action.',
-                ], 403);
-            }
-            
-        if (in_array($hoarding->status, ['pending_approval', 'suspended','draft', 'inactive'])) {
+            return response()->json([
+                'success' => false,
+                '$hoarding->vendor_id' => $hoarding->vendor_id,
+                'auth_id' => auth()->id(),
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        if (in_array($hoarding->status, ['pending_approval', 'suspended', 'draft', 'inactive'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Cannot deactivate hoarding while it is in ' . $hoarding->status . ' status.',

@@ -49,7 +49,6 @@ class DirectEnquiryApiController extends Controller
             ]);
 
             return $this->success('OTP sent successfully to ' . $masked);
-
         } catch (\Throwable $e) {
             Log::error('Enquiry OTP send failed', [
                 'phone_masked' => $this->maskPhone($request->phone),
@@ -96,7 +95,6 @@ class DirectEnquiryApiController extends Controller
                 'phone'    => $request->phone,
                 'verified' => true,
             ]);
-
         } catch (\Throwable $e) {
             Log::error('Enquiry OTP verify failed', [
                 'phone_masked' => $this->maskPhone($request->phone),
@@ -186,6 +184,17 @@ class DirectEnquiryApiController extends Controller
                 foreach ($vendors as $vendor) {
                     Mail::to($vendor->email)->queue(new VendorDirectEnquiryMail($enquiry, $vendor));
                     $vendor->notify(new VendorDirectEnquiryNotification($enquiry, $vendor));
+                    send(
+                        $vendor,
+                        'New Direct Enquiry',
+                        'You have received a new enquiry in ' . $normalizedCity . '. Please check and respond.',
+                        [
+                            'type'       => 'vendor_enquiry',
+                            'enquiry_id' => $enquiry->id,
+                            'city'       => $normalizedCity,
+                            'source'     => 'mobile_app'
+                        ]
+                    );
                 }
             }
 
@@ -221,7 +230,6 @@ class DirectEnquiryApiController extends Controller
                 ['enquiry_id' => $enquiry->id],
                 201
             );
-
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -350,7 +358,6 @@ class DirectEnquiryApiController extends Controller
             DB::commit();
 
             return $this->success('Response submitted successfully.');
-
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -439,7 +446,7 @@ class DirectEnquiryApiController extends Controller
                 'quotes_sent'            => $vendor->assignedEnquiries()->wherePivot('response_status', 'quote_sent')->count(),
                 'declined'               => $vendor->assignedEnquiries()->wherePivot('response_status', 'declined')->count(),
                 'response_rate_percent'  => $total > 0 ? round(($responded / $total) * 100, 2) : 0,
-                'avg_response_time_hours'=> round($avgResponseHours ?? 0, 1),
+                'avg_response_time_hours' => round($avgResponseHours ?? 0, 1),
             ],
         ]);
     }
@@ -495,7 +502,7 @@ class DirectEnquiryApiController extends Controller
                 'quoted_price' => $pivot?->quoted_price,
                 'has_viewed'   => (bool) ($pivot?->has_viewed ?? false),
                 'responded_at' => $pivot?->responded_at,
-                'quote_sent_at'=> $pivot?->quote_sent_at,
+                'quote_sent_at' => $pivot?->quote_sent_at,
             ],
         ];
     }
@@ -636,8 +643,8 @@ class DirectEnquiryApiController extends Controller
             ->whereNotNull('vendor_id')
             ->where(function ($q) use ($city) {
                 $q->where('city', 'like', "%{$city}%")
-                  ->orWhere('state', 'like', "%{$city}%")
-                  ->orWhere('locality', 'like', "%{$city}%");
+                    ->orWhere('state', 'like', "%{$city}%")
+                    ->orWhere('locality', 'like', "%{$city}%");
             })
             ->where(function ($q) use ($hoardingTypes) {
                 foreach ($hoardingTypes as $type) {
@@ -649,8 +656,8 @@ class DirectEnquiryApiController extends Controller
             $query->where(function ($q) use ($localities) {
                 foreach ($localities as $locality) {
                     $q->orWhere('locality', 'like', "%{$locality}%")
-                      ->orWhere('address', 'like', "%{$locality}%")
-                      ->orWhere('landmark', 'like', "%{$locality}%");
+                        ->orWhere('address', 'like', "%{$locality}%")
+                        ->orWhere('landmark', 'like', "%{$locality}%");
                 }
             });
         }
@@ -673,10 +680,11 @@ class DirectEnquiryApiController extends Controller
             ->where('active_role', 'vendor')
             ->where('status', 'active')
             ->whereNotNull('email')
-            ->with(['hoardings' => fn($q) => $q
-                ->where('city', 'like', "%{$city}%")
-                ->where('status', 'active')
-                ->select('id', 'vendor_id', 'title', 'city', 'locality', 'hoarding_type')
+            ->with([
+                'hoardings' => fn($q) => $q
+                    ->where('city', 'like', "%{$city}%")
+                    ->where('status', 'active')
+                    ->select('id', 'vendor_id', 'title', 'city', 'locality', 'hoarding_type')
             ])
             ->get();
     }
