@@ -290,6 +290,7 @@ class AuthController extends Controller
             // 3. Update Name, Password, and Status
             $user->update([
                 'name' => $request->name,
+                'fcm_token' => $request->fcm_token,
                 'password' => Hash::make($request->password),
                 'status' => 'active',
             ]);
