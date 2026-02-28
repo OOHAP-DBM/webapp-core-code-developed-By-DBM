@@ -269,19 +269,21 @@ class ImportApprovalService
             ]);
 
             // Create HoardingMedia record if image exists
-            if ($stagingRow->image_name) {
-                $originalPath = $this->resolveImagePath($stagingRow);
+            $imageName = $this->resolveImageName($stagingRow);
+            if ($imageName) {
+                $originalPath = $this->resolveImagePath($stagingRow, $imageName);
                 $disk = \Storage::disk('public');
                 $directory = "hoardings/media/{$hoarding->id}";
                 $uuid = \Illuminate\Support\Str::uuid()->toString();
-                $ext = strtolower(pathinfo($stagingRow->image_name, PATHINFO_EXTENSION));
+                $ext = strtolower(pathinfo($imageName, PATHINFO_EXTENSION));
+                if ($ext === '') {
+                    $ext = 'jpg';
+                }
                 $filename = "$uuid.$ext";
                 $targetPath = "$directory/$filename";
 
-                // Copy/move image to public storage
-                if (\Storage::disk('local')->exists($originalPath)) {
-                    $fileContents = \Storage::disk('local')->get($originalPath);
-                    $disk->put($targetPath, $fileContents);
+                if (!$this->copyImageToPublic($originalPath, $targetPath)) {
+                    throw new Exception("Image source not found or unreadable for staging row {$stagingRow->id}");
                 }
 
                 $media = HoardingMedia::create([
@@ -299,7 +301,7 @@ class ImportApprovalService
                 \Log::info('Created hoarding media', [
                     'media_id' => $media->id,
                     'hoarding_id' => $hoarding->id,
-                    'image' => $stagingRow->image_name,
+                    'image' => $imageName,
                 ]);
             }
         } catch (Exception $e) {
@@ -345,8 +347,9 @@ class ImportApprovalService
             ]);
 
             // Create DOOHScreenMedia record if image exists
-            if ($stagingRow->image_name) {
-                $originalPath = $this->resolveImagePath($stagingRow);
+            $imageName = $this->resolveImageName($stagingRow);
+            if ($imageName) {
+                $originalPath = $this->resolveImagePath($stagingRow, $imageName);
                 $disk = \Storage::disk('public');
                 // Sharding logic (same as storeMedia)
                 $screenId = $doohScreen->id;
@@ -354,14 +357,15 @@ class ImportApprovalService
                 $shard2 = (int) (($screenId % 1000000) / 1000);
                 $directory = "dooh/screens/{$shard1}/{$shard2}/{$screenId}";
                 $uuid = \Illuminate\Support\Str::uuid()->toString();
-                $ext = strtolower(pathinfo($stagingRow->image_name, PATHINFO_EXTENSION));
+                $ext = strtolower(pathinfo($imageName, PATHINFO_EXTENSION));
+                if ($ext === '') {
+                    $ext = 'jpg';
+                }
                 $filename = "$uuid.$ext";
                 $targetPath = "$directory/$filename";
 
-                // Copy/move image to public storage
-                if (\Storage::disk('local')->exists($originalPath)) {
-                    $fileContents = \Storage::disk('local')->get($originalPath);
-                    $disk->put($targetPath, $fileContents);
+                if (!$this->copyImageToPublic($originalPath, $targetPath)) {
+                    throw new Exception("Image source not found or unreadable for staging row {$stagingRow->id}");
                 }
 
                 $media = DOOHScreenMedia::create([
@@ -379,7 +383,7 @@ class ImportApprovalService
                 \Log::info('Created DOOH screen media', [
                     'media_id' => $media->id,
                     'screen_id' => $doohScreen->id,
-                    'image' => $stagingRow->image_name,
+                    'image' => $imageName,
                 ]);
             }
         } catch (Exception $e) {
@@ -393,10 +397,10 @@ class ImportApprovalService
      * @param InventoryImportStaging $stagingRow
      * @return string
      */
-    protected function resolveImagePath(InventoryImportStaging $stagingRow): string
+    protected function resolveImagePath(InventoryImportStaging $stagingRow, string $imageName): string
     {
         // Images are stored in: storage/app/imports/{batch_id}/images/{image_name}
-        $imagePath = "imports/{$stagingRow->batch_id}/images/{$stagingRow->image_name}";
+        $imagePath = "imports/{$stagingRow->batch_id}/images/{$imageName}";
 
         $disk = Storage::disk('local');
 
@@ -407,13 +411,60 @@ class ImportApprovalService
         $searchRoot = "imports/{$stagingRow->batch_id}/images";
         if ($disk->exists($searchRoot)) {
             foreach ($disk->allFiles($searchRoot) as $file) {
-                if (basename($file) === $stagingRow->image_name) {
+                if (basename($file) === $imageName) {
                     return $file;
                 }
             }
         }
 
+        $rawImagePath = (string) ($this->stagingValue($stagingRow, 'image_path', ''));
+        if ($rawImagePath !== '' && (str_contains($rawImagePath, ':\\') || str_starts_with($rawImagePath, '\\'))) {
+            return $rawImagePath;
+        }
+
         return $imagePath;
+    }
+
+    /**
+     * Resolve image filename from staging row (image_name or image_path fallback).
+     */
+    protected function resolveImageName(InventoryImportStaging $stagingRow): ?string
+    {
+        $imageName = trim((string) ($stagingRow->image_name ?? ''));
+
+        if ($imageName === '') {
+            $imagePath = trim((string) ($this->stagingValue($stagingRow, 'image_path', '')));
+            if ($imagePath !== '') {
+                $imageName = basename(str_replace('\\', '/', $imagePath));
+            }
+        }
+
+        return $imageName !== '' ? $imageName : null;
+    }
+
+    /**
+     * Copy image from local storage path or absolute OS path into public storage.
+     */
+    protected function copyImageToPublic(string $sourcePath, string $targetPath): bool
+    {
+        $publicDisk = Storage::disk('public');
+        $localDisk = Storage::disk('local');
+
+        if ($localDisk->exists($sourcePath)) {
+            $contents = $localDisk->get($sourcePath);
+            return $publicDisk->put($targetPath, $contents);
+        }
+
+        if (is_file($sourcePath) && is_readable($sourcePath)) {
+            $contents = file_get_contents($sourcePath);
+            if ($contents === false) {
+                return false;
+            }
+
+            return $publicDisk->put($targetPath, $contents);
+        }
+
+        return false;
     }
 
     /**

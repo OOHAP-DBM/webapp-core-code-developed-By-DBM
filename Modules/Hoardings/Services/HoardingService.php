@@ -394,6 +394,31 @@ class HoardingService
     public function getVendorStatistics(int $vendorId): array
     {
         $cacheKey = "vendor_hoarding_stats_{$vendorId}";
+        // 1. Count Unique Registered Customers (using customer_id)
+        $registeredCount = POSBooking::where('vendor_id', $vendorId)
+            ->whereNotNull('customer_id')
+            ->distinct('customer_id')
+            ->count('customer_id');
+
+        // 2. Count Unique Guest/Walk-in Customers (where ID is NULL)
+        // We filter out 'N/A' to avoid grouping all unknown people into one.
+        $uniqueGuestsCount = POSBooking::where('vendor_id', $vendorId)
+            ->whereNull('customer_id')
+            ->whereNotNull('customer_phone')
+            ->where('customer_phone', '!=', 'N/A')
+            ->distinct('customer_phone')
+            ->count('customer_phone');
+
+        // 3. Count "True Anonymous" (where both ID is NULL AND phone is 'N/A')
+        // We treat every 'N/A' booking as a separate unique event/customer 
+        // because we have no way to link them.
+        $anonymousCount = POSBooking::where('vendor_id', $vendorId)
+            ->whereNull('customer_id')
+            ->where(function ($query) {
+                $query->where('customer_phone', 'N/A')
+                    ->orWhereNull('customer_phone');
+            })
+            ->count();
 
         return Cache::remember($cacheKey, 3600, function () use ($vendorId) {
             $hoardings = Hoarding::byVendor($vendorId)->get();
@@ -405,6 +430,7 @@ class HoardingService
                 'pending' => $hoardings->where('status', Hoarding::STATUS_PENDING_APPROVAL)->count(),
                 'inactive' => $hoardings->where('status', Hoarding::STATUS_INACTIVE)->count(),
                 'by_type' => $hoardings->groupBy('type')->map->count(),
+                'total_customers' => $registeredCount + $uniqueGuestsCount + $anonymousCount,
             ];
         });
     }

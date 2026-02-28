@@ -16,7 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-            'active_role' => \App\Http\Middleware\ActiveRoleMiddleware::class,
+            'active_role' => \App\Http\Middleware\ActiveRoleMiddleware::class, // PROMPT 96
+            'api.session' => \App\Http\Middleware\ApiSessionAuth::class, // Support session auth in API routes
             'vendor.onboarding.complete' => \App\Http\Middleware\EnsureVendorOnboardingComplete::class,
             'vendor.approved' => \App\Http\Middleware\EnsureVendorOnboardingApproved::class,
         ]);

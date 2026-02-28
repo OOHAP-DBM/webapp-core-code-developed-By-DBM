@@ -390,6 +390,105 @@
             </div>
             @endcan
 
+
+            <div
+                x-data="{ open: {{ request()->routeIs('vendor.pos.*') ? 'true' : 'false' }} }"
+                class="space-y-1"
+            >
+                <!-- Parent -->
+                <button
+                    type="button"
+                    @click="open = !open"
+                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
+                    {{ request()->routeIs('vendor.pos.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
+                >
+                    <div class="flex items-center gap-3">
+                        <!-- POS Icon -->
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <rect x="4" y="4" width="16" height="16" rx="2"
+                                stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 8h10M7 12h10M7 16h6"
+                                stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round"/>
+                        </svg>
+
+                        <span>POS & BOOKINGS</span>
+                    </div>
+
+                    <!-- Arrow -->
+                    <svg
+                        class="w-4 h-4 transition-transform duration-200"
+                        :class="{ 'rotate-180': open }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <!-- Children -->
+                <div x-show="open" x-collapse x-cloak class="space-y-1">
+
+                    <!-- POS Dashboard -->
+                    <a
+                        href="{{ route('vendor.pos.dashboard') }}"
+                        class="flex items-center gap-3 px-6 py-2 text-sm rounded-md
+                        {{ request()->routeIs('vendor.pos.dashboard')
+                            ? 'bg-[#00995c] text-white font-semibold border-l-4 border-dashed border-white'
+                            : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="opacity-60">–</span> POS Dashboard
+                    </a>
+
+                    <!-- Book Now -->
+                    <a
+                        href="{{ route('vendor.pos.create') }}"
+                        class="flex items-center gap-3 px-6 py-2 text-sm rounded-md
+                        {{ request()->routeIs('vendor.pos.create')
+                            ? 'bg-[#00995c] text-white font-semibold border-l-4 border-dashed border-white'
+                            : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="opacity-60">–</span> Book Now
+                    </a>
+
+                    <!-- POS Booking -->
+                    <a
+                        href="{{ route('vendor.pos.list') }}"
+                        class="flex items-center gap-3 px-6 py-2 text-sm rounded-md
+                        {{ request()->routeIs('vendor.pos.list')
+                            ? 'bg-[#00995c] text-white font-semibold border-l-4 border-dashed border-white'
+                            : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="opacity-60">–</span> POS Booking
+                    </a>
+
+                    <!-- POS Customers -->
+                    <a
+                        href="{{ route('vendor.pos.customers') }}"
+                        class="flex items-center gap-3 px-6 py-2 text-sm rounded-md
+                        {{ request()->routeIs('vendor.pos.customers')
+                            ? 'bg-[#00995c] text-white font-semibold border-l-4 border-dashed border-white'
+                            : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="opacity-60">–</span> POS Customers
+                    </a>
+
+                    <!-- POS Transactions -->
+                    <!-- <a
+                        href=""
+                        class="flex items-center gap-3 px-6 py-2 text-sm rounded-md
+                        {{ request()->routeIs('vendor.pos.transactions')
+                            ? 'bg-[#00995c] text-white font-semibold border-l-4 border-dashed border-white'
+                            : 'text-gray-600 hover:bg-gray-50' }}"
+                    >
+                        <span class="opacity-60">–</span> POS Transactions
+                    </a> -->
+
+                </div>
+            </div>
+
             <a href="{{ route('vendor.commission.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.commission.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 3L3 7.5L12 12L21 7.5L12 3Z" fill="currentColor" opacity="0.3"/>

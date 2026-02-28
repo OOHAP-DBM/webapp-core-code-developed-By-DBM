@@ -34,7 +34,7 @@ class BulkImportApprovedNotification extends Notification implements ShouldQueue
     {
         $subject = 'Bulk Import Approved Successfully';
 
-        $actionUrl = route('admin.import.batches.show', $this->batch->id);
+        $actionUrl = route('admin.import.enhanced.batch.show', $this->batch->id);
 
         return (new \Illuminate\Notifications\Messages\MailMessage)
             ->subject($subject)
@@ -55,7 +55,7 @@ class BulkImportApprovedNotification extends Notification implements ShouldQueue
             'batch_id'      => $this->batch->id,
             'created_count' => $this->createdCount,
             'failed_count'  => $this->failedCount,
-            'action_url'    => route('admin.import.batches.show', $this->batch->id),
+            'action_url'    => route('admin.import.enhanced.batch.show', $this->batch->id),
         ];
     }
 }
