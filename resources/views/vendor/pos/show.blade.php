@@ -1,7 +1,7 @@
+@include('vendor.pos.components.pos-timer-notification')
 @extends('layouts.vendor')
 
 @section('title', 'POS Booking Details')
-@include('vendor.pos.components.pos-timer-notification')
 @section('content')
 <div class="px-6 py-6">
     <div class="bg-white rounded-xl shadow">

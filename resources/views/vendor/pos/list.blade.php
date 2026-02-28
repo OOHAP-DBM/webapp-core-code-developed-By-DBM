@@ -1,7 +1,7 @@
+@include('vendor.pos.components.pos-timer-notification')
 @extends('layouts.vendor')
 
 @section('title', 'POS Bookings List')
-@include('vendor.pos.components.pos-timer-notification')
 @section('content')
 <div class="px-6 py-6">
 
@@ -78,7 +78,7 @@
                         <tr>
                             <th class=" px-3 py-2">Invoice #</th>
                             <th class=" px-3 py-2">Customer</th>
-                            <th class="text-center  px-3 py-2">Total Hoardings</th>
+                            <th class="text-center  px-3 py-2">Booked Hoardings</th>
                             <th class="px-3 py-2">Booking Date</th>
                             <th class=" px-3 py-2">Amount</th>
                             <th class=" px-3 py-2">Payment</th>
