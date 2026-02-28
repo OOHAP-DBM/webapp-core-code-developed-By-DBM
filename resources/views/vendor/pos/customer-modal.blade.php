@@ -177,8 +177,16 @@ document.getElementById('new-customer-form').addEventListener('submit', async (e
             return;
         }
 
-        // Success popup
-        alert('Customer created successfully!');
+        // Success popup (SweetAlert2 toast)
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Customer created successfully!',
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true
+        });
         // Pre-select in search box
         document.getElementById('customer-search').value = customerObj.name;
         selectCustomer(customerObj);

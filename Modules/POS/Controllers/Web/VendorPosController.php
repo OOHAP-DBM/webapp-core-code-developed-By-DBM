@@ -1401,6 +1401,28 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
                 ]);
                 DB::afterCommit(function () use ($user) {
                     event(new PosCustomerCreated($user, Auth::user()));
+
+                    // Send in-app notification (Laravel Notification)
+                    if (method_exists($user, 'notify')) {
+                        try {
+                            $user->notify(new \App\Notifications\PosCustomerCreatedNotification($user));
+                        } catch (\Exception $e) {
+                            Log::warning('Failed to send in-app notification to customer', [
+                                'customer_id' => $user->id,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    }
+
+                    // Send email to customer
+                    try {
+                        \Mail::to($user->email)->send(new \App\Mail\PosCustomerWelcome($user));
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to send welcome email to customer', [
+                            'customer_id' => $user->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 });
             } catch (\Exception $e) {
                 Log::warning('Failed to log POS customer creation', [
