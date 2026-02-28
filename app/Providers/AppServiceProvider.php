@@ -106,9 +106,10 @@ class AppServiceProvider extends ServiceProvider
                 throw new \Exception("Firebase credentials JSON not found at: {$jsonPath}");
             }
 
-            return (new \Kreait\Firebase\Factory)
-                ->withServiceAccount($jsonPath)
-                ->createMessaging();
+            $factory = (new \Kreait\Firebase\Factory)
+                ->withServiceAccount($jsonPath);
+
+            return $factory->createMessaging();
         });
     }
 
