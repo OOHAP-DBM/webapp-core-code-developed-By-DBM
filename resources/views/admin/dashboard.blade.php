@@ -269,38 +269,168 @@
     </div>
 </div>
 
-{{-- ================= RECENT SYSTEM ACTIVITY ================= --}}
+{{-- ================= TOP 5 BEST SELLING HOARDINGS ================= --}}
 <div class="bg-white rounded-xl shadow-sm mb-6">
-    <div class="px-6 pt-5 pb-3 flex justify-between items-center">
-        <h4 class="text-sm font-semibold text-gray-800">
-            Recent System Activity
-        </h4>
+    <div class="px-6 pt-5 pb-1 flex justify-between items-center">
+        <div>
+            <h4 class="text-sm font-semibold mb-4 text-gray-800">
+                Top 5 Best Selling Hoardings
+            </h4>
+        </div>
+        <div class="text-xs text-gray-500 flex items-center gap-1">
+            SORT BY:
+            <select name="" id="">
+                <option value="">1 Month</option>
+                <option value="">6 Month</option>
+                <option value="">1 Year</option>
+            </select>
+        </div>
     </div>
-
     <div class="overflow-x-auto">
         <table class="min-w-full text-sm">
-            <thead class="border-b bg-gray-50 text-xs uppercase text-gray-500">
+            <thead class="border-b border-gray-200 bg-gray-50 text-gray-500 uppercase text-xs">
                 <tr>
-                    <th class="px-6 py-3 text-left">#</th>
-                    <th class="px-6 py-3 text-left">Activity</th>
-                    <th class="px-6 py-3 text-left">Triggered By</th>
-                    <th class="px-6 py-3 text-left">Time</th>
+                    <th class="px-6 py-3 text-left">SN</th>
+                    <th class="px-6 py-3 text-left">Hoarding Title</th>
+                    <th class="px-6 py-3 text-left">Type</th>
+                    <th class="px-6 py-3 text-left">Categories</th>
+                    <th class="px-6 py-3 text-left">Hoarding Location</th>
+                    <th class="px-6 py-3 text-left">Size</th>
+                    <th class="px-6 py-3 text-left"># Of Bookings</th>
+                    <th class="px-6 py-3 text-left">Published By</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($recentActivities ?? [] as $i => $row)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-3">{{ $i + 1 }}</td>
-                        <td class="px-6 py-3 font-medium">{{ $row['type'] }}</td>
-                        <td class="px-6 py-3">{{ $row['by'] }}</td>
-                        <td class="px-6 py-3 text-gray-500">{{ $row['time'] }}</td>
-                    </tr>
+                @forelse($topHoardings as $i => $h)
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">{{ sprintf('%02d', $i+1) }}</td>
+                    <td class="px-6 py-4 font-medium text-gray-800 truncate max-w-[180px]">
+                        {{ $h['title'] }}
+                    </td>
+                    <td class="px-6 py-4">{{ $h['type'] }}</td>
+                    <td class="px-6 py-4">{{ $h['cat'] }}</td>
+                    <td class="px-6 py-4 truncate max-w-[160px]">{{ $h['loc'] }}</td>
+                    <td class="px-6 py-4">{{ $h['size'] }}</td>
+                    <td class="px-6 py-4 text-green-600 font-semibold">{{ $h['bookings'] }}</td>
+                    <td class="px-6 py-4">{{ $h['published_by'] }}</td>
+                </tr>
                 @empty
-                    <tr>
-                        <td colspan="4" class="px-6 py-6 text-center text-gray-500">
-                            No recent activity
-                        </td>
-                    </tr>
+                <tr>
+                    <td colspan="8" class="px-6 py-6 text-center text-gray-500">No hoardings available</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{{-- ================= RECENTLY BOOKED HOARDING - POS ================= --}}
+<div class="bg-white rounded-xl shadow-sm mb-6">
+    <div class="px-6 pt-5 pb-1 flex justify-between items-center">
+        <div>
+            <h4 class="text-sm font-semibold text-gray-800 mb-4">
+                Recently Booked Hoarding - POS
+            </h4>
+        </div>
+        <div class="text-xs text-gray-500 flex items-center gap-1">
+            SORT BY:
+            <select name="" id="">
+                <option value="">1 Month</option>
+                <option value="">6 Month</option>
+                <option value="">1 Year</option>
+            </select>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="border-b border-gray-200 bg-gray-50 text-gray-500 uppercase text-xs">
+                <tr>
+                    <th class="px-6 py-3 text-left">SN</th>
+                    <th class="px-6 py-3 text-left">Customer</th>
+                    <th class="px-6 py-3 text-left"># Of Bookings</th>
+                    <th class="px-6 py-3 text-left">Grand Total</th>
+                    <th class="px-6 py-3 text-left">Amount Received</th>
+                    <th class="px-6 py-3 text-left">Due Amount</th>
+                    <th class="px-6 py-3 text-left">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($recentBookings as $i => $b)
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">{{ sprintf('%02d', $i+1) }}</td>
+                    <td class="px-6 py-4">{{ $b['customer'] }}</td>
+                    <td class="px-6 py-4 text-green-600 font-semibold">{{ $b['bookings'] }}</td>
+                    <td class="px-6 py-4 text-blue-600 font-semibold">₹{{ number_format($b['grand_total']) }}</td>
+                    <td class="px-6 py-4 text-blue-600 font-semibold">₹{{ number_format($b['amount_received']) }}</td>
+                    <td class="px-6 py-4 text-red-600 font-semibold">₹{{ number_format($b['due_amount']) }}</td>
+                    <td class="px-6 py-4">
+                        {{ $b['action'] }}
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="7" class="px-6 py-6 text-center text-gray-500">No bookings available</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{{-- ================= RECENT TRANSACTIONS ================= --}}
+<div class="bg-white rounded-xl shadow-sm mb-6">
+    <div class="px-6 pt-5 pb-1 flex justify-between items-center">
+        <div>
+            <h4 class="text-sm font-semibold text-gray-800">
+                Recent Transactions
+            </h4>
+            <p class="text-xs text-gray-500">
+                Total {{ count($transactions) }} Transactions shown
+            </p>
+        </div>
+        <div class="text-xs text-gray-500 flex items-center gap-1">
+            SORT BY:
+            <select name="" id="">
+                <option value="">1 Month</option>
+                <option value="">6 Month</option>
+                <option value="">1 Year</option>
+            </select>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm mt-4">
+            <thead class="border-b border-gray-200 bg-gray-50 text-gray-500 uppercase text-xs">
+                <tr>
+                    <th class="px-6 py-3 text-left">SN</th>
+                    <th class="px-6 py-3 text-left">Transaction ID</th>
+                    <th class="px-6 py-3 text-left">Customer</th>
+                    <th class="px-6 py-3 text-left"># Of Bookings</th>
+                    <th class="px-6 py-3 text-left">Payment Status</th>
+                    <th class="px-6 py-3 text-left">Booking Type</th>
+                    <th class="px-6 py-3 text-left">Date</th>
+                    <th class="px-6 py-3 text-left">Amount Received</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($transactions as $i => $t)
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">{{ sprintf('%02d', $i+1) }}</td>
+                    <td class="px-6 py-4 font-medium">{{ $t['id'] }}</td>
+                    <td class="px-6 py-4">{{ $t['customer'] }}</td>
+                    <td class="px-6 py-4 text-green-600 font-semibold">{{ $t['bookings'] }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                            {{ $t['status'] }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-blue-600">{{ $t['type'] }}</td>
+                    <td class="px-6 py-4">{{ $t['date'] }}</td>
+                    <td class="px-6 py-4 text-blue-600 font-semibold">₹{{ number_format($t['amount']) }}</td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="8" class="px-6 py-6 text-center text-gray-500">No transactions available</td>
+                </tr>
                 @endforelse
             </tbody>
         </table>
@@ -327,13 +457,19 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
-/* ===== USER CHART ===== */
+// ===== USER CHART (Dynamic) =====
 new Chart(document.getElementById('userChart'), {
     type: 'line',
     data: {
-        labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+        labels: [
+            ...Array.from({length: 12}, (_, i) => {
+                const d = new Date();
+                d.setMonth(d.getMonth() - (11 - i));
+                return d.toLocaleString('default', { month: 'short' });
+            })
+        ],
         datasets: [{
-            data: [120,180,260,340,410,520,610,700,820,900,1040,{{ $userCount }}],
+            data: {!! json_encode($userGrowth) !!},
             borderColor: '#2563eb',
             tension: .4,
             fill: false
@@ -342,13 +478,19 @@ new Chart(document.getElementById('userChart'), {
     options: { plugins: { legend: { display: false } } }
 });
 
-/* ===== BOOKING CHART ===== */
+// ===== BOOKING CHART (Dynamic, Booking + POSBooking) =====
 new Chart(document.getElementById('bookingChart'), {
     type: 'line',
     data: {
-        labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+        labels: [
+            ...Array.from({length: 12}, (_, i) => {
+                const d = new Date();
+                d.setMonth(d.getMonth() - (11 - i));
+                return d.toLocaleString('default', { month: 'short' });
+            })
+        ],
         datasets: [{
-            data: [20,35,50,60,80,120,150,170,200,230,260,{{ $bookingCount }}],
+            data: {!! json_encode($bookingGrowth) !!},
             borderColor: '#14b8a6',
             tension: .4,
             fill: false
