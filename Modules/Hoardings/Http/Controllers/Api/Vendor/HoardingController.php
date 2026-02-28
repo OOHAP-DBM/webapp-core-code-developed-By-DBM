@@ -412,6 +412,7 @@ class HoardingController extends Controller
             'doohScreen.doohPackages',
             'doohScreen.doohBrandLogos',
             'vendor',
+            'media', // Spatie MediaLibrary for hero_image
         ])
             ->where('vendor_id', $vendorId)
             ->get();
@@ -425,16 +426,41 @@ class HoardingController extends Controller
         }
 
         $data = $hoardings->map(function ($hoarding) {
-
             $packages = [];
             $brandLogos = [];
+            $imageUrl = null;
 
+            // Try primaryMediaItem() (OOH: HoardingMedia, DOOH: DOOHScreenMedia)
+            $primaryMedia = method_exists($hoarding, 'primaryMediaItem') ? $hoarding->primaryMediaItem() : null;
+            if ($primaryMedia && isset($primaryMedia->file_path)) {
+                $imageUrl = asset('storage/' . ltrim($primaryMedia->file_path, '/'));
+            }
+
+            // If still null, try Spatie hero_image
+            if (!$imageUrl && method_exists($hoarding, 'getFirstMediaUrl')) {
+                $hero = $hoarding->getFirstMediaUrl('hero_image');
+                if ($hero) {
+                    $imageUrl = $hero;
+                }
+            }
+
+            // If still null, try brand logo (OOH or DOOH)
+            if (!$imageUrl) {
+                if ($hoarding->hoarding_type === 'ooh' && $hoarding->ooh) {
+                    $brandLogos = $hoarding->ooh->oohBrandLogos;
+                } elseif ($hoarding->hoarding_type === 'dooh' && $hoarding->doohScreen) {
+                    $brandLogos = $hoarding->doohScreen->doohBrandLogos;
+                }
+                if (!empty($brandLogos) && isset($brandLogos[0]['file_path'])) {
+                    $imageUrl = asset('storage/' . ltrim($brandLogos[0]['file_path'], '/'));
+                }
+            }
+
+            // Always set packages/brandLogos for response
             if ($hoarding->hoarding_type === 'ooh' && $hoarding->ooh) {
                 $packages = $hoarding->ooh->oohPackages;
                 $brandLogos = $hoarding->ooh->oohBrandLogos;
-            }
-
-            if ($hoarding->hoarding_type === 'dooh' && $hoarding->doohScreen) {
+            } elseif ($hoarding->hoarding_type === 'dooh' && $hoarding->doohScreen) {
                 $packages = $hoarding->doohScreen->doohPackages;
                 $brandLogos = $hoarding->doohScreen->doohBrandLogos;
             }
@@ -450,6 +476,7 @@ class HoardingController extends Controller
                 'packages' => $packages,
                 'brandLogos' => $brandLogos,
                 'vendor' => $hoarding->vendor,
+                'image_url' => $imageUrl,
             ];
         });
 

@@ -31,6 +31,10 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Modules\Offers\Repositories\Contracts\OfferRepositoryInterface;
 use App\Services\OfferExpiryService;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Contract\Messaging;
+use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -92,6 +96,20 @@ class AppServiceProvider extends ServiceProvider
         // Register AdminSidebarService as singleton
         $this->app->singleton(\App\Services\AdminSidebarService::class, function ($app) {
             return new \App\Services\AdminSidebarService();
+        });
+
+
+        $this->app->singleton(Messaging::class, function ($app) {
+            $jsonPath = base_path(config('app.firebase_credentials'));
+
+            if (!file_exists($jsonPath)) {
+                throw new \Exception("Firebase credentials JSON not found at: {$jsonPath}");
+            }
+
+            $factory = (new \Kreait\Firebase\Factory)
+                ->withServiceAccount($jsonPath);
+
+            return $factory->createMessaging();
         });
     }
 
@@ -187,15 +205,15 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('otp', function (Request $request) {
             // 3 OTP requests per 5 minutes per phone/email
             $identifier = $request->input('phone') ?? $request->input('email') ?? $request->ip();
-            
+
             return [
                 Limit::perMinutes(5, 300)
                     ->by('otp:' . $identifier)
                     ->response(function (Request $request, array $headers) {
                         return response()->json([
                             'message' => 'Too many OTP requests. Please wait before requesting again.',
-                        'retry_after' => $headers['Retry-After'] ?? 300
-                        // 'retry_after' => 10
+                            'retry_after' => $headers['Retry-After'] ?? 300
+                            // 'retry_after' => 10
                         ], 429);
                     }),
                 // Additional IP-based limit
@@ -206,7 +224,7 @@ class AppServiceProvider extends ServiceProvider
         // Image/Media uploads - Prevent storage abuse
         RateLimiter::for('uploads', function (Request $request) {
             $user = $request->user();
-            
+
             if (!$user) {
                 // Guests can't upload
                 return Limit::none();
@@ -224,7 +242,7 @@ class AppServiceProvider extends ServiceProvider
         // General authenticated API - Role-specific limits
         RateLimiter::for('authenticated', function (Request $request) {
             $user = $request->user();
-            
+
             if (!$user) {
                 return Limit::perMinute(30)->by($request->ip());
             }
@@ -264,7 +282,7 @@ class AppServiceProvider extends ServiceProvider
         // Search endpoints - Prevent scraping
         RateLimiter::for('search', function (Request $request) {
             $user = $request->user();
-            
+
             if ($user) {
                 return match ($user->role) {
                     'admin', 'staff' => Limit::perMinute(100)->by($user->id),
@@ -281,7 +299,7 @@ class AppServiceProvider extends ServiceProvider
         // Critical operations (payments, bookings) - Conservative limits
         RateLimiter::for('critical', function (Request $request) {
             $user = $request->user();
-            
+
             if (!$user) {
                 return Limit::none();
             }
