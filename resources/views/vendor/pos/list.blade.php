@@ -215,7 +215,7 @@ function loadBookings(page = 1) {
                         ${['unpaid', 'partial'].includes(booking.payment_status) && booking.status !== 'cancelled' ? `
                             <a href="/vendor/pos/bookings/${booking.id}"
                                class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition">
-                                💰 Pay
+                                Mark Paid
                             </a>
                         ` : ``}
                     </td>

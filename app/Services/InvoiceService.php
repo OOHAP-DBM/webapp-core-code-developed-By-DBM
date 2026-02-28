@@ -218,23 +218,52 @@ class InvoiceService
     {
         // Create QR code data (can be UPI link or invoice data)
         $qrData = $this->generateQRCodeData($invoice);
+
+        if (!class_exists('SimpleSoftwareIO\\QrCode\\Facades\\QrCode')) {
+            \Log::warning('QrCode facade not available; skipping invoice QR generation', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+            ]);
+
+            $invoice->update([
+                'qr_code_path' => null,
+                'qr_code_data' => $qrData,
+            ]);
+
+            return '';
+        }
         
-        $qrCode = QrCode::format('png')
-            ->size(200)
-            ->margin(1)
-            ->generate($qrData);
-        
-        $filename = 'qrcodes/' . $invoice->invoice_number . '.png';
-        $filename = str_replace('/', '_', $filename);
-        
-        Storage::disk('public')->put($filename, $qrCode);
-        
-        $invoice->update([
-            'qr_code_path' => $filename,
-            'qr_code_data' => $qrData,
-        ]);
-        
-        return $filename;
+        try {
+            $qrCode = QrCode::format('png')
+                ->size(200)
+                ->margin(1)
+                ->generate($qrData);
+
+            $filename = 'qrcodes/' . $invoice->invoice_number . '.png';
+            $filename = str_replace('/', '_', $filename);
+
+            Storage::disk('public')->put($filename, $qrCode);
+
+            $invoice->update([
+                'qr_code_path' => $filename,
+                'qr_code_data' => $qrData,
+            ]);
+
+            return $filename;
+        } catch (\Throwable $e) {
+            \Log::warning('Invoice QR generation failed; continuing without QR code', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'error' => $e->getMessage(),
+            ]);
+
+            $invoice->update([
+                'qr_code_path' => null,
+                'qr_code_data' => $qrData,
+            ]);
+
+            return '';
+        }
     }
 
     /**

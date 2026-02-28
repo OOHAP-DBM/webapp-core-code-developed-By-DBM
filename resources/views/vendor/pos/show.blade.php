@@ -25,6 +25,7 @@
                 <div>
                     <p class="text-xs text-gray-500">Invoice</p>
                     <h2 id="ui-invoice" class="text-lg font-semibold">—</h2>
+                    <a id="ui-invoice-link" href="#" target="_blank" class="hidden text-xs text-blue-600 hover:underline">View Invoice PDF</a>
                 </div>
 
                 <div>
@@ -171,6 +172,14 @@ async function loadBookingDetails() {
 
         // 🔹 UI SUMMARY SYNC (NEW)
         document.getElementById('ui-invoice').textContent = b.invoice_number || '—';
+        const invoiceLink = document.getElementById('ui-invoice-link');
+        if (b.invoice_url) {
+            invoiceLink.href = b.invoice_url;
+            invoiceLink.classList.remove('hidden');
+        } else {
+            invoiceLink.href = '#';
+            invoiceLink.classList.add('hidden');
+        }
         document.getElementById('ui-total').textContent =
             '₹' + parseFloat(b.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
 

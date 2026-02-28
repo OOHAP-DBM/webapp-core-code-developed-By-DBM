@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Modules\POS\Models\POSBooking;
 use Modules\POS\Events\PosCustomerCreated;
 class VendorPosController extends Controller
@@ -68,6 +69,27 @@ class VendorPosController extends Controller
 
         // The view will fetch booking details via API
         return view('vendor.pos.show', ['bookingId' => $id]);
+    }
+
+    /**
+     * View POS booking invoice PDF for vendor
+     */
+    public function viewInvoice(int $id)
+    {
+        $booking = POSBooking::forVendor(Auth::id())->findOrFail($id);
+
+        if (empty($booking->invoice_path)) {
+            abort(404, 'Invoice not available for this booking.');
+        }
+
+        if (!Storage::disk('public')->exists($booking->invoice_path)) {
+            abort(404, 'Invoice file not found.');
+        }
+
+        $absolutePath = Storage::disk('public')->path($booking->invoice_path);
+        return response()->file($absolutePath, [
+            'Content-Type' => 'application/pdf',
+        ]);
     }
 
     /**
@@ -1025,6 +1047,11 @@ class VendorPosController extends Controller
 
                 return $user;
             });
+
+            if (!$user || !$user->id) {
+                throw new \RuntimeException('Customer record could not be created.');
+            }
+
             try {
                 // Log customer creation
                 Log::info('POS customer created', [

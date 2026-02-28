@@ -183,6 +183,7 @@ Route::prefix('vendor/pos')->middleware(['auth', 'role:vendor'])->name('vendor.p
     Route::get('/bookings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'index'])->name('list');
     Route::get('/create', [\Modules\POS\Controllers\Web\VendorPosController::class, 'create'])->name('create');
     Route::get('/bookings/{id}', [\Modules\POS\Controllers\Web\VendorPosController::class, 'show'])->name('show');
+    Route::get('/bookings/{id}/invoice', [\Modules\POS\Controllers\Web\VendorPosController::class, 'viewInvoice'])->name('bookings.invoice');
      Route::get('/customers', [\Modules\POS\Controllers\Web\VendorPosController::class, 'customers'])->name('customers');
      
     Route::get('/customers/{id}', [\Modules\POS\Controllers\Web\VendorPosController::class, 'showCustomer'])->name('customers.show');

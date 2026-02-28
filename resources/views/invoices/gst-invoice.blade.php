@@ -209,11 +209,16 @@
     </style>
 </head>
 <body>
-    <!-- @php
-        $amountWords = class_exists(\NumberFormatter::class)
-            ? ucwords(\NumberFormatter::create('en_IN', \NumberFormatter::SPELLOUT)->format($invoice->grand_total)) . ' Rupees Only'
-            : '';
-    @endphp -->
+    @php
+        if (class_exists(\NumberFormatter::class)) {
+            $formatter = \NumberFormatter::create('en_IN', \NumberFormatter::SPELLOUT);
+            $amountWords = $formatter
+                ? ucwords($formatter->format((float) $invoice->grand_total)) . ' Rupees Only'
+                : 'INR ' . number_format((float) $invoice->grand_total, 2) . ' Only';
+        } else {
+            $amountWords = 'INR ' . number_format((float) $invoice->grand_total, 2) . ' Only';
+        }
+    @endphp
 
     <div class="invoice-container">
         <!-- Header -->
@@ -402,14 +407,9 @@
             </tr>
         </table>
 
-        <!-- Amount in Words -->
-        <!-- <div class="amount-words">
-            <span class="label">Amount in Words:</span> 
-            {{ ucwords(\NumberFormatter::create('en_IN', \NumberFormatter::SPELLOUT)->format($invoice->grand_total)) }} Rupees Only
-        </div> -->
         <div class="amount-words">
             <span class="label">Amount in Words:</span>
-            <!-- {{ amountInWords($invoice->grand_total) }} -->
+            {{ $amountWords }}
         </div>
 
 

@@ -303,6 +303,12 @@ public function createBooking(array $data): POSBooking
                     'invoice_id' => $invoice->id,
                     'invoice_number' => $invoice->invoice_number,
                 ]);
+            } else {
+                Log::info('POS auto-invoice disabled; skipping invoice generation', [
+                    'pos_booking_id' => $booking->id,
+                    'vendor_id' => Auth::id(),
+                    'setting_key' => 'pos_auto_invoice',
+                ]);
             }
         } catch (\Exception $e) {
             Log::error('Failed to generate POS invoice', [

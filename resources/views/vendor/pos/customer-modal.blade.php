@@ -163,17 +163,23 @@ document.getElementById('new-customer-form').addEventListener('submit', async (e
             body: JSON.stringify(Object.fromEntries(formData))
         });
 
-        // Only proceed if response is a valid customer object
-        if (res && res.success === false && res.errors) {
-            // Validation failed, show popup
-            const errorList = Object.values(res.errors).flat().join('\n');
-            alert(errorList || res.message || 'Validation failed');
+        const customerObj = res?.data ?? res;
+        const isSuccess = res?.success === true && customerObj && customerObj.id;
+
+        if (!isSuccess) {
+            let summary = res?.message || 'Failed to create customer. Please try again.';
+            if (res?.errors) {
+                summary = Object.values(res.errors).flat().join('\n') || summary;
+            }
+            const summaryDiv = document.getElementById('customer-error-summary');
+            summaryDiv.innerText = summary;
+            summaryDiv.classList.remove('hidden');
             return;
         }
+
         // Success popup
         alert('Customer created successfully!');
         // Pre-select in search box
-        const customerObj = res.data || res;
         document.getElementById('customer-search').value = customerObj.name;
         selectCustomer(customerObj);
         closeCustomerModal();

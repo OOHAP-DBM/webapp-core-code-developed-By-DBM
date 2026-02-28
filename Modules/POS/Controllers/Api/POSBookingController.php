@@ -83,9 +83,15 @@ class POSBookingController extends Controller
                 ->forVendor(Auth::id())
                 ->findOrFail($id);
 
+            $bookingData = $booking->toArray();
+            $bookingData['has_invoice'] = !empty($booking->invoice_path);
+            $bookingData['invoice_url'] = !empty($booking->invoice_path)
+                ? route('vendor.pos.bookings.invoice', ['id' => $booking->id])
+                : null;
+
             return response()->json([
                 'success' => true,
-                'data' => $booking,
+                'data' => $bookingData,
             ]);
         } catch (\Exception $e) {
             return response()->json([
