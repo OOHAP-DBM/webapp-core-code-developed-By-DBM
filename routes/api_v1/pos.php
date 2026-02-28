@@ -27,7 +27,8 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
     Route::get('/bookings/{id}', [POSBookingController::class, 'show']);
     Route::put('/bookings/{id}', [POSBookingController::class, 'update']);
 
-    
+ 
+
     // ============================================
     // CRITICAL: Payment Status Management
     // ============================================

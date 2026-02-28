@@ -440,90 +440,92 @@ class InvoiceService
      /**
      * Generate invoice for a POS booking (Modules\POS\Models\POSBooking)
      */
+    /**
+     * Generate invoice for a POS booking (Modules\POS\Models\POSBooking)
+     */
     public function generateInvoiceForPOSBooking(
         \Modules\POS\Models\POSBooking $posBooking,
         ?int $createdBy = null
     ): Invoice {
         return DB::transaction(function () use ($posBooking, $createdBy) {
-            // Get company settings
+
             $companySettings = $this->getCompanySettings();
 
-            // Get customer details
             $customer = $posBooking->customer_id
                 ? \App\Models\User::find($posBooking->customer_id)
                 : null;
 
-            // Determine if intra-state or inter-state
             $isIntraState = $this->isIntraStateTansaction(
                 $companySettings['state_code'],
                 $customer?->state_code ?? $companySettings['state_code']
             );
 
-            // Create invoice
+            // Create the invoice shell WITHOUT placeholder financial amounts —
+            // recalculateInvoiceTotals() will fill them after items are added.
             $invoice = Invoice::create([
-                'invoice_number' => InvoiceSequence::getNextInvoiceNumber(),
-                'financial_year' => InvoiceSequence::getCurrentFinancialYear(),
-                'invoice_date' => now(),
-                'invoice_type' => Invoice::TYPE_POS,
-                'pos_booking_id' => $posBooking->id,
-                'booking_id' => null,
+                'invoice_number'     => InvoiceSequence::getNextInvoiceNumber(),
+                'financial_year'     => InvoiceSequence::getCurrentFinancialYear(),
+                'invoice_date'       => now(),
+                'invoice_type'       => Invoice::TYPE_POS,
+                'pos_booking_id'     => $posBooking->id,
+                'booking_id'         => null,
                 'booking_payment_id' => null,
 
-                // Seller (Company) details
-                'seller_name' => $companySettings['name'],
-                'seller_gstin' => $companySettings['gstin'],
-                'seller_address' => $companySettings['address'],
-                'seller_city' => $companySettings['city'],
-                'seller_state' => $companySettings['state'],
-                'seller_state_code' => $companySettings['state_code'],
-                'seller_pincode' => $companySettings['pincode'],
-                'seller_pan' => $companySettings['pan'] ?? null,
+                // Seller
+                'seller_name'        => $companySettings['name'],
+                'seller_gstin'       => $companySettings['gstin'],
+                'seller_address'     => $companySettings['address'],
+                'seller_city'        => $companySettings['city'],
+                'seller_state'       => $companySettings['state'],
+                'seller_state_code'  => $companySettings['state_code'],
+                'seller_pincode'     => $companySettings['pincode'],
+                'seller_pan'         => $companySettings['pan'] ?? null,
 
-                // Buyer (Customer) details
-                'customer_id' => $customer?->id,
-                'buyer_name' => $customer?->company_name ?? $customer?->name ?? $posBooking->customer_name,
-                'buyer_gstin' => $customer?->gstin,
-                'buyer_address' => $customer?->billing_address ?? $customer?->address ?? $posBooking->customer_address,
-                'buyer_city' => $customer?->billing_city ?? $customer?->city,
-                'buyer_state' => $customer?->billing_state ?? $companySettings['state'],
-                'buyer_state_code' => $customer?->billing_state_code ?? $companySettings['state_code'],
-                'buyer_pincode' => $customer?->billing_pincode ?? $customer?->pincode,
-                'buyer_pan' => $customer?->pan,
-                'buyer_type' => $customer?->customer_type ?? 'individual',
-                'buyer_email' => $customer?->email ?? null,
-                'buyer_phone' => $customer?->phone ?? null,
+                // Buyer
+                'customer_id'        => $customer?->id,
+                'buyer_name'         => $customer?->company_name ?? $customer?->name ?? $posBooking->customer_name,
+                'buyer_gstin'        => $customer?->gstin ?? $posBooking->customer_gstin,
+                'buyer_address'      => $customer?->billing_address ?? $customer?->address ?? $posBooking->customer_address,
+                'buyer_city'         => $customer?->billing_city ?? $customer?->city,
+                'buyer_state'        => $customer?->billing_state ?? $companySettings['state'],
+                'buyer_state_code'   => $customer?->billing_state_code ?? $companySettings['state_code'],
+                'buyer_pincode'      => $customer?->billing_pincode ?? $customer?->pincode,
+                'buyer_pan'          => $customer?->pan,
+                'buyer_type'         => $customer?->customer_type ?? 'individual',
+                'buyer_email'        => $customer?->email ?? null,
+                'buyer_phone'        => $customer?->phone ?? $posBooking->customer_phone ?? null,
 
-                // GST details
-                'place_of_supply' => $customer?->billing_state ?? $companySettings['state'],
-                'is_intra_state' => $isIntraState,
-                'is_reverse_charge' => $customer ? $this->checkReverseCharge($customer) : false,
-                'supply_type' => 'services',
+                // GST
+                'place_of_supply'    => $customer?->billing_state ?? $companySettings['state'],
+                'is_intra_state'     => $isIntraState,
+                'is_reverse_charge'  => $customer ? $this->checkReverseCharge($customer) : false,
+                'supply_type'        => 'services',
 
-                // Status and metadata
-                'status' => Invoice::STATUS_ISSUED,
-                'issued_at' => now(),
-                'due_date' => now()->addDays($companySettings['payment_terms_days'] ?? 30),
-                'created_by' => $createdBy,
-                'terms_conditions' => $companySettings['invoice_terms'],
-                'payment_terms' => $companySettings['payment_terms_text'],
-                'subtotal' => 1000, // Will be updated later
-                'taxable_amount' => 1200, // Will be updated later
-                'total_tax' => 200, // Will be updated later
-                'total_amount' => 1400, // Will be updated later    
-                'grand_total' => 1400, // Will be updated later
-                
+                // Status
+                'status'             => Invoice::STATUS_ISSUED,
+                'issued_at'          => now(),
+                'due_date'           => now()->addDays($companySettings['payment_terms_days'] ?? 30),
+                'created_by'         => $createdBy,
+                'terms_conditions'   => $companySettings['invoice_terms'],
+                'payment_terms'      => $companySettings['payment_terms_text'],
+
+                // Financial amounts start at 0; recalculateInvoiceTotals() fills them.
+                'subtotal'           => 0,
+                'discount_amount'    => 0,
+                'taxable_amount'     => 0,
+                'total_tax'          => 0,
+                'total_amount'       => 0,
+                'grand_total'        => 0,
             ]);
 
-            // Add invoice items for each hoarding in the POS booking
+            // Add line items from each POS booking hoarding
             $this->addPOSInvoiceItems($invoice, $posBooking, $isIntraState);
 
-            // Calculate and update totals
+            // Re-compute totals from actual items
             $this->recalculateInvoiceTotals($invoice);
 
-            // Generate PDF
+            // Generate PDF + QR
             $this->generatePDF($invoice);
-
-            // Generate QR Code
             $this->generateQRCode($invoice);
 
             return $invoice->fresh(['items']);
@@ -531,33 +533,73 @@ class InvoiceService
     }
 
     /**
-     * Add invoice items from POS booking
+     * Add invoice items from POS booking hoardings.
+     * Uses the real hoarding_total stored in pos_booking_hoardings.
      */
-    protected function addPOSInvoiceItems(Invoice $invoice, \Modules\POS\Models\POSBooking $posBooking, bool $isIntraState): void
-    {
+    protected function addPOSInvoiceItems(
+        Invoice $invoice,
+        \Modules\POS\Models\POSBooking $posBooking,
+        bool $isIntraState
+    ): void {
         $lineNumber = 1;
-        $gstRate = $this->getGSTRate();
-        $hsnCode = Setting::get('hsn_advertising_services', '998599');
+        $gstRate    = $this->getGSTRate();
+        $hsnCode    = \App\Models\Setting::get('hsn_advertising_services', '998599');
 
-        // Loop through all hoardings in the POS booking
+        // Make sure hoardings are loaded
+        if (!$posBooking->relationLoaded('bookingHoardings')) {
+            $posBooking->load('bookingHoardings.hoarding');
+        }
+
         foreach ($posBooking->bookingHoardings as $bookingHoarding) {
             $hoarding = $bookingHoarding->hoarding;
-            $item = new InvoiceItem([
-                'line_number' => $lineNumber++,
-                'item_type' => 'hoarding',
-                'description' => $hoarding ? "Outdoor Advertising - {$hoarding->title}" : 'Hoarding Advertisement',
-                'hsn_sac_code' => $hsnCode,
-                'hoarding_id' => $hoarding?->id,
-                'quantity' => $bookingHoarding->duration_days ?? 1,
-                'unit' => 'days',
-                'rate' => $bookingHoarding->total_amount / ($bookingHoarding->duration_days ?? 1),
-                'service_start_date' => $bookingHoarding->start_date,
-                'service_end_date' => $bookingHoarding->end_date,
-                'duration_days' => $bookingHoarding->duration_days,
-                'discount_percent' => 0,
-                'discount_amount' => 0,
+
+            // Use the real stored total for this hoarding record; fall back to even split.
+            $hoardingTotal = (float) ($bookingHoarding->hoarding_total ?? 0);
+            if ($hoardingTotal <= 0) {
+                // Fallback: divide global base_amount evenly
+                $count         = max(1, $posBooking->bookingHoardings->count());
+                $hoardingTotal = round((float) $posBooking->base_amount / $count, 2);
+            }
+
+            $durationDays = max(1, (int) ($bookingHoarding->duration_days ?? 1));
+
+            // Reverse-engineer the pre-tax base from the stored total
+            // stored total = (base - discount) * (1 + gstRate/100)
+            // We use base_amount stored on the line (hoarding_price) for rate
+            $lineBaseAmount = (float) ($bookingHoarding->hoarding_price ?? $hoardingTotal / (1 + $gstRate / 100));
+            $ratePerDay     = round($lineBaseAmount / $durationDays, 4);
+
+            $description = $hoarding
+                ? sprintf(
+                    'Outdoor Advertising — %s (%s to %s)',
+                    $hoarding->title,
+                    $bookingHoarding->start_date instanceof \Carbon\Carbon
+                        ? $bookingHoarding->start_date->format('d M Y')
+                        : $bookingHoarding->start_date,
+                    $bookingHoarding->end_date instanceof \Carbon\Carbon
+                        ? $bookingHoarding->end_date->format('d M Y')
+                        : $bookingHoarding->end_date
+                )
+                : 'Hoarding Advertisement';
+
+            $item = new \App\Models\InvoiceItem([
+                'line_number'       => $lineNumber++,
+                'item_type'         => 'hoarding',
+                'description'       => $description,
+                'hsn_sac_code'      => $hsnCode,
+                'hoarding_id'       => $hoarding?->id,
+                'quantity'          => $durationDays,
+                'unit'              => 'days',
+                'rate'              => $ratePerDay,
+                'service_start_date'=> $bookingHoarding->start_date,
+                'service_end_date'  => $bookingHoarding->end_date,
+                'duration_days'     => $durationDays,
+                'discount_percent'  => 0,
+                'discount_amount'   => (float) ($bookingHoarding->hoarding_discount ?? 0),
             ]);
+
             $item->calculateAmounts($isIntraState, $gstRate);
+
             $invoice->items()->save($item);
         }
     }

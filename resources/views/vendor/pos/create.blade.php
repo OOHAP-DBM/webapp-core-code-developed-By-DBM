@@ -42,6 +42,22 @@
                         </div>
                     </div>
 
+                    {{-- Availability Issues Alert (shown when conflicts detected) --}}
+                    <div id="availability-alert" class="hidden mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                            </svg>
+                            <div class="flex-1">
+                                <h4 class="text-sm font-bold text-red-700 mb-2">Availability Conflicts Found</h4>
+                                <div id="availability-alert-body" class="text-xs text-red-600 space-y-1"></div>
+                            </div>
+                            <button onclick="document.getElementById('availability-alert').classList.add('hidden')" class="text-red-400 hover:text-red-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="space-y-6">
                         <div class="selection-group">
                             <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
@@ -54,7 +70,7 @@
                                             <th class="px-4 py-3 font-semibold">Hoarding</th>
                                             <th class="px-4 py-3 font-semibold">Rental/Mo</th>
                                             <th class="px-4 py-3 font-semibold text-center">Duration</th>
-                                            <th class="px-4 py-3 font-semibold">Total</th>
+                                            <th class="px-4 py-3 font-semibold">Final Amount</th>
                                             <th class="px-4 py-3 font-semibold text-right">Action</th>
                                         </tr>
                                     </thead>
@@ -75,13 +91,14 @@
                                         <tr>
                                             <th class="px-4 py-3 font-semibold">Hoarding</th>
                                             <th class="px-4 py-3 font-semibold">Rental/Mo</th>
-                                            <th class="px-4 py-3 font-semibold">Duration</th>
-                                            <th class="px-4 py-3 font-semibold">Total</th>
+                                            <th class="px-4 py-3 font-semibold text-center">Slots/Day</th>
+                                            <th class="px-4 py-3 font-semibold text-center">Duration</th>
+                                            <th class="px-4 py-3 font-semibold">Final Amount</th>
                                             <th class="px-4 py-3 font-semibold text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="dooh-selected-list" class="divide-y divide-gray-50 bg-white">
-                                        <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No digital slots selected</td></tr>
+                                        <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic">No digital slots selected</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -162,19 +179,22 @@
     .flatpickr-day.blocked { background: #6b7280 !important; color: #fff !important; border-color: #6b7280 !important; }
     .flatpickr-day.hold { background: #f59e0b !important; color: #fff !important; border-color: #f59e0b !important; }
     .flatpickr-day.partial { background: #f97316 !important; color: #fff !important; border-color: #f97316 !important; }
+
+    /* Availability conflict row highlight */
+    .availability-conflict td { background-color: #fff5f5 !important; }
+    .availability-conflict td:first-child { border-left: 3px solid #ef4444; }
 </style>
 
 <script>
 /* --- CONFIG & STATE --- */
-// SweetAlert2 toast helper
-function showToast(message) {
+function showToast(message, type = 'info') {
     if (window.Swal) {
         Swal.fire({
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
             timer: 3000,
-            icon: 'info',
+            icon: type,
             title: message
         });
     } else {
@@ -185,17 +205,10 @@ const API_URL = '/vendor/pos/api';
 let hoardings = [];
 let selectedHoardings = new Map();
 let selectedCustomer = null;
-
-
+let availabilityIssues = {}; // { hoardingId: { status, message } }
 
 const formatINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
-/**
- * Tier Logic helpers
- * - getTieredMonths: returns integer number of months to charge (inclusive, rounds up by 30-day buckets)
- * - getTieredDurationLabel: returns "1 Month" or "N Months"
- * - calculateTieredPrice: uses the months to compute total
- */
 function getTieredMonths(startDate, endDate) {
     if (!startDate || !endDate) return 0;
     const start = new Date(startDate);
@@ -229,25 +242,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('booking-date').innerText = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     await loadHoardings();
 
-    // Auto-select customer if passed in URL
     const urlParams = new URLSearchParams(window.location.search);
     const customerId = urlParams.get('customer_id');
     if (customerId) {
         try {
-            // Try to fetch by ID directly
             const res = await fetchJSON(`${API_URL}/customers?search=${customerId}`);
             const list = res.data?.data || res.data || [];
-            // Try to match by id or phone (in case search returns by phone)
             let found = list.find(c => c.id == customerId);
-            // If not found, try to fetch all customers and match by id
             if (!found) {
                 const allRes = await fetchJSON(`${API_URL}/customers`);
                 const allList = allRes.data?.data || allRes.data || [];
                 found = allList.find(c => c.id == customerId);
             }
-            if (found) {
-                selectCustomer(found);
-            }
+            if (found) selectCustomer(found);
         } catch (e) { console.error(e); }
     }
 
@@ -260,12 +267,12 @@ function openCustomerModal() { document.getElementById('customerModal').classLis
 function clearAddressFields() {
     const city = document.getElementById('city');
     const state = document.getElementById('state');
-
     if (city) city.value = '';
     if (state) state.value = '';
 }
 
 function closeCustomerModal() { document.getElementById('customerModal').classList.add('hidden'); }
+
 async function handleCustomerSearch(e) {
     const q = e.target.value.trim();
     const box = document.getElementById('customer-suggestions');
@@ -283,23 +290,6 @@ async function handleCustomerSearch(e) {
     } catch (e) { console.error(e); }
 }
 
-// function selectCustomer(c) {
-// console.log('Customer object:', c);
-//  if (!c || !c.name) {
-//         console.warn('Invalid customer object passed to selectCustomer', c);
-//         return;
-//     }
-
-//     selectedCustomer = c;
-//     document.getElementById('search-container').classList.add('hidden');
-//     document.getElementById('customer-selected-card').classList.remove('hidden');
-//     document.getElementById('cust-name').innerText = c.name;
-//     document.getElementById('cust-details').innerText = `${c.email || ''} | ${c.phone}`;
-//     document.getElementById('cust-initials').innerText = c.name.substring(0,2).toUpperCase();
-//     document.getElementById('customer-suggestions').classList.add('hidden');
-//     document.getElementById('customer_gstin').classList.add('hidden');
-// }
-
 function toLocalYMD(date) {
     const d = new Date(date);
     const year = d.getFullYear();
@@ -308,33 +298,18 @@ function toLocalYMD(date) {
     return `${year}-${month}-${day}`;
 }
 
-
 function selectCustomer(c) {
-    console.log('Customer object:', c);
-
-    if (!c || !c.name) {
-        console.warn('Invalid customer object passed to selectCustomer', c);
-        return;
-    }
-
+    if (!c || !c.name) { console.warn('Invalid customer object', c); return; }
     selectedCustomer = c;
 
-    const searchContainer = document.getElementById('search-container');
-    const selectedCard = document.getElementById('customer-selected-card');
-    const suggestions = document.getElementById('customer-suggestions');
-    const nameEl = document.getElementById('cust-name');
-    const detailsEl = document.getElementById('cust-details');
-    const initialsEl = document.getElementById('cust-initials');
+    document.getElementById('search-container')?.classList.add('hidden');
+    document.getElementById('customer-selected-card')?.classList.remove('hidden');
+    document.getElementById('customer-suggestions')?.classList.add('hidden');
 
-    if (searchContainer) searchContainer.classList.add('hidden');
-    if (selectedCard) selectedCard.classList.remove('hidden');
-    if (suggestions) suggestions.classList.add('hidden');
-
-    if (nameEl) nameEl.innerText = c.name;
-    if (detailsEl) detailsEl.innerText = `${c.email || ''} | ${c.phone || ''}`;
-    if (initialsEl) initialsEl.innerText = c.name.slice(0, 2).toUpperCase();
+    if (document.getElementById('cust-name')) document.getElementById('cust-name').innerText = c.name;
+    if (document.getElementById('cust-details')) document.getElementById('cust-details').innerText = `${c.email || ''} | ${c.phone || ''}`;
+    if (document.getElementById('cust-initials')) document.getElementById('cust-initials').innerText = c.name.slice(0, 2).toUpperCase();
 }
-
 
 function clearSelectedCustomer() {
     selectedCustomer = null;
@@ -357,12 +332,15 @@ function renderHoardings(list) {
     const grid = document.getElementById('hoardings-grid');
     grid.innerHTML = list.map(h => {
         const isSelected = selectedHoardings.has(h.id);
+        const isDooh = h.type?.toUpperCase() === 'DOOH';
         return `
             <div class="relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
                 <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover">
+                ${isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
                 <div class="p-2">
                     <h4 class="text-[10px] font-bold text-gray-800 truncate">${h.title}</h4>
                     <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
+                    ${isDooh ? `<span class="block text-[9px] text-purple-600 font-medium">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
                 </div>
             </div>`;
     }).join('');
@@ -377,6 +355,7 @@ function filterInventory() {
 function toggleHoarding(id) {
     if (selectedHoardings.has(id)) {
         selectedHoardings.delete(id);
+        delete availabilityIssues[id];
     } else {
         const h = hoardings.find(i => i.id === id);
         const today = toLocalYMD(new Date());
@@ -393,49 +372,91 @@ function updateSummary() {
     oohTbody.innerHTML = ''; doohTbody.innerHTML = '';
 
     if (selectedHoardings.size === 0) {
-        const empty = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No selections</td></tr>`;
-        oohTbody.innerHTML = empty; doohTbody.innerHTML = empty;
+        oohTbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No static hoardings selected</td></tr>`;
+        doohTbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic">No digital slots selected</td></tr>`;
     } else {
+        let hasOoh = false, hasDooh = false;
+
         selectedHoardings.forEach((h, id) => {
             const totalPrice = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
-            const row = `
-                <tr class="hover:bg-gray-50 border-b border-gray-200">
-                    <td class="px-4 py-3">
-                        <div class="text-xs font-bold text-gray-800">${h.title}</div>
-                        <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
-                    </td>
-                    <td class="px-4 py-3 text-xs text-gray-500">${formatINR(h.price_per_month)}</td>
-                  <td class="px-4 py-3 align-middle">
-                        <div class="flex flex-col items-center justify-center">
-                            <div class="flex items-center justify-center whitespace-nowrap">
-                                <button 
-                                    onclick="openDatePickerForHoarding(${h.id})"
-                                    class="px-2 py-1 rounded bg-white text-[11px] font-semibold text-gray-700 hover:text-blue-600 transition leading-none">
-                                    ${toLocalYMD(h.startDate)} - ${toLocalYMD(h.endDate)}
-                                </button>
-                                <button 
-                                    onclick="openDatePickerForHoarding(${h.id})"
-                                    class="flex items-center justify-center w-6 h-6 rounded-full text-blue-500 hover:text-blue-700 transition"
-                                    title="Edit Dates">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"/>
-                                    </svg>
-                                </button>
+            const issue = availabilityIssues[id];
+            const conflictClass = issue ? 'availability-conflict' : '';
+            const conflictBadge = issue ? `<span class="inline-block mt-1 text-[9px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">${issue.label}</span>` : '';
+
+            const isDooh = h.type?.toUpperCase() === 'DOOH';
+
+            if (isDooh) {
+                hasDooh = true;
+                const slotsPerDay = h.total_slots_per_day ?? 300;
+                doohTbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 border-b border-gray-200 ${conflictClass}">
+                        <td class="px-4 py-3">
+                            <div class="text-xs font-bold text-gray-800">${h.title}</div>
+                            <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
+                            ${conflictBadge}
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-500">${formatINR(h.price_per_month)}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[11px] font-bold px-2 py-1 rounded-full">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+                                ${slotsPerDay}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 align-middle">
+                            <div class="flex flex-col items-center justify-center">
+                                <div class="flex items-center justify-center whitespace-nowrap">
+                                    <button onclick="openDatePickerForHoarding(${h.id})" class="px-2 py-1 rounded bg-white text-[11px] font-semibold text-gray-700 hover:text-blue-600 transition leading-none">
+                                        ${toLocalYMD(h.startDate)} - ${toLocalYMD(h.endDate)}
+                                    </button>
+                                    <button onclick="openDatePickerForHoarding(${h.id})" class="flex items-center justify-center w-6 h-6 rounded-full text-blue-500 hover:text-blue-700 transition" title="Edit Dates">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"/></svg>
+                                    </button>
+                                </div>
+                                <div class="text-[11px] text-gray-400 mt-1 text-center leading-none">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
                             </div>
-                            <div class="text-[11px] text-gray-400 mt-1 text-center leading-none">
-                                ${getTieredDurationLabel(h.startDate, h.endDate)}
+                        </td>
+                        <td class="px-4 py-3 font-bold text-xs text-green-700">${formatINR(totalPrice)}</td>
+                        <td class="px-4 py-3 text-right">
+                            <button onclick="toggleHoarding(${h.id})" class="text-red-500 cursor-pointer">
+                                <svg class="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </td>
+                    </tr>`;
+            } else {
+                hasOoh = true;
+                oohTbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 border-b border-gray-200 ${conflictClass}">
+                        <td class="px-4 py-3">
+                            <div class="text-xs font-bold text-gray-800">${h.title}</div>
+                            <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
+                            ${conflictBadge}
+                        </td>
+                        <td class="px-4 py-3 text-xs text-gray-500">${formatINR(h.price_per_month)}</td>
+                        <td class="px-4 py-3 align-middle">
+                            <div class="flex flex-col items-center justify-center">
+                                <div class="flex items-center justify-center whitespace-nowrap">
+                                    <button onclick="openDatePickerForHoarding(${h.id})" class="px-2 py-1 rounded bg-white text-[11px] font-semibold text-gray-700 hover:text-blue-600 transition leading-none">
+                                        ${toLocalYMD(h.startDate)} - ${toLocalYMD(h.endDate)}
+                                    </button>
+                                    <button onclick="openDatePickerForHoarding(${h.id})" class="flex items-center justify-center w-6 h-6 rounded-full text-blue-500 hover:text-blue-700 transition" title="Edit Dates">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"/></svg>
+                                    </button>
+                                </div>
+                                <div class="text-[11px] text-gray-400 mt-1 text-center leading-none">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
                             </div>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 font-bold text-xs text-green-700">${formatINR(totalPrice)}</td>
-                    <td class="px-4 py-3 text-right">
-                        <button onclick="toggleHoarding(${h.id})" class="text-red-500 cursor-pointer">
-                           <svg class="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
-                    </td>
-                </tr>`;
-            if (h.type?.toUpperCase() === 'DOOH') doohTbody.innerHTML += row; else oohTbody.innerHTML += row;
+                        </td>
+                        <td class="px-4 py-3 font-bold text-xs text-green-700">${formatINR(totalPrice)}</td>
+                        <td class="px-4 py-3 text-right">
+                            <button onclick="toggleHoarding(${h.id})" class="text-red-500 cursor-pointer">
+                                <svg class="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </td>
+                    </tr>`;
+            }
         });
+
+        if (!hasOoh) oohTbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No static hoardings selected</td></tr>`;
+        if (!hasDooh) doohTbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic">No digital slots selected</td></tr>`;
     }
     document.getElementById('btn-count').innerText = selectedHoardings.size;
 }
@@ -450,15 +471,74 @@ function updateDate(id, field, value) {
     }
 }
 
-// --- Calendar modal & availability integration ---
+/* --- Availability check helpers --- */
+function statusLabel(status) {
+    const map = { booked: 'Already Booked', blocked: 'Blocked/Maintenance', hold: 'On Hold', partial: 'Partially Unavailable' };
+    return map[status] || status;
+}
+
+/**
+ * Run availability checks for ALL selected hoardings.
+ * Populates `availabilityIssues` and returns true if ALL are available.
+ */
+async function checkAllAvailability() {
+    availabilityIssues = {};
+    let allClear = true;
+
+    const checks = Array.from(selectedHoardings.entries()).map(async ([id, h]) => {
+        const allDates = enumerateDatesBetween(h.startDate, h.endDate);
+        try {
+            const res = await fetch(`/api/v1/hoardings/${id}/availability/check-dates`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify({ dates: allDates })
+            });
+            if (!res.ok) return;
+            const result = await res.json();
+            const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
+            if (conflicts.length > 0) {
+                allClear = false;
+                const statuses = [...new Set(conflicts.map(c => c.status))];
+                availabilityIssues[id] = {
+                    title: h.title,
+                    label: statuses.map(statusLabel).join(', '),
+                    conflicts
+                };
+            }
+        } catch (e) {
+            console.error('Availability check error for hoarding', id, e);
+        }
+    });
+
+    await Promise.all(checks);
+    return allClear;
+}
+
+function showAvailabilityAlert(issues) {
+    const alert = document.getElementById('availability-alert');
+    const body = document.getElementById('availability-alert-body');
+    const entries = Object.values(issues);
+
+    if (entries.length === 0) { alert.classList.add('hidden'); return; }
+
+    body.innerHTML = entries.map(issue => `
+        <div class="flex items-start gap-2 py-1">
+            <span class="font-bold text-red-700">${issue.title}:</span>
+            <span>${issue.label} — please adjust the booking dates.</span>
+        </div>
+    `).join('');
+
+    alert.classList.remove('hidden');
+    alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/* --- Calendar modal & availability integration --- */
 let currentFlatpickr = null;
 let currentHeatmapMap = {};
 let currentEditingHoardingId = null;
 
-function toYMD(d) {
-    return toLocalYMD(d);
-}
-
+function toYMD(d) { return toLocalYMD(d); }
 
 function enumerateDatesBetween(start, end) {
     const dates = [];
@@ -477,11 +557,9 @@ async function openDatePickerForHoarding(id) {
     const h = selectedHoardings.get(id);
     if (!h) { showToast('Please select the hoarding first'); return; }
 
-    // set modal title
     document.getElementById('datePickerTitle').innerText = h.title;
     document.getElementById('datePickerModal').classList.remove('hidden');
 
-    const today = toLocalYMD(new Date());
     const startStr = toLocalYMD(new Date());
     const future = new Date(); future.setDate(future.getDate() + 365);
     const endStr = toLocalYMD(future);
@@ -489,13 +567,7 @@ async function openDatePickerForHoarding(id) {
     try {
         const res = await fetch(`/api/v1/hoardings/${id}/availability/heatmap?start_date=${startStr}&end_date=${endStr}`, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
         if (!res.ok) {
-            const txt = await res.text().catch(() => '');
-            console.error('Heatmap fetch failed', res.status, res.statusText, txt);
-            if (res.status === 401 || res.status === 403) {
-                showToast('Could not load availability (authentication required). Please login and try again.');
-            } else {
-                showToast(`Could not load availability (HTTP ${res.status}). Please try again.`);
-            }
+            showToast(`Could not load availability (HTTP ${res.status}). Please try again.`);
             return;
         }
         const payload = await res.json();
@@ -505,7 +577,6 @@ async function openDatePickerForHoarding(id) {
         currentHeatmapMap = {};
         heatmap.forEach(d => currentHeatmapMap[d.date] = d.status);
 
-        // Initialize or reinitialize flatpickr
         if (currentFlatpickr) currentFlatpickr.destroy();
 
         currentFlatpickr = flatpickr('#date-picker-input', {
@@ -542,9 +613,8 @@ async function confirmDateSelection() {
 
     const start = toYMD(dates[0]);
     const end = toYMD(dates.length === 1 ? dates[0] : dates[1]);
-
-    // Double-check availability via API
     const allDates = enumerateDatesBetween(start, end);
+
     try {
         const res = await fetch(`/api/v1/hoardings/${currentEditingHoardingId}/availability/check-dates`, {
             method: 'POST',
@@ -553,28 +623,25 @@ async function confirmDateSelection() {
             body: JSON.stringify({ dates: allDates })
         });
         if (!res.ok) {
-            const text = await res.text();
-            console.error('Availability check failed', res.status, res.statusText, text);
-            showToast('Could not verify availability (server error). Please try again.');
+            showToast('Could not verify availability. Please try again.');
             openDatePickerForHoarding(currentEditingHoardingId);
             return;
         }
         const result = await res.json();
         const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
-        console.log('response BEDORE booking for hoarding', currentEditingHoardingId, conflicts);
         if (conflicts.length > 0) {
-            showToast('Selected range includes unavailable dates. Please choose a different range.');
-            // refresh calendar highlights
+            showToast('Selected range includes unavailable dates. Please choose a different range.', 'warning');
             openDatePickerForHoarding(currentEditingHoardingId);
             return;
         }
 
-        // Save dates
         let h = selectedHoardings.get(currentEditingHoardingId);
         if (h) {
             h.startDate = start;
             h.endDate = end;
             selectedHoardings.set(currentEditingHoardingId, h);
+            // Clear any existing conflict for this hoarding since dates changed
+            delete availabilityIssues[currentEditingHoardingId];
             updateSummary();
         }
 
@@ -585,56 +652,38 @@ async function confirmDateSelection() {
     }
 }
 
-// Expose helpers globally so preview script can reuse them
+// Expose helpers globally
 window.enumerateDatesBetween = enumerateDatesBetween;
 window.toYMD = toYMD;
 
-// Final availability check used by preview finalization
 window.finalCheckAvailability = async function() {
-    for (const [id, h] of selectedHoardings) {
-        const dates = enumerateDatesBetween(h.startDate, h.endDate);
-        try {
-            const res = await fetch(`/api/v1/hoardings/${id}/availability/check-dates`, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                body: JSON.stringify({ dates })
-            });
-            if (!res.ok) {
-                const txt = await res.text();
-                console.error('Final availability check failed', res.status, res.statusText, txt);
-                showToast('Error checking final availability (server error). Please try again.');
-                return false;
-            }
-            const result = await res.json();
-            const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
-            console.log('response after booking for hoarding', id, conflicts);
-            // if (conflicts.length > 0) {
-            //     alert(` ${h.title} has unavailable dates in the selected range. Please adjust dates.`);
-            //     return false;
-            // }
-        } catch (e) {
-            console.error(e);
-            showToast('Error checking final availability. Please try again.');
-            return false;
-        }
-    }
-    return true;
+    return await checkAllAvailability();
 };
 
-// Add a capturing click listener to ensure final availability check runs before booking submit
-document.getElementById('create-booking-btn')?.addEventListener('click', async function(e) {
-    if (!(await window.finalCheckAvailability())) {
-        e.stopImmediatePropagation();
-        e.preventDefault();
-        return false;
-    }
-}, true);
+/* --- SUBMIT BUTTON: Check availability first, then show preview --- */
+document.getElementById('submit-btn').addEventListener('click', async () => {
+    if (!selectedCustomer) { showToast('Select a customer.', 'warning'); return; }
+    if (selectedHoardings.size === 0) { showToast('Select at least one hoarding.', 'warning'); return; }
 
-document.getElementById('submit-btn').addEventListener('click', () => {
-    if (!selectedCustomer) { showToast("Select a customer."); return; }
-    if (selectedHoardings.size === 0) { showToast("Select inventory."); return; }
-    
+    const btn = document.getElementById('submit-btn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<svg class="w-4 h-4 inline animate-spin mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg> Checking Availability...`;
+
+    const allClear = await checkAllAvailability();
+
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+
+    if (!allClear) {
+        updateSummary(); // Re-render rows with conflict highlights
+        showAvailabilityAlert(availabilityIssues);
+        showToast('Some hoardings have availability conflicts. Please review and adjust dates.', 'error');
+        return;
+    }
+
+    // All clear — hide any existing alert and proceed to preview
+    document.getElementById('availability-alert').classList.add('hidden');
     populatePreview();
     document.getElementById('selection-screen').classList.add('hidden');
     document.getElementById('preview-screen').classList.remove('hidden');
@@ -647,26 +696,8 @@ function backToSelection() {
 
 function debounce(fn, t) { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), t); }; }
 
-
-
-// /* --- GLOBAL CALCULATOR FOR POS --- */
-// let globalBaseAmount = 0; // The total before discount/tax
-
-// function calculateFinalTotals() {
-//     const discountInput = document.getElementById('pos-discount');
-//     const discountVal = parseFloat(discountInput.value) || 0;
-    
-//     // 1. Logic: Subtotal - Discount = Taxable Amount
-//     const taxableAmount = Math.max(0, globalBaseAmount - discountVal);
-//     const tax = taxableAmount * 0.18;
-//     const grandTotal = taxableAmount + tax;
-
-//     // 2. Update UI
-//     document.getElementById('side-discount-display').innerText = `- ${formatINR(discountVal)}`;
-//     document.getElementById('side-taxable-amount').innerText = formatINR(taxableAmount);
-//     document.getElementById('side-tax').innerText = formatINR(tax);
-//     document.getElementById('side-grand-total').innerText = formatINR(grandTotal);
-// }
+/* --- POPULATE PREVIEW --- */
+let globalBaseAmount = 0;
 
 function populatePreview() {
     if (!selectedCustomer) return;
@@ -682,12 +713,10 @@ function populatePreview() {
         return;
     }
 
-    // Customer Info
     previewCustName.innerText = selectedCustomer.name;
     previewCustPhone.innerText = selectedCustomer.phone;
     previewTotalCount.innerText = selectedHoardings.size;
 
-    // Clear tables
     oohTbody.innerHTML = '';
     doohTbody.innerHTML = '';
 
@@ -696,6 +725,8 @@ function populatePreview() {
     selectedHoardings.forEach((h) => {
         const itemTotal = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
         globalBaseAmount += itemTotal;
+        const isDooh = h.type?.toUpperCase() === 'DOOH';
+        const slotsCell = isDooh ? `<div class="text-[10px] text-purple-600 font-medium mt-0.5">${h.total_slots_per_day ?? 300} slots/day</div>` : '';
 
         const row = `
             <tr class="border-b border-gray-50">
@@ -705,6 +736,7 @@ function populatePreview() {
                         <div>
                             <p class="font-bold text-gray-800 text-[11px] uppercase">${h.title}</p>
                             <p class="text-[9px] text-gray-400 mt-0.5">${h.location_address || ''}</p>
+                            ${slotsCell}
                         </div>
                     </div>
                 </td>
@@ -715,7 +747,7 @@ function populatePreview() {
                 <td class="px-8 py-4 text-right font-bold text-gray-700 text-xs">${formatINR(itemTotal)}</td>
             </tr>`;
 
-        if (h.type?.toUpperCase() === 'DOOH') doohTbody.innerHTML += row;
+        if (isDooh) doohTbody.innerHTML += row;
         else oohTbody.innerHTML += row;
     });
 
@@ -723,7 +755,6 @@ function populatePreview() {
     if (sideSubTotal) sideSubTotal.innerText = formatINR(globalBaseAmount);
     calculateFinalTotals();
 }
-
 </script>
 <script>
     function openFilterModal() {
@@ -733,7 +764,5 @@ function populatePreview() {
         document.getElementById('filterModal').classList.add('hidden');
     }
 </script>
-
-
 
 @endsection
