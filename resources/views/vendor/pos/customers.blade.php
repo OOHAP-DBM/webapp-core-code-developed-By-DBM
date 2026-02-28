@@ -1,7 +1,7 @@
 @extends('layouts.vendor')
 
 @section('title', 'POS Customers')
-
+@include('vendor.pos.components.pos-timer-notification')
 @section('content')
 <div class="px-2">
          <div class="pb-4 px-2 bg-primary  rounded-t-xl">

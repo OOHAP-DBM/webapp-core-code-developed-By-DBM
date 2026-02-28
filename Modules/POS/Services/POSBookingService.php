@@ -695,8 +695,9 @@ public function releaseHoardings(POSBooking $booking)
      */
     public function getVendorBookings(int $vendorId, array $filters = [])
     {
-        $query = POSBooking::with(['hoarding', 'customer', 'approver'])
+        $query = POSBooking::with(['hoardings', 'customer', 'approver',''])
             ->forVendor($vendorId);
+        \Log::info('POSBookingService.getVendorBookings query', ['vendor_id' => $vendorId, 'filters' => $filters]);
 
         if (isset($filters['status'])) {
             $query->byStatus($filters['status']);

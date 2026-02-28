@@ -1,3 +1,4 @@
+@include('vendor.pos.components.pos-timer-notification')
 @extends('layouts.vendor')
 
 @section('page-title', 'Point of Sale')
