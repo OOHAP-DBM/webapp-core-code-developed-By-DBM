@@ -183,9 +183,16 @@ async function loadBookingDetails() {
         document.getElementById('ui-total').textContent =
             '₹' + parseFloat(b.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
 
-        document.getElementById('ui-booking-status').textContent = b.status;
+        // If payment_status is unpaid, show 'Hold' as booking status
+        let bookingStatusText = b.status;
+        let bookingStatusColor = getStatusColor(b.status);
+        if (b.payment_status === 'unpaid') {
+            bookingStatusText = 'Hold';
+            bookingStatusColor = 'bg-yellow-500 text-white';
+        }
+        document.getElementById('ui-booking-status').textContent = bookingStatusText;
         document.getElementById('ui-booking-status').className =
-            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getStatusColor(b.status);
+            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + bookingStatusColor;
 
         document.getElementById('ui-payment-status').textContent = b.payment_status;
         document.getElementById('ui-payment-status').className =
@@ -196,7 +203,7 @@ async function loadBookingDetails() {
             <div class="grid md:grid-cols-2 gap-4">
                 <div><strong>Customer:</strong> ${b.customer_name}</div>
                 <div><strong>Phone:</strong> ${b.customer_phone || '-'}</div>
-                <div><strong>Dates:</strong>
+                <div><strong>Booking Date:</strong>
                     ${new Date(b.start_date).toLocaleDateString()} -
                     ${new Date(b.end_date).toLocaleDateString()}
                 </div>
@@ -281,7 +288,7 @@ function renderActionButtons(booking) {
         html += `
             <button disabled 
                 class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
-                title="Can only release if payment is unpaid">
+                title="Can only release hoarding if payment is unpaid">
                 🚫 Cannot Release
             </button>`;
     }

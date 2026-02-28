@@ -44,7 +44,7 @@
 <div class="col-span-full flex items-center justify-center text-center px-4 sm:px-6 py-12">
             <div class="max-w-md">
 
-                <div class="text-4xl sm:text-6xl mb-4">🛒</div>
+                <!-- <div class="text-4xl sm:text-6xl mb-4">🛒</div> -->
 
                 <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                     Your shortlist is empty
@@ -57,10 +57,10 @@
 
                 <a href="{{ route('search') }}"
                    class="inline-flex items-center gap-2
-                          bg-gray-900 text-white
+                          text-white btn-color
                           px-4 sm:px-6 py-2 sm:py-3 rounded-lg
                           text-xs sm:text-sm font-medium
-                          hover:bg-gray-800 transition">
+                          transition">
                     Browse Hoardings
                 </a>
 
