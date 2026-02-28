@@ -258,6 +258,22 @@ class ProcessInventoryImportJob implements ShouldQueue
             // Validate required fields
             $this->validateRowFields($row);
 
+            $resolvedImageName = $this->toNullableString(
+                $this->rowValue($row, ['image_name', 'image_path'])
+            );
+
+            if ($resolvedImageName !== null && str_contains($resolvedImageName, DIRECTORY_SEPARATOR)) {
+                $resolvedImageName = basename($resolvedImageName);
+            }
+
+            if ($resolvedImageName !== null && str_contains($resolvedImageName, '/')) {
+                $resolvedImageName = basename($resolvedImageName);
+            }
+
+            if ($resolvedImageName !== null) {
+                $this->persistRowImageForBatch($row, $resolvedImageName);
+            }
+
             return [
                 'batch_id' => $this->batch->id,
                 'vendor_id' => $this->batch->vendor_id,
@@ -277,8 +293,7 @@ class ProcessInventoryImportJob implements ShouldQueue
                 'measurement_unit' => $this->toNullableString($this->rowValue($row, ['measurement_unit', 'unit', 'Unit'])),
                 'lighting_type' => $this->toNullableString($this->rowValue($row, ['lighting_type', 'illumination', 'Illumination'])),
                 'screen_type' => $this->toNullableString($this->rowValue($row, ['screen_type', 'Screen Type'])),
-                // 'image_name' => $this->toNullableString($row['image_name'] ?? null),
-               'image_name' => $this->toNullableString($row['image_name'] ?? null),
+                'image_name' => $resolvedImageName,
                 // Map base_monthly_price from d_c_p_m if present, else fallback to other fields
                 'base_monthly_price' => $this->toNullableDecimal($this->rowValue($row, ['display_monthly_price', 'base_monthly_price', 'd_c_p_m', 'dcpm_or_price', 'DCPM / Price', 'price']), 2),
                 'monthly_price' => $this->toNullableDecimal($this->rowValue($row, ['sale_price', 'monthly_price', 'monthly_sale_price', 'Monthly Sale Price']), 2),
@@ -616,6 +631,74 @@ class ProcessInventoryImportJob implements ShouldQueue
     }
 
     /**
+     * Persist a row image into batch local storage from absolute image_path, if available.
+     *
+     * @param array $row
+     * @param string $imageName
+     * @return void
+     */
+    protected function persistRowImageForBatch(array $row, string $imageName): void
+    {
+        $imagePath = isset($row['image_path']) ? trim((string) $row['image_path']) : '';
+        if ($imagePath === '') {
+            return;
+        }
+
+        $normalizedPath = str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
+        $sourcePath = null;
+
+        if (is_file($imagePath) && is_readable($imagePath)) {
+            $sourcePath = $imagePath;
+        } elseif (is_file($normalizedPath) && is_readable($normalizedPath)) {
+            $sourcePath = $normalizedPath;
+        }
+
+        if ($sourcePath === null) {
+            \Log::warning('Row image source path is missing or unreadable during import', [
+                'batch_id' => $this->batch->id,
+                'image_path_raw' => $imagePath,
+                'image_path_normalized' => $normalizedPath,
+                'image_name' => $imageName,
+            ]);
+            return;
+        }
+
+        $targetPath = "imports/{$this->batch->id}/images/{$imageName}";
+        $localDisk = Storage::disk('local');
+
+        if ($localDisk->exists($targetPath)) {
+            return;
+        }
+
+        $contents = @file_get_contents($sourcePath);
+        if ($contents === false) {
+            \Log::warning('Failed reading source row image path during import', [
+                'batch_id' => $this->batch->id,
+                'image_path' => $sourcePath,
+                'image_name' => $imageName,
+            ]);
+            return;
+        }
+
+        $saved = $localDisk->put($targetPath, $contents);
+
+        if (!$saved) {
+            \Log::warning('Failed storing row image into import batch directory', [
+                'batch_id' => $this->batch->id,
+                'image_path' => $imagePath,
+                'target_path' => $targetPath,
+            ]);
+            return;
+        }
+
+        \Log::info('Persisted row image into import batch directory', [
+            'batch_id' => $this->batch->id,
+            'image_path' => $sourcePath,
+            'target_path' => $targetPath,
+        ]);
+    }
+
+    /**
      * Ingest images archive from Python API response (base64 or URL).
      *
      * @param array $apiResponse
@@ -625,7 +708,9 @@ class ProcessInventoryImportJob implements ShouldQueue
     protected function ingestImageArchive(array $apiResponse): void
     {
         $zipBase64 = $apiResponse['images_zip_base64'] ?? null;
-        $zipUrl = $apiResponse['images_zip_url'] ?? null;
+        $zipUrl = $apiResponse['images_zip_download_url']
+            ?? $apiResponse['images_zip_url']
+            ?? null;
 
         if (empty($zipBase64) && empty($zipUrl)) {
             return;
@@ -655,8 +740,29 @@ class ProcessInventoryImportJob implements ShouldQueue
 
             $zipBinary = $decoded;
         } elseif (!empty($zipUrl)) {
-            $response = Http::timeout((int) config('import.python_timeout', 300))
-                ->get((string) $zipUrl);
+            $resolvedZipUrl = $this->resolvePythonDownloadUrl((string) $zipUrl);
+            $http = Http::timeout((int) config('import.python_timeout', 300));
+
+            $pythonToken = (string) config('import.python_token', '');
+            if ($pythonToken !== '') {
+                $http = $http->withToken($pythonToken);
+            }
+
+            \Log::info('Downloading import image ZIP from Python service', [
+                'batch_id' => $this->batch->id,
+                'zip_url_raw' => (string) $zipUrl,
+                'zip_url_resolved' => $resolvedZipUrl,
+                'auth_token_present' => $pythonToken !== '',
+            ]);
+
+            $response = $http->get($resolvedZipUrl);
+
+            \Log::info('Import image ZIP download response received', [
+                'batch_id' => $this->batch->id,
+                'status' => $response->status(),
+                'content_type' => $response->header('Content-Type'),
+                'content_length' => $response->header('Content-Length'),
+            ]);
 
             if ($response->failed()) {
                 throw new Exception('Failed to download images ZIP from Python API URL');
@@ -706,6 +812,25 @@ class ProcessInventoryImportJob implements ShouldQueue
             'extracted_files_count' => count($allExtractedFiles),
             'extracted_files' => $allExtractedFiles,
         ]);
+    }
+
+    /**
+     * Resolve Python image ZIP URL (supports absolute and relative download URLs).
+     */
+    protected function resolvePythonDownloadUrl(string $url): string
+    {
+        $trimmedUrl = trim($url);
+
+        if ($trimmedUrl === '') {
+            return $trimmedUrl;
+        }
+
+        if (str_starts_with($trimmedUrl, 'http://') || str_starts_with($trimmedUrl, 'https://')) {
+            return $trimmedUrl;
+        }
+
+        $baseUrl = (string) config('import.python_url', 'http://127.0.0.1:9000');
+        return rtrim($baseUrl, '/') . '/' . ltrim($trimmedUrl, '/');
     }
 
     /**
