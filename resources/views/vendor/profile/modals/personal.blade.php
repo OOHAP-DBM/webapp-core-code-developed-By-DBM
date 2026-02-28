@@ -23,15 +23,21 @@
             <label class="block text-gray-600 mb-2 font-medium">Profile Picture<span class="text-red-500">*</span></label>
             <div class="flex items-center gap-4">
                 <!-- Avatar Preview -->
+                <!-- Avatar Preview -->
                 <div class="relative">
                     @if(auth()->user()->avatar)
-                        <img
-                            id="avatarPreview"
-                            src="{{ route('view-avatar', auth()->user()->id) }}?t={{ time() }}"
-                            alt="Avatar"
-                            class="w-16 h-16 rounded-full object-cover border-2 border-gray-300"
-                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                        <div 
+                            id="avatarWrapper"
+                            style="width:64px; height:64px; min-width:64px; border-radius:9999px; border:2px solid #d1d5db; overflow:hidden; background:#ffffff; display:flex; align-items:center; justify-content:center;"
                         >
+                            <img
+                                id="avatarPreview"
+                                src="{{ route('view-avatar', auth()->user()->id) }}?t={{ time() }}"
+                                alt="Avatar"
+                                style="width:100%; height:100%; object-fit:contain; display:block;"
+                                onerror="document.getElementById('avatarWrapper').style.display='none'; document.getElementById('avatarPlaceholder').style.display='flex';"
+                            >
+                        </div>
                         <div
                             id="avatarPlaceholder"
                             class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300 hidden"
@@ -41,12 +47,17 @@
                             </svg>
                         </div>
                     @else
-                        <img
-                            id="avatarPreview"
-                            src=""
-                            alt="Avatar"
-                            class="w-16 h-16 rounded-full object-cover border-2 border-gray-300 hidden"
+                        <div 
+                            id="avatarWrapper"
+                            style="width:64px; height:64px; min-width:64px; border-radius:9999px; border:2px solid #d1d5db; overflow:hidden; background:#ffffff; display:none; align-items:center; justify-content:center;"
                         >
+                            <img
+                                id="avatarPreview"
+                                src=""
+                                alt="Avatar"
+                                style="width:100%; height:100%; object-fit:contain; display:block;"
+                            >
+                        </div>
                         <div
                             id="avatarPlaceholder"
                             class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300"
@@ -78,7 +89,7 @@
                 </div>
             </div>
             <script>
-            window.previewAvatar = function(event) {
+           window.previewAvatar = function(event) {
                 const input = event.target;
                 if (!input.files || !input.files[0]) return;
                 const file = input.files[0];
@@ -86,15 +97,14 @@
                 if (!allowedTypes.includes(file.type)) return;
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const img = document.getElementById('avatarPreview');
+                    const wrapper     = document.getElementById('avatarWrapper');
+                    const img         = document.getElementById('avatarPreview');
                     const placeholder = document.getElementById('avatarPlaceholder');
-                    if (img) {
-                        img.src = e.target.result;
-                        img.style.display = 'block';
+                    if (img) img.src = e.target.result;
+                    if (wrapper) {
+                        wrapper.style.display = 'flex';  // wrapper dikhao
                     }
-                    if (placeholder) {
-                        placeholder.style.display = 'none';
-                    }
+                    if (placeholder) placeholder.style.display = 'none';
                 };
                 reader.readAsDataURL(file);
             };
