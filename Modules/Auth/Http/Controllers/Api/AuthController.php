@@ -313,16 +313,21 @@ class AuthController extends Controller
 
             // Everything went well, save changes permanently
             DB::commit();
-            if ($user->fcm_token) {
 
-                sendPushNotification(
-                    $user,
+
+            if ($user->fcm_token) {
+                $sent = send(
+                    $user->fcm_token,
                     'Welcome to OOHAPP🎉',
                     'Your registration was successful. Explore our app to find the best advertising solutions',
-                    [
-                        'type' => 'register'
-                    ]
+                    ['type' => 'welcome', 'user_id' => $user->id]
                 );
+
+
+                if (!$sent) {
+                    // Optional: Log or handle failure
+                    \Log::warning("FCM notification failed for user ID {$user->id}");
+                }
             }
 
             return response()->json([
