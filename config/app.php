@@ -14,6 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'firebase_credentials' => env('FIREBASE_CREDENTIALS'),
 
     /*
     |--------------------------------------------------------------------------
@@ -27,7 +28,7 @@ return [
     */
 
     'env' => env('APP_ENV', 'production'),
-    'firebase_credentials' => env('FIREBASE_CREDENTIALS'),
+
 
     /*
     |--------------------------------------------------------------------------

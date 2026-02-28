@@ -397,10 +397,12 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`/api/v1/admin/booking-payments/${paymentId}/mark-paid`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-                'Authorization': 'Bearer ' + localStorage.getItem('auth_token')
+                       'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': CSRF_TOKEN
+
             },
+            credentials: 'same-origin',
             body: JSON.stringify({
                 payout_mode: mode,
                 payout_reference: reference,

@@ -43,18 +43,20 @@
         <div class="grid md:grid-cols-4 gap-4 text-sm">
             <div>
                 <div class="flex items-center gap-3 mt-2">
-                    @if(auth()->user()->avatar)
-                        <img
-                            src="{{ route('view-avatar', auth()->user()->id) }}?t={{ time() }}"
-                            alt="Avatar"
-                            class="w-17 h-17 rounded-full object-cover border border-gray-300"
-                        >
+                   @if(auth()->user()->avatar)
+                        <div style="width:64px; height:64px; min-width:64px; border-radius:9999px; border:1px solid #d1d5db; overflow:hidden; background:#ffffff; display:flex; align-items:center; justify-content:center;">
+                            <img
+                                src="{{ route('view-avatar', auth()->user()->id) }}?t={{ time() }}"
+                                alt="Avatar"
+                                style="width:100%; height:100%; object-fit:contain; display:block;"
+                            >
+                        </div>
                         <form 
                             id="removeAvatarForm"
                             action="{{ route('vendor.profile.update') }}" 
                             method="POST" 
                             class="inline"
-                            >
+                        >
                             @csrf
                             @method('PUT')
                             <input type="hidden" name="section" value="remove-avatar">

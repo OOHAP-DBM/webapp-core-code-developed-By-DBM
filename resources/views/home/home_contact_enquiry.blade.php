@@ -64,10 +64,10 @@
                             </div>
                         </div>
                         <input type="hidden" id="phoneVerified" name="phone_verified" value="0">
-                        <p class="text-xs text-gray-500 mt-2">
+                        <!-- <p class="text-xs text-gray-500 mt-2">
                             <span class="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse mr-1"></span>
                             OTP will be sent automatically when you proceed
-                        </p>
+                        </p> -->
                     </div>
 
                     <!-- Email (No Verification Required) -->

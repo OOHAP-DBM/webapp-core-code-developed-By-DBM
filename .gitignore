@@ -27,3 +27,5 @@ error_log
 public/build.zip
 public/error_log
 /storage/api-docs/api-docs.json
+composer.lock
+vendor.zip

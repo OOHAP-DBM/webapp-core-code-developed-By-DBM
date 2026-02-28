@@ -37,7 +37,7 @@ class BulkImportApprovedForVendorNotification extends Notification implements Sh
     public function toMail($notifiable)
     {
         $subject = 'Your Bulk Import Batch has been Approved!';
-        $actionUrl = route('vendor.import.batches.show', $this->batch->id); // vendor route
+        $actionUrl = route('vendor.import.enhanced.batch.show', $this->batch->id);
 
         return (new MailMessage)
             ->subject($subject)
@@ -61,7 +61,7 @@ class BulkImportApprovedForVendorNotification extends Notification implements Sh
             'batch_id' => $this->batch->id,
             'created_count' => $this->createdCount,
             'failed_count' => $this->failedCount,
-            'action_url' => route('vendor.import.batches.show', $this->batch->id),
+            'action_url' => route('vendor.import.enhanced.batch.show', $this->batch->id),
         ];
     }
 }

@@ -14,6 +14,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Mail;
 use Modules\Enquiries\Models\DirectEnquiry;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Modules\POS\Models\PosCustomer;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -670,5 +671,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendVendorEmails($mailable)
     {
         \Mail::to($this->email)->send($mailable);
+    }
+
+        public function posProfile()
+    {
+        return $this->hasOne(PosCustomer::class, 'user_id');
     }
 }

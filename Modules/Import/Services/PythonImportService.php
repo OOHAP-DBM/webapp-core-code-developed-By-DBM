@@ -218,15 +218,48 @@ class PythonImportService
                 $rows = $data['data'];
             }
 
-            $imagesZipBase64 = $data['images_zip_base64']
-                ?? ($data['images']['zip_base64'] ?? null)
-                ?? ($data['data']['images_zip_base64'] ?? null)
-                ?? ($data['data']['images']['zip_base64'] ?? null);
+            $imagesZipBase64 = $this->findFirstValueByKeys($data, [
+                'images_zip_base64',
+                'imagesZipBase64',
+                'zip_base64',
+                'zipBase64',
+            ]);
 
-            $imagesZipUrl = $data['images_zip_url']
-                ?? ($data['images']['zip_url'] ?? null)
-                ?? ($data['data']['images_zip_url'] ?? null)
-                ?? ($data['data']['images']['zip_url'] ?? null);
+            $imagesZipDownloadUrl = $this->findFirstValueByKeys($data, [
+                'images_zip_download_url',
+                'imagesZipDownloadUrl',
+                'zip_download_url',
+                'zipDownloadUrl',
+            ]) ?? $this->findFirstStringValue($data, static function (string $value): bool {
+                return str_contains($value, '/download-images/');
+            });
+
+            $imagesZipUrl = $this->findFirstValueByKeys($data, [
+                'images_zip_url',
+                'imagesZipUrl',
+                'zip_url',
+                'zipUrl',
+            ]) ?? $imagesZipDownloadUrl;
+
+            $imagesZipFilename = $this->findFirstValueByKeys($data, [
+                'images_zip_filename',
+                'imagesZipFilename',
+                'zip_filename',
+                'zipFilename',
+            ]) ?? $this->findFirstStringValue($data, static function (string $value): bool {
+                return str_ends_with(strtolower($value), '.zip');
+            });
+
+            $imagesZipContentType = $this->findFirstValueByKeys($data, [
+                'images_zip_content_type',
+                'imagesZipContentType',
+                'zip_content_type',
+                'zipContentType',
+                'content_type',
+                'contentType',
+            ]) ?? $this->findFirstStringValue($data, static function (string $value): bool {
+                return strtolower($value) === 'application/zip';
+            });
 
             $normalizedRows = array_map(function ($row) {
                 $row = is_array($row) ? $row : [];
@@ -264,6 +297,9 @@ class PythonImportService
                 'errors' => $data['errors'] ?? [],
                 'images_zip_base64' => $imagesZipBase64,
                 'images_zip_url' => $imagesZipUrl,
+                'images_zip_download_url' => $imagesZipDownloadUrl,
+                'images_zip_filename' => $imagesZipFilename,
+                'images_zip_content_type' => $imagesZipContentType,
             ];
         } catch (\Illuminate\Http\Client\DecodeException $e) {
             throw ImportApiException::invalidResponse(
@@ -334,5 +370,57 @@ class PythonImportService
             'api_code' => $exception->getApiCode(),
             'response_data' => $exception->getResponseData(),
         ];
+    }
+
+    /**
+     * Find the first string value in a nested array tree that matches a predicate.
+     *
+     * @param array $data
+     * @param callable $predicate
+     * @return string|null
+     */
+    protected function findFirstStringValue(array $data, callable $predicate): ?string
+    {
+        foreach ($data as $value) {
+            if (is_string($value) && $predicate($value)) {
+                return $value;
+            }
+
+            if (is_array($value)) {
+                $match = $this->findFirstStringValue($value, $predicate);
+                if ($match !== null) {
+                    return $match;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Find the first scalar value by matching any key in a nested array tree.
+     *
+     * @param array $data
+     * @param array<int, string> $keys
+     * @return string|null
+     */
+    protected function findFirstValueByKeys(array $data, array $keys): ?string
+    {
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $data) && $data[$key] !== null && $data[$key] !== '') {
+                return is_scalar($data[$key]) ? (string) $data[$key] : null;
+            }
+        }
+
+        foreach ($data as $value) {
+            if (is_array($value)) {
+                $found = $this->findFirstValueByKeys($value, $keys);
+                if ($found !== null && $found !== '') {
+                    return $found;
+                }
+            }
+        }
+
+        return null;
     }
 }
