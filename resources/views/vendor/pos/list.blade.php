@@ -1,7 +1,6 @@
 @extends('layouts.vendor')
 
 @section('title', 'POS Bookings List')
-
 @section('content')
 <div class="px-6 py-6">
 
@@ -10,7 +9,7 @@
         {{-- Header --}}
         <div class="flex justify-between items-center px-6 py-4 bg-primary rounded-t-xl">
             <h4 class="text-lg font-semibold flex items-center gap-2">
-                📋 POS Bookings
+                 POS Bookings
             </h4>
 
             <a href="{{ route('vendor.pos.create') }}"
@@ -78,8 +77,8 @@
                         <tr>
                             <th class=" px-3 py-2">Invoice #</th>
                             <th class=" px-3 py-2">Customer</th>
-                            <th class=" px-3 py-2">Hoarding Ids</th>
-                            <th class=" px-3 py-2">Dates</th>
+                            <th class="text-center  px-3 py-2">Total Hoardings</th>
+                            <th class="px-3 py-2">Booking Date</th>
                             <th class=" px-3 py-2">Amount</th>
                             <th class=" px-3 py-2">Payment</th>
                             <th class=" px-3 py-2">Status</th>
@@ -148,7 +147,7 @@ function loadBookings(page = 1) {
     const paymentStatus = document.getElementById('filter-payment-status').value;
     const search = document.getElementById('search-box').value;
 
-    let url = `/vendor/pos/api/bookings?page=${page}&per_page=20`;
+    let url = `/vendor/pos/api/bookings?page=${page}&per_page=10`;
     if (status) url += `&status=${status}`;
     if (paymentStatus) url += `&payment_status=${paymentStatus}`;
     if (search) url += `&search=${search}`;
@@ -168,17 +167,11 @@ function loadBookings(page = 1) {
                         <strong>${booking.customer_name}</strong><br>
                         <span class="text-xs text-gray-500">${booking.customer_phone ?? '-'}</span>
                     </td>
-                    <td class=" px-3 py-2">
-                        ${booking.hoarding
-                            ? `<a href="/hoardings/${booking.hoarding.id}" target="_blank"
-                                 class="text-primary underline">${booking.hoarding.title}</a>`
-                            : 'N/A'}
+                    <td class=" px-3 py-2 text-center font-bold">
+                        ${Array.isArray(booking.booking_hoardings) ? booking.booking_hoardings.length : (Array.isArray(booking.bookingHoardings) ? booking.bookingHoardings.length : 0)}
                     </td>
                     <td class=" px-3 py-2">
-                        ${formatDateDDMMYYYY(booking.start_date)}<br>
-                        <span class="text-xs text-gray-500">
-                            to ${formatDateDDMMYYYY(booking.end_date)}
-                        </span>
+                        ${formatDateDDMMYYYY(booking.created_at)}<br>
                     </td>
                     <td class=" px-3 py-2 font-medium">
                         ₹${parseFloat(booking.total_amount).toLocaleString()}

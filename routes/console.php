@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schedule;
 use App\Jobs\CaptureExpiredHoldsJob;
 use App\Services\HoardingBookingService;
 use App\Services\SLATrackingService;
-
 use Modules\POS\Services\PosBookingService;
 use Modules\POS\Jobs\SendPosBookingWhatsappReminderJob;
 
@@ -176,3 +175,6 @@ Schedule::call(function () {
 ->name('pos-booking-whatsapp-reminders')
 ->withoutOverlapping(30)
 ->onOneServer();
+
+
+Schedule::command('pos:release-expired-bookings')->everyMinute();

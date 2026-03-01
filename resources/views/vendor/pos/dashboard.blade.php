@@ -1,7 +1,7 @@
 @extends('layouts.vendor')
 
 @section('title', 'POS Dashboard')
-
+@include('vendor.pos.components.pos-timer-notification')
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -14,7 +14,7 @@
     <!-- Header -->
     <div class="flex justify-between items-center">
         <div>
-            <h2 class="text-2xl font-bold text-[#1D1D1D]">Welcome,Vendor</h2>
+            <h2 class="text-2xl font-bold text-[#1D1D1D]">Welcome, {{ Auth::user()->name }}</h2>
             <p class="text-sm text-gray-500 font-medium">POS Dashboard</p>
         </div>
         <button class="bg-[#1D1D1D] text-white px-6 py-2 rounded shadow-sm text-sm font-medium">POS</button>
@@ -103,8 +103,8 @@
                     <tr>
                         <th class="px-4 py-3 text-left">Invoice</th>
                         <th class="px-4 py-3 text-left">Customer</th>
-                        <th class="px-4 py-3 text-left">Hoarding</th>
-                        <th class="px-4 py-3 text-left">Dates</th>
+                        <th class="px-4 py-3 text-left">Total Hoardings</th>
+                        <th class="px-4 py-3 text-left">Booking Date</th>
                         <th class="px-4 py-3 text-left">Amount</th>
                         <th class="px-4 py-3 text-left">Payment</th>
                         <th class="px-4 py-3 text-left">Status</th>
@@ -232,12 +232,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">${b.invoice_number || 'N/A'}</td>
                         <td class="px-4 py-3">${b.customer_name}</td>
-                    <td class="px-4 py-3">
-                        ${b.hoarding ? `<a class="text-blue-600 hover:underline" target="_blank" href="/hoardings/${b.hoarding.id}">${b.hoarding.title}</a>` : 'N/A'}
+                    <td class="px-4 py-3 font-bold text-gray-800">
+                        ${Array.isArray(b.hoardings) ? b.hoardings.length : (b.hoardings_count ?? 1)}
                     </td>
                     <td class="px-4 py-3">
-                        ${formatDateDDMMYYYY(b.start_date)} -
-                        ${formatDateDDMMYYYY(b.end_date)}
+                        ${formatDateDDMMYYYY(b.created_at)} 
                     </td>
                     <td class="px-4 py-3 font-medium">₹${parseFloat(b.total_amount).toLocaleString()}</td>
                     <td class="px-4 py-3">

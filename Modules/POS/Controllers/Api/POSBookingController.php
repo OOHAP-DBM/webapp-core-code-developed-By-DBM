@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 class POSBookingController extends Controller
 {
@@ -85,20 +86,28 @@ class POSBookingController extends Controller
 
             $bookingData = $booking->toArray();
             $bookingData['has_invoice'] = !empty($booking->invoice_path);
-            $bookingData['invoice_url'] = !empty($booking->invoice_path)
-                ? route('vendor.pos.bookings.invoice', ['id' => $booking->id])
-                : null;
+            $bookingData['invoice_url'] = null;
+
+            if (!empty($booking->invoice_path) && Route::has('vendor.pos.bookings.invoice')) {
+                $bookingData['invoice_url'] = route('vendor.pos.bookings.invoice', ['id' => $booking->id]);
+            }
 
             return response()->json([
                 'success' => true,
                 'data' => $bookingData,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Booking not found',
                 'error' => $e->getMessage(),
             ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch booking details',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 

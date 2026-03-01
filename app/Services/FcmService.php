@@ -2,52 +2,69 @@
 
 namespace App\Services;
 
-use Google\Auth\Credentials\ServiceAccountCredentials;
-use Illuminate\Support\Facades\Http;
+use Kreait\Firebase\Contract\Messaging;
+use Kreait\Firebase\Messaging\CloudMessage;
 
 class FcmService
 {
-    protected function getAccessToken()
+    protected Messaging $messaging;
+
+    public function __construct(Messaging $messaging)
     {
-        $credentialsPath = base_path(config('app.firebase_credentials'));
-
-        $credentials = new ServiceAccountCredentials(
-            ['https://www.googleapis.com/auth/firebase.messaging'],
-            $credentialsPath
-        );
-
-        $token = $credentials->fetchAuthToken();
-
-        return $token['access_token'] ?? null;
+        $this->messaging = $messaging;
     }
 
-    public function send($fcmToken, $title, $body, $data = [])
+    /**
+     * Send a notification to a single device token
+     */
+    public function sendToToken(string $token, string $title, string $body, array $data = [])
     {
-        if (!$fcmToken) {
-            return false;
-        }
+        $message = CloudMessage::fromArray([
+            'token' => $token,
+            'notification' => [
+                'title' => $title,
+                'body' => $body,
+            ],
+            'data' => $data,
+        ]);
 
-        $credentialsPath = base_path(config('app.firebase_credentials'));
-        $projectId = json_decode(file_get_contents($credentialsPath))->project_id;
+        return $this->messaging->send($message);
+    }
 
-        $accessToken = $this->getAccessToken();
-
-        if (!$accessToken) {
-            return false;
-        }
-
-        $response = Http::withToken($accessToken)
-            ->post("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send", [
-                "message" => [
-                    "token" => $fcmToken,
-                    "notification" => [
-                        "title" => $title,
-                        "body"  => $body,
-                    ],
-                    "data" => $data,
-                ]
+    /**
+     * Send a notification to multiple device tokens
+     */
+    public function sendToMultiple(array $tokens, string $title, string $body, array $data = [])
+    {
+        $messages = [];
+        foreach ($tokens as $token) {
+            $messages[] = CloudMessage::fromArray([
+                'token' => $token,
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body,
+                ],
+                'data' => $data,
             ]);
+        }
 
-        return $response->successful();
+        return $this->messaging->sendMulticast($messages);
+    }
+
+    /**
+     * Send a notification to a topic
+     */
+    public function sendToTopic(string $topic, string $title, string $body, array $data = [])
+    {
+        $message = CloudMessage::fromArray([
+            'topic' => $topic,
+            'notification' => [
+                'title' => $title,
+                'body' => $body,
+            ],
+            'data' => $data,
+        ]);
+
+        return $this->messaging->send($message);
     }
 }

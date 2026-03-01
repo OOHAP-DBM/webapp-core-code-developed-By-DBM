@@ -24,19 +24,20 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at?->toISOString(),
             'phone_verified_at' => $this->phone_verified_at?->toISOString(),
             // 'last_login_at' => $this->last_login_at?->toISOString(),
-            
+
             // Location fields
             'address' => $this->address,
             'city' => $this->city,
             'state' => $this->state,
             'country' => $this->country,
             'pincode' => $this->pincode,
-            
+
             // Roles and Permissions
             'roles' => $this->getRoleNames(),
             'permissions' => $this->getAllPermissions()->pluck('name'),
             'primary_role' => $this->active_role,
-            
+            'fcm_token' => $this->fcm_token,
+
             // Timestamps
             // 'created_at' => $this->created_at->toISOString(),
             // 'updated_at' => $this->updated_at->toISOString(),
