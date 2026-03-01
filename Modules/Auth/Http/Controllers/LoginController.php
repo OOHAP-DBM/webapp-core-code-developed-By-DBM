@@ -168,12 +168,14 @@ class LoginController extends Controller
      */
     public function logout(Request $request)
     {
+        $loggedOutAt = now();
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect()->route('login')
-            ->with('success', 'You have been logged out successfully.');
+            ->with('success', 'You have been logged out successfully at ' . $loggedOutAt->format('d/m/Y H:i:s'))
+            ->with('logout_time', $loggedOutAt->toISOString());
     }
 }

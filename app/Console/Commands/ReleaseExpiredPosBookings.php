@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Models\User;
+use App\Services\Whatsapp\TwilioWhatsappService;
 use Modules\POS\Models\POSBooking;
 use Illuminate\Support\Facades\Log;
 class ReleaseExpiredPosBookings extends Command
@@ -12,11 +14,30 @@ class ReleaseExpiredPosBookings extends Command
 
     public function handle(): void
     {
+        $now = now();
+        Log::info('POS hold expiry scan started', [
+            'ran_at' => $now->toDateTimeString(),
+        ]);
+
         $expired = POSBooking::where('payment_status', 'unpaid')
             ->whereIn('status', ['draft', 'pending_payment'])
             ->whereNotNull('hold_expiry_at')
-            ->where('hold_expiry_at', '<=', now())
+            ->where('hold_expiry_at', '<=', $now)
             ->get();
+
+        if ($expired->isEmpty()) {
+            Log::info('POS hold expiry scan completed with no expired bookings', [
+                'ran_at' => $now->toDateTimeString(),
+            ]);
+            $this->info('Released 0 expired POS bookings.');
+            return;
+        }
+
+        Log::info('POS hold expiry scan found expired bookings', [
+            'ran_at' => $now->toDateTimeString(),
+            'count' => $expired->count(),
+            'booking_ids' => $expired->pluck('id')->all(),
+        ]);
 
         foreach ($expired as $booking) {
             try {
@@ -45,14 +66,38 @@ class ReleaseExpiredPosBookings extends Command
 
                 // Optionally notify customer that hold expired
                 try {
+                    $notification = new \App\Notifications\PosBookingHoldExpiredNotification($booking);
+
                     if ($booking->customer_id) {
-                        $customer = \App\Models\User::find($booking->customer_id);
+                        $customer = User::find($booking->customer_id);
                         if ($customer && method_exists($customer, 'notify')) {
-                            $customer->notify(new \App\Notifications\PosBookingHoldExpiredNotification($booking));
+                            $customer->notify($notification);
                         }
                     }
+
+                    if ($booking->vendor_id) {
+                        $vendor = User::find($booking->vendor_id);
+                        if ($vendor && method_exists($vendor, 'notify')) {
+                            $vendor->notify($notification);
+                        }
+                    }
+
+                    $admins = User::whereHas('roles', function ($query) {
+                        $query->whereIn('name', ['admin', 'super_admin']);
+                    })->get();
+
+                    foreach ($admins as $admin) {
+                        if (method_exists($admin, 'notify')) {
+                            $admin->notify($notification);
+                        }
+                    }
+
+                    $this->sendHoldExpiryWhatsAppNotifications($booking);
                 } catch (\Throwable $e) {
-                    Log::warning('Hold expiry notification failed', ['booking_id' => $booking->id]);
+                    Log::warning('Hold expiry notification failed', [
+                        'booking_id' => $booking->id,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
 
             } catch (\Throwable $e) {
@@ -64,6 +109,90 @@ class ReleaseExpiredPosBookings extends Command
         }
 
         $this->info("Released {$expired->count()} expired POS bookings.");
+    }
+
+    protected function sendHoldExpiryWhatsAppNotifications(POSBooking $booking): void
+    {
+        try {
+            $whatsapp = app(TwilioWhatsappService::class);
+        } catch (\Throwable $e) {
+            Log::warning('Hold expiry WhatsApp service unavailable', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
+            return;
+        }
+
+        $vendor = $booking->vendor_id ? User::find($booking->vendor_id) : null;
+        $customer = $booking->customer_id ? User::find($booking->customer_id) : null;
+
+        $customerPhone = $this->normalizePhone($customer?->phone ?: $booking->customer_phone);
+        $vendorPhone = $this->normalizePhone($vendor?->phone);
+
+        if ($customerPhone && ($customer ? (bool) $customer->notification_whatsapp : true)) {
+            $sent = $whatsapp->send($customerPhone, $this->buildCustomerHoldExpiredMessage($booking, $vendor));
+            Log::info('Hold expiry WhatsApp attempted for customer', [
+                'booking_id' => $booking->id,
+                'phone' => $customerPhone,
+                'sent' => $sent,
+            ]);
+        }
+
+        if ($vendorPhone && ($vendor ? (bool) $vendor->notification_whatsapp : false)) {
+            $sent = $whatsapp->send($vendorPhone, $this->buildVendorHoldExpiredMessage($booking, $vendor));
+            Log::info('Hold expiry WhatsApp attempted for vendor', [
+                'booking_id' => $booking->id,
+                'phone' => $vendorPhone,
+                'sent' => $sent,
+            ]);
+        }
+    }
+
+    protected function buildCustomerHoldExpiredMessage(POSBooking $booking, ?User $vendor): string
+    {
+        $invoice = $booking->invoice_number ?: ('#' . $booking->id);
+        $vendorName = $vendor?->name ?? 'Vendor';
+        $amount = number_format((float) $booking->total_amount, 2);
+        $expiredAt = $booking->hold_expiry_at
+            ? $booking->hold_expiry_at->format('d M Y, h:i A')
+            : 'N/A';
+
+        return "Hello {$booking->customer_name},\n\n"
+            . "Your POS booking hold has expired due to pending payment and booking is now cancelled.\n\n"
+            . "Invoice: {$invoice}\n"
+            . "Amount: ₹{$amount}\n"
+            . "Expired At: {$expiredAt}\n"
+            . "Vendor: {$vendorName}\n\n"
+            . "Please create a new booking if you want to continue.";
+    }
+
+    protected function buildVendorHoldExpiredMessage(POSBooking $booking, ?User $vendor): string
+    {
+        $invoice = $booking->invoice_number ?: ('#' . $booking->id);
+        $vendorName = $vendor?->name ?? 'Vendor';
+        $amount = number_format((float) $booking->total_amount, 2);
+        $expiredAt = $booking->hold_expiry_at
+            ? $booking->hold_expiry_at->format('d M Y, h:i A')
+            : 'N/A';
+
+        return "Hello {$vendorName},\n\n"
+            . "A POS booking hold has expired and the booking was auto-cancelled.\n\n"
+            . "Booking ID: {$booking->id}\n"
+            . "Invoice: {$invoice}\n"
+            . "Customer: {$booking->customer_name}\n"
+            . "Amount: ₹{$amount}\n"
+            . "Expired At: {$expiredAt}\n\n"
+            . "Booking link: " . url('/vendor/pos/bookings/' . $booking->id);
+    }
+
+    protected function normalizePhone(?string $phone): ?string
+    {
+        if (!$phone) {
+            return null;
+        }
+
+        $normalized = preg_replace('/\D+/', '', $phone);
+        return $normalized !== '' ? $normalized : null;
     }
 
 }

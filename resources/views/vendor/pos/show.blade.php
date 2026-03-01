@@ -210,7 +210,7 @@ async function loadBookingDetails() {
                 <div><strong>Customer:</strong> ${b.customer_name}</div>
                 <div><strong>Phone:</strong> ${b.customer_phone || '-'}</div>
                 <div><strong>Booking Date:</strong>
-                    ${new Date(b.created_at).toLocaleDateString()} 
+                    ${new Date(b.created_at).toLocaleString()} 
                     
                 </div>
                 <div><strong>Notes:</strong> ${b.notes || '-'}</div>

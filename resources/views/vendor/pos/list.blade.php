@@ -127,8 +127,8 @@ const fetchJSON = async (url) => {
     return res.json();
 };
 
-// Helper: Format date to DD/MM/YYYY
-function formatDateDDMMYYYY(dateStr) {
+// Helper: Format date to DD/MM/YYYY HH:mm
+function formatDateTime(dateStr) {
     if (!dateStr) return 'N/A';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr;
@@ -136,8 +136,10 @@ function formatDateDDMMYYYY(dateStr) {
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
     
-    return `${day}/${month}/${year}`;
+    return `${day}/${month}/${year} ${hour}:${minute}`;
 }
 
 document.addEventListener('DOMContentLoaded', () => loadBookings());
@@ -171,7 +173,7 @@ function loadBookings(page = 1) {
                         ${Array.isArray(booking.booking_hoardings) ? booking.booking_hoardings.length : (Array.isArray(booking.bookingHoardings) ? booking.bookingHoardings.length : 0)}
                     </td>
                     <td class=" px-3 py-2">
-                        ${formatDateDDMMYYYY(booking.created_at)}<br>
+                        ${formatDateTime(booking.created_at)}
                     </td>
                     <td class=" px-3 py-2 font-medium">
                         ₹${parseFloat(booking.total_amount).toLocaleString()}

@@ -261,6 +261,9 @@ public function createBooking(array $data): POSBooking
             'customer_id'     => $data['customer_id'] ?? null,
             'customer_name'   => $data['customer_name'], // Required by DB
             'customer_phone'  => $data['customer_phone'], // Required by DB
+            'customer_email'  => $data['customer_email'] ?? null,
+            'customer_address'=> $data['customer_address'] ?? null,
+            'customer_gstin'  => $data['customer_gstin'] ?? null,
             'booking_type'    => $data['booking_type'] ?? 'ooh',
             'start_date'      => $start,
             'end_date'        => $end,
@@ -270,8 +273,12 @@ public function createBooking(array $data): POSBooking
             'tax_amount'      => $pricing['tax_amount'],
             'total_amount'    => $pricing['total_amount'],
             'payment_mode'    => $data['payment_mode'] ?? 'cash',
+            'payment_reference' => $data['payment_reference'] ?? null,
+            'payment_notes'   => $data['payment_notes'] ?? null,
+            'notes'           => $data['notes'] ?? null,
             'payment_status'  => 'unpaid',
             'status'          => 'pending_payment',
+            'hold_expiry_at'  => $data['hold_expiry_at'] ?? null,
         ];
 
         Log::info('POSBookingService creating booking record', ['vendor_id' => Auth::id(), 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id','start_date','end_date','total_amount']))]);

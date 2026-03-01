@@ -175,8 +175,8 @@ document.addEventListener('DOMContentLoaded', function () {
         return res.json();
     };
 
-    // Helper: Format date to DD/MM/YYYY
-    function formatDateDDMMYYYY(dateStr) {
+    // Helper: Format date to DD/MM/YYYY HH:mm
+    function formatDateTime(dateStr) {
         if (!dateStr) return 'N/A';
         const date = new Date(dateStr);
         if (isNaN(date.getTime())) return dateStr;
@@ -184,8 +184,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
+        const hour = String(date.getHours()).padStart(2, '0');
+        const minute = String(date.getMinutes()).padStart(2, '0');
         
-        return `${day}/${month}/${year}`;
+        return `${day}/${month}/${year} ${hour}:${minute}`;
     }
 
     // Load dashboard statistics
@@ -236,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${Array.isArray(b.hoardings) ? b.hoardings.length : (b.hoardings_count ?? 1)}
                     </td>
                     <td class="px-4 py-3">
-                        ${formatDateDDMMYYYY(b.created_at)} 
+                        ${formatDateTime(b.created_at)} 
                     </td>
                     <td class="px-4 py-3 font-medium">₹${parseFloat(b.total_amount).toLocaleString()}</td>
                     <td class="px-4 py-3">
