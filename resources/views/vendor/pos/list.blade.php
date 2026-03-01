@@ -1,4 +1,3 @@
-@include('vendor.pos.components.pos-timer-notification')
 @extends('layouts.vendor')
 
 @section('title', 'POS Bookings List')
@@ -78,7 +77,7 @@
                         <tr>
                             <th class=" px-3 py-2">Invoice #</th>
                             <th class=" px-3 py-2">Customer</th>
-                            <th class="text-center  px-3 py-2">Booked Hoardings</th>
+                            <th class="text-center  px-3 py-2">Total Hoardings</th>
                             <th class="px-3 py-2">Booking Date</th>
                             <th class=" px-3 py-2">Amount</th>
                             <th class=" px-3 py-2">Payment</th>
@@ -169,7 +168,7 @@ function loadBookings(page = 1) {
                         <span class="text-xs text-gray-500">${booking.customer_phone ?? '-'}</span>
                     </td>
                     <td class=" px-3 py-2 text-center font-bold">
-                        ${booking.bookingHoardings ? booking.bookingHoardings.length : 0}
+                        ${Array.isArray(booking.booking_hoardings) ? booking.booking_hoardings.length : (Array.isArray(booking.bookingHoardings) ? booking.bookingHoardings.length : 0)}
                     </td>
                     <td class=" px-3 py-2">
                         ${formatDateDDMMYYYY(booking.created_at)}<br>

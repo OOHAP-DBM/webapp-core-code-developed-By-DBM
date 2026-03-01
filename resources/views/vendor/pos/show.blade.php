@@ -1,4 +1,3 @@
-@include('vendor.pos.components.pos-timer-notification')
 @extends('layouts.vendor')
 
 @section('title', 'POS Booking Details')
@@ -24,7 +23,7 @@
             <div class="rounded-xl border bg-gray-50 p-5 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <p class="text-xs text-gray-500">Invoice</p>
-                    <h2 id="ui-invoice" class="text-lg font-semibold">—</h2>
+                    <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" class="pointer-events-none text-inherit">—</a></h2>
                     <a id="ui-invoice-link" href="#" target="_blank" class="hidden text-xs text-blue-600 hover:underline">View Invoice PDF</a>
                 </div>
 
@@ -171,12 +170,19 @@ async function loadBookingDetails() {
         const b = currentBooking;
 
         // 🔹 UI SUMMARY SYNC (NEW)
-        document.getElementById('ui-invoice').textContent = b.invoice_number || '—';
+        const invoiceNumberEl = document.getElementById('ui-invoice');
+        invoiceNumberEl.textContent = b.invoice_number || '—';
         const invoiceLink = document.getElementById('ui-invoice-link');
         if (b.invoice_url) {
+            invoiceNumberEl.href = b.invoice_url;
+            invoiceNumberEl.classList.remove('pointer-events-none');
+            invoiceNumberEl.classList.add('text-blue-600', 'hover:underline');
             invoiceLink.href = b.invoice_url;
             invoiceLink.classList.remove('hidden');
         } else {
+            invoiceNumberEl.href = '#';
+            invoiceNumberEl.classList.add('pointer-events-none');
+            invoiceNumberEl.classList.remove('text-blue-600', 'hover:underline');
             invoiceLink.href = '#';
             invoiceLink.classList.add('hidden');
         }
