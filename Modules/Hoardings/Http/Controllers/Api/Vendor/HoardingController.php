@@ -339,7 +339,6 @@ class HoardingController extends Controller
 
     public function getDrafts(Request $request): JsonResponse
     {
-        \Log::info('Fetching draft hoardings for vendor', ['user_id' => $request->user()->id]);
         $user = $request->user(); // authenticated via sanctum
 
         // Safety check (role-based access)
@@ -358,7 +357,7 @@ class HoardingController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Draft hoardings fetched.',
-            'data' => $drafts,
+            'data' => HoardingResource::collection($drafts)
         ]);
     }
 
