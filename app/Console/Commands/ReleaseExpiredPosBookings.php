@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use App\Models\User;
 use App\Services\Whatsapp\TwilioWhatsappService;
 use Modules\POS\Models\POSBooking;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 class ReleaseExpiredPosBookings extends Command
 {
@@ -153,9 +154,7 @@ class ReleaseExpiredPosBookings extends Command
         $invoice = $booking->invoice_number ?: ('#' . $booking->id);
         $vendorName = $vendor?->name ?? 'Vendor';
         $amount = number_format((float) $booking->total_amount, 2);
-        $expiredAt = $booking->hold_expiry_at
-            ? $booking->hold_expiry_at->format('d M Y, h:i A')
-            : 'N/A';
+        $expiredAt = $this->formatHoldExpiryAt($booking->hold_expiry_at);
 
         return "Hello {$booking->customer_name},\n\n"
             . "Your POS booking hold has expired due to pending payment and booking is now cancelled.\n\n"
@@ -171,9 +170,7 @@ class ReleaseExpiredPosBookings extends Command
         $invoice = $booking->invoice_number ?: ('#' . $booking->id);
         $vendorName = $vendor?->name ?? 'Vendor';
         $amount = number_format((float) $booking->total_amount, 2);
-        $expiredAt = $booking->hold_expiry_at
-            ? $booking->hold_expiry_at->format('d M Y, h:i A')
-            : 'N/A';
+        $expiredAt = $this->formatHoldExpiryAt($booking->hold_expiry_at);
 
         return "Hello {$vendorName},\n\n"
             . "A POS booking hold has expired and the booking was auto-cancelled.\n\n"
@@ -193,6 +190,23 @@ class ReleaseExpiredPosBookings extends Command
 
         $normalized = preg_replace('/\D+/', '', $phone);
         return $normalized !== '' ? $normalized : null;
+    }
+
+    protected function formatHoldExpiryAt($value): string
+    {
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('d M Y, h:i A');
+        }
+
+        if (is_string($value) && trim($value) !== '') {
+            try {
+                return Carbon::parse($value)->format('d M Y, h:i A');
+            } catch (\Throwable) {
+                return 'N/A';
+            }
+        }
+
+        return 'N/A';
     }
 
 }

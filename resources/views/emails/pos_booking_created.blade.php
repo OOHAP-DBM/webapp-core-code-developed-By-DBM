@@ -168,7 +168,7 @@
 </tr>
 
 <tr>
-    <td style="padding:10px; font-size:13px;"><strong>Payment Time</strong></td>
+    <td style="padding:10px; font-size:13px;"><strong>Pay Before</strong></td>
     <td style="padding:10px; font-size:13px;">
         @if(!empty($booking->hold_expiry_at))
             {{ \Carbon\Carbon::parse($booking->hold_expiry_at)->format('d M Y, h:i A') }}

@@ -26,7 +26,7 @@
 ### ✅ Test 2: HoardingBookingService
 ```
 ✓ Service instantiated successfully
-✓ Service class: App\Services\HoardingBookingService
+✓ Service class: Modules\Hoardings\Services\HoardingBookingService
 ✓ Method getHoardingDetails: YES
 ✓ Method getAvailablePackages: YES
 ✓ Method validateDateSelection: YES

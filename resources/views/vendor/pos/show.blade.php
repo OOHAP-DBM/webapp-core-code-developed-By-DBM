@@ -76,7 +76,9 @@
             <div>
                 <label class="block text-sm font-medium mb-1">Payment Amount *</label>
                 <input type="number" id="payment-amount"
+                       min="0.01" step="0.01"
                        class="w-full rounded-lg border border-gray-300 p-2">
+                <p id="payment-amount-help" class="text-xs text-gray-500 mt-1"></p>
             </div>
 
             <div>
@@ -327,8 +329,16 @@ function renderActionButtons(booking) {
 
 // Modal functions
 function openMarkPaidModal() {
+    const totalAmount = parseFloat(currentBooking?.total_amount || 0);
+    const paidAmount = parseFloat(currentBooking?.paid_amount || 0);
+    const payableAmount = Math.max(0, totalAmount - paidAmount);
+    const amountInput = document.getElementById('payment-amount');
+    const helpText = document.getElementById('payment-amount-help');
+
     document.getElementById('mark-paid-modal').classList.remove('hidden');
-    document.getElementById('payment-amount').value = currentBooking.total_amount;
+    amountInput.value = payableAmount.toFixed(2);
+    amountInput.max = payableAmount.toFixed(2);
+    helpText.textContent = `Maximum payable amount: ₹${payableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
     document.getElementById('payment-reference').value = '';
 }
 
@@ -349,11 +359,21 @@ function closeReleaseModal() {
  * Confirm and submit mark as paid
  */
 async function confirmMarkPaid() {
-    const amount = parseFloat(document.getElementById('payment-amount').value);
+    const amountInput = document.getElementById('payment-amount');
+    const amount = parseFloat(amountInput.value);
+    const totalAmount = parseFloat(currentBooking?.total_amount || 0);
+    const paidAmount = parseFloat(currentBooking?.paid_amount || 0);
+    const payableAmount = Math.max(0, totalAmount - paidAmount);
     const reference = document.getElementById('payment-reference').value;
 
     if (!amount || amount <= 0) {
         showActionMessage('Please enter a valid amount', 'error');
+        return;
+    }
+
+    if (amount > payableAmount) {
+        showActionMessage(`Amount cannot be greater than payable amount (₹${payableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })})`, 'error');
+        amountInput.focus();
         return;
     }
 
@@ -379,10 +399,19 @@ async function confirmMarkPaid() {
         });
 
         if (response.ok) {
+            const result = await response.json();
             showActionMessage('✅ Payment marked as received successfully!', 'success');
+            if (['partial', 'paid'].includes(result?.data?.payment_status)) {
+                if (typeof window.removePosTimerBooking === 'function') {
+                    window.removePosTimerBooking(bookingId);
+                } else if (typeof window.checkAndShowPosTimerNotification === 'function') {
+                    window.checkAndShowPosTimerNotification();
+                }
+            }
+
             closeMarkPaidModal();
             setTimeout(() => loadBookingDetails(), 1500);
-        } else if (response.status === 400) {
+        } else if (response.status === 400 || response.status === 422) {
             const error = await response.json();
             showActionMessage(error.message || 'Cannot mark as paid - invalid state', 'error');
         } else if (response.status === 404) {

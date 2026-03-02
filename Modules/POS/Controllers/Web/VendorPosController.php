@@ -1160,6 +1160,39 @@ public function createBooking(Request $request): JsonResponse
 
         // ── Notifications ─────────────────────────────────────────────
         try {
+
+        if ($this->posBookingService->isAutoInvoiceEnabled()) {
+            try {
+                /** @var \App\Services\InvoiceService $invoiceService */
+                $invoiceService = app(\App\Services\InvoiceService::class);
+
+                $invoice = $invoiceService->generateInvoiceForPOSBooking(
+                    $booking->fresh(['bookingHoardings.hoarding']),
+                    Auth::id()
+                );
+
+                $booking->update([
+                    'invoice_number' => $invoice->invoice_number,
+                    'invoice_date'   => $invoice->invoice_date,
+                    'invoice_path'   => $invoice->pdf_path,
+                ]);
+
+                Log::info('POS invoice generated (controller)', [
+                    'pos_booking_id' => $booking->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'grand_total'    => $invoice->grand_total,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to generate POS invoice', [
+                    'pos_booking_id' => $booking->id,
+                    'error'          => $e->getMessage(),
+                    'trace'          => $e->getTraceAsString(),
+                ]);
+                // Non-fatal — booking was created successfully
+            }
+        }
+
+
             $emailNotificationsEnabled = $this->posBookingService->isEmailNotificationEnabled();
             $customer = null;
 
@@ -1390,13 +1423,32 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     {
         try {
             $vendorId = Auth::id();
-            $perPage = (int) ($request->get('per_page') ?? 10);
+            $perPage = max(1, min((int) ($request->get('per_page') ?? 10), 100));
 
-            $bookings = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
+            $query = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
                 ->with('bookingHoardings')
-                ->orderBy('created_at', 'desc')
-                ->paginate($perPage);
-                \Log::info( $bookings->items());
+                ->orderBy('created_at', 'desc');
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->get('status'));
+            }
+
+            if ($request->filled('payment_status')) {
+                $query->where('payment_status', $request->get('payment_status'));
+            }
+
+            if ($request->filled('search')) {
+                $search = trim((string) $request->get('search'));
+                $query->where(function ($builder) use ($search) {
+                    $builder->where('invoice_number', 'like', "%{$search}%")
+                        ->orWhere('customer_name', 'like', "%{$search}%")
+                        ->orWhere('customer_phone', 'like', "%{$search}%")
+                        ->orWhere('customer_email', 'like', "%{$search}%");
+                });
+            }
+
+            $bookings = $query->paginate($perPage);
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -1421,21 +1473,49 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
      * Get bookings with active payment holds
      * Web endpoint: GET /vendor/pos/api/pending-payments
      */
-    public function getPendingPayments(): JsonResponse
+    public function getPendingPayments(Request $request): JsonResponse
     {
         try {
             $vendorId = Auth::id();
 
-            // Get bookings with unpaid/partial payments
-            $pendingPayments = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
+            $query = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
                 ->whereIn('payment_status', ['unpaid', 'partial'])
                 ->with('bookingHoardings.hoarding')
-                ->orderBy('created_at', 'asc')
-                ->get();
+                ->orderBy('created_at', 'asc');
+
+            $search = trim((string) $request->get('search', ''));
+            if ($search !== '') {
+                $query->where(function ($builder) use ($search) {
+                    $builder->where('invoice_number', 'like', "%{$search}%")
+                        ->orWhere('customer_name', 'like', "%{$search}%")
+                        ->orWhere('customer_phone', 'like', "%{$search}%")
+                        ->orWhere('customer_email', 'like', "%{$search}%");
+                });
+            }
+
+            $shouldPaginate = $request->has('page') || $request->has('per_page') || $search !== '';
+
+            if (!$shouldPaginate) {
+                $pendingPayments = $query->get();
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $pendingPayments,
+                ]);
+            }
+
+            $perPage = max(1, min((int) $request->get('per_page', 10), 100));
+            $pendingPayments = $query->paginate($perPage);
 
             return response()->json([
                 'success' => true,
-                'data' => $pendingPayments,
+                'data' => $pendingPayments->items(),
+                'pagination' => [
+                    'current_page' => $pendingPayments->currentPage(),
+                    'per_page' => $pendingPayments->perPage(),
+                    'total' => $pendingPayments->total(),
+                    'last_page' => $pendingPayments->lastPage(),
+                ],
             ]);
         } catch (\Exception $e) {
             Log::error('Error fetching pending payments', ['error' => $e->getMessage()]);

@@ -63,7 +63,7 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <button onclick="loadBookings()"
+                    <button onclick="loadPosBookings()"
                         class="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition">
                         Filter
                     </button>
@@ -142,17 +142,41 @@ function formatDateTime(dateStr) {
     return `${day}/${month}/${year} ${hour}:${minute}`;
 }
 
-document.addEventListener('DOMContentLoaded', () => loadBookings());
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search-box');
+    const statusSelect = document.getElementById('filter-status');
+    const paymentStatusSelect = document.getElementById('filter-payment-status');
 
-function loadBookings(page = 1) {
+    if (statusSelect) {
+        statusSelect.addEventListener('change', () => loadPosBookings(1));
+    }
+
+    if (paymentStatusSelect) {
+        paymentStatusSelect.addEventListener('change', () => loadPosBookings(1));
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                loadPosBookings(1);
+            }
+        });
+    }
+
+    loadPosBookings();
+});
+
+function loadPosBookings(page = 1) {
+    currentPage = page;
     const status = document.getElementById('filter-status').value;
     const paymentStatus = document.getElementById('filter-payment-status').value;
-    const search = document.getElementById('search-box').value;
+    const search = (document.getElementById('search-box').value || '').trim();
 
     let url = `/vendor/pos/api/bookings?page=${page}&per_page=10`;
     if (status) url += `&status=${status}`;
     if (paymentStatus) url += `&payment_status=${paymentStatus}`;
-    if (search) url += `&search=${search}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
 
     fetchJSON(url)
         .then(data => {
@@ -217,7 +241,7 @@ function loadBookings(page = 1) {
                 </tr>`;
             });
 
-            renderPagination(data.data);
+            renderPosPagination(data.data);
         } else {
             tbody.innerHTML = `
                 <tr>
@@ -238,12 +262,12 @@ function loadBookings(page = 1) {
         });
 }
 
-function renderPagination(pagination) {
+function renderPosPagination(pagination) {
     let html = '<div class="flex justify-center gap-2">';
 
     for (let i = 1; i <= pagination.last_page; i++) {
         html += `
-            <button onclick="loadBookings(${i})"
+            <button onclick="loadPosBookings(${i})"
                 class="px-3 py-1 rounded border text-sm
                 ${i === pagination.current_page
                     ? 'bg-primary'
@@ -255,6 +279,9 @@ function renderPagination(pagination) {
     html += '</div>';
     document.getElementById('pagination-container').innerHTML = html;
 }
+
+window.loadPosBookings = loadPosBookings;
+window.loadBookings = loadPosBookings;
 
 function getStatusColor(status) {
     return {

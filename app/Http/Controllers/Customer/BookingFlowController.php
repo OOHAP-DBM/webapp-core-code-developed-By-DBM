@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
-use App\Services\HoardingBookingService;
+use Modules\Hoardings\Services\HoardingBookingService;
 use App\Services\PaymentService;
 use App\Models\BookingDraft;
 use App\Models\Booking;

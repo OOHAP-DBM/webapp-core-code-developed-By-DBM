@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Carbon;
 use Modules\POS\Models\POSBooking;
 
 class PosBookingHoldExpiredNotification extends Notification implements ShouldQueue
@@ -29,8 +30,9 @@ class PosBookingHoldExpiredNotification extends Notification implements ShouldQu
 
     public function toMail($notifiable): MailMessage
     {
-        $holdExpiredAt = $this->booking->hold_expiry_at
-            ? $this->booking->hold_expiry_at->format('d M Y, h:i A')
+        $holdExpiryAt = $this->resolveHoldExpiryAt();
+        $holdExpiredAt = $holdExpiryAt
+            ? $holdExpiryAt->format('d M Y, h:i A')
             : 'N/A';
 
         $isCustomer = (int) ($notifiable->id ?? 0) === (int) $this->booking->customer_id;
@@ -54,6 +56,8 @@ class PosBookingHoldExpiredNotification extends Notification implements ShouldQu
 
     public function toArray($notifiable): array
     {
+        $holdExpiryAt = $this->resolveHoldExpiryAt();
+
         return [
             'type' => 'pos_booking_hold_expired',
             'booking_id' => $this->booking->id,
@@ -62,14 +66,47 @@ class PosBookingHoldExpiredNotification extends Notification implements ShouldQu
             'payment_status' => $this->booking->payment_status,
             'total_amount' => (float) $this->booking->total_amount,
             'payment_mode' => $this->booking->payment_mode,
-            'hold_expiry_at' => $this->booking->hold_expiry_at?->toIso8601String(),
+            'hold_expiry_at' => $holdExpiryAt?->toIso8601String(),
             'message' => 'Your POS booking hold expired and the booking was automatically cancelled.',
             'url' => $this->resolveActionUrl($notifiable),
         ];
     }
 
+    protected function resolveHoldExpiryAt(): ?Carbon
+    {
+        $value = $this->booking->hold_expiry_at;
+
+        if ($value instanceof Carbon) {
+            return $value;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return Carbon::instance($value);
+        }
+
+        if (is_string($value) && trim($value) !== '') {
+            try {
+                return Carbon::parse($value);
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
     protected function resolveActionUrl($notifiable): string
     {
+        $notifiableId = (int) ($notifiable->id ?? 0);
+
+        if ($notifiableId > 0 && $notifiableId === (int) $this->booking->customer_id) {
+            return url('/customer/bookings/' . $this->booking->id);
+        }
+
+        if ($notifiableId > 0 && $notifiableId === (int) $this->booking->vendor_id) {
+            return url('/vendor/pos/bookings/' . $this->booking->id);
+        }
+
         if (method_exists($notifiable, 'hasRole')) {
             if ($notifiable->hasRole('vendor')) {
                 return url('/vendor/pos/bookings/' . $this->booking->id);

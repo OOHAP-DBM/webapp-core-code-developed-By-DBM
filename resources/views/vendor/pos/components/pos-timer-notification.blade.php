@@ -203,6 +203,11 @@
         renderTimers(current);
     };
 
+    window.removePosTimerBooking = function(bookingId) {
+        if (!bookingId) return;
+        removeTimer(bookingId);
+    };
+
     window.renderPosTimerNotification = function(booking) {
         window.upsertPosTimerBooking(booking);
     };
