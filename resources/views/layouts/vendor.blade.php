@@ -50,7 +50,8 @@
     </div>
 
     @stack('modals')
-    <style>
+    @include('vendor.pos.components.pos-timer-notification')
+    <style> 
     @media (max-width: 1023px) {
         #vendor-sidebar {
             position: fixed;

@@ -587,6 +587,9 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Logged out successfully',
+            'data' => [
+                'logged_out_at' => now()->toISOString(),
+            ],
         ]);
     }
 

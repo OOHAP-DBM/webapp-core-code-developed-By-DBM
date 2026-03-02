@@ -34,7 +34,7 @@ echo PHP_EOL;
 echo "Test 2: HoardingBookingService" . PHP_EOL;
 echo "-------------------------------" . PHP_EOL;
 try {
-    $service = app('App\Services\HoardingBookingService');
+    $service = app('Modules\Hoardings\Services\HoardingBookingService');
     echo "✓ Service instantiated successfully" . PHP_EOL;
     echo "✓ Service class: " . get_class($service) . PHP_EOL;
     

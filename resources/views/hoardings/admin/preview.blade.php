@@ -463,7 +463,7 @@
                             @if($hoarding->nagar_nigam_approved)
                                 <span class="text-green-600 font-semibold">✓ Approved</span>
                             @else
-                                <span class="text-red-600 font-semibold">✗ Not Approved</span>
+                                <span class="text-red-600 font-semibold">-</span>
                             @endif
                         </p>
                     </div>

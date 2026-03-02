@@ -6,7 +6,7 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Hoarding;
 use App\Models\BookingDraft;
-use App\Services\HoardingBookingService;
+use Modules\Hoardings\Services\HoardingBookingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 

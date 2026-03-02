@@ -6,6 +6,7 @@ use App\Models\Hoarding;
 use App\Models\Booking;
 use App\Models\BookingDraft;
 use App\Models\User;
+use Modules\POS\Models\POSBookingHoarding;
 use Modules\DOOH\Models\DOOHPackage;
 use Modules\Settings\Services\SettingsService;
 use Carbon\Carbon;
@@ -586,6 +587,61 @@ class HoardingBookingService
     public function cleanupExpiredDrafts(): int
     {
         return BookingDraft::expired()->delete();
+    }
+
+    /**
+     * Confirm inventory for a POS booking line item.
+     * Uses booking concept (date overlap validation + confirmed row state),
+     * and intentionally does not use hoarding hold flags.
+     */
+    public function confirmInventoryForPosBookingHoarding(POSBookingHoarding $posBookingHoarding): void
+    {
+        $startDate = Carbon::parse($posBookingHoarding->start_date)->startOfDay();
+        $endDate = Carbon::parse($posBookingHoarding->end_date)->endOfDay();
+
+        $hasRegularConflict = Booking::where('hoarding_id', $posBookingHoarding->hoarding_id)
+            ->whereIn('status', [
+                Booking::STATUS_CONFIRMED,
+                Booking::STATUS_PAYMENT_HOLD,
+                Booking::STATUS_PENDING_PAYMENT_HOLD,
+            ])
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('start_date', [$startDate, $endDate])
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('start_date', '<=', $startDate)
+                            ->where('end_date', '>=', $endDate);
+                    });
+            })
+            ->exists();
+
+        if ($hasRegularConflict) {
+            throw new Exception('Hoarding inventory conflict detected with an existing booking.');
+        }
+
+        $hasPosConflict = POSBookingHoarding::where('hoarding_id', $posBookingHoarding->hoarding_id)
+            ->where('pos_booking_id', '!=', $posBookingHoarding->pos_booking_id)
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('start_date', [$startDate, $endDate])
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('start_date', '<=', $startDate)
+                            ->where('end_date', '>=', $endDate);
+                    });
+            })
+            ->whereHas('posBooking', function ($query) {
+                $query->whereIn('status', ['confirmed', 'active'])
+                    ->whereIn('payment_status', ['partial', 'paid']);
+            })
+            ->exists();
+
+        if ($hasPosConflict) {
+            throw new Exception('Hoarding inventory conflict detected with another POS booking.');
+        }
+
+        if ($posBookingHoarding->status !== 'confirmed') {
+            $posBookingHoarding->update(['status' => 'confirmed']);
+        }
     }
 
     /**

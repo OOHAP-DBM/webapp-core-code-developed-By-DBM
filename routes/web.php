@@ -748,6 +748,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::get('/bookings/{id}', function ($bookingId) {
                 return view('vendor.pos.show', compact('bookingId'));
             })->name('bookings.show');
+                Route::get('/bookings/{id}/invoice', [\Modules\POS\Controllers\Web\VendorPosController::class, 'viewInvoice'])
+                    ->name('bookings.invoice');
         });
 
         // Reports
