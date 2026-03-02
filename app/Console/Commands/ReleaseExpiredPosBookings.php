@@ -16,10 +16,6 @@ class ReleaseExpiredPosBookings extends Command
     public function handle(): void
     {
         $now = now();
-        Log::info('POS hold expiry scan started', [
-            'ran_at' => $now->toDateTimeString(),
-        ]);
-
         $expired = POSBooking::where('payment_status', 'unpaid')
             ->whereIn('status', ['draft', 'pending_payment'])
             ->whereNotNull('hold_expiry_at')
@@ -131,25 +127,29 @@ class ReleaseExpiredPosBookings extends Command
         $vendorPhone = $this->normalizePhone($vendor?->phone);
 
         if ($customerPhone && ($customer ? (bool) $customer->notification_whatsapp : true)) {
-            $sent = $whatsapp->send($customerPhone, $this->buildCustomerHoldExpiredMessage($booking, $vendor));
+            $customerActionUrl = url('/customer/pos/bookings/' . $booking->id);
+            $sent = $whatsapp->send($customerPhone, $this->buildCustomerHoldExpiredMessage($booking, $vendor, $customerActionUrl));
             Log::info('Hold expiry WhatsApp attempted for customer', [
                 'booking_id' => $booking->id,
                 'phone' => $customerPhone,
                 'sent' => $sent,
+                'action_url' => $customerActionUrl,
             ]);
         }
 
         if ($vendorPhone && ($vendor ? (bool) $vendor->notification_whatsapp : false)) {
-            $sent = $whatsapp->send($vendorPhone, $this->buildVendorHoldExpiredMessage($booking, $vendor));
+            $vendorActionUrl = url('/vendor/pos/bookings/' . $booking->id);
+            $sent = $whatsapp->send($vendorPhone, $this->buildVendorHoldExpiredMessage($booking, $vendor, $vendorActionUrl));
             Log::info('Hold expiry WhatsApp attempted for vendor', [
                 'booking_id' => $booking->id,
                 'phone' => $vendorPhone,
                 'sent' => $sent,
+                'action_url' => $vendorActionUrl,
             ]);
         }
     }
 
-    protected function buildCustomerHoldExpiredMessage(POSBooking $booking, ?User $vendor): string
+    protected function buildCustomerHoldExpiredMessage(POSBooking $booking, ?User $vendor, string $actionUrl): string
     {
         $invoice = $booking->invoice_number ?: ('#' . $booking->id);
         $vendorName = $vendor?->name ?? 'Vendor';
@@ -162,10 +162,11 @@ class ReleaseExpiredPosBookings extends Command
             . "Amount: ₹{$amount}\n"
             . "Expired At: {$expiredAt}\n"
             . "Vendor: {$vendorName}\n\n"
+            . "Booking link: {$actionUrl}\n"
             . "Please create a new booking if you want to continue.";
     }
 
-    protected function buildVendorHoldExpiredMessage(POSBooking $booking, ?User $vendor): string
+    protected function buildVendorHoldExpiredMessage(POSBooking $booking, ?User $vendor, string $actionUrl): string
     {
         $invoice = $booking->invoice_number ?: ('#' . $booking->id);
         $vendorName = $vendor?->name ?? 'Vendor';
@@ -179,7 +180,7 @@ class ReleaseExpiredPosBookings extends Command
             . "Customer: {$booking->customer_name}\n"
             . "Amount: ₹{$amount}\n"
             . "Expired At: {$expiredAt}\n\n"
-            . "Booking link: " . url('/vendor/pos/bookings/' . $booking->id);
+            . "Booking link: {$actionUrl}";
     }
 
     protected function normalizePhone(?string $phone): ?string

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Vendor;
+namespace App\Http\Controllers\Api\Vendor;
 
 use App\Models\VendorEmail;
 use App\Services\EmailVerificationService;
