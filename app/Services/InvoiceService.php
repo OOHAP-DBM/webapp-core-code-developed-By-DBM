@@ -153,12 +153,12 @@ class InvoiceService
                 // Buyer
                 'customer_id'        => $customer?->id,
                 'buyer_name'         => $customer?->company_name
-                                        ?? $customer?->name
-                                        ?? $posBooking->customer_name,
+                    ?? $customer?->name
+                    ?? $posBooking->customer_name,
                 'buyer_gstin'        => $customer?->gstin ?? $posBooking->customer_gstin,
                 'buyer_address'      => $customer?->billing_address
-                                        ?? $customer?->address
-                                        ?? $posBooking->customer_address,
+                    ?? $customer?->address
+                    ?? $posBooking->customer_address,
                 'buyer_city'         => $customer?->billing_city ?? $customer?->city,
                 'buyer_state'        => $customer?->billing_state ?? $companySettings['state'],
                 'buyer_state_code'   => $customer?->billing_state_code ?? $companySettings['state_code'],
@@ -213,7 +213,7 @@ class InvoiceService
      * @param  \DateTime|null                  $paidAt
      * @return Invoice|null
      */
-     public function syncPaymentStatusFromPOSBooking(
+    public function syncPaymentStatusFromPOSBooking(
         \Modules\POS\Models\POSBooking $posBooking,
         float $paidAmount,
         ?\DateTime $paidAt = null
@@ -292,7 +292,7 @@ class InvoiceService
     //      base amount stored by the controller. Use it directly.
     // ─────────────────────────────────────────────────────────────────────────
 
-   
+
     protected function addPOSInvoiceItems(
         Invoice $invoice,
         \Modules\POS\Models\POSBooking $posBooking,
@@ -337,10 +337,10 @@ class InvoiceService
 
             $description = $hoarding
                 ? sprintf(
-                    'Outdoor Advertising — %s (%s to %s)',
+                    // 'Outdoor Advertising — %s (%s to %s)',
                     $hoarding->title,
-                    $fmt($bookingHoarding->start_date),
-                    $fmt($bookingHoarding->end_date)
+                    // $fmt($bookingHoarding->start_date),
+                    // $fmt($bookingHoarding->end_date)
                 )
                 : 'Hoarding Advertisement';
 
@@ -560,14 +560,12 @@ class InvoiceService
             'state_code'          => Setting::get('company_state_code', '27'),
             'pincode'             => Setting::get('company_pincode', '400001'),
             'pan'                 => Setting::get('company_pan', null),
-            'invoice_terms'       => Setting::get('invoice_terms_conditions',
-                "1. Payment is due within 30 days.\n2. Please quote invoice number in all correspondence.\n3. Subject to Mumbai jurisdiction only."),
+            'invoice_terms'       => Setting::get(
+                'invoice_terms_conditions',
+                "1. Payment is due within 30 days.\n2. Please quote invoice number in all correspondence.\n3. Subject to Mumbai jurisdiction only."
+            ),
             'payment_terms_text'  => Setting::get('invoice_payment_terms', 'Net 30 Days'),
             'payment_terms_days'  => (int) Setting::get('invoice_payment_days', 30),
         ];
     }
-
-
-
-    
 }
