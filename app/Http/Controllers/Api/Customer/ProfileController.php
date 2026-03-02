@@ -148,6 +148,15 @@ class ProfileController extends Controller
 
 
         $user->update($data);
+        // ✅ Push Notification (Clean call)
+        send(
+            $user,
+            'Profile Updated Successfully',
+            'Your profile details have been updated successfully.',
+            [
+                'type' => 'profile_update'
+            ]
+        );
 
         return response()->json([
             'success' => true,

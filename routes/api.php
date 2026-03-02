@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\Vendor\DashboardController;
 use App\Http\Controllers\Api\Customer\CustomerHomeController;
 use Modules\Enquiries\Controllers\Api\DirectEnquiryApiController;
 use App\Http\Controllers\Api\AccountController;
+use App\Http\Controllers\Api\EmailSettingController;
+
 /**
  * OOHAPP API v1 Routes
  * 
@@ -81,7 +83,13 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     Route::prefix('vendor/pos')->group(base_path('routes/api_v1/pos.php')); // POS Module
     Route::prefix('pages')->group(base_path('routes/api_v1/cms.php')); // CMS Module
 
-
+    Route::middleware('auth:sanctum')->prefix('/email-settings')->group(function () {
+        Route::get('/',                     [EmailSettingController::class, 'index']);
+        Route::post('/send-verification',   [EmailSettingController::class, 'sendVerification']);
+        Route::post('/verify-otp',          [EmailSettingController::class, 'verifyOtp']);
+        Route::put('/',                     [EmailSettingController::class, 'update']);
+        Route::delete('/email',             [EmailSettingController::class, 'deleteEmail']);
+    });
 
     
     // Thread Communication System (PROMPT 28)
@@ -116,3 +124,6 @@ Route::middleware(['auth:sanctum', 'throttle:authenticated'])->prefix('account')
         Route::post('/delete/verify-otp', [AccountController::class, 'verifyDeleteOtp']);
         Route::delete('/delete', [AccountController::class, 'deleteAccount']);
 });
+
+
+

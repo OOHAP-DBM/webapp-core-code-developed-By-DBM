@@ -51,7 +51,7 @@ class PosBookingConfirmedNotification extends Notification implements ShouldQueu
             'total_amount' => (float) $this->booking->total_amount,
             'paid_amount' => (float) ($this->booking->paid_amount ?? 0),
             'message' => 'Payment received. POS booking has been confirmed.',
-            'url' => $this->resolveActionUrl($notifiable),
+            'action_url' => $this->resolveActionUrl($notifiable),
         ];
     }
 

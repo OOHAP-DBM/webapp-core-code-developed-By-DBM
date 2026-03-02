@@ -75,12 +75,12 @@ class POSBookingController extends Controller
     }
 
     /**
-     * Get single booking details
+     * Get single booking details this is also being used in web view, so it has some additional data formatting for invoice URL and hoarding details
      */
     public function show(int $id): JsonResponse
     {
         try {
-            $booking = POSBooking::with(['hoarding', 'customer', 'vendor', 'approver'])
+            $booking = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver'])
                 ->forVendor(Auth::id())
                 ->findOrFail($id);
 
@@ -90,6 +90,33 @@ class POSBookingController extends Controller
 
             if (!empty($booking->invoice_path) && Route::has('vendor.pos.bookings.invoice')) {
                 $bookingData['invoice_url'] = route('vendor.pos.bookings.invoice', ['id' => $booking->id]);
+            }
+
+            // Add all booked hoardings and their campaign durations
+            $bookingData['hoardings'] = [];
+            foreach ($booking->bookingHoardings as $bh) {
+                $hoarding = $bh->hoarding;
+                $bookingData['hoardings'][] = [
+                    'id' => $hoarding->id ?? null,
+                    'title' => $hoarding->title ?? null,
+                    'location_address' => $hoarding->location_address ?? null,
+                    'location_city' => $hoarding->location_city ?? null,
+                    'location_state' => $hoarding->location_state ?? null,
+                    'size' => $hoarding->size ?? null,
+                    'type' => $hoarding->type ?? null,
+                    'price_per_month' => $hoarding->price_per_month ?? null,
+                    'price_per_sqft' => $hoarding->price_per_sqft ?? null,
+                    'status' => $hoarding->status ?? null,
+                    'campaign_start_date' => $bh->start_date ? \Carbon\Carbon::parse($bh->start_date)->toDateString() : null,
+                    'campaign_end_date' => $bh->end_date ? \Carbon\Carbon::parse($bh->end_date)->toDateString() : null,
+                    'campaign_duration_days' => ($bh->start_date && $bh->end_date) ? (\Carbon\Carbon::parse($bh->start_date)->diffInDays(\Carbon\Carbon::parse($bh->end_date)) + 1) : null,
+                    'image_url' => $hoarding->heroImage(),
+                    'hoarding_price' => $bh->hoarding_price,
+                    'hoarding_discount' => $bh->hoarding_discount,
+                    'hoarding_tax' => $bh->hoarding_tax,
+                    'hoarding_total' => $bh->hoarding_total,
+                    'pivot_status' => $bh->status,
+                ];
             }
 
             return response()->json([

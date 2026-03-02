@@ -6,7 +6,7 @@ use Modules\Events\PosBookingCreated;
 use App\Models\User;
 use App\Notifications\AdminPosBookingNotification;
 use App\Notifications\VendorPosBookingNotification;
-use App\Notifications\CustomerPosBookingEmailNotification;
+use Modules\POS\Email\CustomerPosBookingEmailNotification;
 use App\Services\TwilioWhatsappService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
