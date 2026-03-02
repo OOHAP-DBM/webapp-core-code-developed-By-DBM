@@ -22,13 +22,13 @@
             <!-- Booking Summary -->
             <div class="rounded-xl border bg-gray-50 p-5 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <p class="text-xs text-gray-500">Invoice</p>
+                    <p class="text-sm text-gray-500">Invoice</p>
                     <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" class="pointer-events-none text-inherit">—</a></h2>
                     <a id="ui-invoice-link" href="#" target="_blank" class="hidden text-xs text-blue-600 hover:underline">View Invoice PDF</a>
                 </div>
 
                 <div>
-                    <p class="text-xs text-gray-500">Booking Status</p>
+                    <p class="text-sm text-gray-500">Booking Status</p>
                     <span id="ui-booking-status"
                           class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-300">
                         —
@@ -36,7 +36,7 @@
                 </div>
 
                 <div>
-                    <p class="text-xs text-gray-500">Payment Status</p>
+                    <p class="text-sm text-gray-500">Payment Status</p>
                     <span id="ui-payment-status"
                           class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-300">
                         —
@@ -44,7 +44,7 @@
                 </div>
 
                 <div class="text-right">
-                    <p class="text-xs text-gray-500">Total Amount</p>
+                    <p class="text-sm text-gray-500">Total Amount</p>
                     <p id="ui-total" class="text-2xl font-bold text-gray-900">₹0.00</p>
                 </div>
             </div>
