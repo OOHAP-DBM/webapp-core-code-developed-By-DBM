@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 class POSBookingController extends Controller
 {
@@ -74,31 +75,66 @@ class POSBookingController extends Controller
     }
 
     /**
-     * Get single booking details
+     * Get single booking details this is also being used in web view, so it has some additional data formatting for invoice URL and hoarding details
      */
     public function show(int $id): JsonResponse
     {
         try {
-            $booking = POSBooking::with(['hoarding', 'customer', 'vendor', 'approver'])
+            $booking = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver'])
                 ->forVendor(Auth::id())
                 ->findOrFail($id);
 
             $bookingData = $booking->toArray();
             $bookingData['has_invoice'] = !empty($booking->invoice_path);
-            $bookingData['invoice_url'] = !empty($booking->invoice_path)
-                ? route('vendor.pos.bookings.invoice', ['id' => $booking->id])
-                : null;
+            $bookingData['invoice_url'] = null;
+
+            if (!empty($booking->invoice_path) && Route::has('vendor.pos.bookings.invoice')) {
+                $bookingData['invoice_url'] = route('vendor.pos.bookings.invoice', ['id' => $booking->id]);
+            }
+
+            // Add all booked hoardings and their campaign durations
+            $bookingData['hoardings'] = [];
+            foreach ($booking->bookingHoardings as $bh) {
+                $hoarding = $bh->hoarding;
+                $bookingData['hoardings'][] = [
+                    'id' => $hoarding->id ?? null,
+                    'title' => $hoarding->title ?? null,
+                    'location_address' => $hoarding->location_address ?? null,
+                    'location_city' => $hoarding->location_city ?? null,
+                    'location_state' => $hoarding->location_state ?? null,
+                    'size' => $hoarding->size ?? null,
+                    'type' => $hoarding->type ?? null,
+                    'price_per_month' => $hoarding->price_per_month ?? null,
+                    'price_per_sqft' => $hoarding->price_per_sqft ?? null,
+                    'status' => $hoarding->status ?? null,
+                    'campaign_start_date' => $bh->start_date ? \Carbon\Carbon::parse($bh->start_date)->toDateString() : null,
+                    'campaign_end_date' => $bh->end_date ? \Carbon\Carbon::parse($bh->end_date)->toDateString() : null,
+                    'campaign_duration_days' => ($bh->start_date && $bh->end_date) ? (\Carbon\Carbon::parse($bh->start_date)->diffInDays(\Carbon\Carbon::parse($bh->end_date)) + 1) : null,
+                    'image_url' => $hoarding->heroImage(),
+                    'hoarding_price' => $bh->hoarding_price,
+                    'hoarding_discount' => $bh->hoarding_discount,
+                    'hoarding_tax' => $bh->hoarding_tax,
+                    'hoarding_total' => $bh->hoarding_total,
+                    'pivot_status' => $bh->status,
+                ];
+            }
 
             return response()->json([
                 'success' => true,
                 'data' => $bookingData,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Booking not found',
                 'error' => $e->getMessage(),
             ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch booking details',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -426,14 +462,14 @@ class POSBookingController extends Controller
 
      public function markAsPaid(Request $request, int $id): JsonResponse
     {
-        $validated = $request->validate([
-            'amount' => 'required|numeric|min:0',
-            'payment_date' => 'nullable|date|before_or_equal:today',
-            'notes' => 'nullable|string|max:500',
-        ]);
-
         try {
             $booking = POSBooking::where('vendor_id', Auth::id())->findOrFail($id);
+
+            $validated = $request->validate([
+                'amount' => 'required|numeric|min:0.01',
+                'payment_date' => 'nullable|date|before_or_equal:today',
+                'notes' => 'nullable|string|max:500',
+            ]);
 
             // Validate current state
             if (!in_array($booking->payment_status, ['unpaid', 'partial'])) {
@@ -450,6 +486,22 @@ class POSBookingController extends Controller
                 ], 422);
             }
 
+            $previousPaymentStatus = $booking->payment_status;
+
+            $remainingPayableAmount = max(0, (float) $booking->total_amount - (float) ($booking->paid_amount ?? 0));
+            if ((float) $validated['amount'] > $remainingPayableAmount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Entered amount cannot be greater than payable amount',
+                    'errors' => [
+                        'amount' => [
+                            'Amount cannot be greater than remaining payable amount of ₹' . number_format($remainingPayableAmount, 2),
+                        ],
+                    ],
+                    'payable_amount' => $remainingPayableAmount,
+                ], 422);
+            }
+
             // Mark as paid
             $updated = $this->posBookingService->markPaymentReceived(
                 $booking,
@@ -457,6 +509,13 @@ class POSBookingController extends Controller
                 $validated['payment_date'] ?? today(),
                 $validated['notes'] ?? null
             );
+
+            if (
+                $previousPaymentStatus === POSBooking::PAYMENT_STATUS_UNPAID
+                && in_array($updated->payment_status, [POSBooking::PAYMENT_STATUS_PARTIAL, POSBooking::PAYMENT_STATUS_PAID], true)
+            ) {
+                $this->sendBookingConfirmationNotifications($updated);
+            }
 
             return response()->json([
                 'success' => true,
@@ -475,6 +534,42 @@ class POSBookingController extends Controller
                 'message' => 'Failed to mark payment',
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    protected function sendBookingConfirmationNotifications(POSBooking $booking): void
+    {
+        try {
+            $notification = new \App\Notifications\PosBookingConfirmedNotification($booking);
+
+            if (!empty($booking->customer_id)) {
+                $customer = \App\Models\User::find($booking->customer_id);
+                if ($customer && method_exists($customer, 'notify')) {
+                    $customer->notify($notification);
+                }
+            }
+
+            if (!empty($booking->vendor_id)) {
+                $vendor = \App\Models\User::find($booking->vendor_id);
+                if ($vendor && method_exists($vendor, 'notify')) {
+                    $vendor->notify($notification);
+                }
+            }
+
+            $admins = \App\Models\User::whereHas('roles', function ($query) {
+                $query->whereIn('name', ['admin', 'super_admin']);
+            })->get();
+
+            foreach ($admins as $admin) {
+                if (method_exists($admin, 'notify')) {
+                    $admin->notify($notification);
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('POS booking confirmation notification failed after payment', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

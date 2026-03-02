@@ -1,7 +1,7 @@
 @extends('layouts.vendor')
 
 @section('title', 'POS Dashboard')
-
+@include('vendor.pos.components.pos-timer-notification')
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -14,7 +14,7 @@
     <!-- Header -->
     <div class="flex justify-between items-center">
         <div>
-            <h2 class="text-2xl font-bold text-[#1D1D1D]">Welcome,Vendor</h2>
+            <h2 class="text-2xl font-bold text-[#1D1D1D]">Welcome, {{ Auth::user()->name }}</h2>
             <p class="text-sm text-gray-500 font-medium">POS Dashboard</p>
         </div>
         <button class="bg-[#1D1D1D] text-white px-6 py-2 rounded shadow-sm text-sm font-medium">POS</button>
@@ -103,18 +103,17 @@
                     <tr>
                         <th class="px-4 py-3 text-left">Invoice</th>
                         <th class="px-4 py-3 text-left">Customer</th>
-                        <th class="px-4 py-3 text-left">Hoarding</th>
-                        <th class="px-4 py-3 text-left">Dates</th>
+                        <th class="px-4 py-3 text-left">Total Hoardings</th>
+                        <th class="px-4 py-3 text-left">Booking Date</th>
                         <th class="px-4 py-3 text-left">Amount</th>
                         <th class="px-4 py-3 text-left">Payment</th>
                         <th class="px-4 py-3 text-left">Status</th>
-                        <th class="px-4 py-3 text-left">Hold</th>
                         <th class="px-4 py-3 text-left">Action</th>
                     </tr>
                 </thead>
                 <tbody id="recent-bookings-body" class="">
                     <tr>
-                        <td colspan="9" class="px-4 py-6 text-center text-gray-500">
+                        <td colspan="8" class="px-4 py-6 text-center text-gray-500">
                             Loading...
                         </td>
                     </tr>
@@ -126,8 +125,20 @@
     <!-- Pending Payments Widget -->
     <div id="pending-payments-widget" class="bg-white  shadow-sm border border-gray-200 hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-yellow-50">
-            <h5 class="text-lg font-semibold text-yellow-800">Pending Payment</h5>
-            <p class="text-sm text-yellow-700">Bookings with pending payment that need attention</p>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h5 class="text-lg font-semibold text-yellow-800">Pending Payment</h5>
+                    <p class="text-sm text-yellow-700">Bookings with pending payment that need attention</p>
+                </div>
+                <div class="w-full sm:w-72">
+                    <input
+                        id="pending-payments-search"
+                        type="text"
+                        placeholder="Search invoice/customer/phone"
+                        class="w-full px-3 py-2 text-sm border border-yellow-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                    >
+                </div>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -145,6 +156,16 @@
                 </tbody>
             </table>
         </div>
+
+        <div id="pending-payments-pagination" class="px-6 py-3 border-t border-gray-200 bg-white hidden">
+            <div class="flex items-center justify-between">
+                <p id="pending-payments-page-info" class="text-sm text-gray-600"></p>
+                <div class="flex gap-2">
+                    <button id="pending-payments-prev" class="px-3 py-1.5 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                    <button id="pending-payments-next" class="px-3 py-1.5 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -157,6 +178,14 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
+
+    const pendingPaymentsState = {
+        page: 1,
+        perPage: 5,
+        search: '',
+        lastPage: 1,
+        total: 0,
+    };
 
     // Helper: Fetch with session auth
     const fetchJSON = async (url) => {
@@ -175,8 +204,8 @@ document.addEventListener('DOMContentLoaded', function () {
         return res.json();
     };
 
-    // Helper: Format date to DD/MM/YYYY
-    function formatDateDDMMYYYY(dateStr) {
+    // Helper: Format date to DD/MM/YYYY HH:mm
+    function formatDateTime(dateStr) {
         if (!dateStr) return 'N/A';
         const date = new Date(dateStr);
         if (isNaN(date.getTime())) return dateStr;
@@ -184,8 +213,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
+        const hour = String(date.getHours()).padStart(2, '0');
+        const minute = String(date.getMinutes()).padStart(2, '0');
         
-        return `${day}/${month}/${year}`;
+        return `${day}/${month}/${year} ${hour}:${minute}`;
     }
 
     // Load dashboard statistics
@@ -208,36 +239,15 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.success && data.data.data.length) {
                 tbody.innerHTML = '';
                 data.data.data.forEach(b => {
-                    // Calculate hold expiry display
-                    let holdExpiryDisplay = '-';
-                    let holdExpiryClass = '';
-                    
-                    if (b.hold_expiry_at) {
-                        const holdExpiry = new Date(b.hold_expiry_at);
-                        const now = new Date();
-                        const diff = holdExpiry - now;
-
-                        if (diff > 0) {
-                            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                            holdExpiryDisplay = `In ${days}d ${hours}h`;
-                            holdExpiryClass = diff < (12 * 60 * 60 * 1000) ? 'text-red-600 font-semibold' : 'text-yellow-600';
-                        } else {
-                            holdExpiryDisplay = 'EXPIRED!';
-                            holdExpiryClass = 'text-red-600 font-semibold bg-red-50 px-2 py-1 rounded';
-                        }
-                    }
-
                     tbody.innerHTML += `
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">${b.invoice_number || 'N/A'}</td>
                         <td class="px-4 py-3">${b.customer_name}</td>
-                    <td class="px-4 py-3">
-                        ${b.hoarding ? `<a class="text-blue-600 hover:underline" target="_blank" href="/hoardings/${b.hoarding.id}">${b.hoarding.title}</a>` : 'N/A'}
+                    <td class="px-4 py-3 font-bold text-gray-800">
+                        ${Array.isArray(b.hoardings) ? b.hoardings.length : (b.hoardings_count ?? 1)}
                     </td>
                     <td class="px-4 py-3">
-                        ${formatDateDDMMYYYY(b.start_date)} -
-                        ${formatDateDDMMYYYY(b.end_date)}
+                        ${formatDateTime(b.created_at)} 
                     </td>
                     <td class="px-4 py-3 font-medium">₹${parseFloat(b.total_amount).toLocaleString()}</td>
                     <td class="px-4 py-3">
@@ -250,9 +260,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             ${b.status}
                         </span>
                     </td>
-                    <td class="px-4 py-3 ${holdExpiryClass}">
-                        ${holdExpiryDisplay}
-                    </td>
                     <td class="px-4 py-3">
                         <a href="/vendor/pos/bookings/${b.id}"
                            class="text-blue-600 hover:underline text-sm">
@@ -262,46 +269,134 @@ document.addEventListener('DOMContentLoaded', function () {
                 </tr>`;
             });
         } else {
-            tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
         }
     })
         .catch(err => console.warn('Could not load bookings:', err));
 
-    // Load pending payments (bookings with active holds)
-    fetchJSON('/vendor/pos/api/pending-payments')
-        .then(data => {
-            if (data.success && data.data.length > 0) {
-                const widget = document.getElementById('pending-payments-widget');
-                const tbody = document.getElementById('pending-payments-body');
+    function renderPendingPaymentsPagination() {
+        const paginationWrap = document.getElementById('pending-payments-pagination');
+        const info = document.getElementById('pending-payments-page-info');
+        const prevBtn = document.getElementById('pending-payments-prev');
+        const nextBtn = document.getElementById('pending-payments-next');
+
+        if (!paginationWrap || !info || !prevBtn || !nextBtn) return;
+
+        const start = pendingPaymentsState.total === 0
+            ? 0
+            : ((pendingPaymentsState.page - 1) * pendingPaymentsState.perPage) + 1;
+        const end = Math.min(pendingPaymentsState.total, pendingPaymentsState.page * pendingPaymentsState.perPage);
+
+        info.textContent = `Showing ${start}-${end} of ${pendingPaymentsState.total}`;
+        prevBtn.disabled = pendingPaymentsState.page <= 1;
+        nextBtn.disabled = pendingPaymentsState.page >= pendingPaymentsState.lastPage;
+
+        paginationWrap.classList.toggle('hidden', pendingPaymentsState.total === 0);
+    }
+
+    function renderPendingPaymentsRows(rows) {
+        const widget = document.getElementById('pending-payments-widget');
+        const tbody = document.getElementById('pending-payments-body');
+        if (!widget || !tbody) return;
+
+        if (!rows.length) {
+            if (pendingPaymentsState.search.trim() === '') {
+                widget.classList.add('hidden');
+            } else {
                 widget.classList.remove('hidden');
-
-                tbody.innerHTML = '';
-                data.data.forEach(b => {
-                    // Calculate days pending
-                    const createdDate = new Date(b.created_at);
-                    const now = new Date();
-                    const daysPending = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
-                    
-                    let daysText = `${daysPending} day${daysPending !== 1 ? 's' : ''} pending`;
-                    let rowClass = daysPending > 7 ? 'bg-red-100 border-l-4 border-red-600' : (daysPending > 3 ? 'bg-red-50' : 'bg-yellow-50');
-
-                    tbody.innerHTML += `
-                    <tr class="${rowClass}">
-                        <td class="px-4 py-3 font-medium">${b.invoice_number || 'N/A'}</td>
-                        <td class="px-4 py-3">${b.customer_name}</td>
-                        <td class="px-4 py-3 font-semibold">₹${parseFloat(b.total_amount).toLocaleString()}</td>
-                        <td class="px-4 py-3 font-semibold text-red-600">${daysText}</td>
-                        <td class="px-4 py-3">
-                            <a href="/vendor/pos/bookings/${b.id}"
-                               class="text-blue-600 hover:underline text-sm font-medium">
-                                View & Mark Paid
-                            </a>
-                        </td>
-                    </tr>`;
-                });
             }
-        })
-        .catch(err => console.warn('Could not load pending payments:', err));
+
+            tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No pending payments found</td></tr>`;
+            renderPendingPaymentsPagination();
+            return;
+        }
+
+        widget.classList.remove('hidden');
+        tbody.innerHTML = '';
+
+        rows.forEach(b => {
+            const createdDate = new Date(b.created_at);
+            const now = new Date();
+            const daysPending = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+
+            const daysText = `${daysPending} day${daysPending !== 1 ? 's' : ''} pending`;
+            const rowClass = daysPending > 7
+                ? 'bg-red-100 border-l-4 border-red-600'
+                : (daysPending > 3 ? 'bg-red-50' : 'bg-yellow-50');
+
+            tbody.innerHTML += `
+                <tr class="${rowClass}">
+                    <td class="px-4 py-3 font-medium">${b.invoice_number || 'N/A'}</td>
+                    <td class="px-4 py-3">${b.customer_name}</td>
+                    <td class="px-4 py-3 font-semibold">₹${parseFloat(b.total_amount).toLocaleString()}</td>
+                    <td class="px-4 py-3 font-semibold text-red-600">${daysText}</td>
+                    <td class="px-4 py-3">
+                        <a href="/vendor/pos/bookings/${b.id}" class="text-blue-600 hover:underline text-sm font-medium">
+                            View & Mark Paid
+                        </a>
+                    </td>
+                </tr>`;
+        });
+
+        renderPendingPaymentsPagination();
+    }
+
+    function loadPendingPayments(page = 1) {
+        pendingPaymentsState.page = page;
+
+        const params = new URLSearchParams({
+            page: String(pendingPaymentsState.page),
+            per_page: String(pendingPaymentsState.perPage),
+            search: pendingPaymentsState.search,
+        });
+
+        fetchJSON(`/vendor/pos/api/pending-payments?${params.toString()}`)
+            .then(data => {
+                if (!data.success) {
+                    return;
+                }
+
+                const pagination = data.pagination || {};
+                pendingPaymentsState.lastPage = pagination.last_page || 1;
+                pendingPaymentsState.total = pagination.total || 0;
+                pendingPaymentsState.page = pagination.current_page || 1;
+
+                renderPendingPaymentsRows(Array.isArray(data.data) ? data.data : []);
+            })
+            .catch(err => console.warn('Could not load pending payments:', err));
+    }
+
+    const pendingSearchInput = document.getElementById('pending-payments-search');
+    if (pendingSearchInput) {
+        let debounceTimer = null;
+        pendingSearchInput.addEventListener('input', (event) => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                pendingPaymentsState.search = event.target.value || '';
+                loadPendingPayments(1);
+            }, 300);
+        });
+    }
+
+    const pendingPrevBtn = document.getElementById('pending-payments-prev');
+    if (pendingPrevBtn) {
+        pendingPrevBtn.addEventListener('click', () => {
+            if (pendingPaymentsState.page > 1) {
+                loadPendingPayments(pendingPaymentsState.page - 1);
+            }
+        });
+    }
+
+    const pendingNextBtn = document.getElementById('pending-payments-next');
+    if (pendingNextBtn) {
+        pendingNextBtn.addEventListener('click', () => {
+            if (pendingPaymentsState.page < pendingPaymentsState.lastPage) {
+                loadPendingPayments(pendingPaymentsState.page + 1);
+            }
+        });
+    }
+
+    loadPendingPayments(1);
 });
 
 function statusBadge(status) {

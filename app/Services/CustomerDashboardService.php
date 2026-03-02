@@ -238,7 +238,7 @@ class CustomerDashboardService
                 'title' => "Booking #{$booking->booking_number}",
                 'status' => $booking->status,
                 'date' => $booking->created_at,
-                'url' => route('customer.bookings.show', $booking->id),
+                'action_url' => route('customer.bookings.show', $booking->id),
             ];
         }
 
@@ -254,7 +254,7 @@ class CustomerDashboardService
                 'title' => "Enquiry #{$enquiry->id}",
                 'status' => $enquiry->status,
                 'date' => $enquiry->created_at,
-                'url' => route('customer.enquiries.show', $enquiry->id),
+                'action_url' => route('customer.enquiries.show', $enquiry->id),
             ];
         }
 

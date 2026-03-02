@@ -4,6 +4,7 @@ namespace Modules\POS\Services;
 
 use Modules\POS\Models\POSBooking;
 use  App\Models\Hoarding;
+use Modules\Hoardings\Services\HoardingBookingService;
 use Modules\Settings\Services\SettingsService;
 use App\Services\TaxService;
 use App\Services\InvoiceService;
@@ -13,19 +14,23 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 class POSBookingService
+  
 {
     protected SettingsService $settingsService;
     protected TaxService $taxService;
     protected InvoiceService $invoiceService;
+    protected HoardingBookingService $hoardingBookingService;
 
     public function __construct(
         SettingsService $settingsService,
         TaxService $taxService,
-        InvoiceService $invoiceService
+        InvoiceService $invoiceService,
+        HoardingBookingService $hoardingBookingService
     ) {
         $this->settingsService = $settingsService;
         $this->taxService = $taxService;
         $this->invoiceService = $invoiceService;
+        $this->hoardingBookingService = $hoardingBookingService;
     }
 
     /**
@@ -261,6 +266,9 @@ public function createBooking(array $data): POSBooking
             'customer_id'     => $data['customer_id'] ?? null,
             'customer_name'   => $data['customer_name'], // Required by DB
             'customer_phone'  => $data['customer_phone'], // Required by DB
+            'customer_email'  => $data['customer_email'] ?? null,
+            'customer_address'=> $data['customer_address'] ?? null,
+            'customer_gstin'  => $data['customer_gstin'] ?? null,
             'booking_type'    => $data['booking_type'] ?? 'ooh',
             'start_date'      => $start,
             'end_date'        => $end,
@@ -270,8 +278,12 @@ public function createBooking(array $data): POSBooking
             'tax_amount'      => $pricing['tax_amount'],
             'total_amount'    => $pricing['total_amount'],
             'payment_mode'    => $data['payment_mode'] ?? 'cash',
+            'payment_reference' => $data['payment_reference'] ?? null,
+            'payment_notes'   => $data['payment_notes'] ?? null,
+            'notes'           => $data['notes'] ?? null,
             'payment_status'  => 'unpaid',
             'status'          => 'pending_payment',
+            'hold_expiry_at'  => $data['hold_expiry_at'] ?? null,
         ];
 
         Log::info('POSBookingService creating booking record', ['vendor_id' => Auth::id(), 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id','start_date','end_date','total_amount']))]);
@@ -279,8 +291,23 @@ public function createBooking(array $data): POSBooking
         $booking = POSBooking::create($bookingPayload);
 
         // Inventory Linking
+        // Build map for per-hoarding details if provided
+        $hoardingItemsMap = [];
+        if (!empty($data['hoarding_items']) && is_array($data['hoarding_items'])) {
+            foreach ($data['hoarding_items'] as $item) {
+                if (isset($item['hoarding_id'])) {
+                    $hoardingItemsMap[(int)$item['hoarding_id']] = $item;
+                }
+            }
+        }
+
         foreach ($hoardings as $hoarding) {
-            $this->attachHoardingToBooking($booking, $hoarding, $start, $end);
+            $item = $hoardingItemsMap[$hoarding->id] ?? null;
+            $itemStart = $item['start_date'] ?? $start;
+            $itemEnd = $item['end_date'] ?? $end;
+            $itemPrice = $item['price_per_month'] ?? null;
+            $itemDiscount = $item['discount_amount'] ?? 0;
+            $this->attachHoardingToBooking($booking, $hoarding, $itemStart, $itemEnd, $itemPrice, $itemDiscount);
         }
 
         Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => Auth::id(), 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
@@ -334,6 +361,7 @@ public function createBooking(array $data): POSBooking
  */
 protected function calculateMultiHoardingPricing($hoardings, $start, $end, $discount = 0): array
 {
+   
     $startDate = \Carbon\Carbon::parse($start);
     $endDate = \Carbon\Carbon::parse($end);
     $days = $startDate->diffInDays($endDate) + 1; // Minimum 1 day
@@ -695,8 +723,9 @@ public function releaseHoardings(POSBooking $booking)
      */
     public function getVendorBookings(int $vendorId, array $filters = [])
     {
-        $query = POSBooking::with(['hoarding', 'customer', 'approver'])
+        $query = POSBooking::with(['hoardings', 'customer', 'approver',''])
             ->forVendor($vendorId);
+        \Log::info('POSBookingService.getVendorBookings query', ['vendor_id' => $vendorId, 'filters' => $filters]);
 
         if (isset($filters['status'])) {
             $query->byStatus($filters['status']);
@@ -748,47 +777,147 @@ public function releaseHoardings(POSBooking $booking)
      * Transitions unpaid → paid
      * Clears hold_expiry_at to allow campaign to start
      */
-    public function markPaymentReceived(POSBooking $booking, float $amount, \Carbon\Carbon $paymentDate, ?string $notes = null): POSBooking
-    {
-        return DB::transaction(function () use ($booking, $amount, $paymentDate, $notes) {
-            // Validate state
+    // public function markPaymentReceived(POSBooking $booking, float $amount, \Carbon\Carbon $paymentDate, ?string $notes = null): POSBooking
+    // {
+    //     return DB::transaction(function () use ($booking, $amount, $paymentDate, $notes) {
+    //         // Validate state
+    //         if (!in_array($booking->payment_status, ['unpaid', 'partial'])) {
+    //             throw new \Exception('Booking is not in payable state');
+    //         }
+
+    //         if ($amount <= 0) {
+    //             throw new \Exception('Payment amount must be greater than zero');
+    //         }
+
+    //         $existingPaid = (float) ($booking->paid_amount ?? 0);
+    //         $totalAmount = (float) $booking->total_amount;
+    //         $remainingAmount = max(0, $totalAmount - $existingPaid);
+
+    //         if ($amount > ($remainingAmount + 0.01)) {
+    //             throw new \Exception('Payment amount cannot be greater than remaining payable amount');
+    //         }
+
+    //         $newPaidAmount = min($totalAmount, $existingPaid + $amount);
+
+    //         // Determine if full or partial payment
+    //         $newStatus = abs($newPaidAmount - $totalAmount) < 0.01
+    //             ? POSBooking::PAYMENT_STATUS_PAID 
+    //             : POSBooking::PAYMENT_STATUS_PARTIAL;
+
+    //         // Update booking
+    //         $booking->update([
+    //             'paid_amount' => $newPaidAmount,
+    //             'payment_status' => $newStatus,
+    //             'payment_received_at' => $paymentDate,
+    //             'hold_expiry_at' => null, // Clear hold when payment received
+    //             'reminder_count' => 0,    // Reset reminders
+    //             'status' => POSBooking::STATUS_CONFIRMED,
+    //             'last_reminder_at' => null,
+    //         ]);
+
+    //         // Lock inventory as booked/confirmed for this POS booking
+    //         foreach ($booking->bookingHoardings as $bookingHoarding) {
+    //             $this->hoardingBookingService->confirmInventoryForPosBookingHoarding($bookingHoarding);
+    //         }
+
+    //         // Log payment transaction
+    //         Log::info('Payment marked as received', [
+    //             'booking_id' => $booking->id,
+    //             'vendor_id' => $booking->vendor_id,
+    //             'amount' => $amount,
+    //             'paid_amount_before' => $existingPaid,
+    //             'paid_amount_after' => $newPaidAmount,
+    //             'total' => $totalAmount,
+    //             'status' => $newStatus,
+    //             'notes' => $notes,
+    //         ]);
+
+    //         // TODO: Unblock hoarding inventory (when release logic is added)
+    //         // $this->releaseHoardingInventory($booking);
+
+    //         return $booking->fresh();
+    //     });
+    // }
+    /**
+     * CRITICAL: Mark booking payment as received
+     * Transitions: unpaid / partial → paid / partially_paid
+     * Also syncs the linked Invoice status + regenerates PDF
+     */
+    public function markPaymentReceived(
+        \Modules\POS\Models\POSBooking $booking,
+        float $amount,
+        \Carbon\Carbon $paymentDate,
+        ?string $notes = null
+    ): \Modules\POS\Models\POSBooking {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($booking, $amount, $paymentDate, $notes) {
+
+            // ── Validate state ──────────────────────────────────────────────
             if (!in_array($booking->payment_status, ['unpaid', 'partial'])) {
                 throw new \Exception('Booking is not in payable state');
             }
+            if ($amount <= 0) {
+                throw new \Exception('Payment amount must be greater than zero');
+            }
 
-            // Determine if full or partial payment
-            $newStatus = abs($amount - $booking->total_amount) < 0.01 
-                ? POSBooking::PAYMENT_STATUS_PAID 
-                : POSBooking::PAYMENT_STATUS_PARTIAL;
+            $existingPaid  = (float) ($booking->paid_amount ?? 0);
+            $totalAmount   = (float) $booking->total_amount;
+            $remaining     = max(0, $totalAmount - $existingPaid);
 
-            // Update booking
+            if ($amount > ($remaining + 0.01)) {
+                throw new \Exception('Payment amount cannot exceed the remaining payable amount');
+            }
+
+            $newPaidAmount = min($totalAmount, $existingPaid + $amount);
+            $newStatus     = abs($newPaidAmount - $totalAmount) < 0.01
+                ? \Modules\POS\Models\POSBooking::PAYMENT_STATUS_PAID
+                : \Modules\POS\Models\POSBooking::PAYMENT_STATUS_PARTIAL;
+
+            // ── Update POS booking ──────────────────────────────────────────
             $booking->update([
-                'paid_amount' => $amount,
-                'payment_status' => $newStatus,
-                'payment_received_at' => $paymentDate,
-                'hold_expiry_at' => null, // Clear hold when payment received
-                'reminder_count' => 0,    // Reset reminders
-                'status' => $newStatus === POSBooking::PAYMENT_STATUS_PAID ? POSBooking::STATUS_CONFIRMED : $booking->status,
-                'last_reminder_at' => null,
+                'paid_amount'          => $newPaidAmount,
+                'payment_status'       => $newStatus,
+                'payment_received_at'  => $paymentDate,
+                'hold_expiry_at'       => null,
+                'reminder_count'       => 0,
+                'status'               => \Modules\POS\Models\POSBooking::STATUS_CONFIRMED,
+                'last_reminder_at'     => null,
             ]);
 
-            // Log payment transaction
-            Log::info('Payment marked as received', [
-                'booking_id' => $booking->id,
-                'vendor_id' => $booking->vendor_id,
-                'amount' => $amount,
-                'total' => $booking->total_amount,
-                'status' => $newStatus,
-                'notes' => $notes,
-            ]);
+            // ── Lock inventory as confirmed ─────────────────────────────────
+            foreach ($booking->bookingHoardings as $bookingHoarding) {
+                $this->hoardingBookingService->confirmInventoryForPosBookingHoarding($bookingHoarding);
+            }
 
-            // TODO: Unblock hoarding inventory (when release logic is added)
-            // $this->releaseHoardingInventory($booking);
+            // ── Sync Invoice payment status ─────────────────────────────────
+            // This updates invoice.status, invoice.paid_amount, and regenerates the PDF
+            try {
+                $this->invoiceService->syncPaymentStatusFromPOSBooking(
+                    $booking,
+                    $newPaidAmount,
+                    $paymentDate
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed to sync invoice payment status', [
+                    'pos_booking_id' => $booking->id,
+                    'error'          => $e->getMessage(),
+                ]);
+                // Non-fatal — booking payment is still recorded
+            }
+
+            \Illuminate\Support\Facades\Log::info('Payment marked as received', [
+                'booking_id'          => $booking->id,
+                'vendor_id'           => $booking->vendor_id,
+                'amount'              => $amount,
+                'paid_amount_before'  => $existingPaid,
+                'paid_amount_after'   => $newPaidAmount,
+                'total'               => $totalAmount,
+                'status'              => $newStatus,
+                'notes'               => $notes,
+            ]);
 
             return $booking->fresh();
         });
     }
-
     /**
      * CRITICAL: Release booking hold (free hoarding, mark as cancelled)
      * Used for order cancellations or customer rejections
@@ -852,7 +981,46 @@ public function releaseHoardings(POSBooking $booking)
      */
     public function getGSTRate(): float
     {
-        return (float) ($this->settingsService->get('pos_gst_rate') ?? 18);
+        return (float) ($this->settingsService->get('gst_rate') ?? 18);
+    }
+
+
+      /**
+     * Attach a hoarding to a booking and save to pos_booking_hoardings table
+     */
+    protected function attachHoardingToBooking(POSBooking $booking, Hoarding $hoarding, $start, $end, $pricePerMonth = null, $discount = 0)
+    {
+        \Log::info('Attaching hoarding to booking', [
+            'pos_booking_id' => $booking->id,
+            'hoarding_id' => $hoarding->id,
+            'start_date' => $start,
+            'end_date' => $end,
+            'price_per_month' => $pricePerMonth,
+            'discount' => $discount,
+        ]);
+        $durationDays = $this->calculateDurationDays($start, $end);
+        // Use per-hoarding price if provided, else fallback to model
+        $monthlyRate = $pricePerMonth !== null ? (float)$pricePerMonth : ($hoarding->monthly_price ?? $hoarding->base_monthly_price ?? 0);
+        // Calculate number of months to charge (1 for <=30 days, 2 for <=60, etc.)
+        $months = (int) ceil($durationDays / 30);
+        $base = $monthlyRate * $months;
+        $gstRate = $this->getGSTRate();
+        $tax = ($base - $discount) * ($gstRate / 100);
+        $total = ($base - $discount) + $tax;
+
+        \Modules\POS\Models\POSBookingHoarding::create([
+            'pos_booking_id'   => $booking->id,
+            'hoarding_id'      => $hoarding->id,
+            'hoarding_price'   => round($base, 2),
+            'hoarding_discount'=> round($discount, 2),
+            'hoarding_tax'     => round($tax, 2),
+            'hoarding_total'   => round($total, 2),
+            'start_date'       => $start,
+            'end_date'         => $end,
+            'duration_days'    => $durationDays,
+            'duration_type'    => 'days',
+            'status'           => 'pending',
+        ]);
     }
 //    public function getGSTRate(): float
 //     {

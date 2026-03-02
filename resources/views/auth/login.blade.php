@@ -157,6 +157,22 @@
 
                 <h3 class="text-start">Login to your account</h3>
 
+                @if (session('success'))
+                    <div class="alert alert-success border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative">
+                        {{ session('success') }}
+                        @if (session('logout_time'))
+                            <div class="small text-muted mt-1">
+                                Logout Time: {{ \Carbon\Carbon::parse(session('logout_time'))->format('d/m/Y H:i:s') }}
+                            </div>
+                        @endif
+
+                        <button type="button"
+                            class="btn-close position-absolute top-0 end-0 mt-2 me-2"
+                            onclick="this.closest('.alert').remove()">
+                        </button>
+                    </div>
+                @endif
+
                 @if ($errors->has('credentials'))
                     <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative">
                         {{ $errors->first('credentials') }}

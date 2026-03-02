@@ -569,6 +569,8 @@ Route::prefix('/vendor/pos/api/')
         Route::post('/bookings/{bookingId}/mark-paid', [POSBookingController::class, 'markAsPaid']);
         Route::post('/bookings/{bookingId}/release', [POSBookingController::class, 'release']);
         Route::post('/bookings/{bookingId}/send-reminder', [POSBookingController::class, 'sendReminder']);
+        Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
+        Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
     });
 
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
@@ -746,6 +748,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::get('/bookings/{id}', function ($bookingId) {
                 return view('vendor.pos.show', compact('bookingId'));
             })->name('bookings.show');
+                Route::get('/bookings/{id}/invoice', [\Modules\POS\Controllers\Web\VendorPosController::class, 'viewInvoice'])
+                    ->name('bookings.invoice');
         });
 
         // Reports

@@ -1,7 +1,6 @@
 @extends('layouts.vendor')
 
 @section('title', 'POS Booking Details')
-
 @section('content')
 <div class="px-6 py-6">
     <div class="bg-white rounded-xl shadow">
@@ -23,13 +22,13 @@
             <!-- Booking Summary -->
             <div class="rounded-xl border bg-gray-50 p-5 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <p class="text-xs text-gray-500">Invoice</p>
-                    <h2 id="ui-invoice" class="text-lg font-semibold">—</h2>
+                    <p class="text-sm text-gray-500">Invoice</p>
+                    <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" class="pointer-events-none text-inherit">—</a></h2>
                     <a id="ui-invoice-link" href="#" target="_blank" class="hidden text-xs text-blue-600 hover:underline">View Invoice PDF</a>
                 </div>
 
                 <div>
-                    <p class="text-xs text-gray-500">Booking Status</p>
+                    <p class="text-sm text-gray-500">Booking Status</p>
                     <span id="ui-booking-status"
                           class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-300">
                         —
@@ -37,7 +36,7 @@
                 </div>
 
                 <div>
-                    <p class="text-xs text-gray-500">Payment Status</p>
+                    <p class="text-sm text-gray-500">Payment Status</p>
                     <span id="ui-payment-status"
                           class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-300">
                         —
@@ -45,7 +44,7 @@
                 </div>
 
                 <div class="text-right">
-                    <p class="text-xs text-gray-500">Total Amount</p>
+                    <p class="text-sm text-gray-500">Total Amount</p>
                     <p id="ui-total" class="text-2xl font-bold text-gray-900">₹0.00</p>
                 </div>
             </div>
@@ -77,7 +76,9 @@
             <div>
                 <label class="block text-sm font-medium mb-1">Payment Amount *</label>
                 <input type="number" id="payment-amount"
+                       min="0.01" step="0.01"
                        class="w-full rounded-lg border border-gray-300 p-2">
+                <p id="payment-amount-help" class="text-xs text-gray-500 mt-1"></p>
             </div>
 
             <div>
@@ -171,12 +172,19 @@ async function loadBookingDetails() {
         const b = currentBooking;
 
         // 🔹 UI SUMMARY SYNC (NEW)
-        document.getElementById('ui-invoice').textContent = b.invoice_number || '—';
+        const invoiceNumberEl = document.getElementById('ui-invoice');
+        invoiceNumberEl.textContent = b.invoice_number || '—';
         const invoiceLink = document.getElementById('ui-invoice-link');
         if (b.invoice_url) {
+            invoiceNumberEl.href = b.invoice_url;
+            invoiceNumberEl.classList.remove('pointer-events-none');
+            invoiceNumberEl.classList.add('text-blue-600', 'hover:underline');
             invoiceLink.href = b.invoice_url;
             invoiceLink.classList.remove('hidden');
         } else {
+            invoiceNumberEl.href = '#';
+            invoiceNumberEl.classList.add('pointer-events-none');
+            invoiceNumberEl.classList.remove('text-blue-600', 'hover:underline');
             invoiceLink.href = '#';
             invoiceLink.classList.add('hidden');
         }
@@ -199,21 +207,96 @@ async function loadBookingDetails() {
             'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPaymentStatusColor(b.payment_status);
 
         /* ---- REST OF YOUR EXISTING HTML BUILD LOGIC ---- */
-        container.innerHTML = `
-            <div class="grid md:grid-cols-2 gap-4">
-                <div><strong>Customer:</strong> ${b.customer_name}</div>
-                <div><strong>Phone:</strong> ${b.customer_phone || '-'}</div>
-                <div><strong>Booking Date:</strong>
-                    ${new Date(b.start_date).toLocaleDateString()} -
-                    ${new Date(b.end_date).toLocaleDateString()}
-                </div>
-                <div><strong>Notes:</strong> ${b.notes || '-'}</div>
-            </div>
+            let hoardingsTableRows = '';
+            let totalBase = 0, totalDiscount = 0, totalTax = 0, totalFinal = 0;
+            if (Array.isArray(b.hoardings) && b.hoardings.length > 0) {
+                hoardingsTableRows = b.hoardings.map((h, idx) => {
+                    const base = parseFloat(h.hoarding_price || 0);
+                    const discount = parseFloat(h.hoarding_discount || 0);
+                    const tax = ((base - discount) * 0.18);
+                    const final = base - discount + tax;
+                    totalBase += base;
+                    totalDiscount += discount;
+                    totalTax += tax;
+                    totalFinal += final;
+                    return `
+                        <tr>
+                            <td class="text-center">${idx + 1}</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <img src="${h.image_url}" alt="Hoarding" class="w-12 h-12 rounded object-cover border" />
+                                    <div>
+                                        <div  class="font-semibold"> <a href="">${h.title}</a></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">₹${base.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                            <td >${h.campaign_start_date || '-'} - ${h.campaign_end_date || '-'}<br><span class="text-xs">${h.campaign_duration_days ? h.campaign_duration_days + ' days' : '-'}</span></td>
+                            <td>₹${final.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
 
-            <div class="flex flex-wrap gap-2 pt-4 border-t">
-                ${renderActionButtons(b)}
-            </div>
-        `;
+
+                let priceSummaryHtml = '';
+                if (hoardingsTableRows) {
+                    priceSummaryHtml = `
+                        <div class="rounded-xl border bg-white p-4 mb-4">
+                            <h3 class="text-base font-bold mb-2">Price Summary</h3>
+                            <div class="grid md:grid-cols-4 gap-4">
+                                <div><strong>Base Amount:</strong> ₹${totalBase.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                                <div><strong>Total Discount:</strong> ₹${totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                                <div><strong>GST (18%):</strong> ₹${totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                                <div><strong>Total Payable:</strong> ₹${totalFinal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                let hoardingsTableHtml = '';
+                if (hoardingsTableRows) {
+                    hoardingsTableHtml = `
+                        <div class="rounded-xl border bg-white p-4 mb-4">
+                            <h3 class="text-base font-bold mb-2">Booked Hoardings</h3>
+                            <table class="min-w-full text-sm border">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="px-2 py-2 border">Sn.</th>
+                                        <th class="px-2 py-2 border">Hoardings</th>
+                                        <th class="px-2 py-2 border">Rental</th>
+                                        <th class="px-2 py-2 border">Duration</th>
+                                        <th class="px-2 py-2 border">Total Price (incl. 18% GST)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${hoardingsTableRows}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+
+            // Customer details and actions inside invoice box
+            let customerDetailsHtml = `
+                <div class="rounded-xl border bg-white p-4 mb-4">
+                    <div class="grid md:grid-cols-2 gap-4 mb-2">
+                        <div><strong>Customer:</strong> ${b.customer_name}</div>
+                        <div><strong>Phone:</strong> ${b.customer_phone || '-'} </div>
+                        <div><strong>Booking Date:</strong> ${new Date(b.created_at).toLocaleString()} </div>
+                        <div><strong>Notes:</strong> ${b.notes || '-'} </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-2 border-t">
+                        ${renderActionButtons(b)}
+                    </div>
+                </div>
+            `;
+
+                container.innerHTML = `
+                    ${customerDetailsHtml}
+                    ${priceSummaryHtml}
+                    ${hoardingsTableHtml}
+                `;
 
     } catch (e) {
         document.getElementById('booking-details').innerHTML =
@@ -321,8 +404,16 @@ function renderActionButtons(booking) {
 
 // Modal functions
 function openMarkPaidModal() {
+    const totalAmount = parseFloat(currentBooking?.total_amount || 0);
+    const paidAmount = parseFloat(currentBooking?.paid_amount || 0);
+    const payableAmount = Math.max(0, totalAmount - paidAmount);
+    const amountInput = document.getElementById('payment-amount');
+    const helpText = document.getElementById('payment-amount-help');
+
     document.getElementById('mark-paid-modal').classList.remove('hidden');
-    document.getElementById('payment-amount').value = currentBooking.total_amount;
+    amountInput.value = payableAmount.toFixed(2);
+    amountInput.max = payableAmount.toFixed(2);
+    helpText.textContent = `Maximum payable amount: ₹${payableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
     document.getElementById('payment-reference').value = '';
 }
 
@@ -343,11 +434,21 @@ function closeReleaseModal() {
  * Confirm and submit mark as paid
  */
 async function confirmMarkPaid() {
-    const amount = parseFloat(document.getElementById('payment-amount').value);
+    const amountInput = document.getElementById('payment-amount');
+    const amount = parseFloat(amountInput.value);
+    const totalAmount = parseFloat(currentBooking?.total_amount || 0);
+    const paidAmount = parseFloat(currentBooking?.paid_amount || 0);
+    const payableAmount = Math.max(0, totalAmount - paidAmount);
     const reference = document.getElementById('payment-reference').value;
 
     if (!amount || amount <= 0) {
         showActionMessage('Please enter a valid amount', 'error');
+        return;
+    }
+
+    if (amount > payableAmount) {
+        showActionMessage(`Amount cannot be greater than payable amount (₹${payableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })})`, 'error');
+        amountInput.focus();
         return;
     }
 
@@ -373,10 +474,19 @@ async function confirmMarkPaid() {
         });
 
         if (response.ok) {
+            const result = await response.json();
             showActionMessage('✅ Payment marked as received successfully!', 'success');
+            if (['partial', 'paid'].includes(result?.data?.payment_status)) {
+                if (typeof window.removePosTimerBooking === 'function') {
+                    window.removePosTimerBooking(bookingId);
+                } else if (typeof window.checkAndShowPosTimerNotification === 'function') {
+                    window.checkAndShowPosTimerNotification();
+                }
+            }
+
             closeMarkPaidModal();
             setTimeout(() => loadBookingDetails(), 1500);
-        } else if (response.status === 400) {
+        } else if (response.status === 400 || response.status === 422) {
             const error = await response.json();
             showActionMessage(error.message || 'Cannot mark as paid - invalid state', 'error');
         } else if (response.status === 404) {

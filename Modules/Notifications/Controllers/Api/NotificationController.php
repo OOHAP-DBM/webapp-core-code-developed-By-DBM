@@ -73,16 +73,11 @@ class NotificationController extends Controller
     // Update notification preferences
     public function updatePreferences(Request $request)
     {
-        \Log::info('Updating notification preferences', ['user_id' => Auth::id(), 'data' => $request->all()]);
         $user = Auth::user();
         $data = $request->validate([
             'email' => 'boolean',
             'push' => 'boolean',
             'whatsapp' => 'boolean',
-            'primary_email' => 'nullable|email',
-            'additional_emails' => 'nullable|array',
-            'additional_emails.*' => 'email',
-            'email_preferences' => 'nullable|array',
         ]);
 
         // Update user preferences

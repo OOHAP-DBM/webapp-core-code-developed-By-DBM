@@ -23,7 +23,7 @@ class UserResource extends JsonResource
             'avatar' => $this->avatar ? asset('storage/' . $this->avatar) : null,
             'email_verified_at' => $this->email_verified_at?->toISOString(),
             'phone_verified_at' => $this->phone_verified_at?->toISOString(),
-            // 'last_login_at' => $this->last_login_at?->toISOString(),
+            'last_login_at' => $this->last_login_at?->toISOString(),
 
             // Location fields
             'address' => $this->address,

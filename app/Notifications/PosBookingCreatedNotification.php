@@ -34,7 +34,7 @@ class PosBookingCreatedNotification extends Notification implements ShouldQueue
             'start_date'     => $this->booking->start_date,
             'end_date'       => $this->booking->end_date,
             'customer_name'  => $this->booking->customer_name,
-            'url'            => url('/vendor/pos/bookings/' . $this->booking->id),
+            'action_url'            => url('/vendor/pos/bookings/' . $this->booking->id),
         ];
     }
 }

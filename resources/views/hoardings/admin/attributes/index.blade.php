@@ -40,7 +40,7 @@
         </div>
         @endforeach
     </div>
-    <div class="mt-10">
+    <!-- <div class="mt-10">
         <h4 class="text-lg font-semibold mb-2">Add New Attribute Type</h4>
         <form action="{{ route('admin.hoarding-attributes.store') }}" method="POST" class="flex gap-2">
             @csrf
@@ -49,6 +49,6 @@
             <input type="text" name="value" placeholder="Value (e.g. billboard)" class="border rounded px-3 py-2 text-sm" required>
             <button type="submit" class="bg-[#009A5C] text-white rounded px-4 py-2 font-bold">Add</button>
         </form>
-    </div>
+    </div> -->
 </div>
 @endsection
