@@ -20,7 +20,7 @@ use Modules\Hoardings\Models\HoardingBrandLogo;
 use Modules\Enquiries\Models\Enquiry;
 use Modules\Hoardings\Models\HoardingAttribute;
 use Illuminate\Support\Str;
-
+use Modules\Hoardings\Http\Resources\HoardingResource;
 
 class Hoarding extends Model implements HasMedia
 

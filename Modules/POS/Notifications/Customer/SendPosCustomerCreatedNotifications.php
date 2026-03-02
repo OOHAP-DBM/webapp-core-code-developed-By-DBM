@@ -8,6 +8,9 @@ use App\Notifications\AdminPosCustomerCreatedNotification;
 use App\Notifications\VendorPosCustomerCreatedNotification; 
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 class SendPosCustomerCreatedNotifications implements ShouldQueue
 {
     use Dispatchable, Queueable;

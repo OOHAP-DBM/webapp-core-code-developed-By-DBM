@@ -68,7 +68,7 @@ class PosBookingHoldExpiredNotification extends Notification implements ShouldQu
             'payment_mode' => $this->booking->payment_mode,
             'hold_expiry_at' => $holdExpiryAt?->toIso8601String(),
             'message' => 'Your POS booking hold expired and the booking was automatically cancelled.',
-            'url' => $this->resolveActionUrl($notifiable),
+            'action_url' => $this->resolveActionUrl($notifiable),
         ];
     }
 
@@ -99,24 +99,24 @@ class PosBookingHoldExpiredNotification extends Notification implements ShouldQu
     {
         $notifiableId = (int) ($notifiable->id ?? 0);
 
+        // Customer
         if ($notifiableId > 0 && $notifiableId === (int) $this->booking->customer_id) {
-            return url('/customer/bookings/' . $this->booking->id);
+            return url('/customer/pos/bookings/' . $this->booking->id);
         }
 
-        if ($notifiableId > 0 && $notifiableId === (int) $this->booking->vendor_id) {
+        // Vendor or Admin
+        if (
+            ($notifiableId > 0 && $notifiableId === (int) $this->booking->vendor_id) ||
+            (method_exists($notifiable, 'hasRole') && (
+                $notifiable->hasRole('vendor') ||
+                $notifiable->hasRole('admin') ||
+                $notifiable->hasRole('super_admin')
+            ))
+        ) {
             return url('/vendor/pos/bookings/' . $this->booking->id);
         }
 
-        if (method_exists($notifiable, 'hasRole')) {
-            if ($notifiable->hasRole('vendor')) {
-                return url('/vendor/pos/bookings/' . $this->booking->id);
-            }
-
-            if ($notifiable->hasRole('admin') || $notifiable->hasRole('super_admin')) {
-                return url('/vendor/pos/bookings/' . $this->booking->id);
-            }
-        }
-
-        return url('/customer/bookings/' . $this->booking->id);
+        // Default fallback
+        return url('/customer/pos/bookings/' . $this->booking->id);
     }
 }

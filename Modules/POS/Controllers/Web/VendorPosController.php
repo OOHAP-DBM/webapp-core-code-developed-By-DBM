@@ -1085,6 +1085,8 @@ public function createBooking(Request $request): JsonResponse
         // ── Booking data ─────────────────────────────────────────────
         $bookingData = [
             'vendor_id'        => $vendorId,
+            'hoarding_ids'     => $hoardingIds,
+            'hoarding_items'   => $validated['hoarding_items'] ?? [],
             'customer_id'      => $validated['customer_id'] ?? null,
             'customer_name'    => $validated['customer_name']    ?? 'Walk-in Customer',
             'customer_email'   => $validated['customer_email']   ?? null,
@@ -1111,86 +1113,42 @@ public function createBooking(Request $request): JsonResponse
 
         $booking = $this->posBookingService->createBooking($bookingData);
 
-        Log::info('POS booking created', ['vendor_id' => $vendorId, 'booking_id' => $booking->id]);
-
-        // ── Create pos_booking_hoardings (per-hoarding dates & pricing) ──
-        foreach ($hoardings as $hoarding) {
-            $item      = $hoardingItemsMap[$hoarding->id] ?? null;
-            $itemStart = $item ? Carbon::parse($item['start_date']) : Carbon::parse($validated['start_date']);
-            $itemEnd   = $item ? Carbon::parse($item['end_date'])   : Carbon::parse($validated['end_date']);
-            $itemDays  = $itemEnd->diffInDays($itemStart) + 1;
-
-            // Per-hoarding price
-            if ($item && !empty($item['price_per_month'])) {
-                $months       = (int) ceil($itemDays / 30);
-                $itemBase     = (float) $item['price_per_month'] * $months;
-                $itemDiscount = $discountAmount > 0 ? round($discountAmount / count($hoardingIds), 2) : 0;
-                $itemTaxable  = max(0, $itemBase - $itemDiscount);
-                $itemTax      = round($itemTaxable * $gstRate / 100, 2);
-                $itemTotal    = round($itemTaxable + $itemTax, 2);
-            } else {
-                $itemBase     = round($baseAmount     / count($hoardingIds), 2);
-                $itemDiscount = round($discountAmount / count($hoardingIds), 2);
-                $itemTax      = round($taxAmount      / count($hoardingIds), 2);
-                $itemTotal    = round($totalAmount    / count($hoardingIds), 2);
-            }
-
-            $slotsPerDay = $item['total_slots_per_day'] ?? null;
-            if (is_null($slotsPerDay) && $hoarding->doohScreen) {
-                $slotsPerDay = $hoarding->doohScreen->total_slots_per_day ?? null;
-            }
-
-            \Modules\POS\Models\POSBookingHoarding::create([
-                'pos_booking_id'     => $booking->id,
-                'hoarding_id'        => $hoarding->id,
-                'hoarding_price'     => $itemBase,
-                'hoarding_discount'  => $itemDiscount,
-                'hoarding_tax'       => $itemTax,
-                'hoarding_total'     => $itemTotal,
-                'start_date'         => $itemStart,
-                'end_date'           => $itemEnd,
-                'duration_days'      => $itemDays,
-                'total_slots_per_day'=> $slotsPerDay,
-                'status'             => 'pending',
-            ]);
-        }
-
         // ── Reload with hoardings for invoice ─────────────────────────
         $booking->load('bookingHoardings.hoarding');
 
         // ── Notifications ─────────────────────────────────────────────
         try {
 
-        if ($this->posBookingService->isAutoInvoiceEnabled()) {
-            try {
-                /** @var \App\Services\InvoiceService $invoiceService */
-                $invoiceService = app(\App\Services\InvoiceService::class);
+        // if ($this->posBookingService->isAutoInvoiceEnabled()) {
+        //     try {
+        //         /** @var \App\Services\InvoiceService $invoiceService */
+        //         $invoiceService = app(\App\Services\InvoiceService::class);
 
-                $invoice = $invoiceService->generateInvoiceForPOSBooking(
-                    $booking->fresh(['bookingHoardings.hoarding']),
-                    Auth::id()
-                );
+        //         $invoice = $invoiceService->generateInvoiceForPOSBooking(
+        //             $booking->fresh(['bookingHoardings.hoarding']),
+        //             Auth::id()
+        //         );
 
-                $booking->update([
-                    'invoice_number' => $invoice->invoice_number,
-                    'invoice_date'   => $invoice->invoice_date,
-                    'invoice_path'   => $invoice->pdf_path,
-                ]);
+        //         $booking->update([
+        //             'invoice_number' => $invoice->invoice_number,
+        //             'invoice_date'   => $invoice->invoice_date,
+        //             'invoice_path'   => $invoice->pdf_path,
+        //         ]);
 
-                Log::info('POS invoice generated (controller)', [
-                    'pos_booking_id' => $booking->id,
-                    'invoice_number' => $invoice->invoice_number,
-                    'grand_total'    => $invoice->grand_total,
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Failed to generate POS invoice', [
-                    'pos_booking_id' => $booking->id,
-                    'error'          => $e->getMessage(),
-                    'trace'          => $e->getTraceAsString(),
-                ]);
-                // Non-fatal — booking was created successfully
-            }
-        }
+        //         Log::info('POS invoice generated (controller)', [
+        //             'pos_booking_id' => $booking->id,
+        //             'invoice_number' => $invoice->invoice_number,
+        //             'grand_total'    => $invoice->grand_total,
+        //         ]);
+        //     } catch (\Exception $e) {
+        //         Log::error('Failed to generate POS invoice', [
+        //             'pos_booking_id' => $booking->id,
+        //             'error'          => $e->getMessage(),
+        //             'trace'          => $e->getTraceAsString(),
+        //         ]);
+        //         // Non-fatal — booking was created successfully
+        //     }
+        // }
 
 
             $emailNotificationsEnabled = $this->posBookingService->isEmailNotificationEnabled();

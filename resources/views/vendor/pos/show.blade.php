@@ -207,21 +207,96 @@ async function loadBookingDetails() {
             'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPaymentStatusColor(b.payment_status);
 
         /* ---- REST OF YOUR EXISTING HTML BUILD LOGIC ---- */
-        container.innerHTML = `
-            <div class="grid md:grid-cols-2 gap-4">
-                <div><strong>Customer:</strong> ${b.customer_name}</div>
-                <div><strong>Phone:</strong> ${b.customer_phone || '-'}</div>
-                <div><strong>Booking Date:</strong>
-                    ${new Date(b.created_at).toLocaleString()} 
-                    
-                </div>
-                <div><strong>Notes:</strong> ${b.notes || '-'}</div>
-            </div>
+            let hoardingsTableRows = '';
+            let totalBase = 0, totalDiscount = 0, totalTax = 0, totalFinal = 0;
+            if (Array.isArray(b.hoardings) && b.hoardings.length > 0) {
+                hoardingsTableRows = b.hoardings.map((h, idx) => {
+                    const base = parseFloat(h.hoarding_price || 0);
+                    const discount = parseFloat(h.hoarding_discount || 0);
+                    const tax = ((base - discount) * 0.18);
+                    const final = base - discount + tax;
+                    totalBase += base;
+                    totalDiscount += discount;
+                    totalTax += tax;
+                    totalFinal += final;
+                    return `
+                        <tr>
+                            <td class="text-center">${idx + 1}</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <img src="${h.image_url}" alt="Hoarding" class="w-12 h-12 rounded object-cover border" />
+                                    <div>
+                                        <div  class="font-semibold"> <a href="">${h.title}</a></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">₹${base.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                            <td >${h.campaign_start_date || '-'} - ${h.campaign_end_date || '-'}<br><span class="text-xs">${h.campaign_duration_days ? h.campaign_duration_days + ' days' : '-'}</span></td>
+                            <td>₹${final.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
 
-            <div class="flex flex-wrap gap-2 pt-4 border-t">
-                ${renderActionButtons(b)}
-            </div>
-        `;
+
+                let priceSummaryHtml = '';
+                if (hoardingsTableRows) {
+                    priceSummaryHtml = `
+                        <div class="rounded-xl border bg-white p-4 mb-4">
+                            <h3 class="text-base font-bold mb-2">Price Summary</h3>
+                            <div class="grid md:grid-cols-4 gap-4">
+                                <div><strong>Base Amount:</strong> ₹${totalBase.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                                <div><strong>Total Discount:</strong> ₹${totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                                <div><strong>GST (18%):</strong> ₹${totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                                <div><strong>Total Payable:</strong> ₹${totalFinal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                let hoardingsTableHtml = '';
+                if (hoardingsTableRows) {
+                    hoardingsTableHtml = `
+                        <div class="rounded-xl border bg-white p-4 mb-4">
+                            <h3 class="text-base font-bold mb-2">Booked Hoardings</h3>
+                            <table class="min-w-full text-sm border">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="px-2 py-2 border">Sn.</th>
+                                        <th class="px-2 py-2 border">Hoardings</th>
+                                        <th class="px-2 py-2 border">Rental</th>
+                                        <th class="px-2 py-2 border">Duration</th>
+                                        <th class="px-2 py-2 border">Total Price (incl. 18% GST)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${hoardingsTableRows}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+
+            // Customer details and actions inside invoice box
+            let customerDetailsHtml = `
+                <div class="rounded-xl border bg-white p-4 mb-4">
+                    <div class="grid md:grid-cols-2 gap-4 mb-2">
+                        <div><strong>Customer:</strong> ${b.customer_name}</div>
+                        <div><strong>Phone:</strong> ${b.customer_phone || '-'} </div>
+                        <div><strong>Booking Date:</strong> ${new Date(b.created_at).toLocaleString()} </div>
+                        <div><strong>Notes:</strong> ${b.notes || '-'} </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-2 border-t">
+                        ${renderActionButtons(b)}
+                    </div>
+                </div>
+            `;
+
+                container.innerHTML = `
+                    ${customerDetailsHtml}
+                    ${priceSummaryHtml}
+                    ${hoardingsTableHtml}
+                `;
 
     } catch (e) {
         document.getElementById('booking-details').innerHTML =
