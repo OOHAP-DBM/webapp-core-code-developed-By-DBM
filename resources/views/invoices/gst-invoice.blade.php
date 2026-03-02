@@ -1,12 +1,11 @@
 {{-- resources/views/invoices/gst-invoice.blade.php --}}
-<!DOCTYPE html>
+{{-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice {{ $invoice->invoice_number }}</title>
     <style>
-        /* ─── Reset & Base ─────────────────────────────────── */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         @page { margin: 0; size: A4; }
@@ -19,7 +18,6 @@
             line-height: 1.5;
         }
 
-        /* ─── Page Wrapper ─────────────────────────────────── */
         .page {
             width: 210mm;
             min-height: 297mm;
@@ -29,13 +27,11 @@
             overflow: hidden;
         }
 
-        /* ─── Decorative Accent Bar ─────────────────────────── */
         .accent-bar {
             height: 6px;
             background: linear-gradient(90deg, #0f4c81 0%, #1a7fc1 50%, #00b4d8 100%);
         }
 
-        /* ─── Header ────────────────────────────────────────── */
         .header {
             display: flex;
             justify-content: space-between;
@@ -119,7 +115,6 @@
         .status-cancelled{ background: #f3f4f6; color: #374151; }
         .status-draft    { background: #f3f4f6; color: #374151; }
 
-        /* ─── Meta Strip ────────────────────────────────────── */
         .meta-strip {
             display: flex;
             gap: 0;
@@ -148,7 +143,6 @@
             color: #1a1a2e;
         }
 
-        /* ─── Parties Section ───────────────────────────────── */
         .parties {
             display: flex;
             gap: 0;
@@ -204,7 +198,6 @@
             margin-top: 4px;
         }
 
-        /* ─── Items Table ───────────────────────────────────── */
         .items-section { padding: 0; }
 
         .section-heading {
@@ -271,7 +264,6 @@
             font-weight: 600;
         }
 
-        /* ─── Totals Area ───────────────────────────────────── */
         .totals-area {
             display: flex;
             border-top: 2px solid #e8ecf0;
@@ -347,7 +339,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* ─── Tax Breakdown ─────────────────────────────────── */
         .tax-section {
             padding: 12px 32px;
             border-top: 1px solid #e8ecf0;
@@ -379,7 +370,6 @@
             text-align: center;
         }
 
-        /* ─── Payment Status Block ──────────────────────────── */
         .payment-block {
             display: flex;
             gap: 12px;
@@ -458,7 +448,6 @@
             margin-top: 2px;
         }
 
-        /* ─── QR + Sign Block ───────────────────────────────── */
         .qr-sign-block {
             display: flex;
             justify-content: space-between;
@@ -511,7 +500,6 @@
             color: #0f4c81;
         }
 
-        /* ─── Terms & Footer ────────────────────────────────── */
         .terms-section {
             padding: 12px 32px;
             border-top: 1px solid #e8ecf0;
@@ -539,7 +527,6 @@
             margin-top: auto;
         }
 
-        /* ─── Reverse Charge Notice ─────────────────────────── */
         .rc-notice {
             background: #fffbeb;
             border: 1px solid #fde68a;
@@ -549,7 +536,6 @@
             font-weight: 600;
         }
 
-        /* ─── Utilities ─────────────────────────────────────── */
         .text-right { text-align: right; }
         .text-center { text-align: center; }
         .fw-700 { font-weight: 700; }
@@ -559,10 +545,8 @@
 <body>
 <div class="page">
 
-    {{-- ── Accent Top Bar ── --}}
     <div class="accent-bar"></div>
 
-    {{-- ── Header: Company + Invoice Badge ── --}}
     <div class="header">
         <div class="company-block">
             <div class="company-name">{{ $invoice->seller_name }}</div>
@@ -609,14 +593,14 @@
         </div>
     </div>
 
-    {{-- ── Reverse Charge Notice ── --}}
+
     @if($invoice->is_reverse_charge)
         <div class="rc-notice">
             ⚠ Reverse Charge Applicable – Tax to be paid by recipient of service
         </div>
     @endif
 
-    {{-- ── Meta Strip ── --}}
+
     <div class="meta-strip">
         <div class="meta-cell">
             <div class="meta-label">Invoice Date</div>
@@ -646,7 +630,7 @@
         </div>
     </div>
 
-    {{-- ── Bill From / Bill To ── --}}
+
     <div class="parties">
         <div class="party-block">
             <div class="party-title">Bill From (Seller)</div>
@@ -678,7 +662,6 @@
         </div>
     </div>
 
-    {{-- ── Items Table ── --}}
     <div class="items-section">
         <div class="section-heading">Description of Services</div>
         <table class="items-table">
@@ -761,7 +744,6 @@
         </table>
     </div>
 
-    {{-- ── Tax Summary Table ── --}}
     <div class="tax-section">
         <div style="font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#374151;margin-bottom:6px;">
             Tax Summary
@@ -801,7 +783,6 @@
         </table>
     </div>
 
-    {{-- ── Totals Area ── --}}
     <div class="totals-area">
         <div class="words-section">
             <div class="words-label">Amount in Words</div>
@@ -862,7 +843,7 @@
                 <span class="gt-value">₹{{ number_format($invoice->grand_total, 2) }}</span>
             </div>
 
-            {{-- Balance Due --}}
+
             @if(!$invoice->isPaid() && !$invoice->isCancelled())
                 @php $balance = $invoice->getBalanceDue(); @endphp
                 @if($invoice->paid_amount > 0)
@@ -879,7 +860,7 @@
         </div>
     </div>
 
-    {{-- ── Payment Status Block ── --}}
+
     <div class="payment-block">
         <div class="payment-info">
             <div class="payment-info-label">Payment Information</div>
@@ -912,7 +893,7 @@
             </div>
         </div>
 
-        {{-- Stamp --}}
+
         <div>
             @if($invoice->isPaid())
                 <div class="paid-stamp">
@@ -940,7 +921,7 @@
         </div>
     </div>
 
-    {{-- ── QR Code + Signature ── --}}
+
     <div class="qr-sign-block">
         <div class="qr-wrap">
             @if($invoice->qr_code_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($invoice->qr_code_path))
@@ -961,7 +942,7 @@
         </div>
     </div>
 
-    {{-- ── Terms & Conditions ── --}}
+
     @if($invoice->terms_conditions)
     <div class="terms-section">
         <div class="terms-title">Terms & Conditions</div>
@@ -969,7 +950,7 @@
     </div>
     @endif
 
-    {{-- ── Footer Bar ── --}}
+
     <div style="text-align:center;font-size:8.5px;color:#9ca3af;padding:8px 32px;border-top:1px solid #e8ecf0;background:#f8fafc">
         This is a computer-generated invoice. No physical signature required. &nbsp;|&nbsp;
         Invoice generated on {{ now()->format('d M Y, h:i A') }} &nbsp;|&nbsp;
@@ -979,4 +960,223 @@
 
 </div>
 </body>
-</html>
+</html> --}}
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<div style="max-width:900px;margin:0 auto;background:#f8f8f8;padding:30px 15px;font-family:Arial,Helvetica,sans-serif;color:#333;" id="invoiceWrapper">
+
+    <div style="max-width:720px;margin:0 auto;background:#fff;padding:40px;border-radius:6px;box-sizing:border-box;overflow:hidden;">
+
+        <!-- HEADER -->
+        <table width="100%" style="margin-bottom:30px;table-layout:fixed;">
+            <tr>
+                <td width="50%">
+                    <div style="font-size:26px;font-weight:700;">INVOICE</div>
+                    <div style="color:#777;margin-top:4px;">
+                        #{{ $invoice->invoice_number }}
+                    </div>
+                </td>
+                <td width="50%" align="right" style="font-size:22px;font-weight:700;word-wrap:break-word;overflow-wrap:break-word;">
+                    {{ $invoice->seller_name }}
+                </td>
+            </tr>
+        </table>
+
+
+        <!-- 3 COLUMN INFO BOX -->
+        <table width="100%" cellpadding="15" cellspacing="0"
+               style="border-top:1px solid #e5e5e5;border-bottom:1px solid #e5e5e5;margin-bottom:35px;table-layout:fixed;">
+
+            <tr>
+
+                <!-- COLUMN 1 -->
+                <td width="33%" valign="top" style="border-right:1px solid #e5e5e5;word-wrap:break-word;overflow-wrap:break-word;">
+                    <div style="font-size:12px;color:#777;">Issued Date</div>
+                    <div style="font-weight:600;margin:5px 0 15px;">
+                        {{ $invoice->invoice_date->format('d/m/Y') }}
+                    </div>
+
+                    <div style="font-size:12px;color:#777;">Due Date</div>
+                    <div style="font-weight:600;margin-top:5px;">
+                        {{ $invoice->due_date?->format('d/m/Y') }}
+                    </div>
+                </td>
+
+                <!-- COLUMN 2 -->
+                <td width="34%" valign="top" style="border-right:1px solid #e5e5e5;word-wrap:break-word;overflow-wrap:break-word;padding-left:15px;">
+                    <div style="font-size:12px;color:#777;">Billed to</div>
+                    <div style="font-weight:600;margin:5px 0;">
+                        {{ $invoice->buyer_name }}
+                    </div>
+                    <div style="font-size:13px;color:#555;line-height:1.6;">
+                        {{ $invoice->buyer_city }}, {{ $invoice->buyer_state }} - {{ $invoice->buyer_pincode }}<br>
+                        Email: {{ $invoice->buyer_email }}
+                    </div>
+                </td>
+
+                <!-- COLUMN 3 -->
+                <td width="33%" valign="top" style="word-wrap:break-word;overflow-wrap:break-word;padding-left:15px;">
+                    <div style="font-size:12px;color:#777;">From</div>
+                    <div style="font-weight:600;margin:5px 0;">
+                        {{ $invoice->seller_name }}
+                    </div>
+                    <div style="font-size:13px;color:#555;line-height:1.6;">
+                        {{ $invoice->seller_address }}<br>
+                        GSTIN Number: {{ $invoice->seller_gstin }}
+                    </div>
+                </td>
+
+            </tr>
+        </table>
+
+
+
+        <!-- ITEMS TABLE -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:35px;font-size:14px;border-collapse:collapse;table-layout:fixed;">
+
+            <thead>
+                <tr style="border-bottom:1px solid #ddd;">
+                    <th align="left" style="padding:12px 0;width:55%;">Item Details</th>
+                    <th align="center" style="width:15%;">Type</th>
+                    <th align="center" style="width:10%;">Qty</th>
+                    <th align="right" style="width:20%;">Prices</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach($invoice->items as $item)
+                <tr style="border-bottom:1px solid #f0f0f0;">
+                    <td style="padding:15px 10px 15px 0;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word;">
+                        <div style="font-weight:600;line-height:1.5;">
+                            {{ $item->description }}
+                        </div>
+                    </td>
+
+                    <td align="center" style="color:#2563eb;font-weight:600;vertical-align:top;padding-top:15px;">
+                        {{ $invoice->supply_type === 'services' ? 'OOH' : 'DOOH' }}
+                    </td>
+
+                    <td align="center" style="vertical-align:top;padding-top:15px;">
+                            {{ (int) $item->quantity }}
+
+                    </td>
+
+                    <td align="right" style="vertical-align:top;padding-top:15px;white-space:nowrap;">
+                        Rs. {{ number_format($item->total_amount,2) }}
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+
+
+        <!-- TOTALS -->
+        <table width="100%" cellpadding="6" cellspacing="0" style="font-size:14px;margin-bottom:40px;">
+            <tr>
+                <td></td>
+                <td width="300">
+                    <table width="100%" cellpadding="6" cellspacing="0">
+                        <tr>
+                            <td>Subtotal</td>
+                            <td align="right" style="white-space:nowrap;">Rs.{{ number_format($invoice->subtotal,2) }}</td>
+                        </tr>
+
+                        <tr style="border-top:1px solid #eee;">
+                            <td>GST  {{ $invoice->gst_rate ?? 18 }}%</td>
+                            <td align="right" style="white-space:nowrap;">Rs.{{ number_format($invoice->total_tax,2) }}</td>
+                        </tr>
+
+                       
+
+                        <tr>
+                            <td colspan="2">
+                                <div style="border-top:2px solid #6366f1;margin:10px 0;"></div>
+                            </td>
+                        </tr>
+
+                         @if($invoice->isPaid())
+                            <tr style="font-weight:700;color:#4f46e5;font-size:16px;">
+                                <td> PAID</td>
+                                @if($invoice->paid_at)
+                                    {{-- <div class="paid-stamp-date">{{ \Carbon\Carbon::parse($invoice->paid_at)->format('d M Y') }}</div> --}}
+                                     <td align="right" style="white-space:nowrap;">Rs.{{ number_format($invoice->grand_total,2) }}</td>
+
+                                @endif
+                            </tr>
+                        @elseif($invoice->isOverdue())
+                            <td align="right" ">OVERDUE
+                               Immediate payment required
+                            </td>
+                        @elseif($invoice->isPartiallyPaid())
+                         <tr style="font-weight:700;color:#4f46e5;font-size:16px;">
+                             <td >Balance</td>
+                               <td align="right" style="white-space:nowrap;"> Rs.{{ number_format($invoice->getBalanceDue(), 2) }}</td>
+                            </td>
+                            </tr>
+                        @else
+                            <tr style="font-weight:700;color:#4f46e5;font-size:16px;">
+                            <td>Payable Amount</td>
+                            <td align="right" style="white-space:nowrap;">Rs.{{ number_format($invoice->grand_total,2) }}</td>
+                        </tr>
+                        @endif
+                        {{-- <tr style="font-weight:700;color:#4f46e5;font-size:16px;">
+                            <td>Payable Amount</td>
+                            <td align="right" style="white-space:nowrap;">{{ number_format($invoice->grand_total,2) }}</td>
+                        </tr> --}}
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+
+
+        <!-- FOOTER -->
+        <table width="100%" style="table-layout:fixed;">
+            <tr>
+                <td style="font-style:italic;color:#555;word-wrap:break-word;">
+                    Thankyou for the business!
+                </td>
+
+                <td align="right" style="white-space:nowrap;padding-left:10px;">
+
+<button type="button" onclick="printInvoice()"
+style="background:#ef4444;color:#fff;padding:8px 18px;border-radius:4px;font-size:13px;border:none;cursor:pointer;">
+Print Invoice
+</button>
+
+<button type="button" onclick="downloadInvoice()"
+style="background:#f3d1d1;color:#c24141;padding:8px 18px;border-radius:4px;font-size:13px;margin-left:8px;border:none;cursor:pointer;">
+Download
+</button>
+
+</td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+{{-- ✅ REPLACE WITH THIS --}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+    window.printInvoice = function() {
+        window.print();
+    };
+
+    window.downloadInvoice = function() {
+        const element = document.getElementById("invoiceWrapper");
+        if (!element) { alert("Invoice element not found"); return; }
+
+        const opt = {
+            margin: 10,
+            filename: 'Invoice-{{ $invoice->invoice_number ?? "Invoice" }}.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().catch(err => console.error(err));
+    };
+</script>
