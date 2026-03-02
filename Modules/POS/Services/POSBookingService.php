@@ -1015,6 +1015,7 @@ public function releaseHoardings(POSBooking $booking)
             'hoarding_discount'=> round($discount, 2),
             'hoarding_tax'     => round($tax, 2),
             'hoarding_total'   => round($total, 2),
+            // 'url'              => $hoarding->getUrlAttribute(),
             'start_date'       => $start,
             'end_date'         => $end,
             'duration_days'    => $durationDays,

@@ -224,9 +224,11 @@ async function loadBookingDetails() {
                             <td class="text-center">${idx + 1}</td>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <img src="${h.image_url}" alt="Hoarding" class="w-12 h-12 rounded object-cover border" />
+                                    <img src="${h.image_url}" alt="Hoarding" class="w-12 h-12 rounded object-cover border my-1  " />
                                     <div>
-                                        <div  class="font-semibold"> <a href="">${h.title}</a></div>
+                                        <div class="font-semibold">
+                                            <a href="${h.url || '#'}" target="_blank">${h.title}</a>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
@@ -377,18 +379,18 @@ function renderActionButtons(booking) {
     }
 
     // Send Reminder button
-    // BACKEND RULE: reminder_count < 3
-    if (booking.reminder_count !== undefined && booking.reminder_count < 3) {
+    // BACKEND RULE: reminder_count < 10
+    if (booking.reminder_count !== undefined && booking.reminder_count < 10) {
         html += `
             <button onclick="sendReminder()"
                 class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium">
                 📧 Send Reminder
             </button>`;
-    } else if (booking.reminder_count === 3) {
+    } else if (booking.reminder_count === 10) {
         html += `
             <button disabled 
                 class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
-                title="Maximum 3 reminders sent">
+                title="Maximum 10 reminders sent">
                 📧 Max Reminders Sent
             </button>`;
     }
