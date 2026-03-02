@@ -1,7 +1,6 @@
 @extends('layouts.vendor')
 
 @section('title', 'POS Bookings List')
-@include('vendor.pos.components.pos-timer-notification')
 @section('content')
 <div class="px-6 py-6">
 
@@ -64,7 +63,7 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <button onclick="loadBookings()"
+                    <button onclick="loadPosBookings()"
                         class="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition">
                         Filter
                     </button>
@@ -128,8 +127,8 @@ const fetchJSON = async (url) => {
     return res.json();
 };
 
-// Helper: Format date to DD/MM/YYYY
-function formatDateDDMMYYYY(dateStr) {
+// Helper: Format date to DD/MM/YYYY HH:mm
+function formatDateTime(dateStr) {
     if (!dateStr) return 'N/A';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr;
@@ -137,21 +136,47 @@ function formatDateDDMMYYYY(dateStr) {
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
     
-    return `${day}/${month}/${year}`;
+    return `${day}/${month}/${year} ${hour}:${minute}`;
 }
 
-document.addEventListener('DOMContentLoaded', () => loadBookings());
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search-box');
+    const statusSelect = document.getElementById('filter-status');
+    const paymentStatusSelect = document.getElementById('filter-payment-status');
 
-function loadBookings(page = 1) {
+    if (statusSelect) {
+        statusSelect.addEventListener('change', () => loadPosBookings(1));
+    }
+
+    if (paymentStatusSelect) {
+        paymentStatusSelect.addEventListener('change', () => loadPosBookings(1));
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                loadPosBookings(1);
+            }
+        });
+    }
+
+    loadPosBookings();
+});
+
+function loadPosBookings(page = 1) {
+    currentPage = page;
     const status = document.getElementById('filter-status').value;
     const paymentStatus = document.getElementById('filter-payment-status').value;
-    const search = document.getElementById('search-box').value;
+    const search = (document.getElementById('search-box').value || '').trim();
 
     let url = `/vendor/pos/api/bookings?page=${page}&per_page=10`;
     if (status) url += `&status=${status}`;
     if (paymentStatus) url += `&payment_status=${paymentStatus}`;
-    if (search) url += `&search=${search}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
 
     fetchJSON(url)
         .then(data => {
@@ -169,10 +194,10 @@ function loadBookings(page = 1) {
                         <span class="text-xs text-gray-500">${booking.customer_phone ?? '-'}</span>
                     </td>
                     <td class=" px-3 py-2 text-center font-bold">
-                        ${booking.bookingHoardings ? booking.bookingHoardings.length : 0}
+                        ${Array.isArray(booking.booking_hoardings) ? booking.booking_hoardings.length : (Array.isArray(booking.bookingHoardings) ? booking.bookingHoardings.length : 0)}
                     </td>
                     <td class=" px-3 py-2">
-                        ${formatDateDDMMYYYY(booking.created_at)}<br>
+                        ${formatDateTime(booking.created_at)}
                     </td>
                     <td class=" px-3 py-2 font-medium">
                         ₹${parseFloat(booking.total_amount).toLocaleString()}
@@ -216,7 +241,7 @@ function loadBookings(page = 1) {
                 </tr>`;
             });
 
-            renderPagination(data.data);
+            renderPosPagination(data.data);
         } else {
             tbody.innerHTML = `
                 <tr>
@@ -237,12 +262,12 @@ function loadBookings(page = 1) {
         });
 }
 
-function renderPagination(pagination) {
+function renderPosPagination(pagination) {
     let html = '<div class="flex justify-center gap-2">';
 
     for (let i = 1; i <= pagination.last_page; i++) {
         html += `
-            <button onclick="loadBookings(${i})"
+            <button onclick="loadPosBookings(${i})"
                 class="px-3 py-1 rounded border text-sm
                 ${i === pagination.current_page
                     ? 'bg-primary'
@@ -254,6 +279,9 @@ function renderPagination(pagination) {
     html += '</div>';
     document.getElementById('pagination-container').innerHTML = html;
 }
+
+window.loadPosBookings = loadPosBookings;
+window.loadBookings = loadPosBookings;
 
 function getStatusColor(status) {
     return {

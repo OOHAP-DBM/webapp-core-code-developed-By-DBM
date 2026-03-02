@@ -57,7 +57,7 @@
                             Cash
                         </button>
                         <button type="button" onclick="selectPaymentMode('bank_transfer')"
-                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="bank_transfer">
+                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="bank_transfer" style="cursor: pointer;">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             Bank Transfer
                         </button>
@@ -679,7 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="font-mono text-lg font-black text-amber-700" id="notif-timer-${booking.id}">--:--:--</div>
                 <div class="text-xs text-gray-500 mt-1">Invoice #${booking.invoice_number ?? booking.id}</div>
             </div>
-            <button class="ml-2 text-xs text-gray-500 hover:text-red-600 font-bold" onclick="this.parentElement.remove();localStorage.removeItem('activeBookingTimer');">✕</button>
+            <button class="ml-2 text-xs text-gray-500 hover:text-red-600 font-bold" onclick="this.parentElement.remove();">✕</button>
         `;
         document.body.appendChild(notif);
         // Timer logic
@@ -689,7 +689,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 notif.querySelector(`#notif-timer-${booking.id}`).innerText = '00:00:00';
                 clearInterval(interval);
                 setTimeout(() => notif.remove(), 3000);
-                localStorage.removeItem('activeBookingTimer');
                 return;
             }
             const h = Math.floor(remaining / 3600000);
@@ -711,31 +710,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (timerBlock && !timerBlock.classList.contains('hidden') && bookingId) {
                 // Get hold_expiry_at from last booking (store in window)
                 if (window.lastConfirmedBooking && window.lastConfirmedBooking.hold_expiry_at) {
-                    // Store timer in localStorage for cross-page
-                    localStorage.setItem('activeBookingTimer', JSON.stringify({
-                        id: window.lastConfirmedBooking.id,
-                        invoice_number: window.lastConfirmedBooking.invoice_number,
-                        hold_expiry_at: window.lastConfirmedBooking.hold_expiry_at
-                    }));
+                    if (typeof window.upsertPosTimerBooking === 'function') {
+                        window.upsertPosTimerBooking(window.lastConfirmedBooking);
+                    }
                     showTimerNotification(window.lastConfirmedBooking);
                 }
             }
         }
-            // On page load, show timer notification if present in localStorage
-            document.addEventListener('DOMContentLoaded', () => {
-                const timerData = localStorage.getItem('activeBookingTimer');
-                if (timerData) {
-                    try {
-                        const booking = JSON.parse(timerData);
-                        // Only show if timer is still valid
-                        if (booking && booking.hold_expiry_at && new Date(booking.hold_expiry_at) > new Date()) {
-                            showTimerNotification(booking);
-                        } else {
-                            localStorage.removeItem('activeBookingTimer');
-                        }
-                    } catch {}
-                }
-            });
         // Reset the create button state when closing modal
         const btn = document.getElementById('create-booking-btn');
         if (btn) {

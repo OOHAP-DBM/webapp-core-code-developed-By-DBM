@@ -1,7 +1,6 @@
 @extends('layouts.vendor')
 
 @section('title', 'POS Booking Details')
-@include('vendor.pos.components.pos-timer-notification')
 @section('content')
 <div class="px-6 py-6">
     <div class="bg-white rounded-xl shadow">
@@ -24,7 +23,7 @@
             <div class="rounded-xl border bg-gray-50 p-5 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <p class="text-xs text-gray-500">Invoice</p>
-                    <h2 id="ui-invoice" class="text-lg font-semibold">—</h2>
+                    <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" class="pointer-events-none text-inherit">—</a></h2>
                     <a id="ui-invoice-link" href="#" target="_blank" class="hidden text-xs text-blue-600 hover:underline">View Invoice PDF</a>
                 </div>
 
@@ -77,7 +76,9 @@
             <div>
                 <label class="block text-sm font-medium mb-1">Payment Amount *</label>
                 <input type="number" id="payment-amount"
+                       min="0.01" step="0.01"
                        class="w-full rounded-lg border border-gray-300 p-2">
+                <p id="payment-amount-help" class="text-xs text-gray-500 mt-1"></p>
             </div>
 
             <div>
@@ -171,12 +172,19 @@ async function loadBookingDetails() {
         const b = currentBooking;
 
         // 🔹 UI SUMMARY SYNC (NEW)
-        document.getElementById('ui-invoice').textContent = b.invoice_number || '—';
+        const invoiceNumberEl = document.getElementById('ui-invoice');
+        invoiceNumberEl.textContent = b.invoice_number || '—';
         const invoiceLink = document.getElementById('ui-invoice-link');
         if (b.invoice_url) {
+            invoiceNumberEl.href = b.invoice_url;
+            invoiceNumberEl.classList.remove('pointer-events-none');
+            invoiceNumberEl.classList.add('text-blue-600', 'hover:underline');
             invoiceLink.href = b.invoice_url;
             invoiceLink.classList.remove('hidden');
         } else {
+            invoiceNumberEl.href = '#';
+            invoiceNumberEl.classList.add('pointer-events-none');
+            invoiceNumberEl.classList.remove('text-blue-600', 'hover:underline');
             invoiceLink.href = '#';
             invoiceLink.classList.add('hidden');
         }
@@ -204,7 +212,7 @@ async function loadBookingDetails() {
                 <div><strong>Customer:</strong> ${b.customer_name}</div>
                 <div><strong>Phone:</strong> ${b.customer_phone || '-'}</div>
                 <div><strong>Booking Date:</strong>
-                    ${new Date(b.created_at).toLocaleDateString()} 
+                    ${new Date(b.created_at).toLocaleString()} 
                     
                 </div>
                 <div><strong>Notes:</strong> ${b.notes || '-'}</div>
@@ -321,8 +329,16 @@ function renderActionButtons(booking) {
 
 // Modal functions
 function openMarkPaidModal() {
+    const totalAmount = parseFloat(currentBooking?.total_amount || 0);
+    const paidAmount = parseFloat(currentBooking?.paid_amount || 0);
+    const payableAmount = Math.max(0, totalAmount - paidAmount);
+    const amountInput = document.getElementById('payment-amount');
+    const helpText = document.getElementById('payment-amount-help');
+
     document.getElementById('mark-paid-modal').classList.remove('hidden');
-    document.getElementById('payment-amount').value = currentBooking.total_amount;
+    amountInput.value = payableAmount.toFixed(2);
+    amountInput.max = payableAmount.toFixed(2);
+    helpText.textContent = `Maximum payable amount: ₹${payableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
     document.getElementById('payment-reference').value = '';
 }
 
@@ -343,11 +359,21 @@ function closeReleaseModal() {
  * Confirm and submit mark as paid
  */
 async function confirmMarkPaid() {
-    const amount = parseFloat(document.getElementById('payment-amount').value);
+    const amountInput = document.getElementById('payment-amount');
+    const amount = parseFloat(amountInput.value);
+    const totalAmount = parseFloat(currentBooking?.total_amount || 0);
+    const paidAmount = parseFloat(currentBooking?.paid_amount || 0);
+    const payableAmount = Math.max(0, totalAmount - paidAmount);
     const reference = document.getElementById('payment-reference').value;
 
     if (!amount || amount <= 0) {
         showActionMessage('Please enter a valid amount', 'error');
+        return;
+    }
+
+    if (amount > payableAmount) {
+        showActionMessage(`Amount cannot be greater than payable amount (₹${payableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })})`, 'error');
+        amountInput.focus();
         return;
     }
 
@@ -373,10 +399,19 @@ async function confirmMarkPaid() {
         });
 
         if (response.ok) {
+            const result = await response.json();
             showActionMessage('✅ Payment marked as received successfully!', 'success');
+            if (['partial', 'paid'].includes(result?.data?.payment_status)) {
+                if (typeof window.removePosTimerBooking === 'function') {
+                    window.removePosTimerBooking(bookingId);
+                } else if (typeof window.checkAndShowPosTimerNotification === 'function') {
+                    window.checkAndShowPosTimerNotification();
+                }
+            }
+
             closeMarkPaidModal();
             setTimeout(() => loadBookingDetails(), 1500);
-        } else if (response.status === 400) {
+        } else if (response.status === 400 || response.status === 422) {
             const error = await response.json();
             showActionMessage(error.message || 'Cannot mark as paid - invalid state', 'error');
         } else if (response.status === 404) {
