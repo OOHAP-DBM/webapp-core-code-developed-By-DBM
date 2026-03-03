@@ -89,14 +89,30 @@
                 <div class="mt-8">
                     <h4 class="text-lg font-semibold text-gray-900 mb-4">Create Password</h4>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="space-y-2">
+                        <div class="space-y-2 relative">
                             <label class="block text-sm font-medium text-gray-700">Password</label>
-                            <input type="password" name="password" placeholder="Enter password" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                            <div class="relative">
+                                <input type="password" name="password" id="password-input" placeholder="Enter password" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                                <button type="button" tabindex="-1" onclick="togglePassword('password-input', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black">
+                                    <svg id="eye-icon-password" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path id="eye-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5C7.305 4.5 3.135 7.305 1.5 12c1.635 4.695 5.805 7.5 10.5 7.5s8.865-2.805 10.5-7.5C20.865 7.305 16.695 4.5 12 4.5z" />
+                                        <circle id="eye-circle" cx="12" cy="12" r="3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
                             <div class="text-xs text-red-600 mt-1" data-error-for="password"></div>
                         </div>
-                        <div class="space-y-2">
+                        <div class="space-y-2 relative">
                             <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                            <input type="password" name="password_confirmation" placeholder="Confirm password" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                            <div class="relative">
+                                <input type="password" name="password_confirmation" id="confirm-password-input" placeholder="Confirm password" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                                <button type="button" tabindex="-1" onclick="togglePassword('confirm-password-input', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black">
+                                    <svg id="eye-icon-confirm" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path id="eye-path-confirm" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5C7.305 4.5 3.135 7.305 1.5 12c1.635 4.695 5.805 7.5 10.5 7.5s8.865-2.805 10.5-7.5C20.865 7.305 16.695 4.5 12 4.5z" />
+                                        <circle id="eye-circle-confirm" cx="12" cy="12" r="3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
                             <div class="text-xs text-red-600 mt-1" data-error-for="password_confirmation"></div>
                         </div>
                     </div>
@@ -218,4 +234,17 @@ document.getElementById('new-customer-form').addEventListener('submit', async (e
         submitBtn.innerText = originalText;
     }
 });
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('svg');
+    if (input.type === 'password') {
+        input.type = 'text';
+        // Eye-off icon
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.94 17.94A10.05 10.05 0 0112 19c-5 0-9-4-9-7a9.97 9.97 0 012.122-5.657m1.415-1.415A9.97 9.97 0 0112 5c5 0 9 4 9 7a9.97 9.97 0 01-1.421 4.243m-1.415 1.415A10.05 10.05 0 0112 19z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />';
+    } else {
+        input.type = 'password';
+        // Eye icon
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5C7.305 4.5 3.135 7.305 1.5 12c1.635 4.695 5.805 7.5 10.5 7.5s8.865-2.805 10.5-7.5C20.865 7.305 16.695 4.5 12 4.5z" /><circle cx="12" cy="12" r="3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />';
+    }
+}
 </script>

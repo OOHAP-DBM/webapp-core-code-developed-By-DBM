@@ -86,16 +86,19 @@
                             </td>
 
                             {{-- Actions --}}
-                            <td class="px-4 py-3 text-right">
+                            <td class="px-4 py-3 text-center">
                                 <div class="inline-flex gap-2">
-                                                                        <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.customers.show', $customer['id']) }}"
+                                    <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.customers.show', $customer['id']) }}"
                                        class="px-3 py-1 rounded-lg border border-gray-200 text-xs hover:bg-gray-100">
                                         View
                                     </a>
 
                                                                     <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.create', ['customer_id' => $customer['id']]) }}"
                                        class="px-3 py-1 rounded-lg bg-primary  text-xs hover:opacity-90">
-                                        New Booking
+                                        <a href="#"
+                                           class="px-3 py-1 rounded-lg bg-green-600 text-white text-sm  hover:opacity-90">
+                                            + New Booking
+                                        </a>
                                     </a>
                                 </div>
                             </td>

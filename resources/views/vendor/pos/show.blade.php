@@ -8,8 +8,8 @@
 
         {{-- Header --}}
         <div class="px-6 py-4 bg-primary text-white flex items-center justify-between">
-            <h4 class="text-lg font-semibold flex items-center gap-2">
-                📄 POS Booking Details
+            <h4 class="text-xl font-bold text-gray-800 flex  items-center gap-2">
+                 POS Booking Details
             </h4>
             <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
                class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg">
@@ -289,7 +289,7 @@ async function loadBookingDetails() {
                         <div><strong>Customer:</strong> ${b.customer_name}</div>
                         <div><strong>Phone:</strong> ${b.customer_phone || '-'} </div>
                         <div><strong>Booking Date:</strong> ${new Date(b.created_at).toLocaleString()} </div>
-                        <div><strong>Notes:</strong> ${b.notes || '-'} </div>
+                        <div><strong>Email:</strong> ${b.notes || '-'} </div>
                     </div>
                     <div class="flex flex-wrap gap-2 pt-2 border-t">
                         ${renderActionButtons(b)}

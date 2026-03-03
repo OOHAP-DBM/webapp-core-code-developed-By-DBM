@@ -1,5 +1,5 @@
 @if(($posLayout ?? null) === 'layouts.admin' && isset($posVendors) && isset($selectedPosVendorId))
-    <div class="mb-4 rounded-lg border border-gray-200 bg-white p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div class="mb-4 rounded-lg border border-gray-200 bg-white py-3 px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div class="text-sm text-gray-600">POS Vendor Context</div>
         <form method="GET" action="{{ url()->current() }}" class="flex items-center gap-2" id="admin-pos-context-form">
             <label for="admin-pos-booking-scope" class="text-sm text-gray-700">Scope</label>
