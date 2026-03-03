@@ -271,7 +271,7 @@ async function loadBookingDetails() {
                                         <th class="px-2 py-2 border">Hoardings</th>
                                         <th class="px-2 py-2 border">Rental</th>
                                         <th class="px-2 py-2 border">Duration</th>
-                                        <th class="px-2 py-2 border">Total Price (incl. 18% GST)</th>
+                                        <th class="px-2 py-2 border">Total Price</th>
                                     </tr>
                                 </thead>
                                 <tbody>
