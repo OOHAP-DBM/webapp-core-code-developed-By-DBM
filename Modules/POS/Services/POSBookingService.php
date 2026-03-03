@@ -234,7 +234,8 @@ class POSBookingService
 
 public function createBooking(array $data): POSBooking
 {
-    Log::info('POSBookingService.createBooking start', ['vendor_id' => Auth::id(), 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids','start_date','end_date','payment_mode','customer_id']))]);
+    $effectiveVendorId = (int) ($data['vendor_id'] ?? Auth::id());
+    Log::info('POSBookingService.createBooking start', ['vendor_id' => $effectiveVendorId, 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids','start_date','end_date','payment_mode','customer_id']))]);
 
     return DB::transaction(function () use ($data) {
         // Normalization: Ensure dates exist
@@ -253,16 +254,16 @@ public function createBooking(array $data): POSBooking
             ->lockForUpdate()
             ->get();
 
-        Log::info('POSBookingService locked hoardings', ['vendor_id' => Auth::id(), 'hoarding_ids' => $hoardings->pluck('id')->all(), 'count' => $hoardings->count()]);
+        Log::info('POSBookingService locked hoardings', ['vendor_id' => $effectiveVendorId, 'hoarding_ids' => $hoardings->pluck('id')->all(), 'count' => $hoardings->count()]);
 
         // Perform Pricing Calculation
         $pricing = $this->calculateMultiHoardingPricing($hoardings, $start, $end, (float)($data['discount_amount'] ?? 0));
 
-        Log::info('POSBookingService calculated pricing', ['vendor_id' => Auth::id(), 'pricing' => $pricing]);
+        Log::info('POSBookingService calculated pricing', ['vendor_id' => $effectiveVendorId, 'pricing' => $pricing]);
 
         // Create the record
         $bookingPayload = [
-            'vendor_id'       => Auth::id(),
+            'vendor_id'       => $effectiveVendorId,
             'customer_id'     => $data['customer_id'] ?? null,
             'customer_name'   => $data['customer_name'], // Required by DB
             'customer_phone'  => $data['customer_phone'], // Required by DB
@@ -286,7 +287,7 @@ public function createBooking(array $data): POSBooking
             'hold_expiry_at'  => $data['hold_expiry_at'] ?? null,
         ];
 
-        Log::info('POSBookingService creating booking record', ['vendor_id' => Auth::id(), 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id','start_date','end_date','total_amount']))]);
+        Log::info('POSBookingService creating booking record', ['vendor_id' => $effectiveVendorId, 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id','start_date','end_date','total_amount']))]);
 
         $booking = POSBooking::create($bookingPayload);
 
@@ -310,14 +311,14 @@ public function createBooking(array $data): POSBooking
             $this->attachHoardingToBooking($booking, $hoarding, $itemStart, $itemEnd, $itemPrice, $itemDiscount);
         }
 
-        Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => Auth::id(), 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
+        Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => $effectiveVendorId, 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
 
         // Generate invoice after booking creation (auto-invoice)
         try {
             if ($this->isAutoInvoiceEnabled()) {
                 $invoice = $this->invoiceService->generateInvoiceForPOSBooking(
                     $booking,
-                    Auth::id()
+                    $effectiveVendorId
                 );
                 // Store invoice reference in POS booking
                 $booking->update([
@@ -333,7 +334,7 @@ public function createBooking(array $data): POSBooking
             } else {
                 Log::info('POS auto-invoice disabled; skipping invoice generation', [
                     'pos_booking_id' => $booking->id,
-                    'vendor_id' => Auth::id(),
+                    'vendor_id' => $effectiveVendorId,
                     'setting_key' => 'pos_auto_invoice',
                 ]);
             }
@@ -345,7 +346,7 @@ public function createBooking(array $data): POSBooking
             // Don't fail the booking if invoice fails
         }
 
-          DB::afterCommit(function () use ($booking) {
+                    DB::afterCommit(function () use ($booking) {
             event(new \Modules\POS\Events\PosBookingCreated(
                 $booking->load(['customer', 'vendor', 'bookingHoardings.hoarding'])
             ));
@@ -915,9 +916,67 @@ public function releaseHoardings(POSBooking $booking)
                 'notes'               => $notes,
             ]);
 
+            \Illuminate\Support\Facades\DB::afterCommit(function () use ($booking) {
+                $this->sendPaymentReceivedNotifications((int) $booking->id);
+            });
+
             return $booking->fresh();
         });
     }
+
+    protected function sendPaymentReceivedNotifications(int $bookingId): void
+    {
+        try {
+            $booking = \Modules\POS\Models\POSBooking::query()->find($bookingId);
+
+            if (!$booking) {
+                return;
+            }
+
+            $notification = new \App\Notifications\PosBookingConfirmedNotification($booking);
+
+            $recipientIds = collect();
+
+            if (!empty($booking->customer_id)) {
+                $recipientIds->push((int) $booking->customer_id);
+            }
+
+            if (!empty($booking->vendor_id)) {
+                $recipientIds->push((int) $booking->vendor_id);
+            }
+
+            $adminIds = \App\Models\User::query()
+                ->whereHas('roles', function ($query) {
+                    $query->whereIn('name', ['admin', 'super_admin']);
+                })
+                ->pluck('id');
+
+            $recipientIds = $recipientIds
+                ->merge($adminIds)
+                ->filter(fn ($id) => (int) $id > 0)
+                ->unique()
+                ->values();
+
+            if ($recipientIds->isEmpty()) {
+                return;
+            }
+
+            \App\Models\User::query()
+                ->whereIn('id', $recipientIds->all())
+                ->get()
+                ->each(function ($user) use ($notification) {
+                    if (method_exists($user, 'notify')) {
+                        $user->notify($notification);
+                    }
+                });
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('POS payment received notification dispatch failed', [
+                'booking_id' => $bookingId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     /**
      * CRITICAL: Release booking hold (free hoarding, mark as cancelled)
      * Used for order cancellations or customer rejections
@@ -1015,6 +1074,7 @@ public function releaseHoardings(POSBooking $booking)
             'hoarding_discount'=> round($discount, 2),
             'hoarding_tax'     => round($tax, 2),
             'hoarding_total'   => round($total, 2),
+            // 'url'              => $hoarding->getUrlAttribute(),
             'start_date'       => $start,
             'end_date'         => $end,
             'duration_days'    => $durationDays,

@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Models\User;
 
 class POSBookingController extends Controller
 {
@@ -22,6 +23,125 @@ class POSBookingController extends Controller
     {
         $this->posBookingService = $posBookingService;
         $this->gracePeriodService = $gracePeriodService;
+    }
+
+    private function resolveEffectiveVendorId(Request $request): int
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            abort(401, 'Unauthenticated');
+        }
+
+        $isAdminContext = method_exists($user, 'hasAnyRole')
+            && $user->hasAnyRole(['admin', 'superadmin', 'super_admin']);
+
+        if (!$isAdminContext) {
+            return (int) $user->id;
+        }
+
+        $sessionKey = 'pos.selected_vendor_id';
+        $requestedVendorId = $request->input('vendor_id') ?? $request->query('vendor_id');
+
+        if (!empty($requestedVendorId)) {
+            $vendor = User::query()
+                ->whereKey((int) $requestedVendorId)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'vendor');
+                })
+                ->first();
+
+            if (!$vendor) {
+                abort(422, 'Invalid vendor selected for POS context.');
+            }
+
+            if ($request->hasSession()) {
+                $request->session()->put($sessionKey, (int) $vendor->id);
+            }
+
+            return (int) $vendor->id;
+        }
+
+        $sessionVendorId = $request->hasSession() ? $request->session()->get($sessionKey) : null;
+        if (!empty($sessionVendorId)) {
+            $exists = User::query()
+                ->whereKey((int) $sessionVendorId)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'vendor');
+                })
+                ->exists();
+
+            if ($exists) {
+                return (int) $sessionVendorId;
+            }
+        }
+
+        $fallbackVendorId = User::query()
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'vendor');
+            })
+            ->orderBy('id')
+            ->value('id');
+
+        if (!$fallbackVendorId) {
+            abort(422, 'No vendor available for POS context.');
+        }
+
+        if ($request->hasSession()) {
+            $request->session()->put($sessionKey, (int) $fallbackVendorId);
+        }
+
+        return (int) $fallbackVendorId;
+    }
+
+    private function resolveAdminBookingScopeContext(Request $request): array
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            abort(401, 'Unauthenticated');
+        }
+
+        $isAdminContext = method_exists($user, 'hasAnyRole')
+            && $user->hasAnyRole(['admin', 'superadmin', 'super_admin']);
+
+        if (!$isAdminContext) {
+            return [
+                'scope' => 'mine',
+                'vendor_id' => (int) $user->id,
+                'is_admin' => false,
+            ];
+        }
+
+        $scope = strtolower((string) ($request->input('booking_scope')
+            ?? $request->query('booking_scope')
+            ?? ($request->hasSession() ? $request->session()->get('pos.admin_booking_scope', 'vendor') : 'vendor')));
+
+        if (!in_array($scope, ['overall', 'mine', 'vendor'], true)) {
+            $scope = 'vendor';
+        }
+
+        if ($scope === 'overall') {
+            return [
+                'scope' => 'overall',
+                'vendor_id' => null,
+                'is_admin' => true,
+            ];
+        }
+
+        if ($scope === 'mine') {
+            return [
+                'scope' => 'mine',
+                'vendor_id' => (int) $user->id,
+                'is_admin' => true,
+            ];
+        }
+
+        return [
+            'scope' => 'vendor',
+            'vendor_id' => $this->resolveEffectiveVendorId($request),
+            'is_admin' => true,
+        ];
     }
 
     /**
@@ -38,7 +158,34 @@ class POSBookingController extends Controller
                 'per_page' => $request->get('per_page', 15),
             ];
 
-            $bookings = $this->posBookingService->getVendorBookings(Auth::id(), $filters);
+            $context = $this->resolveAdminBookingScopeContext($request);
+
+            if ($context['scope'] === 'overall') {
+                $query = POSBooking::query()->orderBy('created_at', 'desc');
+
+                if (!empty($filters['status'])) {
+                    $query->where('status', $filters['status']);
+                }
+                if (!empty($filters['payment_status'])) {
+                    $query->where('payment_status', $filters['payment_status']);
+                }
+                if (!empty($filters['booking_type'])) {
+                    $query->where('booking_type', $filters['booking_type']);
+                }
+                if (!empty($filters['search'])) {
+                    $search = trim((string) $filters['search']);
+                    $query->where(function ($builder) use ($search) {
+                        $builder->where('invoice_number', 'like', "%{$search}%")
+                            ->orWhere('customer_name', 'like', "%{$search}%")
+                            ->orWhere('customer_phone', 'like', "%{$search}%")
+                            ->orWhere('customer_email', 'like', "%{$search}%");
+                    });
+                }
+
+                $bookings = $query->paginate((int) ($filters['per_page'] ?? 15));
+            } else {
+                $bookings = $this->posBookingService->getVendorBookings((int) $context['vendor_id'], $filters);
+            }
 
             return response()->json([
                 'success' => true,
@@ -56,10 +203,21 @@ class POSBookingController extends Controller
     /**
      * Get POS dashboard statistics
      */
-    public function dashboard(): JsonResponse
+    public function dashboard(Request $request): JsonResponse
     {
         try {
-            $statistics = $this->posBookingService->getVendorStatistics(Auth::id());
+            $context = $this->resolveAdminBookingScopeContext($request);
+
+            if ($context['scope'] === 'overall') {
+                $statistics = [
+                    'total_bookings' => POSBooking::count(),
+                    'total_revenue' => (float) POSBooking::where('payment_status', 'paid')->sum('total_amount'),
+                    'pending_payments' => (float) POSBooking::whereIn('payment_status', ['unpaid', 'partial'])->sum('total_amount'),
+                    'active_credit_notes' => POSBooking::where('credit_note_status', 'active')->count(),
+                ];
+            } else {
+                $statistics = $this->posBookingService->getVendorStatistics((int) $context['vendor_id']);
+            }
 
             return response()->json([
                 'success' => true,
@@ -77,12 +235,17 @@ class POSBookingController extends Controller
     /**
      * Get single booking details this is also being used in web view, so it has some additional data formatting for invoice URL and hoarding details
      */
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         try {
-            $booking = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver'])
-                ->forVendor(Auth::id())
-                ->findOrFail($id);
+            $context = $this->resolveAdminBookingScopeContext($request);
+            $query = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver']);
+
+            if ($context['scope'] !== 'overall') {
+                $query->where('vendor_id', $context['vendor_id']);
+            }
+
+            $booking = $query->findOrFail($id);
 
             $bookingData = $booking->toArray();
             $bookingData['has_invoice'] = !empty($booking->invoice_path);
@@ -463,7 +626,12 @@ class POSBookingController extends Controller
      public function markAsPaid(Request $request, int $id): JsonResponse
     {
         try {
-            $booking = POSBooking::where('vendor_id', Auth::id())->findOrFail($id);
+            $context = $this->resolveAdminBookingScopeContext($request);
+            $bookingQuery = POSBooking::query();
+            if ($context['scope'] !== 'overall') {
+                $bookingQuery->where('vendor_id', $context['vendor_id']);
+            }
+            $booking = $bookingQuery->findOrFail($id);
 
             $validated = $request->validate([
                 'amount' => 'required|numeric|min:0.01',
@@ -485,8 +653,6 @@ class POSBookingController extends Controller
                     'message' => 'Cannot mark payment for cancelled booking',
                 ], 422);
             }
-
-            $previousPaymentStatus = $booking->payment_status;
 
             $remainingPayableAmount = max(0, (float) $booking->total_amount - (float) ($booking->paid_amount ?? 0));
             if ((float) $validated['amount'] > $remainingPayableAmount) {
@@ -510,13 +676,6 @@ class POSBookingController extends Controller
                 $validated['notes'] ?? null
             );
 
-            if (
-                $previousPaymentStatus === POSBooking::PAYMENT_STATUS_UNPAID
-                && in_array($updated->payment_status, [POSBooking::PAYMENT_STATUS_PARTIAL, POSBooking::PAYMENT_STATUS_PAID], true)
-            ) {
-                $this->sendBookingConfirmationNotifications($updated);
-            }
-
             return response()->json([
                 'success' => true,
                 'message' => 'Payment marked as received successfully',
@@ -525,7 +684,7 @@ class POSBookingController extends Controller
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to mark payment', [
                 'booking_id' => $id,
-                'vendor_id' => Auth::id(),
+                'vendor_id' => $booking->vendor_id ?? null,
                 'error' => $e->getMessage(),
             ]);
 
@@ -534,42 +693,6 @@ class POSBookingController extends Controller
                 'message' => 'Failed to mark payment',
                 'error' => $e->getMessage(),
             ], 500);
-        }
-    }
-
-    protected function sendBookingConfirmationNotifications(POSBooking $booking): void
-    {
-        try {
-            $notification = new \App\Notifications\PosBookingConfirmedNotification($booking);
-
-            if (!empty($booking->customer_id)) {
-                $customer = \App\Models\User::find($booking->customer_id);
-                if ($customer && method_exists($customer, 'notify')) {
-                    $customer->notify($notification);
-                }
-            }
-
-            if (!empty($booking->vendor_id)) {
-                $vendor = \App\Models\User::find($booking->vendor_id);
-                if ($vendor && method_exists($vendor, 'notify')) {
-                    $vendor->notify($notification);
-                }
-            }
-
-            $admins = \App\Models\User::whereHas('roles', function ($query) {
-                $query->whereIn('name', ['admin', 'super_admin']);
-            })->get();
-
-            foreach ($admins as $admin) {
-                if (method_exists($admin, 'notify')) {
-                    $admin->notify($notification);
-                }
-            }
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('POS booking confirmation notification failed after payment', [
-                'booking_id' => $booking->id,
-                'error' => $e->getMessage(),
-            ]);
         }
     }
 
@@ -585,7 +708,12 @@ class POSBookingController extends Controller
         ]);
 
         try {
-            $booking = POSBooking::where('vendor_id', Auth::id())->findOrFail($id);
+            $context = $this->resolveAdminBookingScopeContext($request);
+            $bookingQuery = POSBooking::query();
+            if ($context['scope'] !== 'overall') {
+                $bookingQuery->where('vendor_id', $context['vendor_id']);
+            }
+            $booking = $bookingQuery->findOrFail($id);
 
             // Can only release if pending payment
             if ($booking->payment_status !== POSBooking::PAYMENT_STATUS_UNPAID) {
@@ -615,7 +743,7 @@ class POSBookingController extends Controller
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to release booking', [
                 'booking_id' => $id,
-                'vendor_id' => Auth::id(),
+                'vendor_id' => $booking->vendor_id ?? null,
                 'error' => $e->getMessage(),
             ]);
 
@@ -631,18 +759,23 @@ class POSBookingController extends Controller
      * Get all bookings with pending payments (hold status)
      * Used for dashboard pending orders section
      */
-    public function getPendingPayments(): JsonResponse
+    public function getPendingPayments(Request $request): JsonResponse
     {
         try {
-            $bookings = POSBooking::where('vendor_id', Auth::id())
-                ->where('payment_status', POSBooking::PAYMENT_STATUS_UNPAID)
+            $context = $this->resolveAdminBookingScopeContext($request);
+            $query = POSBooking::where('payment_status', POSBooking::PAYMENT_STATUS_UNPAID)
                 ->where(function ($query) {
                     $query->whereNull('hold_expiry_at')
                         ->orWhere('hold_expiry_at', '>', now());
                 })
                 ->with(['hoarding:id,title,location_city'])
-                ->orderBy('hold_expiry_at', 'asc')
-                ->get([
+                ->orderBy('hold_expiry_at', 'asc');
+
+            if ($context['scope'] !== 'overall') {
+                $query->where('vendor_id', $context['vendor_id']);
+            }
+
+            $bookings = $query->get([
                     'id',
                     'customer_name',
                     'customer_phone',
@@ -673,10 +806,15 @@ class POSBookingController extends Controller
      * Send reminder for pending payment
      * Limit to max 3 reminders per booking
      */
-    public function sendReminder(int $id): JsonResponse
+    public function sendReminder(Request $request, int $id): JsonResponse
     {
         try {
-            $booking = POSBooking::where('vendor_id', Auth::id())->findOrFail($id);
+            $context = $this->resolveAdminBookingScopeContext($request);
+            $bookingQuery = POSBooking::query();
+            if ($context['scope'] !== 'overall') {
+                $bookingQuery->where('vendor_id', $context['vendor_id']);
+            }
+            $booking = $bookingQuery->findOrFail($id);
 
             if ($booking->payment_status !== POSBooking::PAYMENT_STATUS_UNPAID) {
                 return response()->json([

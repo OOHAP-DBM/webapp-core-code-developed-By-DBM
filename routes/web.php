@@ -34,6 +34,9 @@ Route::get('/api/reverse-geocode', [GeocodeController::class, 'reverse']);
 $seoSearchPattern = config('seo_search_routes.pattern', '/billboard-advertising/{city}/{area?}');
 Route::get($seoSearchPattern, [SearchController::class, 'seoSearch'])->name('search.seo');
 Route::middleware(['auth'])->get('/notification/{notification}', [App\Http\Controllers\NotificationRedirectController::class, 'open'])->name('notifications.open');
+Route::middleware(['auth', 'role:admin|superadmin'])
+    ->get('/admin/notification/{notification}', [App\Http\Controllers\NotificationRedirectController::class, 'open'])
+    ->name('admin.notifications.open');
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
@@ -94,7 +97,7 @@ Route::prefix('enquiry')->name('direct.enquiry.')->group(function () {
 });
 
 // Admin routes (requires authentication and admin role)
-Route::prefix('admin/direct-enquiries')->name('admin.direct-enquiries.')->middleware(['auth', 'role:admin,superadmin'])->group(function () {
+Route::prefix('admin/direct-enquiries')->name('admin.direct-enquiries.')->middleware(['auth', 'role:admin|superadmin'])->group(function () {
 
     // List all enquiries
     Route::get('/', [DirectEnquiryController::class, 'index'])
@@ -167,6 +170,10 @@ Route::prefix('admin/pos')->middleware(['auth', 'role:admin'])->name('admin.pos.
     Route::get('/dashboard', [\Modules\POS\Controllers\Web\AdminPosController::class, 'dashboard'])->name('dashboard');
     Route::get('/bookings', [\Modules\POS\Controllers\Web\AdminPosController::class, 'index'])->name('list');
     Route::get('/create', [\Modules\POS\Controllers\Web\AdminPosController::class, 'create'])->name('create');
+    Route::get('/bookings/{id}', [\Modules\POS\Controllers\Web\AdminPosController::class, 'show'])->name('show');
+    Route::get('/bookings/{id}/edit', [\Modules\POS\Controllers\Web\AdminPosController::class, 'edit'])->name('edit');
+    Route::get('/customers', [\Modules\POS\Controllers\Web\AdminPosController::class, 'customers'])->name('customers');
+    Route::get('/customers/{id}', [\Modules\POS\Controllers\Web\AdminPosController::class, 'showCustomer'])->name('customers.show');
     // Extend: edit, view, etc. as needed
 });
 
@@ -567,9 +574,31 @@ Route::prefix('/vendor/pos/api/')
 
         Route::get('/bookings/{bookingId}', [POSBookingController::class, 'show']);
         Route::post('/bookings/{bookingId}/mark-paid', [POSBookingController::class, 'markAsPaid']);
-        Route::post('/bookings/{bookingId}/release', [POSBookingController::class, 'release']);
+        Route::post('/bookings/{bookingId}/release', [POSBookingController::class, 'releaseBooking']);
         Route::post('/bookings/{bookingId}/send-reminder', [POSBookingController::class, 'sendReminder']);
         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
+        Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+    });
+
+Route::prefix('/admin/pos/api/')
+    ->middleware(['web', 'auth', 'role:admin|superadmin'])
+    ->group(function () {
+
+        Route::get('/settings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getSettings']);
+        Route::get('/hoardings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getHoardings']);
+        Route::get('/customers', [\Modules\POS\Controllers\Web\VendorPosController::class, 'searchCustomers']);
+        Route::post('/customers', [\Modules\POS\Controllers\Web\VendorPosController::class, 'createCustomer']);
+        Route::post('/calculate-price', [\Modules\POS\Controllers\Web\VendorPosController::class, 'calculatePrice']);
+        Route::post('/bookings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'createBooking']);
+        Route::get('/dashboard', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getDashboardStats']);
+        Route::get('/bookings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getBookingsList']);
+        Route::get('/pending-payments', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getPendingPayments']);
+
+        Route::get('/bookings/{bookingId}', [POSBookingController::class, 'show']);
+        Route::post('/bookings/{bookingId}/mark-paid', [POSBookingController::class, 'markAsPaid']);
+        Route::post('/bookings/{bookingId}/release', [POSBookingController::class, 'releaseBooking']);
+        Route::post('/bookings/{bookingId}/send-reminder', [POSBookingController::class, 'sendReminder']);
+        Route::get('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
     });
 
@@ -785,7 +814,7 @@ Route::get('/avatar/{user}', [\App\Http\Controllers\Web\Vendor\ProfileController
 // ============================================
 // ADMIN PANEL (Authenticated)
 // ============================================
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\Modules\Admin\Controllers\Web\AdminDashboardController::class, 'index'])->name('dashboard');
 
     // Users Management

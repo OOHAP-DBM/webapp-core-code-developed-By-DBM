@@ -11,6 +11,9 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\HoardingStatusChanged::class => [
             \App\Listeners\SendHoardingStatusNotification::class,
         ],
+        \Modules\POS\Events\PosBookingCreated::class => [
+            \App\Listeners\SendPosBookingCreatedNotification::class,
+        ],
     ];
 
     public function boot(): void

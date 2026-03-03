@@ -30,9 +30,130 @@ class VendorPosController extends Controller
         POSBookingService $posBookingService,
         HoardingAvailabilityService $availabilityService
     ) {
-        $this->middleware(['auth', 'active_role:vendor']);
+        $this->middleware(['auth', 'role:vendor|admin|superadmin']);
         $this->posBookingService = $posBookingService;
         $this->availabilityService = $availabilityService;
+    }
+
+    private function resolveEffectiveVendorId(?Request $request = null): int
+    {
+        $request = $request ?? request();
+        $user = Auth::user();
+
+        if (!$user) {
+            abort(401, 'Unauthenticated');
+        }
+
+        $isAdminContext = method_exists($user, 'hasAnyRole')
+            && $user->hasAnyRole(['admin', 'superadmin', 'super_admin']);
+
+        if (!$isAdminContext) {
+            return (int) $user->id;
+        }
+
+        $sessionKey = 'pos.selected_vendor_id';
+        $requestedVendorId = $request->input('vendor_id') ?? $request->query('vendor_id');
+
+        if (!empty($requestedVendorId)) {
+            $vendor = User::query()
+                ->whereKey((int) $requestedVendorId)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'vendor');
+                })
+                ->first();
+
+            if (!$vendor) {
+                abort(422, 'Invalid vendor selected for POS context.');
+            }
+
+            if ($request->hasSession()) {
+                $request->session()->put($sessionKey, (int) $vendor->id);
+            }
+
+            return (int) $vendor->id;
+        }
+
+        $sessionVendorId = $request->hasSession() ? $request->session()->get($sessionKey) : null;
+        if (!empty($sessionVendorId)) {
+            $exists = User::query()
+                ->whereKey((int) $sessionVendorId)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'vendor');
+                })
+                ->exists();
+
+            if ($exists) {
+                return (int) $sessionVendorId;
+            }
+        }
+
+        $fallbackVendorId = User::query()
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'vendor');
+            })
+            ->orderBy('id')
+            ->value('id');
+
+        if (!$fallbackVendorId) {
+            abort(422, 'No vendor available for POS context.');
+        }
+
+        if ($request->hasSession()) {
+            $request->session()->put($sessionKey, (int) $fallbackVendorId);
+        }
+
+        return (int) $fallbackVendorId;
+    }
+
+    private function resolveAdminBookingScopeContext(?Request $request = null): array
+    {
+        $request = $request ?? request();
+        $user = Auth::user();
+
+        if (!$user) {
+            abort(401, 'Unauthenticated');
+        }
+
+        $isAdminContext = method_exists($user, 'hasAnyRole')
+            && $user->hasAnyRole(['admin', 'superadmin', 'super_admin']);
+
+        if (!$isAdminContext) {
+            return [
+                'scope' => 'mine',
+                'vendor_id' => (int) $user->id,
+                'is_admin' => false,
+            ];
+        }
+
+        $scope = strtolower((string) ($request->input('booking_scope')
+            ?? $request->query('booking_scope')
+            ?? ($request->hasSession() ? $request->session()->get('pos.admin_booking_scope', 'vendor') : 'vendor')));
+
+        if (!in_array($scope, ['overall', 'mine', 'vendor'], true)) {
+            $scope = 'vendor';
+        }
+
+        if ($scope === 'overall') {
+            return [
+                'scope' => 'overall',
+                'vendor_id' => null,
+                'is_admin' => true,
+            ];
+        }
+
+        if ($scope === 'mine') {
+            return [
+                'scope' => 'mine',
+                'vendor_id' => (int) $user->id,
+                'is_admin' => true,
+            ];
+        }
+
+        return [
+            'scope' => 'vendor',
+            'vendor_id' => $this->resolveEffectiveVendorId($request),
+            'is_admin' => true,
+        ];
     }
 
     /**
@@ -319,7 +440,7 @@ class VendorPosController extends Controller
     public function getHoardings(Request $request): JsonResponse
     {
         try {
-            $vendorId = Auth::id();
+            $vendorId = $this->resolveEffectiveVendorId($request);
 
             // ── Base query ────────────────────────────────────────────────
             $query = Hoarding::query()
@@ -971,8 +1092,9 @@ class VendorPosController extends Controller
 public function createBooking(Request $request): JsonResponse
 {
     try {
+        $vendorId = $this->resolveEffectiveVendorId($request);
         Log::info('POS create booking request', [
-            'vendor_id' => Auth::id(),
+            'vendor_id' => $vendorId,
             'payload_keys' => array_keys($request->all()),
         ]);
 
@@ -1003,8 +1125,6 @@ public function createBooking(Request $request): JsonResponse
             'hold_minutes'                          => 'nullable|integer|min:0',
             'payment_details_type'                  => 'nullable|string|in:bank_transfer,online',
         ]);
-
-        $vendorId = Auth::id();
 
         // ── Resolve hoarding IDs ─────────────────────────────────────
         $hoardingIds = is_array($request->hoarding_ids)
@@ -1156,9 +1276,6 @@ public function createBooking(Request $request): JsonResponse
 
             if (!empty($booking->customer_id)) {
                 $customer = \App\Models\User::find($booking->customer_id);
-                if ($customer && method_exists($customer, 'notify')) {
-                    $customer->notify(new \App\Notifications\PosBookingCreatedNotification($booking));
-                }
                 if (
                     $emailNotificationsEnabled
                     && $customer
@@ -1318,28 +1435,33 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     public function getDashboardStats(): JsonResponse
     {
         try {
-            $vendorId = Auth::id();
+            $context = $this->resolveAdminBookingScopeContext(request());
 
             // Get statistics
-            $totalBookings = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)->count();
-            $totalRevenue = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
+            $baseQuery = \Modules\POS\Models\POSBooking::query();
+            if ($context['scope'] !== 'overall') {
+                $baseQuery->where('vendor_id', $context['vendor_id']);
+            }
+
+            $totalBookings = (clone $baseQuery)->count();
+            $totalRevenue = (clone $baseQuery)
                 ->where('payment_status', 'paid')
                 ->sum('total_amount') ?? 0;
-            $pendingPayments = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
+            $pendingPayments = (clone $baseQuery)
                 ->whereIn('payment_status', ['unpaid', 'partial'])
                 ->sum('total_amount') ?? 0;
-            $activeCreditNotes = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
+            $activeCreditNotes = (clone $baseQuery)
                 ->where('credit_note_status', 'active')
                 ->count();
 
                 // 1. Registered Customers (Unique by ID)
-            $regCount = POSBooking::where('vendor_id', $vendorId)
+            $regCount = (clone $baseQuery)
                 ->whereNotNull('customer_id')
                 ->distinct('customer_id')
                 ->count('customer_id');
 
             // 2. Guest Walk-ins (Unique by Phone, excluding 'N/A')
-            $guestCount = POSBooking::where('vendor_id', $vendorId)
+            $guestCount = (clone $baseQuery)
                 ->whereNull('customer_id')
                 ->whereNotNull('customer_phone')
                 ->where('customer_phone', '!=', 'N/A')
@@ -1347,7 +1469,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
                 ->count('customer_phone');
 
             // 3. True Anonymous (Every 'N/A' or empty phone is a new person)
-            $naCount = POSBooking::where('vendor_id', $vendorId)
+            $naCount = (clone $baseQuery)
                 ->whereNull('customer_id')
                 ->where(function($q) {
                     $q->where('customer_phone', 'N/A')->orWhereNull('customer_phone');
@@ -1380,12 +1502,15 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     public function getBookingsList(Request $request): JsonResponse
     {
         try {
-            $vendorId = Auth::id();
+            $context = $this->resolveAdminBookingScopeContext($request);
             $perPage = max(1, min((int) ($request->get('per_page') ?? 10), 100));
 
-            $query = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
-                ->with('bookingHoardings')
+            $query = \Modules\POS\Models\POSBooking::with('bookingHoardings')
                 ->orderBy('created_at', 'desc');
+
+            if ($context['scope'] !== 'overall') {
+                $query->where('vendor_id', $context['vendor_id']);
+            }
 
             if ($request->filled('status')) {
                 $query->where('status', $request->get('status'));
@@ -1434,12 +1559,15 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     public function getPendingPayments(Request $request): JsonResponse
     {
         try {
-            $vendorId = Auth::id();
+            $context = $this->resolveAdminBookingScopeContext($request);
 
-            $query = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
-                ->whereIn('payment_status', ['unpaid', 'partial'])
+            $query = \Modules\POS\Models\POSBooking::whereIn('payment_status', ['unpaid', 'partial'])
                 ->with('bookingHoardings.hoarding')
                 ->orderBy('created_at', 'asc');
+
+            if ($context['scope'] !== 'overall') {
+                $query->where('vendor_id', $context['vendor_id']);
+            }
 
             $search = trim((string) $request->get('search', ''));
             if ($search !== '') {
@@ -1595,6 +1723,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     public function createCustomer(Request $request)
     {
         try {
+            $vendorId = $this->resolveEffectiveVendorId($request);
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
@@ -1622,7 +1751,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
                 $user->assignRole('customer');
 
                 $user->posProfile()->create([
-                    'vendor_id' => Auth::id(),
+                    'vendor_id' => $vendorId,
                     'created_by' => Auth::id(),
                     'gstin' => $request->gstin,
                     'business_name' => $request->business_name,
@@ -1639,7 +1768,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
             try {
                 // Log customer creation
                 Log::info('POS customer created', [
-                    'vendor_id' => Auth::id(),
+                    'vendor_id' => $vendorId,
                     'customer_id' => $user->id,
                     'customer_email' => $user->email,
                 ]);
@@ -1670,7 +1799,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
                 });
             } catch (\Exception $e) {
                 Log::warning('Failed to log POS customer creation', [
-                    'vendor_id' => Auth::id(),
+                    'vendor_id' => $vendorId,
                     'error' => $e->getMessage(),
                 ]);
             }
@@ -1728,7 +1857,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
 
       public function customers()
     {
-        $vendorId = Auth::id();
+                $vendorId = $this->resolveEffectiveVendorId(request());
 
         // 1. Get all user_ids from bookings for this vendor
         $bookingCustomers = POSBooking::where('vendor_id', $vendorId)
@@ -1795,7 +1924,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
 
     public function showCustomer($id)
     {
-        $vendorId = Auth::id();
+        $vendorId = $this->resolveEffectiveVendorId(request());
 
         // Find user by ID
         $user = User::findOrFail($id);

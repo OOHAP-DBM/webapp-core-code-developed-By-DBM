@@ -40,18 +40,21 @@ class PosBookingHoldExpiredNotification extends Notification implements ShouldQu
             ? 'Your POS booking hold has expired because payment was not completed within the hold window.'
             : 'A POS booking hold has expired because payment was not completed within the hold window.';
 
+        $mailData = [
+            'greeting' => 'Hello ' . ($notifiable->name ?? 'Customer') . ',',
+            'body' => $body,
+            'booking_id' => $this->booking->id,
+            'invoice_number' => $this->booking->invoice_number ?? ('#' . $this->booking->id),
+            'amount' => '₹' . number_format((float) $this->booking->total_amount, 2),
+            'payment_mode' => strtoupper((string) $this->booking->payment_mode),
+            'hold_expired_at' => $holdExpiredAt,
+            'action_url' => $this->resolveActionUrl($notifiable),
+            'action_text' => 'View Booking',
+        ];
+
         return (new MailMessage)
             ->subject('POS Booking Hold Expired - Invoice #' . ($this->booking->invoice_number ?? $this->booking->id))
-            ->greeting('Hello ' . ($notifiable->name ?? 'Customer') . ',')
-            ->line($body)
-            ->line('**Booking ID:** #' . $this->booking->id)
-            ->line('**Invoice Number:** ' . ($this->booking->invoice_number ?? ('#' . $this->booking->id)))
-            ->line('**Amount:** ₹' . number_format((float) $this->booking->total_amount, 2))
-            ->line('**Payment Mode:** ' . strtoupper((string) $this->booking->payment_mode))
-            ->line('**Hold Expired At:** ' . $holdExpiredAt)
-            ->line('This booking has been automatically cancelled and the hoarding hold has been released.')
-            ->action('View Booking', $this->resolveActionUrl($notifiable))
-            ->line('You can create a new booking if you still want to proceed.');
+            ->view('emails.pos.booking_hold_expired', $mailData);
     }
 
     public function toArray($notifiable): array
