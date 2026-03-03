@@ -1,9 +1,11 @@
 @include('vendor.pos.components.pos-timer-notification')
-@extends('layouts.vendor')
+@extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'POS Customers')
 @section('content')
+<script>window.POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');</script>
 <div class="px-2">
+            @include('vendor.pos.components.admin-vendor-switcher')
          <div class="pb-4 px-2 bg-primary  rounded-t-xl">
             <h4 class="text-lg font-semibold flex items-center gap-2">
                POS Customers
@@ -86,12 +88,12 @@
                             {{-- Actions --}}
                             <td class="px-4 py-3 text-right">
                                 <div class="inline-flex gap-2">
-                                    <a href="{{ route('vendor.pos.customers.show', $customer['id']) }}"
+                                                                        <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.customers.show', $customer['id']) }}"
                                        class="px-3 py-1 rounded-lg border border-gray-200 text-xs hover:bg-gray-100">
                                         View
                                     </a>
 
-                                  <a href="{{ route('vendor.pos.create', ['customer_id' => $customer['id']]) }}"
+                                                                    <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.create', ['customer_id' => $customer['id']]) }}"
                                        class="px-3 py-1 rounded-lg bg-primary  text-xs hover:opacity-90">
                                         New Booking
                                     </a>
