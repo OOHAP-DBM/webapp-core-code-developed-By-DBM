@@ -1156,9 +1156,6 @@ public function createBooking(Request $request): JsonResponse
 
             if (!empty($booking->customer_id)) {
                 $customer = \App\Models\User::find($booking->customer_id);
-                if ($customer && method_exists($customer, 'notify')) {
-                    $customer->notify(new \App\Notifications\PosBookingCreatedNotification($booking));
-                }
                 if (
                     $emailNotificationsEnabled
                     && $customer

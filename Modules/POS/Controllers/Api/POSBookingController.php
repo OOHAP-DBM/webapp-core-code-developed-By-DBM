@@ -486,8 +486,6 @@ class POSBookingController extends Controller
                 ], 422);
             }
 
-            $previousPaymentStatus = $booking->payment_status;
-
             $remainingPayableAmount = max(0, (float) $booking->total_amount - (float) ($booking->paid_amount ?? 0));
             if ((float) $validated['amount'] > $remainingPayableAmount) {
                 return response()->json([
@@ -510,13 +508,6 @@ class POSBookingController extends Controller
                 $validated['notes'] ?? null
             );
 
-            if (
-                $previousPaymentStatus === POSBooking::PAYMENT_STATUS_UNPAID
-                && in_array($updated->payment_status, [POSBooking::PAYMENT_STATUS_PARTIAL, POSBooking::PAYMENT_STATUS_PAID], true)
-            ) {
-                $this->sendBookingConfirmationNotifications($updated);
-            }
-
             return response()->json([
                 'success' => true,
                 'message' => 'Payment marked as received successfully',
@@ -534,42 +525,6 @@ class POSBookingController extends Controller
                 'message' => 'Failed to mark payment',
                 'error' => $e->getMessage(),
             ], 500);
-        }
-    }
-
-    protected function sendBookingConfirmationNotifications(POSBooking $booking): void
-    {
-        try {
-            $notification = new \App\Notifications\PosBookingConfirmedNotification($booking);
-
-            if (!empty($booking->customer_id)) {
-                $customer = \App\Models\User::find($booking->customer_id);
-                if ($customer && method_exists($customer, 'notify')) {
-                    $customer->notify($notification);
-                }
-            }
-
-            if (!empty($booking->vendor_id)) {
-                $vendor = \App\Models\User::find($booking->vendor_id);
-                if ($vendor && method_exists($vendor, 'notify')) {
-                    $vendor->notify($notification);
-                }
-            }
-
-            $admins = \App\Models\User::whereHas('roles', function ($query) {
-                $query->whereIn('name', ['admin', 'super_admin']);
-            })->get();
-
-            foreach ($admins as $admin) {
-                if (method_exists($admin, 'notify')) {
-                    $admin->notify($notification);
-                }
-            }
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('POS booking confirmation notification failed after payment', [
-                'booking_id' => $booking->id,
-                'error' => $e->getMessage(),
-            ]);
         }
     }
 

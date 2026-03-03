@@ -37,7 +37,8 @@ class VendorPaymentDetailController extends Controller
         // Append full URL for QR image
         $data = $detail->toArray();
         if (!empty($data['qr_image_path'])) {
-            $data['qr_image_url'] = Storage::disk('public')->url($data['qr_image_path']);
+            $data['qr_image_path'] = $detail->normalizedQrImagePath() ?? $data['qr_image_path'];
+            $data['qr_image_url'] = $detail->qrImageUrl();
         }
 
         return response()->json(['success' => true, 'data' => $data]);
@@ -85,12 +86,13 @@ class VendorPaymentDetailController extends Controller
 
             if ($request->hasFile('qr_image')) {
                 // Delete old QR if exists
-                if ($existing && $existing->qr_image_path && Storage::disk('public')->exists($existing->qr_image_path)) {
-                    Storage::disk('public')->delete($existing->qr_image_path);
+                $existingQrPath = $existing?->normalizedQrImagePath();
+                if ($existingQrPath && Storage::disk('public')->exists($existingQrPath)) {
+                    Storage::disk('public')->delete($existingQrPath);
                 }
                 $qrPath = $request->file('qr_image')->store("vendor_qr/{$vendorId}", 'public');
             } else {
-                $qrPath = $existing?->qr_image_path;
+                $qrPath = $existing?->normalizedQrImagePath();
             }
 
             $detail = VendorPaymentDetail::updateOrCreate(
@@ -102,7 +104,12 @@ class VendorPaymentDetailController extends Controller
             );
 
             $data                = $detail->toArray();
-            $data['qr_image_url'] = $qrPath ? Storage::disk('public')->url($qrPath) : null;
+            if ($qrPath) {
+                $data['qr_image_path'] = $detail->normalizedQrImagePath() ?? $data['qr_image_path'];
+                $data['qr_image_url'] = $detail->qrImageUrl();
+            } else {
+                $data['qr_image_url'] = null;
+            }
 
             return response()->json(['success' => true, 'data' => $data]);
         }

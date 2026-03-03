@@ -271,6 +271,10 @@
 </div>
 
 <style>
+button:not(:disabled) {
+    cursor: pointer;
+}
+
 .payment-mode-btn {
     border-color: #e5e7eb;
     color: #6b7280;
@@ -481,12 +485,96 @@ async function saveUpiDetails() {
     }
 }
 
+function normalizeQrImageUrl(data) {
+    const raw = data?.qr_image_url || data?.qr_image_path || '';
+    if (!raw) return '';
+
+    const normalizedRaw = String(raw).replace(/\\/g, '/').trim();
+
+    if (/^https?:\/\//i.test(normalizedRaw)) {
+        try {
+            const parsed = new URL(normalizedRaw);
+            if (parsed.host === window.location.host) {
+                return normalizedRaw;
+            }
+            if (parsed.pathname.startsWith('/storage/')) {
+                return `${window.location.origin}${parsed.pathname}`;
+            }
+            return normalizedRaw;
+        } catch (e) {
+            // fallback to path normalization below
+        }
+    }
+
+    if (normalizedRaw.startsWith('data:')) {
+        return normalizedRaw;
+    }
+
+    const storagePrefixStripped = normalizedRaw
+        .replace(/^\/?storage\/app\/public\/?/i, '')
+        .replace(/^\/?public\/?/i, '');
+
+    const normalizedPath = storagePrefixStripped.startsWith('/') ? storagePrefixStripped : `/${storagePrefixStripped}`;
+    if (normalizedPath.startsWith('/storage/')) {
+        return `${window.location.origin}${normalizedPath}`;
+    }
+
+    if (normalizedPath.startsWith('/vendor_qr/')) {
+        return `${window.location.origin}/storage${normalizedPath}`;
+    }
+
+    return `${window.location.origin}${normalizedPath}`;
+}
+
+function buildQrImageCandidates(data) {
+    const rawUrl = String(data?.qr_image_url || '').replace(/\\/g, '/').trim();
+    const rawPath = String(data?.qr_image_path || '').replace(/\\/g, '/').trim();
+    const normalizedPrimary = normalizeQrImageUrl(data);
+
+    const normalizedPath = rawPath
+        .replace(/^\/?storage\/app\/public\/?/i, '')
+        .replace(/^\/?public\/?/i, '')
+        .replace(/^\/+/, '');
+
+    const candidates = [
+        normalizedPrimary,
+        rawUrl,
+        normalizedPath ? `${window.location.origin}/storage/${normalizedPath}` : '',
+        normalizedPath ? `/storage/${normalizedPath}` : '',
+    ].filter(Boolean);
+
+    return [...new Set(candidates)];
+}
+
+function renderQrImage(containerId, data) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const candidates = buildQrImageCandidates(data);
+    if (!candidates.length) return;
+
+    const img = document.createElement('img');
+    img.className = 'w-full h-full object-cover';
+
+    let index = 0;
+    img.onerror = () => {
+        index += 1;
+        if (index < candidates.length) {
+            img.src = candidates[index];
+            return;
+        }
+        container.innerHTML = '';
+    };
+
+    img.src = candidates[index];
+    container.innerHTML = '';
+    container.appendChild(img);
+}
+
 function renderSavedUpiCard(d) {
     if (!d) return;
     document.getElementById('saved-upi-id').innerText = d.upi_id || '---';
-    if (d.qr_image_url) {
-        document.getElementById('saved-upi-qr').innerHTML = `<img src="${d.qr_image_url}" class="w-full h-full object-cover">`;
-    }
+    renderQrImage('saved-upi-qr', d);
     document.getElementById('upi-saved-card').classList.remove('hidden');
     document.getElementById('upi-input-form').classList.add('hidden');
     document.getElementById('upi-saved-badge').classList.remove('hidden');
@@ -573,9 +661,7 @@ function showBookingConfirmedModal(booking) {
     }
     if (selectedPaymentMode === 'online' && savedUpiDetails) {
         document.getElementById('modal-upi-id').innerText = savedUpiDetails.upi_id || '--';
-        if (savedUpiDetails.qr_image_url) {
-            document.getElementById('modal-upi-qr').innerHTML = `<img src="${savedUpiDetails.qr_image_url}" class="w-full h-full object-cover">`;
-        }
+        renderQrImage('modal-upi-qr', savedUpiDetails);
         document.getElementById('modal-upi-info').classList.remove('hidden');
     }
 

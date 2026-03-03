@@ -345,7 +345,7 @@ public function createBooking(array $data): POSBooking
             // Don't fail the booking if invoice fails
         }
 
-          DB::afterCommit(function () use ($booking) {
+                    DB::afterCommit(function () use ($booking) {
             event(new \Modules\POS\Events\PosBookingCreated(
                 $booking->load(['customer', 'vendor', 'bookingHoardings.hoarding'])
             ));
@@ -915,9 +915,67 @@ public function releaseHoardings(POSBooking $booking)
                 'notes'               => $notes,
             ]);
 
+            \Illuminate\Support\Facades\DB::afterCommit(function () use ($booking) {
+                $this->sendPaymentReceivedNotifications((int) $booking->id);
+            });
+
             return $booking->fresh();
         });
     }
+
+    protected function sendPaymentReceivedNotifications(int $bookingId): void
+    {
+        try {
+            $booking = \Modules\POS\Models\POSBooking::query()->find($bookingId);
+
+            if (!$booking) {
+                return;
+            }
+
+            $notification = new \App\Notifications\PosBookingConfirmedNotification($booking);
+
+            $recipientIds = collect();
+
+            if (!empty($booking->customer_id)) {
+                $recipientIds->push((int) $booking->customer_id);
+            }
+
+            if (!empty($booking->vendor_id)) {
+                $recipientIds->push((int) $booking->vendor_id);
+            }
+
+            $adminIds = \App\Models\User::query()
+                ->whereHas('roles', function ($query) {
+                    $query->whereIn('name', ['admin', 'super_admin']);
+                })
+                ->pluck('id');
+
+            $recipientIds = $recipientIds
+                ->merge($adminIds)
+                ->filter(fn ($id) => (int) $id > 0)
+                ->unique()
+                ->values();
+
+            if ($recipientIds->isEmpty()) {
+                return;
+            }
+
+            \App\Models\User::query()
+                ->whereIn('id', $recipientIds->all())
+                ->get()
+                ->each(function ($user) use ($notification) {
+                    if (method_exists($user, 'notify')) {
+                        $user->notify($notification);
+                    }
+                });
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('POS payment received notification dispatch failed', [
+                'booking_id' => $bookingId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     /**
      * CRITICAL: Release booking hold (free hoarding, mark as cancelled)
      * Used for order cancellations or customer rejections

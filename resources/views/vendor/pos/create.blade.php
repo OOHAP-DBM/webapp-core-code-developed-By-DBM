@@ -83,7 +83,7 @@
 
                         <div class="selection-group">
                             <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-                                <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span> Digital (DOOH)
+                                <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> Digital (DOOH)
                             </h4>
                             <div class="overflow-x-auto border border-gray-100">
                                 <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
@@ -362,11 +362,11 @@ function renderHoardings(list) {
         return `
             <div class="relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
                 <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover">
-                ${isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
+                ${isDooh ? `<span class="absolute top-1 right-1 bg-green-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
                 <div class="p-2">
                     <h4 class="text-[10px] font-bold text-gray-800 truncate">${h.title}</h4>
                     <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
-                    ${isDooh ? `<span class="block text-[9px] text-purple-600 font-medium">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
+                    ${isDooh ? `<span class="block text-[10px]  font-bold">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
                 </div>
             </div>`;
     }).join('');
@@ -458,12 +458,9 @@ function updateSummary() {
                             <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
                             ${conflictBadge}
                         </td>
-                        <td class="px-4 py-3 text-xs text-gray-500">${formatINR(h.price_per_month)}</td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[11px] font-bold px-2 py-1 rounded-full">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+                        <td class="px-4 py-3 text-[11px] font-semibold text-gray-700">${formatINR(h.price_per_month)}</td>
+                        <td class="px-4 py-3 text-center  text-[11px] font-semibold text-gray-700">
                                 ${slotsPerDay}
-                            </span>
                         </td>
                         <td class="px-4 py-3 align-middle">
                             <div class="flex flex-col items-center justify-center">
@@ -494,7 +491,7 @@ function updateSummary() {
                             <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
                             ${conflictBadge}
                         </td>
-                        <td class="px-4 py-3 text-xs text-gray-500">${formatINR(h.price_per_month)}</td>
+                        <td class="px-4 py-3 text-[11px] font-semibold text-gray-700">${formatINR(h.price_per_month)}</td>
                         <td class="px-4 py-3 align-middle">
                             <div class="flex flex-col items-center justify-center">
                                 <div class="flex items-center justify-center whitespace-nowrap">
@@ -789,7 +786,7 @@ function populatePreview() {
         const itemTotal = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
         globalBaseAmount += itemTotal;
         const isDooh = h.type?.toUpperCase() === 'DOOH';
-        const slotsCell = isDooh ? `<div class="text-[10px] text-purple-600 font-medium mt-0.5">${h.total_slots_per_day ?? 300} slots/day</div>` : '';
+        const slotsCell = isDooh ? `<div class="text-[10px]  font-bold mt-0.5">${h.total_slots_per_day ?? 300} slots/day</div>` : '';
 
         const row = `
             <tr class="border-b border-gray-50">

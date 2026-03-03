@@ -29,28 +29,48 @@ class PosBookingConfirmedNotification extends Notification implements ShouldQueu
 
     public function toMail($notifiable): MailMessage
     {
+        $totalAmount = (float) $this->booking->total_amount;
+        $paidAmount = (float) ($this->booking->paid_amount ?? 0);
+        $remainingAmount = max(0, $totalAmount - $paidAmount);
+        $isFullyPaid = $remainingAmount < 0.01;
+
         return (new MailMessage)
-            ->subject('POS Booking Confirmed - Invoice #' . ($this->booking->invoice_number ?? $this->booking->id))
+            ->subject(($isFullyPaid ? 'POS Booking Confirmed' : 'POS Payment Received') . ' - Invoice #' . ($this->booking->invoice_number ?? $this->booking->id))
             ->greeting('Hello ' . ($notifiable->name ?? 'User') . ',')
-            ->line('Payment has been received and the POS booking is now confirmed.')
+            ->line($isFullyPaid
+                ? 'Payment has been received and the POS booking is now confirmed.'
+                : 'Partial payment has been received for this POS booking.')
             ->line('**Booking ID:** #' . $this->booking->id)
             ->line('**Invoice Number:** ' . ($this->booking->invoice_number ?? ('#' . $this->booking->id)))
-            ->line('**Total Amount:** ₹' . number_format((float) $this->booking->total_amount, 2))
-            ->line('**Paid Amount:** ₹' . number_format((float) ($this->booking->paid_amount ?? 0), 2))
+            ->line('**Total Amount:** ₹' . number_format($totalAmount, 2))
+            ->line('**Paid Amount:** ₹' . number_format($paidAmount, 2))
+            ->line('**Payment Status:** ' . ($isFullyPaid ? 'Paid' : 'Partial'))
+            ->lineIf(!$isFullyPaid, '**Remaining Amount:** ₹' . number_format($remainingAmount, 2))
             ->action('View Booking', $this->resolveActionUrl($notifiable));
     }
 
     public function toArray($notifiable): array
     {
+        $totalAmount = (float) $this->booking->total_amount;
+        $paidAmount = (float) ($this->booking->paid_amount ?? 0);
+        $remainingAmount = max(0, $totalAmount - $paidAmount);
+        $isFullyPaid = $remainingAmount < 0.01;
+
         return [
             'type' => 'pos_booking_confirmed',
             'booking_id' => $this->booking->id,
             'invoice_number' => $this->booking->invoice_number,
             'status' => $this->booking->status,
             'payment_status' => $this->booking->payment_status,
-            'total_amount' => (float) $this->booking->total_amount,
-            'paid_amount' => (float) ($this->booking->paid_amount ?? 0),
-            'message' => 'Payment received. POS booking has been confirmed.',
+            'total_amount' => $totalAmount,
+            'paid_amount' => $paidAmount,
+            'remaining_amount' => $remainingAmount,
+            'total_amount_formatted' => '₹' . number_format($totalAmount, 2),
+            'paid_amount_formatted' => '₹' . number_format($paidAmount, 2),
+            'remaining_amount_formatted' => '₹' . number_format($remainingAmount, 2),
+            'message' => $isFullyPaid
+                ? 'Payment received. POS booking has been confirmed.'
+                : 'Partial payment received for POS booking. Awaiting remaining amount.',
             'action_url' => $this->resolveActionUrl($notifiable),
         ];
     }
