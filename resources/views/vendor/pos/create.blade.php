@@ -1,13 +1,9 @@
+@include('vendor.pos.components.pos-timer-notification')
 @extends($posLayout ?? 'layouts.vendor')
 
-@section('title', 'Create Pos Booking')
-
+@section('title', 'POS Customers')
 @section('content')
 <div class="px-6 py-6 bg-gray-50">
-    @php $posScope = $posScope ?? 'vendor'; @endphp
-    @if($posScope !== 'mine')
-        @include('vendor.pos.components.admin-vendor-switcher')
-    @endif
     <div id="selection-screen" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-7">
@@ -20,28 +16,30 @@
                 <div class="p-6">
                     <div class="mb-8">
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Customer Details</label>
-                           <div id="search-container" class="flex gap-2">
-                               <div class="relative flex-1 border border-gray-300">
-                                   <input type="text" id="customer-search" autocomplete="off" 
-                                       placeholder="Search by name, email, or mobile..." 
-                                       class="w-full  border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2">
-                                   <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
-                               </div>
-                               <button type="button" onclick="openCustomerModal()" class="bg-green-600 text-white px-4  hover:bg-green-700 transition flex items-center">
-                                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                   <span class="ml-1 text-sm font-semibold">New</span>
-                               </button>
-                           </div>
-                           <div id="customer-selected-card" class="hidden flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
-                               <div class="flex items-center gap-3">
-                                   <div class="w-10 h-10 bg-[#2D5A43] rounded-full flex items-center justify-center text-white font-bold text-sm" id="cust-initials">--</div>
-                                   <div>
-                                       <h4 id="cust-name" class="font-bold text-gray-800 text-sm leading-tight">Customer Name</h4>
-                                       <p id="cust-details" class="text-xs text-gray-500 mt-0.5">Contact Details</p>
-                                   </div>
-                               </div>
-                               <button onclick="clearSelectedCustomer()" class="text-xs font-bold text-red-500 hover:text-red-700 px-3 py-1 border border-red-200 rounded-md bg-white">Change</button>
-                           </div>
+                        
+                        <div id="search-container" class="flex gap-2">
+                            <div class="relative flex-1 border border-gray-300">
+                                <input type="text" id="customer-search" autocomplete="off" 
+                                    placeholder="Search by name, email, or mobile..." 
+                                    class="w-full  border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2">
+                                <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
+                            </div>
+                            <button type="button" onclick="openCustomerModal()" class="bg-green-600 text-white px-4  hover:bg-green-700 transition flex items-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                <span class="ml-1 text-sm font-semibold">New</span>
+                            </button>
+                        </div>
+
+                        <div id="customer-selected-card" class="hidden flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-[#2D5A43] rounded-full flex items-center justify-center text-white font-bold text-sm" id="cust-initials">--</div>
+                                <div>
+                                    <h4 id="cust-name" class="font-bold text-gray-800 text-sm leading-tight">Customer Name</h4>
+                                    <p id="cust-details" class="text-xs text-gray-500 mt-0.5">Contact Details</p>
+                                </div>
+                            </div>
+                            <button onclick="clearSelectedCustomer()" class="text-xs font-bold text-red-500 hover:text-red-700 px-3 py-1 border border-red-200 rounded-md bg-white">Change</button>
+                        </div>
                     </div>
 
                     {{-- Availability Issues Alert (shown when conflicts detected) --}}
@@ -85,7 +83,7 @@
 
                         <div class="selection-group">
                             <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-                                <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> Digital (DOOH)
+                                <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span> Digital (DOOH)
                             </h4>
                             <div class="overflow-x-auto border border-gray-100">
                                 <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
@@ -128,7 +126,7 @@
                         <div class="relative flex-1">
                             <input type="text" id="hoarding-search" placeholder="Search for available hoardings..." 
                                 class="w-full pl-10  border border-gray-300 text-sm focus:ring-green-500" style="height:40px;">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="pointer-events:none;">
+                            <span class="absolute left-3 top-0 bottom-0 my-auto text-gray-400 flex items-center" style="pointer-events:none; height:18px;">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-3.5-3.5"/></svg>
                             </span>
                         </div>
@@ -203,9 +201,7 @@ function showToast(message, type = 'info') {
         alert(message);
     }
 }
-const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
-window.POS_BASE_PATH = POS_BASE_PATH;
-const API_URL = `${POS_BASE_PATH}/api`;
+const API_URL = '/vendor/pos/api';
 let hoardings = [];
 let selectedHoardings = new Map();
 let selectedCustomer = null;
@@ -366,11 +362,11 @@ function renderHoardings(list) {
         return `
             <div class="relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
                 <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover">
-                ${isDooh ? `<span class="absolute top-1 right-1 bg-green-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
+                ${isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
                 <div class="p-2">
                     <h4 class="text-[10px] font-bold text-gray-800 truncate">${h.title}</h4>
                     <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
-                    ${isDooh ? `<span class="block text-[10px]  font-bold">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
+                    ${isDooh ? `<span class="block text-[9px] text-purple-600 font-medium">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
                 </div>
             </div>`;
     }).join('');
@@ -462,9 +458,12 @@ function updateSummary() {
                             <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
                             ${conflictBadge}
                         </td>
-                        <td class="px-4 py-3 text-[11px] font-semibold text-gray-700">${formatINR(h.price_per_month)}</td>
-                        <td class="px-4 py-3 text-center  text-[11px] font-semibold text-gray-700">
+                        <td class="px-4 py-3 text-xs text-gray-500">${formatINR(h.price_per_month)}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[11px] font-bold px-2 py-1 rounded-full">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
                                 ${slotsPerDay}
+                            </span>
                         </td>
                         <td class="px-4 py-3 align-middle">
                             <div class="flex flex-col items-center justify-center">
@@ -495,7 +494,7 @@ function updateSummary() {
                             <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
                             ${conflictBadge}
                         </td>
-                        <td class="px-4 py-3 text-[11px] font-semibold text-gray-700">${formatINR(h.price_per_month)}</td>
+                        <td class="px-4 py-3 text-xs text-gray-500">${formatINR(h.price_per_month)}</td>
                         <td class="px-4 py-3 align-middle">
                             <div class="flex flex-col items-center justify-center">
                                 <div class="flex items-center justify-center whitespace-nowrap">
@@ -790,7 +789,7 @@ function populatePreview() {
         const itemTotal = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
         globalBaseAmount += itemTotal;
         const isDooh = h.type?.toUpperCase() === 'DOOH';
-        const slotsCell = isDooh ? `<div class="text-[10px]  font-bold mt-0.5">${h.total_slots_per_day ?? 300} slots/day</div>` : '';
+        const slotsCell = isDooh ? `<div class="text-[10px] text-purple-600 font-medium mt-0.5">${h.total_slots_per_day ?? 300} slots/day</div>` : '';
 
         const row = `
             <tr class="border-b border-gray-50">

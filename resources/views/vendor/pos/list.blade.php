@@ -9,7 +9,7 @@
 
         {{-- Header --}}
         <div class="flex justify-between items-center px-6 py-4 bg-primary rounded-t-xl">
-            <h4 class="text-lg font-semibold flex items-center gap-2">
+            <h4 class="text-xl font-bold text-gray-800 flex items-center gap-2">
                  POS Bookings
             </h4>
 

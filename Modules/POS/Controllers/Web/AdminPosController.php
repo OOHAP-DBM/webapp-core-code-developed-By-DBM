@@ -302,6 +302,48 @@ class AdminPosController extends Controller
         return View::make('vendor.pos.customers', $viewData);
     }
 
+    /**
+     * Show a single customer details for admin POS
+     */
+   public function showCustomer($id)
+    {
+        $vendorId = $this->resolveEffectiveVendorId(request());
 
+        // Find user by ID
+        $user = User::findOrFail($id);
+
+        // Get POS profile for this vendor (if exists)
+        $posProfile = $user->posProfile()->where('vendor_id', $vendorId)->first();
+
+        // Get all bookings for this user and vendor
+        $bookings = POSBooking::where('vendor_id', $vendorId)
+            ->where('customer_id', $user->id)
+            ->get();
+
+        $totalBookings = $bookings->count();
+        $totalSpent = $bookings->sum('total_amount');
+        $lastBookingAt = $bookings->max('created_at');
+
+        // Prefer posProfile business name if exists
+        $name = $user->name;
+        if ($posProfile && $posProfile->business_name) {
+            $name = $posProfile->business_name;
+        }
+
+        $customer = [
+            'id' => $user->id,
+            'name' => $name,
+            'phone' => $user->phone,
+            'email' => $user->email,
+            'total_bookings' => $totalBookings,
+            'total_spent' => $totalSpent,
+            'last_booking_at' => $lastBookingAt,
+            'is_active' => $totalBookings > 0,
+            'pos_profile' => $posProfile,
+            'bookings' => $bookings,
+        ];
+
+        return view('vendor.pos.customers.show', compact('customer'));
+    }
     // Extend: edit, view, etc. as needed
 }

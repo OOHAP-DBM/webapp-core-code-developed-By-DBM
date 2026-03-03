@@ -171,6 +171,7 @@ class VendorPosController extends Controller
      */
     public function create(Request $request)
     {
+        // Do not use or set any vendor context/session for create POS booking
         return view('vendor.pos.create');
     }
 
@@ -1811,6 +1812,7 @@ class VendorPosController extends Controller
                     'active_role' => 'customer',
                     'gstin' => $request->gstin,
                     'address' => $fullAddress,
+                    'status' => 'active',
                 ]);
 
                 $user->assignRole('customer');
