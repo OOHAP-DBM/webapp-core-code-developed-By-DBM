@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 class POSBookingService
+  
 {
     protected SettingsService $settingsService;
     protected TaxService $taxService;
@@ -233,7 +234,8 @@ class POSBookingService
 
 public function createBooking(array $data): POSBooking
 {
-    Log::info('POSBookingService.createBooking start', ['vendor_id' => Auth::id(), 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids','start_date','end_date','payment_mode','customer_id']))]);
+    $effectiveVendorId = (int) ($data['vendor_id'] ?? Auth::id());
+    Log::info('POSBookingService.createBooking start', ['vendor_id' => $effectiveVendorId, 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids','start_date','end_date','payment_mode','customer_id']))]);
 
     return DB::transaction(function () use ($data) {
         // Normalization: Ensure dates exist
@@ -252,16 +254,16 @@ public function createBooking(array $data): POSBooking
             ->lockForUpdate()
             ->get();
 
-        Log::info('POSBookingService locked hoardings', ['vendor_id' => Auth::id(), 'hoarding_ids' => $hoardings->pluck('id')->all(), 'count' => $hoardings->count()]);
+        Log::info('POSBookingService locked hoardings', ['vendor_id' => $effectiveVendorId, 'hoarding_ids' => $hoardings->pluck('id')->all(), 'count' => $hoardings->count()]);
 
         // Perform Pricing Calculation
         $pricing = $this->calculateMultiHoardingPricing($hoardings, $start, $end, (float)($data['discount_amount'] ?? 0));
 
-        Log::info('POSBookingService calculated pricing', ['vendor_id' => Auth::id(), 'pricing' => $pricing]);
+        Log::info('POSBookingService calculated pricing', ['vendor_id' => $effectiveVendorId, 'pricing' => $pricing]);
 
         // Create the record
         $bookingPayload = [
-            'vendor_id'       => Auth::id(),
+            'vendor_id'       => $effectiveVendorId,
             'customer_id'     => $data['customer_id'] ?? null,
             'customer_name'   => $data['customer_name'], // Required by DB
             'customer_phone'  => $data['customer_phone'], // Required by DB
@@ -285,51 +287,66 @@ public function createBooking(array $data): POSBooking
             'hold_expiry_at'  => $data['hold_expiry_at'] ?? null,
         ];
 
-        Log::info('POSBookingService creating booking record', ['vendor_id' => Auth::id(), 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id','start_date','end_date','total_amount']))]);
+        Log::info('POSBookingService creating booking record', ['vendor_id' => $effectiveVendorId, 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id','start_date','end_date','total_amount']))]);
 
         $booking = POSBooking::create($bookingPayload);
 
         // Inventory Linking
-        foreach ($hoardings as $hoarding) {
-            $this->attachHoardingToBooking($booking, $hoarding, $start, $end);
+        // Build map for per-hoarding details if provided
+        $hoardingItemsMap = [];
+        if (!empty($data['hoarding_items']) && is_array($data['hoarding_items'])) {
+            foreach ($data['hoarding_items'] as $item) {
+                if (isset($item['hoarding_id'])) {
+                    $hoardingItemsMap[(int)$item['hoarding_id']] = $item;
+                }
+            }
         }
 
-        Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => Auth::id(), 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
+        foreach ($hoardings as $hoarding) {
+            $item = $hoardingItemsMap[$hoarding->id] ?? null;
+            $itemStart = $item['start_date'] ?? $start;
+            $itemEnd = $item['end_date'] ?? $end;
+            $itemPrice = $item['price_per_month'] ?? null;
+            $itemDiscount = $item['discount_amount'] ?? 0;
+            $this->attachHoardingToBooking($booking, $hoarding, $itemStart, $itemEnd, $itemPrice, $itemDiscount);
+        }
+
+        Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => $effectiveVendorId, 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
 
         // Generate invoice after booking creation (auto-invoice)
-        // try {
-        //     if ($this->isAutoInvoiceEnabled()) {
-        //         $invoice = $this->invoiceService->generateInvoiceForPOSBooking(
-        //             $booking,
-        //             Auth::id()
-        //         );
-        //         // Store invoice reference in POS booking
-        //         $booking->update([
-        //             'invoice_number' => $invoice->invoice_number,
-        //             'invoice_date' => $invoice->invoice_date,
-        //             'invoice_path' => $invoice->pdf_path,
-        //         ]);
-        //         Log::info('POS invoice generated', [
-        //             'pos_booking_id' => $booking->id,
-        //             'invoice_id' => $invoice->id,
-        //             'invoice_number' => $invoice->invoice_number,
-        //         ]);
-        //     } else {
-        //         Log::info('POS auto-invoice disabled; skipping invoice generation', [
-        //             'pos_booking_id' => $booking->id,
-        //             'vendor_id' => Auth::id(),
-        //             'setting_key' => 'pos_auto_invoice',
-        //         ]);
-        //     }
-        // } catch (\Exception $e) {
-        //     Log::error('Failed to generate POS invoice', [
-        //         'pos_booking_id' => $booking->id,
-        //         'error' => $e->getMessage(),
-        //     ]);
-        //     // Don't fail the booking if invoice fails
-        // }
+        try {
+            if ($this->isAutoInvoiceEnabled()) {
+                $invoice = $this->invoiceService->generateInvoiceForPOSBooking(
+                    $booking,
+                    $effectiveVendorId
+                );
+                // Store invoice reference in POS booking
+                $booking->update([
+                    'invoice_number' => $invoice->invoice_number,
+                    'invoice_date' => $invoice->invoice_date,
+                    'invoice_path' => $invoice->pdf_path,
+                ]);
+                Log::info('POS invoice generated', [
+                    'pos_booking_id' => $booking->id,
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                ]);
+            } else {
+                Log::info('POS auto-invoice disabled; skipping invoice generation', [
+                    'pos_booking_id' => $booking->id,
+                    'vendor_id' => $effectiveVendorId,
+                    'setting_key' => 'pos_auto_invoice',
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to generate POS invoice', [
+                'pos_booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
+            // Don't fail the booking if invoice fails
+        }
 
-          DB::afterCommit(function () use ($booking) {
+                    DB::afterCommit(function () use ($booking) {
             event(new \Modules\POS\Events\PosBookingCreated(
                 $booking->load(['customer', 'vendor', 'bookingHoardings.hoarding'])
             ));
@@ -345,6 +362,7 @@ public function createBooking(array $data): POSBooking
  */
 protected function calculateMultiHoardingPricing($hoardings, $start, $end, $discount = 0): array
 {
+   
     $startDate = \Carbon\Carbon::parse($start);
     $endDate = \Carbon\Carbon::parse($end);
     $days = $startDate->diffInDays($endDate) + 1; // Minimum 1 day
@@ -898,9 +916,67 @@ public function releaseHoardings(POSBooking $booking)
                 'notes'               => $notes,
             ]);
 
+            \Illuminate\Support\Facades\DB::afterCommit(function () use ($booking) {
+                $this->sendPaymentReceivedNotifications((int) $booking->id);
+            });
+
             return $booking->fresh();
         });
     }
+
+    protected function sendPaymentReceivedNotifications(int $bookingId): void
+    {
+        try {
+            $booking = \Modules\POS\Models\POSBooking::query()->find($bookingId);
+
+            if (!$booking) {
+                return;
+            }
+
+            $notification = new \App\Notifications\PosBookingConfirmedNotification($booking);
+
+            $recipientIds = collect();
+
+            if (!empty($booking->customer_id)) {
+                $recipientIds->push((int) $booking->customer_id);
+            }
+
+            if (!empty($booking->vendor_id)) {
+                $recipientIds->push((int) $booking->vendor_id);
+            }
+
+            $adminIds = \App\Models\User::query()
+                ->whereHas('roles', function ($query) {
+                    $query->whereIn('name', ['admin', 'super_admin']);
+                })
+                ->pluck('id');
+
+            $recipientIds = $recipientIds
+                ->merge($adminIds)
+                ->filter(fn ($id) => (int) $id > 0)
+                ->unique()
+                ->values();
+
+            if ($recipientIds->isEmpty()) {
+                return;
+            }
+
+            \App\Models\User::query()
+                ->whereIn('id', $recipientIds->all())
+                ->get()
+                ->each(function ($user) use ($notification) {
+                    if (method_exists($user, 'notify')) {
+                        $user->notify($notification);
+                    }
+                });
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('POS payment received notification dispatch failed', [
+                'booking_id' => $bookingId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     /**
      * CRITICAL: Release booking hold (free hoarding, mark as cancelled)
      * Used for order cancellations or customer rejections
@@ -964,7 +1040,47 @@ public function releaseHoardings(POSBooking $booking)
      */
     public function getGSTRate(): float
     {
-        return (float) ($this->settingsService->get('pos_gst_rate') ?? 18);
+        return (float) ($this->settingsService->get('gst_rate') ?? 18);
+    }
+
+
+      /**
+     * Attach a hoarding to a booking and save to pos_booking_hoardings table
+     */
+    protected function attachHoardingToBooking(POSBooking $booking, Hoarding $hoarding, $start, $end, $pricePerMonth = null, $discount = 0)
+    {
+        \Log::info('Attaching hoarding to booking', [
+            'pos_booking_id' => $booking->id,
+            'hoarding_id' => $hoarding->id,
+            'start_date' => $start,
+            'end_date' => $end,
+            'price_per_month' => $pricePerMonth,
+            'discount' => $discount,
+        ]);
+        $durationDays = $this->calculateDurationDays($start, $end);
+        // Use per-hoarding price if provided, else fallback to model
+        $monthlyRate = $pricePerMonth !== null ? (float)$pricePerMonth : ($hoarding->monthly_price ?? $hoarding->base_monthly_price ?? 0);
+        // Calculate number of months to charge (1 for <=30 days, 2 for <=60, etc.)
+        $months = (int) ceil($durationDays / 30);
+        $base = $monthlyRate * $months;
+        $gstRate = $this->getGSTRate();
+        $tax = ($base - $discount) * ($gstRate / 100);
+        $total = ($base - $discount) + $tax;
+
+        \Modules\POS\Models\POSBookingHoarding::create([
+            'pos_booking_id'   => $booking->id,
+            'hoarding_id'      => $hoarding->id,
+            'hoarding_price'   => round($base, 2),
+            'hoarding_discount'=> round($discount, 2),
+            'hoarding_tax'     => round($tax, 2),
+            'hoarding_total'   => round($total, 2),
+            // 'url'              => $hoarding->getUrlAttribute(),
+            'start_date'       => $start,
+            'end_date'         => $end,
+            'duration_days'    => $durationDays,
+            'duration_type'    => 'days',
+            'status'           => 'pending',
+        ]);
     }
 //    public function getGSTRate(): float
 //     {

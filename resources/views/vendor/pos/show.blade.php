@@ -1,8 +1,9 @@
-@extends('layouts.vendor')
+@extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'POS Booking Details')
 @section('content')
 <div class="px-6 py-6">
+    @include('vendor.pos.components.admin-vendor-switcher')
     <div class="bg-white rounded-xl shadow">
 
         {{-- Header --}}
@@ -10,7 +11,7 @@
             <h4 class="text-lg font-semibold flex items-center gap-2">
                 📄 POS Booking Details
             </h4>
-            <a href="{{ route('vendor.pos.dashboard') }}"
+            <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
                class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg">
                 ← Back
             </a>
@@ -22,13 +23,13 @@
             <!-- Booking Summary -->
             <div class="rounded-xl border bg-gray-50 p-5 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <p class="text-xs text-gray-500">Invoice</p>
+                    <p class="text-sm text-gray-500">Invoice</p>
                     <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" class="pointer-events-none text-inherit">—</a></h2>
                     <a id="ui-invoice-link" href="#" target="_blank" class="hidden text-xs text-blue-600 hover:underline">View Invoice PDF</a>
                 </div>
 
                 <div>
-                    <p class="text-xs text-gray-500">Booking Status</p>
+                    <p class="text-sm text-gray-500">Booking Status</p>
                     <span id="ui-booking-status"
                           class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-300">
                         —
@@ -36,7 +37,7 @@
                 </div>
 
                 <div>
-                    <p class="text-xs text-gray-500">Payment Status</p>
+                    <p class="text-sm text-gray-500">Payment Status</p>
                     <span id="ui-payment-status"
                           class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-300">
                         —
@@ -44,7 +45,7 @@
                 </div>
 
                 <div class="text-right">
-                    <p class="text-xs text-gray-500">Total Amount</p>
+                    <p class="text-sm text-gray-500">Total Amount</p>
                     <p id="ui-total" class="text-2xl font-bold text-gray-900">₹0.00</p>
                 </div>
             </div>
@@ -145,7 +146,9 @@
 
 
 const bookingId = @json($bookingId);
-const API_URL = '/vendor/pos/api';
+const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
+window.POS_BASE_PATH = POS_BASE_PATH;
+const API_URL = `${POS_BASE_PATH}/api`;
 let currentBooking = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -207,21 +210,98 @@ async function loadBookingDetails() {
             'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPaymentStatusColor(b.payment_status);
 
         /* ---- REST OF YOUR EXISTING HTML BUILD LOGIC ---- */
-        container.innerHTML = `
-            <div class="grid md:grid-cols-2 gap-4">
-                <div><strong>Customer:</strong> ${b.customer_name}</div>
-                <div><strong>Phone:</strong> ${b.customer_phone || '-'}</div>
-                <div><strong>Booking Date:</strong>
-                    ${new Date(b.created_at).toLocaleString()} 
-                    
-                </div>
-                <div><strong>Notes:</strong> ${b.notes || '-'}</div>
-            </div>
+            let hoardingsTableRows = '';
+            let totalBase = 0, totalDiscount = 0, totalTax = 0, totalFinal = 0;
+            if (Array.isArray(b.hoardings) && b.hoardings.length > 0) {
+                hoardingsTableRows = b.hoardings.map((h, idx) => {
+                    const base = parseFloat(h.hoarding_price || 0);
+                    const discount = parseFloat(h.hoarding_discount || 0);
+                    const tax = ((base - discount) * 0.18);
+                    const final = base - discount + tax;
+                    totalBase += base;
+                    totalDiscount += discount;
+                    totalTax += tax;
+                    totalFinal += final;
+                    return `
+                        <tr>
+                            <td class="text-center">${idx + 1}</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <img src="${h.image_url}" alt="Hoarding" class="w-12 h-12 rounded object-cover border my-1  " />
+                                    <div>
+                                        <div class="font-semibold">
+                                            <a href="${h.url || '#'}" target="_blank">${h.title}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">₹${base.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                            <td >${h.campaign_start_date || '-'} - ${h.campaign_end_date || '-'}<br><span class="text-xs">${h.campaign_duration_days ? h.campaign_duration_days + ' days' : '-'}</span></td>
+                            <td>₹${final.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
 
-            <div class="flex flex-wrap gap-2 pt-4 border-t">
-                ${renderActionButtons(b)}
-            </div>
-        `;
+
+                let priceSummaryHtml = '';
+                if (hoardingsTableRows) {
+                    priceSummaryHtml = `
+                        <div class="rounded-xl border bg-white p-4 mb-4">
+                            <h3 class="text-base font-bold mb-2">Price Summary</h3>
+                            <div class="grid md:grid-cols-4 gap-4">
+                                <div><strong>Base Amount:</strong> ₹${totalBase.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                                <div><strong>Total Discount:</strong> ₹${totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                                <div><strong>GST (18%):</strong> ₹${totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                                <div><strong>Total Payable:</strong> ₹${totalFinal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                let hoardingsTableHtml = '';
+                if (hoardingsTableRows) {
+                    hoardingsTableHtml = `
+                        <div class="rounded-xl border bg-white p-4 mb-4">
+                            <h3 class="text-base font-bold mb-2">Booked Hoardings</h3>
+                            <table class="min-w-full text-sm border">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="px-2 py-2 border">Sn.</th>
+                                        <th class="px-2 py-2 border">Hoardings</th>
+                                        <th class="px-2 py-2 border">Rental</th>
+                                        <th class="px-2 py-2 border">Duration</th>
+                                        <th class="px-2 py-2 border">Total Price (incl. 18% GST)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${hoardingsTableRows}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+
+            // Customer details and actions inside invoice box
+            let customerDetailsHtml = `
+                <div class="rounded-xl border bg-white p-4 mb-4">
+                    <div class="grid md:grid-cols-2 gap-4 mb-2">
+                        <div><strong>Customer:</strong> ${b.customer_name}</div>
+                        <div><strong>Phone:</strong> ${b.customer_phone || '-'} </div>
+                        <div><strong>Booking Date:</strong> ${new Date(b.created_at).toLocaleString()} </div>
+                        <div><strong>Notes:</strong> ${b.notes || '-'} </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-2 border-t">
+                        ${renderActionButtons(b)}
+                    </div>
+                </div>
+            `;
+
+                container.innerHTML = `
+                    ${customerDetailsHtml}
+                    ${priceSummaryHtml}
+                    ${hoardingsTableHtml}
+                `;
 
     } catch (e) {
         document.getElementById('booking-details').innerHTML =
@@ -302,24 +382,24 @@ function renderActionButtons(booking) {
     }
 
     // Send Reminder button
-    // BACKEND RULE: reminder_count < 3
-    if (booking.reminder_count !== undefined && booking.reminder_count < 3) {
+    // BACKEND RULE: reminder_count < 10
+    if (booking.reminder_count !== undefined && booking.reminder_count < 10) {
         html += `
             <button onclick="sendReminder()"
                 class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium">
                 📧 Send Reminder
             </button>`;
-    } else if (booking.reminder_count === 3) {
+    } else if (booking.reminder_count === 10) {
         html += `
             <button disabled 
                 class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
-                title="Maximum 3 reminders sent">
+                title="Maximum 10 reminders sent">
                 📧 Max Reminders Sent
             </button>`;
     }
 
     // Back button
-    html += `<a href="{{ route('vendor.pos.dashboard') }}"
+    html += `<a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
         class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm">
         ← Back
     </a>`;

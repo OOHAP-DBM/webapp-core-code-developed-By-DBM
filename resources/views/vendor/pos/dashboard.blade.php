@@ -1,4 +1,4 @@
-@extends('layouts.vendor')
+@extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'POS Dashboard')
 @include('vendor.pos.components.pos-timer-notification')
@@ -10,6 +10,7 @@
 
 @section('content')
 <div class="px-6 py-6 space-y-8 bg-gray-50 min-h-screen">
+    @include('vendor.pos.components.admin-vendor-switcher')
 
     <!-- Header -->
     <div class="flex justify-between items-center">
@@ -79,13 +80,13 @@
     <!-- Actions -->
     <div class="flex flex-wrap gap-4">
         <a
-            href="{{ route('vendor.pos.create') }}"
+            href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.create') }}"
             class="inline-flex items-center gap-2 px-6 py-3 rounded-lg btn-color text-white text-sm font-medium transition"
         >
             + Create New POS Booking
         </a>
 
-        <a href="{{ route('vendor.pos.list') }}"
+        <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.list') }}"
            class="px-5 py-2.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition">
             View All Bookings
         </a>
@@ -173,9 +174,12 @@
 <script>
 /**
  * POS Dashboard - Web Session Auth
- * Uses new /vendor/pos/api/* endpoints with session auth
+ * Uses role-scoped POS API endpoints with session auth
  * No tokens, credentials: 'same-origin'
  */
+
+const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
+window.POS_BASE_PATH = POS_BASE_PATH;
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -220,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Load dashboard statistics
-    fetchJSON('/vendor/pos/api/dashboard')
+    fetchJSON(`${POS_BASE_PATH}/api/dashboard`)
         .then(data => {
             if (data.success) {
                 document.getElementById('total-bookings').textContent = data.data.total_bookings;
@@ -232,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(err => console.warn('Could not load dashboard stats:', err));
 
     // Load recent bookings
-    fetchJSON('/vendor/pos/api/bookings?per_page=10')
+    fetchJSON(`${POS_BASE_PATH}/api/bookings?per_page=10`)
         .then(data => {
             const tbody = document.getElementById('recent-bookings-body');
 
@@ -261,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         </span>
                     </td>
                     <td class="px-4 py-3">
-                        <a href="/vendor/pos/bookings/${b.id}"
+                        <a href="${POS_BASE_PATH}/bookings/${b.id}"
                            class="text-blue-600 hover:underline text-sm">
                             View
                         </a>
@@ -331,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="px-4 py-3 font-semibold">₹${parseFloat(b.total_amount).toLocaleString()}</td>
                     <td class="px-4 py-3 font-semibold text-red-600">${daysText}</td>
                     <td class="px-4 py-3">
-                        <a href="/vendor/pos/bookings/${b.id}" class="text-blue-600 hover:underline text-sm font-medium">
+                        <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm font-medium">
                             View & Mark Paid
                         </a>
                     </td>
@@ -350,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
             search: pendingPaymentsState.search,
         });
 
-        fetchJSON(`/vendor/pos/api/pending-payments?${params.toString()}`)
+        fetchJSON(`${POS_BASE_PATH}/api/pending-payments?${params.toString()}`)
             .then(data => {
                 if (!data.success) {
                     return;

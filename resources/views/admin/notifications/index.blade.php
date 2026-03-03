@@ -22,7 +22,11 @@
                 <div class="px-4 py-3 border-b border-gray-100 {{ $notification->read_at ? 'bg-white' : 'bg-blue-50' }}">
                     <div class="flex items-start gap-3">
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900">{{ $notification->data['title'] ?? 'Notification' }}</p>
+                            <p class="text-sm font-medium text-gray-900">
+                                <a href="{{ route('admin.notifications.open', $notification->id) }}" class="hover:underline">
+                                    {{ $notification->data['title'] ?? 'Notification' }}
+                                </a>
+                            </p>
                             <p class="text-sm text-gray-600 mt-1">{{ $notification->data['message'] ?? '' }}</p>
                             <p class="text-xs text-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
                         </div>

@@ -31,6 +31,7 @@ class EnquiryNotificationService
                     ]);
                 }
             }
+
             // Send push/in-app notification only if enabled
             if ($customer->notification_push) {
                 $customer->notify(
@@ -40,6 +41,15 @@ class EnquiryNotificationService
                     )
                 );
             }
+            send(
+                $customer,
+                'Enquiry Submitted Successfully',
+                'Your enquiry has been submitted. Vendors will contact you soon.',
+                [
+                    'type'       => 'customer_enquiry',
+                    'enquiry_id' => $enquiry->id
+                ]
+            );
         }
 
         // 2. NOTIFY VENDORS (EMAIL + IN-APP NOTIFICATION)
@@ -59,6 +69,15 @@ class EnquiryNotificationService
                         )
                     );
                 }
+                send(
+                    $vendor,
+                    'New Enquiry Received',
+                    'You have received a new enquiry. Please check the app for details.',
+                    [
+                        'type' => 'vendor_enquiry',
+                        'enquiry_id' => $enquiry->id
+                    ]
+                );
             }
         }
 

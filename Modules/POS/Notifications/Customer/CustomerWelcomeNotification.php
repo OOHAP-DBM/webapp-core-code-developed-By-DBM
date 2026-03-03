@@ -1,12 +1,11 @@
 <?php
-// app/Notifications/CustomerPosWelcomeEmailNotification.php
 namespace Modules\POS\Notifications\Customer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 use App\Models\User;
 
-class CustomerPosWelcomeEmailNotification extends Notification
+class CustomerWelcomeNotification extends Notification
 {
     use Queueable;
 
