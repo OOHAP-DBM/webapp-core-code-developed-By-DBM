@@ -170,6 +170,7 @@ class VendorPosController extends Controller
      */
     public function create(Request $request)
     {
+        // Do not use or set any vendor context/session for create POS booking
         return view('vendor.pos.create');
     }
 
@@ -1720,10 +1721,9 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     //         ], 500);
     //     }
     // }
-    public function createCustomer(Request $request)
+     public function createCustomer(Request $request)
     {
         try {
-            $vendorId = $this->resolveEffectiveVendorId($request);
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
@@ -1746,12 +1746,13 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
                     'active_role' => 'customer',
                     'gstin' => $request->gstin,
                     'address' => $fullAddress,
+                    'status' => 'active',
                 ]);
 
                 $user->assignRole('customer');
 
                 $user->posProfile()->create([
-                    'vendor_id' => $vendorId,
+                    'vendor_id' => Auth::id(),
                     'created_by' => Auth::id(),
                     'gstin' => $request->gstin,
                     'business_name' => $request->business_name,
@@ -1768,7 +1769,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
             try {
                 // Log customer creation
                 Log::info('POS customer created', [
-                    'vendor_id' => $vendorId,
+                    'vendor_id' => Auth::id(),
                     'customer_id' => $user->id,
                     'customer_email' => $user->email,
                 ]);
@@ -1799,7 +1800,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
                 });
             } catch (\Exception $e) {
                 Log::warning('Failed to log POS customer creation', [
-                    'vendor_id' => $vendorId,
+                    'vendor_id' => Auth::id(),
                     'error' => $e->getMessage(),
                 ]);
             }

@@ -4,10 +4,10 @@
 @section('title', 'POS Customers')
 @section('content')
 <script>window.POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');</script>
-<div class="px-2">
+<div class="px-6 py-6 bg-gray-50">
             @include('vendor.pos.components.admin-vendor-switcher')
          <div class="pb-4 px-2 bg-primary  rounded-t-xl">
-            <h4 class="text-lg font-semibold flex items-center gap-2">
+            <h4 class="text-xl font-bold text-gray-800 flex items-center gap-2">
                POS Customers
             </h4>
         </div>

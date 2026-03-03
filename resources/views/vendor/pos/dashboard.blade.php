@@ -71,8 +71,8 @@
                 </svg>
             </div>
            <div>
-                <h6 class="text-sm opacity-80">Active Credit Notes</h6>
-                <h2 id="active-credit-notes" class="text-3xl font-semibold">-</h2>
+                <h6 class="text-sm opacity-80">Total Customers</h6>
+                <h2 id="total-customers" class="text-3xl font-semibold">-</h2>
            </div>
         </div>
     </div>
