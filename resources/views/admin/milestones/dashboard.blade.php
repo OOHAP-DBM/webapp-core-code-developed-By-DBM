@@ -327,6 +327,7 @@ new Chart(timelineCtx, {
 
 // Helper Functions
 function sendReminder(milestoneId) {
+    //this is not used in send remibder is used in pos booking controller and this is used in milestone controller
     if (confirm('Send payment reminder to customer?')) {
         fetch(`/admin/milestones/${milestoneId}/send-reminder`, {
             method: 'POST',

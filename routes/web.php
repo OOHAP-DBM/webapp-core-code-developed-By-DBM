@@ -226,6 +226,15 @@ Route::get('/hoardings/{id}', function ($id) {
     }
     abort(404);
 });
+
+// Short URL redirect: /h/{id} -> /hoardings/{slug}
+Route::get('/h/{id}', function ($id) {
+    $hoarding = \App\Models\Hoarding::find($id);
+    if ($hoarding && $hoarding->slug) {
+        return redirect()->route('hoardings.show', ['slug' => $hoarding->slug], 301);
+    }
+    abort(404);
+});
 // DOOH Screen Vendor Routes
 // Route::prefix('vendor/dooh')->middleware(['auth', 'vendor'])->name('vendor.dooh.')->group(function () {
 //     Route::get('{id}/edit', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'edit'])->name('edit');
@@ -777,8 +786,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::get('/bookings/{id}', function ($bookingId) {
                 return view('vendor.pos.show', compact('bookingId'));
             })->name('bookings.show');
-                Route::get('/bookings/{id}/invoice', [\Modules\POS\Controllers\Web\VendorPosController::class, 'viewInvoice'])
-                    ->name('bookings.invoice');
+            Route::get('/bookings/{id}/invoice', [\Modules\POS\Controllers\Web\VendorPosController::class, 'viewInvoice'])
+                ->name('bookings.invoice');
         });
 
         // Reports
@@ -1247,24 +1256,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin
     Route::get('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'edit'])->name('hoarding_auto_approval.edit');
     Route::post('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'update'])->name('hoarding_auto_approval.update');
 });
-
-
-use App\Services\FcmService;
-use Kreait\Firebase\Exception\Messaging\MessagingException;
-
-Route::get('/test-fcm', function (FcmService $fcm) {
-    try {
-        return $fcm->sendToToken(
-            'crMc4PvlSFScBNaXCD5ObT:APA91bGRHvWTCaq_Bhr8H7lPO5Gk6b8afJ5M6_FmS-A80ODDqx8BOGNkR4Xn4tcf7Nx72vKa1wixnrW0EmPt0YtR78EzgaegkX2xAKYuaMDmw9TQlEYOzfw',
-            'Test Notification',
-            'Firebase is working 🚀',
-            ['type' => 'test']
-        );
-    } catch (MessagingException $e) {
-        // Firebase messaging error
-        return response()->json(['error' => $e->getMessage()], 500);
-    } catch (\Exception $e) {
-        // Other errors (e.g., credentials file not found)
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
+Route::get('/twilio-test', function () {
+    $service = app(\App\Services\Whatsapp\TwilioWhatsappService::class);
+    return $service->send('917379467181', 'Test message');
 });
