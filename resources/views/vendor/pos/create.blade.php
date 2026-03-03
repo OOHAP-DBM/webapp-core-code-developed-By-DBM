@@ -4,7 +4,10 @@
 
 @section('content')
 <div class="px-6 py-6 bg-gray-50">
-    @include('vendor.pos.components.admin-vendor-switcher')
+    @php $posScope = $posScope ?? 'vendor'; @endphp
+    @if($posScope !== 'mine')
+        @include('vendor.pos.components.admin-vendor-switcher')
+    @endif
     <div id="selection-screen" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-7">
@@ -17,30 +20,28 @@
                 <div class="p-6">
                     <div class="mb-8">
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Customer Details</label>
-                        
-                        <div id="search-container" class="flex gap-2">
-                            <div class="relative flex-1 border border-gray-300">
-                                <input type="text" id="customer-search" autocomplete="off" 
-                                    placeholder="Search by name, email, or mobile..." 
-                                    class="w-full  border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2">
-                                <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
-                            </div>
-                            <button type="button" onclick="openCustomerModal()" class="bg-green-600 text-white px-4  hover:bg-green-700 transition flex items-center">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                <span class="ml-1 text-sm font-semibold">New</span>
-                            </button>
-                        </div>
-
-                        <div id="customer-selected-card" class="hidden flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-[#2D5A43] rounded-full flex items-center justify-center text-white font-bold text-sm" id="cust-initials">--</div>
-                                <div>
-                                    <h4 id="cust-name" class="font-bold text-gray-800 text-sm leading-tight">Customer Name</h4>
-                                    <p id="cust-details" class="text-xs text-gray-500 mt-0.5">Contact Details</p>
-                                </div>
-                            </div>
-                            <button onclick="clearSelectedCustomer()" class="text-xs font-bold text-red-500 hover:text-red-700 px-3 py-1 border border-red-200 rounded-md bg-white">Change</button>
-                        </div>
+                           <div id="search-container" class="flex gap-2">
+                               <div class="relative flex-1 border border-gray-300">
+                                   <input type="text" id="customer-search" autocomplete="off" 
+                                       placeholder="Search by name, email, or mobile..." 
+                                       class="w-full  border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2">
+                                   <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
+                               </div>
+                               <button type="button" onclick="openCustomerModal()" class="bg-green-600 text-white px-4  hover:bg-green-700 transition flex items-center">
+                                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                   <span class="ml-1 text-sm font-semibold">New</span>
+                               </button>
+                           </div>
+                           <div id="customer-selected-card" class="hidden flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
+                               <div class="flex items-center gap-3">
+                                   <div class="w-10 h-10 bg-[#2D5A43] rounded-full flex items-center justify-center text-white font-bold text-sm" id="cust-initials">--</div>
+                                   <div>
+                                       <h4 id="cust-name" class="font-bold text-gray-800 text-sm leading-tight">Customer Name</h4>
+                                       <p id="cust-details" class="text-xs text-gray-500 mt-0.5">Contact Details</p>
+                                   </div>
+                               </div>
+                               <button onclick="clearSelectedCustomer()" class="text-xs font-bold text-red-500 hover:text-red-700 px-3 py-1 border border-red-200 rounded-md bg-white">Change</button>
+                           </div>
                     </div>
 
                     {{-- Availability Issues Alert (shown when conflicts detected) --}}

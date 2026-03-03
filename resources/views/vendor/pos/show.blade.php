@@ -229,15 +229,15 @@ async function loadBookingDetails() {
                                 <div class="flex items-center gap-2">
                                     <img src="${h.image_url}" alt="Hoarding" class="w-12 h-12 rounded object-cover border my-1  " />
                                     <div>
-                                        <div class="font-semibold">
+                                        <div class="font-semibold ">
                                             <a href="${h.url || '#'}" target="_blank">${h.title}</a>
                                         </div>
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">₹${base.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                            <td >${h.campaign_start_date || '-'} - ${h.campaign_end_date || '-'}<br><span class="text-xs">${h.campaign_duration_days ? h.campaign_duration_days + ' days' : '-'}</span></td>
-                            <td>₹${final.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                            <td class="text-center">${h.campaign_start_date || '-'} - ${h.campaign_end_date || '-'}<br><span class="text-xs">${h.campaign_duration_days ? h.campaign_duration_days + ' days' : '-'}</span></td>
+                            <td class="text-center">₹${final.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                         </tr>
                     `;
                 }).join('');

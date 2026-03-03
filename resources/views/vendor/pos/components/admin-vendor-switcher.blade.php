@@ -6,10 +6,10 @@
             <select id="admin-pos-booking-scope" name="booking_scope" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
                 <option value="overall" {{ ($selectedPosBookingScope ?? 'vendor') === 'overall' ? 'selected' : '' }}>Overall Bookings</option>
                 <option value="mine" {{ ($selectedPosBookingScope ?? 'vendor') === 'mine' ? 'selected' : '' }}>My Bookings</option>
-                <option value="vendor" {{ ($selectedPosBookingScope ?? 'vendor') === 'vendor' ? 'selected' : '' }}>Selected Vendor</option>
+                <option value="vendor" {{ ($selectedPosBookingScope ?? 'vendor') === 'vendor' ? 'selected' : '' }}>Select Vendor</option>
             </select>
 
-            <div id="admin-pos-vendor-wrap" class="flex items-center gap-2 {{ ($selectedPosBookingScope ?? 'vendor') === 'overall' ? 'hidden' : '' }}">
+            <div id="admin-pos-vendor-wrap" class="flex items-center gap-2 {{ in_array(($selectedPosBookingScope ?? 'vendor'), ['overall', 'mine']) ? 'hidden' : '' }}">
                 <label for="admin-pos-vendor" class="text-sm text-gray-700">Vendor</label>
                 <input
                     type="text"
@@ -18,7 +18,7 @@
                     class="border border-gray-300 rounded-md px-3 py-2 text-sm w-56"
                     autocomplete="off"
                 >
-                <select id="admin-pos-vendor" name="vendor_id" class="border border-gray-300 rounded-md px-3 py-2 text-sm" {{ ($selectedPosBookingScope ?? 'vendor') === 'overall' ? 'disabled' : '' }}>
+                <select id="admin-pos-vendor" name="vendor_id" class="border border-gray-300 rounded-md px-3 py-2 text-sm" {{ in_array(($selectedPosBookingScope ?? 'vendor'), ['overall', 'mine']) ? 'disabled' : '' }}>
                     <option value="" {{ empty($selectedPosVendorId) ? 'selected' : '' }}>Select vendor</option>
                     @foreach($posVendors as $vendor)
                         <option value="{{ $vendor->id }}" {{ (int) $selectedPosVendorId === (int) $vendor->id ? 'selected' : '' }}>
@@ -103,10 +103,10 @@
             };
 
             const applyVisibility = () => {
-                const isOverall = scopeSelect.value === 'overall';
-                vendorWrap.classList.toggle('hidden', isOverall);
-                vendorSelect.disabled = isOverall;
-                vendorSearch.disabled = isOverall;
+                const isHidden = scopeSelect.value === 'overall' || scopeSelect.value === 'mine';
+                vendorWrap.classList.toggle('hidden', isHidden);
+                vendorSelect.disabled = isHidden;
+                vendorSearch.disabled = isHidden;
             };
 
             vendorSearch.addEventListener('input', rebuildVendorOptions);

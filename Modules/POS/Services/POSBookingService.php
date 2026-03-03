@@ -234,10 +234,10 @@ class POSBookingService
 
 public function createBooking(array $data): POSBooking
 {
-    $effectiveVendorId = (int) ($data['vendor_id'] ?? Auth::id());
-    Log::info('POSBookingService.createBooking start', ['vendor_id' => $effectiveVendorId, 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids','start_date','end_date','payment_mode','customer_id']))]);
+    Log::info('POSBookingService.createBooking start', ['vendor_id' => ($data['vendor_id'] ?? Auth::id()), 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids','start_date','end_date','payment_mode','customer_id']))]);
 
     return DB::transaction(function () use ($data) {
+        $effectiveVendorId = (int) ($data['vendor_id'] ?? Auth::id());
         // Normalization: Ensure dates exist
         $start = $data['start_date'] ?? $data['booking_date'] ?? null;
         $end = $data['end_date'] ?? $data['booking_date'] ?? null;

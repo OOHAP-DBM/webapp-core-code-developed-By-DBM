@@ -141,11 +141,31 @@ class AdminPosController extends Controller
     {
         $selectedBookingScope = $this->resolveAdminBookingScope($request);
         $selectedVendorId = $this->resolveEffectiveVendorId($request);
-        return View::make('vendor.pos.create', [
+        $viewData = [
             'posBasePath' => '/admin/pos',
             'posRoutePrefix' => 'admin.pos',
             'posLayout' => 'layouts.admin',
-        ] + $this->vendorSwitcherPayload($selectedVendorId, $selectedBookingScope));
+        ] + $this->vendorSwitcherPayload($selectedVendorId, $selectedBookingScope);
+
+        $viewData['posScope'] = $selectedBookingScope;
+        if ($selectedBookingScope === 'mine') {
+            // Only show admin's own hoardings and self as customer
+            $adminUser = Auth::user();
+            $viewData['adminCustomer'] = [
+                'id' => $adminUser->id,
+                'name' => $adminUser->name,
+                'phone' => $adminUser->phone,
+                'email' => $adminUser->email,
+            ];
+            // Fetch only admin's hoardings
+            $viewData['adminHoardings'] = \App\Models\Hoarding::where('vendor_id', $adminUser->id)->active()->get();
+            $viewData['activeVendorId'] = $adminUser->id;
+        } elseif ($selectedBookingScope === 'vendor') {
+            $viewData['activeVendorId'] = $selectedVendorId;
+        } else {
+            $viewData['activeVendorId'] = null;
+        }
+        return View::make('vendor.pos.create', $viewData);
     }
 
     public function show(Request $request, $id)
@@ -176,106 +196,112 @@ class AdminPosController extends Controller
     {
         $selectedBookingScope = $this->resolveAdminBookingScope($request);
         $vendorId = $this->resolveEffectiveVendorId($request);
+        $customers = collect();
 
-        $bookingCustomers = POSBooking::where('vendor_id', $vendorId)
-            ->whereNotNull('customer_id')
-            ->pluck('customer_id')
-            ->unique()
-            ->toArray();
-
-        $posCustomerUserIds = PosCustomer::where('vendor_id', $vendorId)
-            ->whereNotNull('user_id')
-            ->pluck('user_id')
-            ->unique()
-            ->toArray();
-
-        $allUserIds = collect($bookingCustomers)
-            ->merge($posCustomerUserIds)
-            ->unique()
-            ->filter()
-            ->values()
-            ->toArray();
-
-        $users = User::whereIn('id', $allUserIds)
-            ->with(['posProfile' => function ($query) use ($vendorId) {
-                $query->where('vendor_id', $vendorId);
-            }])
-            ->get();
-
-        $customers = $users->map(function ($user) use ($vendorId) {
-            $bookings = POSBooking::where('vendor_id', $vendorId)
-                ->where('customer_id', $user->id)
+        if ($selectedBookingScope === 'mine') {
+            // Only show real customers created by admin
+            $adminUser = Auth::user();
+            $customers = PosCustomer::where('created_by', $adminUser->id)->get();
+        } elseif ($selectedBookingScope === 'overall') {
+            // All vendors: show all customers for all vendors
+            $bookingCustomers = POSBooking::whereNotNull('customer_id')
+                ->pluck('customer_id')
+                ->unique()
+                ->toArray();
+            $posCustomerUserIds = PosCustomer::whereNotNull('user_id')
+                ->pluck('user_id')
+                ->unique()
+                ->toArray();
+            $allUserIds = collect($bookingCustomers)
+                ->merge($posCustomerUserIds)
+                ->unique()
+                ->filter()
+                ->values()
+                ->toArray();
+            $users = User::whereIn('id', $allUserIds)
+                ->with('posProfile')
                 ->get();
-
-            $totalBookings = $bookings->count();
-            $totalSpent = $bookings->sum('total_amount');
-            $lastBookingAt = $bookings->max('created_at');
-
-            $name = $user->name;
-            if ($user->posProfile && $user->posProfile->business_name) {
-                $name = $user->posProfile->business_name;
-            }
-
-            return [
-                'id' => $user->id,
-                'name' => $name,
-                'phone' => $user->phone,
-                'email' => $user->email,
-                'total_bookings' => $totalBookings,
-                'total_spent' => $totalSpent,
-                'last_booking_at' => $lastBookingAt,
-                'is_active' => $totalBookings > 0,
-            ];
-        });
+            $customers = $users->map(function ($user) {
+                $bookings = POSBooking::where('customer_id', $user->id)->get();
+                $totalBookings = $bookings->count();
+                $totalSpent = $bookings->sum('total_amount');
+                $lastBookingAt = $bookings->max('created_at');
+                $name = $user->name;
+                if ($user->posProfile && $user->posProfile->business_name) {
+                    $name = $user->posProfile->business_name;
+                }
+                return [
+                    'id' => $user->id,
+                    'name' => $name,
+                    'phone' => $user->phone,
+                    'email' => $user->email,
+                    'total_bookings' => $totalBookings,
+                    'total_spent' => $totalSpent,
+                    'last_booking_at' => $lastBookingAt,
+                    'is_active' => $totalBookings > 0,
+                ];
+            });
+        } else {
+            // 'vendor' scope: show only for selected vendor
+            $bookingCustomers = POSBooking::where('vendor_id', $vendorId)
+                ->whereNotNull('customer_id')
+                ->pluck('customer_id')
+                ->unique()
+                ->toArray();
+            $posCustomerUserIds = PosCustomer::where('vendor_id', $vendorId)
+                ->whereNotNull('user_id')
+                ->pluck('user_id')
+                ->unique()
+                ->toArray();
+            $allUserIds = collect($bookingCustomers)
+                ->merge($posCustomerUserIds)
+                ->unique()
+                ->filter()
+                ->values()
+                ->toArray();
+            $users = User::whereIn('id', $allUserIds)
+                ->with(['posProfile' => function ($query) use ($vendorId) {
+                    $query->where('vendor_id', $vendorId);
+                }])
+                ->get();
+            $customers = $users->map(function ($user) use ($vendorId) {
+                $bookings = POSBooking::where('vendor_id', $vendorId)
+                    ->where('customer_id', $user->id)
+                    ->get();
+                $totalBookings = $bookings->count();
+                $totalSpent = $bookings->sum('total_amount');
+                $lastBookingAt = $bookings->max('created_at');
+                $name = $user->name;
+                if ($user->posProfile && $user->posProfile->business_name) {
+                    $name = $user->posProfile->business_name;
+                }
+                return [
+                    'id' => $user->id,
+                    'name' => $name,
+                    'phone' => $user->phone,
+                    'email' => $user->email,
+                    'total_bookings' => $totalBookings,
+                    'total_spent' => $totalSpent,
+                    'last_booking_at' => $lastBookingAt,
+                    'is_active' => $totalBookings > 0,
+                ];
+            });
+        }
 
         $totalCustomers = $customers->count();
 
-        return View::make('vendor.pos.customers', [
+        $viewData = [
             'customers' => $customers,
             'totalCustomers' => $totalCustomers,
             'posBasePath' => '/admin/pos',
             'posRoutePrefix' => 'admin.pos',
             'posLayout' => 'layouts.admin',
-        ] + $this->vendorSwitcherPayload($vendorId, $selectedBookingScope));
+            'posScope' => $selectedBookingScope,
+        ] + $this->vendorSwitcherPayload($vendorId, $selectedBookingScope);
+
+        return View::make('vendor.pos.customers', $viewData);
     }
 
-    public function showCustomer(Request $request, $id)
-    {
-        $selectedBookingScope = $this->resolveAdminBookingScope($request);
-        $vendorId = $this->resolveEffectiveVendorId($request);
-
-        $user = User::findOrFail($id);
-        $posProfile = $user->posProfile()->where('vendor_id', $vendorId)->first();
-
-        $bookings = POSBooking::where('vendor_id', $vendorId)
-            ->where('customer_id', $user->id)
-            ->get();
-
-        $name = $user->name;
-        if ($posProfile && $posProfile->business_name) {
-            $name = $posProfile->business_name;
-        }
-
-        $customer = [
-            'id' => $user->id,
-            'name' => $name,
-            'phone' => $user->phone,
-            'email' => $user->email,
-            'total_bookings' => $bookings->count(),
-            'total_spent' => $bookings->sum('total_amount'),
-            'last_booking_at' => $bookings->max('created_at'),
-            'is_active' => $bookings->count() > 0,
-            'pos_profile' => $posProfile,
-            'bookings' => $bookings,
-        ];
-
-        return View::make('vendor.pos.customers.show', [
-            'customer' => $customer,
-            'posBasePath' => '/admin/pos',
-            'posRoutePrefix' => 'admin.pos',
-            'posLayout' => 'layouts.admin',
-        ] + $this->vendorSwitcherPayload($vendorId, $selectedBookingScope));
-    }
 
     // Extend: edit, view, etc. as needed
 }
