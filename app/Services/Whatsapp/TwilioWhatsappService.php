@@ -9,7 +9,6 @@ class TwilioWhatsappService
 {
     protected Client $client;
     protected string $from;
-
     public function __construct()
     {
         $this->client = new Client(
