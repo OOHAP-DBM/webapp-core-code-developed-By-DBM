@@ -234,7 +234,8 @@ class POSBookingService
 
 public function createBooking(array $data): POSBooking
 {
-    Log::info('POSBookingService.createBooking start', ['vendor_id' => Auth::id(), 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids','start_date','end_date','payment_mode','customer_id']))]);
+    $effectiveVendorId = (int) ($data['vendor_id'] ?? Auth::id());
+    Log::info('POSBookingService.createBooking start', ['vendor_id' => $effectiveVendorId, 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids','start_date','end_date','payment_mode','customer_id']))]);
 
     return DB::transaction(function () use ($data) {
         // Normalization: Ensure dates exist
@@ -253,16 +254,16 @@ public function createBooking(array $data): POSBooking
             ->lockForUpdate()
             ->get();
 
-        Log::info('POSBookingService locked hoardings', ['vendor_id' => Auth::id(), 'hoarding_ids' => $hoardings->pluck('id')->all(), 'count' => $hoardings->count()]);
+        Log::info('POSBookingService locked hoardings', ['vendor_id' => $effectiveVendorId, 'hoarding_ids' => $hoardings->pluck('id')->all(), 'count' => $hoardings->count()]);
 
         // Perform Pricing Calculation
         $pricing = $this->calculateMultiHoardingPricing($hoardings, $start, $end, (float)($data['discount_amount'] ?? 0));
 
-        Log::info('POSBookingService calculated pricing', ['vendor_id' => Auth::id(), 'pricing' => $pricing]);
+        Log::info('POSBookingService calculated pricing', ['vendor_id' => $effectiveVendorId, 'pricing' => $pricing]);
 
         // Create the record
         $bookingPayload = [
-            'vendor_id'       => Auth::id(),
+            'vendor_id'       => $effectiveVendorId,
             'customer_id'     => $data['customer_id'] ?? null,
             'customer_name'   => $data['customer_name'], // Required by DB
             'customer_phone'  => $data['customer_phone'], // Required by DB
@@ -286,7 +287,7 @@ public function createBooking(array $data): POSBooking
             'hold_expiry_at'  => $data['hold_expiry_at'] ?? null,
         ];
 
-        Log::info('POSBookingService creating booking record', ['vendor_id' => Auth::id(), 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id','start_date','end_date','total_amount']))]);
+        Log::info('POSBookingService creating booking record', ['vendor_id' => $effectiveVendorId, 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id','start_date','end_date','total_amount']))]);
 
         $booking = POSBooking::create($bookingPayload);
 
@@ -310,14 +311,14 @@ public function createBooking(array $data): POSBooking
             $this->attachHoardingToBooking($booking, $hoarding, $itemStart, $itemEnd, $itemPrice, $itemDiscount);
         }
 
-        Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => Auth::id(), 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
+        Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => $effectiveVendorId, 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
 
         // Generate invoice after booking creation (auto-invoice)
         try {
             if ($this->isAutoInvoiceEnabled()) {
                 $invoice = $this->invoiceService->generateInvoiceForPOSBooking(
                     $booking,
-                    Auth::id()
+                    $effectiveVendorId
                 );
                 // Store invoice reference in POS booking
                 $booking->update([
@@ -333,7 +334,7 @@ public function createBooking(array $data): POSBooking
             } else {
                 Log::info('POS auto-invoice disabled; skipping invoice generation', [
                     'pos_booking_id' => $booking->id,
-                    'vendor_id' => Auth::id(),
+                    'vendor_id' => $effectiveVendorId,
                     'setting_key' => 'pos_auto_invoice',
                 ]);
             }

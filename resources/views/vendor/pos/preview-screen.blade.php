@@ -262,7 +262,7 @@
 
             <div class="flex gap-3 pt-2">
                 <button onclick="closeConfirmedModal()" class="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">Close</button>
-                <button onclick="window.location.href='/vendor/pos/bookings'" class="flex-1 py-3 bg-[#2D5A43] text-white rounded-xl text-sm font-bold hover:bg-opacity-90">
+                <button onclick="window.location.href=`${window.POS_BASE_PATH || '/vendor/pos'}/bookings`" class="flex-1 py-3 bg-[#2D5A43] text-white rounded-xl text-sm font-bold hover:bg-opacity-90">
                     View Bookings
                 </button>
             </div>
@@ -389,7 +389,7 @@ async function saveBankDetails() {
     if (!ifsc || !acc || !holder) { showToast('Please fill all bank fields', 'warning'); return; }
 
     try {
-        const res = await fetch('/vendor/pos/api/payment-details', {
+        const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
             body: JSON.stringify({ type: 'bank', ifsc_code: ifsc, account_number: acc, account_holder: holder, bank_name: bankName })
@@ -422,7 +422,7 @@ function editBankDetails() {
 
 async function loadSavedBankDetails() {
     try {
-        const res  = await fetch('/vendor/pos/api/payment-details?type=bank', { headers: { 'Accept': 'application/json' } });
+        const res  = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details?type=bank`, { headers: { 'Accept': 'application/json' } });
         const data = await res.json();
         if (data.success && data.data) {
             savedBankDetails = data.data;
@@ -470,7 +470,7 @@ async function saveUpiDetails() {
     if (qrFile) formData.append('qr_image', qrFile);
 
     try {
-        const res = await fetch('/vendor/pos/api/payment-details', {
+        const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
             method: 'POST',
             headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
             body: formData
@@ -587,7 +587,7 @@ function editUpiDetails() {
 
 async function loadSavedUpiDetails() {
     try {
-        const res  = await fetch('/vendor/pos/api/payment-details?type=upi', { headers: { 'Accept': 'application/json' } });
+        const res  = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details?type=upi`, { headers: { 'Accept': 'application/json' } });
         const data = await res.json();
         if (data.success && data.data) {
             savedUpiDetails = data.data;
@@ -730,7 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> Creating...`;
 
         try {
-            const res    = await fetch('/vendor/pos/api/bookings', {
+            const res    = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/bookings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json', 'Accept': 'application/json',
@@ -811,7 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Redirect to booking details if available
         if (window.lastConfirmedBooking && window.lastConfirmedBooking.id) {
-            window.location.href = `/vendor/pos/bookings/${window.lastConfirmedBooking.id}`;
+            window.location.href = `${window.POS_BASE_PATH || '/vendor/pos'}/bookings/${window.lastConfirmedBooking.id}`;
             return;
         }
         origCloseConfirmedModal();

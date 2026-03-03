@@ -89,7 +89,11 @@ class PosBookingCreatedNotification extends Notification implements ShouldQueue
         }
 
         if (method_exists($notifiable, 'hasRole')) {
-            if ($notifiable->hasRole('vendor') || $notifiable->hasRole('admin') || $notifiable->hasRole('super_admin')) {
+            if ($notifiable->hasRole('admin') || $notifiable->hasRole('superadmin') || $notifiable->hasRole('super_admin')) {
+                return url('/admin/pos/bookings/' . $this->booking->id);
+            }
+
+            if ($notifiable->hasRole('vendor')) {
                 return url('/vendor/pos/bookings/' . $this->booking->id);
             }
         }

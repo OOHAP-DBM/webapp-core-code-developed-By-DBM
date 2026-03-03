@@ -1,9 +1,10 @@
-@extends('layouts.vendor')
+@extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'Create Pos Booking')
 
 @section('content')
 <div class="px-6 py-6 bg-gray-50">
+    @include('vendor.pos.components.admin-vendor-switcher')
     <div id="selection-screen" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-7">
@@ -201,7 +202,9 @@ function showToast(message, type = 'info') {
         alert(message);
     }
 }
-const API_URL = '/vendor/pos/api';
+const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
+window.POS_BASE_PATH = POS_BASE_PATH;
+const API_URL = `${POS_BASE_PATH}/api`;
 let hoardings = [];
 let selectedHoardings = new Map();
 let selectedCustomer = null;

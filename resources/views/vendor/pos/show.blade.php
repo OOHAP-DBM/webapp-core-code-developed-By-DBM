@@ -1,8 +1,9 @@
-@extends('layouts.vendor')
+@extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'POS Booking Details')
 @section('content')
 <div class="px-6 py-6">
+    @include('vendor.pos.components.admin-vendor-switcher')
     <div class="bg-white rounded-xl shadow">
 
         {{-- Header --}}
@@ -10,7 +11,7 @@
             <h4 class="text-lg font-semibold flex items-center gap-2">
                 📄 POS Booking Details
             </h4>
-            <a href="{{ route('vendor.pos.dashboard') }}"
+            <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
                class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg">
                 ← Back
             </a>
@@ -145,7 +146,9 @@
 
 
 const bookingId = @json($bookingId);
-const API_URL = '/vendor/pos/api';
+const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
+window.POS_BASE_PATH = POS_BASE_PATH;
+const API_URL = `${POS_BASE_PATH}/api`;
 let currentBooking = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -396,7 +399,7 @@ function renderActionButtons(booking) {
     }
 
     // Back button
-    html += `<a href="{{ route('vendor.pos.dashboard') }}"
+    html += `<a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
         class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm">
         ← Back
     </a>`;
