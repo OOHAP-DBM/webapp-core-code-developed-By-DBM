@@ -4,7 +4,9 @@ namespace Modules\POS\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\GracePeriodService;
+use App\Services\Whatsapp\TwilioWhatsappService;
 use App\Models\Hoarding;
+use App\Notifications\POSPaymentReminderNotification;
 use Modules\POS\Services\POSBookingService;
 use Modules\POS\Models\POSBooking;
 use Illuminate\Http\Request;
@@ -12,6 +14,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 
 class POSBookingController extends Controller
@@ -330,7 +334,7 @@ class POSBookingController extends Controller
             $hoarding = Hoarding::findOrFail($request->hoarding_id);
             $this->gracePeriodService->addValidationRule($validator, 'start_date', $hoarding);
         }
-        
+
         $validated = $validator->validate();
 
         try {
@@ -562,13 +566,20 @@ class POSBookingController extends Controller
                                     ->where('end_date', '>=', $endDate);
                             });
                     })
-                    ->whereIn('status', ['confirmed', 'payment_hold']);
+                        ->whereIn('status', ['confirmed', 'payment_hold']);
                 });
             }
 
             $hoardings = $query->select([
-                'id', 'title', 'location_address', 'location_city', 'location_state',
-                'size', 'type', 'price_per_month', 'price_per_sqft'
+                'id',
+                'title',
+                'location_address',
+                'location_city',
+                'location_state',
+                'size',
+                'type',
+                'price_per_month',
+                'price_per_sqft'
             ])->paginate(20);
 
             return response()->json([
@@ -623,8 +634,9 @@ class POSBookingController extends Controller
         }
     }
 
-     public function markAsPaid(Request $request, int $id): JsonResponse
+    public function markAsPaid(Request $request, int $id): JsonResponse
     {
+
         try {
             $context = $this->resolveAdminBookingScopeContext($request);
             $bookingQuery = POSBooking::query();
@@ -668,6 +680,13 @@ class POSBookingController extends Controller
                 ], 422);
             }
 
+            // Store previous payment status for WhatsApp message
+            $previousStatus = $booking->payment_status;
+            $totalAmount = (float) $booking->total_amount;
+            $previousAmount = (float) ($booking->paid_amount ?? 0);
+            $newAmount = $previousAmount + (float) $validated['amount'];
+            $isFullPayment = $newAmount >= $totalAmount;
+
             // Mark as paid
             $updated = $this->posBookingService->markPaymentReceived(
                 $booking,
@@ -675,6 +694,22 @@ class POSBookingController extends Controller
                 $validated['payment_date'] ?? today(),
                 $validated['notes'] ?? null
             );
+
+            // Send WhatsApp notification for payment received
+            try {
+                $this->sendPaymentConfirmationWhatsApp(
+                    $updated,
+                    $validated['amount'],
+                    $isFullPayment,
+                    $newAmount,
+                    $totalAmount
+                );
+            } catch (\Exception $e) {
+                Log::warning('Failed to send payment WhatsApp notification', [
+                    'booking_id' => $updated->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
@@ -776,17 +811,17 @@ class POSBookingController extends Controller
             }
 
             $bookings = $query->get([
-                    'id',
-                    'customer_name',
-                    'customer_phone',
-                    'hoarding_id',
-                    'total_amount',
-                    'paid_amount',
-                    'start_date',
-                    'hold_expiry_at',
-                    'reminder_count',
-                    'created_at',
-                ]);
+                'id',
+                'customer_name',
+                'customer_phone',
+                'hoarding_id',
+                'total_amount',
+                'paid_amount',
+                'start_date',
+                'hold_expiry_at',
+                'reminder_count',
+                'created_at',
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -808,6 +843,7 @@ class POSBookingController extends Controller
      */
     public function sendReminder(Request $request, int $id): JsonResponse
     {
+
         try {
             $context = $this->resolveAdminBookingScopeContext($request);
             $bookingQuery = POSBooking::query();
@@ -844,12 +880,34 @@ class POSBookingController extends Controller
                 'last_reminder_at' => now(),
             ]);
 
-            // TODO: Queue WhatsApp notification job here
-            // Notification::send($booking->customer, new PaymentReminderNotification($booking));
+            // Send email notification
+            try {
+                if ($booking->customer_email) {
+                    Notification::route('mail', $booking->customer_email)
+                        ->notify(new POSPaymentReminderNotification($booking, $booking->reminder_count));
+                }
+            } catch (\Exception $e) {
+                Log::warning('Failed to send payment reminder email', [
+                    'booking_id' => $booking->id,
+                    'email' => $booking->customer_email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            // Send WhatsApp reminder notification
+            try {
+                $this->sendReminderWhatsAppMessage($booking);
+            } catch (\Exception $e) {
+                Log::warning('Failed to send payment reminder WhatsApp', [
+                    'booking_id' => $booking->id,
+                    'phone' => $booking->customer_phone,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Reminder sent successfully',
+                'message' => 'Reminder sent successfully via email and WhatsApp',
                 'data' => [
                     'reminder_count' => $booking->reminder_count,
                     'last_reminder_at' => $booking->last_reminder_at,
@@ -861,6 +919,223 @@ class POSBookingController extends Controller
                 'message' => 'Failed to send reminder',
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Send WhatsApp reminder message for pending payment
+     */
+    private function sendReminderWhatsAppMessage(POSBooking $booking): void
+    {
+        try {
+            // Ensure relationships are loaded
+            if (!$booking->relationLoaded('bookingHoardings')) {
+                $booking->load('bookingHoardings.hoarding');
+            }
+
+            // Get customer phone
+            $phone = $booking->customer_phone;
+            if (empty($phone) || $phone === 'N/A') {
+                Log::warning('Reminder WhatsApp skipped - no valid phone', [
+                    'booking_id' => $booking->id,
+                    'phone' => $phone,
+                ]);
+                return;
+            }
+
+            // Build hoarding list
+            $hoardingLines = $booking->bookingHoardings->map(function ($bh) {
+                $h = $bh->hoarding;
+                return "• " . ($h->title ?? 'Hoarding') . " ({$bh->start_date} → {$bh->end_date})";
+            })->implode("\n");
+
+            // Calculate payment details
+            $totalAmount = (float) $booking->total_amount;
+            $paidAmount = (float) ($booking->paid_amount ?? 0);
+            $remainingAmount = max(0, $totalAmount - $paidAmount);
+            $paidFormatted = number_format($paidAmount, 2);
+            $totalFormatted = number_format($totalAmount, 2);
+            $remainingFormatted = number_format($remainingAmount, 2);
+
+            // Build WhatsApp message
+            $message = "⏰ *Payment Reminder - Invoice #{$booking->invoice_number}*\n\n"
+                . "Hello *{$booking->customer_name}*,\n\n"
+                . "This is a friendly payment reminder for your POS booking.\n\n"
+                . "📋 *Booking Details:*\n"
+                . "Status: {$booking->status}\n"
+                . "Reminder Count: {$booking->reminder_count}/3\n\n"
+                . "💰 *Payment Status:*\n"
+                . "Total Amount: ₹{$totalFormatted}\n"
+                . "Paid Amount: ₹{$paidFormatted}\n"
+                . "Outstanding Balance: ₹{$remainingFormatted}\n\n"
+                . "🏛️ *Hoardings Booked:*\n{$hoardingLines}\n\n"
+                . "Please clear the outstanding balance at your earliest convenience.\n\n"
+                . "Thank you!";
+
+            // Normalize phone number
+            $normalizedPhone = preg_replace('/\D+/', '', $phone);
+
+            if (empty($normalizedPhone) || strlen($normalizedPhone) < 10) {
+                Log::warning('Reminder WhatsApp skipped - invalid phone', [
+                    'booking_id' => $booking->id,
+                    'original_phone' => $phone,
+                    'normalized_phone' => $normalizedPhone,
+                ]);
+                return;
+            }
+
+            // Add country code if needed
+            if (!str_starts_with($normalizedPhone, '91')) {
+                $normalizedPhone = '91' . ltrim($normalizedPhone, '0');
+            }
+
+            $normalizedPhone = '+' . $normalizedPhone;
+
+            Log::info('Reminder WhatsApp attempting to send', [
+                'booking_id' => $booking->id,
+                'phone' => $normalizedPhone,
+                'reminder_count' => $booking->reminder_count,
+            ]);
+
+            // Send via WhatsApp
+            $whatsapp = app(TwilioWhatsappService::class);
+            $sent = $whatsapp->send($normalizedPhone, $message);
+
+            Log::info('Reminder WhatsApp notification dispatched', [
+                'booking_id' => $booking->id,
+                'phone' => $normalizedPhone,
+                'sent' => $sent,
+                'reminder_count' => $booking->reminder_count,
+                'message_preview' => substr($message, 0, 100),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Reminder WhatsApp notification failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+    }
+
+    /**
+     * Send WhatsApp notification when payment is received (full or partial)
+     */
+    private function sendPaymentConfirmationWhatsApp(
+        POSBooking $booking,
+        float $amountReceived,
+        bool $isFullPayment,
+        float $totalPaidAmount,
+        float $totalAmount
+    ): void {
+        try {
+            // Ensure relationships are loaded
+            if (!$booking->relationLoaded('bookingHoardings')) {
+                $booking->load('bookingHoardings.hoarding');
+            }
+
+            $vendor = User::find($booking->vendor_id);
+            $vendorName = $vendor?->name ?? 'Vendor';
+
+            // Get customer phone
+            $phone = $booking->customer_phone;
+            if (empty($phone) || $phone === 'N/A') {
+                Log::warning('Payment WhatsApp skipped - no valid phone', [
+                    'booking_id' => $booking->id,
+                    'phone' => $phone,
+                ]);
+                return;
+            }
+
+            // Build hoarding list
+            $hoardingLines = $booking->bookingHoardings->map(function ($bh) {
+                $h = $bh->hoarding;
+                return "• " . ($h->title ?? 'Hoarding') . " ({$bh->start_date} → {$bh->end_date})";
+            })->implode("\n");
+
+            // Build WhatsApp message
+            $amountReceivedFormatted = number_format($amountReceived, 2);
+            $totalPaidFormatted = number_format($totalPaidAmount, 2);
+            $totalAmountFormatted = number_format($totalAmount, 2);
+            $remainingAmount = max(0, $totalAmount - $totalPaidAmount);
+            $remainingFormatted = number_format($remainingAmount, 2);
+
+            if ($isFullPayment) {
+                // Full payment message
+                $message = "✅ *Payment Received - Booking Confirmed!*\n\n"
+                    . "Hello *{$booking->customer_name}*,\n\n"
+                    . "Thank you! Your full payment has been received.\n\n"
+                    . "📋 *Booking Details:*\n"
+                    . "Invoice: #{$booking->invoice_number}\n"
+                    . "Booking Status: ✅ *CONFIRMED*\n"
+                    . "Payment Status: ✅ *PAID*\n\n"
+                    . "💰 *Payment Summary:*\n"
+                    . "Amount Received: ₹{$amountReceivedFormatted}\n"
+                    . "Total Amount: ₹{$totalAmountFormatted}\n\n"
+                    . "🏛️ *Hoardings Booked:*\n{$hoardingLines}\n\n"
+                    . "Your booking is now confirmed by *{$vendorName}*. Looking forward to serving you!\n\n"
+                    . "Thank you for your business!";
+            } else {
+                // Partial payment message
+                $message = "📝 *Partial Payment Received - Booking Confirmed!*\n\n"
+                    . "Hello *{$booking->customer_name}*,\n\n"
+                    . "Thank you! We have received your partial payment. Your booking is now confirmed.\n\n"
+                    . "📋 *Booking Details:*\n"
+                    . "Invoice: #{$booking->invoice_number}\n"
+                    . "Booking Status: ✅ *CONFIRMED*\n\n"
+                    . "💰 *Payment Summary:*\n"
+                    . "Amount Just Received: ₹{$amountReceivedFormatted}\n"
+                    . "Total Paid So Far: ₹{$totalPaidFormatted}\n"
+                    . "Total Amount: ₹{$totalAmountFormatted}\n"
+                    . "Remaining Balance: ₹{$remainingFormatted}\n\n"
+                    . "🏛️ *Hoardings Booked:*\n{$hoardingLines}\n\n"
+                    . "Your booking is confirmed by *{$vendorName}*. Please clear the remaining balance of ₹{$remainingFormatted} soon.\n\n"
+                    . "Thank you for your business!";
+            }
+
+            // Normalize phone number
+            $normalizedPhone = preg_replace('/\D+/', '', $phone);
+
+            if (empty($normalizedPhone) || strlen($normalizedPhone) < 10) {
+                Log::warning('Payment WhatsApp skipped - invalid phone', [
+                    'booking_id' => $booking->id,
+                    'original_phone' => $phone,
+                    'normalized_phone' => $normalizedPhone,
+                ]);
+                return;
+            }
+
+            // Add country code if needed
+            if (!str_starts_with($normalizedPhone, '91')) {
+                $normalizedPhone = '91' . ltrim($normalizedPhone, '0');
+            }
+
+            $normalizedPhone = '+' . $normalizedPhone;
+
+            Log::info('Payment WhatsApp attempting to send', [
+                'booking_id' => $booking->id,
+                'phone' => $normalizedPhone,
+                'is_full_payment' => $isFullPayment,
+                'amount_received' => $amountReceived,
+            ]);
+
+            // Send via WhatsApp
+            $whatsapp = app(TwilioWhatsappService::class);
+            $sent = $whatsapp->send($normalizedPhone, $message);
+
+            Log::info('Payment WhatsApp notification dispatched', [
+                'booking_id' => $booking->id,
+                'phone' => $normalizedPhone,
+                'sent' => $sent,
+                'is_full_payment' => $isFullPayment,
+                'amount_received' => $amountReceived,
+                'message_preview' => substr($message, 0, 100),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Payment WhatsApp notification failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
     }
 }
