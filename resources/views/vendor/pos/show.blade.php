@@ -1,16 +1,17 @@
-@extends('layouts.vendor')
+@extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'POS Booking Details')
 @section('content')
 <div class="px-6 py-6">
+    @include('vendor.pos.components.admin-vendor-switcher')
     <div class="bg-white rounded-xl shadow">
 
         {{-- Header --}}
         <div class="px-6 py-4 bg-primary text-white flex items-center justify-between">
-            <h4 class="text-lg font-semibold flex items-center gap-2">
-                📄 POS Booking Details
+            <h4 class="text-xl font-bold text-gray-800 flex  items-center gap-2">
+                 POS Booking Details
             </h4>
-            <a href="{{ route('vendor.pos.dashboard') }}"
+            <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
                class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg">
                 ← Back
             </a>
@@ -145,7 +146,9 @@
 
 
 const bookingId = @json($bookingId);
-const API_URL = '/vendor/pos/api';
+const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
+window.POS_BASE_PATH = POS_BASE_PATH;
+const API_URL = `${POS_BASE_PATH}/api`;
 let currentBooking = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -224,15 +227,17 @@ async function loadBookingDetails() {
                             <td class="text-center">${idx + 1}</td>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <img src="${h.image_url}" alt="Hoarding" class="w-12 h-12 rounded object-cover border" />
+                                    <img src="${h.image_url}" alt="Hoarding" class="w-12 h-12 rounded object-cover border my-1  " />
                                     <div>
-                                        <div  class="font-semibold"> <a href="">${h.title}</a></div>
+                                        <div class="font-semibold ">
+                                            <a href="${h.url || '#'}" target="_blank">${h.title}</a>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">₹${base.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                            <td >${h.campaign_start_date || '-'} - ${h.campaign_end_date || '-'}<br><span class="text-xs">${h.campaign_duration_days ? h.campaign_duration_days + ' days' : '-'}</span></td>
-                            <td>₹${final.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                            <td class="text-center">${h.campaign_start_date || '-'} - ${h.campaign_end_date || '-'}<br><span class="text-xs">${h.campaign_duration_days ? h.campaign_duration_days + ' days' : '-'}</span></td>
+                            <td class="text-center">₹${final.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                         </tr>
                     `;
                 }).join('');
@@ -266,7 +271,7 @@ async function loadBookingDetails() {
                                         <th class="px-2 py-2 border">Hoardings</th>
                                         <th class="px-2 py-2 border">Rental</th>
                                         <th class="px-2 py-2 border">Duration</th>
-                                        <th class="px-2 py-2 border">Total Price (incl. 18% GST)</th>
+                                        <th class="px-2 py-2 border">Total Price</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -284,7 +289,7 @@ async function loadBookingDetails() {
                         <div><strong>Customer:</strong> ${b.customer_name}</div>
                         <div><strong>Phone:</strong> ${b.customer_phone || '-'} </div>
                         <div><strong>Booking Date:</strong> ${new Date(b.created_at).toLocaleString()} </div>
-                        <div><strong>Notes:</strong> ${b.notes || '-'} </div>
+                        <div><strong>Email:</strong> ${b.notes || '-'} </div>
                     </div>
                     <div class="flex flex-wrap gap-2 pt-2 border-t">
                         ${renderActionButtons(b)}
@@ -377,24 +382,24 @@ function renderActionButtons(booking) {
     }
 
     // Send Reminder button
-    // BACKEND RULE: reminder_count < 3
-    if (booking.reminder_count !== undefined && booking.reminder_count < 3) {
+    // BACKEND RULE: reminder_count < 10
+    if (booking.reminder_count !== undefined && booking.reminder_count < 10) {
         html += `
             <button onclick="sendReminder()"
                 class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium">
                 📧 Send Reminder
             </button>`;
-    } else if (booking.reminder_count === 3) {
+    } else if (booking.reminder_count === 10) {
         html += `
             <button disabled 
                 class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
-                title="Maximum 3 reminders sent">
+                title="Maximum 10 reminders sent">
                 📧 Max Reminders Sent
             </button>`;
     }
 
     // Back button
-    html += `<a href="{{ route('vendor.pos.dashboard') }}"
+    html += `<a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
         class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm">
         ← Back
     </a>`;

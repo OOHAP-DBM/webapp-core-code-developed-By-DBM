@@ -1,9 +1,10 @@
-@extends('layouts.vendor')
+@extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'Customer Details')
 
 @section('content')
 <div class="px-6 py-6 space-y-6">
+    @include('vendor.pos.components.admin-vendor-switcher')
 
     {{-- Header --}}
     <div class="bg-white rounded-xl shadow  p-6 flex justify-between items-center">
@@ -16,7 +17,7 @@
             </p>
         </div>
 
-        <a href="{{ route('vendor.pos.create', ['customer_id' => $customer['id']]) }}"
+        <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.create', ['customer_id' => $customer['id']]) }}"
            class="px-4 py-2 btn-color text-black rounded-lg text-sm hover:opacity-90">
             + New Booking
         </a>

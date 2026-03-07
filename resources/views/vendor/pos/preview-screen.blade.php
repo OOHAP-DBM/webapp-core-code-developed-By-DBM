@@ -262,7 +262,7 @@
 
             <div class="flex gap-3 pt-2">
                 <button onclick="closeConfirmedModal()" class="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">Close</button>
-                <button onclick="window.location.href='/vendor/pos/bookings'" class="flex-1 py-3 bg-[#2D5A43] text-white rounded-xl text-sm font-bold hover:bg-opacity-90">
+                <button onclick="window.location.href=`${window.POS_BASE_PATH || '/vendor/pos'}/bookings`" class="flex-1 py-3 bg-[#2D5A43] text-white rounded-xl text-sm font-bold hover:bg-opacity-90">
                     View Bookings
                 </button>
             </div>
@@ -271,6 +271,10 @@
 </div>
 
 <style>
+button:not(:disabled) {
+    cursor: pointer;
+}
+
 .payment-mode-btn {
     border-color: #e5e7eb;
     color: #6b7280;
@@ -385,7 +389,7 @@ async function saveBankDetails() {
     if (!ifsc || !acc || !holder) { showToast('Please fill all bank fields', 'warning'); return; }
 
     try {
-        const res = await fetch('/vendor/pos/api/payment-details', {
+        const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
             body: JSON.stringify({ type: 'bank', ifsc_code: ifsc, account_number: acc, account_holder: holder, bank_name: bankName })
@@ -418,7 +422,7 @@ function editBankDetails() {
 
 async function loadSavedBankDetails() {
     try {
-        const res  = await fetch('/vendor/pos/api/payment-details?type=bank', { headers: { 'Accept': 'application/json' } });
+        const res  = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details?type=bank`, { headers: { 'Accept': 'application/json' } });
         const data = await res.json();
         if (data.success && data.data) {
             savedBankDetails = data.data;
@@ -466,7 +470,7 @@ async function saveUpiDetails() {
     if (qrFile) formData.append('qr_image', qrFile);
 
     try {
-        const res = await fetch('/vendor/pos/api/payment-details', {
+        const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
             method: 'POST',
             headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
             body: formData
@@ -481,12 +485,96 @@ async function saveUpiDetails() {
     }
 }
 
+function normalizeQrImageUrl(data) {
+    const raw = data?.qr_image_url || data?.qr_image_path || '';
+    if (!raw) return '';
+
+    const normalizedRaw = String(raw).replace(/\\/g, '/').trim();
+
+    if (/^https?:\/\//i.test(normalizedRaw)) {
+        try {
+            const parsed = new URL(normalizedRaw);
+            if (parsed.host === window.location.host) {
+                return normalizedRaw;
+            }
+            if (parsed.pathname.startsWith('/storage/')) {
+                return `${window.location.origin}${parsed.pathname}`;
+            }
+            return normalizedRaw;
+        } catch (e) {
+            // fallback to path normalization below
+        }
+    }
+
+    if (normalizedRaw.startsWith('data:')) {
+        return normalizedRaw;
+    }
+
+    const storagePrefixStripped = normalizedRaw
+        .replace(/^\/?storage\/app\/public\/?/i, '')
+        .replace(/^\/?public\/?/i, '');
+
+    const normalizedPath = storagePrefixStripped.startsWith('/') ? storagePrefixStripped : `/${storagePrefixStripped}`;
+    if (normalizedPath.startsWith('/storage/')) {
+        return `${window.location.origin}${normalizedPath}`;
+    }
+
+    if (normalizedPath.startsWith('/vendor_qr/')) {
+        return `${window.location.origin}/storage${normalizedPath}`;
+    }
+
+    return `${window.location.origin}${normalizedPath}`;
+}
+
+function buildQrImageCandidates(data) {
+    const rawUrl = String(data?.qr_image_url || '').replace(/\\/g, '/').trim();
+    const rawPath = String(data?.qr_image_path || '').replace(/\\/g, '/').trim();
+    const normalizedPrimary = normalizeQrImageUrl(data);
+
+    const normalizedPath = rawPath
+        .replace(/^\/?storage\/app\/public\/?/i, '')
+        .replace(/^\/?public\/?/i, '')
+        .replace(/^\/+/, '');
+
+    const candidates = [
+        normalizedPrimary,
+        rawUrl,
+        normalizedPath ? `${window.location.origin}/storage/${normalizedPath}` : '',
+        normalizedPath ? `/storage/${normalizedPath}` : '',
+    ].filter(Boolean);
+
+    return [...new Set(candidates)];
+}
+
+function renderQrImage(containerId, data) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const candidates = buildQrImageCandidates(data);
+    if (!candidates.length) return;
+
+    const img = document.createElement('img');
+    img.className = 'w-full h-full object-cover';
+
+    let index = 0;
+    img.onerror = () => {
+        index += 1;
+        if (index < candidates.length) {
+            img.src = candidates[index];
+            return;
+        }
+        container.innerHTML = '';
+    };
+
+    img.src = candidates[index];
+    container.innerHTML = '';
+    container.appendChild(img);
+}
+
 function renderSavedUpiCard(d) {
     if (!d) return;
     document.getElementById('saved-upi-id').innerText = d.upi_id || '---';
-    if (d.qr_image_url) {
-        document.getElementById('saved-upi-qr').innerHTML = `<img src="${d.qr_image_url}" class="w-full h-full object-cover">`;
-    }
+    renderQrImage('saved-upi-qr', d);
     document.getElementById('upi-saved-card').classList.remove('hidden');
     document.getElementById('upi-input-form').classList.add('hidden');
     document.getElementById('upi-saved-badge').classList.remove('hidden');
@@ -499,7 +587,7 @@ function editUpiDetails() {
 
 async function loadSavedUpiDetails() {
     try {
-        const res  = await fetch('/vendor/pos/api/payment-details?type=upi', { headers: { 'Accept': 'application/json' } });
+        const res  = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details?type=upi`, { headers: { 'Accept': 'application/json' } });
         const data = await res.json();
         if (data.success && data.data) {
             savedUpiDetails = data.data;
@@ -573,9 +661,7 @@ function showBookingConfirmedModal(booking) {
     }
     if (selectedPaymentMode === 'online' && savedUpiDetails) {
         document.getElementById('modal-upi-id').innerText = savedUpiDetails.upi_id || '--';
-        if (savedUpiDetails.qr_image_url) {
-            document.getElementById('modal-upi-qr').innerHTML = `<img src="${savedUpiDetails.qr_image_url}" class="w-full h-full object-cover">`;
-        }
+        renderQrImage('modal-upi-qr', savedUpiDetails);
         document.getElementById('modal-upi-info').classList.remove('hidden');
     }
 
@@ -644,7 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> Creating...`;
 
         try {
-            const res    = await fetch('/vendor/pos/api/bookings', {
+            const res    = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/bookings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json', 'Accept': 'application/json',
@@ -725,7 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Redirect to booking details if available
         if (window.lastConfirmedBooking && window.lastConfirmedBooking.id) {
-            window.location.href = `/vendor/pos/bookings/${window.lastConfirmedBooking.id}`;
+            window.location.href = `${window.POS_BASE_PATH || '/vendor/pos'}/bookings/${window.lastConfirmedBooking.id}`;
             return;
         }
         origCloseConfirmedModal();

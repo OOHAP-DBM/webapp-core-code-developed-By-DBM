@@ -1,7 +1,7 @@
-@extends('layouts.vendor')
+@include('vendor.pos.components.pos-timer-notification')
+@extends($posLayout ?? 'layouts.vendor')
 
-@section('title', 'Create Pos Booking')
-
+@section('title', 'POS Customers')
 @section('content')
 <div class="px-6 py-6 bg-gray-50">
     <div id="selection-screen" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -126,7 +126,7 @@
                         <div class="relative flex-1">
                             <input type="text" id="hoarding-search" placeholder="Search for available hoardings..." 
                                 class="w-full pl-10  border border-gray-300 text-sm focus:ring-green-500" style="height:40px;">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="pointer-events:none;">
+                            <span class="absolute left-3 top-0 bottom-0 my-auto text-gray-400 flex items-center" style="pointer-events:none; height:18px;">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-3.5-3.5"/></svg>
                             </span>
                         </div>

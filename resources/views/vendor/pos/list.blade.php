@@ -1,18 +1,19 @@
-@extends('layouts.vendor')
+@extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'POS Bookings List')
 @section('content')
 <div class="px-6 py-6">
+    @include('vendor.pos.components.admin-vendor-switcher')
 
     <div class="bg-white rounded-md shadow ">
 
         {{-- Header --}}
         <div class="flex justify-between items-center px-6 py-4 bg-primary rounded-t-xl">
-            <h4 class="text-lg font-semibold flex items-center gap-2">
+            <h4 class="text-xl font-bold text-gray-800 flex items-center gap-2">
                  POS Bookings
             </h4>
 
-            <a href="{{ route('vendor.pos.create') }}"
+            <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.create') }}"
                 class="btn-color text-white px-4 py-2 rounded-lg text-sm font-medium transition">
                 + New Booking
             </a>
@@ -105,8 +106,10 @@
 <script>
 /**
  * POS Bookings List - Web Session Auth
- * Uses /vendor/pos/api/bookings endpoint with session auth
+ * Uses role-scoped POS bookings endpoint with session auth
  */
+
+const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
 
 let currentPage = 1;
 
@@ -173,7 +176,7 @@ function loadPosBookings(page = 1) {
     const paymentStatus = document.getElementById('filter-payment-status').value;
     const search = (document.getElementById('search-box').value || '').trim();
 
-    let url = `/vendor/pos/api/bookings?page=${page}&per_page=10`;
+    let url = `${POS_BASE_PATH}/api/bookings?page=${page}&per_page=10`;
     if (status) url += `&status=${status}`;
     if (paymentStatus) url += `&payment_status=${paymentStatus}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
@@ -213,13 +216,13 @@ function loadPosBookings(page = 1) {
                         </span>
                     </td>
                     <td class=" px-3 pb-2 pt-4 flex gap-1">
-                        <a href="/vendor/pos/bookings/${booking.id}"
+                        <a href="${POS_BASE_PATH}/bookings/${booking.id}"
                            class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition">
                             View
                         </a>
                         <!-- BACKEND RULE: Only show Edit if status = draft -->
                         ${booking.status === 'draft' ? `
-                            <a href="/vendor/pos/bookings/${booking.id}/edit"
+                            <a href="${POS_BASE_PATH}/bookings/${booking.id}/edit"
                                class="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition">
                                 Edit
                             </a>
@@ -232,7 +235,7 @@ function loadPosBookings(page = 1) {
                         `}
                         <!-- BACKEND RULE: Show Mark Paid if payment_status in [unpaid, partial] AND status != cancelled -->
                         ${['unpaid', 'partial'].includes(booking.payment_status) && booking.status !== 'cancelled' ? `
-                            <a href="/vendor/pos/bookings/${booking.id}"
+                            <a href="${POS_BASE_PATH}/bookings/${booking.id}"
                                class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition">
                                 Mark Paid
                             </a>

@@ -10,7 +10,6 @@ use Illuminate\Queue\SerializesModels;
 use Modules\POS\Models\POSBooking;
 use Modules\POS\Models\VendorPaymentDetail;
 use App\Models\User;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class PosBookingCreatedMail extends Mailable implements ShouldQueue
@@ -26,7 +25,7 @@ class PosBookingCreatedMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'POS Booking Confirmation - #' . $this->booking->invoice_number,
+            subject: 'POS Booking Created - #' . $this->booking->invoice_number,
         );
     }
 
@@ -40,8 +39,13 @@ class PosBookingCreatedMail extends Mailable implements ShouldQueue
             ->first();
 
         $paymentQrUrl = null;
+        $paymentQrAbsolutePath = null;
         if ($paymentDetail && !empty($paymentDetail->qr_image_path)) {
-            $paymentQrUrl = Storage::disk('public')->url($paymentDetail->qr_image_path);
+            $paymentQrUrl = $paymentDetail->qrImageUrl(true);
+            $normalizedPath = $paymentDetail->normalizedQrImagePath();
+            if ($normalizedPath) {
+                $paymentQrAbsolutePath = storage_path('app/public/' . $normalizedPath);
+            }
         }
 
         return new Content(
@@ -53,6 +57,7 @@ class PosBookingCreatedMail extends Mailable implements ShouldQueue
                 'recipientType' => $this->recipientType,
                 'paymentDetail' => $paymentDetail,
                 'paymentQrUrl' => $paymentQrUrl,
+                'paymentQrAbsolutePath' => $paymentQrAbsolutePath,
             ]
         );
     }
