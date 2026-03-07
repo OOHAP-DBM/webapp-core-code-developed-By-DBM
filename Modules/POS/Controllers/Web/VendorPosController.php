@@ -184,6 +184,74 @@ class VendorPosController extends Controller
     }
 
     /**
+     * Show POS customers list page for vendor
+     */
+    public function customers(Request $request)
+    {
+        $vendorId = $this->resolveEffectiveVendorId($request);
+
+        $bookingCustomers = POSBooking::where('vendor_id', $vendorId)
+            ->whereNotNull('customer_id')
+            ->pluck('customer_id')
+            ->unique()
+            ->toArray();
+
+        $posCustomerUserIds = PosCustomer::where('vendor_id', $vendorId)
+            ->whereNotNull('user_id')
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+
+        $allUserIds = collect($bookingCustomers)
+            ->merge($posCustomerUserIds)
+            ->unique()
+            ->filter()
+            ->values()
+            ->toArray();
+
+        $users = User::whereIn('id', $allUserIds)
+            ->with(['posProfile' => function ($query) use ($vendorId) {
+                $query->where('vendor_id', $vendorId);
+            }])
+            ->get();
+
+        $customers = $users->map(function ($user) use ($vendorId) {
+            $bookings = POSBooking::where('vendor_id', $vendorId)
+                ->where('customer_id', $user->id)
+                ->get();
+
+            $totalBookings = $bookings->count();
+            $totalSpent = $bookings->sum('total_amount');
+            $lastBookingAt = $bookings->max('created_at');
+
+            $name = $user->name;
+            if ($user->posProfile && $user->posProfile->business_name) {
+                $name = $user->posProfile->business_name;
+            }
+
+            return [
+                'id' => $user->id,
+                'name' => $name,
+                'phone' => $user->phone,
+                'email' => $user->email,
+                'total_bookings' => $totalBookings,
+                'total_spent' => $totalSpent,
+                'last_booking_at' => $lastBookingAt,
+                'is_active' => $totalBookings > 0,
+            ];
+        });
+
+        return view('vendor.pos.customers', [
+            'customers' => $customers,
+            'totalCustomers' => $customers->count(),
+            'posBasePath' => '/vendor/pos',
+            'posRoutePrefix' => 'vendor.pos',
+            'posLayout' => 'layouts.vendor',
+            'posScope' => 'vendor',
+        ]);
+    }
+
+    /**
      * Show POS booking details page for vendor
      */
     public function show($id)
@@ -729,6 +797,7 @@ class VendorPosController extends Controller
      */
     public function searchCustomers(Request $request): JsonResponse
     {
+
         try {
             $search = $request->get('search', '');
 
