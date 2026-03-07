@@ -200,8 +200,8 @@
 
                             @if($packageCount > 0)
                                 <p class="text-xs text-teal-600 font-medium mb-3">{{ $packageCount }} {{ Str::plural('Package', $packageCount) }} Available</p>
-                            @else
-                                <p class="text-xs text-teal-600 font-medium mb-3">No packages are in this hoarding</p>
+                            {{-- @else
+                                <p class="text-xs text-teal-600 font-medium mb-3">No packages are in this hoarding</p> --}}
                             @endif
 
                             {{-- ACTIONS --}}

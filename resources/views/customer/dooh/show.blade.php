@@ -290,10 +290,10 @@
         }
 
         function renderPackages(packages) {
-            if (!packages || packages.length === 0) {
-                $('#packagesContainer').html('<p class="text-muted">No packages available</p>');
-                return;
-            }
+            // if (!packages || packages.length === 0) {
+            //     $('#packagesContainer').html('<p class="text-muted">No packages available</p>');
+            //     return;
+            // }
 
             let html = '';
             packages.forEach(pkg => {
