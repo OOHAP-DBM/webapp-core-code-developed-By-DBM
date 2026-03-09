@@ -43,30 +43,30 @@ class HoardingController extends Controller
         $hoarding = Hoarding::with([
             // Vendor info
             'vendor',
-            
+
             // OOH-specific relationships
-            'hoardingMedia' => function($query) {
+            'hoardingMedia' => function ($query) {
                 $query->orderBy('is_primary', 'desc')
-                      ->orderBy('sort_order');
+                    ->orderBy('sort_order');
             },
             'ooh',
-            
+
             // DOOH-specific relationships
             'doohScreen',
-            'doohScreen.media' => function($query) {
+            'doohScreen.media' => function ($query) {
                 $query->orderBy('sort_order');
             },
-            'doohScreen.packages' => function($query) {
+            'doohScreen.packages' => function ($query) {
                 $query->orderBy('min_booking_duration');
             },
-            
+
             // Packages for both types
-            'oohPackages' => function($query) {
-                $query->where(function($q) {
-                          $q->whereNull('end_date')
-                            ->orWhere('end_date', '>=', now());
-                      })
-                      ->orderBy('min_booking_duration');
+            'oohPackages' => function ($query) {
+                $query->where(function ($q) {
+                    $q->whereNull('end_date')
+                        ->orWhere('end_date', '>=', now());
+                })
+                    ->orderBy('min_booking_duration');
             },
         ])->findOrFail($id);
 
@@ -141,8 +141,7 @@ class HoardingController extends Controller
         | - Material and mounting details
         | - Printing and installation charges
         | - Packages from hoarding
-        */
-        else {
+        */ else {
             $ooh = $hoarding->ooh;
 
             // Set pricing type for view
@@ -196,7 +195,7 @@ class HoardingController extends Controller
 
         if ($hoarding->hoarding_type === Hoarding::TYPE_DOOH && $hoarding->doohScreen) {
             // DOOH: Get media from doohScreen
-            $hoarding->media_files = $hoarding->doohScreen->media->map(function($media) {
+            $hoarding->media_files = $hoarding->doohScreen->media->map(function ($media) {
                 return [
                     'url' => asset('storage/' . $media->file_path),
                     'type' => $media->media_type ?? 'image',
@@ -205,7 +204,7 @@ class HoardingController extends Controller
             });
         } elseif ($hoarding->hoarding_type === Hoarding::TYPE_OOH) {
             // OOH: Get media from hoardingMedia
-            $hoarding->media_files = $hoarding->hoardingMedia->map(function($media) {
+            $hoarding->media_files = $hoarding->hoardingMedia->map(function ($media) {
                 return [
                     'url' => asset('storage/' . $media->file_path),
                     'type' => $media->media_type ?? 'image',
@@ -237,27 +236,127 @@ class HoardingController extends Controller
 
     /**
      * Approve a hoarding
-     * 
-     * Note: This method exists for route compatibility.
-     * Actual approval logic should be handled by dedicated approval workflow.
      */
     public function approve(Request $request, int $id)
     {
-        // Approval logic would go here
-        // Not implementing as per instructions to not modify status workflow
-        return redirect()->back()->with('success', 'Hoarding approval functionality pending implementation.');
+        $hoarding = Hoarding::findOrFail($id);
+
+        $hoarding->status = 'active';
+        $hoarding->save();
+
+        // Send email to vendor
+        if ($hoarding->vendor && !empty($hoarding->vendor->email)) {
+            try {
+                \Mail::to($hoarding->vendor->email)->send(
+                    new \Modules\Mail\HoardingPublishedMail($hoarding)
+                );
+            } catch (\Throwable $e) {
+                \Log::error('Hoarding published mail failed', [
+                    'hoarding_id' => $hoarding->id,
+                    'vendor_email' => $hoarding->vendor->email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Send database notification to vendor
+        if ($hoarding->vendor) {
+            $hoarding->vendor->notify(new \App\Notifications\HoardingApproved($hoarding));
+        }
+
+        // 📱 Send push notification to vendor on hoarding approval
+        if ($hoarding->vendor && $hoarding->vendor->fcm_token) {
+            try {
+                $sent = send(
+                    $hoarding->vendor->fcm_token,
+                    'Hoarding Approved ✅',
+                    'Your hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been approved and is now live!',
+                    [
+                        'type'          => 'vendor_hoarding_approved',
+                        'hoarding_id'   => $hoarding->id,
+                        'hoarding_type' => strtoupper($hoarding->hoarding_type),
+                        'status'        => 'active',
+                        'action'        => 'approved'
+                    ]
+                );
+
+                if (!$sent) {
+                    \Log::warning("FCM push notification failed for vendor ID {$hoarding->vendor->id} on hoarding approval", [
+                        'hoarding_id' => $hoarding->id
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \Log::error("Failed to send push notification to vendor on hoarding approval", [
+                    'vendor_id'   => $hoarding->vendor->id,
+                    'hoarding_id' => $hoarding->id,
+                    'error'       => $e->getMessage()
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Hoarding approved successfully.');
     }
 
     /**
      * Reject a hoarding
      * 
-     * Note: This method exists for route compatibility.
-     * Actual rejection logic should be handled by dedicated approval workflow.
+     * Sends rejection notification and reason to vendor via push and in-app.
      */
     public function reject(Request $request, int $id)
     {
-        // Rejection logic would go here
-        // Not implementing as per instructions to not modify status workflow
-        return redirect()->back()->with('success', 'Hoarding rejection functionality pending implementation.');
+        $request->validate([
+            'rejection_reason' => 'nullable|string|max:500'
+        ]);
+
+        $hoarding = Hoarding::findOrFail($id);
+        $rejectionReason = $request->input('rejection_reason', 'Admin decision');
+
+        $hoarding->status = 'rejected';
+        $hoarding->save();
+
+        // Send database notification to vendor
+        if ($hoarding->vendor) {
+            $hoarding->vendor->notify(
+                new \App\Notifications\HoardingRejectedNotification($hoarding, $rejectionReason)
+            );
+        }
+
+        // 📱 Send push notification to vendor on hoarding rejection
+        if ($hoarding->vendor && $hoarding->vendor->fcm_token) {
+            try {
+                $message = 'Your hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been rejected';
+                if ($rejectionReason) {
+                    $message .= '. Reason: ' . $rejectionReason;
+                }
+
+                $sent = send(
+                    $hoarding->vendor->fcm_token,
+                    'Hoarding Rejected ❌',
+                    $message,
+                    [
+                        'type'          => 'vendor_hoarding_rejected',
+                        'hoarding_id'   => $hoarding->id,
+                        'hoarding_type' => strtoupper($hoarding->hoarding_type),
+                        'status'        => 'rejected',
+                        'reason'        => $rejectionReason,
+                        'action'        => 'rejected'
+                    ]
+                );
+
+                if (!$sent) {
+                    \Log::warning("FCM push notification failed for vendor ID {$hoarding->vendor->id} on hoarding rejection", [
+                        'hoarding_id' => $hoarding->id
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \Log::error("Failed to send push notification to vendor on hoarding rejection", [
+                    'vendor_id'   => $hoarding->vendor->id,
+                    'hoarding_id' => $hoarding->id,
+                    'error'       => $e->getMessage()
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Hoarding rejected successfully.');
     }
 }
