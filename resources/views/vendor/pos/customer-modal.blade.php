@@ -63,9 +63,16 @@
                         <div class="relative">
                             <input type="text" id="pincode" name="pincode" placeholder="Enter pincode" maxlength="6" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
                             <div class="text-xs text-red-600 mt-1" data-error-for="pincode"></div>
-                            <div class="absolute right-3 top-1/2 -translate-y-1/2">
-                                <div class="w-5 h-5 border border-gray-300 rounded-full flex items-center justify-center text-[10px] text-gray-400 font-serif">i</div>
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 group cursor-pointer">
+                            <div class="w-5 h-5 border border-gray-300 rounded-full flex items-center justify-center text-[10px] text-gray-400 font-serif">
+                                i
                             </div>
+                            <div class="hidden group-hover:flex items-center absolute right-7 top-1/2 -translate-y-1/2">
+                                <div class="bg-gray-100 text-gray-700 text-xs px-3 py-2 rounded shadow-sm whitespace-nowrap">
+                                    <strong>Note:</strong> When enter pin code, it will automatically fetch city, state, country.
+                                </div>
+                            </div>
+                        </div>
                         </div>
                     </div>
 
