@@ -21,10 +21,10 @@
                             <div class="relative flex-1 border border-gray-300">
                                 <input type="text" id="customer-search" autocomplete="off" 
                                     placeholder="Search by name, email, or mobile..." 
-                                    class="w-full  border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2">
+                                    class="w-full border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2">
                                 <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
                             </div>
-                            <button type="button" onclick="openCustomerModal()" class="bg-green-600 text-white px-4  hover:bg-green-700 transition flex items-center">
+                            <button type="button" onclick="openCustomerModal()" class="bg-green-600 text-white px-4 hover:bg-green-700 transition flex items-center">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                 <span class="ml-1 text-sm font-semibold">New</span>
                             </button>
@@ -42,7 +42,7 @@
                         </div>
                     </div>
 
-                    {{-- Availability Issues Alert (shown when conflicts detected) --}}
+                    {{-- Availability Issues Alert --}}
                     <div id="availability-alert" class="hidden mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
                         <div class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +70,7 @@
                                             <th class="px-4 py-3 font-semibold">Hoarding</th>
                                             <th class="px-4 py-3 font-semibold">Rental/Mo</th>
                                             <th class="px-4 py-3 font-semibold text-center">Duration</th>
-                                            <th class="px-4 py-3 font-semibold">Final Amount</th>
+                                            <th class="px-4 py-3 font-semibold">Total Price</th>
                                             <th class="px-4 py-3 font-semibold text-right">Action</th>
                                         </tr>
                                     </thead>
@@ -93,7 +93,7 @@
                                             <th class="px-4 py-3 font-semibold">Rental/Mo</th>
                                             <th class="px-4 py-3 font-semibold text-center">Slots/Day</th>
                                             <th class="px-4 py-3 font-semibold text-center">Duration</th>
-                                            <th class="px-4 py-3 font-semibold">Final Amount</th>
+                                            <th class="px-4 py-3 font-semibold">Total Price</th>
                                             <th class="px-4 py-3 font-semibold text-right">Action</th>
                                         </tr>
                                     </thead>
@@ -115,26 +115,61 @@
             </div>
         </div>
 
+        {{-- ══════════════════════════════════════════
+             RIGHT PANEL — Available Hoardings
+        ══════════════════════════════════════════ --}}
         <div class="lg:col-span-5">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6">
                 <div class="px-5 pt-5 gap-3 flex">
                     <h3 class="font-bold text-gray-800">Available Hoardings</h3>
                     <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-bold" id="available-count">0</span>
                 </div>
+                <p class="px-5 text-xs text-gray-400 mt-0.5">Select available hoardings for your booking</p>
+
                 <div class="p-5">
-                    <div class="flex items-center gap-2 mb-5">
+                    {{-- Search + Filter row --}}
+                    <div class="flex items-center gap-2 mb-3">
                         <div class="relative flex-1">
                             <input type="text" id="hoarding-search" placeholder="Search for available hoardings..." 
-                                class="w-full pl-10  border border-gray-300 text-sm focus:ring-green-500" style="height:40px;">
+                                class="w-full pl-10 border border-gray-300 text-sm focus:ring-green-500" style="height:40px;">
                             <span class="absolute left-3 top-0 bottom-0 my-auto text-gray-400 flex items-center" style="pointer-events:none; height:18px;">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-3.5-3.5"/></svg>
                             </span>
                         </div>
-                        <button type="button" class="border border-gray-300 bg-white  px-5 py-2 text-gray-700 text-sm font-medium hover:bg-gray-100 transition" style="height:40px;" onclick="openFilterModal()">Filter</button>
-                    @include('vendor.pos.filter_modal')
+                        <button type="button" class="border border-gray-300 bg-white px-5 py-2 text-gray-700 text-sm font-medium hover:bg-gray-100 transition" style="height:40px;" onclick="openFilterModal()">Filter</button>
+                        @include('vendor.pos.filter_modal')
                     </div>
-                    <div id="hoardings-grid" class="grid grid-cols-2 gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 custom-scrollbar">
+
+                    {{-- ── Grid/List Toggle + Unselect — ALWAYS VISIBLE ── --}}
+                    <div class="flex items-center justify-end gap-2 mb-2">
+                        <button
+                            id="unselect-all-btn"
+                            onclick="unselectAllHoardings()"
+                            class="hidden text-[11px] font-bold text-gray-700 border border-gray-300 bg-white hover:bg-gray-100 px-3 py-1 transition whitespace-nowrap"
+                        >
+                            Unselect
+                        </button>
+                        <div class="flex border border-gray-300">
+                            <button onclick="setViewMode('grid')" id="view-grid-btn" class="px-2 py-1 bg-gray-800 text-white" title="Grid View">
+                                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M1 2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H2a1 1 0 01-1-1V2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1V2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V2zM1 7a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H2a1 1 0 01-1-1V7zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1V7zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V7zM1 12a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H2a1 1 0 01-1-1v-2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1v-2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2z"/></svg>
+                            </button>
+                            <button onclick="setViewMode('list')" id="view-list-btn" class="px-2 py-1 bg-white text-gray-600 hover:bg-gray-100" title="List View">
+                                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5z"/></svg>
+                            </button>
                         </div>
+                    </div>
+
+                    {{-- ── Active Filter Tags — only when filters applied ── --}}
+                    <div id="active-filter-tags" class="hidden mb-3">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-[10px] text-gray-500 font-semibold mr-1">Results showing for:</span>
+                            <div id="filter-tags-list" class="flex flex-wrap gap-1.5 flex-1"></div>
+                            <button onclick="clearAllFilters()" class="text-[10px] text-red-500 font-semibold hover:underline whitespace-nowrap ml-1">Clear all</button>
+                        </div>
+                    </div>
+
+                    {{-- Hoardings Grid --}}
+                    <div id="hoardings-grid" class="grid grid-cols-2 gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 custom-scrollbar"></div>
                 </div>
             </div>
         </div>
@@ -147,23 +182,19 @@
 
 @include('vendor.pos.customer-modal')
 
-<!-- Date picker modal (single calendar range picker, shows availability heatmap) -->
+<!-- Date picker modal -->
 <div id="datePickerModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
     <div class="bg-black/50 absolute inset-0" onclick="closeDatePickerModal()"></div>
-
     <div class="relative bg-white rounded-lg p-4 w-full max-w-[700px] z-50 flex flex-col" style="min-width: 600px; min-height: 420px;">
         <div class="flex justify-between items-center mb-4">
             <h3 id="datePickerTitle" class="font-bold text-gray-800">Select Dates</h3>
             <button class="text-gray-500" onclick="closeDatePickerModal()">✕</button>
         </div>
-
         <input id="date-picker-input" type="text" class="hidden">
-
         <div id="date-picker-inline" class="mx-auto"></div>
-
         <div class="mt-4 flex justify-end gap-5">
             <button class="px-4 py-2 border rounded" onclick="closeDatePickerModal()">Cancel</button>
-            <button class="px-4 py-2  bg-[#2D5A43] text-white rounded" onclick="confirmDateSelection()">Confirm</button>
+            <button class="px-4 py-2 bg-[#2D5A43] text-white rounded" onclick="confirmDateSelection()">Confirm</button>
         </div>
     </div>
 </div>
@@ -174,89 +205,76 @@
     .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* Flatpickr availability styles */
-    .flatpickr-day.booked { background: #ef4444 !important; color: #fff !important; border-color: #ef4444 !important; }
+    .flatpickr-day.booked  { background: #ef4444 !important; color: #fff !important; border-color: #ef4444 !important; }
     .flatpickr-day.blocked { background: #6b7280 !important; color: #fff !important; border-color: #6b7280 !important; }
-    .flatpickr-day.hold { background: #f59e0b !important; color: #fff !important; border-color: #f59e0b !important; }
+    .flatpickr-day.hold    { background: #f59e0b !important; color: #fff !important; border-color: #f59e0b !important; }
     .flatpickr-day.partial { background: #f97316 !important; color: #fff !important; border-color: #f97316 !important; }
 
-    /* Availability conflict row highlight */
     .availability-conflict td { background-color: #fff5f5 !important; }
     .availability-conflict td:first-child { border-left: 3px solid #ef4444; }
+
+    /* List view styles */
+    #hoardings-grid.list-view { grid-template-columns: 1fr !important; }
+    #hoardings-grid.list-view .hoarding-card { display: flex; flex-direction: row; align-items: center; }
+    #hoardings-grid.list-view .hoarding-card img { width: 64px; height: 64px; flex-shrink: 0; }
+    #hoardings-grid.list-view .hoarding-card .card-body { flex: 1; }
 </style>
 
 <script>
 /* --- CONFIG & STATE --- */
 function showToast(message, type = 'info') {
     if (window.Swal) {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            icon: type,
-            title: message
-        });
-    } else {
-        alert(message);
-    }
+        Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, icon: type, title: message });
+    } else { alert(message); }
 }
+
 const API_URL = '/vendor/pos/api';
-let hoardings = [];
+let hoardings        = [];
 let selectedHoardings = new Map();
-let selectedCustomer = null;
-// Pagination state
-let currentPage = 1;
-let totalPages = 1;
-let perPage = 10;
-
-
-let availabilityIssues = {}; // { hoardingId: { status, message } }
+let selectedCustomer  = null;
+let currentPage  = 1;
+let totalPages   = 1;
+let perPage      = 10;
+let currentViewMode   = 'grid';
+let activeFilters     = {};          // ← stores last applied filter params
+let availabilityIssues = {};
 
 const formatINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
 function getTieredMonths(startDate, endDate) {
     if (!startDate || !endDate) return 0;
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end - start);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    const start = new Date(startDate), end = new Date(endDate);
+    const diffDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1;
     return Math.ceil(diffDays / 30);
 }
-
-function getTieredDurationLabel(startDate, endDate) {
-    const months = getTieredMonths(startDate, endDate);
-    if (months <= 0) return '0 Months';
-    return months === 1 ? '1 Month' : `${months} Months`;
+function getTieredDurationLabel(s, e) {
+    const m = getTieredMonths(s, e);
+    return m <= 0 ? '0 Months' : m === 1 ? '1 Month' : `${m} Months`;
 }
-
-function calculateTieredPrice(pricePerMonth, startDate, endDate) {
-    const monthsToCharge = getTieredMonths(startDate, endDate);
-    return pricePerMonth * monthsToCharge;
-}
+function calculateTieredPrice(ppm, s, e) { return ppm * getTieredMonths(s, e); }
 
 const fetchJSON = async (url, options = {}) => {
     const res = await fetch(url, {
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}',  'X-Requested-With': 'XMLHttpRequest' },
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' },
         ...options
     });
     return await res.json();
 };
 
-/* --- INITIALIZATION --- */
+/* --- INIT --- */
 document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('booking-date').innerText = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     await loadHoardings();
 
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams  = new URLSearchParams(window.location.search);
     const customerId = urlParams.get('customer_id');
     if (customerId) {
         try {
-            const res = await fetchJSON(`${API_URL}/customers?search=${customerId}`);
+            const res  = await fetchJSON(`${API_URL}/customers?search=${customerId}`);
             const list = res.data?.data || res.data || [];
-            let found = list.find(c => c.id == customerId);
+            let found  = list.find(c => c.id == customerId);
             if (!found) {
-                const allRes = await fetchJSON(`${API_URL}/customers`);
+                const allRes  = await fetchJSON(`${API_URL}/customers`);
                 const allList = allRes.data?.data || allRes.data || [];
                 found = allList.find(c => c.id == customerId);
             }
@@ -268,24 +286,139 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('hoarding-search').addEventListener('input', debounce(filterInventory, 200));
 });
 
-/* --- CUSTOMER LOGIC --- */
-function openCustomerModal() { document.getElementById('customerModal').classList.remove('hidden'); }
-function clearAddressFields() {
-    const city = document.getElementById('city');
-    const state = document.getElementById('state');
-    if (city) city.value = '';
-    if (state) state.value = '';
+/* --- VIEW MODE --- */
+function setViewMode(mode) {
+    currentViewMode = mode;
+    const grid = document.getElementById('hoardings-grid');
+    const btnGrid = document.getElementById('view-grid-btn');
+    const btnList = document.getElementById('view-list-btn');
+    if (mode === 'grid') {
+        grid.classList.remove('list-view');
+        grid.classList.add('grid-cols-2');
+        btnGrid.classList.add('bg-gray-800', 'text-white');
+        btnGrid.classList.remove('bg-white', 'text-gray-600');
+        btnList.classList.remove('bg-gray-800', 'text-white');
+        btnList.classList.add('bg-white', 'text-gray-600');
+    } else {
+        grid.classList.add('list-view');
+        grid.classList.remove('grid-cols-2');
+        btnList.classList.add('bg-gray-800', 'text-white');
+        btnList.classList.remove('bg-white', 'text-gray-600');
+        btnGrid.classList.remove('bg-gray-800', 'text-white');
+        btnGrid.classList.add('bg-white', 'text-gray-600');
+    }
+    renderHoardings(hoardings);
 }
 
+/* --- ACTIVE FILTER TAGS --- */
+const filterLabelMap = {
+    type:              v => v && v !== '' && v !== 'ALL' ? v.toUpperCase() : null,
+    resolution:        v => v ? v.split(',').map(r => r.toUpperCase()).join(', ') : null,
+    category:          v => v ? v.split(',').map(c => c.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ') : null,
+    availability:      v => v ? v.split(',').map(a => a === 'available' ? 'Available Hoardings' : 'Booked Hoardings').join(', ') : null,
+    surroundings:      v => v ? v.split(',').map(s => s.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ') : null,
+    screen_size_min:   v => null, // combined below
+    screen_size_max:   v => null,
+    hoarding_size_min: v => null,
+    hoarding_size_max: v => null,
+};
+
+function renderFilterTags(params) {
+    const tagsContainer = document.getElementById('active-filter-tags');
+    const tagsList      = document.getElementById('filter-tags-list');
+    tagsList.innerHTML  = '';
+
+    let hasAny = false;
+    const tags = [];
+
+    Object.entries(params).forEach(([key, val]) => {
+        if (!val || val === '' || val === 'ALL' || key === 'page' || key === 'per_page') return;
+        if (key === 'screen_size_min' || key === 'screen_size_max') return; // handle combined
+        if (key === 'hoarding_size_min' || key === 'hoarding_size_max') return;
+
+        const labelFn = filterLabelMap[key];
+        const label   = labelFn ? labelFn(val) : val;
+        if (label) tags.push({ key, label });
+    });
+
+    // Combine size ranges
+    const sMin = params.screen_size_min, sMax = params.screen_size_max;
+    if ((sMin && sMin !== '0') || (sMax && sMax !== '1000')) {
+        tags.push({ key: 'screen_size', label: `${sMin ?? 0}Sq.ft - ${sMax ?? 1000}Sq.ft` });
+    }
+    const hMin = params.hoarding_size_min, hMax = params.hoarding_size_max;
+    if ((hMin && hMin !== '0') || (hMax && hMax !== '1000')) {
+        tags.push({ key: 'hoarding_size', label: `Hoarding: ${hMin ?? 0} - ${hMax ?? 1000}Sq.ft` });
+    }
+
+    // Price range
+    if (params.price_min || params.price_max) {
+        tags.push({ key: 'price', label: `₹${params.price_min ?? 0} - ₹${params.price_max ?? '∞'}` });
+    }
+
+    // City/location
+    if (params.city) tags.push({ key: 'city', label: params.city });
+
+    tags.forEach(({ key, label }) => {
+        hasAny = true;
+        const tag = document.createElement('span');
+        tag.className = 'inline-flex items-center gap-1 bg-gray-100 border border-gray-300 text-gray-700 text-[10px] font-medium px-2 py-0.5';
+        tag.innerHTML = `${label} <button onclick="removeFilterTag('${key}')" class="text-gray-400 hover:text-red-500 font-bold leading-none ml-0.5">✕</button>`;
+        tagsList.appendChild(tag);
+    });
+
+    tagsContainer.classList.toggle('hidden', !hasAny);
+    updateUnselectBtn();
+}
+
+function removeFilterTag(key) {
+    if (key === 'screen_size')   { delete activeFilters.screen_size_min; delete activeFilters.screen_size_max; }
+    else if (key === 'hoarding_size') { delete activeFilters.hoarding_size_min; delete activeFilters.hoarding_size_max; }
+    else if (key === 'price')    { delete activeFilters.price_min; delete activeFilters.price_max; }
+    else                         { delete activeFilters[key]; }
+    currentPage = 1;
+    loadHoardings(activeFilters);
+}
+
+function clearAllFilters() {
+    activeFilters = {};
+    currentPage   = 1;
+    loadHoardings({});
+    // Also reset filter modal UI
+    if (typeof resetFilters === 'function') resetFilters(false); // false = don't reload (we already did)
+}
+
+function updateUnselectBtn() {
+    const btn = document.getElementById('unselect-all-btn');
+    if (!btn) return;
+    if (selectedHoardings.size > 0) {
+        btn.classList.remove('hidden');
+    } else {
+        btn.classList.add('hidden');
+    }
+}
+
+function unselectAllHoardings() {
+    selectedHoardings.clear();
+    availabilityIssues = {};
+    updateSummary();
+    updateUnselectBtn();
+}
+
+/* --- CUSTOMER LOGIC --- */
+function openCustomerModal()  { document.getElementById('customerModal').classList.remove('hidden'); }
 function closeCustomerModal() { document.getElementById('customerModal').classList.add('hidden'); }
+function clearAddressFields() {
+    const city = document.getElementById('city'), state = document.getElementById('state');
+    if (city) city.value = ''; if (state) state.value = '';
+}
 
 async function handleCustomerSearch(e) {
-    const q = e.target.value.trim();
+    const q   = e.target.value.trim();
     const box = document.getElementById('customer-suggestions');
     if (q.length < 2) { box.classList.add('hidden'); return; }
-
     try {
-        const res = await fetchJSON(`${API_URL}/customers?search=${encodeURIComponent(q)}`);
+        const res  = await fetchJSON(`${API_URL}/customers?search=${encodeURIComponent(q)}`);
         const list = res.data?.data || res.data || [];
         box.innerHTML = list.map(c => `
             <div class="px-4 py-3 hover:bg-green-50 cursor-pointer border-b" onclick='selectCustomer(${JSON.stringify(c).replace(/'/g, "&apos;")})'>
@@ -298,23 +431,18 @@ async function handleCustomerSearch(e) {
 
 function toLocalYMD(date) {
     const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function selectCustomer(c) {
-    if (!c || !c.name) { console.warn('Invalid customer object', c); return; }
+    if (!c || !c.name) { console.warn('Invalid customer', c); return; }
     selectedCustomer = c;
-
     document.getElementById('search-container')?.classList.add('hidden');
     document.getElementById('customer-selected-card')?.classList.remove('hidden');
     document.getElementById('customer-suggestions')?.classList.add('hidden');
-
-    if (document.getElementById('cust-name')) document.getElementById('cust-name').innerText = c.name;
+    if (document.getElementById('cust-name'))    document.getElementById('cust-name').innerText    = c.name;
     if (document.getElementById('cust-details')) document.getElementById('cust-details').innerText = `${c.email || ''} | ${c.phone || ''}`;
-    if (document.getElementById('cust-initials')) document.getElementById('cust-initials').innerText = c.name.slice(0, 2).toUpperCase();
+    if (document.getElementById('cust-initials'))document.getElementById('cust-initials').innerText = c.name.slice(0,2).toUpperCase();
 }
 
 function clearSelectedCustomer() {
@@ -324,39 +452,37 @@ function clearSelectedCustomer() {
 }
 
 /* --- INVENTORY LOGIC --- */
-
-
 async function loadHoardings(filters = {}) {
-    filters.page = currentPage;
+    activeFilters    = { ...filters };
+    filters.page     = currentPage;
     filters.per_page = perPage;
     const query = new URLSearchParams(filters).toString();
     const url   = `${API_URL}/hoardings${query ? '?' + query : ''}`;
     const res   = await fetchJSON(url);
-    // Read pagination metadata from top-level API response
+
     if ('last_page' in res) {
-        hoardings = res.data || [];
-        totalPages = res.last_page || 1;
+        hoardings   = res.data || [];
+        totalPages  = res.last_page  || 1;
         currentPage = res.current_page || 1;
     } else if (res.data && typeof res.data === 'object' && 'data' in res.data && 'last_page' in res.data) {
-        hoardings = res.data.data;
+        hoardings  = res.data.data;
         totalPages = res.data.last_page || 1;
     } else if (Array.isArray(res.data)) {
-        hoardings = res.data;
+        hoardings  = res.data;
         totalPages = 1;
     } else {
-        hoardings = res.data?.data || res.data || [];
+        hoardings  = res.data?.data || res.data || [];
         totalPages = 1;
     }
+
     renderHoardings(hoardings);
     renderPagination();
+    renderFilterTags(activeFilters);
 }
-
 window.loadHoardings = loadHoardings;
-
 
 function renderHoardings(list) {
     const grid = document.getElementById('hoardings-grid');
-    
     if (list.length === 0) {
         grid.innerHTML = `
             <div class="col-span-2 flex flex-col items-center justify-center py-12 text-center">
@@ -365,32 +491,52 @@ function renderHoardings(list) {
                 </svg>
                 <h4 class="text-sm font-bold text-gray-600 mb-1">No Data Found</h4>
                 <p class="text-xs text-gray-400">Try adjusting your search or filter criteria</p>
-            </div>
-        `;
-    } else {
-        grid.innerHTML = list.map(h => {
-            const isSelected = selectedHoardings.has(h.id);
-            const isDooh = h.type?.toUpperCase() === 'DOOH';
+            </div>`;
+        document.getElementById('available-count').innerText = 0;
+        return;
+    }
+
+    grid.innerHTML = list.map(h => {
+        const isSelected = selectedHoardings.has(h.id);
+        const isDooh     = h.type?.toUpperCase() === 'DOOH';
+
+        if (currentViewMode === 'list') {
             return `
-                <div class="relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
-                    <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover">
-                    ${isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
-                    <div class="p-2">
-                        <h4 class="text-[10px] font-bold text-gray-800 truncate">${h.title}</h4>
-                        <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
+                <div class="hoarding-card flex items-center gap-3 bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} p-2 cursor-pointer" onclick="toggleHoarding(${h.id})">
+                    <img src="${h.image_url || '/placeholder.png'}" class="w-16 h-16 object-cover flex-shrink-0">
+                    <div class="card-body flex-1 min-w-0">
+                        <h4 class="text-[11px] font-bold text-gray-800 truncate">${h.title}</h4>
+                        <span class="text-[10px] font-bold text-gray-600">${formatINR(h.price_per_month)}/M</span>
                         ${isDooh ? `<span class="block text-[9px] text-purple-600 font-medium">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
                     </div>
+                    ${isDooh ? `<span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded self-start">DOOH</span>` : ''}
+                    ${isSelected ? `
+                        <button onclick="event.stopPropagation(); toggleHoarding(${h.id})"
+                            class="text-[10px] font-bold text-red-500 border border-red-300 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition self-center whitespace-nowrap">
+                            Unselect
+                        </button>` : ''}
                 </div>`;
-        }).join('');
-    }
-    
+        }
+
+        // Grid view
+        return `
+            <div class="hoarding-card relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
+                <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover">
+                ${isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
+                <div class="p-2">
+                    <h4 class="text-[10px] font-bold text-gray-800 truncate">${h.title}</h4>
+                    <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
+                    ${isDooh ? `<span class="block text-[9px] text-purple-600 font-medium">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
+                </div>
+            </div>`;
+    }).join('');
+
     document.getElementById('available-count').innerText = list.length;
 }
 
 function renderPagination() {
     let container = document.getElementById('hoardings-pagination');
     if (!container) {
-        // Create container if not present
         const parent = document.querySelector('#hoardings-grid')?.parentElement;
         if (!parent) return;
         container = document.createElement('div');
@@ -398,35 +544,28 @@ function renderPagination() {
         container.className = 'flex justify-center items-center gap-2 mt-4';
         parent.appendChild(container);
     }
-    if (totalPages <= 1) {
-        container.innerHTML = '';
-        return;
-    }
-    let html = '';
-    html += `<button class="px-2 py-1 border rounded text-xs ${currentPage === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white'}" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>`;
-    // Show up to 5 page numbers
-    let start = Math.max(1, currentPage - 2);
-    let end = Math.min(totalPages, start + 4);
-    if (end - start < 4) start = Math.max(1, end - 4);
+    if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+    let html = `<button class="px-2 py-1 border rounded text-xs ${currentPage===1?'bg-gray-200 text-gray-400 cursor-not-allowed':'bg-white'}" onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>Prev</button>`;
+    let start = Math.max(1, currentPage-2), end = Math.min(totalPages, start+4);
+    if (end-start < 4) start = Math.max(1, end-4);
     for (let i = start; i <= end; i++) {
-        html += `<button class="px-2 py-1 border rounded text-xs ${i === currentPage ? 'bg-green-600 text-white' : 'bg-white'}" onclick="changePage(${i})">${i}</button>`;
+        html += `<button class="px-2 py-1 border rounded text-xs ${i===currentPage?'bg-green-600 text-white':'bg-white'}" onclick="changePage(${i})">${i}</button>`;
     }
-    html += `<button class="px-2 py-1 border rounded text-xs ${currentPage === totalPages ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white'}" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+    html += `<button class="px-2 py-1 border rounded text-xs ${currentPage===totalPages?'bg-gray-200 text-gray-400 cursor-not-allowed':'bg-white'}" onclick="changePage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next</button>`;
     container.innerHTML = html;
 }
 
 function changePage(page) {
     if (page < 1 || page > totalPages || page === currentPage) return;
     currentPage = page;
-    loadHoardings();
+    loadHoardings({ ...activeFilters });
 }
-
 
 function filterInventory() {
     const q = document.getElementById('hoarding-search').value.toLowerCase();
-    // Reset to first page on new search
     currentPage = 1;
-    loadHoardings(q ? { search: q } : {});
+    loadHoardings(q ? { ...activeFilters, search: q } : { ...activeFilters });
 }
 
 function toggleHoarding(id) {
@@ -434,33 +573,35 @@ function toggleHoarding(id) {
         selectedHoardings.delete(id);
         delete availabilityIssues[id];
     } else {
-        const h = hoardings.find(i => i.id === id);
+        const h    = hoardings.find(i => i.id === id);
         const today = toLocalYMD(new Date());
-        let end = new Date(); end.setDate(end.getDate() + 29);
+        let end    = new Date(); end.setDate(end.getDate() + 29);
         selectedHoardings.set(id, { ...h, startDate: today, endDate: toLocalYMD(end) });
     }
     updateSummary();
+    updateUnselectBtn();
 }
 
 function updateSummary() {
     renderHoardings(hoardings);
-    const oohTbody = document.getElementById('ooh-selected-list');
+    updateUnselectBtn();
+
+    const oohTbody  = document.getElementById('ooh-selected-list');
     const doohTbody = document.getElementById('dooh-selected-list');
     oohTbody.innerHTML = ''; doohTbody.innerHTML = '';
 
     if (selectedHoardings.size === 0) {
-        oohTbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No static hoardings selected</td></tr>`;
+        oohTbody.innerHTML  = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No static hoardings selected</td></tr>`;
         doohTbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic">No digital slots selected</td></tr>`;
     } else {
         let hasOoh = false, hasDooh = false;
 
         selectedHoardings.forEach((h, id) => {
-            const totalPrice = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
-            const issue = availabilityIssues[id];
+            const totalPrice   = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
+            const issue        = availabilityIssues[id];
             const conflictClass = issue ? 'availability-conflict' : '';
             const conflictBadge = issue ? `<span class="inline-block mt-1 text-[9px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">${issue.label}</span>` : '';
-
-            const isDooh = h.type?.toUpperCase() === 'DOOH';
+            const isDooh       = h.type?.toUpperCase() === 'DOOH';
 
             if (isDooh) {
                 hasDooh = true;
@@ -532,7 +673,7 @@ function updateSummary() {
             }
         });
 
-        if (!hasOoh) oohTbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No static hoardings selected</td></tr>`;
+        if (!hasOoh)  oohTbody.innerHTML  = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No static hoardings selected</td></tr>`;
         if (!hasDooh) doohTbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic">No digital slots selected</td></tr>`;
     }
     document.getElementById('btn-count').innerText = selectedHoardings.size;
@@ -540,91 +681,66 @@ function updateSummary() {
 
 function updateDate(id, field, value) {
     let h = selectedHoardings.get(id);
-    if(h) {
+    if (h) {
         h[field] = value;
-        if(field === 'startDate' && h.endDate < value) h.endDate = value;
+        if (field === 'startDate' && h.endDate < value) h.endDate = value;
         selectedHoardings.set(id, h);
         updateSummary();
     }
 }
 
-/* --- Availability check helpers --- */
+/* --- Availability --- */
 function statusLabel(status) {
     const map = { booked: 'Already Booked', blocked: 'Blocked/Maintenance', hold: 'On Hold', partial: 'Partially Unavailable' };
     return map[status] || status;
 }
 
-/**
- * Run availability checks for ALL selected hoardings.
- * Populates `availabilityIssues` and returns true if ALL are available.
- */
 async function checkAllAvailability() {
     availabilityIssues = {};
     let allClear = true;
-
     const checks = Array.from(selectedHoardings.entries()).map(async ([id, h]) => {
         const allDates = enumerateDatesBetween(h.startDate, h.endDate);
         try {
             const res = await fetch(`/api/v1/hoardings/${id}/availability/check-dates`, {
-                method: 'POST',
-                credentials: 'same-origin',
+                method: 'POST', credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 body: JSON.stringify({ dates: allDates })
             });
             if (!res.ok) return;
-            const result = await res.json();
+            const result    = await res.json();
             const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
             if (conflicts.length > 0) {
                 allClear = false;
                 const statuses = [...new Set(conflicts.map(c => c.status))];
-                availabilityIssues[id] = {
-                    title: h.title,
-                    label: statuses.map(statusLabel).join(', '),
-                    conflicts
-                };
+                availabilityIssues[id] = { title: h.title, label: statuses.map(statusLabel).join(', '), conflicts };
             }
-        } catch (e) {
-            console.error('Availability check error for hoarding', id, e);
-        }
+        } catch (e) { console.error('Availability check error', id, e); }
     });
-
     await Promise.all(checks);
     return allClear;
 }
 
 function showAvailabilityAlert(issues) {
     const alert = document.getElementById('availability-alert');
-    const body = document.getElementById('availability-alert-body');
+    const body  = document.getElementById('availability-alert-body');
     const entries = Object.values(issues);
-
     if (entries.length === 0) { alert.classList.add('hidden'); return; }
-
-    body.innerHTML = entries.map(issue => `
+    body.innerHTML = entries.map(i => `
         <div class="flex items-start gap-2 py-1">
-            <span class="font-bold text-red-700">${issue.title}:</span>
-            <span>${issue.label} — please adjust the booking dates.</span>
-        </div>
-    `).join('');
-
+            <span class="font-bold text-red-700">${i.title}:</span>
+            <span>${i.label} — please adjust the booking dates.</span>
+        </div>`).join('');
     alert.classList.remove('hidden');
     alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-/* --- Calendar modal & availability integration --- */
-let currentFlatpickr = null;
-let currentHeatmapMap = {};
-let currentEditingHoardingId = null;
-
+/* --- Calendar --- */
+let currentFlatpickr = null, currentHeatmapMap = {}, currentEditingHoardingId = null;
 function toYMD(d) { return toLocalYMD(d); }
 
 function enumerateDatesBetween(start, end) {
-    const dates = [];
-    let cur = new Date(start);
-    const last = new Date(end);
-    while (cur <= last) {
-        dates.push(toYMD(cur));
-        cur.setDate(cur.getDate() + 1);
-    }
+    const dates = []; let cur = new Date(start); const last = new Date(end);
+    while (cur <= last) { dates.push(toYMD(cur)); cur.setDate(cur.getDate()+1); }
     return dates;
 }
 
@@ -633,133 +749,85 @@ async function openDatePickerForHoarding(id) {
     currentEditingHoardingId = id;
     const h = selectedHoardings.get(id);
     if (!h) { showToast('Please select the hoarding first'); return; }
-
     document.getElementById('datePickerTitle').innerText = h.title;
     document.getElementById('datePickerModal').classList.remove('hidden');
 
     const startStr = toLocalYMD(new Date());
-    const future = new Date(); future.setDate(future.getDate() + 365);
-    const endStr = toLocalYMD(future);
-
+    const future   = new Date(); future.setDate(future.getDate() + 365);
     try {
-        const res = await fetch(`/api/v1/hoardings/${id}/availability/heatmap?start_date=${startStr}&end_date=${endStr}`, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
-        if (!res.ok) {
-            showToast(`Could not load availability (HTTP ${res.status}). Please try again.`);
-            return;
-        }
+        const res = await fetch(`/api/v1/hoardings/${id}/availability/heatmap?start_date=${startStr}&end_date=${toLocalYMD(future)}`, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
+        if (!res.ok) { showToast(`Could not load availability (HTTP ${res.status}).`); return; }
         const payload = await res.json();
         const heatmap = payload.data?.heatmap || [];
-
         const disabledDates = heatmap.filter(d => d.status !== 'available').map(d => d.date);
         currentHeatmapMap = {};
         heatmap.forEach(d => currentHeatmapMap[d.date] = d.status);
-
         if (currentFlatpickr) currentFlatpickr.destroy();
-
         currentFlatpickr = flatpickr('#date-picker-input', {
-            mode: 'range',
-            inline: true,
-            appendTo: document.getElementById('date-picker-inline'),
-            minDate: startStr,
-            disable: disabledDates,
-            defaultDate: [h.startDate, h.endDate],
-            showMonths: 2,
-            onDayCreate: function(dObj, dStr, fp, dayElem) {
-                const date = toLocalYMD(dayElem.dateObj);
+            mode: 'range', inline: true, appendTo: document.getElementById('date-picker-inline'),
+            minDate: startStr, disable: disabledDates, defaultDate: [h.startDate, h.endDate], showMonths: 2,
+            onDayCreate(dObj, dStr, fp, dayElem) {
+                const date   = toLocalYMD(dayElem.dateObj);
                 const status = currentHeatmapMap[date];
-                if (status && status !== 'available') {
-                    dayElem.classList.add(status);
-                    dayElem.title = status.charAt(0).toUpperCase() + status.slice(1);
-                }
+                if (status && status !== 'available') { dayElem.classList.add(status); dayElem.title = status.charAt(0).toUpperCase()+status.slice(1); }
             }
         });
-    } catch (e) {
-        console.error(e);
-        showToast('Could not load availability. Please try again.');
-    }
+    } catch (e) { console.error(e); showToast('Could not load availability. Please try again.'); }
 }
 
-function closeDatePickerModal() {
-    document.getElementById('datePickerModal').classList.add('hidden');
-}
+function closeDatePickerModal() { document.getElementById('datePickerModal').classList.add('hidden'); }
 
 async function confirmDateSelection() {
     if (!currentFlatpickr || !currentEditingHoardingId) return closeDatePickerModal();
     const dates = currentFlatpickr.selectedDates;
     if (!dates || dates.length === 0) { showToast('Please select a start and end date'); return; }
-
-    const start = toYMD(dates[0]);
-    const end = toYMD(dates.length === 1 ? dates[0] : dates[1]);
+    const start = toYMD(dates[0]), end = toYMD(dates.length === 1 ? dates[0] : dates[1]);
     const allDates = enumerateDatesBetween(start, end);
-
     try {
         const res = await fetch(`/api/v1/hoardings/${currentEditingHoardingId}/availability/check-dates`, {
-            method: 'POST',
-            credentials: 'same-origin',
+            method: 'POST', credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             body: JSON.stringify({ dates: allDates })
         });
-        if (!res.ok) {
-            showToast('Could not verify availability. Please try again.');
-            openDatePickerForHoarding(currentEditingHoardingId);
-            return;
-        }
-        const result = await res.json();
+        if (!res.ok) { showToast('Could not verify availability.'); openDatePickerForHoarding(currentEditingHoardingId); return; }
+        const result    = await res.json();
         const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
-        if (conflicts.length > 0) {
-            showToast('Selected range includes unavailable dates. Please choose a different range.', 'warning');
-            openDatePickerForHoarding(currentEditingHoardingId);
-            return;
-        }
-
+        if (conflicts.length > 0) { showToast('Selected range includes unavailable dates.', 'warning'); openDatePickerForHoarding(currentEditingHoardingId); return; }
         let h = selectedHoardings.get(currentEditingHoardingId);
         if (h) {
-            h.startDate = start;
-            h.endDate = end;
+            h.startDate = start; h.endDate = end;
             selectedHoardings.set(currentEditingHoardingId, h);
-            // Clear any existing conflict for this hoarding since dates changed
             delete availabilityIssues[currentEditingHoardingId];
             updateSummary();
         }
-
         closeDatePickerModal();
-    } catch (e) {
-        console.error(e);
-        showToast('Error checking availability.');
-    }
+    } catch (e) { console.error(e); showToast('Error checking availability.'); }
 }
 
-// Expose helpers globally
 window.enumerateDatesBetween = enumerateDatesBetween;
 window.toYMD = toYMD;
+window.finalCheckAvailability = async function() { return await checkAllAvailability(); };
 
-window.finalCheckAvailability = async function() {
-    return await checkAllAvailability();
-};
-
-/* --- SUBMIT BUTTON: Check availability first, then show preview --- */
+/* --- SUBMIT --- */
 document.getElementById('submit-btn').addEventListener('click', async () => {
-    if (!selectedCustomer) { showToast('Select a customer.', 'warning'); return; }
+    if (!selectedCustomer)        { showToast('Select a customer.', 'warning'); return; }
     if (selectedHoardings.size === 0) { showToast('Select at least one hoarding.', 'warning'); return; }
 
     const btn = document.getElementById('submit-btn');
     const originalText = btn.innerHTML;
-    btn.disabled = true;
+    btn.disabled  = true;
     btn.innerHTML = `<svg class="w-4 h-4 inline animate-spin mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg> Checking Availability...`;
 
     const allClear = await checkAllAvailability();
-
-    btn.disabled = false;
-    btn.innerHTML = originalText;
+    btn.disabled   = false;
+    btn.innerHTML  = originalText;
 
     if (!allClear) {
-        updateSummary(); // Re-render rows with conflict highlights
+        updateSummary();
         showAvailabilityAlert(availabilityIssues);
         showToast('Some hoardings have availability conflicts. Please review and adjust dates.', 'error');
         return;
     }
-
-    // All clear — hide any existing alert and proceed to preview
     document.getElementById('availability-alert').classList.add('hidden');
     populatePreview();
     document.getElementById('selection-screen').classList.add('hidden');
@@ -773,60 +841,79 @@ function backToSelection() {
 
 function debounce(fn, t) { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), t); }; }
 
-/* --- POPULATE PREVIEW --- */
+/* --- PREVIEW --- */
 let globalBaseAmount = 0;
+function safe(val, fallback = '---') {
+    return (val !== undefined && val !== null && val !== '') ? val : fallback;
+}
 
 function populatePreview() {
     if (!selectedCustomer) return;
-
-    const previewCustName = document.getElementById('preview-cust-name');
-    const previewCustPhone = document.getElementById('preview-cust-phone');
-    const previewTotalCount = document.getElementById('preview-total-count');
-    const oohTbody = document.getElementById('preview-ooh-list');
+    const oohTbody  = document.getElementById('preview-ooh-list');
     const doohTbody = document.getElementById('preview-dooh-list');
+    if (!oohTbody || !doohTbody) { console.error('Preview DOM elements missing!'); return; }
 
-    if (!previewCustName || !previewCustPhone || !previewTotalCount || !oohTbody || !doohTbody) {
-        console.error('Preview DOM elements missing!');
-        return;
-    }
+    // ── Customer fields ──
+    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = safe(val); };
+    setEl('preview-cust-name',    selectedCustomer.name);
+    setEl('preview-cust-phone',   selectedCustomer.phone);
+    setEl('preview-cust-email',   selectedCustomer.email);
+    setEl('preview-cust-gstin',   selectedCustomer.gstin);
+    setEl('preview-cust-status',  selectedCustomer.status);
+    setEl('preview-cust-role',    selectedCustomer.role);
+    setEl('preview-cust-address', selectedCustomer.address || selectedCustomer.city || null);
+    setEl('preview-cust-country', selectedCustomer.country);
+    setEl('preview-cust-created', selectedCustomer.created_at);
+    setEl('preview-cust-updated', selectedCustomer.updated_at);
+    setEl('preview-total-count',  selectedHoardings.size);
 
-    previewCustName.innerText = selectedCustomer.name;
-    previewCustPhone.innerText = selectedCustomer.phone;
-    previewTotalCount.innerText = selectedHoardings.size;
+    // ── Hoarding rows ──
+    oohTbody.innerHTML = ''; doohTbody.innerHTML = '';
+    globalBaseAmount   = 0;
 
-    oohTbody.innerHTML = '';
-    doohTbody.innerHTML = '';
-
-    globalBaseAmount = 0;
-
+    // ── collect all rows first, then render with correct SN ──
+    const allRows = [];
     selectedHoardings.forEach((h) => {
         const itemTotal = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
         globalBaseAmount += itemTotal;
-        const isDooh = h.type?.toUpperCase() === 'DOOH';
+        allRows.push({ h, itemTotal });
+    });
+
+    let snCounter = 1;
+    allRows.forEach(({ h, itemTotal }) => {
+        const isDooh    = h.type?.toUpperCase() === 'DOOH';
         const slotsCell = isDooh ? `<div class="text-[10px] text-purple-600 font-medium mt-0.5">${h.total_slots_per_day ?? 300} slots/day</div>` : '';
+        const typeBadge = isDooh
+            ? `<span class="inline-block text-[9px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">DOOH</span>`
+            : `<span class="inline-block text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">OOH</span>`;
 
         const row = `
-            <tr class="border-b border-gray-50">
-                <td class="px-8 py-4">
-                    <div class="flex items-center gap-4">
-                        <img src="${h.image_url || '/placeholder.png'}" class="w-12 h-12 rounded-lg object-cover border border-gray-100">
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="px-4 py-2 text-xs text-gray-400 font-semibold w-8">${snCounter++}</td>
+                <td class="px-4 py-2">
+                    <div class="flex items-center gap-2">
+                        <img src="${h.image_url || '/placeholder.png'}" class="w-8 h-8 rounded object-cover border border-gray-100 flex-shrink-0">
                         <div>
-                            <p class="font-bold text-gray-800 text-[11px] uppercase">${h.title}</p>
-                            <p class="text-[9px] text-gray-400 mt-0.5">${h.location_address || ''}</p>
+                            <p class="font-bold text-gray-800 text-xs leading-tight">${safe(h.title)}</p>
+                            <p class="text-[9px] text-gray-400">${safe(h.location_address, '')}</p>
                             ${slotsCell}
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-4 text-xs font-medium text-gray-600">
-                    ${h.startDate} - ${h.endDate}
-                    <div class="text-[10px] text-gray-400 mt-1">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
+                <td class="px-4 py-2 text-xs text-gray-500">${safe(h.location_address, safe(h.city, '---'))}</td>
+                <td class="px-4 py-2">${typeBadge}</td>
+                <td class="px-4 py-2 text-xs text-gray-500">${safe(h.size, '---')}</td>
+                <td class="px-4 py-2 text-xs text-gray-500 text-center">${isDooh ? (h.total_slots_per_day ?? 300) : '---'}</td>
+                <td class="px-4 py-2 text-xs text-gray-600">
+                    ${h.startDate} – ${h.endDate}
+                    <div class="text-[10px] text-gray-400">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
                 </td>
-                <td class="px-8 py-4 text-right font-bold text-gray-700 text-xs">${formatINR(itemTotal)}</td>
+                <td class="px-4 py-2 text-right font-bold text-gray-800 text-xs">${formatINR(itemTotal)}</td>
             </tr>`;
-
-        if (isDooh) doohTbody.innerHTML += row;
-        else oohTbody.innerHTML += row;
+        // Both OOH and DOOH go into same tbody to preserve insertion-order SN
+        oohTbody.innerHTML += row;
     });
+    doohTbody.innerHTML = ''; // clear unused tbody
 
     const sideSubTotal = document.getElementById('side-sub-total');
     if (sideSubTotal) sideSubTotal.innerText = formatINR(globalBaseAmount);
@@ -834,12 +921,8 @@ function populatePreview() {
 }
 </script>
 <script>
-    function openFilterModal() {
-        document.getElementById('filterModal').classList.remove('hidden');
-    }
-    function closeFilterModal() {
-        document.getElementById('filterModal').classList.add('hidden');
-    }
+    function openFilterModal()  { document.getElementById('filterModal').classList.remove('hidden'); }
+    function closeFilterModal() { document.getElementById('filterModal').classList.add('hidden'); }
 </script>
 
 @endsection

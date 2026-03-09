@@ -10,9 +10,14 @@
 
             <div class="grid grid-cols-2 gap-8 p-6 border-b border-gray-100">
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Customer</label>
-                    <h3 id="preview-cust-name" class="font-bold text-gray-800">---</h3>
-                    <p id="preview-cust-phone" class="text-xs text-gray-500">---</p>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Customer</label>
+                    <div class="space-y-1 text-xs">
+                        <div><span class="font-bold text-gray-700">Name:</span> <span id="preview-cust-name">---</span></div>
+                        <div><span class="font-bold text-gray-700">Phone:</span> <span id="preview-cust-phone">---</span></div>
+                        <div><span class="font-bold text-gray-700">Email:</span> <span id="preview-cust-email">---</span></div>
+                        <div><span class="font-bold text-gray-700">GSTIN:</span> <span id="preview-cust-gstin">---</span></div>
+                        <div><span class="font-bold text-gray-700">Address:</span> <span id="preview-cust-address">---</span></div>
+                    </div>
                 </div>
                 <div class="text-right">
                     <label class="block text-[10px] font-bold text-gray-400 uppercase">Inventory</label>
@@ -24,7 +29,12 @@
                 <table class="w-full text-left">
                     <thead class="bg-gray-50 text-[10px] uppercase text-gray-400 font-bold">
                         <tr>
+                            <th class="px-4 py-3">Sn</th>
                             <th class="px-6 py-3">Hoarding</th>
+                            <th class="px-6 py-3">Location</th>
+                            <th class="px-6 py-3">Type</th>
+                            <th class="px-6 py-3">Size</th>
+                            <th class="px-6 py-3">Slots/Day</th>
                             <th class="px-6 py-3">Duration</th>
                             <th class="px-6 py-3 text-right">Amount</th>
                         </tr>
@@ -310,6 +320,10 @@ button:not(:disabled) {
 </style>
 
 <script>
+// --- Helper to safely get value or fallback ---
+function safe(val, fallback = '---') {
+    return (val !== undefined && val !== null && val !== '') ? val : fallback;
+}
 /* ======================================================
    PREVIEW SCREEN — Payment Mode + Timer + Bank/UPI Logic
    ====================================================== */
@@ -669,11 +683,46 @@ function showBookingConfirmedModal(booking) {
 }
 
 /* ── Create Booking ── */
+
+// --- Populate preview screen with all customer and hoarding details ---
+function updatePreviewScreen() {
+    // Customer info
+    document.getElementById('preview-cust-name').innerText    = safe(selectedCustomer?.name);
+    document.getElementById('preview-cust-phone').innerText   = safe(selectedCustomer?.phone);
+    document.getElementById('preview-cust-email').innerText   = safe(selectedCustomer?.email);
+    document.getElementById('preview-cust-gstin').innerText   = safe(selectedCustomer?.gstin);
+    document.getElementById('preview-cust-address').innerText = safe(selectedCustomer?.address);
+    document.getElementById('preview-total-count').innerText  = selectedHoardings.size;
+
+    // Hoarding details
+    const oohList = document.getElementById('preview-ooh-list');
+    oohList.innerHTML = '';
+    selectedHoardings.forEach((h, id) => {
+        // ...existing code...
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="px-6 py-3 font-bold text-gray-800">h</td>
+            <td class="px-6 py-3 font-bold text-gray-800">${safe(h.title)}</td>
+            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.location) || safe(h.city)}</td>
+            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.type)}</td>
+            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.size)}</td>
+            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.total_slots_per_day)}</td>
+            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.startDate)} to ${safe(h.endDate)}</td>
+            <td class="px-6 py-3 text-right font-bold text-gray-900">${typeof formatINR === 'function' ? formatINR(h.price_per_month) : '₹' + safe(h.price_per_month)}</td>
+        `;
+        oohList.appendChild(row);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     selectPaymentMode('cash');
     selectHoldTime(30);
+    updatePreviewScreen();
 
-    document.getElementById('create-booking-btn')?.addEventListener('click', async (e) => {
+    // If customer or hoarding selection changes elsewhere, call updatePreviewScreen()
+    window.updatePreviewScreen = updatePreviewScreen;
+
+      document.getElementById('create-booking-btn')?.addEventListener('click', async (e) => {
         // Prevent accidental trigger if modal is closed
         if (document.getElementById('booking-confirmed-modal').classList.contains('hidden') === false) return;
         const btn = document.getElementById('create-booking-btn');

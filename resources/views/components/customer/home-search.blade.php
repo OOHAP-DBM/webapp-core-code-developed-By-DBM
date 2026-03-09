@@ -34,12 +34,12 @@
                     <div class="h-8 w-px bg-gray-200"></div>
 
                     <!-- Date Range Picker -->
-                    <div class="flex items-center px-4 py-2.5 min-w-[180px] gap-2 cursor-pointer">
+                    <div class="flex items-center px-4 py-2.5 min-w-[180px] gap-2 cursor-pointer" id="dateRangeTrigger">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18.438 4.95334H16.5V3.54534C16.5 3.28334 16.27 3.03334 16 3.04534C15.8682 3.0479 15.7425 3.1014 15.6493 3.19462C15.5561 3.28784 15.5026 3.41353 15.5 3.54534V4.95334H8.50001V3.54534C8.50001 3.28334 8.27001 3.03334 8.00001 3.04534C7.8682 3.0479 7.74251 3.1014 7.64929 3.19462C7.55607 3.28784 7.50257 3.41353 7.50001 3.54534V4.95334H5.56201C4.89921 4.95413 4.26379 5.21778 3.79512 5.68645C3.32645 6.15512 3.06281 6.79054 3.06201 7.45334V18.4533C3.06201 19.8323 4.18401 20.9533 5.56201 20.9533H18.437C19.816 20.9533 20.937 19.8323 20.937 18.4533V7.45334C20.937 6.79047 20.6738 6.15474 20.2051 5.68592C19.7365 5.21711 19.1009 4.9536 18.438 4.95334ZM5.56201 5.95334H7.50001V6.54534C7.50001 6.80734 7.73001 7.05734 8.00001 7.04534C8.27101 7.03334 8.50001 6.82534 8.50001 6.54534V5.95334H15.5V6.54534C15.5 6.80734 15.73 7.05734 16 7.04534C16.271 7.03334 16.5 6.82534 16.5 6.54534V5.95334H18.437C19.264 5.95334 19.937 6.62634 19.937 7.45334V9.03734H4.06201V7.45334C4.06201 6.62634 4.73501 5.95334 5.56201 5.95334ZM18.438 19.9533H5.56201C4.73501 19.9533 4.06201 19.2803 4.06201 18.4533V10.0373H19.937V18.4533C19.937 18.851 19.7791 19.2324 19.498 19.5136C19.2169 19.7949 18.8357 19.9531 18.438 19.9533Z" fill="#484848"/>
                         </svg>
                         <div class="flex flex-col">
-                            <span class="text-xs text-gray-400 leading-tight">From - To</span>
+                            <span class="text-xs text-gray-400 leading-tight" id="dateRangeLabel">From - To</span>
                             <input type="hidden" name="from_date" id="from_date">
                             <input type="hidden" name="to_date" id="to_date">
                             <input 
@@ -152,6 +152,24 @@
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day   = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
+        }
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const trigger = document.getElementById('dateRangeTrigger');
+        const dateInput = document.getElementById('dateRange');
+        const label = document.getElementById('dateRangeLabel');
+        if (trigger && dateInput) {
+            trigger.addEventListener('click', function(e) {
+                if (e.target !== dateInput) {
+                    dateInput.focus();
+                    dateInput.click();
+                }
+            });
+        }
+        if (label) {
+            label.style.cursor = 'pointer';
         }
     });
 </script>

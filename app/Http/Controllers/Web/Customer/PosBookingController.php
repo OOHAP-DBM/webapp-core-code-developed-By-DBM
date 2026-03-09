@@ -18,13 +18,9 @@ class PosBookingController extends Controller
         $query = PosBooking::with(['hoardings'])
             ->where('customer_id', $customerId); // ✅ sirf us customer ki bookings
 
-        // ── Search ──────────────────────────────────────────────────────────
+        // ── Search by POS Booking ID (Primary Key) ─────────────────────────
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhere('booking_type',  'like', "%{$search}%")
-                  ->orWhere('payment_reference', 'like', "%{$search}%");
-            });
+            $query->where('id', $search);
         }
 
         // ── Status Filter ────────────────────────────────────────────────────
