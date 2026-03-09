@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Services\GracePeriodService;
 use App\Services\Whatsapp\TwilioWhatsappService;
 use App\Models\Hoarding;
-use App\Notifications\POSPaymentReminderNotification;
+use App\Mail\PosPaymentReminderMail;
+use App\Notifications\PosPaymentReminderInAppNotification;
 use Modules\POS\Services\POSBookingService;
 use Modules\POS\Models\POSBooking;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Mail;
 use App\Models\User;
 
 class POSBookingController extends Controller
@@ -260,6 +261,83 @@ class POSBookingController extends Controller
             }
 
             // Add all booked hoardings and their campaign durations
+            $bookingData['hoardings'] = [];
+            foreach ($booking->bookingHoardings as $bh) {
+                $hoarding = $bh->hoarding;
+                $bookingData['hoardings'][] = [
+                    'id' => $hoarding->id ?? null,
+                    'title' => $hoarding->title ?? null,
+                    'location_address' => $hoarding->location_address ?? null,
+                    'location_city' => $hoarding->location_city ?? null,
+                    'location_state' => $hoarding->location_state ?? null,
+                    'size' => $hoarding->size ?? null,
+                    'type' => $hoarding->type ?? null,
+                    'price_per_month' => $hoarding->price_per_month ?? null,
+                    'price_per_sqft' => $hoarding->price_per_sqft ?? null,
+                    'status' => $hoarding->status ?? null,
+                    'campaign_start_date' => $bh->start_date ? \Carbon\Carbon::parse($bh->start_date)->toDateString() : null,
+                    'campaign_end_date' => $bh->end_date ? \Carbon\Carbon::parse($bh->end_date)->toDateString() : null,
+                    'campaign_duration_days' => ($bh->start_date && $bh->end_date) ? (\Carbon\Carbon::parse($bh->start_date)->diffInDays(\Carbon\Carbon::parse($bh->end_date)) + 1) : null,
+                    'image_url' => $hoarding->heroImage(),
+                    'hoarding_price' => $bh->hoarding_price,
+                    'hoarding_discount' => $bh->hoarding_discount,
+                    'hoarding_tax' => $bh->hoarding_tax,
+                    'hoarding_total' => $bh->hoarding_total,
+                    'pivot_status' => $bh->status,
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $bookingData,
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not found',
+                'error' => $e->getMessage(),
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch booking details',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get single POS booking details for authenticated customer.
+     */
+    public function showForCustomer(Request $request, int $id): JsonResponse
+    {
+        try {
+            $customer = Auth::user();
+            $customerId = (int) ($customer->id ?? 0);
+            $customerEmail = strtolower(trim((string) ($customer->email ?? '')));
+
+            $bookingQuery = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver'])
+                ->where(function ($query) use ($customerId, $customerEmail) {
+                    if ($customerId > 0) {
+                        $query->where('customer_id', $customerId);
+                    }
+
+                    if ($customerEmail !== '') {
+                        $query->orWhereRaw('LOWER(customer_email) = ?', [$customerEmail]);
+                    }
+                });
+
+            $booking = $bookingQuery->findOrFail($id);
+
+            $bookingData = $booking->toArray();
+            $bookingData['has_invoice'] = !empty($booking->invoice_path);
+            $bookingData['invoice_url'] = null;
+
+            // Keep invoice hidden for customer POS view unless a dedicated route exists.
+            if (!empty($booking->invoice_path) && Route::has('customer.pos.invoice')) {
+                $bookingData['invoice_url'] = route('customer.pos.invoice', ['id' => $booking->id]);
+            }
+
             $bookingData['hoardings'] = [];
             foreach ($booking->bookingHoardings as $bh) {
                 $hoarding = $bh->hoarding;
@@ -874,45 +952,129 @@ class POSBookingController extends Controller
                 ], 429);
             }
 
-            // Queue reminder
+            $nextReminderCount = ((int) $booking->reminder_count) + 1;
+            $reminderSentAt = now();
+
             $booking->update([
-                'reminder_count' => $booking->reminder_count + 1,
-                'last_reminder_at' => now(),
+                'reminder_count' => $nextReminderCount,
+                'last_reminder_at' => $reminderSentAt,
             ]);
+
+            if (!$booking->relationLoaded('customer')) {
+                $booking->load('customer:id,email');
+            }
+
+            $bookingCustomerEmail = trim((string) ($booking->customer_email ?? ''));
+            $customerProfileEmail = trim((string) ($booking->customer?->email ?? ''));
+
+            $emailRecipient = null;
+            if (!empty($bookingCustomerEmail) && filter_var($bookingCustomerEmail, FILTER_VALIDATE_EMAIL)) {
+                $emailRecipient = $bookingCustomerEmail;
+            } elseif (!empty($customerProfileEmail) && filter_var($customerProfileEmail, FILTER_VALIDATE_EMAIL)) {
+                $emailRecipient = $customerProfileEmail;
+            }
+
+            $emailSent = false;
+            $emailError = null;
 
             // Send email notification
             try {
-                if ($booking->customer_email) {
-                    Notification::route('mail', $booking->customer_email)
-                        ->notify(new POSPaymentReminderNotification($booking, $booking->reminder_count));
+                if (!empty($emailRecipient)) {
+                    Mail::to($emailRecipient)
+                        ->queue(new PosPaymentReminderMail($booking, $booking->customer, $nextReminderCount));
+
+                    Log::info('Payment reminder email queued', [
+                        'booking_id' => $booking->id,
+                        'email' => $emailRecipient,
+                        'reminder_count' => $nextReminderCount,
+                    ]);
+
+                    $emailSent = true;
+                } else {
+                    $emailError = 'No valid customer email found on booking or customer profile';
+                    Log::warning('Payment reminder email skipped - no valid recipient email', [
+                        'booking_id' => $booking->id,
+                        'booking_customer_email' => $booking->customer_email,
+                        'customer_id' => $booking->customer_id,
+                        'customer_profile_email' => $booking->customer?->email,
+                    ]);
                 }
             } catch (\Exception $e) {
+                $emailError = $e->getMessage();
                 Log::warning('Failed to send payment reminder email', [
                     'booking_id' => $booking->id,
-                    'email' => $booking->customer_email,
+                    'email' => $emailRecipient,
                     'error' => $e->getMessage(),
                 ]);
             }
 
-            // Send WhatsApp reminder notification
+            $inAppSent = false;
+            $inAppError = null;
+
             try {
-                $this->sendReminderWhatsAppMessage($booking);
-            } catch (\Exception $e) {
-                Log::warning('Failed to send payment reminder WhatsApp', [
+                if (!empty($booking->customer_id) && $booking->customer) {
+                    $booking->customer->notify(new PosPaymentReminderInAppNotification($booking, $nextReminderCount));
+                    $inAppSent = true;
+                } else {
+                    $inAppError = 'Customer account not found for in-app notification';
+                    Log::warning('Payment reminder in-app skipped - customer not found', [
+                        'booking_id' => $booking->id,
+                        'customer_id' => $booking->customer_id,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                $inAppError = $e->getMessage();
+                Log::warning('Failed to send payment reminder in-app notification', [
                     'booking_id' => $booking->id,
-                    'phone' => $booking->customer_phone,
+                    'customer_id' => $booking->customer_id,
                     'error' => $e->getMessage(),
                 ]);
+            }
+
+            $whatsappSent = $this->sendReminderWhatsAppMessage($booking);
+
+            $deliverySuccess = $emailSent || $whatsappSent || $inAppSent;
+
+            if ($emailSent && $whatsappSent && $inAppSent) {
+                $message = 'Reminder sent successfully via email, WhatsApp, and in-app notification';
+            } elseif ($deliverySuccess) {
+                $successfulChannels = [];
+                if ($emailSent) {
+                    $successfulChannels[] = 'email';
+                }
+                if ($whatsappSent) {
+                    $successfulChannels[] = 'WhatsApp';
+                }
+                if ($inAppSent) {
+                    $successfulChannels[] = 'in-app notification';
+                }
+                $message = 'Reminder sent via ' . implode(', ', $successfulChannels);
+            } else {
+                $message = 'Reminder could not be delivered via email, WhatsApp, or in-app notification';
             }
 
             return response()->json([
-                'success' => true,
-                'message' => 'Reminder sent successfully via email and WhatsApp',
+                'success' => $deliverySuccess,
+                'message' => $message,
                 'data' => [
-                    'reminder_count' => $booking->reminder_count,
-                    'last_reminder_at' => $booking->last_reminder_at,
+                    'reminder_count' => $nextReminderCount,
+                    'last_reminder_at' => $reminderSentAt,
+                    'channels' => [
+                        'email' => [
+                            'sent' => $emailSent,
+                            'recipient' => $emailRecipient,
+                            'error' => $emailError,
+                        ],
+                        'whatsapp' => [
+                            'sent' => $whatsappSent,
+                        ],
+                        'in_app' => [
+                            'sent' => $inAppSent,
+                            'error' => $inAppError,
+                        ],
+                    ],
                 ],
-            ]);
+            ], $deliverySuccess ? 200 : 500);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -925,7 +1087,7 @@ class POSBookingController extends Controller
     /**
      * Send WhatsApp reminder message for pending payment
      */
-    private function sendReminderWhatsAppMessage(POSBooking $booking): void
+    private function sendReminderWhatsAppMessage(POSBooking $booking): bool
     {
         try {
             // Ensure relationships are loaded
@@ -940,7 +1102,7 @@ class POSBookingController extends Controller
                     'booking_id' => $booking->id,
                     'phone' => $phone,
                 ]);
-                return;
+                return false;
             }
 
             // Build hoarding list
@@ -981,7 +1143,7 @@ class POSBookingController extends Controller
                     'original_phone' => $phone,
                     'normalized_phone' => $normalizedPhone,
                 ]);
-                return;
+                return false;
             }
 
             // Add country code if needed
@@ -1008,12 +1170,16 @@ class POSBookingController extends Controller
                 'reminder_count' => $booking->reminder_count,
                 'message_preview' => substr($message, 0, 100),
             ]);
+
+            return (bool) $sent;
         } catch (\Throwable $e) {
             Log::error('Reminder WhatsApp notification failed', [
                 'booking_id' => $booking->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
+            return false;
         }
     }
 

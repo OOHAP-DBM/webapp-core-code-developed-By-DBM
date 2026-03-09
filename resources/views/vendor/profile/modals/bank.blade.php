@@ -16,9 +16,25 @@
 
     {{-- Fields --}}
     <div class="space-y-4 text-sm">
+        <div>
+    <label class="block text-gray-600 mb-1">
+        IFSC Code<span class="text-red-500">*</span>
+    </label>
+
+    <input
+        type="text"
+        id="ifscField"
+        name="ifsc_code"
+        value="{{ $vendor->ifsc_code }}"
+        onkeyup="lookupIfsc()"
+        maxlength="11"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+        placeholder="Enter IFSC Code"
+    >
+</div>
 
         {{-- Bank Name --}}
-        <div>
+        {{-- <div>
             <label class="block text-gray-600 mb-1">Bank Name<span class="text-red-500">*</span></label>
             <select
                 name="bank_name"
@@ -30,8 +46,37 @@
                 <option value="AXIS BANK" {{ $vendor->bank_name === 'AXIS BANK' ? 'selected' : '' }}>AXIS BANK</option>
                 <option value="PNB" {{ $vendor->bank_name === 'PNB' ? 'selected' : '' }}>PNB</option>
             </select>
-        </div>
+        </div> --}}
+{{-- Bank Name --}}
+<div>
+    <label class="block text-gray-600 mb-1">
+        Bank Name<span class="text-red-500">*</span>
+    </label>
 
+    <input
+        type="text"
+        id="bankName"
+        name="bank_name"
+        value="{{ $vendor->bank_name }}"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+        readonly
+    >
+</div>
+
+{{-- Branch Name --}}
+<div>
+    <label class="block text-gray-600 mb-1">
+        Branch Name<span class="text-red-500">*</span>
+    </label>
+
+    <input
+        type="text"
+        id="branchName"
+        name="branch_name"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+        readonly
+    >
+</div>
         {{-- Account Number --}}
         <div>
             <label class="block text-gray-600 mb-1">Account Number<span class="text-red-500">*</span></label>
@@ -55,7 +100,7 @@
         </div>
 
         {{-- IFSC Code --}}
-        <div>
+        {{-- <div>
             <label class="block text-gray-600 mb-1">IFSC Code<span class="text-red-500">*</span></label>
             <div class="flex items-center gap-2">
                 <input
@@ -65,7 +110,7 @@
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500"
                 >
             </div>
-        </div>
+        </div> --}}
 
     </div>
 
@@ -83,7 +128,7 @@
             type="submit"
             class="px-6 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700"
         >
-            Save
+           Save
         </button>
     </div>
 

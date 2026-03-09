@@ -4,11 +4,10 @@ namespace App\Listeners;
 
 use App\Models\User;
 use App\Notifications\PosBookingCreatedNotification;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Modules\POS\Events\PosBookingCreated;
 
-class SendPosBookingCreatedNotification implements ShouldQueue
+class SendPosBookingCreatedNotification
 {
     public function handle(PosBookingCreated $event): void
     {
@@ -33,7 +32,7 @@ class SendPosBookingCreatedNotification implements ShouldQueue
 
             $recipientIds = $recipientIds
                 ->merge($adminIds)
-                ->filter(fn ($id) => (int) $id > 0)
+                ->filter(fn($id) => (int) $id > 0)
                 ->unique()
                 ->values();
 

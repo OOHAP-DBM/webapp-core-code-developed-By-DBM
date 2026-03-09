@@ -220,19 +220,24 @@ class NotificationService
     protected function sendSms(NotificationLog $log, array $recipientInfo): void
     {
         try {
-            // TODO: Integrate with SMS provider (Razorpay SMS, Twilio, etc.)
-            // For now, just log
-            Log::info("SMS notification would be sent", [
-                'log_id' => $log->id,
-                'phone' => $recipientInfo['identifier'],
-                'body' => $log->body,
-            ]);
+            $smsService = app(TwilioService::class);
+            $sent = $smsService->sendSMS($recipientInfo['identifier'], $log->body);
+
+            if (!$sent) {
+                throw new Exception('SMS provider failed to deliver message.');
+            }
 
             $log->update([
                 'status' => NotificationLog::STATUS_SENT,
                 'sent_at' => now(),
-                'provider' => 'mock_sms',
-                'provider_response' => 'SMS provider not configured',
+                'provider' => $smsService->getActiveGateway(),
+                'provider_response' => 'SMS sent successfully',
+            ]);
+
+            Log::info("SMS notification sent", [
+                'log_id' => $log->id,
+                'phone' => $recipientInfo['identifier'],
+                'provider' => $smsService->getActiveGateway(),
             ]);
         } catch (Exception $e) {
             $log->markAsFailed("SMS failed: {$e->getMessage()}");

@@ -39,7 +39,7 @@ class SettingsController extends Controller
 
             if ($group) {
                 $settings = collect($this->settingsService->getByGroup($group, $tenantId));
-                
+
                 return response()->json([
                     'success' => true,
                     'data' => $settings->map(function ($setting, $key) {
@@ -60,7 +60,6 @@ class SettingsController extends Controller
                 'success' => true,
                 'data' => SettingResource::collection($settings),
             ]);
-            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -97,7 +96,6 @@ class SettingsController extends Controller
                     'value' => $value,
                 ],
             ]);
-            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -138,14 +136,12 @@ class SettingsController extends Controller
                 'success' => true,
                 'message' => 'Settings updated successfully',
             ]);
-            
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
             ], 422);
-            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -203,14 +199,12 @@ class SettingsController extends Controller
                     'value' => $this->settingsService->get($key, null, $tenantId),
                 ],
             ]);
-            
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
             ], 422);
-            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -236,7 +230,6 @@ class SettingsController extends Controller
                 'success' => true,
                 'message' => 'Settings cache cleared successfully',
             ]);
-            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

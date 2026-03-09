@@ -356,20 +356,34 @@ window.loadHoardings = loadHoardings;
 
 function renderHoardings(list) {
     const grid = document.getElementById('hoardings-grid');
-    grid.innerHTML = list.map(h => {
-        const isSelected = selectedHoardings.has(h.id);
-        const isDooh = h.type?.toUpperCase() === 'DOOH';
-        return `
-            <div class="relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
-                <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover">
-                ${isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
-                <div class="p-2">
-                    <h4 class="text-[10px] font-bold text-gray-800 truncate">${h.title}</h4>
-                    <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
-                    ${isDooh ? `<span class="block text-[9px] text-purple-600 font-medium">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
-                </div>
-            </div>`;
-    }).join('');
+    
+    if (list.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-2 flex flex-col items-center justify-center py-12 text-center">
+                <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 3.5a7.5 7.5 0 0013.15 13.15z"/>
+                </svg>
+                <h4 class="text-sm font-bold text-gray-600 mb-1">No Data Found</h4>
+                <p class="text-xs text-gray-400">Try adjusting your search or filter criteria</p>
+            </div>
+        `;
+    } else {
+        grid.innerHTML = list.map(h => {
+            const isSelected = selectedHoardings.has(h.id);
+            const isDooh = h.type?.toUpperCase() === 'DOOH';
+            return `
+                <div class="relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
+                    <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover">
+                    ${isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
+                    <div class="p-2">
+                        <h4 class="text-[10px] font-bold text-gray-800 truncate">${h.title}</h4>
+                        <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
+                        ${isDooh ? `<span class="block text-[9px] text-purple-600 font-medium">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
+                    </div>
+                </div>`;
+        }).join('');
+    }
+    
     document.getElementById('available-count').innerText = list.length;
 }
 

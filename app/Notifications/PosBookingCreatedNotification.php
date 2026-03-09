@@ -4,10 +4,10 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Route;
 use Modules\POS\Models\POSBooking;
 
-class PosBookingCreatedNotification extends Notification implements ShouldQueue
+class PosBookingCreatedNotification extends Notification
 {
     use Queueable;
 
@@ -78,26 +78,52 @@ class PosBookingCreatedNotification extends Notification implements ShouldQueue
 
     protected function resolveActionUrl($notifiable): string
     {
+        $bookingId = (int) $this->booking->id;
+
+        if ($bookingId <= 0) {
+            return '/';
+        }
+
+        if (Route::has('pos.bookings.redirect')) {
+            return route('pos.bookings.redirect', ['id' => $bookingId], false);
+        }
+
         $notifiableId = (int) ($notifiable->id ?? 0);
 
-        if ($notifiableId > 0 && $notifiableId === (int) $this->booking->customer_id) {
-            return url('/customer/bookings/' . $this->booking->id);
+        if ($this->hasAnyRole($notifiable, ['admin', 'superadmin', 'super_admin'])) {
+            return '/admin/pos/bookings/' . $bookingId;
         }
 
-        if ($notifiableId > 0 && $notifiableId === (int) $this->booking->vendor_id) {
-            return url('/vendor/pos/bookings/' . $this->booking->id);
+        if ($this->hasAnyRole($notifiable, ['vendor']) || ($notifiableId > 0 && $notifiableId === (int) $this->booking->vendor_id)) {
+            return '/vendor/pos/bookings/' . $bookingId;
         }
 
-        if (method_exists($notifiable, 'hasRole')) {
-            if ($notifiable->hasRole('admin') || $notifiable->hasRole('superadmin') || $notifiable->hasRole('super_admin')) {
-                return url('/admin/pos/bookings/' . $this->booking->id);
+        if (
+            ($notifiableId > 0 && $notifiableId === (int) $this->booking->customer_id)
+            || $this->hasAnyRole($notifiable, ['customer'])
+        ) {
+            return '/customer/pos/bookings/' . $bookingId;
+        }
+
+        return '/';
+    }
+
+    protected function hasAnyRole($notifiable, array $roles): bool
+    {
+        if (method_exists($notifiable, 'hasAnyRole')) {
+            return (bool) $notifiable->hasAnyRole($roles);
+        }
+
+        if (!method_exists($notifiable, 'hasRole')) {
+            return false;
+        }
+
+        foreach ($roles as $role) {
+            if ($notifiable->hasRole($role)) {
+                return true;
             }
-
-            if ($notifiable->hasRole('vendor')) {
-                return url('/vendor/pos/bookings/' . $this->booking->id);
-            }
         }
 
-        return url('/customer/bookings/' . $this->booking->id);
+        return false;
     }
 }
