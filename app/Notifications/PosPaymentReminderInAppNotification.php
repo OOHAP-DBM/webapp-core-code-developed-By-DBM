@@ -3,60 +3,34 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Route;
 use Modules\POS\Models\POSBooking;
 
-class PosBookingConfirmedNotification extends Notification implements ShouldQueue
+class PosPaymentReminderInAppNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(protected POSBooking $booking) {}
+    public function __construct(
+        protected POSBooking $booking,
+        protected int $reminderCount = 1
+    ) {}
 
     public function via($notifiable): array
     {
-        $channels = ['database'];
-
-        if (($notifiable->notification_email ?? true) && !empty($notifiable->email)) {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return ['database'];
     }
 
-    public function toMail($notifiable): MailMessage
+    public function toDatabase($notifiable): array
     {
-        $totalAmount = (float) $this->booking->total_amount;
+        $totalAmount = (float) ($this->booking->total_amount ?? 0);
         $paidAmount = (float) ($this->booking->paid_amount ?? 0);
         $remainingAmount = max(0, $totalAmount - $paidAmount);
-        $isFullyPaid = $remainingAmount < 0.01;
-
-        return (new MailMessage)
-            ->subject(($isFullyPaid ? 'POS Booking Confirmed' : 'POS Payment Received') . ' - Invoice #' . ($this->booking->invoice_number ?? $this->booking->id))
-            ->greeting('Hello ' . ($notifiable->name ?? 'User') . ',')
-            ->line($isFullyPaid
-                ? 'Payment has been received and the POS booking is now confirmed.'
-                : 'Partial payment has been received for this POS booking.')
-            ->line('**Booking ID:** #' . $this->booking->id)
-            ->line('**Invoice Number:** ' . ($this->booking->invoice_number ?? ('#' . $this->booking->id)))
-            ->line('**Total Amount:** ₹' . number_format($totalAmount, 2))
-            ->line('**Paid Amount:** ₹' . number_format($paidAmount, 2))
-            ->line('**Payment Status:** ' . ($isFullyPaid ? 'Paid' : 'Partial'))
-            ->lineIf(!$isFullyPaid, '**Remaining Amount:** ₹' . number_format($remainingAmount, 2))
-            ->action('View Booking', $this->resolveActionUrl($notifiable));
-    }
-
-    public function toArray($notifiable): array
-    {
-        $totalAmount = (float) $this->booking->total_amount;
-        $paidAmount = (float) ($this->booking->paid_amount ?? 0);
-        $remainingAmount = max(0, $totalAmount - $paidAmount);
-        $isFullyPaid = $remainingAmount < 0.01;
 
         return [
-            'type' => 'pos_booking_confirmed',
+            'type' => 'pos_payment_reminder',
+            'title' => 'Payment Reminder',
+            'message' => 'Payment reminder for invoice #' . ($this->booking->invoice_number ?? $this->booking->id) . ' - Outstanding ₹' . number_format($remainingAmount, 2),
             'booking_id' => $this->booking->id,
             'invoice_number' => $this->booking->invoice_number,
             'status' => $this->booking->status,
@@ -64,12 +38,7 @@ class PosBookingConfirmedNotification extends Notification implements ShouldQueu
             'total_amount' => $totalAmount,
             'paid_amount' => $paidAmount,
             'remaining_amount' => $remainingAmount,
-            'total_amount_formatted' => '₹' . number_format($totalAmount, 2),
-            'paid_amount_formatted' => '₹' . number_format($paidAmount, 2),
-            'remaining_amount_formatted' => '₹' . number_format($remainingAmount, 2),
-            'message' => $isFullyPaid
-                ? 'Payment received. POS booking has been confirmed.'
-                : 'Partial payment received for POS booking. Awaiting remaining amount.',
+            'reminder_count' => $this->reminderCount,
             'action_url' => $this->resolveActionUrl($notifiable),
         ];
     }

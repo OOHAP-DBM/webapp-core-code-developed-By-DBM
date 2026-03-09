@@ -576,3 +576,27 @@ button { cursor: pointer; }
         });
     }
 </script>
+<script>
+window.lookupIfsc = async function () {
+
+    const ifsc = document.getElementById("ifscField").value.trim();
+
+    if (ifsc.length !== 11) return;
+
+    try {
+
+        const response = await fetch("https://ifsc.razorpay.com/" + ifsc);
+        const data = await response.json();
+
+        document.getElementById("bankName").value = data.BANK;
+        document.getElementById("branchName").value = data.BRANCH;
+
+    } catch (error) {
+
+        console.log(error);
+        alert("Invalid IFSC code");
+
+    }
+
+}
+</script>

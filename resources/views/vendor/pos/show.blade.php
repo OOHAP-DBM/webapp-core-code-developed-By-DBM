@@ -383,20 +383,45 @@ function renderActionButtons(booking) {
 
     // Send Reminder button
     // BACKEND RULE: reminder_count < 10
-    if (booking.reminder_count !== undefined && booking.reminder_count < 10) {
-        html += `
-            <button onclick="sendReminder()"
-                class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium">
-                📧 Send Reminder
-            </button>`;
-    } else if (booking.reminder_count === 10) {
-        html += `
-            <button disabled 
-                class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
-                title="Maximum 10 reminders sent">
-                📧 Max Reminders Sent
-            </button>`;
-    }
+    // if (booking.reminder_count !== undefined && booking.reminder_count < 10) {
+    //     html += `
+    //         <button onclick="sendReminder()"
+    //             class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium">
+    //             📧 Send Reminder
+    //         </button>`;
+    // } else if (booking.reminder_count === 10) {
+    //     html += `
+    //         <button disabled 
+    //             class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
+    //             title="Maximum 10 reminders sent">
+    //             📧 Max Reminders Sent
+    //         </button>`;
+    // }
+    // Send Reminder button
+// RULE: Only if reminder_count < 10 AND payment not paid
+if (booking.payment_status !== 'paid' && booking.reminder_count !== undefined && booking.reminder_count < 10) {
+    html += `
+        <button onclick="sendReminder()"
+            class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium">
+            📧 Send Reminder
+        </button>`;
+} 
+else if (booking.payment_status === 'paid') {
+    html += `
+        <button disabled 
+            class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
+            title="Payment already completed">
+            ✓ Payment Completed
+        </button>`;
+} 
+else if (booking.reminder_count === 10) {
+    html += `
+        <button disabled 
+            class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
+            title="Maximum 10 reminders sent">
+            📧 Max Reminders Sent
+        </button>`;
+}
 
     // Back button
     html += `<a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"

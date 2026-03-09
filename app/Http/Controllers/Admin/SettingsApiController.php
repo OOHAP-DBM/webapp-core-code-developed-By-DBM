@@ -216,16 +216,55 @@ class SettingsApiController extends Controller
      */
     private function validateSettingValue($value, string $type)
     {
-        $rules = match ($type) {
+        $normalizedType = strtolower(trim($type));
+        $normalizedType = match ($normalizedType) {
+            'int' => Setting::TYPE_INTEGER,
+            'double', 'decimal' => Setting::TYPE_FLOAT,
+            'bool' => Setting::TYPE_BOOLEAN,
+            default => $normalizedType,
+        };
+
+        $normalizedValue = $value;
+
+        if ($normalizedType === Setting::TYPE_STRING && is_scalar($normalizedValue)) {
+            $normalizedValue = (string) $normalizedValue;
+        }
+
+        if (
+            in_array($normalizedType, [Setting::TYPE_JSON, Setting::TYPE_ARRAY], true)
+            && (is_array($normalizedValue) || is_object($normalizedValue))
+        ) {
+            $normalizedValue = json_encode($normalizedValue);
+        }
+
+        if ($normalizedType === Setting::TYPE_STRING) {
+            Validator::make(
+                ['value' => $normalizedValue],
+                [
+                    'value' => [
+                        'nullable',
+                        function ($attribute, $value, $fail) {
+                            if (!is_null($value) && !is_scalar($value)) {
+                                $fail('The ' . $attribute . ' field must be a string.');
+                            }
+                        },
+                    ],
+                ]
+            )->validate();
+
+            return;
+        }
+
+        $rules = match ($normalizedType) {
             Setting::TYPE_INTEGER => ['integer'],
             Setting::TYPE_FLOAT => ['numeric'],
             Setting::TYPE_BOOLEAN => ['boolean'],
             Setting::TYPE_JSON, Setting::TYPE_ARRAY => ['json'],
-            default => ['string'],
+            default => ['nullable'],
         };
 
         $validator = Validator::make(
-            ['value' => $value],
+            ['value' => $normalizedValue],
             ['value' => $rules]
         );
 

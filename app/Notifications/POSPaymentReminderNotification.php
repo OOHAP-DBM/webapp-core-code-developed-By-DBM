@@ -5,6 +5,7 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Route;
 use Modules\POS\Models\POSBooking;
 
 class POSPaymentReminderNotification extends Notification implements \Illuminate\Contracts\Queue\ShouldQueue
@@ -25,9 +26,16 @@ class POSPaymentReminderNotification extends Notification implements \Illuminate
         $paidFormatted = number_format($this->booking->paid_amount ?? 0, 2);
         $totalFormatted = number_format($this->booking->total_amount, 2);
 
-        $url = route('pos.booking.detail', ['id' => $this->booking->id]);
+        $actionUrl = null;
+        if (Route::has('vendor.pos.bookings.invoice')) {
+            $actionUrl = route('vendor.pos.bookings.invoice', ['id' => $this->booking->id]);
+        } elseif (Route::has('vendor.pos.show')) {
+            $actionUrl = route('vendor.pos.show', ['id' => $this->booking->id]);
+        } elseif (Route::has('admin.pos.show')) {
+            $actionUrl = route('admin.pos.show', ['id' => $this->booking->id]);
+        }
 
-        return (new MailMessage)
+        $mailMessage = (new MailMessage)
             ->subject('Payment Reminder - Invoice #' . $this->booking->invoice_number)
             ->greeting("Hello {$this->booking->customer_name},")
             ->line("This is a payment reminder for your POS booking.")
@@ -42,8 +50,13 @@ class POSPaymentReminderNotification extends Notification implements \Illuminate
             ->line("Remaining Balance: ₹{$remainingFormatted}")
             ->line("")
             ->line("Reminder Count: {$this->reminderCount}/3")
-            ->line("")
-            ->action('View Booking Details', $url)
+            ->line("");
+
+        if (!empty($actionUrl)) {
+            $mailMessage->action('View Booking Details', $actionUrl);
+        }
+
+        return $mailMessage
             ->line('Please settle the outstanding balance at your earliest convenience.')
             ->line('Thank you for your business!');
     }

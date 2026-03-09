@@ -254,6 +254,130 @@ class SettingsSeeder extends Seeder
                 'group' => 'notification',
             ],
 
+            // SMS Gateway Settings
+            [
+                'key' => 'sms_service_enabled',
+                'value' => '1',
+                'type' => 'boolean',
+                'description' => 'Enable SMS delivery via configured SMS gateway',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_active_gateway',
+                'value' => 'twilio',
+                'type' => 'string',
+                'description' => 'Active SMS gateway (twilio, msg91, clickatell)',
+                'group' => 'sms',
+            ],
+
+            [
+                'key' => 'sms_twilio_active',
+                'value' => '1',
+                'type' => 'boolean',
+                'description' => 'Twilio active flag (managed automatically)',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_twilio_sid',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'Twilio account SID',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_twilio_auth_token',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'Twilio auth token',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_twilio_from',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'Twilio sender number in E.164 format',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_twilio_alphanumeric_sender_id',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'Twilio alphanumeric sender ID',
+                'group' => 'sms',
+            ],
+
+            [
+                'key' => 'sms_msg91_active',
+                'value' => '0',
+                'type' => 'boolean',
+                'description' => 'MSG91 active flag (managed automatically)',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_msg91_auth_key',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'MSG91 auth key',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_msg91_sender_id',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'MSG91 sender ID',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_msg91_route',
+                'value' => '4',
+                'type' => 'string',
+                'description' => 'MSG91 route code',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_msg91_country',
+                'value' => '91',
+                'type' => 'string',
+                'description' => 'MSG91 country code',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_msg91_base_url',
+                'value' => 'https://api.msg91.com/api/v2/sendsms',
+                'type' => 'string',
+                'description' => 'MSG91 API base URL',
+                'group' => 'sms',
+            ],
+
+            [
+                'key' => 'sms_clickatell_active',
+                'value' => '0',
+                'type' => 'boolean',
+                'description' => 'Clickatell active flag (managed automatically)',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_clickatell_api_key',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'Clickatell API key',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_clickatell_from',
+                'value' => '',
+                'type' => 'string',
+                'description' => 'Optional Clickatell sender ID',
+                'group' => 'sms',
+            ],
+            [
+                'key' => 'sms_clickatell_base_url',
+                'value' => 'https://platform.clickatell.com/messages/http/send',
+                'type' => 'string',
+                'description' => 'Clickatell API base URL',
+                'group' => 'sms',
+            ],
+
             // General Settings
             [
                 'key' => 'site_name',
@@ -326,4 +450,3 @@ class SettingsSeeder extends Seeder
         $this->command->info('✅ Default settings seeded successfully!');
     }
 }
-
