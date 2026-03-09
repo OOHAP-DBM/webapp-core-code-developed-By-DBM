@@ -4,7 +4,7 @@
 @section('content')
 <!-- Page Header -->
 <div class="mb-8">
-    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Inventory Import</h1>
+    <h1 class="md:text-3xl sm:text-4xl font-bold text-gray-900">Inventory Import</h1>
     <p class="text-gray-600 mt-2">Upload and manage your inventory imports</p>
 </div>
 
@@ -117,11 +117,11 @@
                             <!-- Media Type Selection -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-3">
-                                    Import Type
+                                    Hoarding Type
                                 </label>
                                 <div class="space-y-2">
                                     <label class="flex items-center cursor-pointer">
-                                        <input type="radio" name="media_type" value="ooh" checked
+                                        <input type="radio" name="media_type" value="ooh"
                                             class="w-4 h-4 text-blue-600" />
                                         <span class="ml-3 text-sm text-gray-700">OOH (Out of Home)</span>
                                     </label>
@@ -231,11 +231,11 @@
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                     <div class="flex flex-wrap gap-2">
                         <button onclick="refreshBatches()"
-                            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium">
+                            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium cursor-pointer">
                             Refresh
                         </button>
                         <button onclick="filterByStatus('processed')"
-                            class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm font-medium">
+                            class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm font-medium cursor-pointer">
                             Manage Inventory
                         </button>
                     </div>
@@ -837,7 +837,7 @@
         }, 1000);
 
         pollUploadStatus();
-        uploadStatusPollInterval = setInterval(pollUploadStatus, 10000);
+        uploadStatusPollInterval = setInterval(pollUploadStatus, 3000);
     }
 
     async function submitUpload(e) {
@@ -851,7 +851,53 @@
         
         const excelFile = document.getElementById('excelFile').files[0];
         const pptFile = document.getElementById('pptFile').files[0];
-        const mediaType = document.querySelector('input[name="media_type"]:checked').value;
+        const mediaTypeElement = document.querySelector('input[name="media_type"]:checked');
+        if (!excelFile || !pptFile) {
+            showError('Please select both Excel and PowerPoint files');
+            return;
+        }
+
+        if (!mediaTypeElement) {
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hoarding Type Required',
+                    text: 'Please select a Hoarding Type before uploading.',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#d33'
+                });
+            } else {
+                showToast('Please select a Hoarding Type before uploading.', 'error');
+            }
+            return;
+        }
+
+        const mediaType = mediaTypeElement.value;
+
+        // Show verification alert
+        if (window.Swal) {
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: 'Hoarding Type Verification Required',
+                html: `
+                    You have selected the Hoarding Type for this bulk upload.<br><br>
+                    Please ensure that the selected type is correct:<br><br>
+                    <strong>OOH</strong> – Static Outdoor Hoardings (Billboards, Unipoles, Wall Paintings, etc.)<br><br>
+                    <strong>DOOH</strong> – Digital Outdoor Hoardings (LED Screens, Digital Displays, etc.)<br><br>
+                    The selected hoarding type will determine how the inventory is processed, displayed, and booked on the OOHAPP platform.<br><br>
+                    Please verify that the correct type has been selected before proceeding.
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Proceed',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            });
+
+            if (!result.isConfirmed) {
+                return;
+            }
+        }
 
         if (!excelFile || !pptFile) {
             showError('Please select both Excel and PowerPoint files');
@@ -1032,7 +1078,7 @@
                 <td class="px-6 py-4 text-sm">
                     <div class="flex items-center space-x-2">
                         <button onclick="loadBatchDetails(${batch.batch_id})" 
-                            class="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-xs font-medium">
+                            class="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-xs font-medium cursor-pointer">
                             View
                         </button>
                     </div>
@@ -1218,11 +1264,14 @@
         openImportManagement(status);
     }
 
-    function openImportManagement(status = '') {
-        const url = new URL(IMPORT_MANAGEMENT_URL, window.location.origin);
-        url.searchParams.set('tab', 'batches');
-        window.location.href = url.toString();
+   function openImportManagement(status = '') {
+    const url = new URL(IMPORT_MANAGEMENT_URL, window.location.origin);
+    url.searchParams.set('tab', 'batches');
+    if (status) {
+        url.searchParams.set('status', status);
     }
+    window.location.href = url.toString();
+}
 
     async function loadBatchDetails(batchId) {
         window.location.href = `${DETAILS_BASE}/batches/${batchId}`;

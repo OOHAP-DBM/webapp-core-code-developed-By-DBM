@@ -4,7 +4,7 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-tag"></i> My Offers</h2>
-        <a href="{{ route('vendor.enquiries.index') }}" class="btn btn-primary">
+        <a href="{{ route('vendor.offers.create') }}" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Create New Offer
         </a>
     </div>

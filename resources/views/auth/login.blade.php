@@ -203,7 +203,7 @@
 
 
 
-                <form method="POST" action="{{ route('login.submit') }}" id="signupForm">
+                <form method="POST"action="{{ request()->routeIs('admin.*') ? route('admin.login.submit') : route('login.submit') }}" id="signupForm">
                     @csrf
 
                     <div class="mb-2 text-start">

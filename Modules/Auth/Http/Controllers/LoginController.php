@@ -38,8 +38,38 @@ class LoginController extends Controller
         $loginType = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
         // Attempt authentication
-        $user = User::where($loginType, $credentials['login'])->whereNull('deleted_at')->first();
+       $user = User::where($loginType, $credentials['login'])->whereNull('deleted_at')->first();
 
+        if (!$user) {
+            return back()->withErrors([
+                'credentials' => 'The provided credentials are incorrect.',
+            ])->withInput();
+        }
+
+        $role = $user->getPrimaryRole();
+
+      $routeName = $request->route()?->getName();
+      \Log::info('Login attempt for user with role: ' . $role . ' on route: ' . $routeName);
+
+        // Admin portal
+        if (str_starts_with($routeName, 'admin.')) {
+
+            if (!in_array($role, ['admin','superadmin','super_admin'])) {
+                return back()->withErrors([
+                    'credentials' => 'Only administrators can login here.',
+                ])->withInput();
+            }
+        }
+
+        // Normal login portal
+        if (str_starts_with($routeName, 'login')) {
+
+            if (in_array($role, ['admin','superadmin','super_admin'])) {
+                return back()->withErrors([
+                    'credentials' => 'Administrators must login from the admin portal.',
+                ])->withInput();
+            }
+        }
         // Credentials error (email/phone or password incorrect)
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             return back()->withErrors([

@@ -244,7 +244,7 @@
                             - Inventory Import
                         </a>
                         <a href="{{ route('admin.import.enhanced') }}" class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.import.enhanced') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
-                            - Enhanced Import
+                            - Manage Import
                         </a>
                     </div>
                 </div>

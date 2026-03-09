@@ -54,9 +54,10 @@ Route::get('/brand/oohapp-logo', function () {
 
 
 // Admin Login Routes (do NOT affect /login)
-Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest:admin')->group(function () {
-    Route::get('/login', [Modules\Auth\Http\Controllers\AdminLoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [Modules\Auth\Http\Controllers\AdminLoginController::class, 'login'])->name('login.submit');
+Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest')->group(function () {
+    Route::get('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'login'])->name('login.submit');
+
 });
 
 // Admin Protected Routes
@@ -449,6 +450,8 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     // Home/Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('dashboard');
+    // POS Booking
+    Route::get('/pos-booking', [\App\Http\Controllers\Web\Customer\PosBookingController::class, 'index'])->name('pos.booking');
     // Route::get('/home', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('home');
     Route::post('/customer/profile/send-otp', [ProfileController::class, 'sendOtp'])->name('profile.send-otp');
     Route::post('/customer/profile/verify-otp', [ProfileController::class, 'verifyOtp'])->name('profile.verify-otp');

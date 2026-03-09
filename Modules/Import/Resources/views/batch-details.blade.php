@@ -27,7 +27,7 @@
             <button 
                 id="approveInventoryBtn"
                 data-auto-approve="{{ $autoApprove ? '1' : '0' }}"
-                class="px-4 py-2 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed {{ $isApprovedBatch ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }}"
+                class="px-4 py-2 rounded-lg text-white disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed {{ $isApprovedBatch ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }}"
                 {{ !in_array($batch->status, ['processed', 'completed']) || $isApprovedBatch ? 'disabled' : '' }}
             >
                 {{ $isApprovedBatch 
@@ -57,12 +57,12 @@
             <option value="valid">valid</option>
             <option value="invalid">invalid</option>
         </select>
-        <button id="applyFilter" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Apply</button>
-        <button id="resetFilter" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Reset</button>
+        <button id="applyFilter" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">Apply</button>
+        <button id="resetFilter" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer">Reset</button>
     </div>
 </div>
 
-<div class="bg-white rounded-xl shadow mb-6">
+<div class="bg-white rounded-xl shadow mb-6 {{ $isApprovedBatch ? 'hidden' : '' }}">
     <div class="p-4 border-b border-gray-200">
         <h2 class="text-lg font-semibold text-gray-900">Create / Edit Row</h2>
     </div>
@@ -84,8 +84,8 @@
                 <span id="rowImagePreviewText" class="text-sm text-gray-500">No image selected</span>
             </div>
             <div class="md:col-span-4 flex gap-2">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Row</button>
-                <button type="button" id="resetRowForm" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Reset</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">Save Row</button>
+                <button type="button" id="resetRowForm" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer">Reset</button>
             </div>
         </form>
     </div>
@@ -95,7 +95,7 @@
     <div class="p-4 border-b border-gray-200 flex items-center justify-between">
         <h2 class="text-lg font-semibold text-gray-900">Batch Rows</h2>
         <div class="flex items-center gap-3">
-            <button id="bulkDeleteBtn" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <button id="bulkDeleteBtn" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" disabled>
                 Delete Selected (0)
             </button>
             <p id="paginationInfo" class="text-sm text-gray-500"></p>
@@ -106,7 +106,7 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-3 py-2 text-left text-sm">
-                        <input id="rowsSelectAll" type="checkbox" class="h-4 w-4 rounded border-gray-300" />
+                        <input id="rowsSelectAll" type="checkbox" class="h-4 w-4 rounded border-gray-300 cursor-pointer"  />
                     </th>
                     <th class="px-3 py-2 text-left text-sm">ID</th>
                     <th class="px-3 py-2 text-left text-sm">Image</th>
@@ -125,7 +125,7 @@
     <div class="p-4 border-t border-gray-200 flex items-center justify-between gap-3 flex-wrap">
         <div class="flex items-center gap-2">
             <label for="rowsPerPage" class="text-sm text-gray-600">Rows per page</label>
-            <select id="rowsPerPage" class="border rounded-lg p-1.5 text-sm">
+            <select id="rowsPerPage" class="border rounded-lg p-1.5 text-sm cursor-pointer">
                 <option value="10">10</option>
                 <option value="15" selected>15</option>
                 <option value="25">25</option>
@@ -133,9 +133,9 @@
             </select>
         </div>
         <div class="flex items-center gap-2">
-            <button id="rowsPrevBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+            <button id="rowsPrevBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">Previous</button>
             <span id="rowsPageLabel" class="text-sm text-gray-600">Page 1 / 1</span>
-            <button id="rowsNextBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+            <button id="rowsNextBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">Next</button>
         </div>
     </div>
 </div>
@@ -418,7 +418,7 @@ async function loadRows(page = rowsQueryState.page) {
                     <td class="px-3 py-2 text-sm space-x-2">
                         ${currentBatchStatus === 'approved'
                             ? '<span class="text-gray-400 cursor-not-allowed">Disabled</span>'
-                            : `<button onclick="editRow(${row.id})" class="text-indigo-600 hover:underline">Edit</button><button onclick="deleteRow(${row.id})" class="text-red-600 hover:underline">Delete</button>`}
+                            : `<button onclick="editRow(${row.id})" class="text-indigo-600 hover:underline">Edit</button><button onclick="deleteRow(${row.id})" class="text-red-600 hover:underline cursor-pointer">Delete</button>`}
                     </td>
                 </tr>
             `;
