@@ -97,10 +97,10 @@ class OOHUpdateController extends Controller
             // └─ repo->storeMedia(parent_hoarding_id, files)
             //      INSERT hoarding_media.hoarding_id = parent hoardings.id
             $this->hoardingService->updateStep1(
-                hoarding:    $ooh->hoarding,
+                hoarding: $ooh->hoarding,
                 oohHoarding: $ooh,
-                data:        $validated,
-                mediaFiles:  $request->file('media', []),
+                data: $validated,
+                mediaFiles: $request->file('media', []),
             );
 
             $ooh->load(['hoarding', 'hoarding.hoardingMedia']);
@@ -186,8 +186,8 @@ class OOHUpdateController extends Controller
             // └─ repo->storeBrandLogos(parent_hoarding_id, files)
             //      INSERT hoarding_brand_logos.hoarding_id = parent hoardings.id
             $this->hoardingService->storeStep2(
-                hoarding:       $parentHoarding,
-                data:           $request->all(),
+                hoarding: $parentHoarding,
+                data: $request->all(),
                 brandLogoFiles: $request->file('brand_logos', []),
             );
 
@@ -270,6 +270,7 @@ class OOHUpdateController extends Controller
             $this->hoardingService->storeStep3($ooh, $validated);
 
             $ooh->load(['hoarding', 'hoarding.oohPackages']);
+
 
             return response()->json([
                 'message' => 'Step 3 updated successfully.',

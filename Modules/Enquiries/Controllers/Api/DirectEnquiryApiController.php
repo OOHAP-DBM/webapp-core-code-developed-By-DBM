@@ -17,6 +17,7 @@ use Modules\Enquiries\Mail\UserDirectEnquiryConfirmation;
 use Modules\Enquiries\Mail\VendorDirectEnquiryMail;
 use App\Notifications\AdminDirectEnquiryNotification;
 use Modules\Enquiries\Notifications\VendorDirectEnquiryNotification;
+use Modules\Enquiries\Notifications\CustomerDirectEnquiryNotification;
 use App\Models\User;
 
 class DirectEnquiryApiController extends Controller
@@ -181,25 +182,62 @@ class DirectEnquiryApiController extends Controller
             if ($vendors->isNotEmpty()) {
                 $enquiry->assignedVendors()->attach($vendors->pluck('id'));
 
+                // Notify vendors with push and in-app notifications
                 foreach ($vendors as $vendor) {
                     Mail::to($vendor->email)->queue(new VendorDirectEnquiryMail($enquiry, $vendor));
-                    $vendor->notify(new VendorDirectEnquiryNotification($enquiry, $vendor));
+
+                    // In-app notification
+                    $vendor->notify(new VendorDirectEnquiryNotification($enquiry));
+
+                    // Push notification with hoarding details
+                    $hoardingTypes = implode(', ', array_map('strtoupper', explode(',', $request->hoarding_type[0] ?? 'OOH')));
                     send(
                         $vendor,
-                        'New Direct Enquiry',
-                        'You have received a new enquiry in ' . $normalizedCity . '. Please check and respond.',
+                        'New Hoarding Enquiry Received',
+                        "New {$hoardingTypes} enquiry from {$enquiry->name} in {$normalizedCity}",
                         [
-                            'type'       => 'vendor_enquiry',
-                            'enquiry_id' => $enquiry->id,
-                            'city'       => $normalizedCity,
-                            'source'     => 'mobile_app'
+                            'type'           => 'vendor_direct_enquiry',
+                            'enquiry_id'     => $enquiry->id,
+                            'customer_name'  => $enquiry->name,
+                            'hoarding_type'  => implode(',', $request->hoarding_type),
+                            'city'           => $normalizedCity,
+                            'source'         => 'mobile_app'
                         ]
                     );
                 }
             }
 
-            // Confirm to customer
+            // Customer confirmation email
             Mail::to($enquiry->email)->queue(new UserDirectEnquiryConfirmation($enquiry));
+
+            // Send in-app notification to customer
+            // Note: Customer is not yet a registered user, so we'll store this for when they login
+            // or for guest notification display via email link
+
+            // Attempt to notify if customer exists in system by email
+            $existingCustomer = User::where('email', $enquiry->email)
+                ->where('active_role', 'customer')
+                ->first();
+
+            if ($existingCustomer) {
+                // In-app notification for registered customer
+                $existingCustomer->notify(new \Modules\Enquiries\Notifications\CustomerDirectEnquiryNotification($enquiry));
+
+                // Push notification to customer
+                $hoardingTypes = implode(', ', array_map('strtoupper', explode(',', $request->hoarding_type[0] ?? 'OOH')));
+                send(
+                    $existingCustomer,
+                    'Enquiry Submitted Successfully',
+                    "Your {$hoardingTypes} hoarding enquiry for {$normalizedCity} has been submitted.",
+                    [
+                        'type'           => 'customer_direct_enquiry',
+                        'enquiry_id'     => $enquiry->id,
+                        'hoarding_type'  => implode(',', $request->hoarding_type),
+                        'city'           => $normalizedCity,
+                        'status'         => 'submitted'
+                    ]
+                );
+            }
 
             // Notify admins
             $admins = User::whereIn('active_role', ['admin', 'superadmin'])
@@ -212,7 +250,6 @@ class DirectEnquiryApiController extends Controller
             }
 
             DB::commit();
-
             // Cleanup OTP records
             DB::table('guest_user_otps')
                 ->where('identifier', $request->phone)
