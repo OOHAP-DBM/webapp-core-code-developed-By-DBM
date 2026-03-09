@@ -80,7 +80,7 @@ class SitemapController extends Controller
     public function hoardings()
     {
         $hoardings = DB::table('hoardings')
-            ->where('approval_status', 'approved')
+            ->where('status', 'approved')
             ->where('status', 'available')
             ->where('index_page', true)
             ->select('id', 'slug', 'updated_at', 'view_count')
@@ -107,7 +107,7 @@ class SitemapController extends Controller
     public function locations()
     {
         $locations = DB::table('hoardings')
-            ->where('approval_status', 'approved')
+            ->where('status', 'approved')
             ->select('city', DB::raw('MAX(updated_at) as updated_at'), DB::raw('COUNT(*) as count'))
             ->groupBy('city')
             ->having('count', '>', 0)

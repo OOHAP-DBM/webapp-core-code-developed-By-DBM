@@ -467,6 +467,7 @@ class ImportController extends Controller
      */
     public function listImports(Request $request): JsonResponse
     {
+        \Log::info('Listing imports', $request->all());
         try {
             $user = auth()->user();
             $validated = $request->validate([

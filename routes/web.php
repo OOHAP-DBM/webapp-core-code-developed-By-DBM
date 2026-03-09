@@ -54,9 +54,10 @@ Route::get('/brand/oohapp-logo', function () {
 
 
 // Admin Login Routes (do NOT affect /login)
-Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest:admin')->group(function () {
-    Route::get('/login', [Modules\Auth\Http\Controllers\AdminLoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [Modules\Auth\Http\Controllers\AdminLoginController::class, 'login'])->name('login.submit');
+Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest')->group(function () {
+    Route::get('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'login'])->name('login.submit');
+
 });
 
 // Admin Protected Routes
