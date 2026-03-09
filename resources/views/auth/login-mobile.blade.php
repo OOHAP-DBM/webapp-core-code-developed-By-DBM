@@ -186,7 +186,7 @@
                 @endif
 
                 <form method="POST"
-                    action="{{ route('login.submit') }}"
+                   action="{{ request()->routeIs('admin.*') ? route('admin.login.submit') : route('login.submit') }}"
                     id="loginForm"
                     autocomplete="off">
                     @csrf

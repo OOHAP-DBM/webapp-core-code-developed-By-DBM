@@ -4,7 +4,7 @@
 @section('content')
 <!-- Page Header -->
 <div class="mb-8">
-    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Inventory Import</h1>
+    <h1 class="md:text-3xl sm:text-4xl font-bold text-gray-900">Inventory Import</h1>
     <p class="text-gray-600 mt-2">Upload and manage your inventory imports</p>
 </div>
 
@@ -165,10 +165,10 @@
                     class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium">
                     Refresh
                 </button>
-                <button onclick="filterByStatus('processed')"
+                <!-- <button onclick="filterByStatus('processed')"
                     class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm font-medium">
-                    Pending Approval
-                </button>
+                    Manage import
+                </button> -->
             </div>
         </div>
     </div>
@@ -288,6 +288,7 @@ async function loadBatches(status = null) {
         
         console.log('Formatted batches:', formattedBatches);
         
+        allBatches = formattedBatches;  // ← store globally
         renderBatches(formattedBatches);
         updateStats(formattedBatches);
     } catch (error) {
@@ -725,5 +726,20 @@ function refreshBatches() {
 function filterByStatus(status) {
     loadBatches(status);
 }
+</script>
+
+<script>
+
+    let allBatches = []; // Store batches globally for filtering
+
+document.getElementById('searchInput').addEventListener('input', function () {
+    const query = this.value.toLowerCase().trim();
+    const filtered = allBatches.filter(batch =>
+        String(batch.id).includes(query) ||
+        batch.media_type?.toLowerCase().includes(query) ||
+        batch.status?.toLowerCase().includes(query)
+    );
+    renderBatches(filtered);
+});
 </script>
 @endpush

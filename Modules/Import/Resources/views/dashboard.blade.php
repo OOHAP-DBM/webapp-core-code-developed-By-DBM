@@ -3,8 +3,8 @@
 
 @section('content')
 <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900">Inventory Import</h1>
-    <p class="text-gray-600 mt-1">Manage imported inventories and staged rows</p>
+    <h1 class=" md:text-3xl font-bold text-gray-900">Manage Import</h1>
+    <p class="text-gray-600 mt-1 ">Manage imported inventories and staged rows</p>
 </div>
 
 <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
@@ -23,11 +23,11 @@
         <div class="p-4 border-b border-gray-200 space-y-3">
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold text-gray-900">Imported Inventories</h2>
-                <button id="refreshBatchesBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">Refresh</button>
+                <button id="refreshBatchesBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer">Refresh</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
                 <input id="batchSearch" type="text" class="border border-gray-300 rounded-lg p-2 text-sm" placeholder="Search by batch id, status, type" />
-                <select id="batchStatusFilter" class="border border-gray-300 rounded-lg p-2 text-sm">
+                <select id="batchStatusFilter" class="border border-gray-300 rounded-lg p-2 text-sm cursor-pointer">
                     <option value="">All statuses</option>
                     <option value="uploaded">uploaded</option>
                     <option value="processing">processing</option>
@@ -37,15 +37,15 @@
                     <option value="failed">failed</option>
                     <option value="cancelled">cancelled</option>
                 </select>
-                <select id="batchPerPage" class="border border-gray-300 rounded-lg p-2 text-sm">
+                <select id="batchPerPage" class="border border-gray-300 rounded-lg p-2 text-sm cursor-pointer">
                     <option value="10">10 / page</option>
                     <option value="15" selected>15 / page</option>
                     <option value="25">25 / page</option>
                     <option value="50">50 / page</option>
                 </select>
                 <div class="flex items-center gap-2">
-                    <button id="applyBatchFiltersBtn" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Apply</button>
-                    <button id="resetBatchFiltersBtn" class="px-3 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">Reset</button>
+                    <button id="applyBatchFiltersBtn" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 cursor-pointer">Apply</button>
+                    <button id="resetBatchFiltersBtn" class="px-3 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer">Reset</button>
                 </div>
             </div>
         </div>
@@ -69,9 +69,9 @@
         <div class="p-4 border-t border-gray-200 flex items-center justify-between gap-3">
             <p id="batchPageInfo" class="text-sm text-gray-500">Showing 0 of 0</p>
             <div class="flex items-center gap-2">
-                <button id="batchPrevPage" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50">Previous</button>
+                <button id="batchPrevPage" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 cursor-pointer">Previous</button>
                 <span id="batchPageLabel" class="text-sm text-gray-600">Page 1 / 1</span>
-                <button id="batchNextPage" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50">Next</button>
+                <button id="batchNextPage" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 cursor-pointer">Next</button>
             </div>
         </div>
     </div>
@@ -82,7 +82,7 @@
     <div class="bg-white rounded-xl shadow overflow-hidden">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between">
             <h2 class="text-xl font-semibold text-gray-900">Role Import Permissions</h2>
-            <button id="refreshPermissionsBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">Refresh</button>
+            <button id="refreshPermissionsBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer">Refresh</button>
         </div>
         <div id="permissionsContainer" class="p-4 space-y-4">
             <p class="text-sm text-gray-500">Loading role permissions...</p>
@@ -95,7 +95,7 @@
     <div class="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between">
             <h3 id="rowsTitle" class="font-semibold text-lg text-gray-900">Batch Rows</h3>
-            <button id="closeRowsModal" class="text-gray-500 hover:text-gray-700">Close</button>
+            <button id="closeRowsModal" class="text-gray-500 hover:text-gray-700 cursor-pointer">Close</button>
         </div>
 
         <div class="p-4 border-b border-gray-200">
@@ -110,8 +110,8 @@
                     <option value="invalid">invalid</option>
                 </select>
                 <div class="flex gap-2">
-                    <button type="submit" class="bg-blue-600 text-white rounded px-3 py-2 text-sm">Save Row</button>
-                    <button type="button" id="resetRowForm" class="bg-gray-100 rounded px-3 py-2 text-sm">Reset</button>
+                    <button type="submit" class="bg-blue-600 text-white rounded px-3 py-2 text-sm cursor-pointer">Save Row</button>
+                    <button type="button" id="resetRowForm" class="bg-gray-100 rounded px-3 py-2 text-sm cursor-pointer">Reset</button>
                 </div>
             </form>
         </div>
@@ -221,16 +221,25 @@ function setupTabs() {
     }
 
     if (requestedTab === 'batches') {
-        document.getElementById('tabBatches')?.click();
+    const tabBtn = document.getElementById('tabBatches');
+    if (tabBtn) {
+        tabBtn.click();
         return;
     }
+    // tab buttons are commented out, load directly
+    loadBatches(1);
+    return;
+}
 
-    if (requestedTab === 'permissions' && IS_ADMIN) {
-        document.getElementById('tabPermissions')?.click();
+if (requestedTab === 'permissions' && IS_ADMIN) {
+    const permBtn = document.getElementById('tabPermissions');
+    if (permBtn) {
+        permBtn.click();
         return;
     }
+}
 
-    loadBatches();
+loadBatches(1);
 }
 
 async function loadRolePermissions() {
@@ -324,12 +333,73 @@ function renderBatchPagination() {
     }
 }
 
-async function loadBatches(page = batchQueryState.page) {
+// async function loadBatches(page = batchQueryState.page) {
+//     try {
+//         batchQueryState.page = Math.max(1, Number(page || 1));
+
+//         const query = new URLSearchParams({
+//             page: String(batchQueryState.page),
+//             per_page: String(batchQueryState.per_page || 15),
+//         });
+
+//         if (batchQueryState.status) {
+//             query.append('status', batchQueryState.status);
+//         }
+
+//         if (batchQueryState.search) {
+//             query.append('search', batchQueryState.search);
+//         }
+
+//         const result = await api(`${API_BASE}?${query.toString()}`);
+//         const rows = result.data || [];
+//         const pagination = result.pagination || {};
+//         batchPaginationState = {
+//             total: pagination.total || 0,
+//             current_page: pagination.current_page || 1,
+//             last_page: pagination.last_page || 1,
+//             from: pagination.from || 0,
+//             to: pagination.to || 0,
+//         };
+
+//         const body = document.getElementById('batchesBody');
+//         if (!rows.length) {
+//             body.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">No batches found</td></tr>';
+//             renderBatchPagination();
+//             return;
+//         }
+
+//         body.innerHTML = rows.map(batch => {
+//             const canApprove = !IS_ADMIN && batch.status === 'processed';
+//             return `
+//                 <tr>
+//                     <td class="px-4 py-3">#${batch.batch_id}</td>
+//                     <td class="px-4 py-3 uppercase">${batch.media_type}</td>
+//                     <td class="px-4 py-3">${batch.status ?? '-'}</td>
+//                     <td class="px-4 py-3">${batch.valid_rows}/${batch.total_rows}</td>
+//                     <td class="px-4 py-3">${new Date(batch.created_at).toLocaleString()}</td>
+//                     <td class="px-4 py-3 space-x-2">
+//                         <button onclick="viewBatch(${batch.batch_id})" class="text-blue-600 hover:underline">View</button>
+//                         <button onclick="deleteBatch(${batch.batch_id})" class="text-red-600 hover:underline">Delete</button>
+//                         ${canApprove ? `<button onclick="approveBatch(${batch.batch_id})" class="text-green-600 hover:underline">Approve</button>` : ''}
+//                     </td>
+//                 </tr>
+//             `;
+//         }).join('');
+
+//         renderBatchPagination();
+//     } catch (error) {
+//         notify(error.message, 'error');
+//     }
+// }
+
+// REPLACE the existing loadBatches function with this:
+async function loadBatches(page) {
     try {
-        batchQueryState.page = Math.max(1, Number(page || 1));
+        const safePage = Math.max(1, parseInt(page, 10) || 1);
+        batchQueryState.page = safePage;
 
         const query = new URLSearchParams({
-            page: String(batchQueryState.page),
+            page: String(safePage),
             per_page: String(batchQueryState.per_page || 15),
         });
 
@@ -369,9 +439,9 @@ async function loadBatches(page = batchQueryState.page) {
                     <td class="px-4 py-3">${batch.valid_rows}/${batch.total_rows}</td>
                     <td class="px-4 py-3">${new Date(batch.created_at).toLocaleString()}</td>
                     <td class="px-4 py-3 space-x-2">
-                        <button onclick="viewBatch(${batch.batch_id})" class="text-blue-600 hover:underline">View</button>
-                        <button onclick="deleteBatch(${batch.batch_id})" class="text-red-600 hover:underline">Delete</button>
-                        ${canApprove ? `<button onclick="approveBatch(${batch.batch_id})" class="text-green-600 hover:underline">Approve</button>` : ''}
+                        <button onclick="viewBatch(${batch.batch_id})" class="text-blue-600 hover:underline cursor-pointer">View</button>
+                        <button onclick="deleteBatch(${batch.batch_id})" class="text-red-600 hover:underline cursor-pointer">Delete</button>
+                        ${canApprove ? `<button onclick="approveBatch(${batch.batch_id})" class="text-green-600 hover:underline cursor-pointer">Approve</button>` : ''}
                     </td>
                 </tr>
             `;
@@ -379,6 +449,11 @@ async function loadBatches(page = batchQueryState.page) {
 
         renderBatchPagination();
     } catch (error) {
+        console.error('loadBatches error:', error);
+        const body = document.getElementById('batchesBody');
+        if (body) {
+            body.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-red-500">Failed to load: ${error.message}</td></tr>`;
+        }
         notify(error.message, 'error');
     }
 }
@@ -633,7 +708,7 @@ function resetRowForm() {
 
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
-    document.getElementById('refreshBatchesBtn').addEventListener('click', loadBatches);
+    document.getElementById('refreshBatchesBtn')?.addEventListener('click', loadBatches);
     document.getElementById('applyBatchFiltersBtn')?.addEventListener('click', applyBatchFilters);
     document.getElementById('resetBatchFiltersBtn')?.addEventListener('click', resetBatchFilters);
     document.getElementById('batchPerPage')?.addEventListener('change', applyBatchFilters);
