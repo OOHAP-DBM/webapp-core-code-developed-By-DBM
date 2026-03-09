@@ -72,6 +72,10 @@
                         <h3 class="text-sm font-semibold mb-4">Received On</h3>
                         <span class="text-lg font-semibold leading-none">{{ $enquiry->created_at->format('d') }}</span>
                         <span class="text-sm text-gray-500">{{ $enquiry->created_at->format('M y') }}</span>
+                        
+                        <button class="btn-color mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2">
+                            Create Offer
+                        </button>
                     </div>
                 </div>
             </div>
