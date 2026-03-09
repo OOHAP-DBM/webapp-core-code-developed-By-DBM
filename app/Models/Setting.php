@@ -16,6 +16,7 @@ class Setting extends Model
     const GROUP_PAYMENT = 'payment';
     const GROUP_COMMISSION = 'commission';
     const GROUP_NOTIFICATION = 'notification';
+    const GROUP_SMS = 'sms';
     const GROUP_KYC = 'kyc';
     const GROUP_DOOH = 'dooh';
     const GROUP_AUTOMATION = 'automation';
@@ -235,6 +236,7 @@ class Setting extends Model
             self::GROUP_PAYMENT => 'Payment Settings',
             self::GROUP_COMMISSION => 'Commission Settings',
             self::GROUP_NOTIFICATION => 'Notification Templates',
+            self::GROUP_SMS => 'SMS Gateway Configuration',
             self::GROUP_KYC => 'KYC Rules',
             self::GROUP_DOOH => 'DOOH API Configuration',
             self::GROUP_AUTOMATION => 'Automation Rules',

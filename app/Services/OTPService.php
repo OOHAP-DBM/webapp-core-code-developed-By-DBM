@@ -1,26 +1,15 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use Twilio\Rest\Client as TwilioClient; // Make sure you install twilio/sdk via composer
 use Modules\Enquiries\Mail\OTPEmail;
 
 class OTPService
 {
     const OTP_EXPIRY_MINUTES = 5;
-
-    protected TwilioClient $twilio;
-
-    public function __construct()
-    {
-        $this->twilio = new TwilioClient(
-            config('services.twilio.sid'),
-            config('services.twilio.token')
-        );
-    }
 
     /**
      * Generate and send OTP
@@ -44,7 +33,7 @@ class OTPService
             'purpose' => $purpose,
             'expires_at' => now()->addMinutes(self::OTP_EXPIRY_MINUTES),
         ]);
-        \Log::info("otpis" . $otp);
+        Log::info("otpis" . $otp);
 
         // Send OTP
         $this->sendOTP($identifier, $otp);
@@ -79,12 +68,8 @@ class OTPService
     protected function sendOTP(string $identifier, int $otp): void
     {
         if ($this->isPhoneNumber($identifier)) {
-            // Send via Twilio SMS
             try {
-                $this->twilio->messages->create($this->formatPhoneNumber($identifier), [
-                    'from' => config('services.twilio.from'),
-                    'body' => "Your OOHAPP OTP is: {$otp}"
-                ]);
+                app(TwilioService::class)->sendSMS($identifier, "Your OOHAPP OTP is: {$otp}");
             } catch (\Exception $e) {
                 Log::error("OTP SMS sending failed: " . $e->getMessage());
             }
@@ -108,7 +93,7 @@ class OTPService
     protected function formatPhoneNumber(string $number): string
     {
         if (strlen($number) == 10) {
-            return '+91'.$number; // Assuming India
+            return '+91' . $number; // Assuming India
         }
         return $number;
     }

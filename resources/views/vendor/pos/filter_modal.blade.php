@@ -262,7 +262,7 @@ function applyFilters() {
 
     // Debugging feedback
     if (typeof window.showToast === 'function') {
-        window.showToast('Applying filters...');
+        // window.showToast('Applying filters...');
     }
     console.log('Applying filters:', params);
 

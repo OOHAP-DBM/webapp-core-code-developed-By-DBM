@@ -127,6 +127,8 @@
             if (remaining <= 0) {
                 timerText.innerText = '00:00:00';
                 removeTimer(booking.id);
+                // Ask backend to process expired holds immediately for email/in-app notifications.
+                syncWithPendingPayments();
                 return;
             }
             timerText.innerText = formatRemaining(remaining);

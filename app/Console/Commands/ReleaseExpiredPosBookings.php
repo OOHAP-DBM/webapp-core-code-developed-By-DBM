@@ -8,9 +8,10 @@ use App\Services\Whatsapp\TwilioWhatsappService;
 use Modules\POS\Models\POSBooking;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+
 class ReleaseExpiredPosBookings extends Command
 {
-       protected $signature   = 'pos:release-expired-bookings';
+    protected $signature   = 'pos:release-expired-bookings';
     protected $description = 'Release POS bookings whose payment hold has expired';
 
     public function handle(): void
@@ -58,7 +59,7 @@ class ReleaseExpiredPosBookings extends Command
 
                 Log::info('POS booking auto-released (hold expired)', [
                     'booking_id'    => $booking->id,
-                    'hold_expiry_at'=> $booking->hold_expiry_at,
+                    'hold_expiry_at' => $booking->hold_expiry_at,
                 ]);
 
                 // Optionally notify customer that hold expired
@@ -67,25 +68,25 @@ class ReleaseExpiredPosBookings extends Command
 
                     if ($booking->customer_id) {
                         $customer = User::find($booking->customer_id);
-                        if ($customer && method_exists($customer, 'notify')) {
-                            $customer->notify($notification);
+                        if ($customer && method_exists($customer, 'notifyNow')) {
+                            $customer->notifyNow($notification);
                         }
                     }
 
                     if ($booking->vendor_id) {
                         $vendor = User::find($booking->vendor_id);
-                        if ($vendor && method_exists($vendor, 'notify')) {
-                            $vendor->notify($notification);
+                        if ($vendor && method_exists($vendor, 'notifyNow')) {
+                            $vendor->notifyNow($notification);
                         }
                     }
 
                     $admins = User::whereHas('roles', function ($query) {
-                        $query->whereIn('name', ['admin', 'super_admin']);
+                        $query->whereIn('name', ['admin', 'superadmin', 'super_admin']);
                     })->get();
 
                     foreach ($admins as $admin) {
-                        if (method_exists($admin, 'notify')) {
-                            $admin->notify($notification);
+                        if (method_exists($admin, 'notifyNow')) {
+                            $admin->notifyNow($notification);
                         }
                     }
 
@@ -96,7 +97,6 @@ class ReleaseExpiredPosBookings extends Command
                         'error' => $e->getMessage(),
                     ]);
                 }
-
             } catch (\Throwable $e) {
                 Log::error('Failed to release expired POS booking', [
                     'booking_id' => $booking->id,
@@ -127,7 +127,7 @@ class ReleaseExpiredPosBookings extends Command
         $vendorPhone = $this->normalizePhone($vendor?->phone);
 
         if ($customerPhone && ($customer ? (bool) $customer->notification_whatsapp : true)) {
-            $customerActionUrl = url('/customer/pos/bookings/' . $booking->id);
+            $customerActionUrl = url('/customer/bookings/' . $booking->id);
             $sent = $whatsapp->send($customerPhone, $this->buildCustomerHoldExpiredMessage($booking, $vendor, $customerActionUrl));
             Log::info('Hold expiry WhatsApp attempted for customer', [
                 'booking_id' => $booking->id,
@@ -209,5 +209,4 @@ class ReleaseExpiredPosBookings extends Command
 
         return 'N/A';
     }
-
 }

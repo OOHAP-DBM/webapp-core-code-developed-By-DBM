@@ -166,7 +166,7 @@ Route::prefix('vendor/commission')->name('vendor.commission.')->middleware(['aut
 
 
 // ADMIN POS WEB ROUTES
-Route::prefix('admin/pos')->middleware(['auth', 'role:admin'])->name('admin.pos.')->group(function () {
+Route::prefix('admin/pos')->middleware(['auth', 'role:admin|superadmin|super_admin'])->name('admin.pos.')->group(function () {
     Route::get('/dashboard', [\Modules\POS\Controllers\Web\AdminPosController::class, 'dashboard'])->name('dashboard');
     Route::get('/bookings', [\Modules\POS\Controllers\Web\AdminPosController::class, 'index'])->name('list');
     Route::get('/create', [\Modules\POS\Controllers\Web\AdminPosController::class, 'create'])->name('create');
@@ -343,6 +343,40 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [Modules\Auth\Http\Controllers\LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Role-aware POS booking deep-link resolver for email/in-app action URLs.
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pos/bookings/{id}/view', function ($id) {
+        $user = auth()->user();
+
+        if ($user && method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'superadmin', 'super_admin'])) {
+            return redirect()->route('admin.pos.show', ['id' => $id]);
+        }
+
+        if ($user && method_exists($user, 'hasRole') && $user->hasRole('vendor')) {
+            if (Route::has('vendor.pos.bookings.show')) {
+                return redirect()->route('vendor.pos.bookings.show', ['id' => $id]);
+            }
+
+            return redirect('/vendor/pos/bookings/' . $id);
+        }
+
+        if ($user && method_exists($user, 'hasRole') && $user->hasRole('customer')) {
+            if (Route::has('customer.pos.show')) {
+                return redirect()->route('customer.pos.show', ['id' => $id]);
+            }
+
+            return redirect()->route('customer.bookings.show', ['id' => $id]);
+        }
+
+        abort(403, 'User does not have the right roles.');
+    })->name('pos.bookings.redirect');
+
+    // Backward-compatible path for older hold-expiry emails.
+    Route::get('/customer/pos/bookings/{id}', function ($id) {
+        return redirect()->route('pos.bookings.redirect', ['id' => $id]);
+    })->name('customer.pos.bookings.legacy');
+});
+
 // ============================================
 // VENDOR ONBOARDING (PROMPT 112)
 // ============================================
@@ -454,6 +488,20 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/orders/{id}', [\App\Http\Controllers\Web\Customer\OrderController::class, 'show'])->name('orders.show');
     Route::get('/bookings', [\App\Http\Controllers\Web\Customer\OrderController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{id}', [\App\Http\Controllers\Web\Customer\OrderController::class, 'show'])->name('bookings.show');
+
+    // Customer POS booking details (used by hold-expiry email "View Booking").
+    Route::prefix('pos')->name('pos.')->group(function () {
+        Route::get('/bookings/{id}/view', function ($id) {
+            return view('vendor.pos.show', [
+                'bookingId' => (int) $id,
+                'posBasePath' => '/customer/pos',
+                'posRoutePrefix' => 'customer',
+            ]);
+        })->name('show');
+
+        Route::get('/api/bookings/{bookingId}', [\Modules\POS\Controllers\Api\POSBookingController::class, 'showForCustomer'])
+            ->name('api.show');
+    });
 
     // Payments
     Route::get('/payments', [\App\Http\Controllers\Web\Customer\PaymentController::class, 'index'])->name('payments.index');
@@ -1260,5 +1308,5 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin
 });
 Route::get('/twilio-test', function () {
     $service = app(\App\Services\Whatsapp\TwilioWhatsappService::class);
-    return $service->send('917379467181', 'Test message');
+    return $service->send('911236547890', 'Test message');
 });

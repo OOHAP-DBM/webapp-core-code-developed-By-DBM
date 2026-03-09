@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Services\Whatsapp\TwilioWhatsappService;
 use Modules\POS\Models\POSBooking;
 use Modules\POS\Events\PosCustomerCreated;
+use App\Notifications\PosBookingHoldExpiredNotification;
+use Illuminate\Support\Facades\Notification;
 
 class VendorPosController extends Controller
 {
@@ -1695,6 +1697,7 @@ class VendorPosController extends Controller
     {
         try {
             $context = $this->resolveAdminBookingScopeContext($request);
+            $this->releaseExpiredPosHoldsForContext($context);
 
             $query = \Modules\POS\Models\POSBooking::whereIn('payment_status', ['unpaid', 'partial'])
                 ->with('bookingHoardings.hoarding')
@@ -1745,6 +1748,93 @@ class VendorPosController extends Controller
                 'message' => 'Failed to fetch pending payments',
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    protected function releaseExpiredPosHoldsForContext(array $context): void
+    {
+        $now = now();
+
+        $query = POSBooking::where('payment_status', 'unpaid')
+            ->whereIn('status', ['draft', 'pending_payment'])
+            ->whereNotNull('hold_expiry_at')
+            ->where('hold_expiry_at', '<=', $now)
+            ->with('bookingHoardings.hoarding');
+
+        if (($context['scope'] ?? 'mine') !== 'overall' && !empty($context['vendor_id'])) {
+            $query->where('vendor_id', (int) $context['vendor_id']);
+        }
+
+        $expiredBookings = $query->get();
+
+        foreach ($expiredBookings as $booking) {
+            $updated = POSBooking::whereKey($booking->id)
+                ->where('payment_status', 'unpaid')
+                ->whereIn('status', ['draft', 'pending_payment'])
+                ->whereNotNull('hold_expiry_at')
+                ->where('hold_expiry_at', '<=', $now)
+                ->update([
+                    'status' => 'cancelled',
+                    'cancelled_at' => $now,
+                    'cancellation_reason' => 'Payment hold expired - auto-released',
+                ]);
+
+            if ($updated === 0) {
+                continue;
+            }
+
+            foreach ($booking->bookingHoardings as $bookingHoarding) {
+                $hoarding = $bookingHoarding->hoarding;
+                if ($hoarding && (int) $hoarding->held_by_booking_id === (int) $booking->id) {
+                    $hoarding->update([
+                        'is_on_hold' => false,
+                        'hold_till' => null,
+                        'held_by_booking_id' => null,
+                    ]);
+                }
+            }
+
+            $booking->refresh();
+
+            try {
+                $this->dispatchHoldExpiredNotifications($booking);
+            } catch (\Throwable $e) {
+                Log::warning('POS hold-expiry fallback notification failed', [
+                    'booking_id' => $booking->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    protected function dispatchHoldExpiredNotifications(POSBooking $booking): void
+    {
+        $notification = new PosBookingHoldExpiredNotification($booking);
+
+        if ($booking->customer_id) {
+            $customer = User::find($booking->customer_id);
+            if ($customer && method_exists($customer, 'notifyNow')) {
+                $customer->notifyNow($notification);
+            }
+        } elseif (filter_var((string) $booking->customer_email, FILTER_VALIDATE_EMAIL)) {
+            Notification::route('mail', $booking->customer_email)->notifyNow($notification);
+        }
+
+        if ($booking->vendor_id) {
+            $vendor = User::find($booking->vendor_id);
+            if ($vendor && method_exists($vendor, 'notifyNow')) {
+                $vendor->notifyNow($notification);
+            }
+        }
+
+        $admins = User::whereHas('roles', function ($query) {
+            $query->whereIn('name', ['admin', 'superadmin', 'super_admin']);
+        })->get();
+
+        foreach ($admins as $admin) {
+            if (method_exists($admin, 'notifyNow')) {
+                $admin->notifyNow($notification);
+            }
         }
     }
 
