@@ -34,15 +34,15 @@ class CommissionNotification extends Notification implements ShouldQueue
             ? 'Your Commission Has Been Set'
             : 'Your Commission Has Been Updated';
 
-        $intro = match(true) {
+        $intro = match (true) {
             $this->hoardingName !== null && $this->type === 'set' =>
-                "A commission rate has been set for your hoarding \"{$this->hoardingName}\". Please review the details below.",
+            "A commission rate has been set for your hoarding \"{$this->hoardingName}\". Please review the details below.",
             $this->hoardingName !== null && $this->type === 'updated' =>
-                "The commission rate for your hoarding \"{$this->hoardingName}\" has been updated by the administrator. Please review and confirm your acceptance.",
+            "The commission rate for your hoarding \"{$this->hoardingName}\" has been updated by the administrator. Please review and confirm your acceptance.",
             $this->type === 'set' =>
-                'We are pleased to inform you that a commission rate has been set for your account. Please review the details below and confirm your acceptance.',
+            'We are pleased to inform you that a commission rate has been set for your account. Please review the details below and confirm your acceptance.',
             default =>
-                'Your commission rate has been updated by the administrator. Please review the updated details below and confirm your acceptance.',
+            'Your commission rate has been updated by the administrator. Please review the updated details below and confirm your acceptance.',
         };
 
         return (new MailMessage)
@@ -66,7 +66,7 @@ class CommissionNotification extends Notification implements ShouldQueue
     {
         $requiresAgreement = in_array($this->type, ['set', 'updated'], true);
 
-        $commissionDisplay = match(true) {
+        $commissionDisplay = match (true) {
             $this->hoardingName !== null => "{$this->commission}% for hoarding \"{$this->hoardingName}\"",
             $this->commissionType === 'all' => "{$this->commission}% (OOH & DOOH)",
             default => collect([
@@ -75,17 +75,27 @@ class CommissionNotification extends Notification implements ShouldQueue
             ])->filter()->implode(', '),
         };
 
+        $message = match (true) {
+            $this->hoardingName !== null && $this->type === 'set' =>
+            "Commission of {$this->commission}% has been set for your hoarding \"{$this->hoardingName}\".",
+            $this->hoardingName !== null && $this->type === 'updated' =>
+            "Commission for your hoarding \"{$this->hoardingName}\" has been updated to {$this->commission}%.",
+            $this->commissionType === 'all' && $this->type === 'set' =>
+            "Your commission has been set to {$this->commission}% (OOH & DOOH).",
+            $this->commissionType === 'all' && $this->type === 'updated' =>
+            "Your commission has been updated to {$this->commission}% (OOH & DOOH).",
+            $this->type === 'set' =>
+            "Your commission has been set: {$commissionDisplay}.",
+            default =>
+            "Your commission has been updated: {$commissionDisplay}.",
+        };
+
         return [
             'type'               => 'commission_' . $this->type,
             'title'              => $this->type === 'set'
-                                        ? 'Commission Set'
-                                        : 'Commission Updated',
-            // 'message'            => $this->type === 'set'
-            //                             ? "Your commission has been set. Please agree to proceed."
-            //                             : "Your commission has been updated. Please agree to proceed.",
-            'message'            => $this->type === 'set'
-                                    ? "Your commission has been set."
-                                        : "Your commission has been updated.",
+                ? 'Commission Set 💰'
+                : 'Commission Updated 💰',
+            'message'            => $message,
             'commission'         => $this->commission,
             'commission_type'    => $this->commissionType,
             'ooh_commission'     => $this->oohCommission,

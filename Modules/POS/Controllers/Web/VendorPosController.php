@@ -1978,7 +1978,9 @@ class VendorPosController extends Controller
 
     public function createCustomer(Request $request)
     {
+
         try {
+
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',

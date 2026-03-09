@@ -64,4 +64,43 @@ class BulkImportApprovedForVendorNotification extends Notification implements Sh
             'action_url' => route('vendor.import.enhanced.batch.show', $this->batch->id),
         ];
     }
+
+    /**
+     * Send push notification after database and mail notifications.
+     */
+    public function afterCommit($notifiable)
+    {
+        // Check if vendor has FCM token and push notifications enabled
+        if (!$notifiable->fcm_token || !$notifiable->notification_push) {
+            return;
+        }
+
+        try {
+            $message = "Your import has been approved! {$this->createdCount} " . \Illuminate\Support\Str::plural('hoarding', $this->createdCount) . " created";
+            if ($this->failedCount > 0) {
+                $message .= " and {$this->failedCount} failed";
+            }
+            $message .= ".";
+
+            send(
+                $notifiable->fcm_token,
+                'Import Approved ✅',
+                $message,
+                [
+                    'type'            => 'import_approved',
+                    'batch_id'        => $this->batch->id,
+                    'created_count'   => $this->createdCount,
+                    'failed_count'    => $this->failedCount,
+                    'total_processed' => $this->createdCount + $this->failedCount,
+                    'action'          => 'view_import'
+                ]
+            );
+        } catch (\Throwable $e) {
+            \Log::error("Failed to send push notification to vendor on import approval", [
+                'vendor_id' => $notifiable->id,
+                'batch_id'  => $this->batch->id,
+                'error'     => $e->getMessage()
+            ]);
+        }
+    }
 }

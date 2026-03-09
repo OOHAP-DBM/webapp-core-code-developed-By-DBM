@@ -55,8 +55,8 @@ class CustomerController extends Controller
         $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
         $validated['active_role'] = 'customer';
         $validated['status'] = 'active';
-        $validated['email_verified_at'] = now(); 
-        $validated['phone_verified_at'] = now(); 
+        $validated['email_verified_at'] = now();
+        $validated['phone_verified_at'] = now();
 
         $user = \App\Models\User::create($validated);
         $user->assignRole('customer');
@@ -106,7 +106,7 @@ class CustomerController extends Controller
                         ->orWhere('phone', 'like', "%{$search}%");
                 });
             })
-            ->select('id', 'name', 'email', 'phone','status', 'created_at')
+            ->select('id', 'name', 'email', 'phone', 'status', 'created_at')
             ->orderByDesc('created_at')
             ->get();
 
@@ -132,7 +132,17 @@ class CustomerController extends Controller
         // --- Export logic for deleted tab ---
         if ($tab === 'deleted' && $request->has('export') && $request->has('format')) {
             $columns = [
-                'ID', 'Name', 'Email', 'Phone', 'Country', 'Address', 'State', 'City', 'Pincode', 'Created At', 'Deleted At'
+                'ID',
+                'Name',
+                'Email',
+                'Phone',
+                'Country',
+                'Address',
+                'State',
+                'City',
+                'Pincode',
+                'Created At',
+                'Deleted At'
             ];
             $rows = $customers->map(function ($c) {
                 return [
@@ -285,6 +295,39 @@ class CustomerController extends Controller
         }
 
         $user->update($validated);
+
+        // 📱 Send push notification to customer
+        if ($user->fcm_token && $user->notification_push) {
+            try {
+                $message = 'Your profile has been updated by admin.';
+                if ($request->filled('password')) {
+                    $message = 'Your profile and password have been updated by admin.';
+                }
+
+                $sent = send(
+                    $user->fcm_token,
+                    'Profile Updated ✅',
+                    $message,
+                    [
+                        'type'        => 'profile_updated',
+                        'customer_id' => $user->id,
+                        'status'      => $validated['status'] ?? $user->status,
+                        'action'      => 'view_profile'
+                    ]
+                );
+
+                if (!$sent) {
+                    \Log::warning("FCM push notification failed for customer ID {$user->id} on profile update", [
+                        'customer_id' => $user->id
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \Log::error("Failed to send push notification to customer on profile update", [
+                    'customer_id' => $user->id,
+                    'error'       => $e->getMessage()
+                ]);
+            }
+        }
 
         return redirect()
             ->route('admin.customers.index')
