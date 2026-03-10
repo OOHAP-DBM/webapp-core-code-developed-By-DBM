@@ -405,13 +405,13 @@
                 </div>
             </div>
                 <!-- Create Offers -->
-            <a href="{{ route('vendor.offers.create') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.offers.create') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
+            <!-- <a href="{{ route('vendor.offers.create') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.offers.create') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
                 <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
                     <rect x="3" y="11" width="18" height="2" rx="1" fill="currentColor"/>
                     <rect x="11" y="3" width="2" height="18" rx="1" fill="currentColor"/>
                 </svg>
                 Create Offers
-            </a>
+            </a> -->
 
             <a href="{{ route('vendor.commission.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.commission.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

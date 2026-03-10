@@ -73,10 +73,10 @@
                         <span class="text-lg font-semibold leading-none">{{ $enquiry->created_at->format('d') }}</span>
                         <span class="text-sm text-gray-500">{{ $enquiry->created_at->format('M y') }}</span>
                         <br>
-                        <a href="{{ route('vendor.offers.create', ['enquiry_id' => $enquiry->id]) }}"
+                        <!-- <a href="{{ route('vendor.offers.create', ['enquiry_id' => $enquiry->id]) }}"
                             class="btn-color mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer">
                             Create Offer
-                        </a>
+                        </a> -->
                     </div>
                 </div>
             </div>
