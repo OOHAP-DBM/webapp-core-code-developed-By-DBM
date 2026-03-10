@@ -7,6 +7,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Modules\Import\Entities\InventoryImportBatch;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Models\Hoarding;
+
 
 class BulkImportApprovedForVendorNotification extends Notification implements ShouldQueue
 {
@@ -15,12 +17,18 @@ class BulkImportApprovedForVendorNotification extends Notification implements Sh
     protected InventoryImportBatch $batch;
     protected int $createdCount;
     protected int $failedCount;
+    protected array $createdHoardingIds;
 
-    public function __construct(InventoryImportBatch $batch, int $createdCount, int $failedCount)
-    {
+    public function __construct(
+        InventoryImportBatch $batch,
+        int $createdCount,
+        int $failedCount,
+        array $createdHoardingIds = []  // ADD THIS
+    ) {
         $this->batch = $batch;
         $this->createdCount = $createdCount;
         $this->failedCount = $failedCount;
+        $this->createdHoardingIds = $createdHoardingIds; // ADD THIS
     }
 
     /**
@@ -34,19 +42,40 @@ class BulkImportApprovedForVendorNotification extends Notification implements Sh
     /**
      * Email content for the vendor.
      */
-    public function toMail($notifiable)
+      public function toMail($notifiable)
     {
         $subject = 'Your Bulk Import Batch has been Approved!';
-        $actionUrl = route('vendor.import.enhanced.batch.show', $this->batch->id);
+        $batchUrl = route('vendor.import.enhanced.batch.show', $this->batch->id);
 
-        return (new MailMessage)
+        $mail = (new MailMessage)
             ->subject($subject)
             ->greeting("Hello {$notifiable->name},")
             ->line('Your Bulk Import batch has been successfully approved.')
-            ->line("Hoardings Created: {$this->createdCount}")
-            ->line("Failed Records: {$this->failedCount}")
-            ->action('View Your Bulk Import Batch', $actionUrl)
-            ->line('Thank you for using our platform!');
+            ->line("**Hoardings Created:** {$this->createdCount}")
+            ->line("**Failed Records:** {$this->failedCount}");
+            // Add individual hoarding links if we have them
+        if (!empty($this->createdHoardingIds)) {
+            $mail->line('---');
+            $mail->line('**Your Created Hoardings:**');
+
+            // Fetch hoarding details for richer links (title/code)
+            $hoardings = Hoarding::whereIn('id', $this->createdHoardingIds)
+                ->select('id', 'title')
+                ->get();
+
+            foreach ($hoardings as $hoarding) {
+                $hoardingUrl = route('vendor.myHoardings.show', $hoarding->id);
+                $label = $hoarding->title ? "#{$hoarding->id} — {$hoarding->title}" : "Hoarding #{$hoarding->id}";
+                $mail->line("[{$label}]({$hoardingUrl})");
+            }
+
+            $mail->line('---');
+        }
+
+        $mail->action('View Your Import Batch', $batchUrl)
+             ->line('Thank you for using our platform!');
+
+        return $mail;
     }
 
     /**
