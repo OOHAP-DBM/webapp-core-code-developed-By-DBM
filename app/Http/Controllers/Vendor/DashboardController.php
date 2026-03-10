@@ -32,8 +32,8 @@ class DashboardController extends Controller
         }
 
         // Get statistics
-        $totalEarnings = Booking::where('vendor_id', $userId)
-            ->where('payment_status', 'paid')
+        $totalEarnings = POSBooking::where('vendor_id', $userId)
+            ->whereIn('payment_status', ['paid', 'partial_paid'])
             ->sum('total_amount') ?? 0;
 
         $totalHoardings = Hoarding::where('vendor_id', $userId)->count();

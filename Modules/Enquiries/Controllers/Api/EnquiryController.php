@@ -238,27 +238,197 @@ class EnquiryController extends Controller
         }
     }
 
+   /* =====================================================
+     | INDEX — with search + filters (mirrors web controller)
+     ===================================================== */
+
     /**
-     * Get all enquiries for authenticated user
-     * GET /api/v1/enquiries
+     * @OA\Get(
+     *     path="/api/v1/enquiries",
+     *     summary="List enquiries for authenticated customer",
+     *     description="Returns paginated list of enquiries with optional filters for status, search by ID, date range, and custom date range.",
+     *     tags={"Enquiries"},
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         description="Filter by enquiry status",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"submitted","pending","accepted","rejected","cancelled"}
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search by enquiry ID (digits only are extracted)",
+     *         required=false,
+     *         @OA\Schema(type="string", example="ENQ-101")
+     *     ),
+     *     @OA\Parameter(
+     *         name="date_filter",
+     *         in="query",
+     *         description="Preset date range filter",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"last_week","last_month","last_year","custom"}
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="from_date",
+     *         in="query",
+     *         description="Start date for custom range (required when date_filter=custom)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date", example="2025-01-01")
+     *     ),
+     *     @OA\Parameter(
+     *         name="to_date",
+     *         in="query",
+     *         description="End date for custom range (required when date_filter=custom)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date", example="2025-03-31")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of results per page (default: 10)",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=10)
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Paginated list of enquiries",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(ref="#/components/schemas/EnquiryResource")
+     *             ),
+     *             @OA\Property(property="meta", type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="last_page", type="integer", example=5),
+     *                 @OA\Property(property="per_page", type="integer", example=10),
+     *                 @OA\Property(property="total", type="integer", example=48),
+     *                 @OA\Property(property="search_id", type="integer", nullable=true, example=101)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Unauthenticated")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error (e.g. invalid date format)",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
      */
-   public function index(Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         if (!Auth::check()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized',
-            ], 403);
+                'message' => 'Unauthenticated',
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $enquiries = $this->service->getMyEnquiries();
+        // ── Validate query params ──────────────────────────────────────────
+        $validator = Validator::make($request->all(), [
+            'status'      => 'nullable|string|in:submitted,pending,accepted,rejected,cancelled',
+            'search'      => 'nullable|string|max:50',
+            'date_filter' => 'nullable|string|in:last_week,last_month,last_year,custom',
+            'from_date'   => 'nullable|date|required_if:date_filter,custom',
+            'to_date'     => 'nullable|date|required_if:date_filter,custom|after_or_equal:from_date',
+            'per_page'    => 'nullable|integer|min:1|max:100',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $validator->errors(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        // ── Build query (mirrors web controller exactly) ───────────────────
+        $query = Enquiry::where('customer_id', Auth::id())
+            ->with(['items.hoarding']);
+
+        // Filter: status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter: search by enquiry ID
+        $searchId = null;
+        if ($request->filled('search')) {
+            $raw      = trim($request->search);
+            $searchId = preg_replace('/\D/', '', $raw); // strip non-digits
+
+            if ($searchId !== '') {
+                $query->where('id', (int) $searchId);
+                $query->orderByRaw(
+                    'CASE WHEN id = ? THEN 0 ELSE 1 END',
+                    [(int) $searchId]
+                );
+            }
+        }
+
+        // Filter: date range
+        if ($request->filled('date_filter')) {
+            switch ($request->date_filter) {
+                case 'last_week':
+                    $query->where('created_at', '>=', Carbon::now()->subWeek());
+                    break;
+
+                case 'last_month':
+                    $query->where('created_at', '>=', Carbon::now()->subMonth());
+                    break;
+
+                case 'last_year':
+                    $query->where('created_at', '>=', Carbon::now()->subYear());
+                    break;
+
+                case 'custom':
+                    if ($request->filled('from_date') && $request->filled('to_date')) {
+                        $query->whereBetween('created_at', [
+                            Carbon::parse($request->from_date)->startOfDay(),
+                            Carbon::parse($request->to_date)->endOfDay(),
+                        ]);
+                    }
+                    break;
+            }
+        }
+
+        // Default sort
+        $query->orderBy('created_at', 'desc');
+
+        $perPage    = (int) $request->input('per_page', 10);
+        $enquiries  = $query->paginate($perPage)->withQueryString();
 
         return response()->json([
             'success' => true,
             'data'    => EnquiryResource::collection($enquiries),
-            'total'   => $enquiries->count(),
+            'meta'    => [
+                'current_page' => $enquiries->currentPage(),
+                'last_page'    => $enquiries->lastPage(),
+                'per_page'     => $enquiries->perPage(),
+                'total'        => $enquiries->total(),
+                'search_id'    => $searchId !== '' ? (int) $searchId : null,
+            ],
         ]);
     }
+
 
     // public function show(int $id)
     // {
