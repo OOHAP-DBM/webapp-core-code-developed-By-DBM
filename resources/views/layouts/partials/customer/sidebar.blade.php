@@ -17,10 +17,10 @@
         </a>
     </div>
 
-    <div class="bg-white px-6 py-5">
-        <h2 class="text-base font-semibold text-gray-900 mb-4 text-left">
+    <div class="bg-white px-6 pb-5">
+        {{-- <h2 class="text-base font-semibold text-gray-900 mb-4 text-left">
             My Account
-        </h2>
+        </h2> --}}
 
         <div class="flex items-center space-x-3">
             <div
@@ -29,12 +29,12 @@
             >
                  @if(auth()->user()->avatar)
                         <img
-                            src="{{ str_starts_with(auth()->user()->avatar, 'http')
-                                ? auth()->user()->avatar
-                                : asset('storage/' . ltrim(auth()->user()->avatar, '/')) }}"
-                            alt="Profile Image"
-                            class="w-full h-full object-cover block"
-                        >
+                                src="{{ str_starts_with(auth()->user()->avatar, 'http')
+                                    ? auth()->user()->avatar
+                                    : asset('storage/' . ltrim(auth()->user()->avatar, '/')) }}?v={{ auth()->user()->updated_at->timestamp }}"
+                                alt="Profile Image"
+                                class="w-full h-full object-cover block"
+                            >
                     @else
                         {{-- Default User Icon --}}
                         <svg

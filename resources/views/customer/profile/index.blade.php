@@ -277,7 +277,7 @@
     </div>
 </div>
 {{-- Change Password Modal --}}
-<div id="changePasswordModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+<div id="changePasswordModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 px-4 md:px-0">
     <div class="bg-white rounded-lg w-100 max-w-lg p-6 relative border border-gray-300 modal-container">
 
         <button onclick="closeChangePasswordModal()"
