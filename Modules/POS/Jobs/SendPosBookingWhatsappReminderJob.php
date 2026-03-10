@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
-use Modules\POS\Models\PosBooking;
+use Modules\POS\Models\POSBooking;
 use App\Services\Whatsapp\TwilioWhatsappService;
 
 class SendPosBookingWhatsappReminderJob implements ShouldQueue
@@ -25,7 +25,7 @@ class SendPosBookingWhatsappReminderJob implements ShouldQueue
     {
         DB::transaction(function () use ($whatsapp) {
 
-            $booking = PosBooking::lockForUpdate()->find($this->bookingId);
+            $booking = POSBooking::lockForUpdate()->find($this->bookingId);
 
             if (! $booking) return;
 
