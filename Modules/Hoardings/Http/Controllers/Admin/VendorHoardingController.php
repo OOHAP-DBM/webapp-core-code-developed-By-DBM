@@ -16,7 +16,6 @@ use App\Notifications\HoardingApproved;
 use App\Events\HoardingStatusChanged;
 
 
-
 class VendorHoardingController extends Controller
 {
     // public function index(Request $request): View
@@ -337,298 +336,478 @@ class VendorHoardingController extends Controller
     /**
      * Bulk activate hoardings
      */
+    // public function bulkActivate(Request $request)
+    // {
+    //     $request->validate([
+    //         'ids' => 'required|array',
+    //         'ids.*' => 'required|integer|exists:hoardings,id'
+    //     ]);
+
+    //     try {
+    //         $count = Hoarding::whereIn('id', $request->ids)
+    //             ->update(['status' => 'active']);
+    //         $hoardings = Hoarding::with('vendor')->whereIn('id', $request->ids)->get();
+    //         event(new HoardingStatusChanged($hoardings, 'activated', auth()->user()));
+
+    //         // Send notifications to vendors
+    //         foreach ($hoardings as $hoarding) {
+    //             // Send database notification
+    //             if ($hoarding->vendor) {
+    //                 $hoarding->vendor->notify(new HoardingApproved($hoarding));
+    //             }
+
+    //             // 📱 Send push notification to vendor on hoarding activation
+    //             if ($hoarding->vendor && $hoarding->vendor->fcm_token) {
+    //                 try {
+    //                     $sent = send(
+    //                         $hoarding->vendor->fcm_token,
+    //                         'Hoarding Activated ✅',
+    //                         'Your hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been activated and is now live!',
+    //                         [
+    //                             'type'          => 'vendor_hoarding_activated',
+    //                             'hoarding_id'   => $hoarding->id,
+    //                             'hoarding_type' => strtoupper($hoarding->hoarding_type),
+    //                             'status'        => 'active',
+    //                             'action'        => 'activated'
+    //                         ]
+    //                     );
+
+    //                     if (!$sent) {
+    //                         Log::warning("FCM push notification failed for vendor ID {$hoarding->vendor->id} on hoarding activation", [
+    //                             'hoarding_id' => $hoarding->id
+    //                         ]);
+    //                     }
+    //                 } catch (\Throwable $e) {
+    //                     Log::error("Failed to send push notification to vendor on hoarding activation", [
+    //                         'vendor_id'   => $hoarding->vendor->id,
+    //                         'hoarding_id' => $hoarding->id,
+    //                         'error'       => $e->getMessage()
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' activated successfully',
+    //             'count' => $count
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to activate hoardings: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
     public function bulkActivate(Request $request)
     {
         $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'required|integer|exists:hoardings,id'
+            'ids'   => 'required|array',
+            'ids.*' => 'required|integer|exists:hoardings,id',
         ]);
 
         try {
-            $count = Hoarding::whereIn('id', $request->ids)
-                ->update(['status' => 'active']);
+            $count    = Hoarding::whereIn('id', $request->ids)->update(['status' => 'active']);
             $hoardings = Hoarding::with('vendor')->whereIn('id', $request->ids)->get();
-            event(new HoardingStatusChanged($hoardings, 'activated', auth()->user()));
 
-            // Send notifications to vendors
-            foreach ($hoardings as $hoarding) {
-                // Send database notification
-                if ($hoarding->vendor) {
-                    $hoarding->vendor->notify(new HoardingApproved($hoarding));
-                }
+            // event(new HoardingStatusChanged($hoardings, 'activated', auth()->user()));
 
-                // 📱 Send push notification to vendor on hoarding activation
-                if ($hoarding->vendor && $hoarding->vendor->fcm_token) {
-                    try {
-                        $sent = send(
-                            $hoarding->vendor->fcm_token,
-                            'Hoarding Activated ✅',
-                            'Your hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been activated and is now live!',
-                            [
-                                'type'          => 'vendor_hoarding_activated',
-                                'hoarding_id'   => $hoarding->id,
-                                'hoarding_type' => strtoupper($hoarding->hoarding_type),
-                                'status'        => 'active',
-                                'action'        => 'activated'
-                            ]
-                        );
-
-                        if (!$sent) {
-                            Log::warning("FCM push notification failed for vendor ID {$hoarding->vendor->id} on hoarding activation", [
-                                'hoarding_id' => $hoarding->id
-                            ]);
-                        }
-                    } catch (\Throwable $e) {
-                        Log::error("Failed to send push notification to vendor on hoarding activation", [
-                            'vendor_id'   => $hoarding->vendor->id,
-                            'hoarding_id' => $hoarding->id,
-                            'error'       => $e->getMessage()
-                        ]);
-                    }
-                }
-            }
+            $this->notifyVendorsGrouped(
+                $hoardings,
+                'activated',
+                'Hoardings Activated ✅',
+                '{count} of your hoardings have been activated and are now live!',
+                'vendor_hoarding_bulk_activated'
+            );
 
             return response()->json([
                 'success' => true,
                 'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' activated successfully',
-                'count' => $count
+                'count'   => $count,
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to activate hoardings: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Failed: ' . $e->getMessage()], 500);
         }
     }
 
     /**
      * Bulk deactivate hoardings
      */
+    // public function bulkDeactivate(Request $request)
+    // {
+    //     $request->validate([
+    //         'ids' => 'required|array',
+    //         'ids.*' => 'required|integer|exists:hoardings,id'
+    //     ]);
+
+    //     try {
+    //         $count = Hoarding::whereIn('id', $request->ids)
+    //             ->update(['status' => 'inactive']);
+    //         $hoardings = Hoarding::with('vendor')->whereIn('id', $request->ids)->get();
+    //         event(new HoardingStatusChanged($hoardings, 'deactivated', auth()->user()));
+
+    //         // Send notifications to vendors
+    //         foreach ($hoardings as $hoarding) {
+    //             // Send database notification
+    //             if ($hoarding->vendor) {
+    //                 $hoarding->vendor->notify(
+    //                     new \App\Notifications\HoardingRejectedNotification($hoarding, 'Your hoarding has been deactivated')
+    //                 );
+    //             }
+
+    //             // 📱 Send push notification to vendor on hoarding deactivation
+    //             if ($hoarding->vendor && $hoarding->vendor->fcm_token) {
+    //                 try {
+    //                     $sent = send(
+    //                         $hoarding->vendor->fcm_token,
+    //                         'Hoarding Deactivated ⏸️',
+    //                         'Your hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been deactivated.',
+    //                         [
+    //                             'type'          => 'vendor_hoarding_deactivated',
+    //                             'hoarding_id'   => $hoarding->id,
+    //                             'hoarding_type' => strtoupper($hoarding->hoarding_type),
+    //                             'status'        => 'inactive',
+    //                             'action'        => 'deactivated'
+    //                         ]
+    //                     );
+
+    //                     if (!$sent) {
+    //                         Log::warning("FCM push notification failed for vendor ID {$hoarding->vendor->id} on hoarding deactivation", [
+    //                             'hoarding_id' => $hoarding->id
+    //                         ]);
+    //                     }
+    //                 } catch (\Throwable $e) {
+    //                     Log::error("Failed to send push notification to vendor on hoarding deactivation", [
+    //                         'vendor_id'   => $hoarding->vendor->id,
+    //                         'hoarding_id' => $hoarding->id,
+    //                         'error'       => $e->getMessage()
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' deactivated successfully',
+    //             'count' => $count
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to deactivate hoardings: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
     public function bulkDeactivate(Request $request)
     {
         $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'required|integer|exists:hoardings,id'
+            'ids'   => 'required|array',
+            'ids.*' => 'required|integer|exists:hoardings,id',
         ]);
 
         try {
-            $count = Hoarding::whereIn('id', $request->ids)
-                ->update(['status' => 'inactive']);
+            $count     = Hoarding::whereIn('id', $request->ids)->update(['status' => 'inactive']);
             $hoardings = Hoarding::with('vendor')->whereIn('id', $request->ids)->get();
-            event(new HoardingStatusChanged($hoardings, 'deactivated', auth()->user()));
 
-            // Send notifications to vendors
-            foreach ($hoardings as $hoarding) {
-                // Send database notification
-                if ($hoarding->vendor) {
-                    $hoarding->vendor->notify(
-                        new \App\Notifications\HoardingRejectedNotification($hoarding, 'Your hoarding has been deactivated')
-                    );
-                }
+            // event(new HoardingStatusChanged($hoardings, 'deactivated', auth()->user()));
 
-                // 📱 Send push notification to vendor on hoarding deactivation
-                if ($hoarding->vendor && $hoarding->vendor->fcm_token) {
-                    try {
-                        $sent = send(
-                            $hoarding->vendor->fcm_token,
-                            'Hoarding Deactivated ⏸️',
-                            'Your hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been deactivated.',
-                            [
-                                'type'          => 'vendor_hoarding_deactivated',
-                                'hoarding_id'   => $hoarding->id,
-                                'hoarding_type' => strtoupper($hoarding->hoarding_type),
-                                'status'        => 'inactive',
-                                'action'        => 'deactivated'
-                            ]
-                        );
-
-                        if (!$sent) {
-                            Log::warning("FCM push notification failed for vendor ID {$hoarding->vendor->id} on hoarding deactivation", [
-                                'hoarding_id' => $hoarding->id
-                            ]);
-                        }
-                    } catch (\Throwable $e) {
-                        Log::error("Failed to send push notification to vendor on hoarding deactivation", [
-                            'vendor_id'   => $hoarding->vendor->id,
-                            'hoarding_id' => $hoarding->id,
-                            'error'       => $e->getMessage()
-                        ]);
-                    }
-                }
-            }
+            $this->notifyVendorsGrouped(
+                $hoardings,
+                'deactivated',
+                'Hoardings Deactivated ⏸️',
+                '{count} of your hoardings have been deactivated.',
+                'vendor_hoarding_bulk_deactivated'
+            );
 
             return response()->json([
                 'success' => true,
                 'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' deactivated successfully',
-                'count' => $count
+                'count'   => $count,
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to deactivate hoardings: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Failed: ' . $e->getMessage()], 500);
         }
     }
 
     /**
      * Bulk approve hoardings (set commission and activate)
      */
+    // public function bulkApprove(Request $request)
+    // {
+    //     $request->validate([
+    //         'ids' => 'required|array',
+    //         'ids.*' => 'required|integer|exists:hoardings,id'
+    //     ]);
+
+    //     try {
+    //         $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+
+    //         // Only activate
+    //         foreach ($hoardings as $hoarding) {
+    //             $hoarding->status = 'active';
+    //             $hoarding->save();
+
+    //             // Send email to vendor
+    //             if ($hoarding->vendor && !empty($hoarding->vendor->email)) {
+    //                 try {
+    //                     Mail::to($hoarding->vendor->email)->send(
+    //                         new HoardingPublishedMail($hoarding)
+    //                     );
+    //                 } catch (\Throwable $e) {
+    //                     Log::error('Hoarding published mail failed', [
+    //                         'hoarding_id' => $hoarding->id,
+    //                         'vendor_email' => $hoarding->vendor->email,
+    //                         'error' => $e->getMessage(),
+    //                     ]);
+    //                 }
+    //             }
+    //             // Send database notification to vendor
+    //             if ($hoarding->vendor) {
+    //                 $hoarding->vendor->notify(new HoardingApproved($hoarding));
+    //             }
+
+    //             // 📱 Send push notification to vendor on hoarding approval
+    //             if ($hoarding->vendor && $hoarding->vendor->fcm_token) {
+    //                 try {
+    //                     $sent = send(
+    //                         $hoarding->vendor->fcm_token,
+    //                         'Hoarding Approved ✅',
+    //                         'Your hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been approved and is now live!',
+    //                         [
+    //                             'type'          => 'vendor_hoarding_approved',
+    //                             'hoarding_id'   => $hoarding->id,
+    //                             'hoarding_type' => strtoupper($hoarding->hoarding_type),
+    //                             'status'        => 'active',
+    //                             'action'        => 'approved'
+    //                         ]
+    //                     );
+
+    //                     if (!$sent) {
+    //                         Log::warning("FCM push notification failed for vendor ID {$hoarding->vendor->id} on hoarding approval", [
+    //                             'hoarding_id' => $hoarding->id
+    //                         ]);
+    //                     }
+    //                 } catch (\Throwable $e) {
+    //                     Log::error("Failed to send push notification to vendor on hoarding approval", [
+    //                         'vendor_id'   => $hoarding->vendor->id,
+    //                         'hoarding_id' => $hoarding->id,
+    //                         'error'       => $e->getMessage()
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+
+    //         $count = $hoardings->count();
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' approved and activated successfully',
+    //             'count' => $count
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to approve hoardings: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
     public function bulkApprove(Request $request)
     {
         $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'required|integer|exists:hoardings,id'
+            'ids'   => 'required|array',
+            'ids.*' => 'required|integer|exists:hoardings,id',
         ]);
 
         try {
-            $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+            $hoardings = Hoarding::with('vendor')->whereIn('id', $request->ids)->get();
 
-            // Only activate
             foreach ($hoardings as $hoarding) {
                 $hoarding->status = 'active';
                 $hoarding->save();
-
-                // Send email to vendor
-                if ($hoarding->vendor && !empty($hoarding->vendor->email)) {
-                    try {
-                        Mail::to($hoarding->vendor->email)->send(
-                            new HoardingPublishedMail($hoarding)
-                        );
-                    } catch (\Throwable $e) {
-                        Log::error('Hoarding published mail failed', [
-                            'hoarding_id' => $hoarding->id,
-                            'vendor_email' => $hoarding->vendor->email,
-                            'error' => $e->getMessage(),
-                        ]);
-                    }
-                }
-                // Send database notification to vendor
-                if ($hoarding->vendor) {
-                    $hoarding->vendor->notify(new HoardingApproved($hoarding));
-                }
-
-                // 📱 Send push notification to vendor on hoarding approval
-                if ($hoarding->vendor && $hoarding->vendor->fcm_token) {
-                    try {
-                        $sent = send(
-                            $hoarding->vendor->fcm_token,
-                            'Hoarding Approved ✅',
-                            'Your hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been approved and is now live!',
-                            [
-                                'type'          => 'vendor_hoarding_approved',
-                                'hoarding_id'   => $hoarding->id,
-                                'hoarding_type' => strtoupper($hoarding->hoarding_type),
-                                'status'        => 'active',
-                                'action'        => 'approved'
-                            ]
-                        );
-
-                        if (!$sent) {
-                            Log::warning("FCM push notification failed for vendor ID {$hoarding->vendor->id} on hoarding approval", [
-                                'hoarding_id' => $hoarding->id
-                            ]);
-                        }
-                    } catch (\Throwable $e) {
-                        Log::error("Failed to send push notification to vendor on hoarding approval", [
-                            'vendor_id'   => $hoarding->vendor->id,
-                            'hoarding_id' => $hoarding->id,
-                            'error'       => $e->getMessage()
-                        ]);
-                    }
-                }
             }
+
+            // Send ONE bulk email per vendor (replaces per-hoarding HoardingPublishedMail)
+            $this->notifyVendorsGrouped(
+                $hoardings,
+                'approved',
+                'Hoardings Approved ✅',
+                '{count} of your hoardings have been approved and are now live!',
+                'vendor_hoarding_bulk_approved'
+            );
 
             $count = $hoardings->count();
             return response()->json([
                 'success' => true,
                 'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' approved and activated successfully',
-                'count' => $count
+                'count'   => $count,
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to approve hoardings: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Failed: ' . $e->getMessage()], 500);
         }
     }
 
     /**
      * Bulk reject hoardings
      */
+    // public function bulkReject(Request $request)
+    // {
+    //     $request->validate([
+    //         'ids' => 'required|array',
+    //         'ids.*' => 'required|integer|exists:hoardings,id',
+    //         'rejection_reason' => 'nullable|string|max:500'
+    //     ]);
+
+    //     try {
+    //         $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+    //         $rejectionReason = $request->input('rejection_reason', 'Admin decision');
+
+    //         foreach ($hoardings as $hoarding) {
+    //             $hoarding->status = 'rejected';
+    //             $hoarding->save();
+
+    //             // Fire event for notification
+    //             event(new HoardingStatusChanged(collect([$hoarding]), 'rejected', auth()->user()));
+
+    //             // Send database notification to vendor
+    //             if ($hoarding->vendor) {
+    //                 $hoarding->vendor->notify(
+    //                     new \App\Notifications\HoardingRejectedNotification($hoarding, $rejectionReason)
+    //                 );
+    //             }
+
+    //             // 📱 Send push notification to vendor on hoarding rejection
+    //             if ($hoarding->vendor && $hoarding->vendor->fcm_token) {
+    //                 try {
+    //                     $message = 'Your hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been rejected';
+    //                     if ($rejectionReason) {
+    //                         $message .= '. Reason: ' . $rejectionReason;
+    //                     }
+
+    //                     $sent = send(
+    //                         $hoarding->vendor->fcm_token,
+    //                         'Hoarding Rejected ❌',
+    //                         $message,
+    //                         [
+    //                             'type'          => 'vendor_hoarding_rejected',
+    //                             'hoarding_id'   => $hoarding->id,
+    //                             'hoarding_type' => strtoupper($hoarding->hoarding_type),
+    //                             'status'        => 'rejected',
+    //                             'reason'        => $rejectionReason,
+    //                             'action'        => 'rejected'
+    //                         ]
+    //                     );
+
+    //                     if (!$sent) {
+    //                         Log::warning("FCM push notification failed for vendor ID {$hoarding->vendor->id} on hoarding rejection", [
+    //                             'hoarding_id' => $hoarding->id
+    //                         ]);
+    //                     }
+    //                 } catch (\Throwable $e) {
+    //                     Log::error("Failed to send push notification to vendor on hoarding rejection", [
+    //                         'vendor_id'   => $hoarding->vendor->id,
+    //                         'hoarding_id' => $hoarding->id,
+    //                         'error'       => $e->getMessage()
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+
+    //         $count = $hoardings->count();
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' rejected successfully',
+    //             'count' => $count
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to reject hoardings: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
     public function bulkReject(Request $request)
     {
         $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'required|integer|exists:hoardings,id',
-            'rejection_reason' => 'nullable|string|max:500'
+            'ids'              => 'required|array',
+            'ids.*'            => 'required|integer|exists:hoardings,id',
+            'rejection_reason' => 'nullable|string|max:500',
         ]);
 
         try {
-            $hoardings = Hoarding::whereIn('id', $request->ids)->get();
+            $hoardings       = Hoarding::with('vendor')->whereIn('id', $request->ids)->get();
             $rejectionReason = $request->input('rejection_reason', 'Admin decision');
 
             foreach ($hoardings as $hoarding) {
                 $hoarding->status = 'rejected';
                 $hoarding->save();
-
-                // Fire event for notification
-                event(new HoardingStatusChanged(collect([$hoarding]), 'rejected', auth()->user()));
-
-                // Send database notification to vendor
-                if ($hoarding->vendor) {
-                    $hoarding->vendor->notify(
-                        new \App\Notifications\HoardingRejectedNotification($hoarding, $rejectionReason)
-                    );
-                }
-
-                // 📱 Send push notification to vendor on hoarding rejection
-                if ($hoarding->vendor && $hoarding->vendor->fcm_token) {
-                    try {
-                        $message = 'Your hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been rejected';
-                        if ($rejectionReason) {
-                            $message .= '. Reason: ' . $rejectionReason;
-                        }
-
-                        $sent = send(
-                            $hoarding->vendor->fcm_token,
-                            'Hoarding Rejected ❌',
-                            $message,
-                            [
-                                'type'          => 'vendor_hoarding_rejected',
-                                'hoarding_id'   => $hoarding->id,
-                                'hoarding_type' => strtoupper($hoarding->hoarding_type),
-                                'status'        => 'rejected',
-                                'reason'        => $rejectionReason,
-                                'action'        => 'rejected'
-                            ]
-                        );
-
-                        if (!$sent) {
-                            Log::warning("FCM push notification failed for vendor ID {$hoarding->vendor->id} on hoarding rejection", [
-                                'hoarding_id' => $hoarding->id
-                            ]);
-                        }
-                    } catch (\Throwable $e) {
-                        Log::error("Failed to send push notification to vendor on hoarding rejection", [
-                            'vendor_id'   => $hoarding->vendor->id,
-                            'hoarding_id' => $hoarding->id,
-                            'error'       => $e->getMessage()
-                        ]);
-                    }
-                }
             }
+            // if($hoardings->count() ==1) {
+            //   event(new HoardingStatusChanged($hoardings, 'rejected', auth()->user()));
+            // }
+
+            // Pass rejection reason via a custom notification subclass or extra array
+            // Option: temporarily store reason so notifyVendorsGrouped can use it
+            $this->notifyVendorsGroupedWithReason(
+                $hoardings,
+                'rejected',
+                $rejectionReason,
+                'Hoardings Rejected ❌',
+                '{count} of your hoardings have been rejected. Reason: ' . $rejectionReason,
+                'vendor_hoarding_bulk_rejected'
+            );
 
             $count = $hoardings->count();
             return response()->json([
                 'success' => true,
                 'message' => $count . ' ' . Str::plural('Hoarding', $count) . ' rejected successfully',
-                'count' => $count
+                'count'   => $count,
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to reject hoardings: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // Variant of the helper that carries a rejection reason
+    private function notifyVendorsGroupedWithReason(
+        \Illuminate\Support\Collection $hoardings,
+        string $action,
+        string $reason,
+        ?string $fcmTitle = null,
+        ?string $fcmBody = null,
+        ?string $fcmType = null
+    ): void {
+        $adminName = auth()->user()?->name ?? 'Admin';
+        $grouped   = $hoardings->filter(fn($h) => $h->vendor !== null)
+                            ->groupBy(fn($h) => $h->vendor->id);
+
+        foreach ($grouped as $vendorId => $vendorHoardings) {
+            $vendor = $vendorHoardings->first()->vendor;
+
+            $vendor->notify(
+                new \Modules\Hoardings\Notifications\HoardingBulkStatusNotification(
+                    $vendorHoardings,
+                    $action,
+                    $adminName,
+                    $reason        // pass reason to notification if you extend it
+                )
+            );
+
+            if ($vendor->fcm_token && $fcmTitle && $fcmType) {
+                try {
+                    $count = $vendorHoardings->count();
+                    $body  = str_replace('{count}', $count, $fcmBody ?? "{$count} hoardings {$action}.");
+
+                    send($vendor->fcm_token, $fcmTitle, $body, [
+                        'type'         => $fcmType,
+                        'hoarding_ids' => $vendorHoardings->pluck('id')->toArray(),
+                        'count'        => $count,
+                        'action'       => $action,
+                        'reason'       => $reason,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error("Bulk FCM (reject) exception for vendor {$vendor->id}", ['error' => $e->getMessage()]);
+                }
+            }
         }
     }
 
@@ -725,6 +904,69 @@ class VendorHoardingController extends Controller
                 'success' => false,
                 'message' => 'Failed to update slugs: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+
+    /**
+     * Send ONE email + database notification + push per vendor.
+     * Accepts a collection of hoardings (already grouped or not – grouping happens here).
+     */
+    private function notifyVendorsGrouped(
+        \Illuminate\Support\Collection $hoardings,
+        string $action,
+        ?string $fcmTitle = null,
+        ?string $fcmBodyTemplate = null,  // use {count} as placeholder
+        ?string $fcmType = null
+    ): void {
+        $adminName = auth()->user()?->name ?? 'Admin';
+
+        // Group all affected hoardings by vendor_id
+        $grouped = $hoardings->filter(fn($h) => $h->vendor !== null)
+                            ->groupBy(fn($h) => $h->vendor->id);
+
+        foreach ($grouped as $vendorId => $vendorHoardings) {
+            $vendor = $vendorHoardings->first()->vendor;
+
+            // 1️⃣ Database + Email notification (one per vendor)
+            $vendor->notify(
+                new \Modules\Hoardings\Notifications\HoardingBulkStatusNotification(
+                    $vendorHoardings,
+                    $action,
+                    $adminName
+                )
+            );
+
+            // 2️⃣ Push notification (one per vendor, summarised)
+            if ($vendor->fcm_token && $fcmTitle && $fcmType) {
+                try {
+                    $count = $vendorHoardings->count();
+                    $body  = $fcmBodyTemplate
+                        ? str_replace('{count}', $count, $fcmBodyTemplate)
+                        : "{$count} " . Str::plural('hoarding', $count) . " have been {$action}.";
+
+                    $sent = send(
+                        $vendor->fcm_token,
+                        $fcmTitle,
+                        $body,
+                        [
+                            'type'         => $fcmType,
+                            'hoarding_ids' => $vendorHoardings->pluck('id')->toArray(),
+                            'count'        => $count,
+                            'action'       => $action,
+                        ]
+                    );
+
+                    if (!$sent) {
+                        Log::warning("Bulk FCM failed for vendor {$vendor->id}", ['action' => $action]);
+                    }
+                } catch (\Throwable $e) {
+                    Log::error("Bulk FCM exception for vendor {$vendor->id}", [
+                        'error'  => $e->getMessage(),
+                        'action' => $action,
+                    ]);
+                }
+            }
         }
     }
 }

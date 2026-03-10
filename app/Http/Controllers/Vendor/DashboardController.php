@@ -7,6 +7,8 @@ use App\Models\Booking;
 use App\Models\Hoarding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Modules\POS\Models\PosBooking;
+use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
@@ -39,11 +41,11 @@ class DashboardController extends Controller
         $doohHoardings = Hoarding::where('vendor_id', $userId)->where('hoarding_type', 'dooh')->count();
         $activeHoardings = Hoarding::where('vendor_id', $userId)->where('status', 'active')->count();
         $inactiveHoardings = Hoarding::where('vendor_id', $userId)->where('status', 'inactive')->count();
-        $unsoldHoardings = Hoarding::where('vendor_id', $userId)->where('status', 'draft')->count();
 
         $totalBookings = Booking::where('vendor_id', $userId)->count();
         $myOrders = Booking::where('vendor_id', $userId)->count();
-        $posBookings = 0;
+        $posBookingsCount = $vendor->posBookings()->where('status', 'confirmed')->count();
+        $unsoldHoardings = $activeHoardings - $posBookingsCount;
 
         $stats = [
             'earnings' => $totalEarnings,
@@ -53,11 +55,12 @@ class DashboardController extends Controller
             'active' => $activeHoardings,
             'inactive' => $inactiveHoardings,
             'unsold' => $unsoldHoardings,
-            'total_bookings' => $totalBookings,
-            'my_orders' => $myOrders,
-            'pos' => $posBookings,
+            'total_bookings' => $posBookingsCount,
+            'my_orders' => $posBookingsCount,
+            'pos' => $posBookingsCount,
         ];
 
+        // dd($unsoldHoardings);
         // Get top hoardings by bookings
         $topHoardings = Hoarding::where('vendor_id', $userId)
             ->withCount('bookings')
@@ -78,27 +81,66 @@ class DashboardController extends Controller
             ];
             })->toArray();
 
-        // Get top customers by amount spent
-        $topCustomers = Booking::where('vendor_id', $userId)
+                // Get Booking stats
+        $bookingStats = Booking::where('vendor_id', $userId)
             ->selectRaw('customer_id, COUNT(*) as bookings, SUM(total_amount) as amount')
             ->groupBy('customer_id')
-            ->orderBy('amount', 'desc')
-            ->take(5)
             ->with('customer')
             ->get()
-            ->map(function($b) {
-                return [
-                    'name' => $b->customer->name ?? 'Unknown',
-                    'id' => $b->customer->id ? 'OOHAPP' . str_pad($b->customer->id, 4, '0', STR_PAD_LEFT) : 'N/A',
-                    'by' => 'System',
-                    'bookings' => $b->bookings,
-                    'amount' => $b->amount ?? 0,
-                    'loc' => $b->customer->state ?? 'N/A',
+            ->keyBy('customer_id');
+
+        // Get POS Booking stats
+        $posBookingStats = PosBooking::where('vendor_id', $userId)
+            ->selectRaw('customer_id, COUNT(*) as bookings, SUM(total_amount) as amount')
+            ->groupBy('customer_id')
+            ->with('customer')
+            ->get()
+            ->keyBy('customer_id');
+
+        // Merge and sum
+        $allCustomerStats = [];
+
+        foreach ($bookingStats as $customerId => $stat) {
+            $allCustomerStats[$customerId] = [
+                'customer' => $stat->customer,
+                'bookings' => $stat->bookings,
+                'amount' => $stat->amount,
+            ];
+        }
+
+        foreach ($posBookingStats as $customerId => $stat) {
+            if (isset($allCustomerStats[$customerId])) {
+                $allCustomerStats[$customerId]['bookings'] += $stat->bookings;
+                $allCustomerStats[$customerId]['amount'] += $stat->amount;
+            } else {
+                $allCustomerStats[$customerId] = [
+                    'customer' => $stat->customer,
+                    'bookings' => $stat->bookings,
+                    'amount' => $stat->amount,
                 ];
-            })->toArray();
+            }
+        }
+
+        // Sort by amount descending
+        usort($allCustomerStats, function($a, $b) {
+            return $b['amount'] <=> $a['amount'];
+        });
+
+        // Take top 5
+        $topCustomers = collect($allCustomerStats)->take(5)->map(function($b) {
+            return [
+                'name' => $b['customer']->name ?? 'Unknown',
+                'id' => isset($b['customer']->id) ? 'OOHAPP' . str_pad($b['customer']->id, 4, '0', STR_PAD_LEFT) : 'N/A',
+                'by' => 'System',
+                'bookings' => $b['bookings'],
+                'amount' => $b['amount'] ?? 0,
+                'loc' => $b['customer']->state ?? 'N/A',
+            ];
+        })->toArray();
 
         // Get recent transactions
-        $transactions = Booking::where('vendor_id', $userId)
+        // Get recent online transactions
+        $onlineTransactions = Booking::where('vendor_id', $userId)
             ->with('customer')
             ->orderBy('created_at', 'desc')
             ->take(5)
@@ -114,7 +156,34 @@ class DashboardController extends Controller
                     'amount' => $t->total_amount ?? 0,
                     'id_numeric' => $t->id,
                 ];
-            })->toArray();
+            });
+
+        // Get recent POS transactions
+        $posTransactions = PosBooking::where('vendor_id', $userId)
+            ->with('customer')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function($t) {
+                return [
+                    'id' => '#' . str_pad($t->id, 5, '0', STR_PAD_LEFT),
+                    'customer' => $t->customer->name ?? 'Unknown',
+                    'bookings' => 1,
+                    'status' => strtoupper($t->payment_status ?? 'PENDING'),
+                    'type' => 'POS',
+                    'date' => $t->created_at->format('M d, y · g:i A'),
+                    'amount' => $t->total_amount ?? 0,
+                    'id_numeric' => $t->id,
+                ];
+            });
+
+        // Merge and sort by date descending, then take top 5
+       $transactions = collect($onlineTransactions)
+        ->merge($posTransactions)
+        ->sortByDesc('date')
+        ->take(5)
+        ->values()
+        ->toArray();
 
         return view('vendor.dashboard', compact(
             'stats',
@@ -122,5 +191,24 @@ class DashboardController extends Controller
             'topCustomers',
             'transactions'
         ));
+    }
+    public function downloadInvoice($id)
+    {
+        // Try to find the booking (online or POS)
+        $booking = PosBooking::find($id) ?? \Modules\POS\Models\PosBooking::find($id);
+
+        if (!$booking) {
+            abort(404, 'Transaction not found');
+        }
+
+        // Build invoice number (adjust if you store it differently)
+        $invoiceNumber = $booking->invoice_number ?? 'INV_2025-26_' . str_pad($id, 6, '0', STR_PAD_LEFT);
+        $fileName = "invoices_{$invoiceNumber}.pdf";
+        $pdfPath = storage_path("app/public/{$fileName}");
+
+        if (file_exists($pdfPath)) {
+            return response()->download($pdfPath, "{$invoiceNumber}.pdf");
+        }
+        abort(404, 'Invoice not found');
     }
 }

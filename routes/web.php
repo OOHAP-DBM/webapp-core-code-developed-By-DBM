@@ -59,12 +59,6 @@ Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest')->group(
     Route::post('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'login'])->name('login.submit');
 
 });
-
-// Admin Protected Routes
-// Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware(['auth:admin', 'admin'])->group(function () {
-//     Route::get('/dashboard', [Modules\Admin\Controllers\Web\AdminDashboardController::class, 'index'])->name('dashboard');
-//     // ...other admin routes...
-// });
 /*
 |--------------------------------------------------------------------------
 | Direct Enquiry Routes
@@ -672,6 +666,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/enquiries/{id}', [\App\Http\Controllers\Vendor\EnquiryController::class, 'show'])->name('enquiries.show');
     // Dashboard (PROMPT 26)
     Route::get('/dashboard', [\App\Http\Controllers\Vendor\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('vendor/transactions/{id}/invoice', [\App\Http\Controllers\Vendor\DashboardController::class, 'downloadInvoice'])->name('transactions.invoice');
     Route::get('/notifications', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
