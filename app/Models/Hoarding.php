@@ -1041,4 +1041,16 @@ class Hoarding extends Model implements HasMedia
     {
         return \App\Models\CommissionSetting::resolveFor($this);
     }
+    public function ratings()
+    {
+        return $this->hasMany(\App\Models\Rating::class);
+    }
+    public function averageRating()
+    {
+        return round($this->ratings()->avg('rating'),1);
+    }
+    public function reviewsCount()
+    {
+        return $this->ratings()->count();
+    }
 }

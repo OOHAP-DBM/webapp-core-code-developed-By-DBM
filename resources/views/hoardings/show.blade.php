@@ -157,3 +157,21 @@
     {{-- ENQUIRY MODAL JS --}}
 
 @endpush
+@push('scripts')
+@if(session('success'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: '{{ session('success') }}',
+            toast: true,
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+    });
+</script>
+@endif
+@endpush

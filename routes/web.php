@@ -10,6 +10,7 @@ use Modules\Cart\Controllers\Web\CartController;
 use Modules\Enquiries\Controllers\Web\DirectEnquiryController;
 use Modules\POS\Controllers\Api\POSBookingController;
 use App\Http\Controllers\Web\Customer\ShortlistController;
+use App\Http\Controllers\Web\Customer\RatingController;
 use Modules\Auth\Http\Controllers\MobileForgotPasswordController;
 use App\Http\Controllers\GeocodeController;
 
@@ -297,6 +298,7 @@ Route::get('/refund-cancellation-policy', [PageController::class, 'refund'])->na
 Route::middleware(['auth'])->group(function () {
     Route::get('/shortlist', [ShortlistController::class, 'index'])->name('shortlist');
     Route::post('/shortlist/toggle/{hoarding}', [ShortlistController::class, 'toggle'])->name('shortlist.toggle');
+    Route::post('/ratings/store',[RatingController::class,'store'])->name('ratings.store');
 });
 
 
@@ -868,6 +870,9 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::post('/profile/send-otp', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'sendProfileOtp'])->name('profile.send-otp');
     Route::post('/profile/verify-otp', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'verifyProfileOtp'])->name('profile.verify-otp');
     Route::post('/delete/send-otp', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'sendDeleteOtp'])->name('profile.delete.sendOtp');
+    Route::post('/reviews/{rating}/reply', [\App\Http\Controllers\Vendor\ReviewController::class, 'reply'])->name('reviews.reply');
+    Route::delete('/reviews/{rating}', [\App\Http\Controllers\Vendor\ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::post('/reviews/bulk-delete', [\App\Http\Controllers\Vendor\ReviewController::class, 'bulkDelete'])->name('reviews.bulk-delete');
 }); // End of vendor middleware group
 Route::get('/avatar/{user}', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewAvatar'])->name('view-avatar');
 
