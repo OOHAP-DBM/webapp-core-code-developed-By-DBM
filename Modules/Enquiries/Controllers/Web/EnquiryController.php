@@ -49,15 +49,12 @@ class EnquiryController extends Controller
         if ($request->filled('search')) {
             $search = trim($request->search);
 
-            // "MV000097" → strip MV/SV prefix → "000097" → cast int → 97
+            // Strip everything except digits: "MV000097" → "000097" → 97
+            // Also handles "0097", "97", "SV000096" etc.
             $numericId = (int) preg_replace('/\D/', '', $search);
 
             if ($numericId > 0) {
                 $query->where('id', $numericId);
-                $query->orderByRaw(
-                    'CASE WHEN id = ? THEN 0 ELSE 1 END',
-                    [$numericId]
-                );
                 $searchId = $numericId;
             }
         }
