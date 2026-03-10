@@ -48,13 +48,17 @@ class EnquiryController extends Controller
         /* ---------------- SEARCH BY ID ONLY ---------------- */
         if ($request->filled('search')) {
             $search = trim($request->search);
-            $searchId = preg_replace('/\D/', '', $search);
-            if ($searchId !== '') {
-                $query->where('id', (int) $searchId);
+
+            // "MV000097" → strip MV/SV prefix → "000097" → cast int → 97
+            $numericId = (int) preg_replace('/\D/', '', $search);
+
+            if ($numericId > 0) {
+                $query->where('id', $numericId);
                 $query->orderByRaw(
-                    "CASE WHEN id = ? THEN 0 ELSE 1 END",
-                    [(int) $searchId]
+                    'CASE WHEN id = ? THEN 0 ELSE 1 END',
+                    [$numericId]
                 );
+                $searchId = $numericId;
             }
         }
 

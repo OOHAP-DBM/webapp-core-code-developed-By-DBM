@@ -13,7 +13,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  *     description="Single enquiry summary returned in list views",
  *
  *     @OA\Property(property="id",              type="integer", example=88),
- *     @OA\Property(property="enquiry_no",       type="string",  example="ENQ-0088"),
+ *     @OA\Property(property="enquiry_no",       type="string",  example="0088"),
  *     @OA\Property(property="requirement",      type="string",  nullable=true, example="Interested in Q4 campaign"),
  *     @OA\Property(property="status",           type="string",  example="submitted",
  *         enum={"submitted","pending","accepted","rejected","cancelled"}
