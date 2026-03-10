@@ -144,6 +144,62 @@
                 </div>
               </div>
               <input type="hidden" name="grace_period_days" id="gracePeriodDaysHidden" value="{{ $gracePeriodValue }}">
+
+            <!-- Featured -->
+            @php
+                $isFeatured = old('is_featured', $parentHoarding->is_featured ?? 0);
+            @endphp
+            <div class="flex items-center justify-between p-4 bg-blue-50/30 rounded-2xl border border-blue-100/50">
+                <label class="text-sm font-bold text-gray-700">Do you want Featured? </label>
+                <div class="flex items-center gap-6">
+                    <label class="flex items-center cursor-pointer group">
+                      <input type="radio" name="is_featured" value="1" 
+                             class="hidden peer" id="featured-yes"
+                             {{ $isFeatured == 1 ? 'checked' : '' }}>
+                      <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
+                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                      <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer group">
+                      <input type="radio" name="is_featured" value="0" 
+                             class="hidden peer" id="featured-no"
+                             {{ $isFeatured == 0 ? 'checked' : '' }}>
+                      <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
+                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                      <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">No</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Recommended -->
+            @php
+                $isRecommended = old('is_recommended', $parentHoarding->is_recommended ?? 0);
+            @endphp
+            <div class="flex items-center justify-between p-4 bg-purple-50/30 rounded-2xl border border-purple-100/50">
+                <label class="text-sm font-bold text-gray-700">Mark this hoarding as Recommended? </label>
+                <div class="flex items-center gap-6">
+                    <label class="flex items-center cursor-pointer group">
+                      <input type="radio" name="is_recommended" value="1" 
+                             class="hidden peer" id="recommended-yes"
+                             {{ $isRecommended == 1 ? 'checked' : '' }}>
+                      <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
+                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                      <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">Yes</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer group">
+                      <input type="radio" name="is_recommended" value="0" 
+                             class="hidden peer" id="recommended-no"
+                             {{ $isRecommended == 0 ? 'checked' : '' }}>
+                      <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-[#009A5C] peer-checked:bg-[#009A5C] transition-all">
+                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                      <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">No</span>
+                    </label>
+                </div>
+            </div>
         </div>
     </div>
    
@@ -602,59 +658,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Nagar Nigam modal logic
-    const nagarYes = document.getElementById('nagar-yes');
-    const nagarNo = document.getElementById('nagar-no');
-    const nagarModal = document.getElementById('nagarModal');
-    const permitNumberInput = document.getElementById('permitNumberInput');
-    const permitValidTillInput = document.getElementById('permitValidTillInput');
-    const nagarSaveBtn = document.getElementById('nagarSaveBtn');
-    const nagarCancelBtn = document.getElementById('nagarCancelBtn');
-    const permitNumberHidden = document.getElementById('permitNumberHidden');
-    const permitValidTillHidden = document.getElementById('permitValidTillHidden');
-
-    if (nagarYes && nagarModal && permitNumberInput && permitValidTillInput && nagarSaveBtn && nagarCancelBtn && permitNumberHidden && permitValidTillHidden) {
-        nagarYes.addEventListener('change', function() {
-            if (this.checked) {
-                nagarModal.classList.remove('hidden');
-                permitNumberInput.value = permitNumberHidden.value || '';
-                permitValidTillInput.value = permitValidTillHidden.value || '';
-            }
-        });
-        
-        nagarNo.addEventListener('change', function() {
-            if (this.checked) {
-                permitNumberHidden.value = '';
-                permitValidTillHidden.value = '';
-            }
-        });
-        
-        nagarSaveBtn.addEventListener('click', function() {
-            const permitNum = permitNumberInput.value.trim();
-            const permitDate = permitValidTillInput.value;
-            
-            if (permitNum && permitDate) {
-                permitNumberHidden.value = permitNum;
-                permitValidTillHidden.value = permitDate;
-                nagarModal.classList.add('hidden');
-                permitNumberInput.classList.remove('border-red-500');
-                permitValidTillInput.classList.remove('border-red-500');
-            } else {
-                if (!permitNum) permitNumberInput.classList.add('border-red-500');
-                if (!permitDate) permitValidTillInput.classList.add('border-red-500');
-                if (!permitNum) permitNumberInput.focus();
-                else permitValidTillInput.focus();
-            }
-        });
-        
-        nagarCancelBtn.addEventListener('click', function() {
-            nagarModal.classList.add('hidden');
-            nagarYes.checked = false;
-            nagarNo.checked = true;
-            permitNumberHidden.value = '';
-            permitValidTillHidden.value = '';
-        });
-    }
+    // Nagar Nigam toggle - simple yes/no without modal
+    // Values save directly when selected
 });
 </script>
 <script>

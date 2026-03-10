@@ -57,10 +57,19 @@
                                     No Image
                                 </div>
                             @endif
-
+                            @php
+                                if (($item->is_recommended ?? 0) == 1) {
+                                    $isRecommended = true;
+                                } else {
+                                    $isRecommended = ($item->view_count ?? 0) >= 50 || 
+                                                    ($item->expected_eyeball ?? 0) >= 5000;
+                                }
+                            @endphp
+                            @if($isRecommended)
                             <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded">
                                 RECOMMENDED
                             </span>
+                            @endif
 
                             <div class="absolute top-3 right-3 flex items-center space-x-2">
                                 @if(!$isOwnerVendor)
@@ -101,7 +110,10 @@
                             </div>
 
                             <div class="mt-2">
-                                <span class="text-lg font-bold">₹{{ number_format($item->price) }}</span>
+                                @php
+                                    $displayPrice = $item->price ?? $item->monthly_price ?? $item->base_monthly_price ?? 0;
+                                @endphp
+                                <span class="text-lg font-bold price-display" data-base-price="{{ $displayPrice }}">₹{{ number_format($displayPrice) }}</span>
                                 <span class="text-sm text-black">/Month</span>
                             </div>
 

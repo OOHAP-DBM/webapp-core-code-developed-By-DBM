@@ -52,9 +52,20 @@
                                 </div>
 
                                 <!-- RECOMMENDED TAG -->
+                                     @php
+                                        if (($item->is_recommended ?? 0) == 1) {
+                                            $isRecommended = true;
+                                        } else {
+                                            $isRecommended = ($item->view_count ?? 0) >= 50 || 
+                                                            ($item->expected_eyeball ?? 0) >= 5000;
+                                        }
+                                    @endphp
+
+                                    @if($isRecommended)
                                 <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded z-10">
                                     RECOMMENDED
                                 </span>
+                                @endif
 
                                 <!-- SAVE (BOOKMARK) ICON -->
                                  @php
@@ -156,9 +167,12 @@
                                     </div>
                                     
                                      {{-- PRICE --}}
+                                    @php
+                                        $displayPrice = $item->price ?? $item->monthly_price ?? $item->base_monthly_price ?? 0;
+                                    @endphp
                                     <div class="mt-1">
-                                        <span class="text-xl font-bold">
-                                            ₹{{ number_format($item->price) }}
+                                        <span class="text-xl font-bold price-display" data-base-price="{{ $displayPrice }}">
+                                            ₹{{ number_format($displayPrice) }}
                                         </span>
 
                                         <span class="text-sm text-gray-500">                                

@@ -241,3 +241,51 @@ function send($target, $title, $body, $data = [])
         }
     }
 }
+
+/**
+ * Calculate price after adding GST tax
+ * @param float $price - Base price before tax
+ * @param float $gstRate - GST rate (optional, fetches from settings if not provided)
+ * @return float - Price with tax included
+ */
+function getPriceAfterTax($price, $gstRate = null)
+{
+    if (!$price || $price <= 0) {
+        return 0;
+    }
+
+    // Get GST rate from settings if not provided
+    if ($gstRate === null) {
+        try {
+            $gstRate = \App\Models\Setting::get('gst_rate', 0);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching GST rate: ' . $e->getMessage());
+            $gstRate = 0;
+        }
+    }
+
+    $gstRate = (float) $gstRate;
+
+    if ($gstRate <= 0) {
+        return round($price, 2);
+    }
+
+    $taxAmount = ($price * $gstRate) / 100;
+    $finalPrice = $price + $taxAmount;
+
+    return round($finalPrice, 2);
+}
+
+/**
+ * Get GST rate from settings
+ * @return float - GST rate percentage
+ */
+function getGstRate()
+{
+    try {
+        return (float) \App\Models\Setting::get('gst_rate', 0);
+    } catch (\Exception $e) {
+        \Log::error('Error fetching GST rate: ' . $e->getMessage());
+        return 0;
+    }
+}
