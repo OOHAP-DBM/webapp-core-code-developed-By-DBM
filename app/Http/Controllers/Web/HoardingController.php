@@ -51,16 +51,21 @@ class HoardingController extends Controller
 
     public function show(string $slug)
     {
+
         $hoarding = Hoarding::with([
             'vendor',
             'hoardingMedia',
             'doohScreen.media',
         ])->where('slug', $slug)
-         ->orWhere('id', is_numeric($slug) ? $slug : 0)
-         ->firstOrFail();
+            ->orWhere('id', is_numeric($slug) ? $slug : 0)
+            ->firstOrFail();
 
         if (!$hoarding || !$hoarding->isActive()) {
             abort(404);
+        }
+        if (!session()->has('viewed_hoarding_' . $hoarding->id)) {
+            $hoarding->increment('view_count');
+            session()->put('viewed_hoarding_' . $hoarding->id, true);
         }
 
         // default empty
@@ -94,8 +99,7 @@ class HoardingController extends Controller
         |--------------------------------------------------------------------------
         | OOH
         |--------------------------------------------------------------------------
-        */
-        else {
+        */ else {
 
             $hoarding->price_type = 'ooh';
             $hoarding->price_unit = 'Month';
@@ -134,11 +138,11 @@ class HoardingController extends Controller
                     ->where('is_active', 1)
                     ->get();
 
-                $packages = $pkgs->map(function($pkg) use ($hoarding) {
+                $packages = $pkgs->map(function ($pkg) use ($hoarding) {
                     $basePrice = $hoarding->base_monthly_price;  // Use base_monthly_price instead of monthly_price
                     $discountPercent = (float) ($pkg->discount_percent ?? 0);
                     $finalPrice = $basePrice - ($basePrice * $discountPercent / 100);
-                    
+
                     return [
                         'id' => $pkg->id,
                         'name' => $pkg->package_name,
@@ -147,8 +151,7 @@ class HoardingController extends Controller
                         'months' => (int) ($pkg->min_booking_duration ?? 1),
                     ];
                 })->toArray();
-            } 
-            else if ($hoarding->hoarding_type === 'dooh') {
+            } else if ($hoarding->hoarding_type === 'dooh') {
                 $screen = DB::table('dooh_screens')
                     ->where('hoarding_id', $id)
                     ->first();
@@ -159,7 +162,7 @@ class HoardingController extends Controller
                         ->where('is_active', 1)
                         ->get();
 
-                    $packages = $pkgs->map(function($pkg) {
+                    $packages = $pkgs->map(function ($pkg) {
                         return [
                             'id' => $pkg->id,
                             'name' => $pkg->package_name,
@@ -176,7 +179,6 @@ class HoardingController extends Controller
                 'packages' => $packages,
                 'hoarding_type' => $hoarding->hoarding_type,
             ]);
-
         } catch (\Exception $e) {
             \Log::error('Packages API Error', ['hoarding_id' => $id, 'error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Failed to fetch packages'], 500);

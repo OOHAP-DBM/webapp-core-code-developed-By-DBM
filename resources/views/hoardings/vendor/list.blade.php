@@ -17,14 +17,14 @@
                 </a>
             </div>
 
-            <div class="py-4 flex flex-col md:flex-row items-center gap-3">
+            <div class="py-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
 
                 <form id="searchForm"
                     method="GET"
                     action="{{ route('vendor.hoardings.myHoardings', ['tab' => $activeTab]) }}"
-                    class="relative flex-1 flex items-center">
+                    class="relative flex-1 flex items-center w-full">
 
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 pointer-events-none">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
 
@@ -34,11 +34,11 @@
                         value="{{ request('search') }}"
                         placeholder="Search by hoarding title or location....."
                         onkeydown="autoSearchHoardings(event)"
-                        class="block w-full pl-9 pr-3 py-2 bg-[#F3F4F6] border-none rounded-md focus:ring-1 focus:ring-emerald-500 text-[13px]"
+                        class="block w-full pl-8 pr-2 py-2 bg-[#F3F4F6] border-none rounded-md focus:ring-1 focus:ring-emerald-500 text-[13px]"
                     >
                 </form>
 
-
+{{-- 
                 <div class="flex items-center gap-2">
                     <!-- <button class="p-2 bg-[#E6F6F0] text-[#00A86B] rounded-md border border-emerald-50">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -52,7 +52,17 @@
                         class="px-5 py-2 bg-black text-white font-medium rounded-md text-[13px] flex items-center">
                         + Add New Hoarding
                     </a>
-                </div>
+                </div> --}}
+                <div class="flex items-center gap-2">
+    <button type="button" onclick="showExportFormatPrompt()" 
+        class="px-6 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px] cursor-pointer whitespace-nowrap flex-shrink-0">
+        Export
+    </button>
+    <a href="{{ route('vendor.hoardings.add') }}" 
+        class="px-4 py-2 bg-black text-white font-medium rounded-md text-[13px] flex items-center whitespace-nowrap flex-shrink-0">
+        + Add New Hoarding
+    </a>
+</div>
             </div>
         </div>
     </div>
@@ -233,8 +243,14 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="8" class="p-24 text-center text-gray-400">No records found.</td></tr>
-                        @endforelse
+                        <tr>
+                            <td colspan="8" class="py-16 text-gray-400">
+                                <div style="width: calc(100vw - 80px); display: flex; justify-content: center;" class="md:w-full">
+                                    No records found.
+                                </div>
+                            </td>
+                        </tr>                 
+                       @endforelse
                     </tbody>
                 </table>
             </div>
