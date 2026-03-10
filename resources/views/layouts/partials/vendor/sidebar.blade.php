@@ -299,7 +299,7 @@
                                 <rect x="3" y="14" width="7" height="7" rx="1" fill="currentColor"/>
                                 <path opacity="0.5" d="M14 14L21 14M21 14L19 12M21 14L19 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            Import Management
+                            Import Hoardings
                         </div>
                         <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />

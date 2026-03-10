@@ -246,6 +246,10 @@ class Hoarding extends Model implements HasMedia
     {
         return $this->hasMany(Booking::class, 'hoarding_id');
     }
+    public function posBookings()
+    {
+        return $this->hasMany(\Modules\POS\Models\PosBooking::class, 'hoarding_id');
+    }
     // public function oohPackages()
     // {
     //     return $this->hasMany(HoardingPackage::class);

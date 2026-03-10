@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Mail;
 use Modules\Enquiries\Models\DirectEnquiry;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\POS\Models\PosCustomer;
-
+use Illuminate\Support\Collection;
+use Modules\POS\Models\PosBooking; // Make sure this import is at the top
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasApiTokens, HasRoles, SoftDeletes;
@@ -335,6 +336,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Booking::class, 'vendor_id');
     }
+  
 
     /**
      * Get bookings where user is the customer (PROMPT 48)
@@ -676,5 +678,10 @@ class User extends Authenticatable implements MustVerifyEmail
         public function posProfile()
     {
         return $this->hasOne(PosCustomer::class, 'user_id');
+    }
+
+    public function posBookings()
+    {
+        return $this->hasMany(PosBooking::class, 'vendor_id');
     }
 }
