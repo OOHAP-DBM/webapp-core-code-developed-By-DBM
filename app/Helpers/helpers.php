@@ -4,6 +4,7 @@
 use App\Services\FcmService;
 use Kreait\Firebase\Exception\Messaging\MessagingException;
 use Kreait\Firebase\Exception\FirebaseException;
+use App\Services\Sms\SmsService;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
 
@@ -220,5 +221,23 @@ function send($target, $title, $body, $data = [])
         ]);
 
         return false;
+    }
+
+    if (!function_exists('send_sms')) {
+
+        function send_sms($mobile, $message)
+        {
+            try {
+
+                $sms = new SmsService();
+
+                return $sms->send($mobile, $message);
+            } catch (\Exception $e) {
+
+                \Log::error("SMS Error: " . $e->getMessage());
+
+                return false;
+            }
+        }
     }
 }

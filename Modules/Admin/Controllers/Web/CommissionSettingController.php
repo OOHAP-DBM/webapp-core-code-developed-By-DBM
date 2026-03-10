@@ -26,10 +26,12 @@ class CommissionSettingController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%")
-                  ->orWhereHas('hoardings', fn($h) =>
-                      $h->where('city', 'like', "%$search%")
-                        ->orWhere('state', 'like', "%$search%")
-                  );
+                    ->orWhereHas(
+                        'hoardings',
+                        fn($h) =>
+                        $h->where('city', 'like', "%$search%")
+                            ->orWhere('state', 'like', "%$search%")
+                    );
             });
         }
 
@@ -66,16 +68,22 @@ class CommissionSettingController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%")
-                  ->orWhere('city', 'like', "%$search%")
-                  ->orWhere('state', 'like', "%$search%")
-                  ->orWhere('address', 'like', "%$search%")
-                  ->orWhere('locality', 'like', "%$search%");
+                    ->orWhere('city', 'like', "%$search%")
+                    ->orWhere('state', 'like', "%$search%")
+                    ->orWhere('address', 'like', "%$search%")
+                    ->orWhere('locality', 'like', "%$search%");
             });
         }
 
-        if ($request->filled('type'))  { $query->where('hoarding_type', $request->type); }
-        if ($request->filled('state')) { $query->where('state', $request->state); }
-        if ($request->filled('city'))  { $query->where('city', $request->city); }
+        if ($request->filled('type')) {
+            $query->where('hoarding_type', $request->type);
+        }
+        if ($request->filled('state')) {
+            $query->where('state', $request->state);
+        }
+        if ($request->filled('city')) {
+            $query->where('city', $request->city);
+        }
 
         $hoardings = $query->paginate(10)->withQueryString();
 
@@ -95,18 +103,24 @@ class CommissionSettingController extends Controller
         $commissionMap = [];
         foreach ($existingCommissions as $ec) {
             $key = ($ec->hoarding_type ?? 'all')
-                 . '|' . ($ec->state ?? '')
-                 . '|' . ($ec->city  ?? '');
+                . '|' . ($ec->state ?? '')
+                . '|' . ($ec->city  ?? '');
             $commissionMap[$key] = (float) $ec->commission_percent;
         }
 
         // Resolve effective commission for every hoarding on this page (centralized)
         $resolvedCommissions = $this->commissionService->resolveForVendor($vendor->id);
 
-        return view('admin.settings.commission-setting.vendor.hoardings',
+        return view(
+            'admin.settings.commission-setting.vendor.hoardings',
             compact(
-                'vendor', 'hoardings', 'states', 'cities',
-                'commissionMap', 'hasExistingCommission', 'resolvedCommissions'
+                'vendor',
+                'hoardings',
+                'states',
+                'cities',
+                'commissionMap',
+                'hasExistingCommission',
+                'resolvedCommissions'
             )
         );
     }
@@ -118,8 +132,12 @@ class CommissionSettingController extends Controller
     {
         $query = Hoarding::whereNotNull('city');
 
-        if ($request->filled('state'))     { $query->where('state', $request->state); }
-        if ($request->filled('vendor_id')) { $query->where('vendor_id', $request->vendor_id); }
+        if ($request->filled('state')) {
+            $query->where('state', $request->state);
+        }
+        if ($request->filled('vendor_id')) {
+            $query->where('vendor_id', $request->vendor_id);
+        }
 
         $cities = $query->distinct()->pluck('city')->sort()->values();
         return response()->json($cities);
@@ -139,9 +157,13 @@ class CommissionSettingController extends Controller
         // Return the resolved commission (may cascade from vendor rules)
         $resolved = $this->commissionService->resolveForHoarding($hoarding->fresh());
 
+        // Format hoarding type for display
+        $hoardingType = strtoupper($hoarding->hoarding_type ?? 'OOH');
+        $hoardingName = $hoarding->title ?? $hoarding->name ?? 'Unknown Hoarding';
+
         return response()->json([
             'success'             => true,
-            'message'             => 'Commission saved for this hoarding.',
+            'message'             => "Your {$hoardingType} hoarding \"{$hoardingName}\" has been updated successfully.",
             'commission'          => (float) $request->commission,
             'resolved_commission' => $resolved,
         ]);
@@ -152,6 +174,7 @@ class CommissionSettingController extends Controller
     // ─────────────────────────────────────────────────────
     public function save(Request $request)
     {
+
         $validated = $request->validate([
             'vendor_id'                => 'required|exists:users,id',
             'base_commission'          => 'required|numeric|min:0|max:100',
@@ -181,10 +204,58 @@ class CommissionSettingController extends Controller
         // Return resolved commissions for all vendor hoardings so the UI can refresh
         $resolved = $this->commissionService->resolveForVendorWithMeta((int) $validated['vendor_id']);
 
+        // 📧 Send in-app and email notification to vendor
+        $vendor = User::find((int) $validated['vendor_id']);
+        if ($vendor) {
+            $commissionType = $validated['apply_to_all_types'] ? 'all' : 'mixed';
+
+            $vendor->notify(new \App\Notifications\CommissionNotification(
+                type: 'set',
+                commission: (float) $validated['base_commission'],
+                commissionType: $commissionType,
+                oohCommission: $validated['apply_to_all_types'] ? null : (float) ($validated['ooh_commission'] ?? $validated['base_commission']),
+                doohCommission: $validated['apply_to_all_types'] ? null : (float) ($validated['dooh_commission'] ?? $validated['base_commission'])
+            ));
+
+            // 📱 Send push notification to vendor
+            if ($vendor->fcm_token && $vendor->notification_push) {
+                try {
+                    $commissionDisplay = $validated['apply_to_all_types']
+                        ? "{$validated['base_commission']}% (OOH & DOOH)"
+                        : "OOH: {$validated['ooh_commission']}%, DOOH: {$validated['dooh_commission']}%";
+
+                    $sent = send(
+                        $vendor->fcm_token,
+                        'Commission Set 💰',
+                        "Your commission has been set to {$commissionDisplay}",
+                        [
+                            'type'                => 'commission_set',
+                            'vendor_id'           => $vendor->id,
+                            'base_commission'     => (float) $validated['base_commission'],
+                            'commission_type'     => $commissionType,
+                            'ooh_commission'      => $validated['apply_to_all_types'] ? null : (float) ($validated['ooh_commission'] ?? $validated['base_commission']),
+                            'dooh_commission'     => $validated['apply_to_all_types'] ? null : (float) ($validated['dooh_commission'] ?? $validated['base_commission']),
+                            'action'              => 'view_commission'
+                        ]
+                    );
+
+                    if (!$sent) {
+                        \Log::warning("FCM push notification failed for vendor ID {$vendor->id} on commission setting", [
+                            'vendor_id' => $vendor->id
+                        ]);
+                    }
+                } catch (\Throwable $e) {
+                    \Log::error("Failed to send push notification to vendor on commission setting", [
+                        'vendor_id' => $vendor->id,
+                        'error'     => $e->getMessage()
+                    ]);
+                }
+            }
+        }
 
         return response()->json([
             'success'             => true,
-            'message'             => 'Vendor commission saved successfully.',
+            'message'             => "Commission settings for vendor \"{$vendor->name}\" has been updated successfully.",
             'resolved_commissions' => $resolved,
         ]);
     }
@@ -198,7 +269,7 @@ class CommissionSettingController extends Controller
         return response()->json(['success' => true]);
     }
 
-        
+
     // ─────────────────────────────────────────────────────
     // Dedicated commission rules page for admin
     // Route: GET /admin/commission/{vendor}/rules
@@ -223,9 +294,9 @@ class CommissionSettingController extends Controller
         $hoardingTypeRules = $existingCommissions->filter(fn($r) => !$r->state && !$r->city && in_array($r->hoarding_type, ['ooh', 'dooh'], true));
 
         $stateRules  = $existingCommissions->filter(fn($r) =>  $r->state && !$r->city)
-                        ->groupBy('state');
+            ->groupBy('state');
         $cityRules   = $existingCommissions->filter(fn($r) =>  $r->state &&  $r->city)
-                        ->groupBy(fn($r) => "{$r->state}|||{$r->city}");
+            ->groupBy(fn($r) => "{$r->state}|||{$r->city}");
 
         // Hoarding-level overrides (hoardings.commission_percent > 0)
         $hoardingOverrides = Hoarding::where('vendor_id', $vendor->id)
@@ -284,7 +355,8 @@ class CommissionSettingController extends Controller
 
         $hasAnyRules = $existingCommissions->isNotEmpty() || $hoardingOverrides->isNotEmpty();
 
-        return view('admin.settings.commission-setting.vendor.rules',
+        return view(
+            'admin.settings.commission-setting.vendor.rules',
             compact(
                 'vendor',
                 'globalRules',

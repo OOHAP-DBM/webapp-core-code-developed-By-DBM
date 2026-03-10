@@ -534,8 +534,8 @@ async function approveInventory() {
             ? 'Do you want to publish this inventory?' 
             : 'Send inventory for admin approval?',
         text: autoApprove 
-            ? 'This will directly publish hoardings to website.'
-            : 'This will submit your hoardings for admin approval.',
+            ? 'Only valid hoardings will be published to the website. Please delete any invalid hoardings before proceeding.'
+            : 'Only valid hoardings will be submitted for admin approval. Please delete any invalid hoardings before proceeding.',
         showCancelButton: true,
         confirmButtonText: autoApprove ? 'Yes, publish' : 'Yes, send',
     })

@@ -194,6 +194,7 @@ class AdminPosController extends Controller
 
     public function customers(Request $request)
     {
+
         $selectedBookingScope = $this->resolveAdminBookingScope($request);
         $vendorId = $this->resolveEffectiveVendorId($request);
         $customers = collect();
@@ -305,7 +306,7 @@ class AdminPosController extends Controller
     /**
      * Show a single customer details for admin POS
      */
-   public function showCustomer($id)
+    public function showCustomer($id)
     {
         $vendorId = $this->resolveEffectiveVendorId(request());
 

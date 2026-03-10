@@ -13,9 +13,9 @@ use App\Notifications\NewHoardingPendingApprovalNotification;
 
 
 class DOOHScreenService
-    /**
-     * Get DOOH hoarding listing for API (step1, step2, step3 fields)
-     */
+/**
+ * Get DOOH hoarding listing for API (step1, step2, step3 fields)
+ */
 
 {
     protected $repo;
@@ -45,7 +45,7 @@ class DOOHScreenService
             'spot_duration'    => 'required|numeric|min:1',
             'spots_per_day'    => 'required|numeric|min:1',
             // 'loop_duration_seconds'    => 'required|numeric|min:1',
-              'daily_runtime' => 'nullable|numeric|min:0|max:24',
+            'daily_runtime' => 'nullable|numeric|min:0|max:24',
         ]);
 
         // Normalize mediaFiles to always be an array
@@ -57,7 +57,7 @@ class DOOHScreenService
             // Null or other non-array types
             $mediaFiles = [];
         }
-        
+
         if ($validator->fails() || empty($mediaFiles)) {
             $errors = $validator->errors()->toArray();
             if (empty($mediaFiles)) {
@@ -67,9 +67,9 @@ class DOOHScreenService
         }
 
         return DB::transaction(function () use ($vendor, $data, $mediaFiles) {
-            
+
             $screen = $this->repo->createStep1($vendor, $data);
-            
+
             // Only store media if files are present
             if (!empty($data['deleted_media_ids'])) {
                 $deleteIds = array_filter(
@@ -93,6 +93,48 @@ class DOOHScreenService
 
             $screen->hoarding->current_step = 1;
             $screen->save();
+
+            // 📱 Send push notification to vendor on DOOH creation
+            try {
+                $hoarding = $screen->hoarding;
+                if ($hoarding) {
+                    // In-app notification
+                    if ($vendor->notification_push) {
+                        $vendor->notify(
+                            new \App\Notifications\HoardingCreatedOrUpdatedNotification(
+                                $hoarding,
+                                'created',
+                                'DOOH'
+                            )
+                        );
+                    }
+
+                    // Push notification via FCM
+                    if ($vendor->fcm_token) {
+                        $sent = send(
+                            $vendor->fcm_token,
+                            'DOOH Screen Created',
+                            'Your DOOH screen "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been created successfully.',
+                            [
+                                'type'          => 'vendor_hoarding_created',
+                                'hoarding_id'   => $hoarding->id,
+                                'hoarding_type' => 'DOOH',
+                                'action'        => 'created'
+                            ]
+                        );
+
+                        if (!$sent) {
+                            \Log::warning("FCM push notification failed for vendor ID {$vendor->id} on DOOH screen creation");
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Log::error("Failed to send DOOH screen creation notification to vendor", [
+                    'vendor_id'   => $vendor->id,
+                    'screen_id'   => $screen->id,
+                    'error'       => $e->getMessage()
+                ]);
+            }
 
             return ['success' => true, 'screen' => $screen->fresh('media')];
         });
@@ -135,8 +177,8 @@ class DOOHScreenService
     // }
     public function storeStep2($screen, array $data, array $brandLogoFiles = []): array
     {
-        $parentHoarding = method_exists($screen, 'hoarding') && $screen->hoarding 
-            ? $screen->hoarding 
+        $parentHoarding = method_exists($screen, 'hoarding') && $screen->hoarding
+            ? $screen->hoarding
             : $screen;
         $childHoarding = $screen;
 
@@ -174,6 +216,48 @@ class DOOHScreenService
             // 3. Handle new brand logos
             if (!empty($brandLogoFiles)) {
                 $this->repo->storeBrandLogos($childHoarding->id, $brandLogoFiles);
+            }
+
+            // 📱 Send push notification to vendor on DOOH update (Step 2)
+            try {
+                $vendor = $parentHoarding->vendor;
+                if ($vendor) {
+                    // In-app notification
+                    if ($vendor->notification_push) {
+                        $vendor->notify(
+                            new \App\Notifications\HoardingCreatedOrUpdatedNotification(
+                                $parentHoarding,
+                                'updated',
+                                'DOOH'
+                            )
+                        );
+                    }
+
+                    // Push notification via FCM
+                    if ($vendor->fcm_token) {
+                        $sent = send(
+                            $vendor->fcm_token,
+                            'DOOH Screen Updated',
+                            'Your DOOH screen "' . ($parentHoarding->title ?? $parentHoarding->name ?? 'N/A') . '" has been updated successfully.',
+                            [
+                                'type'          => 'vendor_hoarding_updated',
+                                'hoarding_id'   => $parentHoarding->id,
+                                'hoarding_type' => 'DOOH',
+                                'action'        => 'updated'
+                            ]
+                        );
+
+                        if (!$sent) {
+                            \Log::warning("FCM push notification failed for vendor ID {$vendor->id} on DOOH screen update (Step 2)");
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Log::error("Failed to send DOOH screen update notification to vendor (Step 2)", [
+                    'vendor_id'   => $parentHoarding->vendor_id,
+                    'screen_id'   => $childHoarding->id,
+                    'error'       => $e->getMessage()
+                ]);
             }
 
             return [
@@ -219,7 +303,7 @@ class DOOHScreenService
             'traffic_type'        => $data['traffic_type'] ?? null,
             'visibility_details'   => $data['visible_from'] ?? null,
             'located_at'   => $data['located_at'] ?? null,
-        
+
             'current_step'         => 2,
         ];
         // \Log::info('Step2 mapped data', $mapped);
@@ -255,7 +339,7 @@ class DOOHScreenService
         return is_array($decoded) ? $decoded : null;
     }
 
-    
+
     /**
      * Store Step 3 (Pricing, Slots, Campaigns, Services)
      */
@@ -344,8 +428,28 @@ class DOOHScreenService
                     $statusText = $newStatus === 'active' ? 'Your DOOH screen is now active and published.' : 'Your DOOH screen is pending approval.';
                     $vendor->notify(new \App\Notifications\NewHoardingPendingApprovalNotification($parentHoarding));
                     // $vendor->sendVendorEmails(new \Modules\Mail\HoardingStatusMail($parentHoarding, $statusText));
-                    if($autoApproval) { 
+                    if ($autoApproval) {
                         $vendor->sendVendorEmails(new \Modules\Mail\HoardingPublishedMail($parentHoarding));
+                    }
+
+                    // 📱 Push notification to vendor on DOOH step 3 (final submission)
+                    if ($vendor->fcm_token) {
+                        $sent = send(
+                            $vendor->fcm_token,
+                            'DOOH Screen Status',
+                            $statusText,
+                            [
+                                'type'          => 'vendor_hoarding',
+                                'hoarding_id'   => $parentHoarding->id,
+                                'hoarding_type' => 'DOOH',
+                                'status'        => $newStatus,
+                                'action'        => 'completed'
+                            ]
+                        );
+
+                        if (!$sent) {
+                            \Log::warning("FCM push notification failed for vendor ID {$vendor->id} on DOOH screen completion");
+                        }
                     }
                 }
             } catch (\Throwable $e) {
@@ -427,7 +531,7 @@ class DOOHScreenService
         ])->where('status', \Modules\DOOH\Models\DOOHScreen::STATUS_ACTIVE);
 
         if (!empty($filters['vendor_id'])) {
-            $query->whereHas('hoarding', function($q) use ($filters) {
+            $query->whereHas('hoarding', function ($q) use ($filters) {
                 $q->where('vendor_id', $filters['vendor_id']);
             });
         }
@@ -526,8 +630,14 @@ class DOOHScreenService
 
         // Media validation (only if new files provided)
         if (!empty($mediaFiles)) {
-            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp',
-                 'video/mp4', 'video/webm', 'video/quicktime',
+            $allowedMimes = [
+                'image/jpeg',
+                'image/png',
+                'image/jpg',
+                'image/webp',
+                'video/mp4',
+                'video/webm',
+                'video/quicktime',
             ];
             $maxSize = 10 * 1024 * 1024; // 10MB
 
@@ -550,7 +660,7 @@ class DOOHScreenService
         return DB::transaction(function () use ($screen, $data, $mediaFiles) {
             $hoarding = $screen->hoarding;
 
-              if (!empty($data['deleted_media_ids'])) {
+            if (!empty($data['deleted_media_ids'])) {
                 $deleteIds = array_filter(
                     array_map('intval', explode(',', $data['deleted_media_ids']))
                 );
@@ -593,8 +703,8 @@ class DOOHScreenService
                 'discount_value' => $data['discount_value'] ?? null,
 
             ]);
-      
-            
+
+
             // Normalize resolution
             // $normalized = $this->normalizeResolution($data);
 
@@ -608,9 +718,9 @@ class DOOHScreenService
                 // 'resolution_height' => $normalized['resolution_height'],
                 'price_per_slot' => $data['price_per_slot'] ?? $screen->price_per_slot,
                 'slot_duration_seconds' => $data['spot_duration'] ?? $hoarding->spot_duration,
-                 'total_slots_per_day' => $data['spots_per_day'] ?? $hoarding->spots_per_day,
-                 'screen_run_time' => $data['daily_runtime'] ?? $hoarding->daily_runtime,
-             
+                'total_slots_per_day' => $data['spots_per_day'] ?? $hoarding->spots_per_day,
+                'screen_run_time' => $data['daily_runtime'] ?? $hoarding->daily_runtime,
+
             ]);
 
             // Handle media - only add new
@@ -637,7 +747,7 @@ class DOOHScreenService
             //     'price_per_slot' => $data['price_per_slot'] ?? $screen->price_per_slot,
             //     'video_length' => $data['video_length'] ?? $screen->video_length,
             //     // 'minimum_booking_amount' => $data['minimum_booking_amount'] ?? $screen->minimum_booking_amount,
-          
+
             // ]);
             $hoarding->update([
                 'graphics_included' => isset($data['graphics_included']),
@@ -645,7 +755,7 @@ class DOOHScreenService
                 'current_step' => 3,
             ]);
 
-// dd($data);
+            // dd($data);
 
             // Update or recreate packages if provided
             // if (!empty($data['offers_json'])) {
@@ -669,7 +779,7 @@ class DOOHScreenService
             //         }
             //     }
             // }
-// dd($data);
+            // dd($data);
             if (!empty($data['offers_json'])) {
 
                 $offers = json_decode($data['offers_json'], true);
@@ -685,7 +795,7 @@ class DOOHScreenService
 
                         $payload = [
                             'package_name'     => $offer['name'],
-                            'min_booking_duration'=> (int) $offer['duration'],   
+                            'min_booking_duration' => (int) $offer['duration'],
                             'duration_unit'    => $offer['duration_unit'] ?? $offer['unit'] ?? 'months',
                             'discount_percent' => $offer['discount'] ?? 0,
                             'slots_per_day'    => 1,
@@ -700,13 +810,11 @@ class DOOHScreenService
                             $screen->packages()
                                 ->where('id', $offer['package_id'])
                                 ->update($payload);
-
-                        } 
+                        }
                         // ➕ CREATE
                         else {
 
                             $screen->packages()->create($payload);
-
                         }
                     }
                 }

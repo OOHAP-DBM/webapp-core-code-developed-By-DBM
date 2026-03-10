@@ -1369,6 +1369,36 @@ class VendorPosController extends Controller
                     ) {
                         \Mail::to($customer->email)->queue(new \App\Mail\PosBookingCreatedMail($booking, $customer, 'customer'));
                     }
+
+                    // Send push notification to customer if enabled
+                    if ($customer && $customer->notification_push) {
+                        try {
+                            send(
+                                $customer,
+                                'Booking Created Successfully',
+                                "Your POS booking #{$booking->invoice_number} for ₹" . number_format($booking->total_amount, 2) . " has been created",
+                                [
+                                    'type' => 'pos_booking_created',
+                                    'booking_id' => $booking->id,
+                                    'invoice_number' => $booking->invoice_number,
+                                    'total_amount' => $booking->total_amount,
+                                    'customer_name' => $booking->customer_name,
+                                    'source' => 'pos_system'
+                                ]
+                            );
+                            Log::info('Push notification sent to customer for booking creation', [
+                                'booking_id' => $booking->id,
+                                'customer_id' => $customer->id,
+                                'invoice_number' => $booking->invoice_number,
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::warning('Failed to send push notification to customer', [
+                                'booking_id' => $booking->id,
+                                'customer_id' => $customer->id,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    }
                 }
 
                 if ($emailNotificationsEnabled) {
@@ -1948,7 +1978,9 @@ class VendorPosController extends Controller
 
     public function createCustomer(Request $request)
     {
+
         try {
+
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
@@ -2018,6 +2050,59 @@ class VendorPosController extends Controller
                         \Mail::to($user->email)->send(new \App\Mail\PosCustomerWelcome($user));
                     } catch (\Exception $e) {
                         Log::warning('Failed to send welcome email to customer', [
+                            'customer_id' => $user->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+
+                    // Send push notification to customer
+                    try {
+                        send(
+                            $user,
+                            'Account Created Successfully',
+                            "Welcome to OOHApp! Your customer account has been created.",
+                            [
+                                'type' => 'pos_customer_account_created',
+                                'customer_id' => $user->id,
+                                'customer_name' => $user->name,
+                                'source' => 'pos_system'
+                            ]
+                        );
+                        Log::info('Push notification sent to customer for account creation', [
+                            'customer_id' => $user->id,
+                            'customer_name' => $user->name,
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to send push notification to customer', [
+                            'customer_id' => $user->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+
+                    // Send push notification to vendor
+                    try {
+                        $vendor = Auth::user();
+                        send(
+                            $vendor,
+                            'New POS Customer Created',
+                            "Customer {$user->name} has been successfully created",
+                            [
+                                'type' => 'pos_customer_created',
+                                'customer_id' => $user->id,
+                                'customer_name' => $user->name,
+                                'customer_email' => $user->email,
+                                'customer_phone' => $user->phone,
+                                'source' => 'pos_system'
+                            ]
+                        );
+                        Log::info('Push notification sent to vendor for customer creation', [
+                            'vendor_id' => Auth::id(),
+                            'customer_id' => $user->id,
+                            'customer_name' => $user->name,
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to send push notification to vendor', [
+                            'vendor_id' => Auth::id(),
                             'customer_id' => $user->id,
                             'error' => $e->getMessage(),
                         ]);

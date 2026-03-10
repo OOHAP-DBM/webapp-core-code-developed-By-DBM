@@ -31,9 +31,10 @@ class ImportApprovalService
 
             $createdCount = 0;
             $failedCount = 0;
+            $createdHoardingIds = [];
 
             // Wrap everything in transaction for atomicity
-            DB::transaction(function () use ($batch, &$createdCount, &$failedCount) {
+            DB::transaction(function () use ($batch, &$createdCount, &$failedCount,  &$createdHoardingIds) {
                 // Get all valid staging records with eager loading
                 $validRows = $batch->stagingRecords()
                     ->valid()
@@ -43,15 +44,17 @@ class ImportApprovalService
                     throw new Exception('No valid records found in batch to approve');
                 }
 
-                \Log::info('Starting batch approval', [
-                    'batch_id' => $batch->id,
-                    'valid_records' => $validRows->count(),
-                ]);
+                // \Log::info('Starting batch approval', [
+                //     'batch_id' => $batch->id,
+                //     'valid_records' => $validRows->count(),
+                // ]);
 
                 foreach ($validRows as $stagingRow) {
                     try {
-                        $this->processRow($batch, $stagingRow);
+                        $hoarding = $this->processRow($batch, $stagingRow); // CHANGE: return hoarding
+                        $createdHoardingIds[] = $hoarding->id;              // ADD THIS
                         $createdCount++;
+
                     } catch (Exception $e) {
                         $failedCount++;
                         \Log::error('Failed to process staging row', [
@@ -109,7 +112,8 @@ class ImportApprovalService
                         new \Modules\Import\Notifications\BulkImportApprovedForVendorNotification(
                             $batch,
                             $createdCount,
-                            $failedCount
+                            $failedCount,
+                            $createdHoardingIds 
                         )
                     );
                 }
@@ -168,13 +172,13 @@ class ImportApprovalService
      * @param InventoryImportStaging $stagingRow
      * @throws Exception
      */
-    protected function processRow(InventoryImportBatch $batch, InventoryImportStaging $stagingRow): void
+    protected function processRow(InventoryImportBatch $batch, InventoryImportStaging $stagingRow): Hoarding 
     {
-        \Log::info('Processing staging row', [
-            'batch_id' => $batch->id,
-            'row_id' => $stagingRow->id,
-            'code' => $stagingRow->code,
-        ]);
+        // \Log::info('Processing staging row', [
+        //     'batch_id' => $batch->id,
+        //     'row_id' => $stagingRow->id,
+        //     'code' => $stagingRow->code,
+        // ]);
         // dd($stagingRow->toArray());
 
         // STEP 1: Create parent Hoarding record
@@ -218,11 +222,11 @@ class ImportApprovalService
             throw new Exception('Failed to create hoarding record');
         }
 
-        \Log::info('Created hoarding', [
-            'hoarding_id' => $hoarding->id,
-            'vendor_id' => $batch->vendor_id,
-            'code' => $stagingRow->code,
-        ]);
+        // \Log::info('Created hoarding', [
+        //     'hoarding_id' => $hoarding->id,
+        //     'vendor_id' => $batch->vendor_id,
+        //     'code' => $stagingRow->code,
+        // ]);
 
         // STEP 2: Create type-specific records
         if ($stagingRow->media_type === 'ooh') {
@@ -232,6 +236,7 @@ class ImportApprovalService
         } else {
             throw new Exception("Unknown media type: {$stagingRow->media_type}");
         }
+        return $hoarding; // ADD THIS
     }
 
     /**
