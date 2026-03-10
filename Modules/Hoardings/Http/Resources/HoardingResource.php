@@ -167,6 +167,8 @@ class HoardingResource extends JsonResource
             'expected_eyeball' => $this->expected_eyeball,
             'audience_types' => $this->audience_types,
             'is_featured' => (bool) $this->is_featured,
+            'nagar_nigam_approved' => $this->nagar_nigam_approved,
+            'permit_valid_till' => $this->permit_valid_till,
             'is_active' => $this->isActive(),
             'media' => $media,
             'packages' => $packages,
