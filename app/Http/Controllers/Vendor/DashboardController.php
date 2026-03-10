@@ -7,7 +7,7 @@ use App\Models\Booking;
 use App\Models\Hoarding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Modules\POS\Models\PosBooking;
+use Modules\POS\Models\POSBooking;
 use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
@@ -90,7 +90,7 @@ class DashboardController extends Controller
             ->keyBy('customer_id');
 
         // Get POS Booking stats
-        $posBookingStats = PosBooking::where('vendor_id', $userId)
+        $posBookingStats = POSBooking::where('vendor_id', $userId)
             ->selectRaw('customer_id, COUNT(*) as bookings, SUM(total_amount) as amount')
             ->groupBy('customer_id')
             ->with('customer')
@@ -159,7 +159,7 @@ class DashboardController extends Controller
             });
 
         // Get recent POS transactions
-        $posTransactions = PosBooking::where('vendor_id', $userId)
+        $posTransactions = POSBooking::where('vendor_id', $userId)
             ->with('customer')
             ->orderBy('created_at', 'desc')
             ->take(5)
@@ -195,7 +195,7 @@ class DashboardController extends Controller
     public function downloadInvoice($id)
     {
         // Try to find the booking (online or POS)
-        $booking = PosBooking::find($id) ?? \Modules\POS\Models\PosBooking::find($id);
+        $booking = POSBooking::find($id) ?? \Modules\POS\Models\POSBooking::find($id);
 
         if (!$booking) {
             abort(404, 'Transaction not found');

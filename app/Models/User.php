@@ -16,7 +16,7 @@ use Modules\Enquiries\Models\DirectEnquiry;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\POS\Models\PosCustomer;
 use Illuminate\Support\Collection;
-use Modules\POS\Models\PosBooking; // Make sure this import is at the top
+use Modules\POS\Models\POSBooking; // Make sure this import is at the top
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasApiTokens, HasRoles, SoftDeletes;
@@ -682,6 +682,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function posBookings()
     {
-        return $this->hasMany(PosBooking::class, 'vendor_id');
+        return $this->hasMany(POSBooking::class, 'vendor_id');
     }
 }

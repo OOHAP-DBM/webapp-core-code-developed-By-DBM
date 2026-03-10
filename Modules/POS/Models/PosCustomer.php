@@ -45,7 +45,7 @@ class PosCustomer extends Model
 
     public function bookings()
     {
-        return $this->hasMany(\Modules\POS\Models\PosBooking::class, 'customer_id');
+        return $this->hasMany(\Modules\POS\Models\POSBooking::class, 'customer_id');
     }
 
    
