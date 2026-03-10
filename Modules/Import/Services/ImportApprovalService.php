@@ -28,27 +28,22 @@ class ImportApprovalService
         try {
             // Validate batch status
             $this->validateBatchStatus($batch);
-
             $createdCount = 0;
             $failedCount = 0;
             $createdHoardingIds = [];
-
             // Wrap everything in transaction for atomicity
             DB::transaction(function () use ($batch, &$createdCount, &$failedCount,  &$createdHoardingIds) {
                 // Get all valid staging records with eager loading
                 $validRows = $batch->stagingRecords()
                     ->valid()
                     ->get();
-
                 if ($validRows->isEmpty()) {
                     throw new Exception('No valid records found in batch to approve');
                 }
-
                 // \Log::info('Starting batch approval', [
                 //     'batch_id' => $batch->id,
                 //     'valid_records' => $validRows->count(),
                 // ]);
-
                 foreach ($validRows as $stagingRow) {
                     try {
                         $hoarding = $this->processRow($batch, $stagingRow); // CHANGE: return hoarding
