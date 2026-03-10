@@ -10,11 +10,27 @@
 
         
         <!-- Recommended Badge -->
-        <div class="absolute top-3 left-3">
+        {{-- <div class="absolute top-3 left-3">
             <span class="px-2.5 py-1 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold rounded">
                 Recommended
             </span>
-        </div>
+        </div> --}}
+      @php
+    if (($hoarding->is_recommended ?? 0) == 1) {
+        $isRecommended = true;
+    } else {
+        $isRecommended = ($hoarding->view_count ?? 0) >= 50 || 
+                         ($hoarding->expected_eyeball ?? 0) >= 5000;
+    }
+@endphp
+
+@if($isRecommended)
+<div class="absolute top-3 left-3">
+    <span class="px-2.5 py-1 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold rounded">
+        Recommended
+    </span>
+</div>
+@endif
 
         <!-- Top Right Icons -->
         <div class="absolute top-3 right-3 flex items-center space-x-2">
@@ -136,8 +152,13 @@
 
             {{-- MAIN PRICE --}}
             <div class="flex items-baseline">
-                <span class="text-xl font-semibold text-gray-900">
-                    ₹{{ number_format($hasSale ? $sale : $base, 0) }}
+                @php
+                    $displayPrice = $hasSale ? $sale : $base;
+                @endphp
+                <span 
+                    class="text-xl font-semibold text-gray-900 price-display" 
+                    data-base-price="{{ $displayPrice }}">
+                    ₹{{ number_format($displayPrice, 0) }}
                 </span>
                 <span class="text-lg text-black font-bold ml-1">/Month</span>
             </div>

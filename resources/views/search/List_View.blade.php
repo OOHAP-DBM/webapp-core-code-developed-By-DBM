@@ -189,8 +189,11 @@
 
                             {{-- PRICE --}}
                             <div class="mt-3">
-                                <span class="text-xl font-bold">
-                                    ₹{{ number_format($item->price) }}
+                                @php
+                                    $displayPrice = $item->price ?? $item->monthly_price ?? $item->base_monthly_price ?? 0;
+                                @endphp
+                                <span class="text-xl font-bold price-display" data-base-price="{{ $displayPrice }}">
+                                    ₹{{ number_format($displayPrice) }}
                                 </span>
 
                                 <span class="text-lg text-black font-bold">

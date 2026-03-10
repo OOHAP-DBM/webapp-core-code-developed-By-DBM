@@ -26,7 +26,7 @@
     </div>
 
     <div class="bg-white px-6 py-5">
-        <div class="px-3 py-2 rounded-lg {{ request()->routeIs('vendor.profile.*') ? 'bg-[#00995c] text-white' : '' }}">
+        <div class="py-2 rounded-lg {{ request()->routeIs('vendor.profile.*') ? 'bg-[#00995c] text-white' : '' }}">
             <a href="{{ route('vendor.profile.edit') }}" class="flex items-center space-x-3">
 
                 {{-- ✅ FIXED: Avatar with object-fit:contain so full image is always visible --}}
