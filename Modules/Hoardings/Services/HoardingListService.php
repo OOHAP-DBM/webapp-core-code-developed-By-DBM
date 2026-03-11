@@ -256,6 +256,10 @@ class HoardingListService
                 ? (int) $data['grace_period_days']
                 : 0,
 
+            // Featured & Recommended
+            'is_featured'          => (bool) ($data['is_featured'] ?? false),
+            'is_recommended'       => (bool) ($data['is_recommended'] ?? false),
+
             // Visibility
             'hoarding_visibility'  => $data['visibility_type'] ?? $data['hoarding_visibility'] ?? null,
             'visibility_start'    => is_array($data['visibility_start'] ?? null) ? ($data['visibility_start'][0] ?? null) : ($data['visibility_start'] ?? null),

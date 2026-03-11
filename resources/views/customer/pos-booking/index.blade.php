@@ -4,7 +4,7 @@
 
 @section('content')
 <div
-    class="container mx-auto px-2 sm:px-4 py-6"
+    class="bg-white shadow w-full px-4 sm:px-6 py-6"
     x-data="{
         openFilter: false,
         dateFilter: '{{ request('date_filter', 'all') }}'
@@ -17,7 +17,7 @@
             <p class="text-gray-500 text-xs sm:text-sm">View and manage booked hoardings</p>
         </div>
 
-        <div class="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
+        <div class="flex flex-row gap-2 items-center w-full sm:w-auto">
             {{-- Search --}}
             <form method="GET" class="flex gap-2 w-full sm:w-auto">
                 @foreach(request()->except(['search']) as $key => $val)
@@ -68,7 +68,7 @@
                     <th class="px-3 py-3 text-right font-semibold text-gray-700 whitespace-nowrap">Balance</th>
                     <th class="px-3 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Payment Status</th>
                     <th class="px-3 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Booking Status</th>
-                    <th class="px-3 py-3 text-center font-semibold text-gray-700 whitespace-nowrap">Action</th>
+                    {{-- <th class="px-3 py-3 text-center font-semibold text-gray-700 whitespace-nowrap">Action</th> --}}
                 </tr>
             </thead>
             <tbody>
@@ -143,12 +143,12 @@
                         </span>
                     </td>
 
-                    <td class="px-3 py-2 text-center">
+                    {{-- <td class="px-3 py-2 text-center">
                         <a href="#"
                             class="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 text-xs font-semibold">
                             View
                         </a>
-                    </td>
+                    </td> --}}
                 </tr>
                 @empty
                 <tr>
@@ -184,7 +184,7 @@
         x-show="openFilter"
         x-cloak
         x-transition
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 md:px-0"
     >
         <div
             @click.away="openFilter = false"

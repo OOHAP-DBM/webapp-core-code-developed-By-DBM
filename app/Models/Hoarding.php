@@ -122,6 +122,7 @@ class Hoarding extends Model implements HasMedia
         'status',
         'current_step',
         'is_featured',
+        'is_recommended',
         'located_at',
 
         /* Analytics */
@@ -165,6 +166,7 @@ class Hoarding extends Model implements HasMedia
         'permit_valid_till' => 'date',
 
         'is_featured' => 'boolean',
+        'is_recommended' => 'boolean',
         'view_count' => 'integer',
         'bookings_count' => 'integer',
         'last_booked_at' => 'datetime',
@@ -189,7 +191,7 @@ class Hoarding extends Model implements HasMedia
             'hoarding_id',
             'id'
         )->orderBy('is_primary', 'desc')
-        ->orderBy('sort_order');
+            ->orderBy('sort_order');
     }
 
     public function vendor(): BelongsTo
@@ -233,7 +235,7 @@ class Hoarding extends Model implements HasMedia
 
     /* ===================== HELPERS ===================== */
 
-  
+
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
@@ -245,6 +247,10 @@ class Hoarding extends Model implements HasMedia
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'hoarding_id');
+    }
+    public function posBookings()
+    {
+        return $this->hasMany(\Modules\POS\Models\POSBooking::class, 'hoarding_id');
     }
     // public function oohPackages()
     // {
@@ -302,7 +308,7 @@ class Hoarding extends Model implements HasMedia
         return $query->where('vendor_id', $vendorId);
     }
 
-  
+
 
     /**
      * Scope a query to filter by status.
@@ -330,7 +336,7 @@ class Hoarding extends Model implements HasMedia
                      * cos(radians(longitude) - radians(?)) 
                      + sin(radians(?)) 
                      * sin(radians(latitude))))";
-        
+
         return $query
             ->selectRaw("{$haversine} AS distance", [$latitude, $longitude, $latitude])
             ->whereRaw("{$haversine} <= ?", [$latitude, $longitude, $latitude, $radiusKm])
@@ -439,7 +445,7 @@ class Hoarding extends Model implements HasMedia
             return $this->doohScreen->brandLogos()->orderBy('sort_order');
         }
         return $this->hasMany(HoardingBrandLogo::class)
-        ->orderBy('sort_order');
+            ->orderBy('sort_order');
     }
     /**
      * Get hero image URL (with fallback to primary_image column if exists).
@@ -642,33 +648,33 @@ class Hoarding extends Model implements HasMedia
     }
 
 
-   protected static function boot()
-{
-    parent::boot();
+    protected static function boot()
+    {
+        parent::boot();
 
-    // On creation
-    static::created(function ($hoarding) {
-        $hoarding->loadMissing(['oohHoarding', 'doohScreen']); // load size data
+        // On creation
+        static::created(function ($hoarding) {
+            $hoarding->loadMissing(['oohHoarding', 'doohScreen']); // load size data
 
-        $hoarding->updateQuietly([
-            'slug'  => $hoarding->generateSlugWithId(),
-            'title' => $hoarding->generateTitle(),
-        ]);
-    });
+            $hoarding->updateQuietly([
+                'slug'  => $hoarding->generateSlugWithId(),
+                'title' => $hoarding->generateTitle(),
+            ]);
+        });
 
-    // On update
-    static::updating(function ($hoarding) {
-        $hoarding->title = $hoarding->generateTitle();
+        // On update
+        static::updating(function ($hoarding) {
+            $hoarding->title = $hoarding->generateTitle();
 
-        // Update slug if any key field changes
-        if ($hoarding->isDirty(['city', 'locality', 'category', 'landmark', 'hoarding_type'])) {
-            $hoarding->loadMissing(['oohHoarding', 'doohScreen']);
-            $hoarding->slug = $hoarding->generateSlugWithId();
-        }
-    });
-}
+            // Update slug if any key field changes
+            if ($hoarding->isDirty(['city', 'locality', 'category', 'landmark', 'hoarding_type'])) {
+                $hoarding->loadMissing(['oohHoarding', 'doohScreen']);
+                $hoarding->slug = $hoarding->generateSlugWithId();
+            }
+        });
+    }
 
-   public function generateSlugWithId(): string
+    public function generateSlugWithId(): string
     {
         $parts = [
             Str::slug($this->city ?? ''),
@@ -805,26 +811,26 @@ class Hoarding extends Model implements HasMedia
             ->first();
     }
     public function resolveMedia(): array
-{
-    // ---------- OOH ----------
-    if ($this->hoarding_type === self::TYPE_OOH) {
-        return $this->hoardingMedia
-            ->sortByDesc('is_primary')
-            ->map(fn ($media) => [
-                'id'         => $media->id,
-                'url'        => asset('storage/' . ltrim($media->file_path, '/')),
-                'type'       => $media->media_type,
-                'is_primary' => (bool) $media->is_primary,
-            ])
-            ->values()
-            ->toArray();
-    }
+    {
+        // ---------- OOH ----------
+        if ($this->hoarding_type === self::TYPE_OOH) {
+            return $this->hoardingMedia
+                ->sortByDesc('is_primary')
+                ->map(fn($media) => [
+                    'id'         => $media->id,
+                    'url'        => asset('storage/' . ltrim($media->file_path, '/')),
+                    'type'       => $media->media_type,
+                    'is_primary' => (bool) $media->is_primary,
+                ])
+                ->values()
+                ->toArray();
+        }
 
-    // ---------- DOOH ----------
-    if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+        // ---------- DOOH ----------
+        if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
             return $this->doohScreen->media
                 ->sortByDesc('is_primary')
-                ->map(fn ($media) => [
+                ->map(fn($media) => [
                     'id'         => $media->id,
                     'url'        => asset('storage/' . ltrim($media->file_path, '/')),
                     'type'       => $media->media_type,
@@ -846,7 +852,7 @@ class Hoarding extends Model implements HasMedia
     }
 
 
-/**
+    /**
      * Check if hoarding is currently available
      */
     public function getIsAvailableAttribute(): bool
@@ -854,19 +860,19 @@ class Hoarding extends Model implements HasMedia
         if ($this->status !== 'active') {
             return false;
         }
-        
+
         if ($this->is_on_hold && $this->hold_till && $this->hold_till->isFuture()) {
             return false;
         }
-        
+
         if ($this->available_from && $this->available_from->isFuture()) {
             return false;
         }
-        
+
         if ($this->available_to && $this->available_to->isPast()) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -879,7 +885,7 @@ class Hoarding extends Model implements HasMedia
         return $symbol . number_format($this->monthly_price, 2);
     }
 
-   
+
 
     /**
      * Scope: Available hoardings (active and not on hold)
@@ -889,18 +895,18 @@ class Hoarding extends Model implements HasMedia
         return $query->where('status', 'active')
             ->where(function ($q) {
                 $q->where('is_on_hold', false)
-                  ->orWhere(function ($q2) {
-                      $q2->where('is_on_hold', true)
-                         ->where('hold_till', '<', now());
-                  });
+                    ->orWhere(function ($q2) {
+                        $q2->where('is_on_hold', true)
+                            ->where('hold_till', '<', now());
+                    });
             })
             ->where(function ($q) {
                 $q->whereNull('available_from')
-                  ->orWhere('available_from', '<=', now());
+                    ->orWhere('available_from', '<=', now());
             })
             ->where(function ($q) {
                 $q->whereNull('available_to')
-                  ->orWhere('available_to', '>=', now());
+                    ->orWhere('available_to', '>=', now());
             });
     }
 
@@ -919,7 +925,7 @@ class Hoarding extends Model implements HasMedia
     {
         return $query->where(function ($q) use ($locality) {
             $q->where('locality', 'like', "%{$locality}%")
-              ->orWhere('address', 'like', "%{$locality}%");
+                ->orWhere('address', 'like', "%{$locality}%");
         });
     }
 
@@ -958,7 +964,7 @@ class Hoarding extends Model implements HasMedia
         if (stripos($this->city, $city) === false && stripos($city, $this->city) === false) {
             return false;
         }
-        
+
         // Check hoarding type match
         $typeMatch = false;
         foreach ($hoardingTypes as $type) {
@@ -967,34 +973,36 @@ class Hoarding extends Model implements HasMedia
                 break;
             }
         }
-        
+
         if (!$typeMatch) {
             return false;
         }
-        
+
         // Check locality match (if specified)
         if (!empty($localities) && $localities[0] !== 'To be discussed') {
             $localityMatch = false;
             foreach ($localities as $locality) {
-                if (stripos($this->locality, $locality) !== false || 
+                if (
+                    stripos($this->locality, $locality) !== false ||
                     stripos($this->address, $locality) !== false ||
-                    stripos($this->landmark, $locality) !== false) {
+                    stripos($this->landmark, $locality) !== false
+                ) {
                     $localityMatch = true;
                     break;
                 }
             }
-            
+
             if (!$localityMatch) {
                 return false;
             }
         }
-        
+
         return true;
     }
 
 
 
-        /**
+    /**
      * Get the first media item for display (OOH or DOOH)
      */
     public function primaryMediaItem()
@@ -1030,15 +1038,27 @@ class Hoarding extends Model implements HasMedia
     public function commissionSettings(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\Models\CommissionSetting::class, 'vendor_id', 'vendor_id')
-                    ->where(function ($q) {
-                        $q->where('hoarding_type', $this->hoarding_type)
-                        ->orWhere('hoarding_type', 'all');
-                    });
+            ->where(function ($q) {
+                $q->where('hoarding_type', $this->hoarding_type)
+                    ->orWhere('hoarding_type', 'all');
+            });
     }
 
     // Accessor — resolves the single highest-priority rule
     public function getEffectiveCommissionAttribute(): ?\App\Models\CommissionSetting
     {
         return \App\Models\CommissionSetting::resolveFor($this);
+    }
+    public function ratings()
+    {
+        return $this->hasMany(\App\Models\Rating::class);
+    }
+    public function averageRating()
+    {
+        return round($this->ratings()->avg('rating'),1);
+    }
+    public function reviewsCount()
+    {
+        return $this->ratings()->count();
     }
 }

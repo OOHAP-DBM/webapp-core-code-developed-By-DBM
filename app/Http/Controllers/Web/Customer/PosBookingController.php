@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Web\Customer;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Modules\POS\Models\PosBooking;
+use Modules\POS\Models\POSBooking;
 
 class PosBookingController extends Controller
 {
@@ -15,7 +15,7 @@ class PosBookingController extends Controller
     {
         $customerId = auth()->id();
 
-        $query = PosBooking::with(['hoardings'])
+        $query = POSBooking::with(['hoardings'])
             ->where('customer_id', $customerId); // ✅ sirf us customer ki bookings
 
         // ── Search by POS Booking ID (Primary Key) ─────────────────────────

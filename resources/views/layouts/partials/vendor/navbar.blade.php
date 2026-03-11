@@ -1,5 +1,5 @@
 {{-- Vendor Navbar --}}
-<header class="bg-white border-b border-gray-200 h-16 flex items-center px-6 gap-4">
+<header class="bg-white border-b border-gray-200 py-3 flex items-center px-6 gap-4">
     
     <!-- LEFT : TITLE -->
     <div class="flex-1 min-w-0">

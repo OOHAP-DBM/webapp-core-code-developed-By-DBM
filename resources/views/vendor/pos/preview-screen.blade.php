@@ -1,14 +1,14 @@
 <div class="w-full mx-auto">
-    <div class="flex flex-col lg:flex-row gap-8">
+    <div class="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
 
         {{-- ── Items Table ── --}}
         <div class="flex-1 bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
-            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                <h2 class="text-xl font-black text-gray-800">BOOKING PREVIEW</h2>
-                <button onclick="backToSelection()" class="text-sm font-bold text-[#2D5A43]">← Edit Selection</button>
+            <div class="p-3 sm:p-4 lg:p-6 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <h2 class="text-lg sm:text-xl font-black text-gray-800">BOOKING PREVIEW</h2>
+                <button onclick="backToSelection()" class="w-full sm:w-auto min-h-[44px] text-sm font-bold text-[#2D5A43]">← Edit Selection</button>
             </div>
 
-            <div class="grid grid-cols-2 gap-8 p-6 border-b border-gray-100">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 p-3 sm:p-4 lg:p-6 border-b border-gray-100">
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Customer</label>
                     <div class="space-y-1 text-xs">
@@ -19,14 +19,14 @@
                         <div><span class="font-bold text-gray-700">Address:</span> <span id="preview-cust-address">---</span></div>
                     </div>
                 </div>
-                <div class="text-right">
+                <div class="text-left sm:text-right">
                     <label class="block text-[10px] font-bold text-gray-400 uppercase">Inventory</label>
                     <p class="text-sm font-bold text-gray-800"><span id="preview-total-count">0</span> Items Selected</p>
                 </div>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full text-left">
+                <table class="w-full min-w-[760px] text-left">
                     <thead class="bg-gray-50 text-[10px] uppercase text-gray-400 font-bold">
                         <tr>
                             <th class="px-4 py-3">Sn</th>
@@ -46,8 +46,8 @@
         </div>
 
         {{-- ── POS Checkout ── --}}
-        <div class="lg:w-96">
-            <div class="bg-white rounded-md shadow-xl border border-gray-200 p-6 sticky top-6 space-y-5">
+        <div class="w-full lg:w-96">
+            <div class="bg-white rounded-md shadow-xl border border-gray-200 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-6 space-y-5">
                 <h3 class="font-bold text-gray-800 text-lg">POS Checkout</h3>
 
                 {{-- Discount --}}
@@ -60,7 +60,7 @@
                 {{-- Payment Mode --}}
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Payment Mode</label>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <button type="button" onclick="selectPaymentMode('cash')"
                             class="payment-mode-btn active-mode flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="cash">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12a2 2 0 100-4 2 2 0 000 4z"/><path d="M6 12h.01M18 12h.01"/></svg>
@@ -178,7 +178,7 @@
                 <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
                     <h4 class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Booking Hold Duration</h4>
                     <p class="text-[11px] text-gray-500 mb-3">Booking will be released if payment is not received within this time.</p>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         <button type="button" onclick="selectHoldTime(15)" class="hold-time-btn py-2 text-xs font-bold border-2 rounded-lg transition" data-mins="15">15 min</button>
                         <button type="button" onclick="selectHoldTime(30)" class="hold-time-btn active-hold py-2 text-xs font-bold border-2 rounded-lg transition" data-mins="30">30 min</button>
                         <button type="button" onclick="selectHoldTime(60)" class="hold-time-btn py-2 text-xs font-bold border-2 rounded-lg transition" data-mins="60">1 hour</button>
@@ -213,7 +213,7 @@
 {{-- Booking Confirmed Modal with Timer --}}
 <div id="booking-confirmed-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+    <div class="relative bg-white rounded-2xl shadow-2xl w-[94vw] sm:w-full max-w-md mx-3 sm:mx-4 overflow-hidden max-h-[92vh] overflow-y-auto">
         <div class="bg-[#2D5A43] px-6 py-5 text-white">
             <div class="flex items-center gap-3 mb-1">
                 <div class="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
@@ -270,9 +270,9 @@
                 <span id="modal-total-amount" class="text-xl font-black text-[#2D5A43]"></span>
             </div>
 
-            <div class="flex gap-3 pt-2">
-                <button onclick="closeConfirmedModal()" class="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">Close</button>
-                <button onclick="window.location.href=`${window.POS_BASE_PATH || '/vendor/pos'}/bookings`" class="flex-1 py-3 bg-[#2D5A43] text-white rounded-xl text-sm font-bold hover:bg-opacity-90">
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button onclick="closeConfirmedModal()" class="w-full sm:flex-1 min-h-[44px] py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">Close</button>
+                <button onclick="window.location.href=`${window.POS_BASE_PATH || '/vendor/pos'}/bookings`" class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#2D5A43] text-white rounded-xl text-sm font-bold hover:bg-opacity-90">
                     View Bookings
                 </button>
             </div>

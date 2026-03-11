@@ -26,7 +26,7 @@
     </div>
 
     <div class="bg-white px-6 py-5">
-        <div class="px-3 py-2 rounded-lg {{ request()->routeIs('vendor.profile.*') ? 'bg-[#00995c] text-white' : '' }}">
+        <div class="py-2 rounded-lg {{ request()->routeIs('vendor.profile.*') ? 'bg-[#00995c] text-white' : '' }}">
             <a href="{{ route('vendor.profile.edit') }}" class="flex items-center space-x-3">
 
                 {{-- ✅ FIXED: Avatar with object-fit:contain so full image is always visible --}}
@@ -299,7 +299,7 @@
                                 <rect x="3" y="14" width="7" height="7" rx="1" fill="currentColor"/>
                                 <path opacity="0.5" d="M14 14L21 14M21 14L19 12M21 14L19 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            Import Management
+                            Import Hoardings
                         </div>
                         <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -405,13 +405,13 @@
                 </div>
             </div>
                 <!-- Create Offers -->
-            <a href="{{ route('vendor.offers.create') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.offers.create') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
+            <!-- <a href="{{ route('vendor.offers.create') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.offers.create') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
                 <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
                     <rect x="3" y="11" width="18" height="2" rx="1" fill="currentColor"/>
                     <rect x="11" y="3" width="2" height="18" rx="1" fill="currentColor"/>
                 </svg>
                 Create Offers
-            </a>
+            </a> -->
 
             <a href="{{ route('vendor.commission.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.commission.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

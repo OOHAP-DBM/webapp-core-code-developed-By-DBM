@@ -10,6 +10,7 @@ use Modules\Cart\Controllers\Web\CartController;
 use Modules\Enquiries\Controllers\Web\DirectEnquiryController;
 use Modules\POS\Controllers\Api\POSBookingController;
 use App\Http\Controllers\Web\Customer\ShortlistController;
+use App\Http\Controllers\Web\Customer\RatingController;
 use Modules\Auth\Http\Controllers\MobileForgotPasswordController;
 use App\Http\Controllers\GeocodeController;
 
@@ -59,12 +60,6 @@ Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest')->group(
     Route::post('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'login'])->name('login.submit');
 
 });
-
-// Admin Protected Routes
-// Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware(['auth:admin', 'admin'])->group(function () {
-//     Route::get('/dashboard', [Modules\Admin\Controllers\Web\AdminDashboardController::class, 'index'])->name('dashboard');
-//     // ...other admin routes...
-// });
 /*
 |--------------------------------------------------------------------------
 | Direct Enquiry Routes
@@ -297,6 +292,7 @@ Route::get('/refund-cancellation-policy', [PageController::class, 'refund'])->na
 Route::middleware(['auth'])->group(function () {
     Route::get('/shortlist', [ShortlistController::class, 'index'])->name('shortlist');
     Route::post('/shortlist/toggle/{hoarding}', [ShortlistController::class, 'toggle'])->name('shortlist.toggle');
+    Route::post('/ratings/store',[RatingController::class,'store'])->name('ratings.store');
 });
 
 
@@ -672,6 +668,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/enquiries/{id}', [\App\Http\Controllers\Vendor\EnquiryController::class, 'show'])->name('enquiries.show');
     // Dashboard (PROMPT 26)
     Route::get('/dashboard', [\App\Http\Controllers\Vendor\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('vendor/transactions/{id}/invoice', [\App\Http\Controllers\Vendor\DashboardController::class, 'downloadInvoice'])->name('transactions.invoice');
     Route::get('/notifications', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
@@ -868,6 +865,9 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::post('/profile/send-otp', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'sendProfileOtp'])->name('profile.send-otp');
     Route::post('/profile/verify-otp', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'verifyProfileOtp'])->name('profile.verify-otp');
     Route::post('/delete/send-otp', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'sendDeleteOtp'])->name('profile.delete.sendOtp');
+    Route::post('/reviews/{rating}/reply', [\App\Http\Controllers\Vendor\ReviewController::class, 'reply'])->name('reviews.reply');
+    Route::delete('/reviews/{rating}', [\App\Http\Controllers\Vendor\ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::post('/reviews/bulk-delete', [\App\Http\Controllers\Vendor\ReviewController::class, 'bulkDelete'])->name('reviews.bulk-delete');
 }); // End of vendor middleware group
 Route::get('/avatar/{user}', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewAvatar'])->name('view-avatar');
 
