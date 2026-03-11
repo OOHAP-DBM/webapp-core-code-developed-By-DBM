@@ -51,12 +51,22 @@ class EnquiryController extends Controller
         });
 
         // SEARCH by enquiry id or customer info
-        if ($search = $request->input('search')) {
-            $query->where(function($q) use ($search) {
-                $q->where('id', $search);
-            });
+        // if ($search = $request->input('search')) {
+        //     $query->where(function($q) use ($search) {
+        //         $q->where('id', $search);
+        //     });
+        // }
+        $searchId = null;
+        if ($request->filled('search')) {
+            $searchId = preg_replace('/\D/', '', trim($request->search));
+            if ($searchId !== '') {
+                $query->where('id', (int) $searchId);
+                $query->orderByRaw(
+                    'CASE WHEN id = ? THEN 0 ELSE 1 END',
+                    [(int) $searchId]
+                );
+            }
         }
-
         // FILTER by created_at date
         $dateFilter = $request->input('date_filter', 'all');
         if ($dateFilter && $dateFilter !== 'all') {
