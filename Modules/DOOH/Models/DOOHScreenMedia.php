@@ -10,6 +10,14 @@ class DOOHScreenMedia extends Model
     protected $fillable = [
         'dooh_screen_id',
         'file_path',
+
+        'path_100',
+        'path_300',
+        'path_600',
+        'path_1000',
+        'path_1500',
+
+        'mime_type',
         'media_type',
         'is_primary',
         'sort_order',
