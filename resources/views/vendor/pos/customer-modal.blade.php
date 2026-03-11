@@ -1,19 +1,19 @@
 <div id="customerModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
     <div class="fixed inset-0 bg-black/20 backdrop-blur-sm" onclick="closeCustomerModal()"></div>
     
-    <div class="flex min-h-full items-center justify-center p-4">
-        <div class="relative w-full max-w-5xl rounded-lg bg-white shadow-xl animate-fade-in">
+    <div class="flex min-h-full items-center justify-center p-3 sm:p-4">
+        <div class="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-lg bg-white shadow-xl animate-fade-in">
             
-            <button onclick="closeCustomerModal()" class="absolute top-4 right-4 text-gray-400 hover:text-black">
+            <button onclick="closeCustomerModal()" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-black">
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
 
-            <div class="px-8 pt-8 pb-4">
-                <h2 class="text-2xl font-semibold text-gray-900 leading-tight">Create Customer Profile</h2>
+            <div class="px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-4">
+                <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 leading-tight">Create Customer Profile</h2>
                 <p class="text-gray-500 mt-1">Add new customer details to proceed with offer creation.</p>
             </div>
 
-            <form id="new-customer-form" class="px-8 pb-8">
+            <form id="new-customer-form" class="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
                 <div id="customer-error-summary" class="hidden mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-700 text-sm"></div>
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-5">
@@ -95,7 +95,7 @@
 
                 <div class="mt-8">
                     <h4 class="text-lg font-semibold text-gray-900 mb-4">Create Password</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div class="space-y-2 relative">
                             <label class="block text-sm font-medium text-gray-700">Password</label>
                             <div class="relative">
@@ -126,7 +126,7 @@
                 </div>
 
                 <div class="mt-10 flex justify-end">
-                    <button type="submit" class="bg-[#345745] hover:bg-[#2a4537] text-white px-12 py-3 rounded-sm font-medium transition-all shadow-sm">
+                    <button type="submit" class="w-full sm:w-auto min-h-[44px] bg-[#345745] hover:bg-[#2a4537] text-white px-8 sm:px-12 py-3 rounded-sm font-medium transition-all shadow-sm">
                         Save
                     </button>
                 </div>

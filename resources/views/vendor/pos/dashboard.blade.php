@@ -9,22 +9,22 @@
 </style>
 
 @section('content')
-<div class="px-6 py-6 space-y-8 bg-gray-50 min-h-screen">
+<div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8 bg-gray-50 min-h-screen">
     @include('vendor.pos.components.admin-vendor-switcher')
 
     <!-- Header -->
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h2 class="text-2xl font-bold text-[#1D1D1D]">Welcome, {{ Auth::user()->name }}</h2>
+            <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#1D1D1D]">Welcome, {{ Auth::user()->name }}</h2>
             <p class="text-sm text-gray-500 font-medium">POS Dashboard</p>
         </div>
-        <button class="bg-[#1D1D1D] text-white px-6 py-2 rounded shadow-sm text-sm font-medium">POS</button>
+        <button class="w-full sm:w-auto bg-[#1D1D1D] text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded shadow-sm text-sm font-medium">POS</button>
     </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-        <div class="bg-[#4891EF] text-white p-5 flex gap-4">
+        <div class="bg-[#4891EF] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center">
             <div>
                 <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="44" height="44" rx="2" fill="white"/>
@@ -33,11 +33,11 @@
             </div>
            <div>
                 <h6 class="text-sm opacity-80">Total Bookings</h6>
-                <h2 id="total-bookings" class="text-3xl font-semibold">-</h2>
+                <h2 id="total-bookings" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
         </div>
 
-        <div class="bg-[#8153FF] text-white p-5 flex gap-4">
+            <div class="bg-[#8153FF] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center">
             <div>
                 <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="44" height="44" rx="2" fill="white"/>
@@ -46,11 +46,11 @@
             </div>
            <div>
                 <h6 class="text-sm opacity-80">Total Revenue</h6>
-                <h2 id="total-revenue" class="text-3xl font-semibold">-</h2>
+                <h2 id="total-revenue" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
         </div>
 
-        <div class="bg-[#2CB67D] text-white p-5 flex gap-4">
+            <div class="bg-[#2CB67D] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center">
             <div>
                 <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="44" height="44" rx="2" fill="white"/>
@@ -59,11 +59,11 @@
             </div>
            <div>
                 <h6 class="text-sm opacity-80">Pending Payments</h6>
-                <h2 id="pending-payments" class="text-3xl font-semibold">-</h2>
+                <h2 id="pending-payments" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
         </div>
 
-        <div class="bg-[#092C4C] text-white p-5 flex gap-4">
+            <div class="bg-[#092C4C] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center">
             <div>
                 <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="44" height="44" rx="2" fill="white"/>
@@ -72,29 +72,29 @@
             </div>
            <div>
                 <h6 class="text-sm opacity-80">Total Customers</h6>
-                <h2 id="total-customers" class="text-3xl font-semibold">-</h2>
+                <h2 id="total-customers" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
         </div>
     </div>
 
     <!-- Actions -->
-    <div class="flex flex-wrap gap-4">
+    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <a
             href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.create') }}"
-            class="inline-flex items-center gap-2 px-6 py-3 rounded-lg btn-color text-white text-sm font-medium transition"
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg btn-color text-white text-sm font-medium transition"
         >
             + Create New POS Booking
         </a>
 
         <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.list') }}"
-           class="px-5 py-2.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition">
+           class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 sm:px-5 sm:py-2.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition">
             View All Bookings
         </a>
     </div>
 
     <!-- Recent Bookings -->
-    <div class="bg-white  shadow-sm border border-gray-200">
-        <div class="px-6 py-4 border-b border-gray-200">
+    <div class="bg-white shadow-sm border border-gray-200">
+        <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
             <h5 class="text-lg font-semibold">Recent POS Bookings</h5>
         </div>
 
@@ -124,8 +124,8 @@
     </div>
 
     <!-- Pending Payments Widget -->
-    <div id="pending-payments-widget" class="bg-white  shadow-sm border border-gray-200 hidden">
-        <div class="px-6 py-4 border-b border-gray-200 bg-yellow-50">
+    <div id="pending-payments-widget" class="bg-white shadow-sm border border-gray-200 hidden">
+        <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-yellow-50">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h5 class="text-lg font-semibold text-yellow-800">Pending Payment</h5>
@@ -158,8 +158,8 @@
             </table>
         </div>
 
-        <div id="pending-payments-pagination" class="px-6 py-3 border-t border-gray-200 bg-white hidden">
-            <div class="flex items-center justify-between">
+        <div id="pending-payments-pagination" class="px-4 sm:px-6 py-3 border-t border-gray-200 bg-white hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <p id="pending-payments-page-info" class="text-sm text-gray-600"></p>
                 <div class="flex gap-2">
                     <button id="pending-payments-prev" class="px-3 py-1.5 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
@@ -244,31 +244,48 @@ document.addEventListener('DOMContentLoaded', function () {
                 tbody.innerHTML = '';
                 data.data.data.forEach(b => {
                     tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3">${b.invoice_number || 'N/A'}</td>
-                        <td class="px-4 py-3">${b.customer_name}</td>
-                    <td class="px-4 py-3 font-bold text-gray-800">
+                    <tr class="hidden sm:table-row hover:bg-gray-50">
+                        <td class="px-2 py-2 sm:px-4 sm:py-3">${b.invoice_number || 'N/A'}</td>
+                        <td class="px-2 py-2 sm:px-4 sm:py-3">${b.customer_name}</td>
+                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-bold text-gray-800">
                         ${Array.isArray(b.hoardings) ? b.hoardings.length : (b.hoardings_count ?? 1)}
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="px-2 py-2 sm:px-4 sm:py-3">
                         ${formatDateTime(b.created_at)} 
                     </td>
-                    <td class="px-4 py-3 font-medium">₹${parseFloat(b.total_amount).toLocaleString()}</td>
-                    <td class="px-4 py-3">
+                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-medium">₹${parseFloat(b.total_amount).toLocaleString()}</td>
+                    <td class="px-2 py-2 sm:px-4 sm:py-3">
                         <span class="px-2 py-1 text-xs rounded-full ${paymentBadge(b.payment_status)}">
                             ${b.payment_status}
                         </span>
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="px-2 py-2 sm:px-4 sm:py-3">
                         <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">
                             ${b.status}
                         </span>
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="px-2 py-2 sm:px-4 sm:py-3">
                         <a href="${POS_BASE_PATH}/bookings/${b.id}"
                            class="text-blue-600 hover:underline text-sm">
                             View
                         </a>
+                    </td>
+                </tr>
+                <tr class="sm:hidden border-b border-gray-100">
+                    <td colspan="8" class="px-3 py-3">
+                        <div class="rounded-lg border border-gray-200 p-3 space-y-1.5 bg-white">
+                            <div class="flex items-center justify-between gap-2">
+                                <p class="text-xs font-semibold text-gray-900">${b.invoice_number || 'N/A'}</p>
+                                <span class="px-2 py-0.5 text-[10px] rounded-full ${statusBadge(b.status)}">${b.status}</span>
+                            </div>
+                            <p class="text-xs text-gray-600">${b.customer_name}</p>
+                            <p class="text-[11px] text-gray-500">${formatDateTime(b.created_at)}</p>
+                            <div class="flex items-center justify-between text-xs pt-1">
+                                <span class="font-medium text-gray-700">₹${parseFloat(b.total_amount).toLocaleString()}</span>
+                                <span class="px-2 py-0.5 text-[10px] rounded-full ${paymentBadge(b.payment_status)}">${b.payment_status}</span>
+                            </div>
+                            <a href="${POS_BASE_PATH}/bookings/${b.id}" class="inline-flex mt-1 text-xs text-blue-600 hover:underline">View</a>
+                        </div>
                     </td>
                 </tr>`;
             });
@@ -329,15 +346,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 : (daysPending > 3 ? 'bg-red-50' : 'bg-yellow-50');
 
             tbody.innerHTML += `
-                <tr class="${rowClass}">
-                    <td class="px-4 py-3 font-medium">${b.invoice_number || 'N/A'}</td>
-                    <td class="px-4 py-3">${b.customer_name}</td>
-                    <td class="px-4 py-3 font-semibold">₹${parseFloat(b.total_amount).toLocaleString()}</td>
-                    <td class="px-4 py-3 font-semibold text-red-600">${daysText}</td>
-                    <td class="px-4 py-3">
+                <tr class="hidden sm:table-row ${rowClass}">
+                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-medium">${b.invoice_number || 'N/A'}</td>
+                    <td class="px-2 py-2 sm:px-4 sm:py-3">${b.customer_name}</td>
+                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold">₹${parseFloat(b.total_amount).toLocaleString()}</td>
+                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-red-600">${daysText}</td>
+                    <td class="px-2 py-2 sm:px-4 sm:py-3">
                         <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm font-medium">
                             View & Mark Paid
                         </a>
+                    </td>
+                </tr>
+                <tr class="sm:hidden border-b border-gray-100">
+                    <td colspan="5" class="px-3 py-3">
+                        <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 space-y-1.5">
+                            <p class="text-xs font-semibold text-gray-900">${b.invoice_number || 'N/A'}</p>
+                            <p class="text-xs text-gray-700">${b.customer_name}</p>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-semibold">₹${parseFloat(b.total_amount).toLocaleString()}</span>
+                                <span class="font-semibold text-red-600">${daysText}</span>
+                            </div>
+                            <a href="${POS_BASE_PATH}/bookings/${b.id}" class="inline-flex text-xs text-blue-600 hover:underline font-medium">View & Mark Paid</a>
+                        </div>
                     </td>
                 </tr>`;
         });
