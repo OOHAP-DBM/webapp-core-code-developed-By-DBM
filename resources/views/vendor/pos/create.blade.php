@@ -3,34 +3,34 @@
 
 @section('title', 'POS Customers')
 @section('content')
-<div class="px-6 py-6 bg-gray-50">
-    <div id="selection-screen" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<div class="px-3 sm:px-4 lg:px-6 py-4 sm:py-6 bg-gray-50">
+    <div id="selection-screen" class="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6">
         
-        <div class="lg:col-span-7">
+        <div class="order-2 sm:order-1 sm:col-span-3 lg:col-span-7">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
+                <div class="px-3 sm:px-4 lg:px-6 py-4 border-b border-gray-100 flex justify-between items-center gap-2 bg-white">
                     <h2 class="text-xl font-bold text-gray-800">Create POS Booking</h2>
                     <span id="booking-date" class="text-xs text-gray-400 font-medium"></span>
                 </div>
 
-                <div class="p-6">
+                <div class="p-3 sm:p-4 lg:p-6">
                     <div class="mb-8">
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Customer Details</label>
                         
-                        <div id="search-container" class="flex gap-2">
+                        <div id="search-container" class="flex flex-col sm:flex-row gap-2">
                             <div class="relative flex-1 border border-gray-300">
                                 <input type="text" id="customer-search" autocomplete="off" 
                                     placeholder="Search by name, email, or mobile..." 
-                                    class="w-full border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2">
+                                    class="w-full border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2 min-h-[44px]">
                                 <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
                             </div>
-                            <button type="button" onclick="openCustomerModal()" class="bg-green-600 text-white px-4 hover:bg-green-700 transition flex items-center">
+                            <button type="button" onclick="openCustomerModal()" class="w-full sm:w-auto min-h-[44px] bg-green-600 text-white px-4 hover:bg-green-700 transition flex items-center justify-center">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                 <span class="ml-1 text-sm font-semibold">New</span>
                             </button>
                         </div>
 
-                        <div id="customer-selected-card" class="hidden flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
+                        <div id="customer-selected-card" class="hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 bg-[#2D5A43] rounded-full flex items-center justify-center text-white font-bold text-sm" id="cust-initials">--</div>
                                 <div>
@@ -38,7 +38,7 @@
                                     <p id="cust-details" class="text-xs text-gray-500 mt-0.5">Contact Details</p>
                                 </div>
                             </div>
-                            <button onclick="clearSelectedCustomer()" class="text-xs font-bold text-red-500 hover:text-red-700 px-3 py-1 border border-red-200 rounded-md bg-white">Change</button>
+                            <button onclick="clearSelectedCustomer()" class="w-full sm:w-auto text-xs font-bold text-red-500 hover:text-red-700 px-3 py-2 border border-red-200 rounded-md bg-white">Change</button>
                         </div>
                     </div>
 
@@ -64,14 +64,14 @@
                                 <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> OOH (Static)
                             </h4>
                             <div class="overflow-x-auto border border-gray-100">
-                                <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
+                                <table class="min-w-[700px] w-full divide-y divide-gray-200 text-left text-xs sm:text-sm">
                                     <thead class="bg-gray-50 text-gray-500">
                                         <tr>
-                                            <th class="px-4 py-3 font-semibold">Hoarding</th>
-                                            <th class="px-4 py-3 font-semibold">Rental/Mo</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold">Hoarding</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold hidden sm:table-cell">Rental/Mo</th>
                                             <th class="px-4 py-3 font-semibold text-center">Duration</th>
-                                            <th class="px-4 py-3 font-semibold">Total Price</th>
-                                            <th class="px-4 py-3 font-semibold text-right">Action</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold">Total Price</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="ooh-selected-list" class="divide-y divide-gray-50 bg-white">
@@ -86,15 +86,15 @@
                                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span> Digital (DOOH)
                             </h4>
                             <div class="overflow-x-auto border border-gray-100">
-                                <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
+                                <table class="min-w-[700px] w-full divide-y divide-gray-200 text-left text-xs sm:text-sm">
                                     <thead class="bg-gray-50 text-gray-500">
                                         <tr>
-                                            <th class="px-4 py-3 font-semibold">Hoarding</th>
-                                            <th class="px-4 py-3 font-semibold">Rental/Mo</th>
-                                            <th class="px-4 py-3 font-semibold text-center">Slots/Day</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold">Hoarding</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold hidden sm:table-cell">Rental/Mo</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold text-center hidden sm:table-cell">Slots/Day</th>
                                             <th class="px-4 py-3 font-semibold text-center">Duration</th>
-                                            <th class="px-4 py-3 font-semibold">Total Price</th>
-                                            <th class="px-4 py-3 font-semibold text-right">Action</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold">Total Price</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="dooh-selected-list" class="divide-y divide-gray-50 bg-white">
@@ -105,9 +105,9 @@
                         </div>
                     </div>
 
-                    <div class="flex gap-4 mt-12 pt-6 border-t border-gray-100">
-                        <button type="button" onclick="location.reload()" class="flex-1 py-3 bg-[#7A9C89] border border-gray-200 font-bold text-white transition cursor-pointer">Cancel</button>
-                        <button id="submit-btn" class="flex-1 py-3 bg-[#2E5B42] text-white font-bold shadow-lg shadow-green-900/20 hover:bg-opacity-90 active:scale-[0.98] transition cursor-pointer">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-12 pt-6 border-t border-gray-100">
+                        <button type="button" onclick="location.reload()" class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#7A9C89] border border-gray-200 font-bold text-white transition cursor-pointer">Cancel</button>
+                        <button id="submit-btn" class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#2E5B42] text-white font-bold shadow-lg shadow-green-900/20 hover:bg-opacity-90 active:scale-[0.98] transition cursor-pointer">
                             Preview & Create Booking (<span id="btn-count">0</span>)
                         </button>
                     </div>
@@ -118,25 +118,25 @@
         {{-- ══════════════════════════════════════════
              RIGHT PANEL — Available Hoardings
         ══════════════════════════════════════════ --}}
-        <div class="lg:col-span-5">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6">
-                <div class="px-5 pt-5 gap-3 flex">
+        <div class="order-1 sm:order-2 sm:col-span-2 lg:col-span-5">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 lg:sticky lg:top-6">
+                <div class="px-3 sm:px-4 lg:px-5 pt-4 sm:pt-5 gap-3 flex">
                     <h3 class="font-bold text-gray-800">Available Hoardings</h3>
                     <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-bold" id="available-count">0</span>
                 </div>
-                <p class="px-5 text-xs text-gray-400 mt-0.5">Select available hoardings for your booking</p>
+                <p class="px-3 sm:px-4 lg:px-5 text-xs text-gray-400 mt-0.5">Select available hoardings for your booking</p>
 
-                <div class="p-5">
+                <div class="p-3 sm:p-4 lg:p-5">
                     {{-- Search + Filter row --}}
-                    <div class="flex items-center gap-2 mb-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
                         <div class="relative flex-1">
                             <input type="text" id="hoarding-search" placeholder="Search for available hoardings..." 
-                                class="w-full pl-10 border border-gray-300 text-sm focus:ring-green-500" style="height:40px;">
+                                class="w-full pl-10 border border-gray-300 text-sm focus:ring-green-500 min-h-[44px]" style="height:40px;">
                             <span class="absolute left-3 top-0 bottom-0 my-auto text-gray-400 flex items-center" style="pointer-events:none; height:18px;">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-3.5-3.5"/></svg>
                             </span>
                         </div>
-                        <button type="button" class="border border-gray-300 bg-white px-5 py-2 text-gray-700 text-sm font-medium hover:bg-gray-100 transition" style="height:40px;" onclick="openFilterModal()">Filter</button>
+                        <button type="button" class="w-full sm:w-auto min-h-[44px] border border-gray-300 bg-white px-5 py-2 text-gray-700 text-sm font-medium hover:bg-gray-100 transition" style="height:40px;" onclick="openFilterModal()">Filter</button>
                         @include('vendor.pos.filter_modal')
                     </div>
 
@@ -169,7 +169,7 @@
                     </div>
 
                     {{-- Hoardings Grid --}}
-                    <div id="hoardings-grid" class="grid grid-cols-2 gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-2 custom-scrollbar"></div>
+                    <div id="hoardings-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar"></div>
                 </div>
             </div>
         </div>
@@ -185,16 +185,16 @@
 <!-- Date picker modal -->
 <div id="datePickerModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
     <div class="bg-black/50 absolute inset-0" onclick="closeDatePickerModal()"></div>
-    <div class="relative bg-white rounded-lg p-4 w-full max-w-[700px] z-50 flex flex-col" style="min-width: 600px; min-height: 420px;">
-        <div class="flex justify-between items-center mb-4">
+    <div class="relative bg-white rounded-lg p-3 sm:p-4 w-[95vw] sm:w-full sm:max-w-[700px] z-50 flex flex-col min-h-[360px] sm:min-h-[420px]">
+        <div class="flex justify-between items-center mb-4 gap-2">
             <h3 id="datePickerTitle" class="font-bold text-gray-800">Select Dates</h3>
             <button class="text-gray-500" onclick="closeDatePickerModal()">✕</button>
         </div>
         <input id="date-picker-input" type="text" class="hidden">
-        <div id="date-picker-inline" class="mx-auto"></div>
-        <div class="mt-4 flex justify-end gap-5">
-            <button class="px-4 py-2 border rounded" onclick="closeDatePickerModal()">Cancel</button>
-            <button class="px-4 py-2 bg-[#2D5A43] text-white rounded" onclick="confirmDateSelection()">Confirm</button>
+        <div id="date-picker-inline" class="mx-auto w-full overflow-x-auto"></div>
+        <div class="mt-4 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
+            <button class="w-full sm:w-auto min-h-[44px] px-4 py-2 border rounded" onclick="closeDatePickerModal()">Cancel</button>
+            <button class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-[#2D5A43] text-white rounded" onclick="confirmDateSelection()">Confirm</button>
         </div>
     </div>
 </div>
@@ -294,14 +294,15 @@ function setViewMode(mode) {
     const btnList = document.getElementById('view-list-btn');
     if (mode === 'grid') {
         grid.classList.remove('list-view');
-        grid.classList.add('grid-cols-2');
+        grid.classList.remove('grid-cols-2');
+        grid.classList.add('grid-cols-1', 'sm:grid-cols-2');
         btnGrid.classList.add('bg-gray-800', 'text-white');
         btnGrid.classList.remove('bg-white', 'text-gray-600');
         btnList.classList.remove('bg-gray-800', 'text-white');
         btnList.classList.add('bg-white', 'text-gray-600');
     } else {
         grid.classList.add('list-view');
-        grid.classList.remove('grid-cols-2');
+        grid.classList.remove('grid-cols-1', 'sm:grid-cols-2', 'grid-cols-2');
         btnList.classList.add('bg-gray-800', 'text-white');
         btnList.classList.remove('bg-white', 'text-gray-600');
         btnGrid.classList.remove('bg-gray-800', 'text-white');
@@ -485,7 +486,7 @@ function renderHoardings(list) {
     const grid = document.getElementById('hoardings-grid');
     if (list.length === 0) {
         grid.innerHTML = `
-            <div class="col-span-2 flex flex-col items-center justify-center py-12 text-center">
+            <div class="col-span-1 sm:col-span-2 flex flex-col items-center justify-center py-12 text-center">
                 <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 3.5a7.5 7.5 0 0013.15 13.15z"/>
                 </svg>
@@ -613,8 +614,8 @@ function updateSummary() {
                             <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
                             ${conflictBadge}
                         </td>
-                        <td class="px-4 py-3 text-xs text-gray-500">${formatINR(h.price_per_month)}</td>
-                        <td class="px-4 py-3 text-center">
+                        <td class="px-3 sm:px-4 py-3 text-xs text-gray-500 hidden sm:table-cell">${formatINR(h.price_per_month)}</td>
+                        <td class="px-3 sm:px-4 py-3 text-center hidden sm:table-cell">
                             <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[11px] font-bold px-2 py-1 rounded-full">
                                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
                                 ${slotsPerDay}
@@ -633,8 +634,8 @@ function updateSummary() {
                                 <div class="text-[11px] text-gray-400 mt-1 text-center leading-none">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
                             </div>
                         </td>
-                        <td class="px-4 py-3 font-bold text-xs text-green-700">${formatINR(totalPrice)}</td>
-                        <td class="px-4 py-3 text-right">
+                        <td class="px-3 sm:px-4 py-3 font-bold text-xs text-green-700">${formatINR(totalPrice)}</td>
+                        <td class="px-3 sm:px-4 py-3 text-right">
                             <button onclick="toggleHoarding(${h.id})" class="text-red-500 cursor-pointer">
                                 <svg class="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
@@ -649,7 +650,7 @@ function updateSummary() {
                             <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
                             ${conflictBadge}
                         </td>
-                        <td class="px-4 py-3 text-xs text-gray-500">${formatINR(h.price_per_month)}</td>
+                        <td class="px-3 sm:px-4 py-3 text-xs text-gray-500 hidden sm:table-cell">${formatINR(h.price_per_month)}</td>
                         <td class="px-4 py-3 align-middle">
                             <div class="flex flex-col items-center justify-center">
                                 <div class="flex items-center justify-center whitespace-nowrap">
@@ -663,8 +664,8 @@ function updateSummary() {
                                 <div class="text-[11px] text-gray-400 mt-1 text-center leading-none">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
                             </div>
                         </td>
-                        <td class="px-4 py-3 font-bold text-xs text-green-700">${formatINR(totalPrice)}</td>
-                        <td class="px-4 py-3 text-right">
+                        <td class="px-3 sm:px-4 py-3 font-bold text-xs text-green-700">${formatINR(totalPrice)}</td>
+                        <td class="px-3 sm:px-4 py-3 text-right">
                             <button onclick="toggleHoarding(${h.id})" class="text-red-500 cursor-pointer">
                                 <svg class="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
@@ -765,7 +766,7 @@ async function openDatePickerForHoarding(id) {
         if (currentFlatpickr) currentFlatpickr.destroy();
         currentFlatpickr = flatpickr('#date-picker-input', {
             mode: 'range', inline: true, appendTo: document.getElementById('date-picker-inline'),
-            minDate: startStr, disable: disabledDates, defaultDate: [h.startDate, h.endDate], showMonths: 2,
+            minDate: startStr, disable: disabledDates, defaultDate: [h.startDate, h.endDate], showMonths: window.innerWidth < 640 ? 1 : 2,
             onDayCreate(dObj, dStr, fp, dayElem) {
                 const date   = toLocalYMD(dayElem.dateObj);
                 const status = currentHeatmapMap[date];
