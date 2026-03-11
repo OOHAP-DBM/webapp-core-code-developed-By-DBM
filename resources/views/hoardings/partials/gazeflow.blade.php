@@ -1,3 +1,4 @@
+@if(($hoarding->expected_eyeball ?? 0) > 0 || ($hoarding->expected_footfall ?? 0) > 0)
 <div>
     <h3 class="text-sm font-semibold mb-3">Gazeflow</h3>
 
@@ -15,3 +16,4 @@
 </div>
 
 <hr class="my-6 border-gray-300">
+@endif
