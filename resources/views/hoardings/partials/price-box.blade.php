@@ -81,10 +81,12 @@
 @endphp
 <div class="bg-gray-50 rounded-xl p-4 mt-4">
 
-    @if($isOwnerVendor)
-        <p class="text-white py-2 text-center rounded bg-[#22c55e] hover:bg-[#16a34a] mt-2">
-          your own hoarding.
-        </p>
+@if($isOwnerVendor)
+    <div class="flex justify-center mt-2">
+        <span class="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs font-semibold px-3 py-2 rounded-full">
+            ✔ Your Own Hoarding
+        </span>
+    </div>
     @else
         <button
             id="cart-btn-{{ $hoarding->id }}"

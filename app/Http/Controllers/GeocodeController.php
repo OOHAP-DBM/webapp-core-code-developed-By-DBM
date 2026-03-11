@@ -54,7 +54,6 @@ class GeocodeController extends Controller
                 'success' => true,
                 'data'    => $response->json()
             ]);
-
         } catch (\Exception $e) {
 
             Log::error('Geocode exception', [
@@ -114,7 +113,6 @@ class GeocodeController extends Controller
                 'success' => true,
                 'data'    => $response->json()
             ]);
-
         } catch (\Exception $e) {
 
             Log::error('Reverse geocode exception', [

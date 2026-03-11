@@ -1,7 +1,18 @@
 @php
     $hoarding = $draft->hoarding ?? null;
 @endphp
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
+<!-- MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- MarkerCluster JS -->
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
 
     <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
@@ -9,51 +20,63 @@
         Hoarding Location
     </h3>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+    <!-- First Row: Pincode | City | State -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-6 mb-4">
 
-        <div class="space-y-2">
-            <label class="text-sm font-bold text-gray-700">Full Address</label>
-            <input name="address" id="address"
-                value="{{ old('address', $hoarding?->address) }}"
-                placeholder="Enter complete address"
-                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none transition-all">
-        </div>
-
+        <!-- Pincode -->
         <div class="space-y-2">
             <label class="text-sm font-bold text-gray-700">Pincode <span class="text-red-500">*</span></label>
             <input type="text" name="pincode" id="pincode"
                 value="{{ old('pincode', $hoarding?->pincode) }}"
                 placeholder="226010"
-                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none transition-all">
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
         </div>
 
+        <!-- City -->
+        <div class="space-y-2">
+            <label class="text-sm font-bold text-gray-700">City <span class="text-red-500">*</span></label>
+            <input type="text" name="city" id="city"
+                value="{{ old('city', $hoarding?->city) }}"
+                placeholder="Lucknow"
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+        </div>
+
+        <!-- State -->
+        <div class="space-y-2">
+            <label class="text-sm font-bold text-gray-700">State <span class="text-red-500">*</span></label>
+            <input type="text" name="state" id="state"
+                value="{{ old('state', $hoarding?->state) }}"
+                placeholder="Uttar Pradesh"
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+        </div>
+
+    </div>
+
+    <!-- Second Row: Locality | Full Address -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 mb-4">
+
+        <!-- Locality -->
         <div class="space-y-2">
             <label class="text-sm font-bold text-gray-700">Locality <span class="text-red-500">*</span></label>
             <input type="text" name="locality" id="locality"
                 value="{{ old('locality', $hoarding?->locality) }}"
                 placeholder="Indira Nagar"
-                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none transition-all">
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700">City <span class="text-red-500">*</span></label>
-                <input type="text" name="city" id="city"
-                    value="{{ old('city', $hoarding?->city) }}"
-                    placeholder="Lucknow"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-[#009A5C]">
-            </div>
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700">State <span class="text-red-500">*</span></label>
-                <input type="text" name="state" id="state"
-                    value="{{ old('state', $hoarding?->state) }}"
-                    placeholder="Uttar Pradesh"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-[#009A5C]">
-            </div>
+        <!-- Full Address -->
+        <div class="space-y-2 md:col-span-1">
+            <label class="text-sm font-bold text-gray-700">Full Address</label>
+            <input name="address" id="address"
+                value="{{ old('address', $hoarding?->address) }}"
+                placeholder="Enter exact address or landmark"
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
         </div>
+
     </div>
 
-    <div class="mt-8 bg-[#FBFBFB] rounded-3xl border border-gray-100 p-6 space-y-6">
+    <!-- Location Verification -->
+    <div class="mt-6 bg-[#FBFBFB] rounded-3xl border border-gray-100 p-6 space-y-6">
 
         <div class="flex justify-between items-center">
             <h3 class="text-base font-bold text-gray-800">
@@ -66,8 +89,7 @@
             </button>
         </div>
 
-        <div id="location-error"
-            class="text-xs text-red-500 hidden bg-red-50 p-2 rounded"></div>
+        <div id="location-error" class="text-xs text-red-500 hidden bg-red-50 p-2 rounded"></div>
 
         <div class="grid grid-cols-2 gap-5">
             <div>
@@ -88,6 +110,7 @@
             <div id="map" class="w-full h-[350px]"></div>
         </div>
     </div>
+
 </div>
 
 <script>
@@ -127,6 +150,49 @@ function initMap() {
 /* ================================
    FORWARD GEOCODE (PINCODE FIRST)
 ================================ */
+// async function syncAddressToMap() {
+
+//     const pincode = inputs.pincode.value.trim();
+// const locality = inputs.locality.value.trim();
+// const city = inputs.city.value.trim();
+// const state = inputs.state.value.trim();
+
+// let query = "";
+
+// if (pincode) {
+//     query = `${locality}, ${city}, ${state}, ${pincode}, India`;
+// } else {
+//     query = [locality, city, state].filter(Boolean).join(", ");
+// }
+
+//     try {
+//         inputs.error.classList.add('hidden');
+
+//         const res = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+//         const result = await res.json();
+
+//         if (result.success && result.data.length) {
+
+//             const r = result.data[0];
+//             const lat = parseFloat(r.lat);
+//             const lng = parseFloat(r.lon);
+
+//             marker.setLatLng([lat, lng]);
+//             map.setView([lat, lng], 16);
+
+//             inputs.lat.value = lat.toFixed(6);
+//             inputs.lng.value = lng.toFixed(6);
+
+//             fillFields(r.address);
+
+//         } else {
+//             showError("Location not found.");
+//         }
+
+//     } catch (e) {
+//         showError("Location service unavailable.");
+//     }
+// }
 async function syncAddressToMap() {
 
     const pincode = inputs.pincode.value.trim();
@@ -134,43 +200,49 @@ async function syncAddressToMap() {
     const city = inputs.city.value.trim();
     const state = inputs.state.value.trim();
 
-    let query = "";
-
-    if (/^\d{6}$/.test(pincode)) {
-        query = pincode;
-    } else if (locality || city || state) {
-        query = [locality, city, state].filter(Boolean).join(", ");
-    } else {
-        return;
-    }
+    const queries = [
+        `${locality}, ${city}, ${state}, India`,
+        `${city}, ${state}, ${pincode}, India`,
+        `${pincode}, India`,
+        `${city}, ${state}, India`
+    ];
 
     try {
+
         inputs.error.classList.add('hidden');
 
-        const res = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
-        const result = await res.json();
+        for (let query of queries) {
 
-        if (result.success && result.data.length) {
+            const res = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+            const result = await res.json();
 
-            const r = result.data[0];
-            const lat = parseFloat(r.lat);
-            const lng = parseFloat(r.lon);
+            if (result.success && result.data.length) {
 
-            marker.setLatLng([lat, lng]);
-            map.setView([lat, lng], 16);
+                const r = result.data[0];
 
-            inputs.lat.value = lat.toFixed(6);
-            inputs.lng.value = lng.toFixed(6);
+                const lat = parseFloat(r.lat);
+                const lng = parseFloat(r.lon);
 
-            fillFields(r.address);
+                marker.setLatLng([lat, lng]);
+                map.setView([lat, lng], 16);
 
-        } else {
-            showError("Location not found.");
+                inputs.lat.value = lat.toFixed(6);
+                inputs.lng.value = lng.toFixed(6);
+
+                fillFields(r.address);
+
+                return;
+            }
         }
 
+        showError("Location not found.");
+
     } catch (e) {
+
         showError("Location service unavailable.");
+
     }
+
 }
 
 /* ================================
@@ -203,10 +275,11 @@ function fillFields(ad) {
             ad.road ||
             "";
     }
-    inputs.city.value =
+        inputs.city.value =
         ad.city ||
         ad.town ||
         ad.county ||
+        ad.state_district ||
         "";
 
     inputs.state.value = ad.state || "";
@@ -224,15 +297,68 @@ function showError(message) {
 /* ================================
    LISTENERS
 ================================ */
-[inputs.pincode, inputs.locality, inputs.city, inputs.state]
+// [inputs.pincode, inputs.locality, inputs.city, inputs.state]
+// .forEach(el => {
+//     el.addEventListener('input', () => {
+//         clearTimeout(typingTimer);
+//         typingTimer = setTimeout(syncAddressToMap, debounceTime);
+//     });
+// });
+/* ================================
+   LISTENERS
+================================ */
+
+inputs.pincode.addEventListener('input', () => {
+
+    const pin = inputs.pincode.value.trim();
+
+    if (pin.length === 6) {
+        lookupPincode(pin);
+    }
+
+});
+
+[inputs.locality, inputs.city, inputs.state]
 .forEach(el => {
     el.addEventListener('input', () => {
+
         clearTimeout(typingTimer);
         typingTimer = setTimeout(syncAddressToMap, debounceTime);
+
     });
 });
 
 inputs.btn.addEventListener('click', syncAddressToMap);
 
 window.addEventListener('load', initMap);
+
+
+
+
+async function lookupPincode(pin) {
+
+    try {
+
+        const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+        const data = await res.json();
+
+        if (data[0].Status !== "Success") {
+            showError("Invalid Pincode");
+            return;
+        }
+
+        const post = data[0].PostOffice[0];
+
+        // Fill fields
+            inputs.locality.value = post.Name || "";
+            inputs.city.value = post.District || "";
+            inputs.state.value = post.State || "";
+        // Now zoom map using full address
+           syncAddressToMap();
+
+    } catch (e) {
+        showError("Pincode lookup failed");
+    }
+
+}
 </script>

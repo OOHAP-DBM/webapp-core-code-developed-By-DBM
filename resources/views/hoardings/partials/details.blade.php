@@ -4,8 +4,15 @@
 
     $ooh  = $hoarding->ooh;
     $dooh = $hoarding->doohScreen;
+    
+    // Check if we have valid data to display
+    $hasSize = ($isOOH && $ooh) || ($isDOOH && $dooh);
+    $hasValidity = !empty($hoarding->permit_valid_till);
+    $hasLighting = ($isOOH && !empty($ooh->lighting_type)) || ($isDOOH && !empty($dooh->screen_type));
+    $hasValidData = $hasSize || $hasValidity || $hasLighting;
 @endphp
 
+@if($hasValidData)
 <div class="space-y-5">
 
     <h3 class="text-sm font-semibold text-gray-900 flex justify-between">
@@ -27,6 +34,7 @@
         </div>
 
         {{-- SIZE --}}
+        @if($hasSize)
         <div>
             <p class="text-gray-400">Size</p>
             <p class="font-medium">
@@ -41,16 +49,20 @@
                 @endif
             </p>
         </div>
+        @endif
 
         {{-- VALIDITY --}}
+        @if($hasValidity)
         <div>
             <p class="text-gray-400">Valid Till</p>
             <p class="font-medium">
               {{ $hoarding->permit_valid_till ? \Carbon\Carbon::parse($hoarding->permit_valid_till)->format('d-m-Y') : '—' }}
             </p>
         </div>
+        @endif
 
         {{-- LIGHTING / SCREEN TYPE --}}
+        @if($hasLighting)
         <div>
             <p class="text-gray-400">
                 {{ $isOOH ? 'Lighting' : 'Screen Type' }}
@@ -63,20 +75,13 @@
                 @endif
             </p>
         </div>
+        @endif
 
     </div>
 
     {{-- EXTRA ROW FOR DOOH --}}
     @if($isDOOH && $dooh)
         <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 text-sm pt-2">
-
-            <!-- <div>
-                <p class="text-gray-400">Resolution</p>
-                <p class="font-medium">
-                    {{ $dooh->resolution_width ?? '—' }} × {{ $dooh->resolution_height ?? '—' }}
-                    {{ $dooh->resolution_unit ?? 'px' }}
-                </p>
-            </div> -->
 
             <div>
                 <p class="text-gray-400">Spot Duration</p>
@@ -91,13 +96,6 @@
                     {{ $dooh->available_slots_per_day ?? '—' }}
                 </p>
             </div>
-<!-- 
-            <div>
-                <p class="text-gray-400">Price / Slot</p>
-                <p class="font-medium">
-                    ₹{{ number_format($dooh->price_per_slot ?? 0) }}
-                </p>
-            </div> -->
 
         </div>
     @endif
@@ -113,3 +111,4 @@
 </div>
 
 <hr class="my-6 border-gray-300">
+@endif
