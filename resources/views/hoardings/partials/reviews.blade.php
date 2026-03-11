@@ -176,7 +176,7 @@
             {{-- View More Button --}}
             <div class="flex justify-end">
                 <button id="viewMoreBtn" onclick="showAllReviews()"
-                    class="text-sm text-green-600 hover:underline font-medium">
+                    class="text-sm text-green-600 hover:underline font-medium cursor-pointer">
                     View all {{ $totalReviews }} reviews ↓
                 </button>
             </div>
