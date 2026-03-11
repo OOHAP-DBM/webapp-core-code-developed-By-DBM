@@ -1,4 +1,3 @@
-@include('vendor.pos.components.pos-timer-notification')
 @extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'POS Customers')
@@ -10,7 +9,7 @@
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div class="px-3 sm:px-4 lg:px-6 py-4 border-b border-gray-100 flex justify-between items-center gap-2 bg-white">
                     <h2 class="text-xl font-bold text-gray-800">Create POS Booking</h2>
-                    <span id="booking-date" class="text-xs text-gray-400 font-medium"></span>
+                    <!-- <span id="booking-date" class="text-xs text-gray-400 font-medium"></span> -->
                 </div>
 
                 <div class="p-3 sm:p-4 lg:p-6">
@@ -24,7 +23,7 @@
                                     class="w-full border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2 min-h-[44px]">
                                 <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
                             </div>
-                            <button type="button" onclick="openCustomerModal()" class="w-full sm:w-auto min-h-[44px] bg-green-600 text-white px-4 hover:bg-green-700 transition flex items-center justify-center">
+                            <button type="button" id="new-customer-btn" onclick="openCustomerModal()" class="w-full sm:w-auto min-h-[44px] bg-green-600 text-white px-4 hover:bg-green-700 transition flex items-center justify-center">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                 <span class="ml-1 text-sm font-semibold">New</span>
                             </button>
@@ -38,7 +37,7 @@
                                     <p id="cust-details" class="text-xs text-gray-500 mt-0.5">Contact Details</p>
                                 </div>
                             </div>
-                            <button onclick="clearSelectedCustomer()" class="w-full sm:w-auto text-xs font-bold text-red-500 hover:text-red-700 px-3 py-2 border border-red-200 rounded-md bg-white">Change</button>
+                            <button id="change-customer-btn" onclick="clearSelectedCustomer()" class="w-full sm:w-auto text-xs font-bold text-red-500 hover:text-red-700 px-3 py-2 border border-red-200 rounded-md bg-white">Change</button>
                         </div>
                     </div>
 
@@ -263,23 +262,57 @@ const fetchJSON = async (url, options = {}) => {
 
 /* --- INIT --- */
 document.addEventListener('DOMContentLoaded', async () => {
-    document.getElementById('booking-date').innerText = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     await loadHoardings();
 
     const urlParams  = new URLSearchParams(window.location.search);
     const customerId = urlParams.get('customer_id');
+
     if (customerId) {
+        // Hide the New Customer button if a customer is preselected
+        const newBtn = document.getElementById('new-customer-btn');
+        if (newBtn) newBtn.style.display = 'none';
         try {
-            const res  = await fetchJSON(`${API_URL}/customers?search=${customerId}`);
-            const list = res.data?.data || res.data || [];
-            let found  = list.find(c => c.id == customerId);
-            if (!found) {
-                const allRes  = await fetchJSON(`${API_URL}/customers`);
-                const allList = allRes.data?.data || allRes.data || [];
-                found = allList.find(c => c.id == customerId);
+            // Try direct fetch by ID first
+            let found = null;
+            let res = await fetchJSON(`${API_URL}/customers/${customerId}`);
+            if (res && (res.data || res.customer)) {
+                found = res.data || res.customer;
             }
-            if (found) selectCustomer(found);
-        } catch (e) { console.error(e); }
+            // Fallback to previous search if direct fetch fails
+            if (!found || !found.id) {
+                res  = await fetchJSON(`${API_URL}/customers?search=${customerId}`);
+                const list = res.data?.data || res.data || [];
+                found  = list.find(c => String(c.id) === String(customerId));
+                if (!found) {
+                    const allRes  = await fetchJSON(`${API_URL}/customers`);
+                    const allList = allRes.data?.data || allRes.data || [];
+                    found = allList.find(c => String(c.id) === String(customerId));
+                }
+            }
+            if (found && found.id) {
+                selectCustomer(found);
+                // Fill the search input for clarity
+                const searchInput = document.getElementById('customer-search');
+                if (searchInput) searchInput.value = found.name;
+                // Hide the Change button if coming from customer selection
+                const changeBtn = document.getElementById('change-customer-btn');
+                if (changeBtn) changeBtn.style.display = 'none';
+            } else {
+                // Hide search and show a message if not found
+                document.getElementById('search-container')?.classList.add('hidden');
+                document.getElementById('customer-selected-card')?.classList.remove('hidden');
+                if (document.getElementById('cust-name'))    document.getElementById('cust-name').innerText    = 'Customer not found';
+                if (document.getElementById('cust-details')) document.getElementById('cust-details').innerText = `ID: ${customerId}`;
+                if (document.getElementById('cust-initials'))document.getElementById('cust-initials').innerText = '?';
+            }
+        } catch (e) { 
+            console.error(e);
+            document.getElementById('search-container')?.classList.add('hidden');
+            document.getElementById('customer-selected-card')?.classList.remove('hidden');
+            if (document.getElementById('cust-name'))    document.getElementById('cust-name').innerText    = 'Customer not found';
+            if (document.getElementById('cust-details')) document.getElementById('cust-details').innerText = `ID: ${customerId}`;
+            if (document.getElementById('cust-initials'))document.getElementById('cust-initials').innerText = '?';
+        }
     }
 
     document.getElementById('customer-search').addEventListener('input', debounce(handleCustomerSearch, 300));

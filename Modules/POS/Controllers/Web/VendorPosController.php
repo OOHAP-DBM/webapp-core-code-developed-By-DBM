@@ -794,6 +794,43 @@ class VendorPosController extends Controller
     }
 
     /**
+     * Get a customer by ID
+     * Web endpoint: GET /vendor/pos/api/customers/{id}
+     */
+    public function getCustomerById(Request $request, $id): JsonResponse
+    {
+        try {
+            $customer = User::query()
+                ->where('id', $id)
+                ->whereHas('roles', function ($q) {
+                    $q->where('name', 'customer');
+                })
+                ->select(['id', 'name', 'email', 'phone', 'gstin', 'address'])
+                ->first();
+
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Customer not found',
+                    'data' => null,
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $customer,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching customer by ID', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch customer',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Search customers by name, phone, or email
      * Web endpoint: GET /vendor/pos/api/customers?search=term
      */

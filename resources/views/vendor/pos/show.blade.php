@@ -1,3 +1,4 @@
+@include('vendor.pos.components.pos-timer-notification')
 @extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'POS Booking Details')
@@ -68,7 +69,7 @@
 <div id="mark-paid-modal"
      class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full mx-4 shadow-xl animate-fadeIn">
-        <h3 class="text-lg sm:text-xl font-semibold mb-2">💰 Mark Payment as Received</h3>
+        <h3 class="text-lg sm:text-xl font-semibold mb-2"> Mark Payment as Received</h3>
         <p class="text-gray-600 text-sm mb-4">
             Confirm payment details before marking as paid.
         </p>
@@ -252,7 +253,7 @@ async function loadBookingDetails() {
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div><strong>Base Amount:</strong> ₹${totalBase.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
                                 <div><strong>Total Discount:</strong> ₹${totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
-                                <div><strong>GST (18%):</strong> ₹${totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                                <div><strong>Taxes (18%):</strong> ₹${totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
                                 <div><strong>Total Payable:</strong> ₹${totalFinal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
                             </div>
                         </div>
@@ -263,7 +264,7 @@ async function loadBookingDetails() {
                 if (hoardingsTableRows) {
                     hoardingsTableHtml = `
                         <div class="rounded-xl border bg-white p-4 mb-4">
-                            <h3 class="text-base sm:text-lg font-bold mb-2">Booked Hoardings</h3>
+                            <h3 class="text-base sm:text-lg font-bold mb-2">Hoardings</h3>
                             <div class="overflow-x-auto">
                             <table class="min-w-full text-sm border">
                                 <thead>
@@ -327,7 +328,7 @@ function renderActionButtons(booking) {
         html += `
             <button onclick="openMarkPaidModal()"
                 class="w-full sm:w-auto px-4 py-2 rounded-lg btn-color text-sm font-medium text-center">
-                💰 Mark as Paid
+                Mark as Paid
             </button>`;
     } else if (booking.payment_status === 'paid') {
         html += `
@@ -351,14 +352,15 @@ function renderActionButtons(booking) {
         html += `
             <button onclick="openReleaseModal()"
                 class="w-full sm:w-auto px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm font-medium text-center">
-                🗑️ Release Booking
+                Cancel Booking
             </button>`;
-    } else if (booking.status === 'active') {
+    } 
+    else if (booking.status === 'active') {
         html += `
             <button disabled 
                 class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
                 title="Cannot release - booking already started">
-                🚫 Cannot Release (Active)
+                🚫 Cannot Cancel  (Active)
             </button>`;
     } else if (booking.status === 'completed') {
         html += `
@@ -378,8 +380,8 @@ function renderActionButtons(booking) {
         html += `
             <button disabled 
                 class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
-                title="Can only release hoarding if payment is unpaid">
-                🚫 Cannot Release
+                title="Can only cancel booking if payment is unpaid">
+                🚫 Cannot Cancel
             </button>`;
     }
 
@@ -405,7 +407,7 @@ if (booking.payment_status !== 'paid' && booking.reminder_count !== undefined &&
     html += `
         <button onclick="sendReminder()"
             class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium text-center">
-            📧 Send Reminder
+             Send Reminder
         </button>`;
 } 
 else if (booking.payment_status === 'paid') {

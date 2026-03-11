@@ -56,7 +56,7 @@
     </div>
 
     @stack('modals')
-    @include('vendor.pos.components.pos-timer-notification')
+    <!-- @include('vendor.pos.components.pos-timer-notification') -->
     <style> 
     @media (max-width: 1023px) {
         #vendor-sidebar {
