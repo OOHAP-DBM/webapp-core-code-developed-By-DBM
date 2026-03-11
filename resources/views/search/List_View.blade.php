@@ -158,18 +158,26 @@
                             </p>
 
                             {{-- TYPE + SIZE --}}
-                            <div class="flex items-center gap-3 text-sm mt-1 text-gray-600">
-                                <span class="uppercase font-medium">
-                                    {{ $item->hoarding_type }}
-                                </span>
-
-                                @if($item->display_width && $item->display_height)
-                                    <span>
-                                        | {{ $item->display_width }} × {{ $item->display_height }}
-                                        {{ $item->display_unit === 'px' ? 'px' : 'Sq.ft' }}
+                            <div class="flex gap-5">
+                                <div class="flex items-center gap-3 text-sm mt-1 text-gray-600">
+                                    <span class="uppercase font-medium">
+                                        {{ $item->hoarding_type }}
                                     </span>
-                                @endif
 
+                                    @if($item->display_width && $item->display_height)
+                                        <span>
+                                            | {{ $item->display_width }} × {{ $item->display_height }}
+                                            {{ $item->display_unit === 'px' ? 'px' : 'Sq.ft' }}
+                                        </span>
+                                    @endif
+
+                                </div>
+                                <div class="flex items-center">
+                                        <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                        <span class="text-xs font-semibold text-gray-700 ml-1">{{ $item->avg_rating }}</span>
+                                </div>
                             </div>
 
                             {{-- FEATURED TAG --}}

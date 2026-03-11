@@ -3,11 +3,11 @@
 
 @section('content')
 <div class="mb-6">
-    <h1 class=" md:text-3xl font-bold text-gray-900">Manage Import</h1>
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Manage Import</h1>
     <p class="text-gray-600 mt-1 ">Manage imported inventories and staged rows</p>
 </div>
 
-<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+<div id="toastContainer" class="fixed top-4 left-3 right-3 sm:left-auto sm:right-4 z-50 space-y-2"></div>
 
 <!-- <div class="mb-6 border-b border-gray-200">
     <nav class="-mb-px flex space-x-6" aria-label="Tabs">
@@ -21,9 +21,9 @@
 <div id="batchesPanel" class="tab-panel">
     <div class="bg-white rounded-xl shadow overflow-hidden">
         <div class="p-4 border-b border-gray-200 space-y-3">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <h2 class="text-xl font-semibold text-gray-900">Imported Inventories</h2>
-                <button id="refreshBatchesBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer">Refresh</button>
+                <button id="refreshBatchesBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer touch-manipulation">Refresh</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
                 <input id="batchSearch" type="text" class="border border-gray-300 rounded-lg p-2 text-sm" placeholder="Search by batch id, status, type" />
@@ -43,14 +43,14 @@
                     <option value="25">25 / page</option>
                     <option value="50">50 / page</option>
                 </select>
-                <div class="flex items-center gap-2">
-                    <button id="applyBatchFiltersBtn" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 cursor-pointer">Apply</button>
-                    <button id="resetBatchFiltersBtn" class="px-3 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer">Reset</button>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <button id="applyBatchFiltersBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 cursor-pointer touch-manipulation">Apply</button>
+                    <button id="resetBatchFiltersBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer touch-manipulation">Reset</button>
                 </div>
             </div>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full min-w-[780px]">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-sm">Batch</th>
@@ -66,12 +66,12 @@
                 </tbody>
             </table>
         </div>
-        <div class="p-4 border-t border-gray-200 flex items-center justify-between gap-3">
+        <div class="p-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <p id="batchPageInfo" class="text-sm text-gray-500">Showing 0 of 0</p>
-            <div class="flex items-center gap-2">
-                <button id="batchPrevPage" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 cursor-pointer">Previous</button>
+            <div class="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2">
+                <button id="batchPrevPage" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 cursor-pointer touch-manipulation">Previous</button>
                 <span id="batchPageLabel" class="text-sm text-gray-600">Page 1 / 1</span>
-                <button id="batchNextPage" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 cursor-pointer">Next</button>
+                <button id="batchNextPage" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 cursor-pointer touch-manipulation">Next</button>
             </div>
         </div>
     </div>
@@ -80,9 +80,9 @@
 @if($isAdmin)
 <div id="permissionsPanel" class="tab-panel hidden">
     <div class="bg-white rounded-xl shadow overflow-hidden">
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+        <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h2 class="text-xl font-semibold text-gray-900">Role Import Permissions</h2>
-            <button id="refreshPermissionsBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer">Refresh</button>
+            <button id="refreshPermissionsBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer touch-manipulation">Refresh</button>
         </div>
         <div id="permissionsContainer" class="p-4 space-y-4">
             <p class="text-sm text-gray-500">Loading role permissions...</p>
@@ -92,10 +92,10 @@
 @endif
 
 <div id="rowsModal" class="fixed inset-0 bg-black bg-opacity-40 hidden z-40 items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] sm:max-h-[92vh] flex flex-col">
+        <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <h3 id="rowsTitle" class="font-semibold text-lg text-gray-900">Batch Rows</h3>
-            <button id="closeRowsModal" class="text-gray-500 hover:text-gray-700 cursor-pointer">Close</button>
+            <button id="closeRowsModal" class="w-full sm:w-auto min-h-[44px] text-gray-500 hover:text-gray-700 cursor-pointer touch-manipulation">Close</button>
         </div>
 
         <div class="p-4 border-b border-gray-200">
@@ -109,15 +109,15 @@
                     <option value="valid">valid</option>
                     <option value="invalid">invalid</option>
                 </select>
-                <div class="flex gap-2">
-                    <button type="submit" class="bg-blue-600 text-white rounded px-3 py-2 text-sm cursor-pointer">Save Row</button>
-                    <button type="button" id="resetRowForm" class="bg-gray-100 rounded px-3 py-2 text-sm cursor-pointer">Reset</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <button type="submit" class="w-full sm:w-auto min-h-[44px] bg-blue-600 text-white rounded px-3 py-2 text-sm cursor-pointer touch-manipulation">Save Row</button>
+                    <button type="button" id="resetRowForm" class="w-full sm:w-auto min-h-[44px] bg-gray-100 rounded px-3 py-2 text-sm cursor-pointer touch-manipulation">Reset</button>
                 </div>
             </form>
         </div>
 
         <div class="flex-1 overflow-auto">
-            <table class="w-full">
+            <table class="w-full min-w-[720px]">
                 <thead class="bg-gray-50 sticky top-0">
                     <tr>
                         <th class="px-4 py-2 text-left text-sm">ID</th>

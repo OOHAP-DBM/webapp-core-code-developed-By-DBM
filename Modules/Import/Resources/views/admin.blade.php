@@ -4,19 +4,19 @@
 @section('content')
 <!-- Page Header -->
 <div class="mb-8">
-    <h1 class="md:text-3xl sm:text-4xl font-bold text-gray-900">Inventory Import</h1>
+    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Inventory Import</h1>
     <p class="text-gray-600 mt-2">Upload and manage your inventory imports</p>
 </div>
 
 <!-- Toast Notifications -->
-<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+<div id="toastContainer" class="fixed top-4 left-3 right-3 sm:left-auto sm:right-4 z-50 space-y-2"></div>
 
 <!-- Upload Section -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 mb-8">
     <!-- Upload Card -->
     <div class="lg:col-span-1">
         <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-            <div class="px-6 py-8">
+            <div class="px-4 py-6 sm:px-6 sm:py-8">
                 <h2 class="text-xl font-semibold text-gray-900 mb-6">Upload Batch</h2>
 
                 <form id="uploadForm" class="space-y-6">
@@ -31,7 +31,7 @@
                             <input type="file" id="excelFile" name="excel_file" accept=".xlsx"
                                 class="hidden" />
                             <label for="excelFile"
-                                class="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
+                                class="flex items-center justify-center w-full px-4 py-3 min-h-[96px] sm:min-h-[110px] border-2 border-dashed border-gray-300 rounded-lg cursor-pointer touch-manipulation hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
                                 <div class="flex flex-col items-center">
                                     <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"
                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,7 +57,7 @@
                             <input type="file" id="pptFile" name="ppt_file" accept=".pptx,.ppt"
                                 class="hidden" />
                             <label for="pptFile"
-                                class="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
+                                class="flex items-center justify-center w-full px-4 py-3 min-h-[96px] sm:min-h-[110px] border-2 border-dashed border-gray-300 rounded-lg cursor-pointer touch-manipulation hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
                                 <div class="flex flex-col items-center">
                                     <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"
                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,7 +123,7 @@
                     </div>
 
                     <button type="submit" id="submitBtn"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
+                        class="w-full min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 touch-manipulation">
                         <svg id="submitIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
@@ -138,31 +138,31 @@
     <!-- Stats Section -->
     <div class="lg:col-span-2 space-y-6">
         <!-- Stats Grid -->
-        <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white rounded-xl shadow-lg p-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-5">
                 <p class="text-gray-600 text-sm font-medium">Total Batches</p>
                 <p id="totalBatches" class="text-3xl font-bold text-blue-600 mt-2">0</p>
             </div>
-            <div class="bg-white rounded-xl shadow-lg p-5">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-5">
                 <p class="text-gray-600 text-sm font-medium">Processing</p>
                 <p id="processingBatches" class="text-3xl font-bold text-yellow-600 mt-2">0</p>
             </div>
-            <div class="bg-white rounded-xl shadow-lg p-5">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-5">
                 <p class="text-gray-600 text-sm font-medium">Completed</p>
                 <p id="completedBatches" class="text-3xl font-bold text-green-600 mt-2">0</p>
             </div>
-            <div class="bg-white rounded-xl shadow-lg p-5">
+            <div class="bg-white rounded-xl shadow-lg p-4 sm:p-5">
                 <p class="text-gray-600 text-sm font-medium">Failed</p>
                 <p id="failedBatches" class="text-3xl font-bold text-red-600 mt-2">0</p>
             </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2">
                 <button onclick="refreshBatches()"
-                    class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium">
+                    class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium touch-manipulation">
                     Refresh
                 </button>
                 <!-- <button onclick="filterByStatus('processed')"
@@ -176,20 +176,20 @@
 
 <!-- Batch List Section -->
 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-    <div class="px-6 py-6 border-b border-gray-200">
-        <div class="flex items-center justify-between">
+    <div class="px-4 py-5 sm:px-6 sm:py-6 border-b border-gray-200">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h2 class="text-2xl font-bold text-gray-900">Import Batches</h2>
-            <div class="flex items-center space-x-4">
+            <div class="w-full sm:w-auto flex items-center">
                 <!-- Search Bar -->
                 <input type="text" id="searchInput" placeholder="Search batches..."
-                    class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                    class="w-full sm:w-72 min-h-[44px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
             </div>
         </div>
     </div>
 
     <!-- Table -->
     <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full min-w-[860px]">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
                     <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Batch ID</th>

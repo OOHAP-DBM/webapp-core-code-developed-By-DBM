@@ -117,6 +117,11 @@ html, body {
 .otp-section {
     margin-top:-250px!important;
 }
+@media (max-width: 768px) {
+    .otp-section {
+        margin-left: 70px !important;
+    }
+}
 .otp-icon {
     width: 68px;
     height: 68px;
