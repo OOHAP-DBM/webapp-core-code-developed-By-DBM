@@ -2,15 +2,24 @@
 <header class="bg-white border-b border-gray-200 py-3 flex items-center px-6 gap-4">
     
     <!-- LEFT : TITLE -->
-    <div class="flex-1 min-w-0">
+    {{-- <div class="flex-1 min-w-0">
         <div class="px-4 md:px-6 py-1 bg-white  ">
-                <div class="flex flex-col">
+                <div class="flex flex-col"> --}}
+                    <div class="flex-1 min-w-0">
+    {{-- Mobile/Tablet: show only page title --}}
+    <h1 class="lg:hidden text-sm font-semibold text-gray-800 truncate px-2">
+        @yield('title', 'Dashboard')
+    </h1>
+
+    {{-- Desktop: show full title + breadcrumb --}}
+    <div class="hidden lg:block px-4 md:px-6 py-1 bg-white">
+            <div class="flex flex-col">
                     @hasSection('breadcrumb')
                         <div class="mb-1">
                             @yield('breadcrumb')
                         </div>
                     @endif
-                    <h1 class="text-xl font-semibold text-gray-800">
+                    <h1 class="md:text-xl font-semibold text-gray-800">
                         @yield('title', 'Dashboard')
                     </h1>
                     @if (Request::routeIs('vendor.dashboard'))
@@ -139,7 +148,9 @@
         </div>
 
         <div class="relative">
-            <button type="button" class="hidden md:flex flex items-center space-x-3 focus:outline-none">
+            {{-- <button type="button" class="hidden md:flex flex items-center space-x-3 focus:outline-none"> --}}
+                <button type="button" class="hidden lg:flex items-center space-x-3 focus:outline-none">
+
                 <span class="text-sm font-medium text-gray-700">{{ auth()->user()->name }}</span>
                 <!-- <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -184,7 +195,7 @@
 
         <button
             id="vendor-mobile-menu-btn"
-            class="block md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md"
+            class="block lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md"
         >
             ☰
         </button>

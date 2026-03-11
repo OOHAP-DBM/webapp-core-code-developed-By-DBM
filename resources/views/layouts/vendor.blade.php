@@ -58,7 +58,7 @@
     @stack('modals')
     @include('vendor.pos.components.pos-timer-notification')
     <style> 
-    @media (max-width: 1023px) {
+    /* @media (max-width: 1023px) {
         #vendor-sidebar {
             position: fixed;
             top: 0;
@@ -66,7 +66,26 @@
             height: 100vh;
             z-index: 9999;
         }
+    } */
+@media (max-width: 1023px) {
+    #vendor-sidebar:not(.hidden) {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
     }
+}
+
+@media (min-width: 1024px) {
+    #vendor-sidebar {
+        position: relative !important;
+        display: flex !important;
+        flex-direction: column;
+    }
+}
 </style>
     @stack('scripts')
 <script>

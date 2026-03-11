@@ -1,11 +1,14 @@
 {{-- Vendor Sidebar --}}
 <aside
     id="vendor-sidebar"
-    class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-screen"
+    {{-- class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-screen" --}}
+        class="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 h-screen"
+
 >
     <button
         id="vendor-mobile-btn-close"
-        class="block md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md text-end"
+        class="block lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md text-start"
+
     >
         ✕
     </button>
