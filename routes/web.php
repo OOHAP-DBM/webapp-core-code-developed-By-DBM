@@ -30,6 +30,7 @@ use App\Http\Controllers\GeocodeController;
 
 
 Route::get('/api/geocode', [GeocodeController::class, 'search']);
+Route::get('/api/pincode', [GeocodeController::class, 'pincode']);
 Route::get('/api/reverse-geocode', [GeocodeController::class, 'reverse']);
 // SEO-friendly hoarding search route (pattern controlled by config/seo_search_routes.php)
 $seoSearchPattern = config('seo_search_routes.pattern', '/billboard-advertising/{city}/{area?}');
@@ -58,7 +59,6 @@ Route::get('/brand/oohapp-logo', function () {
 Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest')->group(function () {
     Route::get('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'login'])->name('login.submit');
-
 });
 /*
 |--------------------------------------------------------------------------
@@ -292,7 +292,7 @@ Route::get('/refund-cancellation-policy', [PageController::class, 'refund'])->na
 Route::middleware(['auth'])->group(function () {
     Route::get('/shortlist', [ShortlistController::class, 'index'])->name('shortlist');
     Route::post('/shortlist/toggle/{hoarding}', [ShortlistController::class, 'toggle'])->name('shortlist.toggle');
-    Route::post('/ratings/store',[RatingController::class,'store'])->name('ratings.store');
+    Route::post('/ratings/store', [RatingController::class, 'store'])->name('ratings.store');
 });
 
 
