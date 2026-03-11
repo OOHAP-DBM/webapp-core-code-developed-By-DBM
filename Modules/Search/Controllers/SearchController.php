@@ -186,6 +186,10 @@ class SearchController extends Controller
         if ($request->filled('max_price')) {
             $query->having('price', '<=', $request->max_price);
         }
+        if ($request->filled('rating')) {
+            $minRating = min(array_map('intval', $request->rating));
+            $query->having('avg_rating', '>=', $minRating);
+        }
         if ($request->filled('near_me') && $request->filled('lat') && $request->filled('lng')) {
             $lat = (float) $request->lat;
             $lng = (float) $request->lng;
