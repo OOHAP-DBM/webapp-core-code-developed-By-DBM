@@ -44,18 +44,14 @@ class EnquiryController extends Controller
         }
 
         $searchId = null;
-
-        /* ---------------- SEARCH BY ID ONLY ---------------- */
         if ($request->filled('search')) {
-            $search = trim($request->search);
-
-            // Strip everything except digits: "MV000097" → "000097" → 97
-            // Also handles "0097", "97", "SV000096" etc.
-            $numericId = (int) preg_replace('/\D/', '', $search);
-
-            if ($numericId > 0) {
-                $query->where('id', $numericId);
-                $searchId = $numericId;
+            $searchId = preg_replace('/\D/', '', trim($request->search));
+            if ($searchId !== '') {
+                $query->where('id', (int) $searchId);
+                $query->orderByRaw(
+                    'CASE WHEN id = ? THEN 0 ELSE 1 END',
+                    [(int) $searchId]
+                );
             }
         }
 

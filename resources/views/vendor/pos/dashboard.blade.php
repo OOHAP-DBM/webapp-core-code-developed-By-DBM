@@ -1,3 +1,4 @@
+@include('vendor.pos.components.pos-timer-notification')
 @extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'POS Dashboard')

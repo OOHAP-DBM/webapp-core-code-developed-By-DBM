@@ -1,3 +1,4 @@
+@include('vendor.pos.components.pos-timer-notification')
 @extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'POS Bookings List')
@@ -227,13 +228,7 @@ function loadPosBookings(page = 1) {
                                class="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition">
                                 Edit
                             </a>
-                        ` : `
-                            <button disabled 
-                                class="text-xs bg-gray-300 text-gray-500 px-2 py-1 rounded cursor-not-allowed"
-                                title="Can only edit draft bookings">
-                                Edit
-                            </button>
-                        `}
+                        ` : ''}
                         <!-- BACKEND RULE: Show Mark Paid if payment_status in [unpaid, partial] AND status != cancelled -->
                         ${['unpaid', 'partial'].includes(booking.payment_status) && booking.status !== 'cancelled' ? `
                             <a href="${POS_BASE_PATH}/bookings/${booking.id}"

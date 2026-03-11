@@ -21,7 +21,7 @@ class EnquiryItemResource extends JsonResource
             'status_label'    => $this->statusLabel(),
             'requirement'     => $this->customer_note,
             'submitted_on'    => optional($this->created_at)->format('d M Y'),
-           'preferred_campaign_start' => $this->enquiryCampaignStartDate(),
+            'preferred_campaign_start' => $this->enquiryCampaignStartDate(),
             'last_updated'    => optional($this->updated_at)->format('d M Y, H:i'),
             'total_hoardings' => $this->items_count,
             'total_locations' => $this->items_count,

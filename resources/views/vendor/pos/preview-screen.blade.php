@@ -33,7 +33,7 @@
                             <th class="px-6 py-3">Hoarding</th>
                             <th class="px-6 py-3">Location</th>
                             <th class="px-6 py-3">Type</th>
-                            <th class="px-6 py-3">Size</th>
+
                             <th class="px-6 py-3">Slots/Day</th>
                             <th class="px-6 py-3">Duration</th>
                             <th class="px-6 py-3 text-right">Amount</th>
@@ -705,7 +705,7 @@ function updatePreviewScreen() {
             <td class="px-6 py-3 font-bold text-gray-800">${safe(h.title)}</td>
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.location) || safe(h.city)}</td>
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.type)}</td>
-            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.size)}</td>
+
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.total_slots_per_day)}</td>
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.startDate)} to ${safe(h.endDate)}</td>
             <td class="px-6 py-3 text-right font-bold text-gray-900">${typeof formatINR === 'function' ? formatINR(h.price_per_month) : '₹' + safe(h.price_per_month)}</td>
