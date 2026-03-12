@@ -8,7 +8,50 @@ use Modules\DOOH\Models\DOOHPackage;
 use App\Helpers\DurationHelper;
 use App\Helpers\PricingEngine;
 
-
+/**
+ * @OA\Schema(
+ *     schema="EnquiryItemResource",
+ *     type="object",
+ *     title="Enquiry Item Resource",
+ *     description="Detailed enquiry resource for show endpoint",
+ *     @OA\Property(property="id", type="integer", example=101),
+ *     @OA\Property(property="enquiry_no", type="string", example="0101"),
+ *     @OA\Property(property="status", type="string", example="submitted"),
+ *     @OA\Property(property="status_label", type="string", example="Enquiry Received"),
+ *     @OA\Property(property="requirement", type="string", example="Interested in Q4 campaign"),
+ *     @OA\Property(property="submitted_on", type="string", example="12 Mar 2026"),
+ *     @OA\Property(property="preferred_campaign_start", type="string", example="15 Mar 2026"),
+ *     @OA\Property(property="last_updated", type="string", example="12 Mar 2026, 14:00"),
+ *     @OA\Property(property="total_hoardings", type="integer", example=2),
+ *     @OA\Property(property="total_locations", type="integer", example=2),
+ *     @OA\Property(property="total_vendors", type="integer", example=1),
+ *     @OA\Property(property="customer", type="object",
+ *         @OA\Property(property="id", type="integer", example=5),
+ *         @OA\Property(property="name", type="string", example="John Doe"),
+ *         @OA\Property(property="business_name", type="string", example="Acme Corp"),
+ *         @OA\Property(property="gstin", type="string", example="22AAAAA0000A1Z5"),
+ *         @OA\Property(property="mobile", type="string", example="9876543210"),
+ *         @OA\Property(property="address", type="string", example="123 Main St, Mumbai"),
+ *         @OA\Property(property="email", type="string", example="john@example.com")
+ *     ),
+ *     @OA\Property(property="vendors", type="array",
+ *         @OA\Items(type="object",
+ *             @OA\Property(property="user_id", type="integer", example=7),
+ *             @OA\Property(property="name", type="string", example="Vendor Name"),
+ *             @OA\Property(property="company_name", type="string", example="Vendor Company"),
+ *             @OA\Property(property="gstin", type="string", example="22AAAAA0000A1Z5"),
+ *             @OA\Property(property="city", type="string", example="Mumbai"),
+ *             @OA\Property(property="state", type="string", example="Maharashtra"),
+ *             @OA\Property(property="phone", type="string", example="9876543210"),
+ *             @OA\Property(property="email", type="string", example="vendor@example.com")
+ *         )
+ *     ),
+ *     @OA\Property(property="hoardings", type="object",
+ *         @OA\Property(property="ooh", type="array", @OA\Items(type="object")),
+ *         @OA\Property(property="dooh", type="array", @OA\Items(type="object"))
+ *     )
+ * )
+ */
 class EnquiryItemResource extends JsonResource
 {
     public function toArray($request)
@@ -172,3 +215,4 @@ class EnquiryItemResource extends JsonResource
 
    
 }
+
