@@ -121,10 +121,10 @@ class HoardingController extends Controller
             'hoarding_type' => $hoarding->hoarding_type,
             'status' => $hoarding->status
         ]);
-       
+
         // Route to appropriate controller based on hoarding_type
         switch (strtolower($hoarding->hoarding_type)) {
-          
+
             case 'ooh':
                 // Get the OOH hoarding child record
                 $oohHoarding = $hoarding->oohHoarding;
@@ -340,6 +340,18 @@ class HoardingController extends Controller
         $search = $request->input('search');
         $letter = $request->input('letter');
         $perPage = (int) $request->input('per_page', 10);
+        $statusFilter = strtolower((string) $request->query('status', ''));
+        $typeFilter = strtolower((string) $request->query('hoarding_type', $request->query('type', '')));
+        $bookedFilter = strtolower((string) $request->query('booked', ''));
+        $unsoldFilter = $request->boolean('unsold') || in_array($bookedFilter, ['false', '0', 'no', 'unbooked'], true);
+        $categoryFilters = $this->normalizeFilterValues((array) $request->query('category', []));
+        $surroundingFilters = $this->normalizeFilterValues((array) $request->query('surroundings', []));
+        $availabilityFilters = $this->normalizeFilterValues((array) $request->query('availability', []));
+        $resolutionFilters = $this->normalizeFilterValues((array) $request->query('resolution', []));
+        $screenSizeMin = $request->filled('screen_size_min') ? max(0, (float) $request->query('screen_size_min')) : null;
+        $screenSizeMax = $request->filled('screen_size_max') ? max(0, (float) $request->query('screen_size_max')) : null;
+        $hoardingSizeMin = $request->filled('hoarding_size_min') ? max(0, (float) $request->query('hoarding_size_min')) : null;
+        $hoardingSizeMax = $request->filled('hoarding_size_max') ? max(0, (float) $request->query('hoarding_size_max')) : null;
         if ($perPage < 1) $perPage = 10;
 
         $totalCount = Hoarding::where('vendor_id', $vendor->id)->count();
@@ -361,17 +373,40 @@ class HoardingController extends Controller
                 }
                 $hoardings = $query->orderBy('title')->get();
             } else {
-                $filters = [
-                    'vendor_id' => $vendor->id,
-                    'status' => ['active', 'inactive', 'pending_approval'],
-                ];
+                $statusValues = ['active', 'inactive', 'pending_approval'];
+                if (in_array($statusFilter, ['active', 'inactive', 'pending_approval'], true)) {
+                    $statusValues = [$statusFilter];
+                }
+
+                $query = Hoarding::query()
+                    ->withCount('bookings')
+                    ->where('vendor_id', $vendor->id)
+                    ->whereIn('status', $statusValues);
+
+                if (in_array($typeFilter, ['ooh', 'dooh'], true)) {
+                    $query->where('hoarding_type', $typeFilter);
+                }
+
                 if ($search) {
-                    $filters['search'] = $search;
+                    $query->search($search);
                 }
                 if ($letter) {
-                    $filters['letter'] = mb_strtoupper(mb_substr($letter, 0, 1));
+                    $query->whereRaw('UPPER(LEFT(title, 1)) = ?', [mb_strtoupper(mb_substr($letter, 0, 1))]);
                 }
-                $hoardings = $this->hoardingService->getAll($filters, 10000)->getCollection();
+
+                $this->applyVendorListAdvancedFilters($query, [
+                    'categories' => $categoryFilters,
+                    'surroundings' => $surroundingFilters,
+                    'availability' => $availabilityFilters,
+                    'resolutions' => $resolutionFilters,
+                    'screen_size_min' => $screenSizeMin,
+                    'screen_size_max' => $screenSizeMax,
+                    'hoarding_size_min' => $hoardingSizeMin,
+                    'hoarding_size_max' => $hoardingSizeMax,
+                    'force_unbooked' => $unsoldFilter,
+                ]);
+
+                $hoardings = $query->orderByDesc('created_at')->get();
             }
 
             $columns = ['ID', 'Title', 'Type', 'Location', 'Bookings', 'Status'];
@@ -461,17 +496,41 @@ class HoardingController extends Controller
             }
             $data = $query->orderBy('title')->paginate($perPage)->withQueryString();
         } else {
-            $filters = [
-                'vendor_id' => $vendor->id,
-                'status' => ['active', 'inactive', 'pending_approval'],
-            ];
+            $statusValues = ['active', 'inactive', 'pending_approval'];
+            if (in_array($statusFilter, ['active', 'inactive', 'pending_approval'], true)) {
+                $statusValues = [$statusFilter];
+            }
+
+            $query = Hoarding::query()
+                ->withCount('bookings')
+                ->where('vendor_id', $vendor->id)
+                ->whereIn('status', $statusValues);
+
+            if (in_array($typeFilter, ['ooh', 'dooh'], true)) {
+                $query->where('hoarding_type', $typeFilter);
+            }
+
             if ($search) {
-                $filters['search'] = $search;
+                $query->search($search);
             }
             if ($letter) {
-                $filters['letter'] = mb_strtoupper(mb_substr($letter, 0, 1));
+                $query->whereRaw('UPPER(LEFT(title, 1)) = ?', [mb_strtoupper(mb_substr($letter, 0, 1))]);
             }
-            $data = $this->hoardingService->getAll($filters, $perPage);
+
+            $this->applyVendorListAdvancedFilters($query, [
+                'categories' => $categoryFilters,
+                'surroundings' => $surroundingFilters,
+                'availability' => $availabilityFilters,
+                'resolutions' => $resolutionFilters,
+                'screen_size_min' => $screenSizeMin,
+                'screen_size_max' => $screenSizeMax,
+                'hoarding_size_min' => $hoardingSizeMin,
+                'hoarding_size_max' => $hoardingSizeMax,
+                'force_unbooked' => $unsoldFilter,
+            ]);
+
+            $data = $query->orderByDesc('created_at')->paginate($perPage)->withQueryString();
+
             if ($letter && $data->total() === 0) {
                 $data = $data->setCollection(collect([]));
             }
@@ -495,6 +554,130 @@ class HoardingController extends Controller
             'activeTab' => $activeTab,
             'perPage' => $perPage
         ]);
+    }
+
+    private function normalizeFilterValues(array $values): array
+    {
+        return collect($values)
+            ->map(function ($value) {
+                return mb_strtolower(trim((string) $value));
+            })
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function applyVendorListAdvancedFilters($query, array $filters): void
+    {
+        $categoryFilters = $filters['categories'] ?? [];
+        $surroundingFilters = $filters['surroundings'] ?? [];
+        $availabilityFilters = $filters['availability'] ?? [];
+        $resolutionFilters = $filters['resolutions'] ?? [];
+        $screenSizeMin = $filters['screen_size_min'] ?? null;
+        $screenSizeMax = $filters['screen_size_max'] ?? null;
+        $hoardingSizeMin = $filters['hoarding_size_min'] ?? null;
+        $hoardingSizeMax = $filters['hoarding_size_max'] ?? null;
+        $forceUnbooked = (bool) ($filters['force_unbooked'] ?? false);
+
+        if (!empty($categoryFilters)) {
+            $query->where(function ($categoryQuery) use ($categoryFilters) {
+                foreach ($categoryFilters as $index => $category) {
+                    $token = str_replace(['_', '-', ' '], '', mb_strtolower((string) $category));
+                    $method = $index === 0 ? 'whereRaw' : 'orWhereRaw';
+                    $categoryQuery->{$method}(
+                        "LOWER(REPLACE(REPLACE(COALESCE(category, ''), ' ', ''), '_', '')) LIKE ?",
+                        ['%' . $token . '%']
+                    );
+                }
+            });
+        }
+
+        if (!empty($surroundingFilters)) {
+            $query->where(function ($surroundingQuery) use ($surroundingFilters) {
+                foreach ($surroundingFilters as $index => $surrounding) {
+                    $token = str_replace(['_', '-', ' '], '', mb_strtolower((string) $surrounding));
+                    $method = $index === 0 ? 'whereRaw' : 'orWhereRaw';
+                    $surroundingQuery->{$method}(
+                        "LOWER(REPLACE(REPLACE(COALESCE(road_type, ''), ' ', ''), '_', '')) LIKE ?",
+                        ['%' . $token . '%']
+                    );
+                }
+            });
+        }
+
+        $hasAvailable = in_array('available', $availabilityFilters, true);
+        $hasBooked = in_array('booked', $availabilityFilters, true);
+
+        if ($forceUnbooked || ($hasAvailable && !$hasBooked)) {
+            $query->whereDoesntHave('bookings')
+                ->whereDoesntHave('posBookings');
+        } elseif ($hasBooked && !$hasAvailable) {
+            $query->where(function ($bookingQuery) {
+                $bookingQuery->whereHas('bookings')
+                    ->orWhereHas('posBookings');
+            });
+        }
+
+        if (!empty($resolutionFilters)) {
+            $query->whereHas('doohScreen', function ($screenQuery) use ($resolutionFilters) {
+                $screenQuery->where(function ($resolutionQuery) use ($resolutionFilters) {
+                    foreach ($resolutionFilters as $index => $resolution) {
+                        $normalized = str_replace([' ', '-'], '_', mb_strtolower((string) $resolution));
+                        $method = $index === 0 ? 'where' : 'orWhere';
+
+                        if ($normalized === 'led') {
+                            $resolutionQuery->{$method}(function ($ledQuery) {
+                                $ledQuery->where('screen_type', 'like', '%led%')
+                                    ->orWhere(function ($lowResQuery) {
+                                        $lowResQuery->whereNotNull('resolution_width')
+                                            ->where('resolution_width', '<', 1280);
+                                    });
+                            });
+                        } elseif ($normalized === 'hd') {
+                            $resolutionQuery->{$method}(function ($hdQuery) {
+                                $hdQuery->where(function ($widthQuery) {
+                                    $widthQuery->where('resolution_width', '>=', 1280)
+                                        ->where('resolution_width', '<', 3840);
+                                })->orWhere(function ($heightQuery) {
+                                    $heightQuery->where('resolution_height', '>=', 720)
+                                        ->where('resolution_height', '<', 2160);
+                                });
+                            });
+                        } elseif (in_array($normalized, ['ultra_hd', 'ultrahd'], true)) {
+                            $resolutionQuery->{$method}(function ($uhdQuery) {
+                                $uhdQuery->where('resolution_width', '>=', 3840)
+                                    ->orWhere('resolution_height', '>=', 2160);
+                            });
+                        }
+                    }
+                });
+            });
+        }
+
+        if ($screenSizeMin !== null || $screenSizeMax !== null) {
+            $query->whereHas('doohScreen', function ($screenQuery) use ($screenSizeMin, $screenSizeMax) {
+                if ($screenSizeMin !== null) {
+                    $screenQuery->whereRaw('COALESCE(resolution_width, 0) >= ?', [$screenSizeMin]);
+                }
+
+                if ($screenSizeMax !== null) {
+                    $screenQuery->whereRaw('COALESCE(resolution_width, 0) <= ?', [$screenSizeMax]);
+                }
+            });
+        }
+
+        if ($hoardingSizeMin !== null || $hoardingSizeMax !== null) {
+            $query->whereHas('ooh', function ($oohQuery) use ($hoardingSizeMin, $hoardingSizeMax) {
+                if ($hoardingSizeMin !== null) {
+                    $oohQuery->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) >= ?', [$hoardingSizeMin]);
+                }
+
+                if ($hoardingSizeMax !== null) {
+                    $oohQuery->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) <= ?', [$hoardingSizeMax]);
+                }
+            });
+        }
     }
 
     public function toggleStatus($id)
@@ -554,5 +737,4 @@ class HoardingController extends Controller
 
         return view('hoardings.vendor.show', compact('hoarding'));
     }
-
 }

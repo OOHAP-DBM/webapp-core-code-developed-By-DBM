@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 {{-- <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6"> --}}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <div class="p-8 space-y-8">
+  <div class="py-4 space-y-6 sm:space-y-8">
     <!-- Hoarding Details -->
     {{-- @dump($draft) --}}
     <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
@@ -17,7 +17,7 @@
             <label class="text-sm font-bold text-gray-700">
                 Hoarding Type <span class="text-red-500">*</span>
             </label>
-          <div class="w-full bg-[#0094FF] border border-[#0094FF] rounded-xl px-4 py-2.5 text-white font-bold">
+          <div class="w-full bg-[#0094FF] border border-[#0094FF] rounded-xl px-4 py-2.5 text-white font-bold whitespace-nowrap overflow-hidden text-ellipsis">
             OOH (Out-of-Home)
           </div>
         </div>
@@ -47,7 +47,7 @@
           <label class="text-sm font-bold text-gray-700">
                 Hoarding Size 
             </label>
-        <div class="grid grid-cols-4 gap-4 items-end">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
           <!-- Unit -->
           <div class="space-y-1">
             <label class="text-xs font-bold text-gray-500">Unit</label>
