@@ -69,16 +69,16 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     Route::prefix('bookings-v2')->group(base_path('routes/api_v1/bookings_v2.php')); // New Bookings Module
     Route::prefix('payments')->group(base_path('routes/api_v1/payments.php'));
     Route::prefix('vendors')->group(base_path('routes/api_v1/vendors.php'));
-    Route::prefix('kyc')->group(base_path('routes/api_v1/kyc.php'));
-    Route::prefix('staff')->group(base_path('routes/api_v1/staff.php'));
-    Route::prefix('admin')->group(base_path('routes/api_v1/admin.php'));
+    // Route::prefix('kyc')->group(base_path('routes/api_v1/kyc.php'));
+    // Route::prefix('staff')->group(base_path('routes/api_v1/staff.php'));
+    // Route::prefix('admin')->group(base_path('routes/api_v1/admin.php'));
     Route::prefix('settings')->group(base_path('routes/api_v1/settings.php'));
     Route::prefix('notifications')->group(base_path('routes/api_v1/notifications.php'));
     Route::prefix('vendor/notifications')->group(base_path('routes/api_v1/vendor_notifications.php'));
     Route::prefix('agency-notifications')->group(base_path('routes/api_v1/agency_notifications.php'));
     Route::prefix('brand-manager-notifications')->group(base_path('routes/api_v1/brand_manager_notifications.php'));
-    Route::prefix('reports')->group(base_path('routes/api_v1/reports.php'));
-    Route::prefix('media')->group(base_path('routes/api_v1/media.php'));
+    // Route::prefix('reports')->group(base_path('routes/api_v1/reports.php'));
+    // Route::prefix('media')->group(base_path('routes/api_v1/media.php'));
     Route::prefix('search')->group(base_path('routes/api_v1/search.php'));
     Route::prefix('vendor/pos')->group(base_path('routes/api_v1/pos.php')); // POS Module
     Route::prefix('pages')->group(base_path('routes/api_v1/cms.php')); // CMS Module

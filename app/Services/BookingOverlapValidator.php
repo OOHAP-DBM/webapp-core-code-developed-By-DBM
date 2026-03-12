@@ -7,6 +7,7 @@ use App\Models\MaintenanceBlock;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Modules\Settings\Services\SettingsService;
 
 /**
  * PROMPT 101: Booking Overlap Validation Engine
