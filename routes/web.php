@@ -823,9 +823,9 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\POSController::class, 'updateStatus'])->name('update-status');
 
             // Legacy routes
-            Route::get('/dashboard', function () {
-                return view('vendor.pos.dashboard');
-            })->name('dashboard');
+            // Route::get('/dashboard', function () {
+            //     return view('vendor.pos.dashboard');
+            // })->name('dashboard');
             Route::get('/create', function () {
                 return view('vendor.pos.create');
             })->name('create');
