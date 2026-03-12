@@ -105,6 +105,13 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
             $query->nearLocation($filters['lat'], $filters['lng'], $radiusKm);
         }
 
+
+        // Weekly filter: only hoardings with enable_weekly_booking and weekly_price_1
+        if (!empty($filters['filter']) && $filters['filter'] === 'weekly') {
+            $query->where('enable_weekly_booking', true)
+                  ->whereNotNull('weekly_price_1');
+        }
+
         // Default to active hoardings for public listing
         if (!isset($filters['status']) && !isset($filters['include_all'])) {
             $query->active();

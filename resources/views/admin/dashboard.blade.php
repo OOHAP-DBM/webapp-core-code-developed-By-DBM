@@ -226,13 +226,26 @@
                 ['OOH Hoardings', $oohCount, 'bg-gray-600', 'ooh'],
                 ['DOOH Hoardings', $doohCount, 'bg-pink-600', 'dooh'],
             ];
+
+            $cardRoutes = [
+                'users' => route('admin.customers.index'),
+                'vendors' => route('admin.vendors.index'),
+                'customers' => route('admin.customers.index'),
+                // 'bookings' => route('admin.pos.bookings.index'),
+                // 'hoardings' => route('admin.hoardings.index'),
+                // 'ooh' => route('admin.vendor-hoardings.index', ['type' => 'ooh']),
+                'dooh' => route('admin.vendor-hoardings.index', ['type' => 'dooh']),
+            ];
         @endphp
 
 
         @foreach($stats as [$label, $value, $color,$key])
+        @php
+            $cardRoute = $cardRoutes[$key] ?? '#';
+        @endphp
         <div class="relative">
             <!-- CARD -->
-            <div class="relative z-10 bg-gray-100 shadow rounded-xl p-4">
+            <a href="{{ $cardRoute }}" class="block relative z-10 bg-gray-100 shadow rounded-xl p-4 hover:shadow-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer">
                 <div class="mb-2">
                     {!! $statIcons[$key] ?? '' !!}
                 </div>
@@ -244,7 +257,7 @@
                 <p class="text-black ">
                     {{ $label }}
                 </p>
-            </div>
+            </a>
 
             <!-- BOTTOM COLOR STRIP -->
             <div
@@ -347,7 +360,7 @@
                 <tr>
                     <th class="px-6 py-3 text-left">SN</th>
                     <th class="px-6 py-3 text-left">Customer</th>
-                    <th class="px-6 py-3 text-left"># Of Bookings</th>
+                    <th class="px-6 py-3 text-left">No. Of Bookings</th>
                     <th class="px-6 py-3 text-left">Grand Total</th>
                     <th class="px-6 py-3 text-left">Amount Received</th>
                     <th class="px-6 py-3 text-left">Due Amount</th>
@@ -404,7 +417,7 @@
                     <th class="px-6 py-3 text-left">SN</th>
                     <th class="px-6 py-3 text-left">Transaction ID</th>
                     <th class="px-6 py-3 text-left">Customer</th>
-                    <th class="px-6 py-3 text-left"># Of Bookings</th>
+                    <th class="px-6 py-3 text-left">No. Of Bookings</th>
                     <th class="px-6 py-3 text-left">Payment Status</th>
                     <th class="px-6 py-3 text-left">Booking Type</th>
                     <th class="px-6 py-3 text-left">Date</th>

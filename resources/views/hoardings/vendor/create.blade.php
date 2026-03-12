@@ -18,49 +18,51 @@
 
 <div class="py-4 px-2 sm:px-4 md:px-6 lg:px-8 w-full max-w-8xl mx-auto">
 
-    <div class="w-full max-w-5xl mx-auto py-6">
-        <div class="flex items-stretch w-full bg-white border border-gray-300 rounded-full overflow-hidden h-16 shadow-sm">
+    <div class="w-full max-w-5xl mx-auto py-4 px-2 sm:px-0">
+        <div class="flex items-stretch w-full bg-white border border-gray-300 rounded-full overflow-hidden h-auto sm:h-16 shadow-sm">
 
-            <div class="relative flex-1 flex items-center justify-center gap-3 pr-6 
+        {{-- <div class="flex items-stretch w-full bg-white border border-gray-300 rounded-xl sm:rounded-full overflow-hidden h-auto sm:h-16 shadow-sm"> --}}
+
+            <div class="relative flex-1 flex items-center justify-center gap-1 sm:gap-3 px-2 sm:pr-6 py-3 sm:py-0
                 {{ $step >= 1 ? 'bg-white' : 'bg-gray-50' }}"
                 style="clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%);">
-                <div class="flex items-center justify-center w-8 h-8 rounded-full 
+                <div class="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0
                     {{ $step >= 1 ? 'bg-[#009A5C]' : 'bg-gray-400' }} text-white">
                     @if($step > 1)
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                         </svg>
                     @else
-                        <span class="font-bold">1</span>
+                        <span class="font-bold text-xs sm:text-sm">1</span>
                     @endif
                 </div>
-                <span class="font-semibold {{ $step >= 1 ? 'text-[#009A5C]' : 'text-gray-400' }}">Basic Info</span>
+                <span class="font-semibold text-[10px] sm:text-sm leading-tight text-center {{ $step >= 1 ? 'text-[#009A5C]' : 'text-gray-400' }}">Basic<br class="sm:hidden"> Info</span>
             </div>
 
-            <div class="relative flex-1 flex items-center justify-center gap-3 px-6 border-l border-gray-300
+            <div class="relative flex-1 flex items-center justify-center gap-1 sm:gap-3 px-2 sm:px-6 py-3 sm:py-0 border-l border-gray-300
                 {{ $step >= 2 ? 'bg-white' : 'bg-gray-50' }}"
                 style="clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%, 5% 50%);">
-                <div class="flex items-center justify-center w-8 h-8 rounded-full 
+                <div class="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0
                     {{ $step >= 2 ? 'bg-[#009A5C]' : 'bg-gray-400' }} text-white">
                     @if($step > 2)
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                         </svg>
                     @else
-                        <span class="font-bold">2</span>
+                        <span class="font-bold text-xs sm:text-sm">2</span>
                     @endif
                 </div>
-                <span class="font-semibold {{ $step >= 2 ? 'text-[#009A5C]' : 'text-gray-400' }}">Settings</span>
+                <span class="font-semibold text-[10px] sm:text-sm leading-tight text-center {{ $step >= 2 ? 'text-[#009A5C]' : 'text-gray-400' }}">Settings</span>
             </div>
 
-            <div class="relative flex-1 flex items-center justify-center gap-3 pl-6 border-l border-gray-300
+            <div class="relative flex-1 flex items-center justify-center gap-1 sm:gap-3 px-2 sm:pl-6 py-3 sm:py-0 border-l border-gray-300
                 {{ $step >= 3 ? 'bg-white' : 'bg-gray-50' }}"
                 style="clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 5% 50%);">
-                <div class="flex items-center justify-center w-8 h-8 rounded-full 
+                <div class="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0
                     {{ $step >= 3 ? 'bg-[#009A5C]' : 'bg-gray-400' }} text-white">
-                    <span class="font-bold">3</span>
+                    <span class="font-bold text-xs sm:text-sm">3</span>
                 </div>
-                <span class="font-semibold {{ $step >= 3 ? 'text-[#009A5C]' : 'text-gray-400' }}">Pricing</span>
+                <span class="font-semibold text-[10px] sm:text-sm leading-tight text-center {{ $step >= 3 ? 'text-[#009A5C]' : 'text-gray-400' }}">Pricing</span>
             </div>
 
         </div>
@@ -71,7 +73,6 @@
         <input type="hidden" name="step" value="{{ $step }}">
         <input type="hidden" name="go_back" id="goBackInput" value="0">
 
-        {{-- Always pass ooh_id if draft exists --}}
         @if($draft)
             <input type="hidden" name="ooh_id" value="{{ $draft->id }}">
         @endif
@@ -84,26 +85,25 @@
             @include('hoardings.vendor.partials.step3', ['draft' => $draft, 'parentHoarding' => $draft?->hoarding])
         @endif
 
-        <div class="flex justify-between gap-3 mb-8 max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center gap-3 mb-8 max-w-8xl mx-auto px-2 sm:px-6 lg:px-8">
             @if($step == 1)
                 <a href="{{ route('vendor.hoardings.myHoardings') }}"
-                    class="w-full sm:w-auto px-5 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition text-center">
+                    class="min-w-[80px] sm:w-auto px-4 sm:px-5 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition text-center text-sm whitespace-nowrap">
                     Cancel
                 </a>
-
-             @else
+            @else
                 <button type="button" id="prevBtn"
-                    class="w-full sm:w-auto px-5 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition text-center flex items-center justify-center gap-2">
+                    class="min-w-[80px] sm:w-auto px-4 sm:px-5 py-2 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition text-center flex items-center justify-center gap-2 text-sm whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                     Previous
                 </button>
             @endif
-            <div class="flex gap-3">
 
+            <div class="flex gap-3">
                 <button type="submit" id="submitBtn"
-                        class="px-7 py-2 rounded bg-[#009A5C] text-white font-semibold shadow hover:bg-[#008A52] transition">
+                    class="min-w-[120px] sm:min-w-0 px-4 sm:px-7 py-2 rounded bg-[#009A5C] text-white font-semibold shadow hover:bg-[#008A52] transition whitespace-nowrap text-sm">
                     @if($step < 3)
                         Save & Continue →
                     @else
@@ -131,10 +131,9 @@
         overlay.classList.add('flex');
     }
 
-    // Submit button
     if (form && submitBtn) {
         form.addEventListener('submit', function (e) {
-            if (goBackInput && goBackInput.value === '1') return; // going back, different message set below
+            if (goBackInput && goBackInput.value === '1') return;
             const msg = step === 3 ? 'Publishing your hoarding...' : `Saving Step ${step}...`;
             showOverlay(msg);
             submitBtn.disabled = true;
@@ -145,7 +144,6 @@
         });
     }
 
-    // Previous button — submit form with go_back flag
     if (prevBtn && goBackInput) {
         prevBtn.addEventListener('click', function () {
             goBackInput.value = '1';
@@ -156,7 +154,6 @@
         });
     }
 
-    // bfcache guard — reset UI if user hits browser back
     window.addEventListener('pageshow', function (e) {
         if (e.persisted) {
             overlay.classList.add('hidden');

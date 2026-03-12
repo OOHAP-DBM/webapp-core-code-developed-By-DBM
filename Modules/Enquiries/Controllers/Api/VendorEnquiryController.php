@@ -28,7 +28,7 @@ class VendorEnquiryController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/enquiries/vendor/all",
+     *     path="/enquiries/vendor/all",
      *     summary="List enquiries for vendor's hoardings",
      *     description="Returns paginated enquiries that contain at least one item belonging to the authenticated vendor's hoardings. Supports filtering by status, search by enquiry ID, hoarding ID, customer name/mobile, date presets, and custom date range.",
      *     tags={"Vendor Enquiries"},
@@ -245,17 +245,34 @@ class VendorEnquiryController extends Controller
         }
 
         // ── Filter: date range ─────────────────────────────────────────────
+        // ── Filter: date range ─────────────────────────────────────────────
         if ($request->filled('date_filter')) {
+
+            $now = Carbon::now();
+
             switch ($request->date_filter) {
+
                 case 'last_week':
-                    $query->where('created_at', '>=', Carbon::now()->subWeek());
+                    $query->whereBetween('created_at', [
+                        $now->copy()->subWeek()->startOfWeek(),
+                        $now->copy()->subWeek()->endOfWeek(),
+                    ]);
                     break;
+
                 case 'last_month':
-                    $query->where('created_at', '>=', Carbon::now()->subMonth());
+                    $query->whereBetween('created_at', [
+                        $now->copy()->subMonth()->startOfMonth(),
+                        $now->copy()->subMonth()->endOfMonth(),
+                    ]);
                     break;
+
                 case 'last_year':
-                    $query->where('created_at', '>=', Carbon::now()->subYear());
+                    $query->whereBetween('created_at', [
+                        $now->copy()->subYear()->startOfYear(),
+                        $now->copy()->subYear()->endOfYear(),
+                    ]);
                     break;
+
                 case 'custom':
                     if ($request->filled('from_date') && $request->filled('to_date')) {
                         $query->whereBetween('created_at', [
@@ -286,6 +303,49 @@ class VendorEnquiryController extends Controller
             ],
         ]);
     }
+    /**
+     * @OA\Get(
+     *     path="/enquiries/vendor/{id}",
+     *     summary="Get a single vendor enquiry by ID",
+     *     description="Returns a single enquiry if it belongs to the authenticated vendor. Loads only vendor-specific data.",
+     *     tags={"Vendor Enquiries"},
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Enquiry ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=101)
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Enquiry found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/EnquiryItemResource"),
+     *             @OA\Property(property="viewer_type", type="string", example="owner")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Unauthenticated")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Enquiry not found or access denied",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Enquiry not found or access denied")
+     *         )
+     *     )
+     * )
+     */
     public function show(int $id)
     {
         $user = Auth::user();

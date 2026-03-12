@@ -128,6 +128,11 @@
                             About OOHAPP
                         </a>
                     </li>
+                     <li>
+                        <a href="https://oohapp.io/service" class="text-gray-600 hover:text-gray-900" target="_blank">
+                            Services
+                        </a>
+                    </li>
                     <li>
                         <a href="{{ route('faqs') }}" class="text-gray-600 hover:text-gray-900">
                             FAQs

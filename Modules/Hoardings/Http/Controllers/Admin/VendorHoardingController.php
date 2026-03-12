@@ -89,13 +89,11 @@ class VendorHoardingController extends Controller
         $perPage = 10;
 
         // Build query with filters
-        $query = Hoarding::whereNotNull('vendor_id')
-            ->with([
-                'vendor:id,name',
-                'vendor.vendorProfile:id,user_id,commission_percentage',
-            ])
-            ->withCount('bookings');
-
+     $query = Hoarding::whereNotNull('vendor_id')
+    ->with([
+        'vendor:id,name'
+    ])
+    ->withCount('bookings');
         // Apply filters
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -131,6 +129,7 @@ class VendorHoardingController extends Controller
                 'vendor_commission' => $h->vendor?->vendorProfile?->commission_percentage,
                 'hoarding_commission' => $h->commission_percent,
                 'address' => $h->address,
+                'display_location' => $h->display_location,
                 'bookings_count' => $h->bookings_count,
                 'status' => $h->status,
                 'source' => $h->hoarding_type,
@@ -275,7 +274,7 @@ class VendorHoardingController extends Controller
             ->whereNotNull('vendor_id')
             ->with([
                 'vendor:id,name',
-                'vendor.vendorProfile:id,user_id,commission_percentage',
+                'vendor.vendorProfile:vendor_profiles.id,vendor_profiles.user_id,vendor_profiles.commission_percentage',
             ])
             ->withCount('bookings')
             ->orderBy('id', 'desc')
@@ -292,6 +291,7 @@ class VendorHoardingController extends Controller
                 'vendor_commission' => $h->vendor?->vendorProfile?->commission_percentage,
                 'hoarding_commission' => $h->commission_percent,
                 'address' => $h->address,
+                'display_location' => $h->display_location,
                 'bookings_count' => $h->bookings_count,
                 'status' => $h->status,
                 'source' => $h->hoarding_type,

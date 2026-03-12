@@ -33,8 +33,6 @@
                             <th class="px-6 py-3">Hoarding</th>
                             <th class="px-6 py-3">Location</th>
                             <th class="px-6 py-3">Type</th>
-
-                            <th class="px-6 py-3">Slots/Day</th>
                             <th class="px-6 py-3">Duration</th>
                             <th class="px-6 py-3 text-right">Amount</th>
                         </tr>

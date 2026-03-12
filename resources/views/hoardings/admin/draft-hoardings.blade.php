@@ -64,11 +64,11 @@
                         {{-- <td class="px-4 py-3 text-blue-600">
                             {{ $overallCommission }}
                         </td> --}}
-                        <td class="px-4 py-3 text-green-600">
-                            {{ $hoardingCommission }}
+                        <td class="px-4 py-3 text-green-600 ">
+                              {{ $hoarding->hoarding_commission > 0 ? number_format($hoarding->hoarding_commission). '%' : '—' }}
                         </td>
                         <td class="px-4 py-3 text-gray-600">
-                            {{ $hoarding->address ?? '-' }}
+                            <span class="text-sm line-clamp-2">{{ $hoarding->display_location}}</span>
                         </td>
                         {{-- <td class="px-4 py-3 text-center">
                             {{ $hoarding->bookings_count ?? 0 }}

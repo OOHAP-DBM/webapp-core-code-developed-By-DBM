@@ -169,9 +169,9 @@
 /* Cards */
 .card-row {
     display: flex;
-    gap: 24px;
     justify-content: center;
-    margin-bottom: 32px;
+    gap: 16px;        /* CHANGED: was 24px */
+    margin-bottom: 24px;
 }
 
 .card-option {
@@ -186,7 +186,7 @@
 .card {
     border: 1px solid #d9d9d9;
     border-radius: 8px;
-    padding: 24px 0;
+    padding: 12px 16px;      /* CHANGED: was 24px 0 */
     text-align: center;
     background: var(--white);
     transition: box-shadow .2s, border-color .2s;
@@ -194,12 +194,17 @@
 
 .card .title {
     font-weight: 500;
-    font-size: 1.1rem;
+    font-size: 0.9rem;
+    letter-spacing: 0px;
+    line-height: 1;
+    white-space: nowrap;   /* NEW */
 }
 
 .card .sub {
     color: var(--gray-text);
-    font-size: .95rem;
+    font-size: 0.8rem;       /* CHANGED: was .95rem */
+    letter-spacing: 0px;
+    white-space: nowrap;  
 }
 
 /* Hover */

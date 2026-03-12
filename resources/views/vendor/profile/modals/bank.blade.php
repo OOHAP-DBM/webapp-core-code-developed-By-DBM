@@ -64,7 +64,7 @@
 </div>
 
 {{-- Branch Name --}}
-<div>
+{{-- <div>
     <label class="block text-gray-600 mb-1">
         Branch Name<span class="text-red-500">*</span>
     </label>
@@ -76,7 +76,7 @@
         class="w-full px-3 py-2 border border-gray-300 rounded-md"
         readonly
     >
-</div>
+</div> --}}
         {{-- Account Number --}}
         <div>
             <label class="block text-gray-600 mb-1">Account Number<span class="text-red-500">*</span></label>

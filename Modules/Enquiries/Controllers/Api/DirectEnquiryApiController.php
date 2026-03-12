@@ -27,6 +27,45 @@ class DirectEnquiryApiController extends Controller
     // Send OTP to phone number before submitting enquiry
     // Public endpoint — no auth required
     // =========================================================================
+    /**
+     * @OA\Post(
+     *     path="/enquiries/direct/otp-send",
+     *     summary="Send OTP to phone for direct enquiry (public)",
+     *     description="Sends a 4-digit OTP to the provided Indian mobile number for direct enquiry submission. No authentication required.",
+     *     tags={"Direct Enquiries"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"phone"},
+     *             @OA\Property(property="phone", type="string", example="9876543210", description="10-digit Indian mobile number")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="OTP sent successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="OTP sent successfully to +91-98XXXXXX10")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Enter a valid 10-digit Indian mobile number.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to send OTP",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Failed to send OTP. Please try again.")
+     *         )
+     *     )
+     * )
+     */
     public function sendOtp(Request $request, GuestOtpService $otpService): JsonResponse
     {
         $request->validate([
@@ -65,6 +104,48 @@ class DirectEnquiryApiController extends Controller
     // Verify OTP — client must pass otp_token in subsequent submit call
     // Public endpoint — no auth required
     // =========================================================================
+    /**
+     * @OA\Post(
+     *     path="/enquiries/direct/otp-verify",
+     *     summary="Verify OTP for direct enquiry (public)",
+     *     description="Verifies the 4-digit OTP sent to the provided phone number for direct enquiry submission. No authentication required.",
+     *     tags={"Direct Enquiries"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"phone", "otp"},
+     *             @OA\Property(property="phone", type="string", example="9876543210"),
+     *             @OA\Property(property="otp", type="string", example="1234")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Phone verified successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Phone verified successfully."),
+     *             @OA\Property(property="phone", type="string", example="9876543210"),
+     *             @OA\Property(property="verified", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Invalid or expired OTP",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Invalid or expired OTP. Please request a new one.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Verification failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Verification failed. Please try again.")
+     *         )
+     *     )
+     * )
+     */
     public function verifyOtp(Request $request, GuestOtpService $otpService): JsonResponse
     {
         $request->validate([
@@ -111,6 +192,57 @@ class DirectEnquiryApiController extends Controller
     // Submit a direct enquiry
     // Public endpoint — phone must be OTP-verified within last 20 minutes
     // =========================================================================
+    /**
+     * @OA\Post(
+     *     path="/enquiries/direct",
+     *     summary="Submit a direct enquiry (public, OTP verified)",
+     *     description="Creates a direct enquiry for OOH/DOOH hoardings. Phone must be OTP-verified within last 20 minutes.",
+     *     tags={"Direct Enquiries"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name", "email", "phone", "hoarding_type", "location_city", "remarks", "phone_verified"},
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="john@example.com"),
+     *             @OA\Property(property="phone", type="string", example="9876543210"),
+     *             @OA\Property(property="hoarding_type", type="array", @OA\Items(type="string", enum={"OOH","DOOH"}), example={"OOH"}),
+     *             @OA\Property(property="location_city", type="string", example="Lucknow"),
+     *             @OA\Property(property="preferred_locations", type="array", @OA\Items(type="string"), example={"Hazratganj", "Aminabad"}),
+     *             @OA\Property(property="remarks", type="string", example="Looking for prime locations for a 2-week campaign."),
+     *             @OA\Property(property="preferred_modes", type="array", @OA\Items(type="string", enum={"Call","WhatsApp","Email"}), example={"Call","Email"}),
+     *             @OA\Property(property="phone_verified", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Enquiry submitted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Enquiry submitted successfully! You will receive quotes within 24-48 hours."),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="enquiry_id", type="integer", example=123)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error or phone not verified",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Phone verification expired or not completed. Please verify your phone again."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Submission failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Failed to submit enquiry. Please try again.")
+     *         )
+     *     )
+     * )
+     */
     public function store(Request $request): JsonResponse
     {
         $request->validate([
@@ -284,6 +416,32 @@ class DirectEnquiryApiController extends Controller
     // Vendor: list all assigned enquiries with optional filters
     // Auth: vendor token required
     // =========================================================================
+    /**
+     * @OA\Get(
+     *     path="/vendor/enquiries",
+     *     summary="List all assigned direct enquiries for vendor",
+     *     description="Returns paginated list of direct enquiries assigned to the authenticated vendor. Supports filtering by status and viewed flag.",
+     *     tags={"Direct Enquiries"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="status", in="query", description="Filter by response status", required=false, @OA\Schema(type="string", enum={"pending","interested","quote_sent","declined"})),
+     *     @OA\Parameter(name="viewed", in="query", description="Filter by viewed status (true/false)", required=false, @OA\Schema(type="boolean")),
+     *     @OA\Parameter(name="per_page", in="query", description="Results per page (default: 15, max: 50)", required=false, @OA\Schema(type="integer", example=15)),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Paginated list of direct enquiries",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="meta", type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="last_page", type="integer", example=2),
+     *                 @OA\Property(property="per_page", type="integer", example=15),
+     *                 @OA\Property(property="total", type="integer", example=20)
+     *             )
+     *         )
+     *     )
+     * )
+     */
     public function vendorIndex(Request $request): JsonResponse
     {
         $vendor = Auth::user();
@@ -323,6 +481,32 @@ class DirectEnquiryApiController extends Controller
     // Vendor: get single enquiry detail + mark as viewed
     // Auth: vendor token required
     // =========================================================================
+    /**
+     * @OA\Get(
+     *     path="/vendor/enquiries/{id}",
+     *     summary="Get single direct enquiry detail for vendor",
+     *     description="Returns detail of a direct enquiry assigned to the authenticated vendor. Marks as viewed.",
+     *     tags={"Direct Enquiries"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", description="Direct enquiry ID", required=true, @OA\Schema(type="integer", example=123)),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Direct enquiry detail",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Enquiry not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Enquiry not found.")
+     *         )
+     *     )
+     * )
+     */
     public function vendorShow(int $id): JsonResponse
     {
         $vendor  = Auth::user();
@@ -349,6 +533,49 @@ class DirectEnquiryApiController extends Controller
     // Vendor: submit response (interested / quote_sent / declined)
     // Auth: vendor token required
     // =========================================================================
+    /**
+     * @OA\Post(
+     *     path="/vendor/enquiries/{id}/respond",
+     *     summary="Vendor respond to direct enquiry",
+     *     description="Submit a response to a direct enquiry (interested, quote_sent, declined) as a vendor.",
+     *     tags={"Direct Enquiries"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", description="Direct enquiry ID", required=true, @OA\Schema(type="integer", example=123)),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"response_status"},
+     *             @OA\Property(property="response_status", type="string", enum={"interested","quote_sent","declined"}, example="quote_sent"),
+     *             @OA\Property(property="vendor_notes", type="string", example="We can offer a special rate."),
+     *             @OA\Property(property="quoted_price", type="number", format="float", example=15000.00)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Response submitted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Response submitted successfully.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Enquiry not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Enquiry not found.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to submit response",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Failed to submit response. Please try again.")
+     *         )
+     *     )
+     * )
+     */
     public function respond(Request $request, int $id): JsonResponse
     {
         $vendor  = Auth::user();
@@ -413,6 +640,39 @@ class DirectEnquiryApiController extends Controller
     // Vendor: update private notes on an enquiry
     // Auth: vendor token required
     // =========================================================================
+    /**
+     * @OA\Patch(
+     *     path="/vendor/enquiries/{id}/notes",
+     *     summary="Vendor update private notes on direct enquiry",
+     *     description="Update private notes for a direct enquiry as a vendor.",
+     *     tags={"Direct Enquiries"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", description="Direct enquiry ID", required=true, @OA\Schema(type="integer", example=123)),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"notes"},
+     *             @OA\Property(property="notes", type="string", example="Follow up next week.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Notes updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Notes updated successfully.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Enquiry not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Enquiry not found.")
+     *         )
+     *     )
+     * )
+     */
     public function updateNotes(Request $request, int $id): JsonResponse
     {
         $vendor  = Auth::user();
@@ -438,6 +698,32 @@ class DirectEnquiryApiController extends Controller
     // Vendor: explicitly mark an enquiry as viewed
     // Auth: vendor token required
     // =========================================================================
+    /**
+     * @OA\Patch(
+     *     path="/vendor/enquiries/{id}/mark-viewed",
+     *     summary="Vendor mark direct enquiry as viewed",
+     *     description="Explicitly mark a direct enquiry as viewed by the vendor.",
+     *     tags={"Direct Enquiries"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", description="Direct enquiry ID", required=true, @OA\Schema(type="integer", example=123)),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Marked as viewed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Marked as viewed.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Enquiry not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Enquiry not found.")
+     *         )
+     *     )
+     * )
+     */
     public function markViewed(int $id): JsonResponse
     {
         $vendor  = Auth::user();
@@ -457,6 +743,33 @@ class DirectEnquiryApiController extends Controller
     // Vendor: enquiry stats for dashboard
     // Auth: vendor token required
     // =========================================================================
+    /**
+     * @OA\Get(
+     *     path="/vendor/enquiries/statistics",
+     *     summary="Vendor direct enquiry statistics",
+     *     description="Returns statistics for direct enquiries assigned to the authenticated vendor.",
+     *     tags={"Direct Enquiries"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Statistics data",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="total_enquiries", type="integer", example=20),
+     *                 @OA\Property(property="new", type="integer", example=5),
+     *                 @OA\Property(property="viewed", type="integer", example=10),
+     *                 @OA\Property(property="pending", type="integer", example=3),
+     *                 @OA\Property(property="interested", type="integer", example=2),
+     *                 @OA\Property(property="quotes_sent", type="integer", example=1),
+     *                 @OA\Property(property="declined", type="integer", example=1),
+     *                 @OA\Property(property="response_rate_percent", type="number", format="float", example=75.0),
+     *                 @OA\Property(property="avg_response_time_hours", type="number", format="float", example=12.5)
+     *             )
+     *         )
+     *     )
+     * )
+     */
     public function statistics(): JsonResponse
     {
         $vendor = Auth::user();

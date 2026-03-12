@@ -36,6 +36,52 @@
                         onkeydown="autoSearchHoardings(event)"
                         class="block w-full pl-8 pr-2 py-2 bg-[#F3F4F6] border-none rounded-md focus:ring-1 focus:ring-emerald-500 text-[13px]"
                     >
+
+                    @if(request()->filled('letter'))
+                        <input type="hidden" name="letter" value="{{ request('letter') }}">
+                    @endif
+                    @if(request()->filled('per_page'))
+                        <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+                    @endif
+                    @if(request()->filled('status'))
+                        <input type="hidden" name="status" value="{{ request('status') }}">
+                    @endif
+                    @if(request()->filled('booked'))
+                        <input type="hidden" name="booked" value="{{ request('booked') }}">
+                    @endif
+                    @if(request()->filled('hoarding_type'))
+                        <input type="hidden" name="hoarding_type" value="{{ request('hoarding_type') }}">
+                    @elseif(request()->filled('type'))
+                        <input type="hidden" name="hoarding_type" value="{{ request('type') }}">
+                    @endif
+
+
+                    
+                    @if(request()->filled('screen_size_min'))
+                        <input type="hidden" name="screen_size_min" value="{{ request('screen_size_min') }}">
+                    @endif
+                    @if(request()->filled('screen_size_max'))
+                        <input type="hidden" name="screen_size_max" value="{{ request('screen_size_max') }}">
+                    @endif
+                    @if(request()->filled('hoarding_size_min'))
+                        <input type="hidden" name="hoarding_size_min" value="{{ request('hoarding_size_min') }}">
+                    @endif
+                    @if(request()->filled('hoarding_size_max'))
+                        <input type="hidden" name="hoarding_size_max" value="{{ request('hoarding_size_max') }}">
+                    @endif
+
+                    @foreach((array) request('category', []) as $category)
+                        <input type="hidden" name="category[]" value="{{ $category }}">
+                    @endforeach
+                    @foreach((array) request('availability', []) as $availability)
+                        <input type="hidden" name="availability[]" value="{{ $availability }}">
+                    @endforeach
+                    @foreach((array) request('surroundings', []) as $surrounding)
+                        <input type="hidden" name="surroundings[]" value="{{ $surrounding }}">
+                    @endforeach
+                    @foreach((array) request('resolution', []) as $resolution)
+                        <input type="hidden" name="resolution[]" value="{{ $resolution }}">
+                    @endforeach
                 </form>
 
 {{-- 
@@ -54,18 +100,30 @@
                     </a>
                 </div> --}}
                 <div class="flex items-center gap-2">
-    <button type="button" onclick="showExportFormatPrompt()" 
-        class="px-6 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px] cursor-pointer whitespace-nowrap flex-shrink-0">
-        Export
-    </button>
-    <a href="{{ route('vendor.hoardings.add') }}" 
-        class="px-4 py-2 bg-black text-white font-medium rounded-md text-[13px] flex items-center whitespace-nowrap flex-shrink-0">
-        + Add New Hoarding
-    </a>
-</div>
+                    <button type="button"
+                        onclick="openHoardingFilterModal()"
+                        class="inline-flex items-center justify-center w-10 h-10 bg-[#E6F6F0] text-[#00A86B] rounded-md border border-emerald-100 hover:bg-emerald-100 transition"
+                        title="Filter Hoardings">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 6H20L14 13V19L10 21V13L4 6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <button type="button" onclick="showExportFormatPrompt()"
+                        class="px-6 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px] cursor-pointer whitespace-nowrap flex-shrink-0">
+                        Export
+                    </button>
+
+                    <a href="{{ route('vendor.hoardings.add') }}"
+                        class="px-4 py-2 bg-black text-white font-medium rounded-md text-[13px] flex items-center whitespace-nowrap flex-shrink-0">
+                        + Add New Hoarding
+                    </a>
+                </div>
             </div>
         </div>
     </div>
+
+    @include('hoardings.vendor.filter')
 
     <div class="max-w-[1600px] mx-auto py-6 space-y-5">
         {{-- <div class="flex flex-wrap gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
@@ -85,11 +143,7 @@
                             <div class="flex flex-wrap gap-2 text-[11px] px-6 pt-6 font-bold text-gray-400 uppercase tracking-widest px-1">
                                 @foreach(range('A', 'Z') as $char)
                                     <a
-                                        href="{{ route('vendor.hoardings.myHoardings', array_filter([
-                                            'tab' => $activeTab,
-                                            'letter' => $char,
-                                            'search' => request('search')
-                                        ])) }}"
+                                        href="{{ route('vendor.hoardings.myHoardings', array_merge(request()->except(['page', 'letter']), ['tab' => $activeTab, 'letter' => $char])) }}"
                                         class="
                                             {{ $selectedLetter === $char
                                                 ? 'text-[#00A86B] underline'
@@ -102,7 +156,7 @@
 
                                 @if($selectedLetter)
                                     <a
-                                        href="{{ route('vendor.hoardings.myHoardings', ['tab' => $activeTab]) }}"
+                                        href="{{ route('vendor.hoardings.myHoardings', array_merge(request()->except(['page', 'letter']), ['tab' => $activeTab])) }}"
                                         class="ml-3 text-red-500 hover:underline"
                                     >
                                         Clear
@@ -204,7 +258,9 @@
                                 <div class="relative inline-block text-left">
                                     <button type="button" onclick="toggleActionMenu(event, 'menu-{{ $hoarding['id'] }}')" 
                                             class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded">
-                                        <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
+                                            <svg width="3" height="13" viewBox="0 0 3 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M0 11.25C0 10.9185 0.131696 10.6005 0.366117 10.3661C0.600537 10.1317 0.918479 10 1.25 10C1.58152 10 1.89946 10.1317 2.13388 10.3661C2.3683 10.6005 2.5 10.9185 2.5 11.25C2.5 11.5815 2.3683 11.8995 2.13388 12.1339C1.89946 12.3683 1.58152 12.5 1.25 12.5C0.918479 12.5 0.600537 12.3683 0.366117 12.1339C0.131696 11.8995 0 11.5815 0 11.25ZM0 6.25C0 5.91848 0.131696 5.60054 0.366117 5.36612C0.600537 5.1317 0.918479 5 1.25 5C1.58152 5 1.89946 5.1317 2.13388 5.36612C2.3683 5.60054 2.5 5.91848 2.5 6.25C2.5 6.58152 2.3683 6.89946 2.13388 7.13388C1.89946 7.3683 1.58152 7.5 1.25 7.5C0.918479 7.5 0.600537 7.3683 0.366117 7.13388C0.131696 6.89946 0 6.58152 0 6.25ZM0 1.25C0 0.918479 0.131696 0.600537 0.366117 0.366117C0.600537 0.131696 0.918479 0 1.25 0C1.58152 0 1.89946 0.131696 2.13388 0.366117C2.3683 0.600537 2.5 0.918479 2.5 1.25C2.5 1.58152 2.3683 1.89946 2.13388 2.13388C1.89946 2.3683 1.58152 2.5 1.25 2.5C0.918479 2.5 0.600537 2.3683 0.366117 2.13388C0.131696 1.89946 0 1.58152 0 1.25Z" fill="black"/>
+                                            </svg>
                                     </button>
 
                                     <div id="menu-{{ $hoarding['id'] }}" 
@@ -213,17 +269,24 @@
                                             @if($canEdit)
                                                 <a href="{{ route('vendor.hoardings.edit', $hoarding['id']) }}" 
                                                 class="flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-blue-600 hover:bg-blue-50 rounded">
-                                                    <i class="fa-solid fa-pen-to-square opacity-60"></i> 
+                                                    <!-- Edit (Pencil) SVG -->
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="opacity-60"><path d="M4 17.25V20h2.75l8.13-8.13-2.75-2.75L4 17.25z" fill="#2563eb"/><path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="#2563eb"/></svg>
                                                     {{ $activeTab === 'draft' ? 'Edit Draft' : 'Edit Hoarding' }}
                                                 </a>
                                             @endif
 
                                             {{-- Toggle Active/Inactive only for non-draft and non-pending hoardings --}}
                                             @if($activeTab !== 'draft' && !in_array($status, ['pending_approval']))
-                                                <form action="{{ route('vendor.hoardings.toggle', $hoarding['id']) }}" method="POST">
+                                                <form action="{{ route('vendor.hoardings.toggle', $hoarding['id']) }}" method="POST" class="toggle-status-form">
                                                     @csrf
-                                                    <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium {{ $isActive ? 'text-orange-500 hover:bg-orange-50' : 'text-emerald-600 hover:bg-emerald-50' }} rounded">
-                                                        <i class="fa-solid {{ $isActive ? 'fa-pause-circle' : 'fa-play-circle' }} opacity-60"></i> 
+                                                    <button type="button" onclick="confirmToggleMenuAction(event, this, {{ $isActive ? 1 : 0 }})" class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium {{ $isActive ? 'text-orange-500 hover:bg-orange-50' : 'text-emerald-600 hover:bg-emerald-50' }} rounded">
+                                                        @if($isActive)
+                                                            <!-- Pause Circle SVG -->
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="opacity-60"><circle cx="12" cy="12" r="10" fill="#F59E42"/><rect x="8" y="8" width="2.5" height="8" rx="1.25" fill="white"/><rect x="13.5" y="8" width="2.5" height="8" rx="1.25" fill="white"/></svg>
+                                                        @else
+                                                            <!-- Play Circle SVG -->
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="opacity-60"><circle cx="12" cy="12" r="10" fill="#00A86B"/><polygon points="10,8 17,12 10,16" fill="white"/></svg>
+                                                        @endif
                                                         {{ $isActive ? 'Make Inactive' : 'Make Active' }}
                                                     </button>
                                                 </form>
@@ -234,7 +297,9 @@
                                                 type="button"
                                                 onclick="deleteHoarding({{ $hoarding['id'] }})"
                                                 class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-red-500 hover:bg-red-50 rounded">
-                                                <i class="fa-solid fa-trash-can opacity-60"></i> Delete
+                                                <!-- Delete (Trash) SVG -->
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="opacity-60"><rect x="5" y="7" width="14" height="12" rx="2" fill="#ef4444"/><rect x="9" y="11" width="2" height="6" rx="1" fill="white"/><rect x="13" y="11" width="2" height="6" rx="1" fill="white"/><rect x="3" y="5" width="18" height="2" rx="1" fill="#ef4444"/><rect x="10" y="2" width="4" height="2" rx="1" fill="#ef4444"/></svg>
+                                                Delete
                                             </button>
 
                                         </div>
@@ -259,7 +324,13 @@
                 <div class="flex items-center gap-3 font-medium">
                     <form id="perPageForm" method="GET" action="" class="flex items-center gap-2">
                         @foreach(request()->except('page', 'per_page') as $key => $val)
-                            <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                            @if(is_array($val))
+                                @foreach($val as $item)
+                                    <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                                @endforeach
+                            @else
+                                <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                            @endif
                         @endforeach
                         <label for="perPageSelect" class="mr-1 text-gray-500">Show</label>
                         <select id="perPageSelect" name="per_page" onchange="document.getElementById('perPageForm').submit()" class="bg-[#F3F4F6] border-none rounded-md px-3 py-1 text-gray-700 font-bold">
@@ -315,7 +386,229 @@
     background-color: #d1d5db !important;
 }
 
+#hoarding-filter-modal .hoarding-filter-panel {
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 14px 38px rgba(15, 23, 42, 0.16);
+}
+
+#hoarding-filter-modal .hoarding-filter-title {
+    font-size: clamp(28px, 1.9vw, 36px);
+    line-height: 1;
+    font-weight: 600;
+    color: #101828;
+}
+
+#hoarding-filter-modal .hoarding-filter-body {
+    color: #1f3152;
+}
+
+#hoarding-filter-modal .hoarding-filter-body input[type="checkbox"],
+#hoarding-filter-modal .hoarding-filter-body input[type="radio"] {
+    width: 15px;
+    height: 15px;
+    accent-color: #2f6d4f;
+}
+
+#hoarding-filter-modal .hoarding-filter-body input[type="number"] {
+    height: 44px;
+    border-color: #d9dee6;
+    color: #334155;
+}
+
+#hoarding-filter-modal .hoarding-filter-body input[type="number"]::placeholder {
+    color: #64748b;
+}
+
+.range-slider {
+    position: relative;
+    height: 20px;
+}
+
+.range-slider .range-track {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 9999px;
+    background: #2f6d4f;
+}
+
+.range-slider .range-fill {
+    position: absolute;
+    top: 8px;
+    height: 4px;
+    border-radius: 9999px;
+    background: #2f6d4f;
+}
+
+.range-slider input[type="range"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: transparent;
+    pointer-events: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.range-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    pointer-events: auto;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    border: 3px solid #2f6d4f;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.range-slider input[type="range"]::-moz-range-thumb {
+    pointer-events: auto;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    border: 3px solid #2f6d4f;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+    #hoarding-filter-modal .hoarding-filter-panel {
+        top: 16px;
+        width: calc(100vw - 20px);
+        max-width: 720px;
+        max-height: calc(100vh - 32px);
+    }
+
+    #hoarding-filter-modal .hoarding-filter-title {
+        font-size: 34px;
+    }
+
+    #hoarding-filter-modal .hoarding-filter-body {
+        max-height: calc(100vh - 180px);
+    }
+}
+
+@media (max-width: 640px) {
+    #hoarding-filter-modal .hoarding-filter-panel {
+        top: 8px;
+        width: calc(100vw - 10px);
+        max-height: calc(100vh - 16px);
+    }
+
+    #hoarding-filter-modal .hoarding-filter-header,
+    #hoarding-filter-modal .hoarding-filter-body,
+    #hoarding-filter-modal .hoarding-filter-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    #hoarding-filter-modal .hoarding-filter-title {
+        font-size: 32px;
+    }
+
+    #hoarding-filter-modal .hoarding-filter-body {
+        max-height: calc(100vh - 200px);
+    }
+}
+
 </style>
+
+<script>
+    function setupDualRange(prefix) {
+        const minInput = document.getElementById(prefix + '_min_input');
+        const maxInput = document.getElementById(prefix + '_max_input');
+        const minSlider = document.getElementById(prefix + '_min_slider');
+        const maxSlider = document.getElementById(prefix + '_max_slider');
+        const rangeRoot = document.querySelector('[data-range="' + prefix + '"]');
+        if (!minInput || !maxInput || !minSlider || !maxSlider || !rangeRoot) return;
+
+        const fill = rangeRoot.querySelector('.range-fill');
+        const minBound = Number(minSlider.min || 0);
+        const maxBound = Number(minSlider.max || 1000);
+
+        const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+
+        const paintFill = (minVal, maxVal) => {
+            if (!fill) return;
+            const left = ((minVal - minBound) / (maxBound - minBound)) * 100;
+            const right = ((maxVal - minBound) / (maxBound - minBound)) * 100;
+            fill.style.left = left + '%';
+            fill.style.width = Math.max(0, right - left) + '%';
+        };
+
+        const syncFromInputs = () => {
+            let minVal = Number(minInput.value || minBound);
+            let maxVal = Number(maxInput.value || maxBound);
+
+            minVal = clamp(minVal, minBound, maxBound);
+            maxVal = clamp(maxVal, minBound, maxBound);
+            if (minVal > maxVal) {
+                minVal = maxVal;
+            }
+
+            minInput.value = minVal;
+            maxInput.value = maxVal;
+            minSlider.value = minVal;
+            maxSlider.value = maxVal;
+            paintFill(minVal, maxVal);
+        };
+
+        const syncFromSliders = (source) => {
+            let minVal = Number(minSlider.value);
+            let maxVal = Number(maxSlider.value);
+
+            if (source === 'min' && minVal > maxVal) {
+                minVal = maxVal;
+                minSlider.value = minVal;
+            }
+
+            if (source === 'max' && maxVal < minVal) {
+                maxVal = minVal;
+                maxSlider.value = maxVal;
+            }
+
+            minInput.value = minVal;
+            maxInput.value = maxVal;
+            paintFill(minVal, maxVal);
+        };
+
+        minInput.addEventListener('input', syncFromInputs);
+        maxInput.addEventListener('input', syncFromInputs);
+        minSlider.addEventListener('input', () => syncFromSliders('min'));
+        maxSlider.addEventListener('input', () => syncFromSliders('max'));
+
+        syncFromInputs();
+    }
+
+    function openHoardingFilterModal() {
+        const modal = document.getElementById('hoarding-filter-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closeHoardingFilterModal() {
+        const modal = document.getElementById('hoarding-filter-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeHoardingFilterModal();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        setupDualRange('screen_size');
+        setupDualRange('hoarding_size');
+    });
+</script>
 
 <script>
     // Select/Deselect all checkboxes
@@ -531,6 +824,36 @@ function autoSearchHoardings(e) {
                 window.location.href = url.toString();
             }
         });
+    }
+</script>
+ <script>
+    function confirmToggleMenuAction(e, btn, isActiveNow) {
+        e.preventDefault();
+        const form = btn.closest('form');
+        Swal.fire({
+            title: isActiveNow ? 'Inactive Hoarding?' : 'Active Hoarding?',
+            html: isActiveNow
+                ? '<p class="text-sm text-gray-600">Are you sure you want to Inactive this hoarding? It will not be visible to customers until re-activated.</p>'
+                : '<p class="text-sm text-gray-600">Are you sure you want to Active this hoarding? It will be visible to customers.</p>',
+            width:'25rem',
+            showCloseButton: true,
+            showCancelButton: true,
+            confirmButtonText: isActiveNow ? 'Inactive' : 'Active',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: isActiveNow ? '#ef4444' : '#00A86B',
+            buttonsStyling: true,
+            customClass: {
+                popup: 'rounded-lg',
+                title: 'text-base font-semibold text-gray-800',
+                confirmButton: 'px-6 py-2 text-sm',
+                cancelButton: 'px-6 py-2 text-sm swal-cancel-black'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+        return false;
     }
 </script>
 @endsection
