@@ -13,7 +13,7 @@
 
 <!-- MarkerCluster JS -->
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-<div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+<div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
 
     <h3 class="text-lg font-bold text-[#009A5C] mb-6 flex items-center">
         <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
@@ -80,7 +80,7 @@
 
         <div class="flex justify-between items-center">
             <h3 class="text-base font-bold text-gray-800">
-                📍 Location Verification
+            Location Verification
             </h3>
 
             <button type="button" id="geotagBtn"
@@ -91,20 +91,19 @@
 
         <div id="location-error" class="text-xs text-red-500 hidden bg-red-50 p-2 rounded"></div>
 
-        <div class="grid grid-cols-2 gap-5">
-            <div>
-                <label class="text-sm font-bold">Latitude *</label>
-                <input type="text" name="lat" id="lat"
-                    value="{{ old('lat', $hoarding?->latitude) }}"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5">
-            </div>
-            <div>
-                <label class="text-sm font-bold">Longitude *</label>
-                <input type="text" name="lng" id="lng"
-                    value="{{ old('lng', $hoarding?->longitude) }}"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5">
-            </div>
-        </div>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div>
+        <label class="text-sm font-bold">Latitude *</label>
+        <input type="text" name="lat" id="lat"
+            class="w-full border border-gray-200 rounded-xl px-4 py-2.5">
+    </div>
+
+    <div>
+        <label class="text-sm font-bold">Longitude *</label>
+        <input type="text" name="lng" id="lng"
+            class="w-full border border-gray-200 rounded-xl px-4 py-2.5">
+    </div>
+</div>
 
         <div class="rounded-2xl overflow-hidden border border-gray-200">
             <div id="map" class="w-full h-[350px]"></div>
