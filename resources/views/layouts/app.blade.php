@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'OOHAPP') }}</title>
+    <!-- <title>{{ config('app.name', 'OOHAPP') }}</title> -->
 
     <link rel="icon" type="image/png" href="/assets/images/favicon/Vector (1).png" />
     <!-- Fonts -->
@@ -19,7 +19,7 @@
     <!-- <meta name="csrf-token" content="d1mfOYwOdx72IMRbniDpED1Ybib54r19DLrFzDGs"> -->
 
     <!-- Primary SEO -->
-    <title>Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP</title>
+    <!-- <title>Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP</title> -->
     <meta name="description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.">
     <meta name="keywords" content="outdoor advertising India, billboard advertising India, hoarding advertising India, outdoor media booking, OOH advertising platform, billboard booking India">
     <meta name="robots" content="index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large">
