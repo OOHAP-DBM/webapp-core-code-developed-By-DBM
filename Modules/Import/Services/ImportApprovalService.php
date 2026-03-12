@@ -12,10 +12,48 @@ use Modules\Hoardings\Models\HoardingMedia;
 use Modules\DOOH\Models\DOOHScreen;
 use Modules\DOOH\Models\DOOHScreenMedia;
 use Exception;
+use Intervention\Image\Laravel\Facades\Image;
 use Modules\Import\Notifications\BulkImportApprovedNotification;
 
 class ImportApprovalService
 {
+        /**
+     * Image sizes to generate for each uploaded image (same as main app).
+     */
+    protected array $imageSizes = [100, 300, 600, 1000, 1500];
+
+    /**
+     * Process one image file → generate 5 WebP sizes → save to disk (OOH/DOOH import).
+     * Folder structure:
+     *   {base}/{year}/{month}/{id}/{size}/{uuid}.webp
+     * @param string $basePath (e.g. 'hoardings/media' or 'dooh/screens')
+     * @param int $id (hoardingId or screenId)
+     * @param string $sourcePath (local disk path)
+     * @return array ['path_100' => ..., ...]
+     */
+    private function processImportImage(string $basePath, int $id, string $sourcePath): array
+    {
+        $uuid  = \Illuminate\Support\Str::uuid()->toString();
+        $year  = now()->format('Y');
+        $month = now()->format('m');
+        $base  = "$basePath/{$year}/{$month}/{$id}";
+
+        $paths = [];
+        $publicDisk = \Storage::disk('public');
+        $raw = \Storage::disk('local')->get($sourcePath);
+
+        foreach ($this->imageSizes as $size) {
+            $image = \Intervention\Image\Laravel\Facades\Image::read($raw)
+                ->scaleDown(width: $size)
+                ->toWebp(quality: 82);
+            $directory = "$base/{$size}";
+            $filename  = "$uuid.webp";
+            $path      = "$directory/$filename";
+            $publicDisk->put($path, $image);
+            $paths["path_{$size}"] = $path;
+        }
+        return $paths;
+    }
     /**
      * Process batch approval and create hoardings
      *
@@ -272,32 +310,24 @@ class ImportApprovalService
             $imageName = $this->resolveImageName($stagingRow);
             if ($imageName) {
                 $originalPath = $this->resolveImagePath($stagingRow, $imageName);
-                $disk = \Storage::disk('public');
-                $directory = "hoardings/media/{$hoarding->id}";
-                $uuid = \Illuminate\Support\Str::uuid()->toString();
-                $ext = strtolower(pathinfo($imageName, PATHINFO_EXTENSION));
-                if ($ext === '') {
-                    $ext = 'jpg';
-                }
-                $filename = "$uuid.$ext";
-                $targetPath = "$directory/$filename";
-
-                if (!$this->copyImageToPublic($originalPath, $targetPath)) {
-                    throw new Exception("Image source not found or unreadable for staging row {$stagingRow->id}");
-                }
-
+                // Generate multi-size WebP images in year/month/id/size/uuid.webp structure
+                $paths = $this->processImportImage('hoardings/media', $hoarding->id, $originalPath);
                 $media = HoardingMedia::create([
                     'hoarding_id' => $hoarding->id,
-                    'file_path' => $targetPath,
-                    'media_type' => 'image',
-                    'is_primary' => true,
-                    'sort_order' => 0,
+                    'file_path'   => $paths['path_1500'], // original / largest
+                    'path_100'    => $paths['path_100'],
+                    'path_300'    => $paths['path_300'],
+                    'path_600'    => $paths['path_600'],
+                    'path_1000'   => $paths['path_1000'],
+                    'path_1500'   => $paths['path_1500'],
+                    'mime_type'   => 'image/webp',
+                    'media_type'  => 'image',
+                    'is_primary'  => true,
+                    'sort_order'  => 0,
                 ]);
-
                 if (!$media) {
                     throw new Exception('Failed to create hoarding media record');
                 }
-
                 \Log::info('Created hoarding media', [
                     'media_id' => $media->id,
                     'hoarding_id' => $hoarding->id,
@@ -350,36 +380,24 @@ class ImportApprovalService
             $imageName = $this->resolveImageName($stagingRow);
             if ($imageName) {
                 $originalPath = $this->resolveImagePath($stagingRow, $imageName);
-                $disk = \Storage::disk('public');
-                // Sharding logic (same as storeMedia)
-                $screenId = $doohScreen->id;
-                $shard1 = (int) ($screenId / 1000000);
-                $shard2 = (int) (($screenId % 1000000) / 1000);
-                $directory = "dooh/screens/{$shard1}/{$shard2}/{$screenId}";
-                $uuid = \Illuminate\Support\Str::uuid()->toString();
-                $ext = strtolower(pathinfo($imageName, PATHINFO_EXTENSION));
-                if ($ext === '') {
-                    $ext = 'jpg';
-                }
-                $filename = "$uuid.$ext";
-                $targetPath = "$directory/$filename";
-
-                if (!$this->copyImageToPublic($originalPath, $targetPath)) {
-                    throw new Exception("Image source not found or unreadable for staging row {$stagingRow->id}");
-                }
-
+                // Generate multi-size WebP images in year/month/id/size/uuid.webp structure
+                $paths = $this->processImportImage('dooh/screens', $doohScreen->id, $originalPath);
                 $media = DOOHScreenMedia::create([
                     'dooh_screen_id' => $doohScreen->id,
-                    'file_path' => $targetPath,
-                    'media_type' => 'image',
-                    'is_primary' => true,
-                    'sort_order' => 0,
+                    'file_path'   => $paths['path_1500'], // original / largest
+                    'path_100'    => $paths['path_100'],
+                    'path_300'    => $paths['path_300'],
+                    'path_600'    => $paths['path_600'],
+                    'path_1000'   => $paths['path_1000'],
+                    'path_1500'   => $paths['path_1500'],
+                    'mime_type'   => 'image/webp',
+                    'media_type'  => 'image',
+                    'is_primary'  => true,
+                    'sort_order'  => 0,
                 ]);
-
                 if (!$media) {
                     throw new Exception('Failed to create DOOH screen media record');
                 }
-
                 \Log::info('Created DOOH screen media', [
                     'media_id' => $media->id,
                     'screen_id' => $doohScreen->id,
