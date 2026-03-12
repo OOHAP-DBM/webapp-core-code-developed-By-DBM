@@ -303,6 +303,49 @@ class VendorEnquiryController extends Controller
             ],
         ]);
     }
+    /**
+     * @OA\Get(
+     *     path="/enquiries/vendor/{id}",
+     *     summary="Get a single vendor enquiry by ID",
+     *     description="Returns a single enquiry if it belongs to the authenticated vendor. Loads only vendor-specific data.",
+     *     tags={"Vendor Enquiries"},
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Enquiry ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=101)
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Enquiry found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/EnquiryItemResource"),
+     *             @OA\Property(property="viewer_type", type="string", example="owner")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Unauthenticated")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Enquiry not found or access denied",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Enquiry not found or access denied")
+     *         )
+     *     )
+     * )
+     */
     public function show(int $id)
     {
         $user = Auth::user();

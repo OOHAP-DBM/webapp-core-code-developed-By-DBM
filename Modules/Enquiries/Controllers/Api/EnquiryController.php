@@ -73,6 +73,84 @@ class EnquiryController extends Controller
     //     }
     // }
 
+    /**
+     * @OA\Post(
+     *     path="/enquiries",
+     *     summary="Submit a new enquiry (customer)",
+     *     description="Creates a new enquiry for one or more hoardings. Vendors cannot create enquiries for their own hoardings.",
+     *     tags={"Enquiries"},
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"customer_name", "items"},
+     *             @OA\Property(property="customer_name", type="string", example="John Doe"),
+     *             @OA\Property(property="customer_mobile", type="string", example="9876543210"),
+     *             @OA\Property(property="customer_email", type="string", example="john@example.com"),
+     *             @OA\Property(property="message", type="string", example="Looking to book for a campaign."),
+     *             @OA\Property(
+     *                 property="items",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     required={"hoarding_id", "preferred_start_date", "duration_unit", "duration_value"},
+     *                     @OA\Property(property="hoarding_id", type="integer", example=5),
+     *                     @OA\Property(property="preferred_start_date", type="string", format="date", example="2026-04-01"),
+     *                     @OA\Property(property="duration_unit", type="string", enum={"days","weeks","months"}, example="months"),
+     *                     @OA\Property(property="duration_value", type="integer", example=2),
+     *                     @OA\Property(property="package_id", type="integer", example=10),
+     *                     @OA\Property(property="video_duration", type="integer", example=15),
+     *                     @OA\Property(property="slots_count", type="integer", example=120),
+     *                     @OA\Property(property="slot", type="string", example="Standard")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=201,
+     *         description="Enquiry submitted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Enquiry submitted successfully"),
+     *             @OA\Property(property="enquiry_id", type="integer", example=123)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Unauthorized")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Vendors cannot create enquiries for their own hoardings",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Vendors cannot create enquiries for their own hoardings.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Submission failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Submission failed"),
+     *             @OA\Property(property="error", type="string", example="Error details...")
+     *         )
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
         // 1. Basic Validation
@@ -454,7 +532,49 @@ class EnquiryController extends Controller
     //     ]);
     // }
 
-   public function show(int $id)
+    /**
+     * @OA\Get(
+     *     path="/enquiries/{id}",
+     *     summary="Get a single enquiry by ID (customer)",
+     *     description="Returns a single enquiry if it belongs to the authenticated customer.",
+     *     tags={"Enquiries"},
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Enquiry ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=101)
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Enquiry found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/EnquiryItemResource")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Unauthenticated")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Enquiry not found or access denied",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Enquiry not found or access denied")
+     *         )
+     *     )
+     * )
+     */
+    public function show(int $id)
 {
     $user = Auth::user();
 
