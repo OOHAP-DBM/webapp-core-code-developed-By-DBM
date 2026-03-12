@@ -113,6 +113,7 @@
 const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
 
 let currentPage = 1;
+let currentPerPage = 10;
 let presetPaymentStatuses = '';
 
 // Helper: Fetch with session auth
@@ -157,6 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialPaymentStatus = (urlParams.get('payment_status') || '').trim();
     const initialPaymentStatuses = (urlParams.get('payment_statuses') || '').trim();
     const initialSearch = (urlParams.get('search') || '').trim();
+    const initialPerPage = parseInt(urlParams.get('per_page') || '10', 10);
+
+    if (!isNaN(initialPerPage) && [5, 10, 20, 50, 100].includes(initialPerPage)) {
+        currentPerPage = initialPerPage;
+    }
 
     if (statusSelect && initialStatus) {
         statusSelect.value = initialStatus;
@@ -202,8 +208,9 @@ function loadPosBookings(page = 1) {
     const status = document.getElementById('filter-status').value;
     const paymentStatus = document.getElementById('filter-payment-status').value;
     const search = (document.getElementById('search-box').value || '').trim();
+    const perPage = Number.isInteger(currentPerPage) ? currentPerPage : 10;
 
-    let url = `${POS_BASE_PATH}/api/bookings?page=${page}&per_page=10`;
+    let url = `${POS_BASE_PATH}/api/bookings?page=${page}&per_page=${perPage}`;
     if (status) url += `&status=${status}`;
     if (paymentStatus) {
         url += `&payment_status=${paymentStatus}`;
@@ -307,6 +314,12 @@ function loadPosBookings(page = 1) {
                         No bookings found
                     </td>
                 </tr>`;
+            renderPosPagination({
+                current_page: 1,
+                per_page: perPage,
+                total: 0,
+                last_page: 1,
+            });
         }
         })
         .catch(err => {
@@ -317,29 +330,105 @@ function loadPosBookings(page = 1) {
                         Error loading bookings
                     </td>
                 </tr>`;
+            document.getElementById('pagination-container').innerHTML = '';
         });
 }
 
 function renderPosPagination(pagination) {
-    let html = '<div class="flex flex-wrap justify-center gap-2">';
+    const current = Number(pagination.current_page || 1);
+    const last = Number(pagination.last_page || 1);
+    const total = Number(pagination.total || 0);
+    const perPage = Number(pagination.per_page || currentPerPage || 10);
 
-    for (let i = 1; i <= pagination.last_page; i++) {
-        html += `
-            <button onclick="loadPosBookings(${i})"
-                class="px-3 py-1 rounded border text-sm
-                ${i === pagination.current_page
-                    ? 'bg-primary'
-                    : 'bg-white hover:bg-gray-100'}">
-                ${i}
-            </button>`;
+    const startRecord = total > 0 ? ((current - 1) * perPage) + 1 : 0;
+    const endRecord = total > 0 ? Math.min(current * perPage, total) : 0;
+
+    const pages = [];
+    if (last <= 7) {
+        for (let i = 1; i <= last; i++) pages.push(i);
+    } else {
+        pages.push(1);
+        if (current > 4) pages.push('...');
+
+        const start = Math.max(2, current - 1);
+        const end = Math.min(last - 1, current + 1);
+        for (let i = start; i <= end; i++) pages.push(i);
+
+        if (current < last - 3) pages.push('...');
+        pages.push(last);
     }
 
-    html += '</div>';
+    let pageButtons = '';
+    pages.forEach((item) => {
+        if (item === '...') {
+            pageButtons += `<span class="px-3 py-1 text-sm text-gray-500">...</span>`;
+            return;
+        }
+
+        pageButtons += `
+            <button onclick="loadPosBookings(${item})"
+                class="px-3 py-1 rounded border text-sm ${item === current
+                    ? 'bg-[#00A86B] text-white border-[#00A86B] font-semibold'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border-gray-300'}">
+                ${item}
+            </button>`;
+    });
+
+    const pageNav = last > 1
+        ? `
+            <div class="flex items-center gap-2">
+                <button onclick="loadPosBookings(${Math.max(1, current - 1)})"
+                    ${current <= 1 ? 'disabled' : ''}
+                    class="px-3 py-1 rounded border text-sm ${current <= 1
+                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}">
+                    Previous
+                </button>
+
+                ${pageButtons}
+
+                <button onclick="loadPosBookings(${Math.min(last, current + 1)})"
+                    ${current >= last ? 'disabled' : ''}
+                    class="px-3 py-1 rounded border text-sm ${current >= last
+                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}">
+                    Next
+                </button>
+            </div>
+        `
+        : '<div></div>';
+
+    const html = `
+        <div class="bg-white px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-t border-gray-50 text-[12px] text-gray-500">
+            <div class="flex flex-wrap items-center gap-3 font-medium">
+                <label for="pos-per-page" class="text-gray-500">Show</label>
+                <select id="pos-per-page" onchange="changePosPerPage(this.value)" class="bg-[#F3F4F6] border-none rounded-md px-3 py-1 text-gray-700 font-bold">
+                    <option value="5" ${perPage === 5 ? 'selected' : ''}>5</option>
+                    <option value="10" ${perPage === 10 ? 'selected' : ''}>10</option>
+                    <option value="20" ${perPage === 20 ? 'selected' : ''}>20</option>
+                    <option value="50" ${perPage === 50 ? 'selected' : ''}>50</option>
+                    <option value="100" ${perPage === 100 ? 'selected' : ''}>100</option>
+                </select>
+                <span>per page</span>
+                <span>Showing ${startRecord} to ${endRecord} of ${total} records</span>
+            </div>
+
+            ${pageNav}
+        </div>
+    `;
+
     document.getElementById('pagination-container').innerHTML = html;
+}
+
+function changePosPerPage(value) {
+    const parsed = parseInt(value, 10);
+    currentPerPage = [5, 10, 20, 50, 100].includes(parsed) ? parsed : 10;
+    loadPosBookings(1);
 }
 
 window.loadPosBookings = loadPosBookings;
 window.loadBookings = loadPosBookings;
+window.changePosPerPage = changePosPerPage;
 
 function getStatusColor(status) {
     return {

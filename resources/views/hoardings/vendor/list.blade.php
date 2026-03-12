@@ -36,6 +36,52 @@
                         onkeydown="autoSearchHoardings(event)"
                         class="block w-full pl-8 pr-2 py-2 bg-[#F3F4F6] border-none rounded-md focus:ring-1 focus:ring-emerald-500 text-[13px]"
                     >
+
+                    @if(request()->filled('letter'))
+                        <input type="hidden" name="letter" value="{{ request('letter') }}">
+                    @endif
+                    @if(request()->filled('per_page'))
+                        <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+                    @endif
+                    @if(request()->filled('status'))
+                        <input type="hidden" name="status" value="{{ request('status') }}">
+                    @endif
+                    @if(request()->filled('booked'))
+                        <input type="hidden" name="booked" value="{{ request('booked') }}">
+                    @endif
+                    @if(request()->filled('hoarding_type'))
+                        <input type="hidden" name="hoarding_type" value="{{ request('hoarding_type') }}">
+                    @elseif(request()->filled('type'))
+                        <input type="hidden" name="hoarding_type" value="{{ request('type') }}">
+                    @endif
+
+
+                    
+                    @if(request()->filled('screen_size_min'))
+                        <input type="hidden" name="screen_size_min" value="{{ request('screen_size_min') }}">
+                    @endif
+                    @if(request()->filled('screen_size_max'))
+                        <input type="hidden" name="screen_size_max" value="{{ request('screen_size_max') }}">
+                    @endif
+                    @if(request()->filled('hoarding_size_min'))
+                        <input type="hidden" name="hoarding_size_min" value="{{ request('hoarding_size_min') }}">
+                    @endif
+                    @if(request()->filled('hoarding_size_max'))
+                        <input type="hidden" name="hoarding_size_max" value="{{ request('hoarding_size_max') }}">
+                    @endif
+
+                    @foreach((array) request('category', []) as $category)
+                        <input type="hidden" name="category[]" value="{{ $category }}">
+                    @endforeach
+                    @foreach((array) request('availability', []) as $availability)
+                        <input type="hidden" name="availability[]" value="{{ $availability }}">
+                    @endforeach
+                    @foreach((array) request('surroundings', []) as $surrounding)
+                        <input type="hidden" name="surroundings[]" value="{{ $surrounding }}">
+                    @endforeach
+                    @foreach((array) request('resolution', []) as $resolution)
+                        <input type="hidden" name="resolution[]" value="{{ $resolution }}">
+                    @endforeach
                 </form>
 
 {{-- 
@@ -54,18 +100,30 @@
                     </a>
                 </div> --}}
                 <div class="flex items-center gap-2">
-    <button type="button" onclick="showExportFormatPrompt()" 
-        class="px-6 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px] cursor-pointer whitespace-nowrap flex-shrink-0">
-        Export
-    </button>
-    <a href="{{ route('vendor.hoardings.add') }}" 
-        class="px-4 py-2 bg-black text-white font-medium rounded-md text-[13px] flex items-center whitespace-nowrap flex-shrink-0">
-        + Add New Hoarding
-    </a>
-</div>
+                    <button type="button"
+                        onclick="openHoardingFilterModal()"
+                        class="inline-flex items-center justify-center w-10 h-10 bg-[#E6F6F0] text-[#00A86B] rounded-md border border-emerald-100 hover:bg-emerald-100 transition"
+                        title="Filter Hoardings">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 6H20L14 13V19L10 21V13L4 6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <button type="button" onclick="showExportFormatPrompt()"
+                        class="px-6 py-2 bg-[#00A86B] hover:bg-emerald-700 text-white font-medium rounded-md text-[13px] cursor-pointer whitespace-nowrap flex-shrink-0">
+                        Export
+                    </button>
+
+                    <a href="{{ route('vendor.hoardings.add') }}"
+                        class="px-4 py-2 bg-black text-white font-medium rounded-md text-[13px] flex items-center whitespace-nowrap flex-shrink-0">
+                        + Add New Hoarding
+                    </a>
+                </div>
             </div>
         </div>
     </div>
+
+    @include('hoardings.vendor.filter')
 
     <div class="max-w-[1600px] mx-auto py-6 space-y-5">
         {{-- <div class="flex flex-wrap gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
@@ -85,11 +143,7 @@
                             <div class="flex flex-wrap gap-2 text-[11px] px-6 pt-6 font-bold text-gray-400 uppercase tracking-widest px-1">
                                 @foreach(range('A', 'Z') as $char)
                                     <a
-                                        href="{{ route('vendor.hoardings.myHoardings', array_filter([
-                                            'tab' => $activeTab,
-                                            'letter' => $char,
-                                            'search' => request('search')
-                                        ])) }}"
+                                        href="{{ route('vendor.hoardings.myHoardings', array_merge(request()->except(['page', 'letter']), ['tab' => $activeTab, 'letter' => $char])) }}"
                                         class="
                                             {{ $selectedLetter === $char
                                                 ? 'text-[#00A86B] underline'
@@ -102,7 +156,7 @@
 
                                 @if($selectedLetter)
                                     <a
-                                        href="{{ route('vendor.hoardings.myHoardings', ['tab' => $activeTab]) }}"
+                                        href="{{ route('vendor.hoardings.myHoardings', array_merge(request()->except(['page', 'letter']), ['tab' => $activeTab])) }}"
                                         class="ml-3 text-red-500 hover:underline"
                                     >
                                         Clear
@@ -259,7 +313,13 @@
                 <div class="flex items-center gap-3 font-medium">
                     <form id="perPageForm" method="GET" action="" class="flex items-center gap-2">
                         @foreach(request()->except('page', 'per_page') as $key => $val)
-                            <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                            @if(is_array($val))
+                                @foreach($val as $item)
+                                    <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                                @endforeach
+                            @else
+                                <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                            @endif
                         @endforeach
                         <label for="perPageSelect" class="mr-1 text-gray-500">Show</label>
                         <select id="perPageSelect" name="per_page" onchange="document.getElementById('perPageForm').submit()" class="bg-[#F3F4F6] border-none rounded-md px-3 py-1 text-gray-700 font-bold">
@@ -315,7 +375,229 @@
     background-color: #d1d5db !important;
 }
 
+#hoarding-filter-modal .hoarding-filter-panel {
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 14px 38px rgba(15, 23, 42, 0.16);
+}
+
+#hoarding-filter-modal .hoarding-filter-title {
+    font-size: clamp(28px, 1.9vw, 36px);
+    line-height: 1;
+    font-weight: 600;
+    color: #101828;
+}
+
+#hoarding-filter-modal .hoarding-filter-body {
+    color: #1f3152;
+}
+
+#hoarding-filter-modal .hoarding-filter-body input[type="checkbox"],
+#hoarding-filter-modal .hoarding-filter-body input[type="radio"] {
+    width: 15px;
+    height: 15px;
+    accent-color: #2f6d4f;
+}
+
+#hoarding-filter-modal .hoarding-filter-body input[type="number"] {
+    height: 44px;
+    border-color: #d9dee6;
+    color: #334155;
+}
+
+#hoarding-filter-modal .hoarding-filter-body input[type="number"]::placeholder {
+    color: #64748b;
+}
+
+.range-slider {
+    position: relative;
+    height: 20px;
+}
+
+.range-slider .range-track {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 9999px;
+    background: #2f6d4f;
+}
+
+.range-slider .range-fill {
+    position: absolute;
+    top: 8px;
+    height: 4px;
+    border-radius: 9999px;
+    background: #2f6d4f;
+}
+
+.range-slider input[type="range"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: transparent;
+    pointer-events: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.range-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    pointer-events: auto;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    border: 3px solid #2f6d4f;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.range-slider input[type="range"]::-moz-range-thumb {
+    pointer-events: auto;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    border: 3px solid #2f6d4f;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+    #hoarding-filter-modal .hoarding-filter-panel {
+        top: 16px;
+        width: calc(100vw - 20px);
+        max-width: 720px;
+        max-height: calc(100vh - 32px);
+    }
+
+    #hoarding-filter-modal .hoarding-filter-title {
+        font-size: 34px;
+    }
+
+    #hoarding-filter-modal .hoarding-filter-body {
+        max-height: calc(100vh - 180px);
+    }
+}
+
+@media (max-width: 640px) {
+    #hoarding-filter-modal .hoarding-filter-panel {
+        top: 8px;
+        width: calc(100vw - 10px);
+        max-height: calc(100vh - 16px);
+    }
+
+    #hoarding-filter-modal .hoarding-filter-header,
+    #hoarding-filter-modal .hoarding-filter-body,
+    #hoarding-filter-modal .hoarding-filter-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    #hoarding-filter-modal .hoarding-filter-title {
+        font-size: 32px;
+    }
+
+    #hoarding-filter-modal .hoarding-filter-body {
+        max-height: calc(100vh - 200px);
+    }
+}
+
 </style>
+
+<script>
+    function setupDualRange(prefix) {
+        const minInput = document.getElementById(prefix + '_min_input');
+        const maxInput = document.getElementById(prefix + '_max_input');
+        const minSlider = document.getElementById(prefix + '_min_slider');
+        const maxSlider = document.getElementById(prefix + '_max_slider');
+        const rangeRoot = document.querySelector('[data-range="' + prefix + '"]');
+        if (!minInput || !maxInput || !minSlider || !maxSlider || !rangeRoot) return;
+
+        const fill = rangeRoot.querySelector('.range-fill');
+        const minBound = Number(minSlider.min || 0);
+        const maxBound = Number(minSlider.max || 1000);
+
+        const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+
+        const paintFill = (minVal, maxVal) => {
+            if (!fill) return;
+            const left = ((minVal - minBound) / (maxBound - minBound)) * 100;
+            const right = ((maxVal - minBound) / (maxBound - minBound)) * 100;
+            fill.style.left = left + '%';
+            fill.style.width = Math.max(0, right - left) + '%';
+        };
+
+        const syncFromInputs = () => {
+            let minVal = Number(minInput.value || minBound);
+            let maxVal = Number(maxInput.value || maxBound);
+
+            minVal = clamp(minVal, minBound, maxBound);
+            maxVal = clamp(maxVal, minBound, maxBound);
+            if (minVal > maxVal) {
+                minVal = maxVal;
+            }
+
+            minInput.value = minVal;
+            maxInput.value = maxVal;
+            minSlider.value = minVal;
+            maxSlider.value = maxVal;
+            paintFill(minVal, maxVal);
+        };
+
+        const syncFromSliders = (source) => {
+            let minVal = Number(minSlider.value);
+            let maxVal = Number(maxSlider.value);
+
+            if (source === 'min' && minVal > maxVal) {
+                minVal = maxVal;
+                minSlider.value = minVal;
+            }
+
+            if (source === 'max' && maxVal < minVal) {
+                maxVal = minVal;
+                maxSlider.value = maxVal;
+            }
+
+            minInput.value = minVal;
+            maxInput.value = maxVal;
+            paintFill(minVal, maxVal);
+        };
+
+        minInput.addEventListener('input', syncFromInputs);
+        maxInput.addEventListener('input', syncFromInputs);
+        minSlider.addEventListener('input', () => syncFromSliders('min'));
+        maxSlider.addEventListener('input', () => syncFromSliders('max'));
+
+        syncFromInputs();
+    }
+
+    function openHoardingFilterModal() {
+        const modal = document.getElementById('hoarding-filter-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closeHoardingFilterModal() {
+        const modal = document.getElementById('hoarding-filter-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeHoardingFilterModal();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        setupDualRange('screen_size');
+        setupDualRange('hoarding_size');
+    });
+</script>
 
 <script>
     // Select/Deselect all checkboxes

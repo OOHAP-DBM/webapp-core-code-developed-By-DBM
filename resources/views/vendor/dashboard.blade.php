@@ -436,13 +436,53 @@
                     'pos'       => 'bg-blue-500',
                 ];
             @endphp
+            @php
+                $baseRoute = 'vendor.hoardings.myHoardings';
+                
+                // Build URLs with appropriate filter parameters
+                $cardRoute = '';
+                
+                if ($key === 'earnings') {
+                    $cardRoute = '#';
+                } elseif ($key === 'hoardings') {
+                    $cardRoute = route($baseRoute);
+                } elseif ($key === 'ooh') {
+                    $cardRoute = route($baseRoute) . '?type=ooh';
+                } elseif ($key === 'dooh') {
+                    $cardRoute = route($baseRoute) . '?type=dooh';
+                } elseif ($key === 'active') {
+                    $cardRoute = route($baseRoute) . '?status=active';
+                } elseif ($key === 'inactive') {
+                    $cardRoute = route($baseRoute) . '?status=inactive';
+                } elseif ($key === 'unsold') {
+                    $cardRoute = route($baseRoute) . '?status=active&booked=false';
+                } elseif ($key === 'bookings') {
+                    $cardRoute = route('vendor.pos.list');
+                } elseif ($key === 'orders') {
+                    $cardRoute = route('vendor.enquiries.index');
+                } elseif ($key === 'pos') {
+                    $cardRoute = route('vendor.pos.list');
+                }
+            @endphp
+
             <div class="relative">
                 <!-- CARD -->
-                <div class="relative z-10 bg-gray-100 rounded-xl shadow p-4">
-                    {!! $statIcons[$key] ?? '' !!}
-                    <p class="text-2xl font-semibold mt-1">{{ $value }}</p>
-                    <p class="text-black">{{ $label }}</p>
-                </div>
+                @if($key === 'earnings')
+                    <!-- Non-clickable Earnings Card -->
+                    <div class="relative z-10 bg-gray-100 rounded-xl shadow p-4">
+                        {!! $statIcons[$key] ?? '' !!}
+                        <p class="text-2xl font-semibold mt-1">{{ $value }}</p>
+                        <p class="text-black">{{ $label }}</p>
+                    </div>
+                @else
+                    <!-- Clickable Card -->
+                    <a href="{{ $cardRoute }}" 
+                       class="block relative z-10 bg-gray-100 rounded-xl shadow p-4 hover:shadow-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer">
+                        {!! $statIcons[$key] ?? '' !!}
+                        <p class="text-2xl font-semibold mt-1">{{ $value }}</p>
+                        <p class="text-black">{{ $label }}</p>
+                    </a>
+                @endif
 
                 <!-- BOTTOM COLOR STRIP -->
                 <div
