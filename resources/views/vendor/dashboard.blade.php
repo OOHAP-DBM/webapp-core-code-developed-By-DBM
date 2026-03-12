@@ -1021,7 +1021,7 @@
                         <th class="px-6 py-3 text-left">SN</th>
                         <th class="px-6 py-3 text-left">Transaction ID</th>
                         <th class="px-6 py-3 text-left">Customer</th>
-                        <th class="px-6 py-3 text-left"># Of Bookings</th>
+                        <th class="px-6 py-3 text-left">No. Of Bookings</th>
                         <th class="px-6 py-3 text-left">Payment Status</th>
                         <th class="px-6 py-3 text-left">Booking Type</th>
                         <th class="px-6 py-3 text-left">Date</th>

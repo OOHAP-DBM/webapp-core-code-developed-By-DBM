@@ -4,25 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>{{ config('app.name', 'OOHAPP') }} - @yield('title', 'Hoarding Marketplace')</title>
-
     <link rel="icon" type="image/png" href="/assets/images/favicon/Vector (1).png" />
+    <title>Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-    <!-- <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1"> -->
-    <!-- <meta name="csrf-token" content="d1mfOYwOdx72IMRbniDpED1Ybib54r19DLrFzDGs"> -->
-
-    <!-- Primary SEO -->
-    <title>Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP</title>
     <meta name="description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.">
     <meta name="keywords" content="outdoor advertising India, billboard advertising India, hoarding advertising India, outdoor media booking, OOH advertising platform, billboard booking India">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large">
     <meta name="author" content="OOHAPP">
 
     <!-- Canonical URL -->
@@ -63,6 +54,7 @@
 
     gtag('config', 'G-ST51N3C0N6');
     </script>
+    <meta name="google-site-verification" content="Cj2NPz4_gTnvaitO3OAv51DDtIaNmE1N4VIP6WiGlDM" />
 </head>
 <body class="antialiased">
     <div id="app" class="min-h-screen bg-white">

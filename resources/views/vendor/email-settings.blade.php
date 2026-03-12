@@ -3,166 +3,175 @@
 @section('title', 'Email Settings')
 
 @section('content')
-<div class="max-w-4xl mx-auto bg-white rounded-xl shadow p-6 mt-8">
+<div class="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <h2 class="text-2xl font-semibold mb-6">Email Management</h2>
-    
-    <form id="email-settings-form" method="POST" action="{{ route('vendor.email-settings.update') }}">
-        @csrf
-        
-        <!-- Primary Email Section -->
-        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <label class="block font-semibold mb-2 text-blue-900">
-                <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                </svg>
-                Primary Email
-            </label>
-            <input type="email" 
-                   name="primary_email" 
-                   value="{{ old('primary_email', auth()->user()->email) }}" 
-                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                   required
-                   readonly>
-            <p class="text-sm text-gray-600 mt-1">This is your account email and cannot be changed here.</p>
-        </div>
+    {{-- Email Management Card --}}
+    <div class="bg-white rounded-xl shadow p-4 sm:p-6 mt-6 sm:mt-8">
 
-        <!-- Additional Emails Section -->
-        <div class="mb-6">
-            <div class="flex items-center justify-between mb-3">
-                <label class="block font-semibold text-gray-900">
-                    <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        <h2 class="text-xl sm:text-2xl font-semibold mb-5 sm:mb-6">Email Management</h2>
+
+        <form id="email-settings-form" method="POST" action="{{ route('vendor.email-settings.update') }}">
+            @csrf
+
+            {{-- Primary Email Section --}}
+            <div class="mb-5 sm:mb-6 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <label class="block font-semibold mb-2 text-blue-900 text-sm sm:text-base">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 inline-block mr-1 align-text-bottom" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
-                    Additional Emails
+                    Primary Email
                 </label>
-                <button type="button" 
-                        id="add-email-btn" 
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center  text-xs md:text-sm">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Add Email
-                </button>
+                <input type="email"
+                       name="primary_email"
+                       value="{{ old('primary_email', auth()->user()->email) }}"
+                       class="w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       required
+                       readonly>
+                <p class="text-xs sm:text-sm text-gray-600 mt-1">This is your account email and cannot be changed here.</p>
             </div>
-            
-            <div id="additional-emails-list" class="space-y-3">
-                @php
-                    $prefs = auth()->user()->vendorProfile?->email_preferences ?? [];
-                    $additionalEmails = auth()->user()->vendorProfile?->additional_emails ?? [];
-                @endphp
-                
-                @if(count($additionalEmails) > 0)
-                    @foreach($additionalEmails as $email)
-                        @php
-                            $isVerified = !empty($prefs[$email]['verified']);
-                            $notificationEnabled = $prefs[$email]['notifications'] ?? false;
-                        @endphp
-                        <div class="email-row border border-gray-200 rounded-lg p-4 bg-gray-50">
-                            <div class="flex items-start gap-3">
-                                <div class="flex-1">
-                                    <input type="email" 
-                                           name="additional_emails[]" 
-                                           value="{{ $email }}" 
-                                           class="w-full border border-gray-300 rounded-lg px-2 md:px-4 py-2 mb-2 additional-email-input {{ $isVerified ? 'bg-gray-100' : '' }}"
-                                           data-verified="{{ $isVerified ? '1' : '0' }}"
-                                           {{ $isVerified ? 'readonly' : '' }}>
-                                    
-                                    <!-- Notification Toggle -->
-                                    <div class="flex items-center mt-2">
-                                        <input type="checkbox" 
-                                               name="email_notifications[{{ $email }}]" 
-                                               value="1"
-                                               {{ $notificationEnabled ? 'checked' : '' }}
-                                               class="w-4 h-4 text-blue-600 rounded email-notification-checkbox"
-                                               {{ !$isVerified ? 'disabled' : '' }}>
-                                        <label class="ml-2 text-sm text-gray-700">
-                                            Receive notifications on this email
-                                        </label>
+
+            {{-- Additional Emails Section --}}
+            <div class="mb-5 sm:mb-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <label class="block font-semibold text-gray-900 text-sm sm:text-base">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 inline-block mr-1 align-text-bottom" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Additional Emails
+                    </label>
+                    <button type="button"
+                            id="add-email-btn"
+                            class="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center text-xs sm:text-sm whitespace-nowrap">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Add Email
+                    </button>
+                </div>
+
+                <div id="additional-emails-list" class="space-y-3">
+                    @php
+                        $prefs = auth()->user()->vendorProfile?->email_preferences ?? [];
+                        $additionalEmails = auth()->user()->vendorProfile?->additional_emails ?? [];
+                    @endphp
+
+                    @if(count($additionalEmails) > 0)
+                        @foreach($additionalEmails as $email)
+                            @php
+                                $isVerified = !empty($prefs[$email]['verified']);
+                                $notificationEnabled = $prefs[$email]['notifications'] ?? false;
+                            @endphp
+                            <div class="email-row border border-gray-200 rounded-lg p-3 sm:p-4 bg-gray-50">
+                                {{-- Mobile: stack vertically; sm+: side by side --}}
+                                <div class="flex flex-col sm:flex-row sm:items-start gap-3">
+
+                                    {{-- Email input + notification toggle --}}
+                                    <div class="flex-1 min-w-0">
+                                        <input type="email"
+                                               name="additional_emails[]"
+                                               value="{{ $email }}"
+                                               class="w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 mb-2 text-sm sm:text-base additional-email-input {{ $isVerified ? 'bg-gray-100' : '' }}"
+                                               data-verified="{{ $isVerified ? '1' : '0' }}"
+                                               {{ $isVerified ? 'readonly' : '' }}>
+
+                                        <div class="flex items-center mt-1">
+                                            <input type="checkbox"
+                                                   name="email_notifications[{{ $email }}]"
+                                                   value="1"
+                                                   {{ $notificationEnabled ? 'checked' : '' }}
+                                                   class="w-4 h-4 text-blue-600 rounded email-notification-checkbox flex-shrink-0"
+                                                   {{ !$isVerified ? 'disabled' : '' }}>
+                                            <label class="ml-2 text-xs sm:text-sm text-gray-700">
+                                                Receive notifications on this email
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {{-- Action buttons: row on mobile, column on sm+ --}}
+                                    <div class="flex flex-row sm:flex-col gap-2 sm:gap-2 flex-shrink-0">
+                                        @if(!$isVerified)
+                                            <button type="button"
+                                                    class="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-yellow-500 text-white rounded-lg text-xs sm:text-sm hover:bg-yellow-600 transition verify-btn whitespace-nowrap text-center">
+                                                Verify
+                                            </button>
+                                        @else
+                                            <span class="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-green-100 text-green-700 rounded-lg text-xs sm:text-sm font-medium verified-label whitespace-nowrap flex items-center justify-center">
+                                                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Verified
+                                            </span>
+                                        @endif
+
+                                        <button type="button"
+                                                class="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-red-100 text-red-700 rounded-lg text-xs sm:text-sm hover:bg-red-200 transition remove-email whitespace-nowrap text-center">
+                                            Remove
+                                        </button>
                                     </div>
                                 </div>
-                                
-                                <div class="flex flex-col gap-2">
-                                    @if(!$isVerified)
-                                        <button type="button" 
-                                                class="px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm hover:bg-yellow-600 transition verify-btn whitespace-nowrap">
-                                            Verify
-                                        </button>
-                                    @else
-                                        <span class="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium verified-label whitespace-nowrap flex items-center">
-                                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                            </svg>
-                                            Verified
-                                        </span>
-                                    @endif
-                                    
-                                    <button type="button" 
-                                            class="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm hover:bg-red-200 transition remove-email whitespace-nowrap">
-                                        Remove
-                                    </button>
-                                </div>
                             </div>
-                        </div>
-                    @endforeach
-                @else
-                    <p class="text-gray-500 text-sm italic">No additional emails added yet.</p>
-                @endif
+                        @endforeach
+                    @else
+                        <p class="text-gray-500 text-sm italic">No additional emails added yet.</p>
+                    @endif
+                </div>
             </div>
-        </div>
 
-        <!-- Submit Button -->
-        <div class="flex justify-end">
-            <button type="submit" 
-                    class="px-6 py-3  w-30 bg-[#00995c] text-white rounded-lg hover:bg-green-700 transition font-medium">
-                Save 
-            </button>
-        </div>
-    </form>
+            {{-- Submit Button --}}
+            <div class="flex justify-end">
+                <button type="submit"
+                        class="px-5 sm:px-6 py-2.5 sm:py-3 bg-[#00995c] text-white rounded-lg hover:bg-green-700 transition font-medium text-sm sm:text-base min-w-[100px]">
+                    Save
+                </button>
+            </div>
+        </form>
+    </div>
+
+
+    {{-- Global Notification Preferences Card --}}
+    <div class="bg-white rounded-xl shadow p-4 sm:p-6 mt-6 sm:mt-8 mb-8">
+        <h2 class="text-xl sm:text-2xl font-semibold mb-5 sm:mb-6">Global Notification Preferences</h2>
+        <form id="global-notification-form" method="POST" action="{{ route('notification.global-preferences.update') }}">
+            @csrf
+            <div class="mb-5 sm:mb-6 p-3 sm:p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <div class="space-y-3">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox"
+                               name="notification_email"
+                               value="1"
+                               {{ old('notification_email', auth()->user()->notification_email) ? 'checked' : '' }}
+                               class="w-4 h-4 text-blue-600 rounded flex-shrink-0">
+                        <span class="ml-2 text-sm sm:text-base text-gray-700">Email Notifications</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox"
+                               name="notification_push"
+                               value="1"
+                               {{ old('notification_push', auth()->user()->notification_push) ? 'checked' : '' }}
+                               class="w-4 h-4 text-blue-600 rounded flex-shrink-0">
+                        <span class="ml-2 text-sm sm:text-base text-gray-700">Push Notifications</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox"
+                               name="notification_whatsapp"
+                               value="1"
+                               {{ old('notification_whatsapp', auth()->user()->notification_whatsapp) ? 'checked' : '' }}
+                               class="w-4 h-4 text-blue-600 rounded flex-shrink-0">
+                        <span class="ml-2 text-sm sm:text-base text-gray-700">WhatsApp Notifications</span>
+                    </label>
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit"
+                        class="px-5 sm:px-6 py-2.5 sm:py-3 bg-[#00995c] text-white rounded-lg hover:bg-green-700 transition font-medium text-sm sm:text-base min-w-[100px]">
+                    Save
+                </button>
+            </div>
+        </form>
+    </div>
+
 </div>
 
-
-
-<div class="max-w-4xl mx-auto bg-white rounded-xl shadow p-6 mt-8">
-    <h2 class="text-2xl font-semibold mb-6">Global Notification Preferences</h2>
-    <form id="global-notification-form" method="POST" action="{{ route('notification.global-preferences.update') }}">
-        @csrf
-        <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-            <div class="space-y-2">
-                <label class="flex items-center">
-                    <input type="checkbox" 
-                           name="notification_email" 
-                           value="1" 
-                           {{ old('notification_email', auth()->user()->notification_email) ? 'checked' : '' }}
-                           class="w-4 h-4 text-blue-600 rounded">
-                    <span class="ml-2 text-gray-700">Email Notifications</span>
-                </label>
-                <label class="flex items-center">
-                    <input type="checkbox" 
-                           name="notification_push" 
-                           value="1" 
-                           {{ old('notification_push', auth()->user()->notification_push) ? 'checked' : '' }}
-                           class="w-4 h-4 text-blue-600 rounded">
-                    <span class="ml-2 text-gray-700">Push Notifications</span>
-                </label>
-                <label class="flex items-center">
-                    <input type="checkbox" 
-                           name="notification_whatsapp" 
-                           value="1" 
-                           {{ old('notification_whatsapp', auth()->user()->notification_whatsapp) ? 'checked' : '' }}
-                           class="w-4 h-4 text-blue-600 rounded">
-                    <span class="ml-2 text-gray-700">WhatsApp Notifications</span>
-                </label>
-            </div>
-        </div>
-        <div class="flex justify-end">
-            <button type="submit" 
-                    class="px-6 py-3 bg-[#00995c] w-30 text-white rounded-lg hover:bg-green-700 transition font-medium">
-                Save
-            </button>
-        </div>
-    </form>
-</div>
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -171,7 +180,7 @@ let emailCounter = {{ count($additionalEmails) }};
 // Add new email row
 document.getElementById('add-email-btn').addEventListener('click', function () {
     const container = document.getElementById('additional-emails-list');
-    
+
     // Remove "no emails" message if it exists
     const noEmailsMsg = container.querySelector('p.text-gray-500');
     if (noEmailsMsg) {
@@ -179,44 +188,43 @@ document.getElementById('add-email-btn').addEventListener('click', function () {
     }
 
     const div = document.createElement('div');
-    div.className = 'email-row border border-gray-200 rounded-lg p-4 bg-gray-50';
+    div.className = 'email-row border border-gray-200 rounded-lg p-3 sm:p-4 bg-gray-50';
 
     div.innerHTML = `
-        <div class="flex items-start gap-3">
-            <div class="flex-1">
+        <div class="flex flex-col sm:flex-row sm:items-start gap-3">
+            <div class="flex-1 min-w-0">
                 <input type="email"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 mb-2 additional-email-input"
+                    class="w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 mb-2 text-sm sm:text-base additional-email-input"
                     data-verified="0"
                     placeholder="Enter email address">
-                
-                <!-- Notification Toggle -->
-                <div class="flex items-center mt-2">
-                    <input type="checkbox" 
-                           name="email_notifications_new[]" 
+
+                <div class="flex items-center mt-1">
+                    <input type="checkbox"
+                           name="email_notifications_new[]"
                            value=""
-                           class="w-4 h-4 text-blue-600 rounded email-notification-checkbox"
+                           class="w-4 h-4 text-blue-600 rounded email-notification-checkbox flex-shrink-0"
                            disabled>
-                    <label class="ml-2 text-sm text-gray-700">
+                    <label class="ml-2 text-xs sm:text-sm text-gray-700">
                         Receive notifications on this email
                     </label>
                 </div>
             </div>
-            
-            <div class="flex flex-col gap-2">
-                <button type="button" 
-                        class="px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm hover:bg-yellow-600 transition verify-btn whitespace-nowrap">
+
+            <div class="flex flex-row sm:flex-col gap-2 flex-shrink-0">
+                <button type="button"
+                        class="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-yellow-500 text-white rounded-lg text-xs sm:text-sm hover:bg-yellow-600 transition verify-btn whitespace-nowrap text-center">
                     Verify
                 </button>
-                
-                <span class="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium verified-label whitespace-nowrap hidden flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+
+                <span class="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-green-100 text-green-700 rounded-lg text-xs sm:text-sm font-medium verified-label whitespace-nowrap hidden flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                     </svg>
                     Verified
                 </span>
-                
-                <button type="button" 
-                        class="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm hover:bg-red-200 transition remove-email whitespace-nowrap">
+
+                <button type="button"
+                        class="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-red-100 text-red-700 rounded-lg text-xs sm:text-sm hover:bg-red-200 transition remove-email whitespace-nowrap text-center">
                     Remove
                 </button>
             </div>
@@ -234,7 +242,7 @@ document.getElementById('add-email-btn').addEventListener('click', function () {
 document.addEventListener('click', function (e) {
     if (e.target.classList.contains('remove-email')) {
         const row = e.target.closest('.email-row');
-        
+
         Swal.fire({
             title: 'Remove Email?',
             text: 'Are you sure you want to remove this email?',
@@ -246,7 +254,7 @@ document.addEventListener('click', function (e) {
         }).then((result) => {
             if (result.isConfirmed) {
                 row.remove();
-                
+
                 // Show "no emails" message if no rows left
                 const container = document.getElementById('additional-emails-list');
                 if (container.querySelectorAll('.email-row').length === 0) {
@@ -410,17 +418,17 @@ function showOTPModal(email, input, row, btn) {
             input.setAttribute('data-verified', '1');
             input.readOnly = true;
             input.classList.add('bg-gray-100');
-            
+
             // Enable notification checkbox and set proper name
             const notificationCheckbox = row.querySelector('.email-notification-checkbox');
             notificationCheckbox.disabled = false;
             notificationCheckbox.setAttribute('name', `email_notifications[${email}]`);
             notificationCheckbox.value = '1';
-            
+
             // Hide verify button and show verified label
             btn.classList.add('hidden');
             row.querySelector('.verified-label').classList.remove('hidden');
-            
+
             Swal.fire({
                 icon: 'success',
                 title: 'Verified!',
@@ -438,7 +446,7 @@ function isDuplicateEmail(email, currentInput) {
     if (email.toLowerCase() === primary) {
         return true;
     }
-    
+
     const additionalInputs = document.querySelectorAll('.additional-email-input');
     for (let input of additionalInputs) {
         if (input === currentInput) continue;
@@ -447,7 +455,7 @@ function isDuplicateEmail(email, currentInput) {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -471,15 +479,15 @@ document.getElementById('email-settings-form').addEventListener('submit', functi
     const emailsToCheck = [];
     for (let input of additionalInputs) {
         const value = input.value.trim();
-        
+
         // Skip empty inputs
         if (!value) {
             input.closest('.email-row').remove();
             continue;
         }
-        
+
         emailsToCheck.push(input);
-        
+
         // Check if verified
         if (input.getAttribute('data-verified') !== '1') {
             e.preventDefault();

@@ -32,11 +32,11 @@
                     {{ $enquiry->created_at->format('d M, y') }}
                 </span>
                 <span>
-                    # of Hoardings:
+                    No. of Hoardings:
                     <strong>{{ count($items) }}</strong>
                 </span>
                 <span>
-                    # of Hoardings Locations:
+                    No. of Hoardings Locations:
                     <strong>
                         {{
                             collect($items)->flatMap(fn($item) =>

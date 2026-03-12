@@ -123,11 +123,18 @@
                     <h3 class="text-sm font-semibold mt-5 mb-4">Payment Details</h3>
                     <div class="space-y-2 text-xs text-gray-700">
                         <div>Total Amount: <strong>₹{{ number_format($booking->total_amount, 2) }}</strong></div>
-                        <div>Paid: <strong>₹{{ number_format($booking->paid_amount, 2) }}</strong></div>
+                        <div>Paid Amount: <strong>₹{{ number_format($booking->paid_amount, 2) }}</strong></div>
                         <div>Balance: <strong class="text-red-600">₹{{ number_format($booking->total_amount - $booking->paid_amount, 2) }}</strong></div>
                         <div>Payment Status: <strong>{{ ucfirst($booking->payment_status) }}</strong></div>
-                        <div>Payment Mode: <strong>{{ ucfirst(str_replace('_', ' ', $booking->payment_mode)) }}</strong></div>
-                        <div>Invoice Number: <strong>{{ $booking->invoice_number ?? '-' }}</strong></div>
+                        <div>Payment Method: <strong>{{ ucfirst(str_replace('_', ' ', $booking->payment_mode)) }}</strong></div>
+                        <div class="flex items-center gap-1">Invoice Number: 
+                            <strong class="flex items-center gap-1 cursor-pointer">
+                                <span style="color:#0089E1">{{ $booking->invoice_number ?? '-' }}</span>
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6 9L2.25 5.25L3.3 4.1625L5.25 6.1125V0H6.75V6.1125L8.7 4.1625L9.75 5.25L6 9ZM1.5 12C1.0875 12 0.7345 11.8533 0.441 11.5597C0.1475 11.2662 0.0005 10.913 0 10.5V8.25H1.5V10.5H10.5V8.25H12V10.5C12 10.9125 11.8533 11.2657 11.5597 11.5597C11.2662 11.8538 10.913 12.0005 10.5 12H1.5Z" fill="#0089E1"/>
+                                </svg>
+                            </strong>
+                        </div>
                     </div>
                 </div>
 

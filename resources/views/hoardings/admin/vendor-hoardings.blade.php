@@ -199,7 +199,7 @@
                         <th class="px-5 py-4">Type</th>
                         <th class="px-5 py-4">Published By</th>
                         <th class="px-5 py-4">Hoarding Commission</th>
-                        <th class="px-5 py-4">Location</th>
+                        <th class="px-5 py-4 text-left">Location</th>
                         <th class="px-5 py-4 text-left md:ml-2">Status</th>
                         <th class="px-5 py-4">Progress</th>
                         <th class="px-5 py-4 text-right">Action</th>
@@ -251,15 +251,15 @@
                         </td>
 
                         {{-- Type --}}
-                        <td class="px-5 py-4">
+                        <td class="px-5 py-4 text-center">
                             <span class="px-2.5 py-1 rounded-full text-xs font-semibold {{ $hoarding->type === 'OOH' ? 'bg-purple-100 text-purple-700' : 'bg-cyan-100 text-cyan-700' }}">
                                 {{ $hoarding->type }}
                             </span>
                         </td>
 
                         {{-- Vendor --}}
-                        <td class="px-5 py-4">
-                            <div class="flex items-center gap-2">
+                        <td class="px-5 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2 ">
                                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-xs">
                                     {{ strtoupper(substr($hoarding->vendor?->name ?? 'V', 0, 1)) }}
                                 </div>
@@ -273,23 +273,22 @@
                         </td>
 
                         {{-- Hoarding Commission --}}
-                        <td class="px-5 py-4">
+                        <td class="px-5 py-4 text-center">
                             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 text-green-700 font-semibold text-xs">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <!-- <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                {{ $hoardingCommission }}
+                                </svg> -->
+                                {{ $hoarding->hoarding_commission > 0 ? number_format($hoarding->hoarding_commission). '%' : '—' }}
                             </span>
                         </td>
-
                         {{-- Location --}}
-                        <td class="px-5 py-4">
-                            <div class="flex items-start gap-2 text-gray-600">
+                        <td class="px-5 py-4 ">
+                            <div class="flex items-start gap-2 text-gray-600 ">
                                 <svg class="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
-                                <span class="text-sm line-clamp-2">{{ $hoarding->address ?? '-' }}</span>
+                                <span class="text-sm line-clamp-2">{{ $hoarding->display_location}}</span>
                             </div>
                         </td>
 
