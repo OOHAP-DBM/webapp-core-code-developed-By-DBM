@@ -449,6 +449,7 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/dashboard', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('dashboard');
     // POS Booking
     Route::get('/pos-booking', [\App\Http\Controllers\Web\Customer\PosBookingController::class, 'index'])->name('pos.booking');
+    Route::get('/pos-booking/{booking}', [\App\Http\Controllers\Web\Customer\PosBookingController::class, 'show'])->name('pos.booking.show');
     // Route::get('/home', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('home');
     Route::post('/customer/profile/send-otp', [ProfileController::class, 'sendOtp'])->name('profile.send-otp');
     Route::post('/customer/profile/verify-otp', [ProfileController::class, 'verifyOtp'])->name('profile.verify-otp');
