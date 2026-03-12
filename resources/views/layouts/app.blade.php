@@ -13,10 +13,56 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+    <!-- <meta name="csrf-token" content="d1mfOYwOdx72IMRbniDpED1Ybib54r19DLrFzDGs"> -->
+
+    <!-- Primary SEO -->
+    <title>Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP</title>
+    <meta name="description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.">
+    <meta name="keywords" content="outdoor advertising India, billboard advertising India, hoarding advertising India, outdoor media booking, OOH advertising platform, billboard booking India">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="OOHAPP">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://oohapp.io/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://oohapp.io/assets/images/favicon/Vector%20(1).png">
+    <link rel="shortcut icon" href="https://oohapp.io/assets/images/favicon/Vector%20(1).png">
+    <link rel="apple-touch-icon" href="https://oohapp.io/assets/images/favicon/Vector%20(1).png">
+
+    <!-- Open Graph for Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP">
+    <meta property="og:description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.">
+    <meta property="og:url" content="https://oohapp.io/">
+    <meta property="og:site_name" content="OOHAPP">
+    <meta property="og:image" content="https://oohapp.io/assets/images/logo/logo_image.jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@oohapp">
+    <meta name="twitter:creator" content="@oohapp">
+    <meta name="twitter:title" content="Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP">
+    <meta name="twitter:description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations and launch campaigns instantly.">
+    <meta name="twitter:image" content="https://oohapp.io/assets/images/logo/logo_image.jpeg">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ST51N3C0N6"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-ST51N3C0N6');
+    </script>
 </head>
 <body class="antialiased">
     <div id="app" class="min-h-screen bg-white">

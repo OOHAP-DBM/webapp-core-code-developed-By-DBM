@@ -449,6 +449,7 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/dashboard', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('dashboard');
     // POS Booking
     Route::get('/pos-booking', [\App\Http\Controllers\Web\Customer\PosBookingController::class, 'index'])->name('pos.booking');
+    Route::get('/pos-booking/{booking}', [\App\Http\Controllers\Web\Customer\PosBookingController::class, 'show'])->name('pos.booking.show');
     // Route::get('/home', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('home');
     Route::post('/customer/profile/send-otp', [ProfileController::class, 'sendOtp'])->name('profile.send-otp');
     Route::post('/customer/profile/verify-otp', [ProfileController::class, 'verifyOtp'])->name('profile.verify-otp');
@@ -689,17 +690,17 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         Route::put('dooh/{id}', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'update'])->name('dooh.update');
         // Hoarding Media Management (PROMPT 59)
         Route::prefix('hoardings/{hoarding}/media')->name('hoardings.media.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'index'])->name('index');
-            Route::post('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadHero'])->name('upload-hero');
-            Route::post('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadNight'])->name('upload-night');
-            Route::post('/gallery', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadGallery'])->name('upload-gallery');
-            Route::post('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadSizeOverlay'])->name('upload-size-overlay');
-            Route::delete('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteHero'])->name('delete-hero');
-            Route::delete('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteNight'])->name('delete-night');
-            Route::delete('/gallery/{mediaId}', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteGalleryImage'])->name('delete-gallery');
-            Route::delete('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteSizeOverlay'])->name('delete-size-overlay');
-            Route::post('/gallery/reorder', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'reorderGallery'])->name('reorder-gallery');
-            Route::get('/stats', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'stats'])->name('stats');
+            // Route::get('/', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'index'])->name('index');
+            // Route::post('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadHero'])->name('upload-hero');
+            // Route::post('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadNight'])->name('upload-night');
+            // Route::post('/gallery', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadGallery'])->name('upload-gallery');
+            // Route::post('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadSizeOverlay'])->name('upload-size-overlay');
+            // Route::delete('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteHero'])->name('delete-hero');
+            // Route::delete('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteNight'])->name('delete-night');
+            // Route::delete('/gallery/{mediaId}', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteGalleryImage'])->name('delete-gallery');
+            // Route::delete('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteSizeOverlay'])->name('delete-size-overlay');
+            // Route::post('/gallery/reorder', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'reorderGallery'])->name('reorder-gallery');
+            // Route::get('/stats', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'stats'])->name('stats');
         });
         // Offers
         Route::get('/offers', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'index'])->name('offers.index');
@@ -708,10 +709,10 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         Route::get('/offers/{id}', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'show'])->name('offers.show');
 
         // Quotations
-        Route::get('/quotations', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'index'])->name('quotations.index');
-        Route::get('/quotations/create', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'create'])->name('quotations.create');
-        Route::post('/quotations', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'store'])->name('quotations.store');
-        Route::get('/quotations/{id}', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'show'])->name('quotations.show');
+        Route::get('/quotations', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'index'])->name('quotations.index');
+        Route::get('/quotations/create', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'create'])->name('quotations.create');
+        Route::post('/quotations', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'store'])->name('quotations.store');
+        Route::get('/quotations/{id}', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'show'])->name('quotations.show');
 
         // Threads
         Route::get('/threads', [\App\Http\Controllers\Vendor\ThreadController::class, 'index'])->name('threads.index');
@@ -760,7 +761,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::post('/{id}/cancel', [\App\Http\Controllers\Vendor\BookingController::class, 'cancel'])->name('cancel');
             Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\BookingController::class, 'updateStatus'])->name('update-status');
         });
-        Route::post('/bookings/{id}/approve-pod', [\App\Http\Controllers\Web\Vendor\BookingController::class, 'approvePOD'])->name('bookings.approve-pod');
+        Route::post('/bookings/{id}/approve-pod', [\App\Http\Controllers\Vendor\BookingController::class, 'approvePOD'])->name('bookings.approve-pod');
 
         // Booking Pipeline Board (PROMPT 111 - Kanban View)
         Route::prefix('pipeline')->name('pipeline.')->group(function () {
@@ -774,9 +775,9 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         });
 
         // Hoarding Availability Calendar (PROMPT 49)
-        Route::get('/hoarding/{id}/calendar', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'show'])->name('hoarding.calendar');
-        Route::get('/hoarding/{id}/calendar/data', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'getCalendarData'])->name('hoarding.calendar.data');
-        Route::get('/hoarding/{id}/calendar/stats', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'getStats'])->name('hoarding.calendar.stats');
+        Route::get('/hoarding/{id}/calendar', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingCalendarController::class, 'show'])->name('hoarding.calendar');
+        Route::get('/hoarding/{id}/calendar/data', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingCalendarController::class, 'getCalendarData'])->name('hoarding.calendar.data');
+        Route::get('/hoarding/{id}/calendar/stats', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingCalendarController::class, 'getStats'])->name('hoarding.calendar.stats');
 
         // Task Management (PROMPT 26)
         Route::get('/tasks', [\App\Http\Controllers\Vendor\TaskController::class, 'index'])->name('tasks.index');
@@ -823,9 +824,9 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\POSController::class, 'updateStatus'])->name('update-status');
 
             // Legacy routes
-            Route::get('/dashboard', function () {
-                return view('vendor.pos.dashboard');
-            })->name('dashboard');
+            // Route::get('/dashboard', function () {
+            //     return view('vendor.pos.dashboard');
+            // })->name('dashboard');
             Route::get('/create', function () {
                 return view('vendor.pos.create');
             })->name('create');

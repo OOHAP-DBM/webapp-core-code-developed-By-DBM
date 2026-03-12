@@ -83,4 +83,21 @@ class PosBookingController extends Controller
             'paymentStatusOptions'
         ));
     }
+    /**
+     * Show a single POS booking (customer side)
+     */
+    public function show($bookingId)
+    {
+        $customerId = auth()->id();
+        $booking = \Modules\POS\Models\POSBooking::where('id', $bookingId)
+            ->where('customer_id', $customerId)
+            ->with([
+                'vendor.vendorProfile',
+                'bookingHoardings.hoarding.hoardingMedia',
+                'hoardings',
+            ])
+            ->firstOrFail();
+
+        return view('customer.pos-booking.show', compact('booking'));
+    }
 }
