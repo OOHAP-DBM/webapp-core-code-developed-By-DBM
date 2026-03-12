@@ -204,7 +204,9 @@
                                 <div class="relative inline-block text-left">
                                     <button type="button" onclick="toggleActionMenu(event, 'menu-{{ $hoarding['id'] }}')" 
                                             class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded">
-                                        <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
+                                            <svg width="3" height="13" viewBox="0 0 3 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M0 11.25C0 10.9185 0.131696 10.6005 0.366117 10.3661C0.600537 10.1317 0.918479 10 1.25 10C1.58152 10 1.89946 10.1317 2.13388 10.3661C2.3683 10.6005 2.5 10.9185 2.5 11.25C2.5 11.5815 2.3683 11.8995 2.13388 12.1339C1.89946 12.3683 1.58152 12.5 1.25 12.5C0.918479 12.5 0.600537 12.3683 0.366117 12.1339C0.131696 11.8995 0 11.5815 0 11.25ZM0 6.25C0 5.91848 0.131696 5.60054 0.366117 5.36612C0.600537 5.1317 0.918479 5 1.25 5C1.58152 5 1.89946 5.1317 2.13388 5.36612C2.3683 5.60054 2.5 5.91848 2.5 6.25C2.5 6.58152 2.3683 6.89946 2.13388 7.13388C1.89946 7.3683 1.58152 7.5 1.25 7.5C0.918479 7.5 0.600537 7.3683 0.366117 7.13388C0.131696 6.89946 0 6.58152 0 6.25ZM0 1.25C0 0.918479 0.131696 0.600537 0.366117 0.366117C0.600537 0.131696 0.918479 0 1.25 0C1.58152 0 1.89946 0.131696 2.13388 0.366117C2.3683 0.600537 2.5 0.918479 2.5 1.25C2.5 1.58152 2.3683 1.89946 2.13388 2.13388C1.89946 2.3683 1.58152 2.5 1.25 2.5C0.918479 2.5 0.600537 2.3683 0.366117 2.13388C0.131696 1.89946 0 1.58152 0 1.25Z" fill="black"/>
+                                            </svg>
                                     </button>
 
                                     <div id="menu-{{ $hoarding['id'] }}" 
@@ -213,17 +215,24 @@
                                             @if($canEdit)
                                                 <a href="{{ route('vendor.hoardings.edit', $hoarding['id']) }}" 
                                                 class="flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-blue-600 hover:bg-blue-50 rounded">
-                                                    <i class="fa-solid fa-pen-to-square opacity-60"></i> 
+                                                    <!-- Edit (Pencil) SVG -->
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="opacity-60"><path d="M4 17.25V20h2.75l8.13-8.13-2.75-2.75L4 17.25z" fill="#2563eb"/><path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="#2563eb"/></svg>
                                                     {{ $activeTab === 'draft' ? 'Edit Draft' : 'Edit Hoarding' }}
                                                 </a>
                                             @endif
 
                                             {{-- Toggle Active/Inactive only for non-draft and non-pending hoardings --}}
                                             @if($activeTab !== 'draft' && !in_array($status, ['pending_approval']))
-                                                <form action="{{ route('vendor.hoardings.toggle', $hoarding['id']) }}" method="POST">
+                                                <form action="{{ route('vendor.hoardings.toggle', $hoarding['id']) }}" method="POST" class="toggle-status-form">
                                                     @csrf
-                                                    <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium {{ $isActive ? 'text-orange-500 hover:bg-orange-50' : 'text-emerald-600 hover:bg-emerald-50' }} rounded">
-                                                        <i class="fa-solid {{ $isActive ? 'fa-pause-circle' : 'fa-play-circle' }} opacity-60"></i> 
+                                                    <button type="button" onclick="confirmToggleMenuAction(event, this, {{ $isActive ? 1 : 0 }})" class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium {{ $isActive ? 'text-orange-500 hover:bg-orange-50' : 'text-emerald-600 hover:bg-emerald-50' }} rounded">
+                                                        @if($isActive)
+                                                            <!-- Pause Circle SVG -->
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="opacity-60"><circle cx="12" cy="12" r="10" fill="#F59E42"/><rect x="8" y="8" width="2.5" height="8" rx="1.25" fill="white"/><rect x="13.5" y="8" width="2.5" height="8" rx="1.25" fill="white"/></svg>
+                                                        @else
+                                                            <!-- Play Circle SVG -->
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="opacity-60"><circle cx="12" cy="12" r="10" fill="#00A86B"/><polygon points="10,8 17,12 10,16" fill="white"/></svg>
+                                                        @endif
                                                         {{ $isActive ? 'Make Inactive' : 'Make Active' }}
                                                     </button>
                                                 </form>
@@ -234,7 +243,9 @@
                                                 type="button"
                                                 onclick="deleteHoarding({{ $hoarding['id'] }})"
                                                 class="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-red-500 hover:bg-red-50 rounded">
-                                                <i class="fa-solid fa-trash-can opacity-60"></i> Delete
+                                                <!-- Delete (Trash) SVG -->
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="opacity-60"><rect x="5" y="7" width="14" height="12" rx="2" fill="#ef4444"/><rect x="9" y="11" width="2" height="6" rx="1" fill="white"/><rect x="13" y="11" width="2" height="6" rx="1" fill="white"/><rect x="3" y="5" width="18" height="2" rx="1" fill="#ef4444"/><rect x="10" y="2" width="4" height="2" rx="1" fill="#ef4444"/></svg>
+                                                Delete
                                             </button>
 
                                         </div>
@@ -531,6 +542,36 @@ function autoSearchHoardings(e) {
                 window.location.href = url.toString();
             }
         });
+    }
+</script>
+ <script>
+    function confirmToggleMenuAction(e, btn, isActiveNow) {
+        e.preventDefault();
+        const form = btn.closest('form');
+        Swal.fire({
+            title: isActiveNow ? 'Inactive Hoarding?' : 'Active Hoarding?',
+            html: isActiveNow
+                ? '<p class="text-sm text-gray-600">Are you sure you want to Inactive this hoarding? It will not be visible to customers until re-activated.</p>'
+                : '<p class="text-sm text-gray-600">Are you sure you want to Active this hoarding? It will be visible to customers.</p>',
+            width:'25rem',
+            showCloseButton: true,
+            showCancelButton: true,
+            confirmButtonText: isActiveNow ? 'Inactive' : 'Active',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: isActiveNow ? '#ef4444' : '#00A86B',
+            buttonsStyling: true,
+            customClass: {
+                popup: 'rounded-lg',
+                title: 'text-base font-semibold text-gray-800',
+                confirmButton: 'px-6 py-2 text-sm',
+                cancelButton: 'px-6 py-2 text-sm swal-cancel-black'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+        return false;
     }
 </script>
 @endsection
