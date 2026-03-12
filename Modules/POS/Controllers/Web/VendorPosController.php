@@ -1767,6 +1767,7 @@ class VendorPosController extends Controller
             $this->releaseExpiredPosHoldsForContext($context);
 
             $query = \Modules\POS\Models\POSBooking::whereIn('payment_status', ['unpaid', 'partial'])
+                ->where('status', '!=', 'cancelled')
                 ->with('bookingHoardings.hoarding')
                 ->orderBy('created_at', 'asc');
 

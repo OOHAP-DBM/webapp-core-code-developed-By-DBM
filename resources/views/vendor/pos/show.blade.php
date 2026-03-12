@@ -198,7 +198,7 @@ async function loadBookingDetails() {
         // If payment_status is unpaid, show 'Hold' as booking status
         let bookingStatusText = b.status;
         let bookingStatusColor = getStatusColor(b.status);
-        if (b.payment_status === 'unpaid') {
+        if (b.payment_status === 'pending_payment') {
             bookingStatusText = 'Hold';
             bookingStatusColor = 'bg-yellow-500 text-white';
         }
