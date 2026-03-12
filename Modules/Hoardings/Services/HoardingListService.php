@@ -72,6 +72,45 @@ class HoardingListService
             $hoarding->current_step = 1;
             $hoarding->save();
 
+            // 📱 Send push notification to vendor on OOH creation
+            try {
+                // In-app notification
+                if ($vendor->notification_push) {
+                    $vendor->notify(
+                        new \App\Notifications\HoardingCreatedOrUpdatedNotification(
+                            $hoarding,
+                            'created',
+                            'OOH'
+                        )
+                    );
+                }
+
+                // Push notification via FCM
+                if ($vendor->fcm_token) {
+                    $sent = send(
+                        $vendor->fcm_token,
+                        'OOH Hoarding Created',
+                        'Your OOH hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been created successfully.',
+                        [
+                            'type'          => 'vendor_hoarding_created',
+                            'hoarding_id'   => $hoarding->id,
+                            'hoarding_type' => 'OOH',
+                            'action'        => 'created'
+                        ]
+                    );
+
+                    if (!$sent) {
+                        \Log::warning("FCM push notification failed for vendor ID {$vendor->id} on OOH hoarding creation");
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Log::error("Failed to send OOH hoarding creation notification to vendor", [
+                    'vendor_id'   => $vendor->id,
+                    'hoarding_id' => $hoarding->id,
+                    'error'       => $e->getMessage()
+                ]);
+            }
+
             return ['success' => true, 'hoarding' => $hoarding->fresh('media')];
         });
     }
@@ -138,6 +177,48 @@ class HoardingListService
                     $this->repo->storeBrandLogos($parentHoarding->id, $brandLogoFiles);
                 }
 
+                // 📱 Send push notification to vendor on OOH update (Step 2)
+                try {
+                    $vendor = $updatedHoarding->vendor;
+                    if ($vendor) {
+                        // In-app notification
+                        if ($vendor->notification_push) {
+                            $vendor->notify(
+                                new \App\Notifications\HoardingCreatedOrUpdatedNotification(
+                                    $updatedHoarding,
+                                    'updated',
+                                    'OOH'
+                                )
+                            );
+                        }
+
+                        // Push notification via FCM
+                        if ($vendor->fcm_token) {
+                            $sent = send(
+                                $vendor->fcm_token,
+                                'OOH Hoarding Updated',
+                                'Your OOH hoarding "' . ($updatedHoarding->title ?? $updatedHoarding->name ?? 'N/A') . '" has been updated successfully.',
+                                [
+                                    'type'          => 'vendor_hoarding_updated',
+                                    'hoarding_id'   => $updatedHoarding->id,
+                                    'hoarding_type' => 'OOH',
+                                    'action'        => 'updated'
+                                ]
+                            );
+
+                            if (!$sent) {
+                                \Log::warning("FCM push notification failed for vendor ID {$vendor->id} on OOH hoarding update (Step 2)");
+                            }
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    \Log::error("Failed to send OOH hoarding update notification to vendor (Step 2)", [
+                        'vendor_id'   => $updatedHoarding->vendor_id,
+                        'hoarding_id' => $updatedHoarding->id,
+                        'error'       => $e->getMessage()
+                    ]);
+                }
+
                 return [
                     'success'  => true,
                     'message'  => 'Hoarding details updated successfully.',
@@ -174,6 +255,10 @@ class HoardingListService
             'grace_period_days'    => isset($data['needs_grace_period']) && $data['needs_grace_period'] == '1'
                 ? (int) $data['grace_period_days']
                 : 0,
+
+            // Featured & Recommended
+            'is_featured'          => (bool) ($data['is_featured'] ?? false),
+            'is_recommended'       => (bool) ($data['is_recommended'] ?? false),
 
             // Visibility
             'hoarding_visibility'  => $data['visibility_type'] ?? $data['hoarding_visibility'] ?? null,
@@ -430,6 +515,48 @@ class HoardingListService
             // ✅ Store new media via repo
             if (!empty($mediaFiles)) {
                 $this->repo->storeMedia($hoarding->id, $mediaFiles);
+            }
+
+            // 📱 Send push notification to vendor on OOH update
+            try {
+                $vendor = $hoarding->vendor;
+                if ($vendor) {
+                    // In-app notification
+                    if ($vendor->notification_push) {
+                        $vendor->notify(
+                            new \App\Notifications\HoardingCreatedOrUpdatedNotification(
+                                $hoarding,
+                                'updated',
+                                'OOH'
+                            )
+                        );
+                    }
+
+                    // Push notification via FCM
+                    if ($vendor->fcm_token) {
+                        $sent = send(
+                            $vendor->fcm_token,
+                            'OOH Hoarding Updated',
+                            'Your OOH hoarding "' . ($hoarding->title ?? $hoarding->name ?? 'N/A') . '" has been updated successfully.',
+                            [
+                                'type'          => 'vendor_hoarding_updated',
+                                'hoarding_id'   => $hoarding->id,
+                                'hoarding_type' => 'OOH',
+                                'action'        => 'updated'
+                            ]
+                        );
+
+                        if (!$sent) {
+                            \Log::warning("FCM push notification failed for vendor ID {$vendor->id} on OOH hoarding update");
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Log::error("Failed to send OOH hoarding update notification to vendor", [
+                    'vendor_id'   => $hoarding->vendor_id,
+                    'hoarding_id' => $hoarding->id,
+                    'error'       => $e->getMessage()
+                ]);
             }
 
             return ['success' => true, 'hoarding' => $hoarding->fresh('media')];

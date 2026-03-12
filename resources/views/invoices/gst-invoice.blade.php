@@ -1139,19 +1139,19 @@
                     Thankyou for the business!
                 </td>
 
-                <td align="right" style="white-space:nowrap;padding-left:10px;">
+                <!-- <td align="right" style="white-space:nowrap;padding-left:10px;">
 
-<button type="button" onclick="printInvoice()"
-style="background:#ef4444;color:#fff;padding:8px 18px;border-radius:4px;font-size:13px;border:none;cursor:pointer;">
-Print Invoice
-</button>
+                    <button type="button" onclick="printInvoice()"
+                    style="background:#ef4444;color:#fff;padding:8px 18px;border-radius:4px;font-size:13px;border:none;cursor:pointer;">
+                    Print Invoice
+                    </button>
 
-<button type="button" onclick="downloadInvoice()"
-style="background:#f3d1d1;color:#c24141;padding:8px 18px;border-radius:4px;font-size:13px;margin-left:8px;border:none;cursor:pointer;">
-Download
-</button>
+                    <button type="button" onclick="downloadInvoice()"
+                    style="background:#f3d1d1;color:#c24141;padding:8px 18px;border-radius:4px;font-size:13px;margin-left:8px;border:none;cursor:pointer;">
+                    Download
+                    </button>
 
-</td>
+                </td> -->
             </tr>
         </table>
 

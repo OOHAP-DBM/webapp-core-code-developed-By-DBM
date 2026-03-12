@@ -27,7 +27,18 @@ class SearchController extends Controller
                 $join->on('dooh_screens.hoarding_id', '=', 'hoardings.id')
                      ->whereNull('dooh_screens.deleted_at');
             })
-
+            ->leftJoin(
+                DB::raw('(
+                    SELECT hoarding_id,
+                        ROUND(AVG(rating),1) as avg_rating,
+                        COUNT(*) as reviews_count
+                    FROM ratings
+                    GROUP BY hoarding_id
+                ) as rating_stats'),
+                'rating_stats.hoarding_id',
+                '=',
+                'hoardings.id'
+            )
 
             ->where('hoardings.status', 'active')
             ->whereNull('hoardings.deleted_at')
@@ -119,6 +130,8 @@ class SearchController extends Controller
                         ELSE hoardings.base_monthly_price
                     END AS price
                 "),
+                DB::raw("COALESCE(rating_stats.avg_rating,0) as avg_rating"),
+                DB::raw("COALESCE(rating_stats.reviews_count,0) as reviews_count"),
 
             ]);
         if ($request->duration === 'weekly') {
@@ -172,6 +185,10 @@ class SearchController extends Controller
         }
         if ($request->filled('max_price')) {
             $query->having('price', '<=', $request->max_price);
+        }
+        if ($request->filled('rating')) {
+            $minRating = min(array_map('intval', $request->rating));
+            $query->having('avg_rating', '>=', $minRating);
         }
         if ($request->filled('near_me') && $request->filled('lat') && $request->filled('lng')) {
             $lat = (float) $request->lat;

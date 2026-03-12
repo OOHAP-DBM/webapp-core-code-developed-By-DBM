@@ -25,7 +25,8 @@
     {{-- FILTER BAR --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
         <div class="mb-6">
-            <h1 class="text-lg font-bold text-gray-900">
+            <h1 class="md:text-xl font-semibold text-gray-900">
+                {{-- md:text-xl font-semibold text-gray-800 --}}
                 Enquiry & Offers
             </h1>
             <p class="text-sm text-gray-500 mt-1">
@@ -218,7 +219,7 @@
     x-show="openFilter"
     x-cloak
     x-transition
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 md:px-0"
     >
 
 

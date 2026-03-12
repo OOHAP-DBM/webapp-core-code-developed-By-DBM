@@ -4,19 +4,19 @@
 @section('page-title', 'Point of Sale')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div>
-        <h2 class="mb-1">Point of Sale</h2>
-        <p class="text-muted mb-0">Create invoices and manage billing</p>
+        <h2 class="mb-1 text-xl sm:text-2xl font-semibold">Point of Sale</h2>
+        <p class="text-muted mb-0 text-sm">Create invoices and manage billing</p>
     </div>
-    <button class="btn btn-vendor-primary" onclick="startNewInvoice()">
+    <button class="btn btn-vendor-primary w-full sm:w-auto" onclick="startNewInvoice()">
         <i class="bi bi-plus-circle me-2"></i>New Invoice
     </button>
 </div>
 
-<div class="row g-4">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
     <!-- Invoice Creator (Left Side) -->
-    <div class="col-lg-8">
+    <div class="lg:col-span-8">
         <div class="vendor-card">
             <div class="vendor-card-header">
                 <h6 class="vendor-card-title mb-0">Create Invoice</h6>
@@ -41,18 +41,18 @@
                     </div>
 
                     <!-- Invoice Details -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                        <div>
                             <label class="form-label">Invoice Number</label>
                             <input type="text" class="form-control" name="invoice_number" 
                                    value="INV-{{ date('Y') }}-{{ str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT) }}" readonly>
                         </div>
-                        <div class="col-md-4">
+                        <div>
                             <label class="form-label">Invoice Date *</label>
                             <input type="date" class="form-control" name="invoice_date" 
                                    value="{{ date('Y-m-d') }}" required>
                         </div>
-                        <div class="col-md-4">
+                        <div>
                             <label class="form-label">Due Date</label>
                             <input type="date" class="form-control" name="due_date" 
                                    value="{{ date('Y-m-d', strtotime('+7 days')) }}">
@@ -61,15 +61,15 @@
 
                     <!-- Line Items -->
                     <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <label class="form-label mb-0">Invoice Items</label>
                             <button type="button" class="btn btn-sm btn-outline-primary" onclick="addLineItem()">
                                 <i class="bi bi-plus"></i> Add Item
                             </button>
                         </div>
                         
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="lineItemsTable">
+                        <div class="table-responsive overflow-x-auto">
+                            <table class="table table-bordered min-w-[720px]" id="lineItemsTable">
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width: 40%;">Description</th>
@@ -98,8 +98,8 @@
     </div>
 
     <!-- Invoice Summary (Right Side) -->
-    <div class="col-lg-4">
-        <div class="vendor-card sticky-top" style="top: 90px;">
+    <div class="lg:col-span-4">
+        <div class="vendor-card lg:sticky lg:top-24">
             <div class="vendor-card-header">
                 <h6 class="vendor-card-title mb-0">Summary</h6>
             </div>
@@ -172,7 +172,7 @@
 
         <!-- Recent Invoices -->
         <div class="vendor-card mt-3">
-            <div class="vendor-card-header">
+            <div class="vendor-card-header flex items-center justify-between gap-2">
                 <h6 class="vendor-card-title mb-0">Recent Invoices</h6>
                 <a href="{{ route('vendor.pos.history') }}" class="btn btn-sm btn-link">View All</a>
             </div>

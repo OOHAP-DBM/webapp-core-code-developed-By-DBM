@@ -40,9 +40,11 @@
                 </button>
             </div>
             <div x-show="openTop" x-transition class="px-6 py-6 bg-[#f7f7f7]">
-                <div class="grid grid-cols-12 gap-8 bg-[#f7f7f7]">
+                {{-- <div class="grid grid-cols-12 gap-8 bg-[#f7f7f7]"> --}}
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-8 bg-[#f7f7f7]">
+
                     {{-- Column 1: Customer Details --}}
-                    <div class="col-span-4">
+                    <div class="md:col-span-4">
                         <h3 class="text-sm font-semibold mb-4">Customer Details</h3>
                         <div class="space-y-3 text-xs">
                             <div>Name : <span class="font-medium">{{ $enquiry->customer->name ?? '' }}</span></div>
@@ -53,7 +55,7 @@
                         </div>
                     </div>
                     {{-- Column 2: Enquiry Details --}}
-                    <div class="col-span-4">
+                    <div class="md:col-span-4">
                         <h3 class="text-sm font-semibold mb-4">Enquiry Details</h3>
                         <div class="space-y-3 text-xs">
                             <div>Enquiry ID : <span class="font-medium">({{ $enquiry->formatted_id }})</span></div>
@@ -68,10 +70,15 @@
                         </div>
                     </div>
                     {{-- Column 3: Received Date --}}
-                    <div class="col-span-4">
+                    <div class="md:col-span-4">
                         <h3 class="text-sm font-semibold mb-4">Received On</h3>
                         <span class="text-lg font-semibold leading-none">{{ $enquiry->created_at->format('d') }}</span>
                         <span class="text-sm text-gray-500">{{ $enquiry->created_at->format('M y') }}</span>
+                        <br>
+                        <!-- <a href="{{ route('vendor.offers.create', ['enquiry_id' => $enquiry->id]) }}"
+                            class="btn-color mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer">
+                            Create Offer
+                        </a> -->
                     </div>
                 </div>
             </div>

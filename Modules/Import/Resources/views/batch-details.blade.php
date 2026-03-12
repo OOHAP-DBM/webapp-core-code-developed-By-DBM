@@ -5,15 +5,15 @@
 @section('content')
 <div class="mb-6 flex items-center justify-between gap-3 flex-wrap">
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">Import Batch #{{ $batch->id }}</h1>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Import Batch #{{ $batch->id }}</h1>
         <p class="text-gray-600 mt-1">View rows, images, and manage each hoarding record</p>
     </div>
-    <a href="{{ $isAdmin ? route('admin.import.enhanced') : route('vendor.import.enhanced') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+    <a href="{{ $isAdmin ? route('admin.import.enhanced') : route('vendor.import.enhanced') }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
         Back to Import List
     </a>
 </div>
 
-<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+<div id="toastContainer" class="fixed top-4 left-3 right-3 sm:left-auto sm:right-4 z-50 space-y-2"></div>
 
 @php
     $isApprovedBatch = $batch->status === 'approved';
@@ -27,7 +27,7 @@
             <button 
                 id="approveInventoryBtn"
                 data-auto-approve="{{ $autoApprove ? '1' : '0' }}"
-                class="px-4 py-2 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed {{ $isApprovedBatch ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }}"
+                class="w-full sm:w-auto min-h-[44px] px-4 py-2 rounded-lg text-white disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed touch-manipulation {{ $isApprovedBatch ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }}"
                 {{ !in_array($batch->status, ['processed', 'completed']) || $isApprovedBatch ? 'disabled' : '' }}
             >
                 {{ $isApprovedBatch 
@@ -37,7 +37,7 @@
             </button>
         @endif
     </div>
-    <div class="p-4 grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-sm">
         <div><span class="text-gray-500">Batch</span><p class="font-semibold">#{{ $batch->id }}</p></div>
         <div><span class="text-gray-500">Type</span><p class="font-semibold">{{ strtoupper($batch->media_type) }}</p></div>
         <div><span class="text-gray-500">Status</span><p class="font-semibold" id="batchStatusText">{{ $batch->status }}</p></div>
@@ -51,51 +51,51 @@
         <h2 class="text-lg font-semibold text-gray-900">Search & Filters</h2>
     </div>
     <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
-        <input id="searchInput" type="text" placeholder="Search by code / city / image" class="border rounded-lg p-2" />
-        <select id="statusFilter" class="border rounded-lg p-2">
+        <input id="searchInput" type="text" placeholder="Search by code / city / image" class="w-full min-h-[44px] border rounded-lg p-2" />
+        <select id="statusFilter" class="w-full min-h-[44px] border rounded-lg p-2">
             <option value="">All statuses</option>
             <option value="valid">valid</option>
             <option value="invalid">invalid</option>
         </select>
-        <button id="applyFilter" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Apply</button>
-        <button id="resetFilter" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Reset</button>
+        <button id="applyFilter" class="w-full min-h-[44px] px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer touch-manipulation">Apply</button>
+        <button id="resetFilter" class="w-full min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer touch-manipulation">Reset</button>
     </div>
 </div>
 
-<div class="bg-white rounded-xl shadow mb-6">
+<div class="bg-white rounded-xl shadow mb-6 {{ $isApprovedBatch ? 'hidden' : '' }}">
     <div class="p-4 border-b border-gray-200">
         <h2 class="text-lg font-semibold text-gray-900">Create / Edit Row</h2>
     </div>
     <div class="p-4">
         <form id="rowForm" class="grid grid-cols-1 md:grid-cols-4 gap-3">
             <input type="hidden" id="rowId">
-            <input id="rowCode" class="border rounded-lg p-2" placeholder="Code" required>
-            <input id="rowCity" class="border rounded-lg p-2" placeholder="City">
-            <input id="rowWidth" type="number" step="0.01" min="0" class="border rounded-lg p-2" placeholder="Width">
-            <input id="rowHeight" type="number" step="0.01" min="0" class="border rounded-lg p-2" placeholder="Height">
-            <input id="rowImageFile" type="file" accept="image/*" class="border rounded-lg p-2" />
-            <select id="rowStatus" class="border rounded-lg p-2">
+            <input id="rowCode" class="w-full min-h-[44px] border rounded-lg p-2" placeholder="Code" required>
+            <input id="rowCity" class="w-full min-h-[44px] border rounded-lg p-2" placeholder="City">
+            <input id="rowWidth" type="number" step="0.01" min="0" class="w-full min-h-[44px] border rounded-lg p-2" placeholder="Width">
+            <input id="rowHeight" type="number" step="0.01" min="0" class="w-full min-h-[44px] border rounded-lg p-2" placeholder="Height">
+            <input id="rowImageFile" type="file" accept="image/*" class="w-full min-h-[44px] border rounded-lg p-2" />
+            <select id="rowStatus" class="w-full min-h-[44px] border rounded-lg p-2">
                 <option value="valid">valid</option>
                 <option value="invalid">invalid</option>
             </select>
-            <input id="rowErrorMessage" class="border rounded-lg p-2" placeholder="Error Message (optional)">
-            <div class="md:col-span-4 flex items-center gap-3">
+            <input id="rowErrorMessage" class="w-full min-h-[44px] border rounded-lg p-2" placeholder="Error Message (optional)">
+            <div class="md:col-span-4 flex flex-col sm:flex-row sm:items-center gap-3">
                 <img id="rowImagePreview" src="" alt="Selected row image" class="h-16 w-24 object-cover rounded border hidden" />
                 <span id="rowImagePreviewText" class="text-sm text-gray-500">No image selected</span>
             </div>
-            <div class="md:col-span-4 flex gap-2">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Row</button>
-                <button type="button" id="resetRowForm" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Reset</button>
+            <div class="md:col-span-4 flex flex-col sm:flex-row gap-2">
+                <button type="submit" class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer touch-manipulation">Save Row</button>
+                <button type="button" id="resetRowForm" class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer touch-manipulation">Reset</button>
             </div>
         </form>
     </div>
 </div>
 
 <div class="bg-white rounded-xl shadow overflow-hidden">
-    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+    <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 class="text-lg font-semibold text-gray-900">Batch Rows</h2>
-        <div class="flex items-center gap-3">
-            <button id="bulkDeleteBtn" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+        <div class="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-3">
+            <button id="bulkDeleteBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation" disabled>
                 Delete Selected (0)
             </button>
             <p id="paginationInfo" class="text-sm text-gray-500"></p>
@@ -106,7 +106,7 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-3 py-2 text-left text-sm">
-                        <input id="rowsSelectAll" type="checkbox" class="h-4 w-4 rounded border-gray-300" />
+                        <input id="rowsSelectAll" type="checkbox" class="h-4 w-4 rounded border-gray-300 cursor-pointer"  />
                     </th>
                     <th class="px-3 py-2 text-left text-sm">ID</th>
                     <th class="px-3 py-2 text-left text-sm">Image</th>
@@ -122,20 +122,20 @@
             <tbody id="rowsBody" class="divide-y divide-gray-200"></tbody>
         </table>
     </div>
-    <div class="p-4 border-t border-gray-200 flex items-center justify-between gap-3 flex-wrap">
-        <div class="flex items-center gap-2">
+    <div class="p-4 border-t border-gray-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div class="flex items-center justify-between sm:justify-start gap-2">
             <label for="rowsPerPage" class="text-sm text-gray-600">Rows per page</label>
-            <select id="rowsPerPage" class="border rounded-lg p-1.5 text-sm">
+            <select id="rowsPerPage" class="min-h-[44px] border rounded-lg p-1.5 text-sm cursor-pointer">
                 <option value="10">10</option>
                 <option value="15" selected>15</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
             </select>
         </div>
-        <div class="flex items-center gap-2">
-            <button id="rowsPrevBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+        <div class="w-full lg:w-auto flex items-center justify-between lg:justify-start gap-2">
+            <button id="rowsPrevBtn" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation">Previous</button>
             <span id="rowsPageLabel" class="text-sm text-gray-600">Page 1 / 1</span>
-            <button id="rowsNextBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+            <button id="rowsNextBtn" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation">Next</button>
         </div>
     </div>
 </div>
@@ -418,7 +418,7 @@ async function loadRows(page = rowsQueryState.page) {
                     <td class="px-3 py-2 text-sm space-x-2">
                         ${currentBatchStatus === 'approved'
                             ? '<span class="text-gray-400 cursor-not-allowed">Disabled</span>'
-                            : `<button onclick="editRow(${row.id})" class="text-indigo-600 hover:underline">Edit</button><button onclick="deleteRow(${row.id})" class="text-red-600 hover:underline">Delete</button>`}
+                            : `<button onclick="editRow(${row.id})" class="text-indigo-600 hover:underline">Edit</button><button onclick="deleteRow(${row.id})" class="text-red-600 hover:underline cursor-pointer">Delete</button>`}
                     </td>
                 </tr>
             `;
@@ -534,8 +534,8 @@ async function approveInventory() {
             ? 'Do you want to publish this inventory?' 
             : 'Send inventory for admin approval?',
         text: autoApprove 
-            ? 'This will directly publish hoardings to website.'
-            : 'This will submit your hoardings for admin approval.',
+            ? 'Only valid hoardings will be published to the website. Please delete any invalid hoardings before proceeding.'
+            : 'Only valid hoardings will be submitted for admin approval. Please delete any invalid hoardings before proceeding.',
         showCancelButton: true,
         confirmButtonText: autoApprove ? 'Yes, publish' : 'Yes, send',
     })

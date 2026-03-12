@@ -74,6 +74,11 @@
 
 <tr>
     <td style="padding:10px; font-size:13px;"><strong>Booking ID</strong></td>
+    <td style="padding:10px; font-size:13px;">{{ $booking->id }}</td>
+</tr>
+
+<tr>
+    <td style="padding:10px; font-size:13px;"><strong>Invoice No.</strong></td>
     <td style="padding:10px; font-size:13px;">{{ $booking->invoice_number ?? $booking->id }}</td>
 </tr>
 
@@ -143,9 +148,19 @@
             @if(!empty($paymentDetail))
                 <div><strong>UPI ID:</strong> {{ $paymentDetail->upi_id ?? 'N/A' }}</div>
                 @if(!empty($paymentQrUrl))
+                    @php
+                        $emailQrSrc = $paymentQrUrl;
+                        if (!empty($paymentQrAbsolutePath) && file_exists($paymentQrAbsolutePath) && isset($message) && method_exists($message, 'embed')) {
+                            try {
+                                $emailQrSrc = $message->embed($paymentQrAbsolutePath);
+                            } catch (\Throwable $e) {
+                                $emailQrSrc = $paymentQrUrl;
+                            }
+                        }
+                    @endphp
                     <div style="margin-top:8px;">
                         <div style="margin-bottom:6px;"><strong>QR Code:</strong></div>
-                        <img src="{{ $paymentQrUrl }}" alt="UPI QR Code" style="width:130px; height:130px; border:1px solid #e5e7eb; padding:4px; background:#fff;">
+                        <img src="{{ $emailQrSrc }}" alt="UPI QR Code" style="width:130px; height:130px; border:1px solid #e5e7eb; padding:4px; background:#fff;">
                     </div>
                 @endif
             @else

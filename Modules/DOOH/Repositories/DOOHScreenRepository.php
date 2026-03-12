@@ -11,9 +11,40 @@ use Modules\DOOH\Models\DOOHPackage;
 use App\Models\Hoarding;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Intervention\Image\Laravel\Facades\Image;
 
 class DOOHScreenRepository
 {
+    protected array $imageSizes = [100,300,600,1000,1500];
+
+    private function processImage($file, int $screenId): array
+    {
+        $uuid  = Str::uuid()->toString();
+        $year  = now()->format('Y');
+        $month = now()->format('m');
+
+        $base = "dooh/screens/{$year}/{$month}/{$screenId}";
+
+        $paths = [];
+
+        foreach ($this->imageSizes as $size) {
+
+            $image = Image::read($file)
+                ->scaleDown(width:$size)
+                ->toWebp(quality:82);
+
+            $directory = "{$base}/{$size}";
+            $filename  = "{$uuid}.webp";
+
+            $path = "{$directory}/{$filename}";
+
+            Storage::disk('public')->put($path,$image);
+
+            $paths["path_{$size}"] = $path;
+        }
+
+        return $paths;
+    }
 
     public function createStep1($vendor, $data)
     {
@@ -115,41 +146,69 @@ class DOOHScreenRepository
      */
     public function storeMedia(int $screenId, array $mediaFiles): array
     {
-        // Handle empty or null cases
         if (empty($mediaFiles) || !is_array($mediaFiles)) {
             return [];
         }
-        
-        $screen = DOOHScreen::findOrFail($screenId);
-
-        [$shard1, $shard2] = $this->shardPath($screenId);
 
         $savedMedia = [];
 
         foreach ($mediaFiles as $index => $file) {
-            // Skip if not a valid file upload
-            if (!$file || !is_object($file) || !method_exists($file, 'getClientOriginalExtension')) {
+
+            if (!$file || !method_exists($file,'getClientOriginalExtension')) {
                 continue;
             }
-            $uuid = Str::uuid()->toString();
-            $ext  = strtolower($file->getClientOriginalExtension());
 
-            $directory = "dooh/screens/{$shard1}/{$shard2}/{$screenId}";
-            $filename  = "{$uuid}.{$ext}";
+            $ext = strtolower($file->getClientOriginalExtension());
 
-            $path = $file->storeAs($directory, $filename, 'public');
-            $mimeType  = $file->getMimeType(); // most reliable
-            $mediaType = str_starts_with($mimeType, 'video') 
-                ? 'video' 
-                : (in_array($ext, ['mp4', 'mov', 'webm']) ? 'video' : 'image');
+            /*
+            IMAGE
+            */
 
-            $savedMedia[] = DOOHScreenMedia::create([
-                'dooh_screen_id' => $screenId,
-                'file_path'      => $path,
-                'media_type'     => $mediaType,
-                'is_primary'     => $index === 0,
-                'sort_order'     => $index,
-            ]);
+            if (in_array($ext,['jpg','jpeg','png','webp','gif'])) {
+
+                $paths = $this->processImage($file,$screenId);
+
+                $savedMedia[] = DOOHScreenMedia::create([
+                    'dooh_screen_id'=>$screenId,
+                    'file_path'=>$paths['path_1500'],
+
+                    'path_100'=>$paths['path_100'],
+                    'path_300'=>$paths['path_300'],
+                    'path_600'=>$paths['path_600'],
+                    'path_1000'=>$paths['path_1000'],
+                    'path_1500'=>$paths['path_1500'],
+
+                    'media_type'=>'image',
+                    'is_primary'=>$index===0,
+                    'sort_order'=>$index,
+                ]);
+            }
+
+            /*
+            VIDEO (same logic as your working code)
+            */
+
+            elseif (in_array($ext,['mp4','mov','webm'])) {
+
+                $uuid = Str::uuid()->toString();
+
+                $year  = now()->format('Y');
+                $month = now()->format('m');
+
+                $directory = "dooh/screens/{$year}/{$month}/{$screenId}/videos";
+
+                $filename = "{$uuid}.{$ext}";
+
+                $path = $file->storeAs($directory,$filename,'public');
+
+                $savedMedia[] = DOOHScreenMedia::create([
+                    'dooh_screen_id'=>$screenId,
+                    'file_path'=>$path,
+                    'media_type'=>'video',
+                    'is_primary'=>$index===0,
+                    'sort_order'=>$index,
+                ]);
+            }
         }
 
         return $savedMedia;
@@ -158,12 +217,36 @@ class DOOHScreenRepository
     /**
      * Delete media safely
      */
-    public function deleteMedia(DOOHScreenMedia $media): void
+     public function deleteMedia(DOOHScreenMedia $media): void
     {
-        Storage::disk('public')->delete($media->file_path);
+        if($media->media_type === 'image'){
+
+            $paths = [
+                $media->path_100,
+                $media->path_300,
+                $media->path_600,
+                $media->path_1000,
+                $media->path_1500,
+            ];
+
+            foreach($paths as $path){
+
+                if($path && Storage::disk('public')->exists($path)){
+                    Storage::disk('public')->delete($path);
+                }
+
+            }
+
+        } else {
+
+            if(Storage::disk('public')->exists($media->file_path)){
+                Storage::disk('public')->delete($media->file_path);
+            }
+
+        }
+
         $media->delete();
     }
-
     /**
      * Folder sharding to avoid filesystem overload
      */

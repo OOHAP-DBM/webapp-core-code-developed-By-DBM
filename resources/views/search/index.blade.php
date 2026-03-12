@@ -143,7 +143,6 @@
 
 </style>
 @extends('layouts.app')
-@section('title', 'Home - Seamless Hoarding Booking')
 @section('content')
 @php
     $currentView = request('view', 'grid');
@@ -159,9 +158,14 @@
                 <div class="flex items-center gap-6">
                     <!-- Before Tax -->
                     <div class="flex items-center gap-2">
-                        <span>Before Tax</span>
+                        <span id="taxLabel">Before Tax</span>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked class="sr-only peer">
+                            <input 
+                                type="checkbox" 
+                                id="beforeTaxToggle"
+                                checked 
+                                class="sr-only peer"
+                                onchange="toggleTaxView(this)">
                             <div
                                 class="w-9 h-5 rounded-full bg-gray-300
                                     peer-checked:bg-green-400
@@ -295,6 +299,12 @@
 @include('search.Map_View')
 @include('search.filter_modal')
 <script>
+    // GST Configuration
+    const GST_RATE = {{ getGstRate() ?? 0 }};
+    let showBeforeTax = true;
+    
+    console.log('GST Rate loaded:', GST_RATE);
+
     window.mapData = [
         @foreach($results as $item)
             @if(
@@ -322,9 +332,82 @@
         @endforeach
     ];
     let map = null;
-    let mapReady = false;  
-    function initPriceMap() {
+    let mapReady = false;
 
+    /**
+     * Calculate price with tax
+     */
+    function calculatePriceWithTax(price) {
+        if (!price || price <= 0 || GST_RATE <= 0) {
+            return price;
+        }
+        const tax = (price * GST_RATE) / 100;
+        return price + tax;
+    }
+
+    /**
+     * Format price display
+     */
+    function formatPrice(price) {
+        const roundedPrice = Math.round(price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return '₹' + roundedPrice;
+    }
+
+    /**
+     * Toggle tax view
+     */
+    function toggleTaxView(el) {
+        showBeforeTax = el.checked;
+        const taxLabel = document.getElementById('taxLabel');
+        
+        if (showBeforeTax) {
+            taxLabel.textContent = 'Before Tax';
+        } else {
+            // taxLabel.textContent = `After Tax (${GST_RATE}% GST)`;
+          taxLabel.textContent = 'After Tax';
+
+        }
+
+        // Update all price displays
+        updatePriceDisplays();
+    }
+
+    /**
+     * Update all price displays on cards
+     */
+    function updatePriceDisplays() {
+        // Grid/List view cards - use more specific selector
+        const priceElements = document.querySelectorAll('span[data-base-price]');
+        console.log('Found price elements:', priceElements.length);
+        
+        if (priceElements.length === 0) {
+            console.warn('No price elements with data-base-price found. Checking DOM...', document.body.innerHTML.substring(0, 500));
+        }
+        
+        priceElements.forEach((el) => {
+            const rawPrice = el.getAttribute('data-base-price');
+            const basePrice = parseFloat(rawPrice);
+            
+            if (isNaN(basePrice)) {
+                console.warn('Invalid base price:', rawPrice);
+                return;
+            }
+            
+            const displayPrice = showBeforeTax ? basePrice : calculatePriceWithTax(basePrice);
+            const formattedPrice = formatPrice(displayPrice);
+            
+            console.log('Updating price: basePrice=' + basePrice + ', displayPrice=' + displayPrice + ', formatted=' + formattedPrice + ', showBeforeTax=' + showBeforeTax + ', GST_RATE=' + GST_RATE);
+            el.textContent = formattedPrice;
+        });
+
+        // Map view (if open)
+        if (mapReady && window.mapData) {
+            // Re-render map markers with updated prices
+            initPriceMap();
+        }
+    }
+
+    function initPriceMap() {
         if (mapReady) {
             setTimeout(() => map.invalidateSize(), 300);
             return;
@@ -376,8 +459,8 @@
                         </svg>
                     </div>
 
-                    <div class="price font-semibold">
-                        ₹${item.price}
+                    <div class="price font-semibold" data-base-price="${item.price}">
+                        ₹${Math.round(showBeforeTax ? item.price : calculatePriceWithTax(item.price)).toLocaleString('en-IN')}
                     </div>
                     </div>
                 </div>

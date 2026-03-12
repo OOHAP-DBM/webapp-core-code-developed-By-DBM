@@ -88,7 +88,8 @@
                     Dashboard
                 </a>
             </div>
-             <div
+
+            <div
                 x-data="{
                     open: false,
                     init() {
@@ -231,7 +232,7 @@
                                 <rect x="3" y="14" width="7" height="7" rx="1" fill="currentColor"/>
                                 <path opacity="0.5" d="M14 14L21 14M21 14L19 12M21 14L19 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            Import Management
+                            Import Hoardings
                         </div>
                         <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -243,7 +244,7 @@
                             - Inventory Import
                         </a>
                         <a href="{{ route('admin.import.enhanced') }}" class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.import.enhanced') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
-                            - Enhanced Import
+                            - Manage Import
                         </a>
                     </div>
                 </div>
@@ -391,6 +392,45 @@
                 </div>
             </div>        
         </div>
+
+        
+            <div
+                x-data="{ open: {{ request()->routeIs('admin.pos.*') ? 'true' : 'false' }} }"
+                class="space-y-1"
+                >
+                <button
+                    type="button"
+                    @click="open = !open"
+                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 {{ request()->routeIs('admin.pos.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
+                >
+                    <div class="flex items-center gap-3">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M3 10H21" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M8 15H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        POS & Bookings
+                    </div>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div x-show="open" x-collapse x-cloak class="space-y-1 pl-3 mt-1">
+                    <a href="{{ route('admin.pos.dashboard') }}" class="{{ request()->routeIs('admin.pos.dashboard') ? 'child-active bg-emerald-50 text-gray-900 font-semibold pl-5' : 'text-gray-600 hover:bg-gray-50 hover:pl-5' }} block px-6 py-1 text-sm rounded-md transition">
+                        - POS Dashboard
+                    </a>
+                    <a href="{{ route('admin.pos.create') }}" class="{{ request()->routeIs('admin.pos.create') ? 'child-active bg-emerald-50 text-gray-900 font-semibold pl-5' : 'text-gray-600 hover:bg-gray-50 hover:pl-5' }} block px-6 py-1 text-sm rounded-md transition">
+                        - Create POS Booking
+                    </a>
+                    <a href="{{ route('admin.pos.list') }}" class="{{ request()->routeIs('admin.pos.list') ? 'child-active bg-emerald-50 text-gray-900 font-semibold pl-5' : 'text-gray-600 hover:bg-gray-50 hover:pl-5' }} block px-6 py-1 text-sm rounded-md transition">
+                        - POS Booking List
+                    </a>
+                    <a href="{{ route('admin.pos.customers') }}" class="{{ request()->routeIs('admin.pos.customers') || request()->routeIs('admin.pos.customers.show') ? 'child-active bg-emerald-50 text-gray-900 font-semibold pl-5' : 'text-gray-600 hover:bg-gray-50 hover:pl-5' }} block px-6 py-1 text-sm rounded-md transition">
+                        - POS Customers
+                    </a>
+                </div>
+            </div>
       
         <div class="mt-6 mb-2 text-xs font-bold tracking-wider px-2">PEOPLES</div>
         <div class="space-y-1"> 
@@ -542,6 +582,10 @@
                     <a href="{{ route('admin.settings.hoarding_auto_approval.edit') }}"
                        class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.settings.hoarding_auto_approval.edit') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
                         - Hoarding Auto Approval
+                    </a>
+                    <a href="{{ route('admin.settings.index', ['group' => 'sms']) }}"
+                       class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.settings.index') && request()->query('group') === 'sms' ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
+                        - SMS Gateway Configuration
                     </a>
                 </div>
             </div>

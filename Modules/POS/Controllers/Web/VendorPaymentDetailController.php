@@ -9,12 +9,82 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Modules\POS\Models\VendorPaymentDetail;
+use App\Models\User;
 
 class VendorPaymentDetailController extends Controller
 {
+    private function resolveEffectiveVendorId(Request $request): int
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            abort(401, 'Unauthenticated');
+        }
+
+        $isAdminContext = method_exists($user, 'hasAnyRole')
+            && $user->hasAnyRole(['admin', 'superadmin', 'super_admin']);
+
+        if (!$isAdminContext) {
+            return (int) $user->id;
+        }
+
+        $sessionKey = 'pos.selected_vendor_id';
+        $requestedVendorId = $request->input('vendor_id') ?? $request->query('vendor_id');
+
+        if (!empty($requestedVendorId)) {
+            $vendor = User::query()
+                ->whereKey((int) $requestedVendorId)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'vendor');
+                })
+                ->first();
+
+            if (!$vendor) {
+                abort(422, 'Invalid vendor selected for POS context.');
+            }
+
+            if ($request->hasSession()) {
+                $request->session()->put($sessionKey, (int) $vendor->id);
+            }
+
+            return (int) $vendor->id;
+        }
+
+        $sessionVendorId = $request->hasSession() ? $request->session()->get($sessionKey) : null;
+        if (!empty($sessionVendorId)) {
+            $exists = User::query()
+                ->whereKey((int) $sessionVendorId)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'vendor');
+                })
+                ->exists();
+
+            if ($exists) {
+                return (int) $sessionVendorId;
+            }
+        }
+
+        $fallbackVendorId = User::query()
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'vendor');
+            })
+            ->orderBy('id')
+            ->value('id');
+
+        if (!$fallbackVendorId) {
+            abort(422, 'No vendor available for POS context.');
+        }
+
+        if ($request->hasSession()) {
+            $request->session()->put($sessionKey, (int) $fallbackVendorId);
+        }
+
+        return (int) $fallbackVendorId;
+    }
+
     public function __construct()
     {
-        $this->middleware(['auth', 'active_role:vendor']);
+        $this->middleware(['auth', 'role:vendor|admin|superadmin']);
     }
 
     /**
@@ -24,7 +94,7 @@ class VendorPaymentDetailController extends Controller
     public function show(Request $request): JsonResponse
     {
         $type     = $request->get('type', 'bank');
-        $vendorId = Auth::id();
+        $vendorId = $this->resolveEffectiveVendorId($request);
 
         $detail = VendorPaymentDetail::where('vendor_id', $vendorId)
             ->where('type', $type)
@@ -37,7 +107,8 @@ class VendorPaymentDetailController extends Controller
         // Append full URL for QR image
         $data = $detail->toArray();
         if (!empty($data['qr_image_path'])) {
-            $data['qr_image_url'] = Storage::disk('public')->url($data['qr_image_path']);
+            $data['qr_image_path'] = $detail->normalizedQrImagePath() ?? $data['qr_image_path'];
+            $data['qr_image_url'] = $detail->qrImageUrl();
         }
 
         return response()->json(['success' => true, 'data' => $data]);
@@ -51,7 +122,7 @@ class VendorPaymentDetailController extends Controller
     public function store(Request $request): JsonResponse
     {
         $type     = $request->input('type');
-        $vendorId = Auth::id();
+        $vendorId = $this->resolveEffectiveVendorId($request);
 
         if ($type === 'bank') {
             $request->validate([
@@ -85,12 +156,13 @@ class VendorPaymentDetailController extends Controller
 
             if ($request->hasFile('qr_image')) {
                 // Delete old QR if exists
-                if ($existing && $existing->qr_image_path && Storage::disk('public')->exists($existing->qr_image_path)) {
-                    Storage::disk('public')->delete($existing->qr_image_path);
+                $existingQrPath = $existing?->normalizedQrImagePath();
+                if ($existingQrPath && Storage::disk('public')->exists($existingQrPath)) {
+                    Storage::disk('public')->delete($existingQrPath);
                 }
                 $qrPath = $request->file('qr_image')->store("vendor_qr/{$vendorId}", 'public');
             } else {
-                $qrPath = $existing?->qr_image_path;
+                $qrPath = $existing?->normalizedQrImagePath();
             }
 
             $detail = VendorPaymentDetail::updateOrCreate(
@@ -102,7 +174,12 @@ class VendorPaymentDetailController extends Controller
             );
 
             $data                = $detail->toArray();
-            $data['qr_image_url'] = $qrPath ? Storage::disk('public')->url($qrPath) : null;
+            if ($qrPath) {
+                $data['qr_image_path'] = $detail->normalizedQrImagePath() ?? $data['qr_image_path'];
+                $data['qr_image_url'] = $detail->qrImageUrl();
+            } else {
+                $data['qr_image_url'] = null;
+            }
 
             return response()->json(['success' => true, 'data' => $data]);
         }

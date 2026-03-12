@@ -36,6 +36,7 @@ use Kreait\Firebase\Contract\Messaging;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 
+
 class AppServiceProvider extends ServiceProvider
 {
     /**

@@ -102,28 +102,31 @@ window.selectedPackageState = {
     /* ---------- GLOBAL CLICK HANDLER (CARDS + LINKS) ---------- */
 
     document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.enquiry-btn');
-        const basePrice = btn.dataset.basePrice; // monthly_price ya base_monthly_price
-        const baseMonthlyPrice = btn.dataset.baseMonthlyPrice; // hamesha base_monthly_price
-        if (!btn) return;
-        e.preventDefault();
-        e.stopPropagation();
-        // Defensive: Only open modal if all required data is present
-        const id = btn.dataset.hoardingId;
-        const hoardingType = btn.dataset.hoardingType;
-        if (!id || !basePrice || !hoardingType) {
-            console.error('[ERROR] Missing required data attributes for enquiry modal:', { id, basePrice, hoardingType });
-            return;
-        }
-        openEnquiryModal({
-            id: id,
-            basePrice: Number(basePrice),
-            baseMonthlyPrice: Number(btn.dataset.baseMonthlyPrice || 0), // <-- yeh line honi chahiye
-            graceDays: Number(btn.dataset.graceDays || 0),
-            type: hoardingType,
-            count: 1
-        });
+    const btn = e.target.closest('.enquiry-btn');
+    if (!btn) return; // ← pehle check karo, phir use karo
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const id              = btn.dataset.hoardingId;
+    const basePrice       = btn.dataset.basePrice;
+    const baseMonthlyPrice = btn.dataset.baseMonthlyPrice;
+    const hoardingType    = btn.dataset.hoardingType;
+
+    if (!id || !basePrice || !hoardingType) {
+        console.error('[ERROR] Missing required data attributes:', { id, basePrice, hoardingType });
+        return;
+    }
+
+    openEnquiryModal({
+        id:               id,
+        basePrice:        Number(basePrice),
+        baseMonthlyPrice: Number(baseMonthlyPrice || 0),
+        graceDays:        Number(btn.dataset.graceDays || 0),
+        type:             hoardingType,
+        count:            1
     });
+});
    
 })();
 

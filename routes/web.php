@@ -10,6 +10,7 @@ use Modules\Cart\Controllers\Web\CartController;
 use Modules\Enquiries\Controllers\Web\DirectEnquiryController;
 use Modules\POS\Controllers\Api\POSBookingController;
 use App\Http\Controllers\Web\Customer\ShortlistController;
+use App\Http\Controllers\Web\Customer\RatingController;
 use Modules\Auth\Http\Controllers\MobileForgotPasswordController;
 use App\Http\Controllers\GeocodeController;
 
@@ -29,11 +30,15 @@ use App\Http\Controllers\GeocodeController;
 
 
 Route::get('/api/geocode', [GeocodeController::class, 'search']);
+Route::get('/api/pincode', [GeocodeController::class, 'pincode']);
 Route::get('/api/reverse-geocode', [GeocodeController::class, 'reverse']);
 // SEO-friendly hoarding search route (pattern controlled by config/seo_search_routes.php)
 $seoSearchPattern = config('seo_search_routes.pattern', '/billboard-advertising/{city}/{area?}');
 Route::get($seoSearchPattern, [SearchController::class, 'seoSearch'])->name('search.seo');
 Route::middleware(['auth'])->get('/notification/{notification}', [App\Http\Controllers\NotificationRedirectController::class, 'open'])->name('notifications.open');
+Route::middleware(['auth', 'role:admin|superadmin'])
+    ->get('/admin/notification/{notification}', [App\Http\Controllers\NotificationRedirectController::class, 'open'])
+    ->name('admin.notifications.open');
 Route::get('/', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
@@ -51,16 +56,10 @@ Route::get('/brand/oohapp-logo', function () {
 
 
 // Admin Login Routes (do NOT affect /login)
-Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest:admin')->group(function () {
-    Route::get('/login', [Modules\Auth\Http\Controllers\AdminLoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [Modules\Auth\Http\Controllers\AdminLoginController::class, 'login'])->name('login.submit');
+Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest')->group(function () {
+    Route::get('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'login'])->name('login.submit');
 });
-
-// Admin Protected Routes
-// Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware(['auth:admin', 'admin'])->group(function () {
-//     Route::get('/dashboard', [Modules\Admin\Controllers\Web\AdminDashboardController::class, 'index'])->name('dashboard');
-//     // ...other admin routes...
-// });
 /*
 |--------------------------------------------------------------------------
 | Direct Enquiry Routes
@@ -94,7 +93,7 @@ Route::prefix('enquiry')->name('direct.enquiry.')->group(function () {
 });
 
 // Admin routes (requires authentication and admin role)
-Route::prefix('admin/direct-enquiries')->name('admin.direct-enquiries.')->middleware(['auth', 'role:admin,superadmin'])->group(function () {
+Route::prefix('admin/direct-enquiries')->name('admin.direct-enquiries.')->middleware(['auth', 'role:admin|superadmin'])->group(function () {
 
     // List all enquiries
     Route::get('/', [DirectEnquiryController::class, 'index'])
@@ -163,10 +162,14 @@ Route::prefix('vendor/commission')->name('vendor.commission.')->middleware(['aut
 
 
 // ADMIN POS WEB ROUTES
-Route::prefix('admin/pos')->middleware(['auth', 'role:admin'])->name('admin.pos.')->group(function () {
+Route::prefix('admin/pos')->middleware(['auth', 'role:admin|superadmin|super_admin'])->name('admin.pos.')->group(function () {
     Route::get('/dashboard', [\Modules\POS\Controllers\Web\AdminPosController::class, 'dashboard'])->name('dashboard');
     Route::get('/bookings', [\Modules\POS\Controllers\Web\AdminPosController::class, 'index'])->name('list');
     Route::get('/create', [\Modules\POS\Controllers\Web\AdminPosController::class, 'create'])->name('create');
+    Route::get('/bookings/{id}', [\Modules\POS\Controllers\Web\AdminPosController::class, 'show'])->name('show');
+    Route::get('/bookings/{id}/edit', [\Modules\POS\Controllers\Web\AdminPosController::class, 'edit'])->name('edit');
+    Route::get('/customers', [\Modules\POS\Controllers\Web\AdminPosController::class, 'customers'])->name('customers');
+    Route::get('/customers/{id}', [\Modules\POS\Controllers\Web\AdminPosController::class, 'showCustomer'])->name('customers.show');
     // Extend: edit, view, etc. as needed
 });
 
@@ -197,6 +200,7 @@ Route::prefix('vendor/pos')->middleware(['auth', 'role:vendor'])->name('vendor.p
         Route::get('/hoardings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getHoardings'])->name('hoardings');
 
         Route::get('/customers', [\Modules\POS\Controllers\Web\VendorPosController::class, 'searchCustomers'])->name('customers.search');
+        Route::get('/customers/{id}', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getCustomerById'])->name('customers.get');
         Route::post('/customers', [\Modules\POS\Controllers\Web\VendorPosController::class, 'createCustomer'])->name('customers.store');
         Route::post('/calculate-price', [\Modules\POS\Controllers\Web\VendorPosController::class, 'calculatePrice'])->name('calculate_price');
 
@@ -213,6 +217,15 @@ Route::prefix('vendor/pos')->middleware(['auth', 'role:vendor'])->name('vendor.p
 Route::get('/hoardings/{slug}', [\App\Http\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
 // 301 Redirect from old ID-based hoarding URLs to new slug-based URLs
 Route::get('/hoardings/{id}', function ($id) {
+    $hoarding = \App\Models\Hoarding::find($id);
+    if ($hoarding && $hoarding->slug) {
+        return redirect()->route('hoardings.show', ['slug' => $hoarding->slug], 301);
+    }
+    abort(404);
+});
+
+// Short URL redirect: /h/{id} -> /hoardings/{slug}
+Route::get('/h/{id}', function ($id) {
     $hoarding = \App\Models\Hoarding::find($id);
     if ($hoarding && $hoarding->slug) {
         return redirect()->route('hoardings.show', ['slug' => $hoarding->slug], 301);
@@ -280,6 +293,7 @@ Route::get('/refund-cancellation-policy', [PageController::class, 'refund'])->na
 Route::middleware(['auth'])->group(function () {
     Route::get('/shortlist', [ShortlistController::class, 'index'])->name('shortlist');
     Route::post('/shortlist/toggle/{hoarding}', [ShortlistController::class, 'toggle'])->name('shortlist.toggle');
+    Route::post('/ratings/store', [RatingController::class, 'store'])->name('ratings.store');
 });
 
 
@@ -326,6 +340,40 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('/logout', [Modules\Auth\Http\Controllers\LoginController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Role-aware POS booking deep-link resolver for email/in-app action URLs.
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pos/bookings/{id}/view', function ($id) {
+        $user = auth()->user();
+
+        if ($user && method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'superadmin', 'super_admin'])) {
+            return redirect()->route('admin.pos.show', ['id' => $id]);
+        }
+
+        if ($user && method_exists($user, 'hasRole') && $user->hasRole('vendor')) {
+            if (Route::has('vendor.pos.bookings.show')) {
+                return redirect()->route('vendor.pos.bookings.show', ['id' => $id]);
+            }
+
+            return redirect('/vendor/pos/bookings/' . $id);
+        }
+
+        if ($user && method_exists($user, 'hasRole') && $user->hasRole('customer')) {
+            if (Route::has('customer.pos.show')) {
+                return redirect()->route('customer.pos.show', ['id' => $id]);
+            }
+
+            return redirect()->route('customer.bookings.show', ['id' => $id]);
+        }
+
+        abort(403, 'User does not have the right roles.');
+    })->name('pos.bookings.redirect');
+
+    // Backward-compatible path for older hold-expiry emails.
+    Route::get('/customer/pos/bookings/{id}', function ($id) {
+        return redirect()->route('pos.bookings.redirect', ['id' => $id]);
+    })->name('customer.pos.bookings.legacy');
+});
 
 // ============================================
 // VENDOR ONBOARDING (PROMPT 112)
@@ -399,6 +447,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     // Home/Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('dashboard');
+    // POS Booking
+    Route::get('/pos-booking', [\App\Http\Controllers\Web\Customer\PosBookingController::class, 'index'])->name('pos.booking');
+    Route::get('/pos-booking/{booking}', [\App\Http\Controllers\Web\Customer\PosBookingController::class, 'show'])->name('pos.booking.show');
     // Route::get('/home', [\App\Http\Controllers\Web\Customer\HomeController::class, 'index'])->name('home');
     Route::post('/customer/profile/send-otp', [ProfileController::class, 'sendOtp'])->name('profile.send-otp');
     Route::post('/customer/profile/verify-otp', [ProfileController::class, 'verifyOtp'])->name('profile.verify-otp');
@@ -436,6 +487,20 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/orders/{id}', [\App\Http\Controllers\Web\Customer\OrderController::class, 'show'])->name('orders.show');
     Route::get('/bookings', [\App\Http\Controllers\Web\Customer\OrderController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{id}', [\App\Http\Controllers\Web\Customer\OrderController::class, 'show'])->name('bookings.show');
+
+    // Customer POS booking details (used by hold-expiry email "View Booking").
+    Route::prefix('pos')->name('pos.')->group(function () {
+        Route::get('/bookings/{id}/view', function ($id) {
+            return view('vendor.pos.show', [
+                'bookingId' => (int) $id,
+                'posBasePath' => '/customer/pos',
+                'posRoutePrefix' => 'customer',
+            ]);
+        })->name('show');
+
+        Route::get('/api/bookings/{bookingId}', [\Modules\POS\Controllers\Api\POSBookingController::class, 'showForCustomer'])
+            ->name('api.show');
+    });
 
     // Payments
     Route::get('/payments', [\App\Http\Controllers\Web\Customer\PaymentController::class, 'index'])->name('payments.index');
@@ -567,9 +632,31 @@ Route::prefix('/vendor/pos/api/')
 
         Route::get('/bookings/{bookingId}', [POSBookingController::class, 'show']);
         Route::post('/bookings/{bookingId}/mark-paid', [POSBookingController::class, 'markAsPaid']);
-        Route::post('/bookings/{bookingId}/release', [POSBookingController::class, 'release']);
+        Route::post('/bookings/{bookingId}/release', [POSBookingController::class, 'releaseBooking']);
         Route::post('/bookings/{bookingId}/send-reminder', [POSBookingController::class, 'sendReminder']);
         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
+        Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+    });
+
+Route::prefix('/admin/pos/api/')
+    ->middleware(['web', 'auth', 'role:admin|superadmin'])
+    ->group(function () {
+
+        Route::get('/settings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getSettings']);
+        Route::get('/hoardings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getHoardings']);
+        Route::get('/customers', [\Modules\POS\Controllers\Web\VendorPosController::class, 'searchCustomers']);
+        Route::post('/customers', [\Modules\POS\Controllers\Web\VendorPosController::class, 'createCustomer']);
+        Route::post('/calculate-price', [\Modules\POS\Controllers\Web\VendorPosController::class, 'calculatePrice']);
+        Route::post('/bookings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'createBooking']);
+        Route::get('/dashboard', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getDashboardStats']);
+        Route::get('/bookings', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getBookingsList']);
+        Route::get('/pending-payments', [\Modules\POS\Controllers\Web\VendorPosController::class, 'getPendingPayments']);
+
+        Route::get('/bookings/{bookingId}', [POSBookingController::class, 'show']);
+        Route::post('/bookings/{bookingId}/mark-paid', [POSBookingController::class, 'markAsPaid']);
+        Route::post('/bookings/{bookingId}/release', [POSBookingController::class, 'releaseBooking']);
+        Route::post('/bookings/{bookingId}/send-reminder', [POSBookingController::class, 'sendReminder']);
+        Route::get('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
     });
 
@@ -583,6 +670,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/enquiries/{id}', [\App\Http\Controllers\Vendor\EnquiryController::class, 'show'])->name('enquiries.show');
     // Dashboard (PROMPT 26)
     Route::get('/dashboard', [\App\Http\Controllers\Vendor\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('vendor/transactions/{id}/invoice', [\App\Http\Controllers\Vendor\DashboardController::class, 'downloadInvoice'])->name('transactions.invoice');
     Route::get('/notifications', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [\App\Http\Controllers\Web\Vendor\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
@@ -602,17 +690,17 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         Route::put('dooh/{id}', [\Modules\DOOH\Controllers\Vendor\DOOHController::class, 'update'])->name('dooh.update');
         // Hoarding Media Management (PROMPT 59)
         Route::prefix('hoardings/{hoarding}/media')->name('hoardings.media.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'index'])->name('index');
-            Route::post('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadHero'])->name('upload-hero');
-            Route::post('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadNight'])->name('upload-night');
-            Route::post('/gallery', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadGallery'])->name('upload-gallery');
-            Route::post('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadSizeOverlay'])->name('upload-size-overlay');
-            Route::delete('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteHero'])->name('delete-hero');
-            Route::delete('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteNight'])->name('delete-night');
-            Route::delete('/gallery/{mediaId}', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteGalleryImage'])->name('delete-gallery');
-            Route::delete('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteSizeOverlay'])->name('delete-size-overlay');
-            Route::post('/gallery/reorder', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'reorderGallery'])->name('reorder-gallery');
-            Route::get('/stats', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'stats'])->name('stats');
+            // Route::get('/', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'index'])->name('index');
+            // Route::post('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadHero'])->name('upload-hero');
+            // Route::post('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadNight'])->name('upload-night');
+            // Route::post('/gallery', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadGallery'])->name('upload-gallery');
+            // Route::post('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'uploadSizeOverlay'])->name('upload-size-overlay');
+            // Route::delete('/hero', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteHero'])->name('delete-hero');
+            // Route::delete('/night', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteNight'])->name('delete-night');
+            // Route::delete('/gallery/{mediaId}', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteGalleryImage'])->name('delete-gallery');
+            // Route::delete('/size-overlay', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'deleteSizeOverlay'])->name('delete-size-overlay');
+            // Route::post('/gallery/reorder', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'reorderGallery'])->name('reorder-gallery');
+            // Route::get('/stats', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'stats'])->name('stats');
         });
         // Offers
         Route::get('/offers', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'index'])->name('offers.index');
@@ -621,10 +709,10 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         Route::get('/offers/{id}', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'show'])->name('offers.show');
 
         // Quotations
-        Route::get('/quotations', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'index'])->name('quotations.index');
-        Route::get('/quotations/create', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'create'])->name('quotations.create');
-        Route::post('/quotations', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'store'])->name('quotations.store');
-        Route::get('/quotations/{id}', [\App\Http\Controllers\Web\Vendor\QuotationController::class, 'show'])->name('quotations.show');
+        Route::get('/quotations', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'index'])->name('quotations.index');
+        Route::get('/quotations/create', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'create'])->name('quotations.create');
+        Route::post('/quotations', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'store'])->name('quotations.store');
+        Route::get('/quotations/{id}', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'show'])->name('quotations.show');
 
         // Threads
         Route::get('/threads', [\App\Http\Controllers\Vendor\ThreadController::class, 'index'])->name('threads.index');
@@ -673,7 +761,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::post('/{id}/cancel', [\App\Http\Controllers\Vendor\BookingController::class, 'cancel'])->name('cancel');
             Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\BookingController::class, 'updateStatus'])->name('update-status');
         });
-        Route::post('/bookings/{id}/approve-pod', [\App\Http\Controllers\Web\Vendor\BookingController::class, 'approvePOD'])->name('bookings.approve-pod');
+        Route::post('/bookings/{id}/approve-pod', [\App\Http\Controllers\Vendor\BookingController::class, 'approvePOD'])->name('bookings.approve-pod');
 
         // Booking Pipeline Board (PROMPT 111 - Kanban View)
         Route::prefix('pipeline')->name('pipeline.')->group(function () {
@@ -687,9 +775,9 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         });
 
         // Hoarding Availability Calendar (PROMPT 49)
-        Route::get('/hoarding/{id}/calendar', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'show'])->name('hoarding.calendar');
-        Route::get('/hoarding/{id}/calendar/data', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'getCalendarData'])->name('hoarding.calendar.data');
-        Route::get('/hoarding/{id}/calendar/stats', [\App\Http\Controllers\Vendor\HoardingCalendarController::class, 'getStats'])->name('hoarding.calendar.stats');
+        Route::get('/hoarding/{id}/calendar', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingCalendarController::class, 'show'])->name('hoarding.calendar');
+        Route::get('/hoarding/{id}/calendar/data', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingCalendarController::class, 'getCalendarData'])->name('hoarding.calendar.data');
+        Route::get('/hoarding/{id}/calendar/stats', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingCalendarController::class, 'getStats'])->name('hoarding.calendar.stats');
 
         // Task Management (PROMPT 26)
         Route::get('/tasks', [\App\Http\Controllers\Vendor\TaskController::class, 'index'])->name('tasks.index');
@@ -736,9 +824,9 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\POSController::class, 'updateStatus'])->name('update-status');
 
             // Legacy routes
-            Route::get('/dashboard', function () {
-                return view('vendor.pos.dashboard');
-            })->name('dashboard');
+            // Route::get('/dashboard', function () {
+            //     return view('vendor.pos.dashboard');
+            // })->name('dashboard');
             Route::get('/create', function () {
                 return view('vendor.pos.create');
             })->name('create');
@@ -748,8 +836,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::get('/bookings/{id}', function ($bookingId) {
                 return view('vendor.pos.show', compact('bookingId'));
             })->name('bookings.show');
-                Route::get('/bookings/{id}/invoice', [\Modules\POS\Controllers\Web\VendorPosController::class, 'viewInvoice'])
-                    ->name('bookings.invoice');
+            Route::get('/bookings/{id}/invoice', [\Modules\POS\Controllers\Web\VendorPosController::class, 'viewInvoice'])
+                ->name('bookings.invoice');
         });
 
         // Reports
@@ -779,13 +867,16 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::post('/profile/send-otp', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'sendProfileOtp'])->name('profile.send-otp');
     Route::post('/profile/verify-otp', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'verifyProfileOtp'])->name('profile.verify-otp');
     Route::post('/delete/send-otp', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'sendDeleteOtp'])->name('profile.delete.sendOtp');
+    Route::post('/reviews/{rating}/reply', [\App\Http\Controllers\Vendor\ReviewController::class, 'reply'])->name('reviews.reply');
+    Route::delete('/reviews/{rating}', [\App\Http\Controllers\Vendor\ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::post('/reviews/bulk-delete', [\App\Http\Controllers\Vendor\ReviewController::class, 'bulkDelete'])->name('reviews.bulk-delete');
 }); // End of vendor middleware group
 Route::get('/avatar/{user}', [\App\Http\Controllers\Web\Vendor\ProfileController::class, 'viewAvatar'])->name('view-avatar');
 
 // ============================================
 // ADMIN PANEL (Authenticated)
 // ============================================
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\Modules\Admin\Controllers\Web\AdminDashboardController::class, 'index'])->name('dashboard');
 
     // Users Management
@@ -1218,24 +1309,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin
     Route::get('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'edit'])->name('hoarding_auto_approval.edit');
     Route::post('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'update'])->name('hoarding_auto_approval.update');
 });
-
-
-use App\Services\FcmService;
-use Kreait\Firebase\Exception\Messaging\MessagingException;
-
-Route::get('/test-fcm', function (FcmService $fcm) {
-    try {
-        return $fcm->sendToToken(
-            'crMc4PvlSFScBNaXCD5ObT:APA91bGRHvWTCaq_Bhr8H7lPO5Gk6b8afJ5M6_FmS-A80ODDqx8BOGNkR4Xn4tcf7Nx72vKa1wixnrW0EmPt0YtR78EzgaegkX2xAKYuaMDmw9TQlEYOzfw',
-            'Test Notification',
-            'Firebase is working 🚀',
-            ['type' => 'test']
-        );
-    } catch (MessagingException $e) {
-        // Firebase messaging error
-        return response()->json(['error' => $e->getMessage()], 500);
-    } catch (\Exception $e) {
-        // Other errors (e.g., credentials file not found)
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
+Route::get('/twilio-test', function () {
+    $service = app(\App\Services\Whatsapp\TwilioWhatsappService::class);
+    return $service->send('911236547890', 'Test message');
 });

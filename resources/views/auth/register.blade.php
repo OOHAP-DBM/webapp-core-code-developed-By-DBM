@@ -106,6 +106,11 @@ html, body {
 .otp-wrapper {
     margin-top: -250px !important; 
 }
+@media (max-width: 768px) {
+    .otp-wrapper {
+        margin-left: 70px !important;
+    }
+}
 
 .otp-text {
     text-align: left;

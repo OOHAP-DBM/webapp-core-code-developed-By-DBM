@@ -44,15 +44,12 @@ class EnquiryController extends Controller
         }
 
         $searchId = null;
-
-        /* ---------------- SEARCH BY ID ONLY ---------------- */
         if ($request->filled('search')) {
-            $search = trim($request->search);
-            $searchId = preg_replace('/\D/', '', $search);
+            $searchId = preg_replace('/\D/', '', trim($request->search));
             if ($searchId !== '') {
                 $query->where('id', (int) $searchId);
                 $query->orderByRaw(
-                    "CASE WHEN id = ? THEN 0 ELSE 1 END",
+                    'CASE WHEN id = ? THEN 0 ELSE 1 END',
                     [(int) $searchId]
                 );
             }

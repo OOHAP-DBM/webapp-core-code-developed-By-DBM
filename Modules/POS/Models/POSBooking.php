@@ -308,7 +308,7 @@ class POSBooking extends Model
 
     public function getBookingsEligibleForWhatsappReminder(): Collection
     {
-        return PosBooking::query()
+        return POSBooking::query()
             ->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_PARTIAL_PAID])
             ->where('payment_status', '!=', self::PAYMENT_STATUS_PAID)
             ->where('reminder_count', '<', 3)

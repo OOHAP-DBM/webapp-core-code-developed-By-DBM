@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Storage;
 use App\Services\Whatsapp\TwilioWhatsappService;
 use Modules\POS\Models\POSBooking;
 use Modules\POS\Events\PosCustomerCreated;
+use App\Notifications\PosBookingHoldExpiredNotification;
+use Illuminate\Support\Facades\Notification;
+
 class VendorPosController extends Controller
 {
     protected POSBookingService $posBookingService;
@@ -30,9 +33,130 @@ class VendorPosController extends Controller
         POSBookingService $posBookingService,
         HoardingAvailabilityService $availabilityService
     ) {
-        $this->middleware(['auth', 'active_role:vendor']);
+        $this->middleware(['auth', 'role:vendor|admin|superadmin']);
         $this->posBookingService = $posBookingService;
         $this->availabilityService = $availabilityService;
+    }
+
+    private function resolveEffectiveVendorId(?Request $request = null): int
+    {
+        $request = $request ?? request();
+        $user = Auth::user();
+
+        if (!$user) {
+            abort(401, 'Unauthenticated');
+        }
+
+        $isAdminContext = method_exists($user, 'hasAnyRole')
+            && $user->hasAnyRole(['admin', 'superadmin', 'super_admin']);
+
+        if (!$isAdminContext) {
+            return (int) $user->id;
+        }
+
+        $sessionKey = 'pos.selected_vendor_id';
+        $requestedVendorId = $request->input('vendor_id') ?? $request->query('vendor_id');
+
+        if (!empty($requestedVendorId)) {
+            $vendor = User::query()
+                ->whereKey((int) $requestedVendorId)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'vendor');
+                })
+                ->first();
+
+            if (!$vendor) {
+                abort(422, 'Invalid vendor selected for POS context.');
+            }
+
+            if ($request->hasSession()) {
+                $request->session()->put($sessionKey, (int) $vendor->id);
+            }
+
+            return (int) $vendor->id;
+        }
+
+        $sessionVendorId = $request->hasSession() ? $request->session()->get($sessionKey) : null;
+        if (!empty($sessionVendorId)) {
+            $exists = User::query()
+                ->whereKey((int) $sessionVendorId)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'vendor');
+                })
+                ->exists();
+
+            if ($exists) {
+                return (int) $sessionVendorId;
+            }
+        }
+
+        $fallbackVendorId = User::query()
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'vendor');
+            })
+            ->orderBy('id')
+            ->value('id');
+
+        if (!$fallbackVendorId) {
+            abort(422, 'No vendor available for POS context.');
+        }
+
+        if ($request->hasSession()) {
+            $request->session()->put($sessionKey, (int) $fallbackVendorId);
+        }
+
+        return (int) $fallbackVendorId;
+    }
+
+    private function resolveAdminBookingScopeContext(?Request $request = null): array
+    {
+        $request = $request ?? request();
+        $user = Auth::user();
+
+        if (!$user) {
+            abort(401, 'Unauthenticated');
+        }
+
+        $isAdminContext = method_exists($user, 'hasAnyRole')
+            && $user->hasAnyRole(['admin', 'superadmin', 'super_admin']);
+
+        if (!$isAdminContext) {
+            return [
+                'scope' => 'mine',
+                'vendor_id' => (int) $user->id,
+                'is_admin' => false,
+            ];
+        }
+
+        $scope = strtolower((string) ($request->input('booking_scope')
+            ?? $request->query('booking_scope')
+            ?? ($request->hasSession() ? $request->session()->get('pos.admin_booking_scope', 'vendor') : 'vendor')));
+
+        if (!in_array($scope, ['overall', 'mine', 'vendor'], true)) {
+            $scope = 'vendor';
+        }
+
+        if ($scope === 'overall') {
+            return [
+                'scope' => 'overall',
+                'vendor_id' => null,
+                'is_admin' => true,
+            ];
+        }
+
+        if ($scope === 'mine') {
+            return [
+                'scope' => 'mine',
+                'vendor_id' => (int) $user->id,
+                'is_admin' => true,
+            ];
+        }
+
+        return [
+            'scope' => 'vendor',
+            'vendor_id' => $this->resolveEffectiveVendorId($request),
+            'is_admin' => true,
+        ];
     }
 
     /**
@@ -49,6 +173,7 @@ class VendorPosController extends Controller
      */
     public function create(Request $request)
     {
+        // Do not use or set any vendor context/session for create POS booking
         return view('vendor.pos.create');
     }
 
@@ -61,12 +186,80 @@ class VendorPosController extends Controller
     }
 
     /**
+     * Show POS customers list page for vendor
+     */
+    public function customers(Request $request)
+    {
+        $vendorId = $this->resolveEffectiveVendorId($request);
+
+        $bookingCustomers = POSBooking::where('vendor_id', $vendorId)
+            ->whereNotNull('customer_id')
+            ->pluck('customer_id')
+            ->unique()
+            ->toArray();
+
+        $posCustomerUserIds = PosCustomer::where('vendor_id', $vendorId)
+            ->whereNotNull('user_id')
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+
+        $allUserIds = collect($bookingCustomers)
+            ->merge($posCustomerUserIds)
+            ->unique()
+            ->filter()
+            ->values()
+            ->toArray();
+
+        $users = User::whereIn('id', $allUserIds)
+            ->with(['posProfile' => function ($query) use ($vendorId) {
+                $query->where('vendor_id', $vendorId);
+            }])
+            ->get();
+
+        $customers = $users->map(function ($user) use ($vendorId) {
+            $bookings = POSBooking::where('vendor_id', $vendorId)
+                ->where('customer_id', $user->id)
+                ->get();
+
+            $totalBookings = $bookings->count();
+            $totalSpent = $bookings->sum('total_amount');
+            $lastBookingAt = $bookings->max('created_at');
+
+            $name = $user->name;
+            if ($user->posProfile && $user->posProfile->business_name) {
+                $name = $user->posProfile->business_name;
+            }
+
+            return [
+                'id' => $user->id,
+                'name' => $name,
+                'phone' => $user->phone,
+                'email' => $user->email,
+                'total_bookings' => $totalBookings,
+                'total_spent' => $totalSpent,
+                'last_booking_at' => $lastBookingAt,
+                'is_active' => $totalBookings > 0,
+            ];
+        });
+
+        return view('vendor.pos.customers', [
+            'customers' => $customers,
+            'totalCustomers' => $customers->count(),
+            'posBasePath' => '/vendor/pos',
+            'posRoutePrefix' => 'vendor.pos',
+            'posLayout' => 'layouts.vendor',
+            'posScope' => 'vendor',
+        ]);
+    }
+
+    /**
      * Show POS booking details page for vendor
      */
     public function show($id)
     {
         $booking = POSBooking::findOrFail($id);
-        \Log::info("this is".$booking);
+        \Log::info("this is" . $booking);
 
         // The view will fetch booking details via API
         return view('vendor.pos.show', ['bookingId' => $id]);
@@ -319,7 +512,7 @@ class VendorPosController extends Controller
     public function getHoardings(Request $request): JsonResponse
     {
         try {
-            $vendorId = Auth::id();
+            $vendorId = $this->resolveEffectiveVendorId($request);
 
             // ── Base query ────────────────────────────────────────────────
             $query = Hoarding::query()
@@ -337,8 +530,8 @@ class VendorPosController extends Controller
                 $search = $request->get('search');
                 $query->where(function ($q) use ($search) {
                     $q->where('title',   'like', "%{$search}%")
-                    ->orWhere('city',    'like', "%{$search}%")
-                    ->orWhere('address', 'like', "%{$search}%");
+                        ->orWhere('city',    'like', "%{$search}%")
+                        ->orWhere('address', 'like', "%{$search}%");
                 });
             }
 
@@ -365,15 +558,15 @@ class VendorPosController extends Controller
                         // Hoardings with NO active booking today
                         $query->whereDoesntHave('bookings', function ($q) use ($today) {
                             $q->where('start_date', '<=', $today)
-                            ->where('end_date',   '>=', $today)
-                            ->whereIn('status', ['confirmed', 'active', 'payment_hold']);
+                                ->where('end_date',   '>=', $today)
+                                ->whereIn('status', ['confirmed', 'active', 'payment_hold']);
                         });
                     } elseif (in_array('booked', $availabilityValues)) {
                         // Hoardings WITH an active booking today
                         $query->whereHas('bookings', function ($q) use ($today) {
                             $q->where('start_date', '<=', $today)
-                            ->where('end_date',   '>=', $today)
-                            ->whereIn('status', ['confirmed', 'active', 'payment_hold']);
+                                ->where('end_date',   '>=', $today)
+                                ->whereIn('status', ['confirmed', 'active', 'payment_hold']);
                         });
                     }
                 }
@@ -410,11 +603,11 @@ class VendorPosController extends Controller
                         $oohQ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) >= ?', [$hoardingSizeMin])
                             ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) <= ?', [$hoardingSizeMax]);
                     })
-                    // OR DOOH: join dooh_screens for width/height
-                    ->orWhereHas('doohScreen', function ($doohQ) use ($hoardingSizeMin, $hoardingSizeMax) {
-                        $doohQ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) >= ?', [$hoardingSizeMin])
-                            ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) <= ?', [$hoardingSizeMax]);
-                    });
+                        // OR DOOH: join dooh_screens for width/height
+                        ->orWhereHas('doohScreen', function ($doohQ) use ($hoardingSizeMin, $hoardingSizeMax) {
+                            $doohQ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) >= ?', [$hoardingSizeMin])
+                                ->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) <= ?', [$hoardingSizeMax]);
+                        });
                 });
             }
 
@@ -429,7 +622,7 @@ class VendorPosController extends Controller
                 $query->whereHas('doohScreen', function ($q) use ($screenSizeMin, $screenSizeMax) {
                     // If you have a dedicated screen_size column:
                     $q->where('screen_size', '>=', $screenSizeMin)
-                    ->where('screen_size', '<=', $screenSizeMax);
+                        ->where('screen_size', '<=', $screenSizeMax);
 
                     // If you DON'T have screen_size column but have width/height:
                     // $q->whereRaw('(COALESCE(width, 0) * COALESCE(height, 0)) >= ?', [$screenSizeMin])
@@ -459,19 +652,26 @@ class VendorPosController extends Controller
                             ->orWhereBetween('end_date', [$startDate, $endDate])
                             ->orWhere(function ($overlap) use ($startDate, $endDate) {
                                 $overlap->where('start_date', '<=', $startDate)
-                                        ->where('end_date', '>=', $endDate);
+                                    ->where('end_date', '>=', $endDate);
                             });
                     })
-                    ->whereIn('status', ['confirmed', 'payment_hold', 'active']);
+                        ->whereIn('status', ['confirmed', 'payment_hold', 'active']);
                 });
             }
 
             // ── Execute & map ──────────────────────────────────────────────
             $hoardings = $query
                 ->select([
-                    'id', 'title', 'address', 'city', 'state',
-                    'hoarding_type', 'category', 'located_at',
-                    'base_monthly_price', 'monthly_price',
+                    'id',
+                    'title',
+                    'address',
+                    'city',
+                    'state',
+                    'hoarding_type',
+                    'category',
+                    'located_at',
+                    'base_monthly_price',
+                    'monthly_price',
                 ])
                 ->orderBy('title')
                 ->get()
@@ -510,12 +710,17 @@ class VendorPosController extends Controller
                 'data'    => $hoardings,
                 'count'   => $hoardings->count(),
                 'filters_applied' => $request->only([
-                    'type', 'category', 'resolution', 'availability',
-                    'surroundings', 'hoarding_size_min', 'hoarding_size_max',
-                    'screen_size_min', 'screen_size_max',
+                    'type',
+                    'category',
+                    'resolution',
+                    'availability',
+                    'surroundings',
+                    'hoarding_size_min',
+                    'hoarding_size_max',
+                    'screen_size_min',
+                    'screen_size_max',
                 ]),
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error fetching hoardings', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
@@ -589,11 +794,49 @@ class VendorPosController extends Controller
     }
 
     /**
+     * Get a customer by ID
+     * Web endpoint: GET /vendor/pos/api/customers/{id}
+     */
+    public function getCustomerById(Request $request, $id): JsonResponse
+    {
+        try {
+            $customer = User::query()
+                ->where('id', $id)
+                ->whereHas('roles', function ($q) {
+                    $q->where('name', 'customer');
+                })
+                ->select(['id', 'name', 'email', 'phone', 'gstin', 'address'])
+                ->first();
+
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Customer not found',
+                    'data' => null,
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $customer,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching customer by ID', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch customer',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Search customers by name, phone, or email
      * Web endpoint: GET /vendor/pos/api/customers?search=term
      */
     public function searchCustomers(Request $request): JsonResponse
     {
+
         try {
             $search = $request->get('search', '');
 
@@ -965,351 +1208,429 @@ class VendorPosController extends Controller
     // }
 
     /**
- * Create POS booking with multiple hoardings
- * Web endpoint: POST /vendor/pos/api/bookings
- */
-public function createBooking(Request $request): JsonResponse
-{
-    try {
-        Log::info('POS create booking request', [
-            'vendor_id' => Auth::id(),
-            'payload_keys' => array_keys($request->all()),
-        ]);
+     * Create POS booking with multiple hoardings
+     * Web endpoint: POST /vendor/pos/api/bookings
+     */
+    public function createBooking(Request $request): JsonResponse
+    {
+        try {
+            $vendorId = $this->resolveEffectiveVendorId($request);
+            Log::info('POS create booking request', [
+                'vendor_id' => $vendorId,
+                'payload_keys' => array_keys($request->all()),
+            ]);
 
-        $validated = $request->validate([
-            'hoarding_ids'                          => 'nullable',
-            'hoarding_items'                        => 'nullable|array',
-            'hoarding_items.*.hoarding_id'          => 'required_with:hoarding_items|integer',
-            'hoarding_items.*.start_date'           => 'required_with:hoarding_items|date',
-            'hoarding_items.*.end_date'             => 'required_with:hoarding_items|date|after_or_equal:hoarding_items.*.start_date',
-            'hoarding_items.*.price_per_month'      => 'nullable|numeric',
-            'hoarding_items.*.type'                 => 'nullable|string',
-            'hoarding_items.*.total_slots_per_day'  => 'nullable|integer',
-            'customer_id'                           => 'nullable|exists:users,id',
-            'customer_name'                         => 'nullable|string|max:255',
-            'customer_phone'                        => 'nullable|string|max:20',
-            'customer_email'                        => 'nullable|email|max:255',
-            'customer_address'                      => 'nullable|string|max:500',
-            'customer_gstin'                        => 'nullable|string|max:15',
-            'booking_type'                          => 'nullable|in:ooh,dooh',
-            'start_date'                            => 'required|date',
-            'end_date'                              => 'required|date|after_or_equal:start_date',
-            'base_amount'                           => 'required|numeric|min:0',
-            'discount_amount'                       => 'nullable|numeric|min:0',
-            'payment_mode'                          => 'required|in:cash,credit_note,bank_transfer,cheque,online',
-            'payment_reference'                     => 'nullable|string|max:255',
-            'payment_notes'                         => 'nullable|string|max:500',
-            'notes'                                 => 'nullable|string|max:1000',
-            'hold_minutes'                          => 'nullable|integer|min:0',
-            'payment_details_type'                  => 'nullable|string|in:bank_transfer,online',
-        ]);
+            $validated = $request->validate([
+                'hoarding_ids'                          => 'nullable',
+                'hoarding_items'                        => 'nullable|array',
+                'hoarding_items.*.hoarding_id'          => 'required_with:hoarding_items|integer',
+                'hoarding_items.*.start_date'           => 'required_with:hoarding_items|date',
+                'hoarding_items.*.end_date'             => 'required_with:hoarding_items|date|after_or_equal:hoarding_items.*.start_date',
+                'hoarding_items.*.price_per_month'      => 'nullable|numeric',
+                'hoarding_items.*.type'                 => 'nullable|string',
+                'hoarding_items.*.total_slots_per_day'  => 'nullable|integer',
+                'customer_id'                           => 'nullable|exists:users,id',
+                'customer_name'                         => 'nullable|string|max:255',
+                'customer_phone'                        => 'nullable|string|max:20',
+                'customer_email'                        => 'nullable|email|max:255',
+                'customer_address'                      => 'nullable|string|max:500',
+                'customer_gstin'                        => 'nullable|string|max:15',
+                'booking_type'                          => 'nullable|in:ooh,dooh',
+                'start_date'                            => 'required|date',
+                'end_date'                              => 'required|date|after_or_equal:start_date',
+                'base_amount'                           => 'required|numeric|min:0',
+                'discount_amount'                       => 'nullable|numeric|min:0',
+                'payment_mode'                          => 'required|in:cash,credit_note,bank_transfer,cheque,online',
+                'payment_reference'                     => 'nullable|string|max:255',
+                'payment_notes'                         => 'nullable|string|max:500',
+                'notes'                                 => 'nullable|string|max:1000',
+                'hold_minutes'                          => 'nullable|integer|min:0',
+                'payment_details_type'                  => 'nullable|string|in:bank_transfer,online',
+            ]);
 
-        $vendorId = Auth::id();
+            // ── Resolve hoarding IDs ─────────────────────────────────────
+            $hoardingIds = is_array($request->hoarding_ids)
+                ? $request->hoarding_ids
+                : explode(',', $request->hoarding_ids ?? '');
+            $hoardingIds = array_values(array_filter(array_map('intval', $hoardingIds)));
 
-        // ── Resolve hoarding IDs ─────────────────────────────────────
-        $hoardingIds = is_array($request->hoarding_ids)
-            ? $request->hoarding_ids
-            : explode(',', $request->hoarding_ids ?? '');
-        $hoardingIds = array_values(array_filter(array_map('intval', $hoardingIds)));
+            if (empty($hoardingIds)) {
+                return response()->json(['success' => false, 'message' => 'At least one hoarding must be selected'], 422);
+            }
 
-        if (empty($hoardingIds)) {
-            return response()->json(['success' => false, 'message' => 'At least one hoarding must be selected'], 422);
-        }
+            // ── Build per-hoarding metadata map ─────────────────────────
+            $hoardingItemsMap = [];
+            foreach ($validated['hoarding_items'] ?? [] as $item) {
+                $hoardingItemsMap[(int)$item['hoarding_id']] = $item;
+            }
 
-        // ── Build per-hoarding metadata map ─────────────────────────
-        $hoardingItemsMap = [];
-        foreach ($validated['hoarding_items'] ?? [] as $item) {
-            $hoardingItemsMap[(int)$item['hoarding_id']] = $item;
-        }
+            // ── Verify hoardings belong to vendor ────────────────────────
+            $hoardings = \App\Models\Hoarding::whereIn('id', $hoardingIds)
+                ->where('vendor_id', $vendorId)
+                ->get();
 
-        // ── Verify hoardings belong to vendor ────────────────────────
-        $hoardings = \App\Models\Hoarding::whereIn('id', $hoardingIds)
-            ->where('vendor_id', $vendorId)
-            ->get();
+            if ($hoardings->count() !== count($hoardingIds)) {
+                return response()->json(['success' => false, 'message' => 'One or more hoardings not found or do not belong to you'], 403);
+            }
 
-        if ($hoardings->count() !== count($hoardingIds)) {
-            return response()->json(['success' => false, 'message' => 'One or more hoardings not found or do not belong to you'], 403);
-        }
+            // ── Availability check per hoarding with its own date range ──
+            $unavailableHoardings = [];
 
-        // ── Availability check per hoarding with its own date range ──
-        $unavailableHoardings = [];
+            foreach ($hoardings as $hoarding) {
+                $item      = $hoardingItemsMap[$hoarding->id] ?? null;
+                $itemStart = $item ? Carbon::parse($item['start_date']) : Carbon::parse($validated['start_date']);
+                $itemEnd   = $item ? Carbon::parse($item['end_date'])   : Carbon::parse($validated['end_date']);
 
-        foreach ($hoardings as $hoarding) {
-            $item      = $hoardingItemsMap[$hoarding->id] ?? null;
-            $itemStart = $item ? Carbon::parse($item['start_date']) : Carbon::parse($validated['start_date']);
-            $itemEnd   = $item ? Carbon::parse($item['end_date'])   : Carbon::parse($validated['end_date']);
+                $availability = $this->availabilityService->checkMultipleDates(
+                    $hoarding->id,
+                    [$itemStart->format('Y-m-d'), $itemEnd->format('Y-m-d')]
+                );
 
-            $availability = $this->availabilityService->checkMultipleDates(
-                $hoarding->id,
-                [$itemStart->format('Y-m-d'), $itemEnd->format('Y-m-d')]
-            );
-
-            if (!empty($availability)) {
-                $unavailableReasons = [];
-                foreach ($availability as $dateCheck) {
-                    if ($dateCheck['status'] !== 'available' && !in_array($dateCheck['status'], $unavailableReasons)) {
-                        $unavailableReasons[] = $dateCheck['status'];
+                if (!empty($availability)) {
+                    $unavailableReasons = [];
+                    foreach ($availability as $dateCheck) {
+                        if ($dateCheck['status'] !== 'available' && !in_array($dateCheck['status'], $unavailableReasons)) {
+                            $unavailableReasons[] = $dateCheck['status'];
+                        }
+                    }
+                    if (!empty($unavailableReasons)) {
+                        $unavailableHoardings[] = [
+                            'hoarding_id'   => $hoarding->id,
+                            'hoarding_name' => $hoarding->address ?? $hoarding->title,
+                            'reasons'       => $unavailableReasons,
+                        ];
                     }
                 }
-                if (!empty($unavailableReasons)) {
-                    $unavailableHoardings[] = [
-                        'hoarding_id'   => $hoarding->id,
-                        'hoarding_name' => $hoarding->address ?? $hoarding->title,
-                        'reasons'       => $unavailableReasons,
-                    ];
-                }
-            }
-        }
-
-        if (!empty($unavailableHoardings)) {
-            return response()->json([
-                'success'               => false,
-                'message'               => 'One or more selected hoardings are not available for the specified dates',
-                'unavailable_hoardings' => $unavailableHoardings,
-                'details'               => $this->formatUnavailabilityDetails($unavailableHoardings),
-            ], 422);
-        }
-
-        // ── Pricing ──────────────────────────────────────────────────
-        $gstRate            = $this->posBookingService->getGSTRate();
-        $baseAmount         = (float) $validated['base_amount'];
-        $discountAmount     = (float) ($validated['discount_amount'] ?? 0);
-        $amountAfterDiscount= max(0, $baseAmount - $discountAmount);
-        $taxAmount          = ($amountAfterDiscount * $gstRate) / 100;
-        $totalAmount        = $amountAfterDiscount + $taxAmount;
-
-        // ── Hold expiry ──────────────────────────────────────────────
-        $holdMinutes = (int) ($validated['hold_minutes'] ?? 30);
-        $holdExpiryAt = $holdMinutes > 0 ? now()->addMinutes($holdMinutes) : null;
-
-        // ── Booking data ─────────────────────────────────────────────
-        $bookingData = [
-            'vendor_id'        => $vendorId,
-            'hoarding_ids'     => $hoardingIds,
-            'hoarding_items'   => $validated['hoarding_items'] ?? [],
-            'customer_id'      => $validated['customer_id'] ?? null,
-            'customer_name'    => $validated['customer_name']    ?? 'Walk-in Customer',
-            'customer_email'   => $validated['customer_email']   ?? null,
-            'customer_phone'   => $validated['customer_phone']   ?? 'N/A',
-            'customer_address' => $validated['customer_address'] ?? null,
-            'customer_gstin'   => $validated['customer_gstin']   ?? null,
-            'booking_type'     => $validated['booking_type']     ?? 'ooh',
-            'start_date'       => $validated['start_date'],
-            'end_date'         => $validated['end_date'],
-            'duration_days'    => Carbon::parse($validated['end_date'])->diffInDays(Carbon::parse($validated['start_date'])) + 1,
-            'base_amount'      => $baseAmount,
-            'discount_amount'  => $discountAmount,
-            'tax_amount'       => round($taxAmount, 2),
-            'total_amount'     => round($totalAmount, 2),
-            'payment_mode'     => $validated['payment_mode'],
-            'payment_reference'=> $validated['payment_reference'] ?? null,
-            'payment_notes'    => $validated['payment_notes']     ?? null,
-            'notes'            => $validated['notes']             ?? null,
-            'status'           => 'draft',
-            'payment_status'   => 'unpaid',
-            'hold_minutes'     => $holdMinutes,
-            'hold_expiry_at'   => $holdExpiryAt,
-        ];
-
-        $booking = $this->posBookingService->createBooking($bookingData);
-
-        // ── Reload with hoardings for invoice ─────────────────────────
-        $booking->load('bookingHoardings.hoarding');
-
-        // ── Notifications ─────────────────────────────────────────────
-        try {
-
-        // if ($this->posBookingService->isAutoInvoiceEnabled()) {
-        //     try {
-        //         /** @var \App\Services\InvoiceService $invoiceService */
-        //         $invoiceService = app(\App\Services\InvoiceService::class);
-
-        //         $invoice = $invoiceService->generateInvoiceForPOSBooking(
-        //             $booking->fresh(['bookingHoardings.hoarding']),
-        //             Auth::id()
-        //         );
-
-        //         $booking->update([
-        //             'invoice_number' => $invoice->invoice_number,
-        //             'invoice_date'   => $invoice->invoice_date,
-        //             'invoice_path'   => $invoice->pdf_path,
-        //         ]);
-
-        //         Log::info('POS invoice generated (controller)', [
-        //             'pos_booking_id' => $booking->id,
-        //             'invoice_number' => $invoice->invoice_number,
-        //             'grand_total'    => $invoice->grand_total,
-        //         ]);
-        //     } catch (\Exception $e) {
-        //         Log::error('Failed to generate POS invoice', [
-        //             'pos_booking_id' => $booking->id,
-        //             'error'          => $e->getMessage(),
-        //             'trace'          => $e->getTraceAsString(),
-        //         ]);
-        //         // Non-fatal — booking was created successfully
-        //     }
-        // }
-
-
-            $emailNotificationsEnabled = $this->posBookingService->isEmailNotificationEnabled();
-            $customer = null;
-
-            if (!empty($booking->customer_id)) {
-                $customer = \App\Models\User::find($booking->customer_id);
-                if ($customer && method_exists($customer, 'notify')) {
-                    $customer->notify(new \App\Notifications\PosBookingCreatedNotification($booking));
-                }
-                if (
-                    $emailNotificationsEnabled
-                    && $customer
-                    && $customer->notification_email
-                    && filter_var($customer->email ?? '', FILTER_VALIDATE_EMAIL)
-                ) {
-                    \Mail::to($customer->email)->queue(new \App\Mail\PosBookingCreatedMail($booking, $customer, 'customer'));
-                }
             }
 
-            if ($emailNotificationsEnabled) {
-                $vendor = \App\Models\User::find($booking->vendor_id);
+            if (!empty($unavailableHoardings)) {
+                return response()->json([
+                    'success'               => false,
+                    'message'               => 'One or more selected hoardings are not available for the specified dates',
+                    'unavailable_hoardings' => $unavailableHoardings,
+                    'details'               => $this->formatUnavailabilityDetails($unavailableHoardings),
+                ], 422);
+            }
 
-                if ($vendor && $vendor->notification_email) {
-                    $vendorEmails = array_unique(array_filter($vendor->notification_emails ?? []));
-                    foreach ($vendorEmails as $vendorEmail) {
-                        if (!filter_var($vendorEmail, FILTER_VALIDATE_EMAIL)) {
+            // ── Pricing ──────────────────────────────────────────────────
+            $gstRate            = $this->posBookingService->getGSTRate();
+            $baseAmount         = (float) $validated['base_amount'];
+            $discountAmount     = (float) ($validated['discount_amount'] ?? 0);
+            $amountAfterDiscount = max(0, $baseAmount - $discountAmount);
+            $taxAmount          = ($amountAfterDiscount * $gstRate) / 100;
+            $totalAmount        = $amountAfterDiscount + $taxAmount;
+
+            // ── Hold expiry ──────────────────────────────────────────────
+            $holdMinutes = (int) ($validated['hold_minutes'] ?? 30);
+            $holdExpiryAt = $holdMinutes > 0 ? now()->addMinutes($holdMinutes) : null;
+
+            // ── Booking data ─────────────────────────────────────────────
+            $bookingData = [
+                'vendor_id'        => $vendorId,
+                'hoarding_ids'     => $hoardingIds,
+                'hoarding_items'   => $validated['hoarding_items'] ?? [],
+                'customer_id'      => $validated['customer_id'] ?? null,
+                'customer_name'    => $validated['customer_name']    ?? 'Walk-in Customer',
+                'customer_email'   => $validated['customer_email']   ?? null,
+                'customer_phone'   => $validated['customer_phone']   ?? 'N/A',
+                'customer_address' => $validated['customer_address'] ?? null,
+                'customer_gstin'   => $validated['customer_gstin']   ?? null,
+                'booking_type'     => $validated['booking_type']     ?? 'ooh',
+                'start_date'       => $validated['start_date'],
+                'end_date'         => $validated['end_date'],
+                'duration_days'    => Carbon::parse($validated['end_date'])->diffInDays(Carbon::parse($validated['start_date'])) + 1,
+                'base_amount'      => $baseAmount,
+                'discount_amount'  => $discountAmount,
+                'tax_amount'       => round($taxAmount, 2),
+                'total_amount'     => round($totalAmount, 2),
+                'payment_mode'     => $validated['payment_mode'],
+                'payment_reference' => $validated['payment_reference'] ?? null,
+                'payment_notes'    => $validated['payment_notes']     ?? null,
+                'notes'            => $validated['notes']             ?? null,
+                'status'           => 'draft',
+                'payment_status'   => 'unpaid',
+                'hold_minutes'     => $holdMinutes,
+                'hold_expiry_at'   => $holdExpiryAt,
+            ];
+
+            $booking = $this->posBookingService->createBooking($bookingData);
+
+            // ── Reload with hoardings for invoice ─────────────────────────
+            $booking->load('bookingHoardings.hoarding');
+
+            // ── Notifications ─────────────────────────────────────────────
+            try {
+
+                // if ($this->posBookingService->isAutoInvoiceEnabled()) {
+                //     try {
+                //         /** @var \App\Services\InvoiceService $invoiceService */
+                //         $invoiceService = app(\App\Services\InvoiceService::class);
+
+                //         $invoice = $invoiceService->generateInvoiceForPOSBooking(
+                //             $booking->fresh(['bookingHoardings.hoarding']),
+                //             Auth::id()
+                //         );
+
+                //         $booking->update([
+                //             'invoice_number' => $invoice->invoice_number,
+                //             'invoice_date'   => $invoice->invoice_date,
+                //             'invoice_path'   => $invoice->pdf_path,
+                //         ]);
+
+                //         Log::info('POS invoice generated (controller)', [
+                //             'pos_booking_id' => $booking->id,
+                //             'invoice_number' => $invoice->invoice_number,
+                //             'grand_total'    => $invoice->grand_total,
+                //         ]);
+                //     } catch (\Exception $e) {
+                //         Log::error('Failed to generate POS invoice', [
+                //             'pos_booking_id' => $booking->id,
+                //             'error'          => $e->getMessage(),
+                //             'trace'          => $e->getTraceAsString(),
+                //         ]);
+                //         // Non-fatal — booking was created successfully
+                //     }
+                // }
+
+
+                $emailNotificationsEnabled = $this->posBookingService->isEmailNotificationEnabled();
+                $customer = null;
+
+                if (!empty($booking->customer_id)) {
+                    $customer = \App\Models\User::find($booking->customer_id);
+                    if (
+                        $emailNotificationsEnabled
+                        && $customer
+                        && $customer->notification_email
+                        && filter_var($customer->email ?? '', FILTER_VALIDATE_EMAIL)
+                    ) {
+                        \Mail::to($customer->email)->queue(new \App\Mail\PosBookingCreatedMail($booking, $customer, 'customer'));
+                    }
+
+                    // Send push notification to customer if enabled
+                    if ($customer && $customer->notification_push) {
+                        try {
+                            send(
+                                $customer,
+                                'Booking Created Successfully',
+                                "Your POS booking #{$booking->invoice_number} for ₹" . number_format($booking->total_amount, 2) . " has been created",
+                                [
+                                    'type' => 'pos_booking_created',
+                                    'booking_id' => $booking->id,
+                                    'invoice_number' => $booking->invoice_number,
+                                    'total_amount' => $booking->total_amount,
+                                    'customer_name' => $booking->customer_name,
+                                    'source' => 'pos_system'
+                                ]
+                            );
+                            Log::info('Push notification sent to customer for booking creation', [
+                                'booking_id' => $booking->id,
+                                'customer_id' => $customer->id,
+                                'invoice_number' => $booking->invoice_number,
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::warning('Failed to send push notification to customer', [
+                                'booking_id' => $booking->id,
+                                'customer_id' => $customer->id,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    }
+                }
+
+                if ($emailNotificationsEnabled) {
+                    $vendor = \App\Models\User::find($booking->vendor_id);
+
+                    if ($vendor && $vendor->notification_email) {
+                        $vendorEmails = array_unique(array_filter($vendor->notification_emails ?? []));
+                        foreach ($vendorEmails as $vendorEmail) {
+                            if (!filter_var($vendorEmail, FILTER_VALIDATE_EMAIL)) {
+                                continue;
+                            }
+
+                            \Mail::to($vendorEmail)->queue(new \App\Mail\PosBookingCreatedMail($booking, $vendor, 'vendor'));
+                        }
+                    }
+
+                    $admins = \App\Models\User::whereHas('roles', function ($query) {
+                        $query->whereIn('name', ['admin', 'super_admin']);
+                    })->get();
+
+                    foreach ($admins as $admin) {
+                        if (!$admin->notification_email || !filter_var($admin->email ?? '', FILTER_VALIDATE_EMAIL)) {
                             continue;
                         }
 
-                        \Mail::to($vendorEmail)->queue(new \App\Mail\PosBookingCreatedMail($booking, $vendor, 'vendor'));
+                        \Mail::to($admin->email)->queue(new \App\Mail\PosBookingCreatedMail($booking, $admin, 'admin'));
                     }
                 }
-
-                $admins = \App\Models\User::whereHas('roles', function ($query) {
-                    $query->whereIn('name', ['admin', 'super_admin']);
-                })->get();
-
-                foreach ($admins as $admin) {
-                    if (!$admin->notification_email || !filter_var($admin->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                        continue;
-                    }
-
-                    \Mail::to($admin->email)->queue(new \App\Mail\PosBookingCreatedMail($booking, $admin, 'admin'));
-                }
+            } catch (\Exception $e) {
+                Log::warning('POS notification/email failed', ['booking_id' => $booking->id, 'error' => $e->getMessage()]);
             }
+
+            // ── WhatsApp notification ──────────────────────────────────────
+            try {
+                // $phone = $booking->customer_phone ?? ($booking->customer_id ? optional(\App\Models\User::find($booking->customer_id))->phone : null);
+                // if ($phone && $phone !== 'N/A') {
+                //     $this->sendWhatsAppNotification($booking, $phone);
+                // }
+                $phone = $booking->customer_phone
+                    ?? ($booking->customer_id
+                        ? optional(\App\Models\User::find($booking->customer_id))->phone
+                        : null
+                    );
+
+                // 👇 ADD THIS LOG HERE
+                Log::info('Booking WhatsApp Debug', [
+                    'booking_id' => $booking->id,
+                    'customer_phone' => $booking->customer_phone,
+                    'resolved_phone' => $phone,
+                ]);
+
+                if ($phone && $phone !== 'N/A') {
+                    $this->sendWhatsAppNotification($booking, $phone);
+                } else {
+                    Log::warning('WhatsApp skipped - invalid phone', [
+                        'booking_id' => $booking->id,
+                        'phone' => $phone,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('POS WhatsApp notification failed', ['booking_id' => $booking->id, 'error' => $e->getMessage()]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking created successfully',
+                'data'    => [
+                    'id'             => $booking->id,
+                    'invoice_number' => $booking->invoice_number,
+                    'total_amount'   => round($totalAmount, 2),
+                    'hoarding_count' => count($hoardingIds),
+                    'hold_expiry_at' => $holdExpiryAt?->toISOString(),
+                    'hold_minutes'   => $holdMinutes,
+                ],
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::warning('POS booking validation failed', ['vendor_id' => Auth::id(), 'errors' => $e->errors()]);
+            return response()->json(['success' => false, 'message' => 'Validation failed', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            Log::warning('POS notification/email failed', ['booking_id' => $booking->id, 'error' => $e->getMessage()]);
+            Log::error('Error creating POS booking', ['vendor_id' => Auth::id(), 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Failed to create booking', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Send WhatsApp notification to customer with payment details + hold countdown
+     * Uses a WhatsApp API service (adapt to your provider: Twilio / Wati / 2Factor / etc.)
+     */
+    protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $booking, string $phone): void
+    {
+        // Ensure bookingHoardings relationship is loaded
+        if (!$booking->relationLoaded('bookingHoardings')) {
+            $booking->load('bookingHoardings.hoarding');
         }
 
-        // ── WhatsApp notification ──────────────────────────────────────
+        $vendor       = \App\Models\User::find($booking->vendor_id);
+        $totalAmount  = number_format((float) $booking->total_amount, 2);
+        $holdMins     = $booking->hold_minutes ?? 0;
+        $holdText     = $holdMins > 0
+            ? "⏳ *Payment Due Within:* " . ($holdMins >= 1440 ? round($holdMins / 1440) . ' day(s)' : ($holdMins >= 60 ? round($holdMins / 60) . ' hour(s)' : "{$holdMins} minutes"))
+            : "ℹ️ No payment time limit.";
+
+        // Build hoarding list with clickable links
+        $hoardingLines = $booking->bookingHoardings->map(function ($bh) {
+            $h = $bh->hoarding;
+            $hoardingTitle = $h->title ?? 'Hoarding';
+            $hoardingId = $h->id ?? null;
+
+            // Create a short clickable link to the hoarding details page
+            $hoardingUrl = $hoardingId
+                ? config('app.url') . '/h/' . $hoardingId
+                : null;
+
+            $hoardingLink = $hoardingUrl
+                ? "🔗 {$hoardingTitle}\n   {$hoardingUrl}"
+                : "• {$hoardingTitle}";
+
+            return $hoardingLink . " ({$bh->start_date} → {$bh->end_date})";
+        })->implode("\n\n");
+
+        if ($booking->payment_mode === 'bank_transfer' && $paymentDetail) {
+            $paymentBlock = "\n🏦 *Bank Transfer Details:*\n"
+                . "Bank: {$paymentDetail->bank_name}\n"
+                . "A/C No: {$paymentDetail->account_number}\n"
+                . "Holder: {$paymentDetail->account_holder}\n"
+                . "IFSC: {$paymentDetail->ifsc_code}\n"
+                . "Reference: {$booking->invoice_number}";
+        } elseif (in_array($booking->payment_mode, ['online', 'upi']) && $paymentDetail) {
+            $paymentBlock = "\n📱 *UPI Payment:*\n"
+                . "UPI ID: {$paymentDetail->upi_id}\n"
+                . ($paymentDetail->qr_image_path ? "QR: " . \Illuminate\Support\Facades\Storage::disk('public')->url($paymentDetail->qr_image_path) : "");
+        } elseif ($booking->payment_mode === 'cash') {
+            $paymentBlock = "\n💵 *Payment Mode:* Cash (collect at office)";
+        }
+
+        $vendorName = $vendor?->name ?? 'Vendor';
+        $message = "🎯 *POS Booking created!*\n\n"
+            . "Hello *{$booking->customer_name}*,\n\n"
+            . "Your booking has been created by *{$vendorName}*.\n\n"
+            . "📋 *Booking Details:*\n"
+            . "Invoice: #{$booking->invoice_number}\n"
+            . "Total Amount: ₹{$totalAmount}\n\n"
+            . "🏛️ *Hoardings Booked:*\n{$hoardingLines}\n\n"
+            . "{$holdText}\n"
+            . $paymentBlock
+            . "\n\nThank you for your business!";
+
+        // Normalize phone number - remove all non-digits
+        $normalizedPhone = preg_replace('/\D+/', '', $phone);
+
+        // Validate phone has minimum length BEFORE adding prefix
+        if (empty($normalizedPhone) || strlen($normalizedPhone) < 10) {
+            Log::warning('POS WhatsApp skipped - invalid phone number', [
+                'booking_id' => $booking->id,
+                'original_phone' => $phone,
+                'normalized_phone' => $normalizedPhone,
+                'reason' => 'Phone number too short or empty',
+            ]);
+            return;
+        }
+
+        // Add country code if not present
+        if (!str_starts_with($normalizedPhone, '91')) {
+            $normalizedPhone = '91' . ltrim($normalizedPhone, '0');
+        }
+
+        // Add + prefix for WhatsApp format
+        $normalizedPhone = '+' . $normalizedPhone;
+
+        Log::info('POS WhatsApp attempting to send', [
+            'booking_id' => $booking->id,
+            'original_phone' => $phone,
+            'normalized_phone' => $normalizedPhone,
+            'customer_name' => $booking->customer_name,
+        ]);
+
         try {
-            $phone = $booking->customer_phone ?? ($booking->customer_id ? optional(\App\Models\User::find($booking->customer_id))->phone : null);
-            if ($phone && $phone !== 'N/A') {
-                $this->sendWhatsAppNotification($booking, $phone);
-            }
-        } catch (\Exception $e) {
-            Log::warning('POS WhatsApp notification failed', ['booking_id' => $booking->id, 'error' => $e->getMessage()]);
+            $whatsapp = app(TwilioWhatsappService::class);
+            $sent = $whatsapp->send($normalizedPhone, $message);
+
+            Log::info('POS WhatsApp notification dispatched', [
+                'booking_id' => $booking->id,
+                'phone'      => $normalizedPhone,
+                'sent'       => $sent,
+                'message_preview' => substr($message, 0, 100),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('POS WhatsApp notification failed', [
+                'booking_id' => $booking->id,
+                'phone' => $normalizedPhone,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Booking created successfully',
-            'data'    => [
-                'id'             => $booking->id,
-                'invoice_number' => $booking->invoice_number,
-                'total_amount'   => round($totalAmount, 2),
-                'hoarding_count' => count($hoardingIds),
-                'hold_expiry_at' => $holdExpiryAt?->toISOString(),
-                'hold_minutes'   => $holdMinutes,
-            ],
-        ], 201);
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        Log::warning('POS booking validation failed', ['vendor_id' => Auth::id(), 'errors' => $e->errors()]);
-        return response()->json(['success' => false, 'message' => 'Validation failed', 'errors' => $e->errors()], 422);
-    } catch (\Exception $e) {
-        Log::error('Error creating POS booking', ['vendor_id' => Auth::id(), 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-        return response()->json(['success' => false, 'message' => 'Failed to create booking', 'error' => $e->getMessage()], 500);
     }
-}
-
-/**
- * Send WhatsApp notification to customer with payment details + hold countdown
- * Uses a WhatsApp API service (adapt to your provider: Twilio / Wati / 2Factor / etc.)
- */
-protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $booking, string $phone): void
-{
-    $vendor       = \App\Models\User::find($booking->vendor_id);
-    $totalAmount  = number_format((float) $booking->total_amount, 2);
-    $holdMins     = $booking->hold_minutes ?? 0;
-    $holdText     = $holdMins > 0
-        ? "⏳ *Payment Due Within:* " . ($holdMins >= 1440 ? round($holdMins / 1440) . ' day(s)' : ($holdMins >= 60 ? round($holdMins / 60) . ' hour(s)' : "{$holdMins} minutes"))
-        : "ℹ️ No payment time limit.";
-
-    // Build hoarding list
-    $hoardingLines = $booking->bookingHoardings->map(function ($bh) {
-        $h = $bh->hoarding;
-        return "• " . ($h->title ?? 'Hoarding') . " ({$bh->start_date} → {$bh->end_date})";
-    })->implode("\n");
-
-    // Payment details block
-    $paymentBlock = '';
-    $paymentDetail = \Modules\POS\Models\VendorPaymentDetail::where('vendor_id', $booking->vendor_id)
-        ->where('type', in_array($booking->payment_mode, ['bank_transfer', 'cheque']) ? 'bank' : 'upi')
-        ->first();
-
-    if ($booking->payment_mode === 'bank_transfer' && $paymentDetail) {
-        $paymentBlock = "\n🏦 *Bank Transfer Details:*\n"
-            . "Bank: {$paymentDetail->bank_name}\n"
-            . "A/C No: {$paymentDetail->account_number}\n"
-            . "Holder: {$paymentDetail->account_holder}\n"
-            . "IFSC: {$paymentDetail->ifsc_code}\n"
-            . "Reference: {$booking->invoice_number}";
-    } elseif (in_array($booking->payment_mode, ['online', 'upi']) && $paymentDetail) {
-        $paymentBlock = "\n📱 *UPI Payment:*\n"
-            . "UPI ID: {$paymentDetail->upi_id}\n"
-            . ($paymentDetail->qr_image_path ? "QR: " . \Illuminate\Support\Facades\Storage::disk('public')->url($paymentDetail->qr_image_path) : "");
-    } elseif ($booking->payment_mode === 'cash') {
-        $paymentBlock = "\n💵 *Payment Mode:* Cash (collect at office)";
-    }
-
-    $vendorName = $vendor?->name ?? 'Vendor';
-    $message = "🎯 *POS Booking Confirmed!*\n\n"
-        . "Hello *{$booking->customer_name}*,\n\n"
-        . "Your booking has been created by *{$vendorName}*.\n\n"
-        . "📋 *Booking Details:*\n"
-        . "Invoice: #{$booking->invoice_number}\n"
-        . "Total Amount: ₹{$totalAmount}\n\n"
-        . "🏛️ *Hoardings Booked:*\n{$hoardingLines}\n\n"
-        . "{$holdText}\n"
-        . $paymentBlock
-        . "\n\nThank you for your business!";
-
-    $normalizedPhone = preg_replace('/\D+/', '', $phone);
-    if (!$normalizedPhone) {
-        Log::warning('POS WhatsApp skipped due to invalid phone', [
-            'booking_id' => $booking->id,
-            'phone' => $phone,
-        ]);
-        return;
-    }
-
-    try {
-        $whatsapp = app(TwilioWhatsappService::class);
-        $sent = $whatsapp->send($normalizedPhone, $message);
-
-        Log::info('POS WhatsApp notification dispatched', [
-            'booking_id' => $booking->id,
-            'phone'      => $normalizedPhone,
-            'sent'       => $sent,
-            'message_preview' => substr($message, 0, 100),
-        ]);
-    } catch (\Throwable $e) {
-        Log::warning('POS WhatsApp notification failed', [
-            'booking_id' => $booking->id,
-            'phone' => $normalizedPhone,
-            'error' => $e->getMessage(),
-        ]);
-    }
-}
 
     /**
      * Get POS dashboard statistics
@@ -1318,28 +1639,34 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     public function getDashboardStats(): JsonResponse
     {
         try {
-            $vendorId = Auth::id();
+            $context = $this->resolveAdminBookingScopeContext(request());
 
             // Get statistics
-            $totalBookings = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)->count();
-            $totalRevenue = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
+            $baseQuery = \Modules\POS\Models\POSBooking::query();
+            if ($context['scope'] !== 'overall') {
+                $baseQuery->where('vendor_id', $context['vendor_id']);
+            }
+
+            $totalBookings = (clone $baseQuery)->count();
+            $totalRevenue = (clone $baseQuery)
                 ->where('payment_status', 'paid')
                 ->sum('total_amount') ?? 0;
-            $pendingPayments = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
+            $pendingPayments = (clone $baseQuery)
                 ->whereIn('payment_status', ['unpaid', 'partial'])
+                ->where('status', '!=', 'cancelled')
                 ->sum('total_amount') ?? 0;
-            $activeCreditNotes = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
+            $activeCreditNotes = (clone $baseQuery)
                 ->where('credit_note_status', 'active')
                 ->count();
 
-                // 1. Registered Customers (Unique by ID)
-            $regCount = POSBooking::where('vendor_id', $vendorId)
+            // 1. Registered Customers (Unique by ID)
+            $regCount = (clone $baseQuery)
                 ->whereNotNull('customer_id')
                 ->distinct('customer_id')
                 ->count('customer_id');
 
             // 2. Guest Walk-ins (Unique by Phone, excluding 'N/A')
-            $guestCount = POSBooking::where('vendor_id', $vendorId)
+            $guestCount = (clone $baseQuery)
                 ->whereNull('customer_id')
                 ->whereNotNull('customer_phone')
                 ->where('customer_phone', '!=', 'N/A')
@@ -1347,9 +1674,9 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
                 ->count('customer_phone');
 
             // 3. True Anonymous (Every 'N/A' or empty phone is a new person)
-            $naCount = POSBooking::where('vendor_id', $vendorId)
+            $naCount = (clone $baseQuery)
                 ->whereNull('customer_id')
-                ->where(function($q) {
+                ->where(function ($q) {
                     $q->where('customer_phone', 'N/A')->orWhereNull('customer_phone');
                 })
                 ->count();
@@ -1380,19 +1707,38 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     public function getBookingsList(Request $request): JsonResponse
     {
         try {
-            $vendorId = Auth::id();
+            $context = $this->resolveAdminBookingScopeContext($request);
             $perPage = max(1, min((int) ($request->get('per_page') ?? 10), 100));
 
-            $query = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
-                ->with('bookingHoardings')
+            $query = \Modules\POS\Models\POSBooking::with('bookingHoardings')
                 ->orderBy('created_at', 'desc');
+
+            if ($context['scope'] !== 'overall') {
+                $query->where('vendor_id', $context['vendor_id']);
+            }
 
             if ($request->filled('status')) {
                 $query->where('status', $request->get('status'));
             }
 
-            if ($request->filled('payment_status')) {
-                $query->where('payment_status', $request->get('payment_status'));
+            $allowedPaymentStatuses = ['paid', 'unpaid', 'partial', 'credit'];
+            $paymentStatuses = [];
+
+            if ($request->filled('payment_statuses')) {
+                $rawPaymentStatuses = explode(',', (string) $request->get('payment_statuses'));
+                $paymentStatuses = array_values(array_unique(array_filter(array_map(function ($status) use ($allowedPaymentStatuses) {
+                    $status = trim((string) $status);
+                    return in_array($status, $allowedPaymentStatuses, true) ? $status : null;
+                }, $rawPaymentStatuses))));
+            } elseif ($request->filled('payment_status')) {
+                $singlePaymentStatus = trim((string) $request->get('payment_status'));
+                if (in_array($singlePaymentStatus, $allowedPaymentStatuses, true)) {
+                    $paymentStatuses = [$singlePaymentStatus];
+                }
+            }
+
+            if (!empty($paymentStatuses)) {
+                $query->whereIn('payment_status', $paymentStatuses);
             }
 
             if ($request->filled('search')) {
@@ -1434,12 +1780,17 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     public function getPendingPayments(Request $request): JsonResponse
     {
         try {
-            $vendorId = Auth::id();
+            $context = $this->resolveAdminBookingScopeContext($request);
+            $this->releaseExpiredPosHoldsForContext($context);
 
-            $query = \Modules\POS\Models\POSBooking::where('vendor_id', $vendorId)
-                ->whereIn('payment_status', ['unpaid', 'partial'])
+            $query = \Modules\POS\Models\POSBooking::whereIn('payment_status', ['unpaid', 'partial'])
+                ->where('status', '!=', 'cancelled')
                 ->with('bookingHoardings.hoarding')
                 ->orderBy('created_at', 'asc');
+
+            if ($context['scope'] !== 'overall') {
+                $query->where('vendor_id', $context['vendor_id']);
+            }
 
             $search = trim((string) $request->get('search', ''));
             if ($search !== '') {
@@ -1485,6 +1836,93 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
         }
     }
 
+    protected function releaseExpiredPosHoldsForContext(array $context): void
+    {
+        $now = now();
+
+        $query = POSBooking::where('payment_status', 'unpaid')
+            ->whereIn('status', ['draft', 'pending_payment'])
+            ->whereNotNull('hold_expiry_at')
+            ->where('hold_expiry_at', '<=', $now)
+            ->with('bookingHoardings.hoarding');
+
+        if (($context['scope'] ?? 'mine') !== 'overall' && !empty($context['vendor_id'])) {
+            $query->where('vendor_id', (int) $context['vendor_id']);
+        }
+
+        $expiredBookings = $query->get();
+
+        foreach ($expiredBookings as $booking) {
+            $updated = POSBooking::whereKey($booking->id)
+                ->where('payment_status', 'unpaid')
+                ->whereIn('status', ['draft', 'pending_payment'])
+                ->whereNotNull('hold_expiry_at')
+                ->where('hold_expiry_at', '<=', $now)
+                ->update([
+                    'status' => 'cancelled',
+                    'cancelled_at' => $now,
+                    'cancellation_reason' => 'Payment hold expired - auto-released',
+                ]);
+
+            if ($updated === 0) {
+                continue;
+            }
+
+            foreach ($booking->bookingHoardings as $bookingHoarding) {
+                $hoarding = $bookingHoarding->hoarding;
+                if ($hoarding && (int) $hoarding->held_by_booking_id === (int) $booking->id) {
+                    $hoarding->update([
+                        'is_on_hold' => false,
+                        'hold_till' => null,
+                        'held_by_booking_id' => null,
+                    ]);
+                }
+            }
+
+            $booking->refresh();
+
+            try {
+                $this->dispatchHoldExpiredNotifications($booking);
+            } catch (\Throwable $e) {
+                Log::warning('POS hold-expiry fallback notification failed', [
+                    'booking_id' => $booking->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    protected function dispatchHoldExpiredNotifications(POSBooking $booking): void
+    {
+        $notification = new PosBookingHoldExpiredNotification($booking);
+
+        if ($booking->customer_id) {
+            $customer = User::find($booking->customer_id);
+            if ($customer && method_exists($customer, 'notifyNow')) {
+                $customer->notifyNow($notification);
+            }
+        } elseif (filter_var((string) $booking->customer_email, FILTER_VALIDATE_EMAIL)) {
+            Notification::route('mail', $booking->customer_email)->notifyNow($notification);
+        }
+
+        if ($booking->vendor_id) {
+            $vendor = User::find($booking->vendor_id);
+            if ($vendor && method_exists($vendor, 'notifyNow')) {
+                $vendor->notifyNow($notification);
+            }
+        }
+
+        $admins = User::whereHas('roles', function ($query) {
+            $query->whereIn('name', ['admin', 'superadmin', 'super_admin']);
+        })->get();
+
+        foreach ($admins as $admin) {
+            if (method_exists($admin, 'notifyNow')) {
+                $admin->notifyNow($notification);
+            }
+        }
+    }
+
     /**
      * Format unavailability details for human-readable error messages
      * Maps availability statuses to friendly descriptions
@@ -1492,7 +1930,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     protected function formatUnavailabilityDetails(array $unavailableHoardings): string
     {
         $messages = [];
-        
+
         foreach ($unavailableHoardings as $item) {
             $hoardingName = $item['hoarding_name'] ?? "Hoarding #{$item['hoarding_id']}";
             $reasons = [];
@@ -1523,7 +1961,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     }
 
 
- 
+
     // public function createCustomer(Request $request)
     // {
     //     \Log::info('Create POS customer request', [
@@ -1592,9 +2030,12 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
     //         ], 500);
     //     }
     // }
+
     public function createCustomer(Request $request)
     {
+
         try {
+
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
@@ -1617,6 +2058,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
                     'active_role' => 'customer',
                     'gstin' => $request->gstin,
                     'address' => $fullAddress,
+                    'status' => 'active',
                 ]);
 
                 $user->assignRole('customer');
@@ -1667,6 +2109,59 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
                             'error' => $e->getMessage(),
                         ]);
                     }
+
+                    // Send push notification to customer
+                    try {
+                        send(
+                            $user,
+                            'Account Created Successfully',
+                            "Welcome to OOHApp! Your customer account has been created.",
+                            [
+                                'type' => 'pos_customer_account_created',
+                                'customer_id' => $user->id,
+                                'customer_name' => $user->name,
+                                'source' => 'pos_system'
+                            ]
+                        );
+                        Log::info('Push notification sent to customer for account creation', [
+                            'customer_id' => $user->id,
+                            'customer_name' => $user->name,
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to send push notification to customer', [
+                            'customer_id' => $user->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+
+                    // Send push notification to vendor
+                    try {
+                        $vendor = Auth::user();
+                        send(
+                            $vendor,
+                            'New POS Customer Created',
+                            "Customer {$user->name} has been successfully created",
+                            [
+                                'type' => 'pos_customer_created',
+                                'customer_id' => $user->id,
+                                'customer_name' => $user->name,
+                                'customer_email' => $user->email,
+                                'customer_phone' => $user->phone,
+                                'source' => 'pos_system'
+                            ]
+                        );
+                        Log::info('Push notification sent to vendor for customer creation', [
+                            'vendor_id' => Auth::id(),
+                            'customer_id' => $user->id,
+                            'customer_name' => $user->name,
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to send push notification to vendor', [
+                            'vendor_id' => Auth::id(),
+                            'customer_id' => $user->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 });
             } catch (\Exception $e) {
                 Log::warning('Failed to log POS customer creation', [
@@ -1674,7 +2169,7 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
                     'error' => $e->getMessage(),
                 ]);
             }
-           
+
 
 
             // // Send notification and email to Vendor
@@ -1707,14 +2202,12 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
                 'message' => 'Customer created successfully',
                 'data' => $user
             ], 201);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], 422);
-
         } catch (\Exception $e) {
             Log::error('Create POS customer failed', ['error' => $e->getMessage()]);
 
@@ -1725,77 +2218,9 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
         }
     }
 
-
-      public function customers()
-    {
-        $vendorId = Auth::id();
-
-        // 1. Get all user_ids from bookings for this vendor
-        $bookingCustomers = POSBooking::where('vendor_id', $vendorId)
-            ->whereNotNull('customer_id')
-            ->pluck('customer_id')
-            ->unique()
-            ->toArray();
-
-        // 2. Get all user_ids from pos_customers for this vendor
-        $posCustomerUserIds = PosCustomer::where('vendor_id', $vendorId)
-            ->whereNotNull('user_id')
-            ->pluck('user_id')
-            ->unique()
-            ->toArray();
-
-        // 3. Merge and deduplicate user_ids
-        $allUserIds = collect($bookingCustomers)
-            ->merge($posCustomerUserIds)
-            ->unique()
-            ->filter()
-            ->values()
-            ->toArray();
-
-        // 4. Fetch all users
-        $users = User::whereIn('id', $allUserIds)
-            ->with(['posProfile' => function($q) use ($vendorId) {
-                $q->where('vendor_id', $vendorId);
-            }])
-            ->get();
-
-        // 5. For each user, calculate metrics
-        $customers = $users->map(function ($user) use ($vendorId) {
-            // Get all bookings for this user and vendor
-            $bookings = POSBooking::where('vendor_id', $vendorId)
-                ->where('customer_id', $user->id)
-                ->get();
-
-            $totalBookings = $bookings->count();
-            $totalSpent = $bookings->sum('total_amount');
-            $lastBookingAt = $bookings->max('created_at');
-
-            // Prefer posProfile business name if exists
-            $name = $user->name;
-            if ($user->posProfile && $user->posProfile->business_name) {
-                $name = $user->posProfile->business_name;
-            }
-
-            return [
-                'id' => $user->id, // Use user_id as customer ID
-                'name' => $name,
-                'phone' => $user->phone,
-                'email' => $user->email,
-                'total_bookings' => $totalBookings,
-                'total_spent' => $totalSpent,
-                'last_booking_at' => $lastBookingAt,
-                'is_active' => $totalBookings > 0,
-            ];
-        });
-
-        $totalCustomers = $customers->count();
-
-        return view('vendor.pos.customers', compact('customers', 'totalCustomers'));
-    }
-
     public function showCustomer($id)
     {
-        $vendorId = Auth::id();
+        $vendorId = $this->resolveEffectiveVendorId(request());
 
         // Find user by ID
         $user = User::findOrFail($id);
@@ -1833,6 +2258,4 @@ protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $book
 
         return view('vendor.pos.customers.show', compact('customer'));
     }
-
-
 }

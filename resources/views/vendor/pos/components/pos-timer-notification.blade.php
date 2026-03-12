@@ -5,6 +5,10 @@
     const LEGACY_STORAGE_KEY = 'activeBookingTimer';
     const timerMap = new Map();
 
+    function getPosBasePath() {
+        return window.POS_BASE_PATH || '/vendor/pos';
+    }
+
     function parseStoredTimers() {
         const allTimersRaw = localStorage.getItem(STORAGE_KEY);
         if (allTimersRaw) {
@@ -108,7 +112,7 @@
         `;
 
         card.addEventListener('click', () => {
-            window.location.href = `/vendor/pos/bookings/${booking.id}`;
+            window.location.href = `${getPosBasePath()}/bookings/${booking.id}`;
         });
 
         card.querySelector('.js-pos-close').addEventListener('click', (event) => {
@@ -123,6 +127,8 @@
             if (remaining <= 0) {
                 timerText.innerText = '00:00:00';
                 removeTimer(booking.id);
+                // Ask backend to process expired holds immediately for email/in-app notifications.
+                syncWithPendingPayments();
                 return;
             }
             timerText.innerText = formatRemaining(remaining);
@@ -164,7 +170,7 @@
 
     async function syncWithPendingPayments() {
         try {
-            const response = await fetch('/vendor/pos/api/pending-payments', {
+            const response = await fetch(`${getPosBasePath()}/api/pending-payments`, {
                 credentials: 'same-origin',
                 headers: {
                     'Accept': 'application/json',

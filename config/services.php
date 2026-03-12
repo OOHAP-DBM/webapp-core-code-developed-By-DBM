@@ -47,10 +47,11 @@ return [
         'key' => env('DOOH_API_KEY'),
     ],
     'twilio' => [
-        'sid'             => env('TWILIO_SID'),
-        'token'           => env('TWILIO_TOKEN'),
-        'from'            => env('TWILIO_FROM'),
-        'whatsapp'        => env('TWILIO_WHATSAPP_FROM'),
+        'sid'                => env('TWILIO_SID'),
+        'token'              => env('TWILIO_TOKEN'),
+        'from'               => env('TWILIO_FROM'),
+        'whatsapp'           => env('TWILIO_WHATSAPP_FROM'),
+        'disable_ssl_verify' => env('TWILIO_DISABLE_SSL_VERIFY', false), // Only for local dev
     ],
 
 

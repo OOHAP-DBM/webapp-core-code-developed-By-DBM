@@ -1,26 +1,28 @@
-@extends('layouts.vendor')
+@include('vendor.pos.components.pos-timer-notification')
+@extends($posLayout ?? 'layouts.vendor')
 
 @section('title', 'POS Booking Details')
 @section('content')
-<div class="px-6 py-6">
+<div class="px-4 sm:px-6 py-4 sm:py-6">
+    @include('vendor.pos.components.admin-vendor-switcher')
     <div class="bg-white rounded-xl shadow">
 
         {{-- Header --}}
-        <div class="px-6 py-4 bg-primary text-white flex items-center justify-between">
-            <h4 class="text-lg font-semibold flex items-center gap-2">
-                📄 POS Booking Details
+        <div class="px-4 sm:px-6 py-4 bg-primary text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h4 class="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
+                 POS Booking Details
             </h4>
-            <a href="{{ route('vendor.pos.dashboard') }}"
-               class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg">
+            <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
+               class="w-full sm:w-auto text-center text-sm bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg">
                 ← Back
             </a>
         </div>
 
         {{-- Body --}}
-        <div class="p-6 space-y-6">
+        <div class="p-4 sm:p-6 space-y-6">
 
             <!-- Booking Summary -->
-            <div class="rounded-xl border bg-gray-50 p-5 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="rounded-xl border bg-gray-50 p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                     <p class="text-sm text-gray-500">Invoice</p>
                     <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" class="pointer-events-none text-inherit">—</a></h2>
@@ -43,7 +45,7 @@
                     </span>
                 </div>
 
-                <div class="text-right">
+                <div class="text-left lg:text-right">
                     <p class="text-sm text-gray-500">Total Amount</p>
                     <p id="ui-total" class="text-2xl font-bold text-gray-900">₹0.00</p>
                 </div>
@@ -66,8 +68,8 @@
 <!-- MARK AS PAID MODAL -->
 <div id="mark-paid-modal"
      class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl animate-fadeIn">
-        <h3 class="text-lg font-semibold mb-2">💰 Mark Payment as Received</h3>
+    <div class="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full mx-4 shadow-xl animate-fadeIn">
+        <h3 class="text-lg sm:text-xl font-semibold mb-2"> Mark Payment as Received</h3>
         <p class="text-gray-600 text-sm mb-4">
             Confirm payment details before marking as paid.
         </p>
@@ -89,13 +91,13 @@
             </div>
         </div>
 
-        <div class="flex justify-end gap-2">
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-2">
             <button onclick="closeMarkPaidModal()"
-                    class="px-4 py-2 rounded-lg border hover:bg-gray-100">
+                    class="w-full sm:w-auto px-4 py-2 rounded-lg border hover:bg-gray-100">
                 Cancel
             </button>
             <button onclick="confirmMarkPaid()"
-                    class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 flex items-center gap-2">
+                    class="w-full sm:w-auto px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 flex items-center justify-center gap-2">
                 <span id="confirm-btn-text">Mark as Paid</span>
                 <span id="confirm-spinner" class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
             </button>
@@ -106,8 +108,8 @@
 <!-- RELEASE MODAL -->
 <div id="release-modal"
      class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl animate-fadeIn">
-        <h3 class="text-lg font-semibold text-red-600 mb-2">⚠️ Release Booking</h3>
+    <div class="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full mx-4 shadow-xl animate-fadeIn">
+        <h3 class="text-lg sm:text-xl font-semibold text-red-600 mb-2">⚠️ Release Booking</h3>
         <p class="text-sm text-gray-600 mb-3">
             This will cancel the booking permanently.
         </p>
@@ -116,13 +118,13 @@
                   class="w-full rounded-lg border border-gray-300 p-2 mb-4"
                   placeholder="Reason (optional)"></textarea>
 
-        <div class="flex justify-end gap-2">
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-2">
             <button onclick="closeReleaseModal()"
-                    class="px-4 py-2 rounded-lg border hover:bg-gray-100">
+                    class="w-full sm:w-auto px-4 py-2 rounded-lg border hover:bg-gray-100">
                 Keep Booking
             </button>
             <button onclick="confirmRelease()"
-                    class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 flex items-center gap-2">
+                    class="w-full sm:w-auto px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 flex items-center justify-center gap-2">
                 <span id="release-btn-text">Release</span>
                 <span id="release-spinner"
                       class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
@@ -145,7 +147,9 @@
 
 
 const bookingId = @json($bookingId);
-const API_URL = '/vendor/pos/api';
+const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
+window.POS_BASE_PATH = POS_BASE_PATH;
+const API_URL = `${POS_BASE_PATH}/api`;
 let currentBooking = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -194,7 +198,7 @@ async function loadBookingDetails() {
         // If payment_status is unpaid, show 'Hold' as booking status
         let bookingStatusText = b.status;
         let bookingStatusColor = getStatusColor(b.status);
-        if (b.payment_status === 'unpaid') {
+        if (b.payment_status === 'pending_payment') {
             bookingStatusText = 'Hold';
             bookingStatusColor = 'bg-yellow-500 text-white';
         }
@@ -221,18 +225,20 @@ async function loadBookingDetails() {
                     totalFinal += final;
                     return `
                         <tr>
-                            <td class="text-center">${idx + 1}</td>
-                            <td>
+                            <td class="px-2 py-1 sm:px-3 sm:py-2 text-center">${idx + 1}</td>
+                            <td class="px-2 py-1 sm:px-3 sm:py-2">
                                 <div class="flex items-center gap-2">
-                                    <img src="${h.image_url}" alt="Hoarding" class="w-12 h-12 rounded object-cover border" />
+                                    <img src="${h.image_url}" alt="Hoarding" class="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover border my-1" />
                                     <div>
-                                        <div  class="font-semibold"> <a href="">${h.title}</a></div>
+                                        <div class="font-semibold ">
+                                            <a href="${h.url || '#'}" target="_blank">${h.title}</a>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-center">₹${base.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                            <td >${h.campaign_start_date || '-'} - ${h.campaign_end_date || '-'}<br><span class="text-xs">${h.campaign_duration_days ? h.campaign_duration_days + ' days' : '-'}</span></td>
-                            <td>₹${final.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                            <td class="px-2 py-1 sm:px-3 sm:py-2 text-center">₹${base.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                            <td class="px-2 py-1 sm:px-3 sm:py-2 text-center">${h.campaign_start_date || '-'} - ${h.campaign_end_date || '-'}<br><span class="text-xs">${h.campaign_duration_days ? h.campaign_duration_days + ' days' : '-'}</span></td>
+                            <td class="px-2 py-1 sm:px-3 sm:py-2 text-center">₹${final.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                         </tr>
                     `;
                 }).join('');
@@ -243,11 +249,11 @@ async function loadBookingDetails() {
                 if (hoardingsTableRows) {
                     priceSummaryHtml = `
                         <div class="rounded-xl border bg-white p-4 mb-4">
-                            <h3 class="text-base font-bold mb-2">Price Summary</h3>
-                            <div class="grid md:grid-cols-4 gap-4">
+                            <h3 class="text-base sm:text-lg font-bold mb-2">Price Summary</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div><strong>Base Amount:</strong> ₹${totalBase.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
                                 <div><strong>Total Discount:</strong> ₹${totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
-                                <div><strong>GST (18%):</strong> ₹${totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                                <div><strong>Taxes (18%):</strong> ₹${totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
                                 <div><strong>Total Payable:</strong> ₹${totalFinal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
                             </div>
                         </div>
@@ -258,21 +264,23 @@ async function loadBookingDetails() {
                 if (hoardingsTableRows) {
                     hoardingsTableHtml = `
                         <div class="rounded-xl border bg-white p-4 mb-4">
-                            <h3 class="text-base font-bold mb-2">Booked Hoardings</h3>
+                            <h3 class="text-base sm:text-lg font-bold mb-2">Hoardings</h3>
+                            <div class="overflow-x-auto">
                             <table class="min-w-full text-sm border">
                                 <thead>
                                     <tr class="bg-gray-100">
-                                        <th class="px-2 py-2 border">Sn.</th>
-                                        <th class="px-2 py-2 border">Hoardings</th>
-                                        <th class="px-2 py-2 border">Rental</th>
-                                        <th class="px-2 py-2 border">Duration</th>
-                                        <th class="px-2 py-2 border">Total Price (incl. 18% GST)</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Sn.</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Hoardings</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Rental</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Duration</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Total Price</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     ${hoardingsTableRows}
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     `;
                 }
@@ -280,13 +288,13 @@ async function loadBookingDetails() {
             // Customer details and actions inside invoice box
             let customerDetailsHtml = `
                 <div class="rounded-xl border bg-white p-4 mb-4">
-                    <div class="grid md:grid-cols-2 gap-4 mb-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
                         <div><strong>Customer:</strong> ${b.customer_name}</div>
                         <div><strong>Phone:</strong> ${b.customer_phone || '-'} </div>
                         <div><strong>Booking Date:</strong> ${new Date(b.created_at).toLocaleString()} </div>
-                        <div><strong>Notes:</strong> ${b.notes || '-'} </div>
+                        <div><strong>Email:</strong> ${b.notes || '-'} </div>
                     </div>
-                    <div class="flex flex-wrap gap-2 pt-2 border-t">
+                    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 pt-2 border-t">
                         ${renderActionButtons(b)}
                     </div>
                 </div>
@@ -319,20 +327,20 @@ function renderActionButtons(booking) {
     if (['unpaid', 'partial'].includes(booking.payment_status) && booking.status !== 'cancelled') {
         html += `
             <button onclick="openMarkPaidModal()"
-                class="px-4 py-2 rounded-lg btn-color text-sm font-medium">
-                💰 Mark as Paid
+                class="w-full sm:w-auto px-4 py-2 rounded-lg btn-color text-sm font-medium text-center">
+                Mark as Paid
             </button>`;
     } else if (booking.payment_status === 'paid') {
         html += `
             <button disabled 
-                class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
                 title="Payment already received">
                 ✓ Already Paid
             </button>`;
     } else if (booking.status === 'cancelled') {
         html += `
             <button disabled 
-                class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
                 title="Cannot mark paid - booking cancelled">
                 ✗ Booking Cancelled
             </button>`;
@@ -343,59 +351,85 @@ function renderActionButtons(booking) {
     if (booking.payment_status === 'unpaid' && ['draft', 'confirmed'].includes(booking.status)) {
         html += `
             <button onclick="openReleaseModal()"
-                class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm font-medium">
-                🗑️ Release Booking
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm font-medium text-center">
+                Cancel Booking
             </button>`;
-    } else if (booking.status === 'active') {
+    } 
+    else if (booking.status === 'active') {
         html += `
             <button disabled 
-                class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
                 title="Cannot release - booking already started">
-                🚫 Cannot Release (Active)
+                🚫 Cannot Cancel  (Active)
             </button>`;
     } else if (booking.status === 'completed') {
         html += `
             <button disabled 
-                class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
                 title="Booking completed">
                 ✓ Completed
             </button>`;
     } else if (booking.status === 'cancelled') {
         html += `
             <button disabled 
-                class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
                 title="Booking cancelled">
                 ✗ Cancelled
             </button>`;
     } else if (booking.payment_status !== 'unpaid') {
         html += `
             <button disabled 
-                class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
-                title="Can only release hoarding if payment is unpaid">
-                🚫 Cannot Release
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
+                title="Can only cancel booking if payment is unpaid">
+                🚫 Cannot Cancel
             </button>`;
     }
 
     // Send Reminder button
-    // BACKEND RULE: reminder_count < 3
-    if (booking.reminder_count !== undefined && booking.reminder_count < 3) {
-        html += `
-            <button onclick="sendReminder()"
-                class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium">
-                📧 Send Reminder
-            </button>`;
-    } else if (booking.reminder_count === 3) {
-        html += `
-            <button disabled 
-                class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
-                title="Maximum 3 reminders sent">
-                📧 Max Reminders Sent
-            </button>`;
-    }
+    // BACKEND RULE: reminder_count < 10
+    // if (booking.reminder_count !== undefined && booking.reminder_count < 10) {
+    //     html += `
+    //         <button onclick="sendReminder()"
+    //             class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium">
+    //             📧 Send Reminder
+    //         </button>`;
+    // } else if (booking.reminder_count === 10) {
+    //     html += `
+    //         <button disabled 
+    //             class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
+    //             title="Maximum 10 reminders sent">
+    //             📧 Max Reminders Sent
+    //         </button>`;
+    // }
+    // Send Reminder button
+// RULE: Only if reminder_count < 10, payment not paid, and booking not cancelled
+if (booking.status !== 'cancelled' && booking.payment_status !== 'paid' && booking.reminder_count !== undefined && booking.reminder_count < 10) {
+    html += `
+        <button onclick="sendReminder()"
+            class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium text-center">
+             Send Reminder
+        </button>`;
+} 
+else if (booking.payment_status === 'paid') {
+    html += `
+        <button disabled 
+            class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
+            title="Payment already completed">
+            ✓ Payment Completed
+        </button>`;
+} 
+else if (booking.reminder_count === 10) {
+    html += `
+        <button disabled 
+            class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
+            title="Maximum 10 reminders sent">
+            📧 Max Reminders Sent
+        </button>`;
+}
 
     // Back button
-    html += `<a href="{{ route('vendor.pos.dashboard') }}"
-        class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm">
+    html += `<a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
+        class="w-full sm:w-auto px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm text-center">
         ← Back
     </a>`;
 

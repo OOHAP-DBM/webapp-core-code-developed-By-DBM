@@ -17,6 +17,7 @@ use Modules\Enquiries\Mail\UserDirectEnquiryConfirmation;
 use Modules\Enquiries\Mail\VendorDirectEnquiryMail;
 use App\Notifications\AdminDirectEnquiryNotification;
 use Modules\Enquiries\Notifications\VendorDirectEnquiryNotification;
+use Modules\Enquiries\Notifications\CustomerDirectEnquiryNotification;
 use App\Models\User;
 use App\Models\Hoarding; // Adjust namespace based on your structure
 use Carbon\Carbon;
@@ -326,23 +327,30 @@ class DirectEnquiryController extends Controller
                     Mail::to($vendor->email)->queue(
                         new VendorDirectEnquiryMail($enquiry, $vendor)
                     );
-                    $vendor->notify(new VendorDirectEnquiryNotification($enquiry, $vendor));
-                    if ($vendor->fcm_token) {
-                        $sent = send(
-                            $vendor->fcm_token,
-                            'New Direct Enquiry Received',
-                            'You have received a new enquiry in ' . $normalizedCity . '. Please check and respond quickly.',
-                            [
-                                'type' => 'direct_enquiry',
-                                'enquiry_id' => $enquiry->id,
-                                'city' => $normalizedCity
-                            ]
-                        );
 
-                        if (!$sent) {
-                            Log::warning("FCM failed for vendor ID {$vendor->id} (Direct Enquiry)");
-                        }
-                    }
+                    // In-app notification
+                    $vendor->notify(new VendorDirectEnquiryNotification($enquiry));
+
+                    // Push notification with hoarding details
+                    $hoardingTypes = implode(', ', array_map('strtoupper', $data['hoarding_type']));
+                    send(
+                        $vendor,
+                        'New Hoarding Enquiry Received',
+                        "New {$hoardingTypes} enquiry from {$enquiry->name} in {$normalizedCity}",
+                        [
+                            'type'           => 'vendor_direct_enquiry',
+                            'enquiry_id'     => $enquiry->id,
+                            'customer_name'  => $enquiry->name,
+                            'hoarding_type'  => implode(',', $data['hoarding_type']),
+                            'city'           => $normalizedCity,
+                            'source'         => 'website'
+                        ]
+                    );
+
+                    Log::info('Vendor notified of direct enquiry', [
+                        'vendor_id' => $vendor->id,
+                        'enquiry_id' => $enquiry->id,
+                    ]);
                 }
 
                 Log::info('Enquiry assigned to vendors', [
@@ -356,6 +364,36 @@ class DirectEnquiryController extends Controller
             Mail::to($enquiry->email)->queue(
                 new UserDirectEnquiryConfirmation($enquiry)
             );
+
+            // Send in-app notification to customer if registered user
+            $existingCustomer = User::where('email', $enquiry->email)
+                ->where('active_role', 'customer')
+                ->first();
+
+            if ($existingCustomer) {
+                // In-app notification for registered customer
+                $existingCustomer->notify(new \Modules\Enquiries\Notifications\CustomerDirectEnquiryNotification($enquiry));
+
+                // Push notification to customer
+                $hoardingTypes = implode(', ', array_map('strtoupper', $data['hoarding_type']));
+                send(
+                    $existingCustomer,
+                    'Enquiry Submitted Successfully',
+                    "Your {$hoardingTypes} hoarding enquiry for {$normalizedCity} has been submitted.",
+                    [
+                        'type'           => 'customer_direct_enquiry',
+                        'enquiry_id'     => $enquiry->id,
+                        'hoarding_type'  => implode(',', $data['hoarding_type']),
+                        'city'           => $normalizedCity,
+                        'status'         => 'submitted'
+                    ]
+                );
+
+                Log::info('Customer notified of direct enquiry submission', [
+                    'customer_id' => $existingCustomer->id,
+                    'enquiry_id' => $enquiry->id,
+                ]);
+            }
 
             // Notify admins
             $admins = User::whereIn('active_role', ['admin', 'superadmin'])
@@ -652,6 +690,17 @@ class DirectEnquiryController extends Controller
                 $q->where('users.id', $vendor->id);
             }])
             ->latest('direct_web_enquiries.created_at');
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('location_city', 'like', "%{$search}%");
+            });
+        }
 
         // Filter by status
         if ($request->filled('status')) {

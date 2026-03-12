@@ -5,21 +5,21 @@
     <div class="absolute inset-0 bg-black/40" onclick="closeFilterModal()"></div>
 
     <!-- Panel -->
-    <div class="absolute inset-0 flex items-center justify-center p-4">
-        <div class="relative bg-white w-full max-w-2xl shadow-xl overflow-y-auto max-h-[90vh]">
+    <div class="absolute inset-0 flex items-center justify-center p-3 sm:p-4">
+        <div class="relative bg-white w-full max-w-2xl shadow-xl overflow-y-auto max-h-[92vh] rounded-lg">
 
             <!-- Header -->
-            <div class="flex items-center justify-between px-6 py-4 bg-[#D9F2E6]">
+            <div class="flex items-center justify-between px-4 sm:px-6 py-4 bg-[#D9F2E6]">
                 <h2 class="text-lg font-semibold text-gray-800">Filters</h2>
                 <button onclick="closeFilterModal()" class="text-gray-600 text-xl cursor-pointer">✕</button>
             </div>
 
-            <div class="p-6 space-y-6 text-sm text-gray-700">
+            <div class="p-4 sm:p-6 space-y-6 text-sm text-gray-700">
 
                 <!-- Types of Hoarding -->
                 <div>
                     <p class="font-semibold mb-2">Types of Hoarding</p>
-                    <div class="flex gap-5">
+                    <div class="flex flex-wrap gap-4 sm:gap-5">
                         <label class="flex items-center gap-2">
                             <input type="radio" name="filter_type" value="all" checked onchange="handleTypeChange(this.value)"> All
                         </label>
@@ -35,7 +35,7 @@
                 <!-- Resolution (DOOH only) -->
                 <div id="dooh-section">
                     <p class="font-semibold mb-2">Resolution</p>
-                    <div class="flex gap-5">
+                    <div class="flex flex-wrap gap-4 sm:gap-5">
                         <label class="flex items-center gap-2">
                             <input type="checkbox" name="filter_resolution" value="led"> LED
                         </label>
@@ -51,11 +51,11 @@
                 <!-- Screen Size -->
                 <div>
                     <p class="font-semibold mb-2">Screen Size</p>
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                         <input id="screen-size-min" name="filter_screen_min" type="number" min="0" max="1000" value="0"
-                            class="w-1/2 border border-gray-200 px-3 py-2 text-xs bg-gray-50" placeholder="Min (Sq.ft)">
+                            class="w-full sm:w-1/2 border border-gray-200 px-3 py-2 text-xs bg-gray-50 min-h-[44px]" placeholder="Min (Sq.ft)">
                         <input id="screen-size-max" name="filter_screen_max" type="number" min="0" max="1000" value="1000"
-                            class="w-1/2 border border-gray-200 px-3 py-2 text-xs bg-gray-50" placeholder="Max (Sq.ft)">
+                            class="w-full sm:w-1/2 border border-gray-200 px-3 py-2 text-xs bg-gray-50 min-h-[44px]" placeholder="Max (Sq.ft)">
                     </div>
                     <div class="relative w-full h-5 mt-3">
                         <input id="screen-size-range-min" type="range" min="0" max="1000" value="0" step="1"
@@ -70,7 +70,7 @@
                 <!-- Category (OOH only) -->
                 <div id="ooh-section">
                     <p class="font-semibold mb-2">Category</p>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label class="flex items-center gap-2"><input type="checkbox" name="filter_category" value="billboard"> Bill Board</label>
                         <label class="flex items-center gap-2"><input type="checkbox" name="filter_category" value="unipole"> Unipole</label>
                         <label class="flex items-center gap-2"><input type="checkbox" name="filter_category" value="gantry"> Gantry</label>
@@ -81,7 +81,7 @@
                 <!-- Availability -->
                 <div>
                     <p class="font-semibold mb-2">Availability</p>
-                    <div class="flex gap-5">
+                    <div class="flex flex-wrap gap-4 sm:gap-5">
                         <label class="flex items-center gap-2"><input type="checkbox" name="filter_availability" value="available"> Available Hoardings</label>
                         <label class="flex items-center gap-2"><input type="checkbox" name="filter_availability" value="booked"> Booked Hoardings</label>
                     </div>
@@ -90,7 +90,7 @@
                 <!-- Surroundings -->
                 <div>
                     <p class="font-semibold mb-2">Surroundings</p>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label class="flex items-center gap-2"><input type="checkbox" name="filter_surroundings" value="crossroad"> Crossroad</label>
                         <label class="flex items-center gap-2"><input type="checkbox" name="filter_surroundings" value="highway"> Highway</label>
                         <label class="flex items-center gap-2"><input type="checkbox" name="filter_surroundings" value="market_area"> Market Area</label>
@@ -102,11 +102,11 @@
                 <!-- Hoarding Size -->
                 <div>
                     <p class="font-semibold mb-2">Hoarding Size</p>
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                         <input id="hoarding-size-min" name="filter_hoarding_min" type="number" min="0" max="1000" value="0"
-                            class="w-1/2 border border-gray-200 px-3 py-2 text-xs bg-gray-50" placeholder="Min (Sq.ft)">
+                            class="w-full sm:w-1/2 border border-gray-200 px-3 py-2 text-xs bg-gray-50 min-h-[44px]" placeholder="Min (Sq.ft)">
                         <input id="hoarding-size-max" name="filter_hoarding_max" type="number" min="0" max="1000" value="1000"
-                            class="w-1/2 border border-gray-200 px-3 py-2 text-xs bg-gray-50" placeholder="Max (Sq.ft)">
+                            class="w-full sm:w-1/2 border border-gray-200 px-3 py-2 text-xs bg-gray-50 min-h-[44px]" placeholder="Max (Sq.ft)">
                     </div>
                     <div class="relative w-full h-5 mt-3">
                         <input id="hoarding-size-range-min" type="range" min="0" max="1000" value="0" step="1"
@@ -121,9 +121,9 @@
             </div>
 
             <!-- Footer -->
-            <div class="flex px-6 py-4 gap-3 justify-end">
-                <button type="button" onclick="resetFilters()" class="text-gray-600 font-semibold cursor-pointer">Reset</button>
-                <button type="button" onclick="applyFilters()" class="bg-[#2D5A43] text-white px-5 py-2 text-sm cursor-pointer">
+            <div class="flex flex-col-reverse sm:flex-row px-4 sm:px-6 py-4 gap-2 sm:gap-3 justify-end">
+                <button type="button" onclick="resetFilters()" class="w-full sm:w-auto min-h-[44px] text-gray-600 font-semibold cursor-pointer">Reset</button>
+                <button type="button" onclick="applyFilters()" class="w-full sm:w-auto min-h-[44px] bg-[#2D5A43] text-white px-5 py-2 text-sm cursor-pointer">
                     Apply Filter
                 </button>
             </div>
@@ -262,7 +262,7 @@ function applyFilters() {
 
     // Debugging feedback
     if (typeof window.showToast === 'function') {
-        window.showToast('Applying filters...');
+        // window.showToast('Applying filters...');
     }
     console.log('Applying filters:', params);
 

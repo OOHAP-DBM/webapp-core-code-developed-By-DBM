@@ -47,7 +47,7 @@ class HoardingApprovalController extends Controller
         // Get SLA breaches
         $slaBreaches = DB::table('hoardings')
             ->join('users', 'hoardings.vendor_id', '=', 'users.id')
-            ->where('hoardings.approval_status', 'pending')
+            ->where('hoardings.status', 'pending_approval')
             ->whereRaw('TIMESTAMPDIFF(HOUR, hoardings.submitted_at, NOW()) > 48')
             ->select(
                 'hoardings.*',

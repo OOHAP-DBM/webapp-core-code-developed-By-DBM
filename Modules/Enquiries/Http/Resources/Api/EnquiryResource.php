@@ -4,6 +4,31 @@ namespace Modules\Enquiries\Http\Resources\Api;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+
+/**
+ * @OA\Schema(
+ *     schema="EnquiryResource",
+ *     type="object",
+ *     title="Enquiry Resource",
+ *     description="Single enquiry summary returned in list views",
+ *
+ *     @OA\Property(property="id",              type="integer", example=88),
+ *     @OA\Property(property="enquiry_no",       type="string",  example="0088"),
+ *     @OA\Property(property="requirement",      type="string",  nullable=true, example="Interested in Q4 campaign"),
+ *     @OA\Property(property="status",           type="string",  example="submitted",
+ *         enum={"submitted","pending","accepted","rejected","cancelled"}
+ *     ),
+ *     @OA\Property(property="status_label",     type="string",  example="Enquiry Received"),
+ *     @OA\Property(property="customer_name",    type="string",  nullable=true, example="John Doe"),
+ *     @OA\Property(property="customer_email",   type="string",  nullable=true, example="john@example.com"),
+ *     @OA\Property(property="customer_phone",   type="string",  nullable=true, example="9876543210"),
+ *     @OA\Property(property="vendor_count",     type="integer", example=2),
+ *     @OA\Property(property="total_hoardings",  type="integer", example=4),
+ *     @OA\Property(property="locations_count",  type="integer", example=4),
+ *     @OA\Property(property="created_at",       type="string",  example="10 Mar, 2025"),
+ *     @OA\Property(property="preferred_campaign_start", type="string", nullable=true, example="01 May 2025")
+ * )
+ */
 class EnquiryResource extends JsonResource
 {
     

@@ -17,10 +17,10 @@
         </a>
     </div>
 
-    <div class="bg-white px-6 py-5">
-        <h2 class="text-base font-semibold text-gray-900 mb-4 text-left">
+    <div class="bg-white px-6 pb-5">
+        {{-- <h2 class="text-base font-semibold text-gray-900 mb-4 text-left">
             My Account
-        </h2>
+        </h2> --}}
 
         <div class="flex items-center space-x-3">
             <div
@@ -29,12 +29,12 @@
             >
                  @if(auth()->user()->avatar)
                         <img
-                            src="{{ str_starts_with(auth()->user()->avatar, 'http')
-                                ? auth()->user()->avatar
-                                : asset('storage/' . ltrim(auth()->user()->avatar, '/')) }}"
-                            alt="Profile Image"
-                            class="w-full h-full object-cover block"
-                        >
+                                src="{{ str_starts_with(auth()->user()->avatar, 'http')
+                                    ? auth()->user()->avatar
+                                    : asset('storage/' . ltrim(auth()->user()->avatar, '/')) }}?v={{ auth()->user()->updated_at->timestamp }}"
+                                alt="Profile Image"
+                                class="w-full h-full object-cover block"
+                            >
                     @else
                         {{-- Default User Icon --}}
                         <svg
@@ -177,7 +177,18 @@
                 </svg>
                 Enquiries
             </a>
-
+            <!-- POS Booking -->
+            <a
+                href="{{ route('customer.pos.booking') }}"
+                class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg
+                {{ request()->routeIs('customer.pos.booking') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50' }}"
+            >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="3" width="18" height="18" rx="2" fill="currentColor" opacity="0.1"/>
+                    <path d="M7 7H17V9H7V7ZM7 11H17V13H7V11ZM7 15H13V17H7V15Z" fill="currentColor"/>
+                </svg>
+                POS Booking
+            </a>
             <!-- LogOut -->
             <button
                 type="button"

@@ -4,10 +4,6 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
-use Twilio\Rest\Client as TwilioClient;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Modules\Enquiries\Mail\OTPEmail;
 
@@ -15,16 +11,6 @@ use Modules\Enquiries\Mail\OTPEmail;
 
 class GuestOtpService
 {
-    protected TwilioClient $twilio;
-
-    public function __construct()
-    {
-        $this->twilio = new TwilioClient(
-            config('services.twilio.sid'),
-            config('services.twilio.token')
-        );
-    }
-
     /**
      * Generate and send OTP
      * No user creation - works with just phone/email identifier
@@ -39,7 +25,7 @@ class GuestOtpService
 
         // Generate 4-digit OTP
         $otp = rand(1000, 9999);
-        
+
         // Store in database (no user_id required)
         DB::table('guest_user_otps')->insert([
             'identifier' => $identifier,
@@ -49,19 +35,19 @@ class GuestOtpService
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        
+
         // Send SMS or Email
         $this->sendOTP($identifier, $otp);
-        
+
         Log::info('OTP generated', [
             'identifier' => substr($identifier, 0, 2) . '****' . substr($identifier, -2),
             'purpose' => $purpose,
             'otp' => $otp
         ]);
-        
+
         return true;
     }
-    
+
     /**
      * Verify OTP
      */
@@ -74,24 +60,24 @@ class GuestOtpService
             ->where('expires_at', '>', now())
             ->whereNull('verified_at')
             ->first();
-        
+
         if (!$record) {
             return false;
         }
-        
+
         // Mark as verified
         DB::table('guest_user_otps')
             ->where('id', $record->id)
             ->update(['verified_at' => now()]);
-        
+
         Log::info('OTP verified', [
             'identifier' => substr($identifier, 0, 2) . '****' . substr($identifier, -2),
             'purpose' => $purpose
         ]);
-        
+
         return true;
     }
-    
+
     /**
      * Check if identifier was recently verified
      */
@@ -104,7 +90,7 @@ class GuestOtpService
             ->where('verified_at', '>', now()->subMinutes($minutes))
             ->exists();
     }
-    
+
     /**
      * Clean up old OTP records (run this in scheduled job)
      */
@@ -114,7 +100,7 @@ class GuestOtpService
             ->where('created_at', '<', now()->subDays($daysOld))
             ->delete();
     }
-    
+
     /**
      * Send SMS (integrate your SMS provider here)
      */
@@ -194,18 +180,14 @@ class GuestOtpService
     //     // TODO: Remove the Log::info above and uncomment your SMS provider code
     // }
 
-     /**
+    /**
      * Send OTP via SMS or Email
      */
     protected function sendOTP(string $identifier, int $otp): void
     {
         if ($this->isPhoneNumber($identifier)) {
-            // Send via Twilio SMS
             try {
-                $this->twilio->messages->create($this->formatPhoneNumber($identifier), [
-                    'from' => config('services.twilio.from'),
-                    'body' => "Your OOHAPP OTP is: {$otp}"
-                ]);
+                app(TwilioService::class)->sendSMS($identifier, "Your OOHAPP OTP is: {$otp}");
             } catch (\Exception $e) {
                 Log::error("OTP SMS sending failed: " . $e->getMessage());
             }
@@ -229,9 +211,8 @@ class GuestOtpService
     protected function formatPhoneNumber(string $number): string
     {
         if (strlen($number) == 10) {
-            return '+91'.$number; // Assuming India
+            return '+91' . $number; // Assuming India
         }
         return $number;
     }
-
 }

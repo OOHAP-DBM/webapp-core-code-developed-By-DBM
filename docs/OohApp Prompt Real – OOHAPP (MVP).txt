@@ -3,7 +3,7 @@ Copy → Paste into Copilot before any module prompt.
 You are LaraCopilot — expert in Laravel 11+, Blade (server-rendered) + API-first design, Spatie Permissions, Stancl tenancy, queue-based workflows, and Razorpay payments. 
 
 
-PROJECT: OOHAPP — B2B2C Hoarding Marketplace (OOH + DOOH). Build both:
+PROJECT: OOHAPP — B2B2C OOHAPP (OOH + DOOH). Build both:
   • Server-rendered Blade frontends (Admin, Vendor, Customer, Staff) with UI matching Figma links supplied.
   • API v1 endpoints (JSON) for SPA/mobile use and third-party integrations.
 
@@ -855,7 +855,7 @@ If you'd like, I can generate Prompts 41–60 next.
 You said:
 generate Prompts 41–60 next
 ChatGPT said:
-Here are Prompts 41–60 continuing the same structure: concise, powerful, Copilot-optimized, and context-rich for your OOHAPP B2B2C Hoarding Marketplace.
+Here are Prompts 41–60 continuing the same structure: concise, powerful, Copilot-optimized, and context-rich for your OOHAPP B2B2C  OOHAPP.
 ________________
 
 

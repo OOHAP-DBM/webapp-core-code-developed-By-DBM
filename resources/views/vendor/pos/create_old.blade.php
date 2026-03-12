@@ -156,7 +156,7 @@ const fetchJSON = async (url, options = {}) => {
 
 /* --- INITIALIZATION --- */
 document.addEventListener('DOMContentLoaded', async () => {
-    document.getElementById('booking-date').innerText = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    // document.getElementById('booking-date').innerText = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     await loadHoardings();
 
     document.getElementById('hoarding-search').addEventListener('input', (e) => {

@@ -4,15 +4,15 @@
 @section('content')
 <!-- Page Header -->
 <div class="mb-8">
-    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Inventory Import</h1>
+    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Inventory Import</h1>
     <p class="text-gray-600 mt-2">Upload and manage your inventory imports</p>
 </div>
 
 <!-- Toast Notifications -->
-<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+<div id="toastContainer" class="fixed top-4 left-3 right-3 sm:left-auto sm:right-4 z-50 space-y-2"></div>
 
-<div id="uploadTimerWidget" class="fixed bottom-4 right-4 z-50 hidden">
-    <div id="uploadTimerExpanded" class="bg-white border border-blue-200 rounded-xl shadow-lg p-4 w-80">
+<div id="uploadTimerWidget" class="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-4 z-50 hidden">
+    <div id="uploadTimerExpanded" class="bg-white border border-blue-200 rounded-xl shadow-lg p-4 w-full sm:w-80 max-w-sm">
         <div class="flex items-start justify-between gap-2">
             <div>
                 <p class="text-sm font-semibold text-blue-900">Please wait</p>
@@ -36,12 +36,12 @@
 </div>
 
 <!-- Upload Section -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 mb-8">
             <!-- Upload Card -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                    <div class="px-6 py-8">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-6">Upload Batch</h2>
+                    <div class="px-4 py-6 sm:px-6 sm:py-8">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-6">Upload Inventory</h2>
 
                         <form id="uploadForm" class="space-y-6">
                             @csrf
@@ -55,7 +55,7 @@
                                     <input type="file" id="excelFile" name="excel_file" accept=".xlsx"
                                         class="hidden" />
                                     <label for="excelFile"
-                                        class="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
+                                        class="flex items-center justify-center w-full px-4 py-3 min-h-[96px] sm:min-h-[110px] border-2 border-dashed border-gray-300 rounded-lg cursor-pointer touch-manipulation hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
                                         <div class="flex flex-col items-center">
                                             <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"
                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +89,7 @@
                                     <input type="file" id="pptFile" name="ppt_file" accept=".pptx,.ppt"
                                         class="hidden" />
                                     <label for="pptFile"
-                                        class="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
+                                        class="flex items-center justify-center w-full px-4 py-3 min-h-[96px] sm:min-h-[110px] border-2 border-dashed border-gray-300 rounded-lg cursor-pointer touch-manipulation hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
                                         <div class="flex flex-col items-center">
                                             <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"
                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,11 +117,11 @@
                             <!-- Media Type Selection -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-3">
-                                    Import Type
+                                    Hoarding Type
                                 </label>
                                 <div class="space-y-2">
                                     <label class="flex items-center cursor-pointer">
-                                        <input type="radio" name="media_type" value="ooh" checked
+                                        <input type="radio" name="media_type" value="ooh"
                                             class="w-4 h-4 text-blue-600" />
                                         <span class="ml-3 text-sm text-gray-700">OOH (Out of Home)</span>
                                     </label>
@@ -135,7 +135,7 @@
 
                             <!-- Submit Button -->
                             <button type="submit" id="submitBtn"
-                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="w-full min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed">
                                 <svg id="submitIcon" class="w-5 h-5" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -154,12 +154,12 @@
 
             <!-- Stats Cards -->
             <div class="lg:col-span-2">
-                <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     <!-- Total Batches -->
-                    <div onclick="openImportManagement('')" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
+                    <div onclick="openImportManagement('')" class="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow cursor-pointer">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-gray-600 text-sm font-medium">Total Batches</p>
+                                <p class="text-gray-600 text-sm font-medium">Total Uploads</p>
                                 <p id="totalBatches" class="text-3xl font-bold text-gray-900 mt-2">0</p>
                             </div>
                             <div class="bg-blue-100 rounded-full p-3">
@@ -174,7 +174,7 @@
                     </div>
 
                     <!-- Processing -->
-                    <div onclick="openImportManagement('processing')" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
+                    <div onclick="openImportManagement('processing')" class="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow cursor-pointer">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-600 text-sm font-medium">Processing</p>
@@ -191,7 +191,7 @@
                     </div>
 
                     <!-- Completed -->
-                    <div onclick="openImportManagement('completed')" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
+                    <div onclick="openImportManagement('completed')" class="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow cursor-pointer">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-600 text-sm font-medium">Completed</p>
@@ -208,7 +208,7 @@
                     </div>
 
                     <!-- Failed -->
-                    <div onclick="openImportManagement('failed')" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
+                    <div onclick="openImportManagement('failed')" class="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow cursor-pointer">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-600 text-sm font-medium">Failed</p>
@@ -227,21 +227,21 @@
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <!-- <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2">
                         <button onclick="refreshBatches()"
-                            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium">
+                            class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium cursor-pointer touch-manipulation">
                             Refresh
                         </button>
                         <button onclick="filterByStatus('processed')"
-                            class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm font-medium">
+                            class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm font-medium cursor-pointer touch-manipulation">
                             Manage Inventory
                         </button>
                     </div>
-                </div>
+                </div> -->
 
-                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-5">
+                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-5">
                     <h3 class="font-semibold text-blue-900 mb-2">Upload Guidance</h3>
                     <ul class="text-sm text-blue-800 space-y-1 mb-4">
                         <li>✓ Excel file up to 20MB</li>
@@ -250,11 +250,11 @@
                         <li>✓ For DOOH, include additional pricing fields</li>
                     </ul>
 
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'ooh']) }}" class="px-4 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
+                    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                        <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'ooh']) }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
                             Download OOH Sample (CSV)
                         </a>
-                        <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'dooh']) }}" class="px-4 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
+                        <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'dooh']) }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
                             Download DOOH Sample (CSV)
                         </a>
                     </div>
@@ -264,23 +264,23 @@
 
         <!-- Batch List Section -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden hidden">
-            <div class="px-6 py-6 border-b border-gray-200">
-                <div class="flex items-center justify-between">
+            <div class="px-4 py-5 sm:px-6 sm:py-6 border-b border-gray-200">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <h2 class="text-2xl font-bold text-gray-900">Import History</h2>
-                    <div class="flex items-center space-x-4">
+                    <div class="w-full sm:w-auto flex items-center">
                         <!-- Search Bar -->
                         <input type="text" id="searchInput" placeholder="Search batches..."
-                            class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                            class="w-full sm:w-72 min-h-[44px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                     </div>
                 </div>
             </div>
 
             <!-- Table -->
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full min-w-[760px]">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Batch ID</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">SN</th>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Hoarding Type</th>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Total</th>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Valid</th>
@@ -301,7 +301,7 @@
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                                         </path>
                                     </svg>
-                                    <p class="text-lg font-medium">No batches yet</p>
+                                    <p class="text-lg font-medium">No uploads yet</p>
                                     <p class="text-sm">Upload a file to get started</p>
                                 </div>
                             </td>
@@ -310,12 +310,12 @@
                 </table>
             </div>
 
-            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div class="px-4 py-4 sm:px-6 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <p id="historyPageInfo" class="text-sm text-gray-600">Showing 0-0 of 0</p>
-                <div class="flex items-center space-x-2">
-                    <button id="historyPrevBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                <div class="w-full sm:w-auto flex items-center justify-between sm:justify-start space-x-2">
+                    <button id="historyPrevBtn" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
                     <span id="historyPageLabel" class="text-sm text-gray-600">Page 1 / 1</span>
-                    <button id="historyNextBtn" class="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+                    <button id="historyNextBtn" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
                 </div>
             </div>
         </div>
@@ -340,13 +340,13 @@
                 </p>
             </div>
         </div>
-        <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+        <div class="px-6 py-4 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-end gap-3">
             <button onclick="closeApproveModal()"
-                class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium">
+                class="w-full sm:w-auto min-h-[44px] px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium">
                 Cancel
             </button>
             <button onclick="confirmApprove()"
-                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 id="confirmApproveBtn">
                 <span>Approve</span>
             </button>
@@ -837,7 +837,7 @@
         }, 1000);
 
         pollUploadStatus();
-        uploadStatusPollInterval = setInterval(pollUploadStatus, 10000);
+        uploadStatusPollInterval = setInterval(pollUploadStatus, 3000);
     }
 
     async function submitUpload(e) {
@@ -851,7 +851,53 @@
         
         const excelFile = document.getElementById('excelFile').files[0];
         const pptFile = document.getElementById('pptFile').files[0];
-        const mediaType = document.querySelector('input[name="media_type"]:checked').value;
+        const mediaTypeElement = document.querySelector('input[name="media_type"]:checked');
+        if (!excelFile || !pptFile) {
+            showError('Please select both Excel and PowerPoint files');
+            return;
+        }
+
+        if (!mediaTypeElement) {
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hoarding Type Required',
+                    text: 'Please select a Hoarding Type before uploading.',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#d33'
+                });
+            } else {
+                showToast('Please select a Hoarding Type before uploading.', 'error');
+            }
+            return;
+        }
+
+        const mediaType = mediaTypeElement.value;
+
+        // Show verification alert
+        if (window.Swal) {
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: 'Hoarding Type Verification Required',
+                html: `
+                    You have selected the Hoarding Type for this bulk upload.<br><br>
+                    Please ensure that the selected type is correct:<br><br>
+                    <strong>OOH</strong> – Static Outdoor Hoardings (Billboards, Unipoles, Wall Paintings, etc.)<br><br>
+                    <strong>DOOH</strong> – Digital Outdoor Hoardings (LED Screens, Digital Displays, etc.)<br><br>
+                    The selected hoarding type will determine how the inventory is processed, displayed, and booked on the OOHAPP platform.<br><br>
+                    Please verify that the correct type has been selected before proceeding.
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Proceed',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            });
+
+            if (!result.isConfirmed) {
+                return;
+            }
+        }
 
         if (!excelFile || !pptFile) {
             showError('Please select both Excel and PowerPoint files');
@@ -1004,9 +1050,9 @@
             return;
         }
 
-        tbody.innerHTML = batches.map(batch => `
+        tbody.innerHTML = batches.map((batch, idx) => `
             <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4 text-sm font-mono text-blue-600">#${batch.batch_id}</td>
+                <td class="px-6 py-4 text-sm font-mono text-blue-600">${idx + 1}</td>
                 <td class="px-6 py-4 text-sm">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                         batch.media_type === 'ooh' 
@@ -1032,7 +1078,7 @@
                 <td class="px-6 py-4 text-sm">
                     <div class="flex items-center space-x-2">
                         <button onclick="loadBatchDetails(${batch.batch_id})" 
-                            class="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-xs font-medium">
+                            class="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-xs font-medium cursor-pointer">
                             View
                         </button>
                     </div>
@@ -1188,7 +1234,7 @@
 
         const config = typeConfig[type] || typeConfig['info'];
 
-        toast.className = `${config.bg} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-pulse`;
+        toast.className = `${config.bg} text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-pulse w-full sm:w-auto max-w-md break-words`;
         toast.innerHTML = `
             <span class="font-bold">${config.icon}</span>
             <span>${message}</span>
@@ -1218,11 +1264,14 @@
         openImportManagement(status);
     }
 
-    function openImportManagement(status = '') {
-        const url = new URL(IMPORT_MANAGEMENT_URL, window.location.origin);
-        url.searchParams.set('tab', 'batches');
-        window.location.href = url.toString();
+   function openImportManagement(status = '') {
+    const url = new URL(IMPORT_MANAGEMENT_URL, window.location.origin);
+    url.searchParams.set('tab', 'batches');
+    if (status) {
+        url.searchParams.set('status', status);
     }
+    window.location.href = url.toString();
+}
 
     async function loadBatchDetails(batchId) {
         window.location.href = `${DETAILS_BASE}/batches/${batchId}`;
