@@ -41,7 +41,7 @@
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                     <div class="px-4 py-6 sm:px-6 sm:py-8">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-6">Upload Batch</h2>
+                        <h2 class="text-xl font-semibold text-gray-900 mb-6">Upload Inventory</h2>
 
                         <form id="uploadForm" class="space-y-6">
                             @csrf
@@ -159,7 +159,7 @@
                     <div onclick="openImportManagement('')" class="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow cursor-pointer">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-gray-600 text-sm font-medium">Total Batches</p>
+                                <p class="text-gray-600 text-sm font-medium">Total Uploads</p>
                                 <p id="totalBatches" class="text-3xl font-bold text-gray-900 mt-2">0</p>
                             </div>
                             <div class="bg-blue-100 rounded-full p-3">
@@ -227,7 +227,7 @@
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <!-- <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                     <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2">
                         <button onclick="refreshBatches()"
@@ -239,7 +239,7 @@
                             Manage Inventory
                         </button>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-5">
                     <h3 class="font-semibold text-blue-900 mb-2">Upload Guidance</h3>
@@ -280,7 +280,7 @@
                 <table class="w-full min-w-[760px]">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Batch ID</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">SN</th>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Hoarding Type</th>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Total</th>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Valid</th>
@@ -301,7 +301,7 @@
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                                         </path>
                                     </svg>
-                                    <p class="text-lg font-medium">No batches yet</p>
+                                    <p class="text-lg font-medium">No uploads yet</p>
                                     <p class="text-sm">Upload a file to get started</p>
                                 </div>
                             </td>
@@ -1050,9 +1050,9 @@
             return;
         }
 
-        tbody.innerHTML = batches.map(batch => `
+        tbody.innerHTML = batches.map((batch, idx) => `
             <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4 text-sm font-mono text-blue-600">#${batch.batch_id}</td>
+                <td class="px-6 py-4 text-sm font-mono text-blue-600">${idx + 1}</td>
                 <td class="px-6 py-4 text-sm">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                         batch.media_type === 'ooh' 
