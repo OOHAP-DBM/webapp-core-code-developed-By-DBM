@@ -58,18 +58,29 @@ class EnquiryController extends Controller
         /* ---------------- DATE FILTER (created_at) ---------------- */
         if ($request->filled('date_filter')) {
 
+            $now = Carbon::now();
+
             switch ($request->date_filter) {
 
                 case 'last_week':
-                    $query->where('created_at', '>=', Carbon::now()->subWeek());
+                    $query->whereBetween('created_at', [
+                        $now->copy()->subWeek()->startOfWeek(),
+                        $now->copy()->subWeek()->endOfWeek()
+                    ]);
                     break;
 
                 case 'last_month':
-                    $query->where('created_at', '>=', Carbon::now()->subMonth());
+                    $query->whereBetween('created_at', [
+                        $now->copy()->subMonth()->startOfMonth(),
+                        $now->copy()->subMonth()->endOfMonth()
+                    ]);
                     break;
 
                 case 'last_year':
-                    $query->where('created_at', '>=', Carbon::now()->subYear());
+                    $query->whereBetween('created_at', [
+                        $now->copy()->subYear()->startOfYear(),
+                        $now->copy()->subYear()->endOfYear()
+                    ]);
                     break;
 
                 case 'custom':

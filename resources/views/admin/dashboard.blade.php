@@ -347,7 +347,7 @@
                 <tr>
                     <th class="px-6 py-3 text-left">SN</th>
                     <th class="px-6 py-3 text-left">Customer</th>
-                    <th class="px-6 py-3 text-left"># Of Bookings</th>
+                    <th class="px-6 py-3 text-left">No. Of Bookings</th>
                     <th class="px-6 py-3 text-left">Grand Total</th>
                     <th class="px-6 py-3 text-left">Amount Received</th>
                     <th class="px-6 py-3 text-left">Due Amount</th>
@@ -404,7 +404,7 @@
                     <th class="px-6 py-3 text-left">SN</th>
                     <th class="px-6 py-3 text-left">Transaction ID</th>
                     <th class="px-6 py-3 text-left">Customer</th>
-                    <th class="px-6 py-3 text-left"># Of Bookings</th>
+                    <th class="px-6 py-3 text-left">No. Of Bookings</th>
                     <th class="px-6 py-3 text-left">Payment Status</th>
                     <th class="px-6 py-3 text-left">Booking Type</th>
                     <th class="px-6 py-3 text-left">Date</th>

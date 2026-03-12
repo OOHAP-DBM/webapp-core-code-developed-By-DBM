@@ -244,7 +244,7 @@ class EnquiryController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/enquiries",
+     *     path="/enquiries",
      *     summary="List enquiries for authenticated customer",
      *     description="Returns paginated list of enquiries with optional filters for status, search by ID, date range, and custom date range.",
      *     tags={"Enquiries"},
@@ -384,19 +384,29 @@ class EnquiryController extends Controller
             }
         }
 
-        // Filter: date range
+
         if ($request->filled('date_filter')) {
             switch ($request->date_filter) {
+
                 case 'last_week':
-                    $query->where('created_at', '>=', Carbon::now()->subWeek());
+                    $query->whereBetween('created_at', [
+                        Carbon::now()->subWeek()->startOfWeek(),
+                        Carbon::now()->subWeek()->endOfWeek()
+                    ]);
                     break;
 
                 case 'last_month':
-                    $query->where('created_at', '>=', Carbon::now()->subMonth());
+                    $query->whereBetween('created_at', [
+                        Carbon::now()->subMonth()->startOfMonth(),
+                        Carbon::now()->subMonth()->endOfMonth()
+                    ]);
                     break;
 
                 case 'last_year':
-                    $query->where('created_at', '>=', Carbon::now()->subYear());
+                    $query->whereBetween('created_at', [
+                        Carbon::now()->subYear()->startOfYear(),
+                        Carbon::now()->subYear()->endOfYear()
+                    ]);
                     break;
 
                 case 'custom':
@@ -487,7 +497,7 @@ class EnquiryController extends Controller
 
     /**
      * Update enquiry status
-     * PATCH /api/v1/enquiries/{id}/status
+     * PATCH /enquiries/{id}/status
      */
     public function updateStatus(Request $request, int $id): JsonResponse
     {

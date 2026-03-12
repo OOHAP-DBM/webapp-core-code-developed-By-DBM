@@ -28,7 +28,7 @@ class VendorEnquiryController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/enquiries/vendor/all",
+     *     path="/enquiries/vendor/all",
      *     summary="List enquiries for vendor's hoardings",
      *     description="Returns paginated enquiries that contain at least one item belonging to the authenticated vendor's hoardings. Supports filtering by status, search by enquiry ID, hoarding ID, customer name/mobile, date presets, and custom date range.",
      *     tags={"Vendor Enquiries"},
@@ -245,17 +245,34 @@ class VendorEnquiryController extends Controller
         }
 
         // ── Filter: date range ─────────────────────────────────────────────
+        // ── Filter: date range ─────────────────────────────────────────────
         if ($request->filled('date_filter')) {
+
+            $now = Carbon::now();
+
             switch ($request->date_filter) {
+
                 case 'last_week':
-                    $query->where('created_at', '>=', Carbon::now()->subWeek());
+                    $query->whereBetween('created_at', [
+                        $now->copy()->subWeek()->startOfWeek(),
+                        $now->copy()->subWeek()->endOfWeek(),
+                    ]);
                     break;
+
                 case 'last_month':
-                    $query->where('created_at', '>=', Carbon::now()->subMonth());
+                    $query->whereBetween('created_at', [
+                        $now->copy()->subMonth()->startOfMonth(),
+                        $now->copy()->subMonth()->endOfMonth(),
+                    ]);
                     break;
+
                 case 'last_year':
-                    $query->where('created_at', '>=', Carbon::now()->subYear());
+                    $query->whereBetween('created_at', [
+                        $now->copy()->subYear()->startOfYear(),
+                        $now->copy()->subYear()->endOfYear(),
+                    ]);
                     break;
+
                 case 'custom':
                     if ($request->filled('from_date') && $request->filled('to_date')) {
                         $query->whereBetween('created_at', [
