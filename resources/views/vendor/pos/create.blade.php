@@ -895,7 +895,9 @@ function populatePreview() {
     setEl('preview-cust-gstin',   selectedCustomer.gstin);
     setEl('preview-cust-status',  selectedCustomer.status);
     setEl('preview-cust-role',    selectedCustomer.role);
-    setEl('preview-cust-address', selectedCustomer.address || selectedCustomer.city || null);
+    setEl('preview-cust-address',
+        [selectedCustomer.billing_address, selectedCustomer.billing_city, selectedCustomer.billing_state, selectedCustomer.billing_pincode]
+            .filter(Boolean).join(', ') || '---');
     setEl('preview-cust-country', selectedCustomer.country);
     setEl('preview-cust-created', selectedCustomer.created_at);
     setEl('preview-cust-updated', selectedCustomer.updated_at);
@@ -936,8 +938,6 @@ function populatePreview() {
                 </td>
                 <td class="px-4 py-2 text-xs text-gray-500">${safe(h.location_address, safe(h.city, '---'))}</td>
                 <td class="px-4 py-2">${typeBadge}</td>
-                <td class="px-4 py-2 text-xs text-gray-500">${safe(h.size, '---')}</td>
-                <td class="px-4 py-2 text-xs text-gray-500 text-center">${isDooh ? (h.total_slots_per_day ?? 300) : '---'}</td>
                 <td class="px-4 py-2 text-xs text-gray-600">
                     ${h.startDate} – ${h.endDate}
                     <div class="text-[10px] text-gray-400">${getTieredDurationLabel(h.startDate, h.endDate)}</div>

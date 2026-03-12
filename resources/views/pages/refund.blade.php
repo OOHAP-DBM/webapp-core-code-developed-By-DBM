@@ -3,7 +3,7 @@
 @section('content')
 @include('components.customer.navbar')
 
-<div class="bg-gray-100 py-12">
+<div class="bg-gray-100 py-12 px-4">
     <div class="max-w-6xl mx-auto bg-white p-10 rounded-lg shadow">
 
         <!-- <h1 class="text-2xl font-bold mb-6 text-center">

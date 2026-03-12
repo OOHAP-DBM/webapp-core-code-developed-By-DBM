@@ -805,7 +805,7 @@ class VendorPosController extends Controller
                 ->whereHas('roles', function ($q) {
                     $q->where('name', 'customer');
                 })
-                ->select(['id', 'name', 'email', 'phone', 'gstin', 'address'])
+                ->select(['id', 'name', 'email', 'phone', 'gstin', 'address', 'billing_address', 'billing_city', 'billing_state', 'billing_pincode'])
                 ->first();
 
             if (!$customer) {
@@ -857,7 +857,7 @@ class VendorPosController extends Controller
                         ->orWhere('email', 'like', "%{$search}%")
                         ->orWhere('phone', 'like', "%{$search}%");
                 })
-                ->select(['id', 'name', 'email', 'phone', 'gstin', 'address'])
+                ->select(['id', 'name', 'email', 'phone', 'gstin', 'address', 'billing_address', 'billing_city', 'billing_state', 'billing_pincode'])
                 ->limit(10)
                 ->get();
 
