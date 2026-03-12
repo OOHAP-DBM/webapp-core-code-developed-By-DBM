@@ -113,6 +113,7 @@
 const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
 
 let currentPage = 1;
+let presetPaymentStatuses = '';
 
 // Helper: Fetch with session auth
 const fetchJSON = async (url) => {
@@ -147,16 +148,41 @@ function formatDateTime(dateStr) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
     const searchInput = document.getElementById('search-box');
     const statusSelect = document.getElementById('filter-status');
     const paymentStatusSelect = document.getElementById('filter-payment-status');
+
+    const initialStatus = (urlParams.get('status') || '').trim();
+    const initialPaymentStatus = (urlParams.get('payment_status') || '').trim();
+    const initialPaymentStatuses = (urlParams.get('payment_statuses') || '').trim();
+    const initialSearch = (urlParams.get('search') || '').trim();
+
+    if (statusSelect && initialStatus) {
+        statusSelect.value = initialStatus;
+    }
+
+    if (paymentStatusSelect && initialPaymentStatus) {
+        paymentStatusSelect.value = initialPaymentStatus;
+    }
+
+    if (initialPaymentStatuses) {
+        presetPaymentStatuses = initialPaymentStatuses;
+    }
+
+    if (searchInput && initialSearch) {
+        searchInput.value = initialSearch;
+    }
 
     if (statusSelect) {
         statusSelect.addEventListener('change', () => loadPosBookings(1));
     }
 
     if (paymentStatusSelect) {
-        paymentStatusSelect.addEventListener('change', () => loadPosBookings(1));
+        paymentStatusSelect.addEventListener('change', () => {
+            presetPaymentStatuses = '';
+            loadPosBookings(1);
+        });
     }
 
     if (searchInput) {
@@ -179,7 +205,11 @@ function loadPosBookings(page = 1) {
 
     let url = `${POS_BASE_PATH}/api/bookings?page=${page}&per_page=10`;
     if (status) url += `&status=${status}`;
-    if (paymentStatus) url += `&payment_status=${paymentStatus}`;
+    if (paymentStatus) {
+        url += `&payment_status=${paymentStatus}`;
+    } else if (presetPaymentStatuses) {
+        url += `&payment_statuses=${encodeURIComponent(presetPaymentStatuses)}`;
+    }
     if (search) url += `&search=${encodeURIComponent(search)}`;
 
     fetchJSON(url)

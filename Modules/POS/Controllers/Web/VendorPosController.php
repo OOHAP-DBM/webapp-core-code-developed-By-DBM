@@ -1653,6 +1653,7 @@ class VendorPosController extends Controller
                 ->sum('total_amount') ?? 0;
             $pendingPayments = (clone $baseQuery)
                 ->whereIn('payment_status', ['unpaid', 'partial'])
+                ->where('status', '!=', 'cancelled')
                 ->sum('total_amount') ?? 0;
             $activeCreditNotes = (clone $baseQuery)
                 ->where('credit_note_status', 'active')
@@ -1720,8 +1721,24 @@ class VendorPosController extends Controller
                 $query->where('status', $request->get('status'));
             }
 
-            if ($request->filled('payment_status')) {
-                $query->where('payment_status', $request->get('payment_status'));
+            $allowedPaymentStatuses = ['paid', 'unpaid', 'partial', 'credit'];
+            $paymentStatuses = [];
+
+            if ($request->filled('payment_statuses')) {
+                $rawPaymentStatuses = explode(',', (string) $request->get('payment_statuses'));
+                $paymentStatuses = array_values(array_unique(array_filter(array_map(function ($status) use ($allowedPaymentStatuses) {
+                    $status = trim((string) $status);
+                    return in_array($status, $allowedPaymentStatuses, true) ? $status : null;
+                }, $rawPaymentStatuses))));
+            } elseif ($request->filled('payment_status')) {
+                $singlePaymentStatus = trim((string) $request->get('payment_status'));
+                if (in_array($singlePaymentStatus, $allowedPaymentStatuses, true)) {
+                    $paymentStatuses = [$singlePaymentStatus];
+                }
+            }
+
+            if (!empty($paymentStatuses)) {
+                $query->whereIn('payment_status', $paymentStatuses);
             }
 
             if ($request->filled('search')) {

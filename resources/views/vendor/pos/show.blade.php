@@ -402,8 +402,8 @@ function renderActionButtons(booking) {
     //         </button>`;
     // }
     // Send Reminder button
-// RULE: Only if reminder_count < 10 AND payment not paid
-if (booking.payment_status !== 'paid' && booking.reminder_count !== undefined && booking.reminder_count < 10) {
+// RULE: Only if reminder_count < 10, payment not paid, and booking not cancelled
+if (booking.status !== 'cancelled' && booking.payment_status !== 'paid' && booking.reminder_count !== undefined && booking.reminder_count < 10) {
     html += `
         <button onclick="sendReminder()"
             class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium text-center">

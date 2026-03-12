@@ -25,7 +25,8 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-        <div class="bg-[#4891EF] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center">
+          <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.list') }}"
+              class="bg-[#4891EF] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center hover:opacity-95 transition cursor-pointer">
             <div>
                 <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="44" height="44" rx="2" fill="white"/>
@@ -36,9 +37,10 @@
                 <h6 class="text-sm opacity-80">Total Bookings</h6>
                 <h2 id="total-bookings" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
-        </div>
+        </a>
 
-            <div class="bg-[#8153FF] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center">
+                <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.list', ['payment_statuses' => 'paid,partial']) }}"
+                    class="bg-[#8153FF] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center hover:opacity-95 transition cursor-pointer">
             <div>
                 <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="44" height="44" rx="2" fill="white"/>
@@ -49,9 +51,10 @@
                 <h6 class="text-sm opacity-80">Total Revenue</h6>
                 <h2 id="total-revenue" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
-        </div>
+        </a>
 
-            <div class="bg-[#2CB67D] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center">
+                <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.list', ['payment_statuses' => 'unpaid,partial']) }}"
+                    class="bg-[#2CB67D] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center hover:opacity-95 transition cursor-pointer">
             <div>
                 <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="44" height="44" rx="2" fill="white"/>
@@ -62,9 +65,10 @@
                 <h6 class="text-sm opacity-80">Pending Payments</h6>
                 <h2 id="pending-payments" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
-        </div>
+        </a>
 
-            <div class="bg-[#092C4C] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center">
+                <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.customers') }}"
+                    class="bg-[#092C4C] text-white p-4 sm:p-5 lg:p-6 flex gap-4 h-full items-center hover:opacity-95 transition cursor-pointer">
             <div>
                 <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="44" height="44" rx="2" fill="white"/>
@@ -75,7 +79,7 @@
                 <h6 class="text-sm opacity-80">Total Customers</h6>
                 <h2 id="total-customers" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
-        </div>
+        </a>
     </div>
 
     <!-- Actions -->
