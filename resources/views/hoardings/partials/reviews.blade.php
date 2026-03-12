@@ -238,9 +238,9 @@
 </div>
 
 <div id="ratingModal"
-     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 px-2 sm:px-0">
 
-    <div class="bg-white w-full max-w-lg rounded-md shadow-lg relative overflow-hidden">
+    <div class="bg-white w-full max-w-lg rounded-md shadow-lg relative overflow-hidden mx-2 sm:mx-0">
 
         <!-- Green Header Bar -->
         <div class="bg-[#D9F2E6] h-10 w-full"></div>
