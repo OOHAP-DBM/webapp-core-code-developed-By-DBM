@@ -68,7 +68,7 @@
                     <th class="px-3 py-3 text-right font-semibold text-gray-700 whitespace-nowrap">Balance</th>
                     <th class="px-3 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Payment Status</th>
                     <th class="px-3 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Booking Status</th>
-                    {{-- <th class="px-3 py-3 text-center font-semibold text-gray-700 whitespace-nowrap">Action</th> --}}
+                    <th class="px-3 py-3 text-center font-semibold text-gray-700 whitespace-nowrap">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -143,12 +143,12 @@
                         </span>
                     </td>
 
-                    {{-- <td class="px-3 py-2 text-center">
-                        <a href="#"
+                    <td class="px-3 py-2 text-center">
+                        <a href="{{ route('customer.pos.booking.show', $booking->id) }}"
                             class="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 text-xs font-semibold">
                             View
                         </a>
-                    </td> --}}
+                    </td>
                 </tr>
                 @empty
                 <tr>

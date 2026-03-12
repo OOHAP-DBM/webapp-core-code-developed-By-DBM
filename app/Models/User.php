@@ -167,11 +167,11 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get vendor profile
+     * Get vendor profile (always fetch latest profile for user)
      */
     public function vendorProfile()
     {
-        return $this->hasOne(VendorProfile::class);
+        return $this->hasOne(VendorProfile::class)->latestOfMany();
     }
 
     /**
