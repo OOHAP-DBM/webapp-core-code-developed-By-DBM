@@ -1,6 +1,5 @@
 @extends('layouts.app')
 
-<!-- @section('title', 'Home - Seamless Hoarding Booking') -->
 
 @section('content')
     <!-- Navigation -->
