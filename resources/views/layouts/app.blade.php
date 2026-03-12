@@ -22,7 +22,7 @@
     <title>Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP</title>
     <meta name="description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.">
     <meta name="keywords" content="outdoor advertising India, billboard advertising India, hoarding advertising India, outdoor media booking, OOH advertising platform, billboard booking India">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large">
     <meta name="author" content="OOHAPP">
 
     <!-- Canonical URL -->
