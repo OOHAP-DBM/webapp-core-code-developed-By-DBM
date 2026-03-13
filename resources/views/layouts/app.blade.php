@@ -332,6 +332,9 @@
             window.shortlistManager = shortlistManager;
         })();
     </script>
+@stack('modals')
+@include('hoardings.partials.enquiry-modal')
+@include('hoardings.scripts.enquiry-modal')
 @include('layouts.partials.logout')
 <script>
     function openLogoutModal() {
