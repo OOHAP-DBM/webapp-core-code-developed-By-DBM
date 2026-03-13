@@ -84,6 +84,24 @@ class InvoiceController extends Controller
     }
 
     /**
+     * Download invoice for a booking (DRY for all roles)
+     */
+    public function downloadForBooking($bookingId, Request $request)
+    {
+        // TODO: Replace with your actual booking/invoice retrieval logic
+        // Example: $booking = Booking::findOrFail($bookingId);
+        // Example: $pdfPath = storage_path('app/invoices/invoice_' . $bookingId . '.pdf');
+
+        // For demonstration, return a dummy PDF if exists
+        $pdfPath = storage_path('app/invoices/invoice_' . $bookingId . '.pdf');
+        if (file_exists($pdfPath)) {
+            return response()->download($pdfPath, 'Invoice_' . $bookingId . '.pdf');
+        }
+        // Optionally, generate PDF on the fly here
+        return response('Invoice not found', 404);
+    }
+
+    /**
      * Send invoice via email
      */
     public function sendEmail(Request $request, Invoice $invoice)

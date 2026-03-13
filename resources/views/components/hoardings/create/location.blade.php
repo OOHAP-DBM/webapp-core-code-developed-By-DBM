@@ -78,13 +78,13 @@
     <!-- Location Verification -->
     <div class="mt-6 bg-[#FBFBFB] rounded-3xl border border-gray-100 p-6 space-y-6">
 
-        <div class="flex justify-between items-center">
+        <div class="flex flex-wrap justify-between items-start sm:items-center gap-3">
             <h3 class="text-base font-bold text-gray-800">
             Location Verification
             </h3>
 
             <button type="button" id="geotagBtn"
-                class="bg-[#009A5C] text-white text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-green-700 transition">
+                class="bg-[#009A5C] text-white text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-green-700 transition whitespace-nowrap shrink-0">
                 Sync to Map
             </button>
         </div>

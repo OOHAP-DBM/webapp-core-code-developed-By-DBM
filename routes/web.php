@@ -1313,3 +1313,9 @@ Route::get('/twilio-test', function () {
     $service = app(\App\Services\Whatsapp\TwilioWhatsappService::class);
     return $service->send('911236547890', 'Test message');
 });
+
+
+// To download invoice PDFs for authenticated users 
+Route::middleware(['auth'])->prefix('invoices')->name('invoices.')->group(function () {
+    Route::get('/{invoice}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('download');
+});
