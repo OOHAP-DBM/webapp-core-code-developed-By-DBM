@@ -1,21 +1,21 @@
 {{-- <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6"> --}}
-  <div class="md:p-8 space-y-8">
+  <div class="space-y-6 sm:space-y-8 md:p-8">
     <!-- Weekly Rental -->
-    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+    <div class="bg-white rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-sm border border-gray-100 mt-6 md:mt-8">
       <div class="flex items-center gap-3 mb-4">
         <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
         <h3 class="text-xl font-bold text-gray-800">Rental Offering</h3>
       </div>
-      <p class="text-xs text-gray-500 mb-8">You can set price weekly rental for your listing</p>
+      <p class="text-xs text-gray-500 mb-6 md:mb-8">You can set price weekly rental for your listing</p>
 
-      <div class="flex gap-8 border-b border-gray-100 mb-8">
+      <div class="flex flex-wrap gap-4 md:gap-8 border-b border-gray-100 mb-6 md:mb-8">
         <button type="button" class="pb-2 border-b-2 border-[#009A5C] text-[#009A5C] text-sm font-bold uppercase tracking-wider">Weekly</button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-end">
         <div class="space-y-2">
           <label class="text-sm font-semibold text-gray-600">Enable Weekly Booking?</label>
-          <div class="flex items-center gap-4">
+          <div class="flex items-start sm:items-center gap-3 sm:gap-4">
             <input type="checkbox" id="enable_weekly_booking" name="enable_weekly_booking" value="1" 
               {{ old('enable_weekly_booking', $draft->hoarding->enable_weekly_booking ?? 0) ? 'checked' : '' }}
               class="w-5 h-5 rounded border-gray-300 text-[#009A5C] cursor-pointer">
@@ -24,14 +24,14 @@
         </div>
       </div>
 
-      <div id="weekly-prices-section" class="{{ old('enable_weekly_booking', $draft->hoarding->enable_weekly_booking ?? 0) ? 'grid' : 'hidden' }} grid-cols-1 md:grid-cols-3 gap-8 mt-6">
+      <div id="weekly-prices-section" class="{{ old('enable_weekly_booking', $draft->hoarding->enable_weekly_booking ?? 0) ? 'grid' : 'hidden' }} grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mt-6">
         <div class="space-y-2">
           <label class="text-sm font-semibold text-gray-600">Price for 1 Week <span class="text-red-500">*</span></label>
           <div class="relative">
             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
             <input type="number" name="weekly_price_1" placeholder="1 Week Price" 
               value="{{ old('weekly_price_1', $draft->hoarding->weekly_price_1 ?? '') }}"
-              class="w-full border border-gray-200 rounded-xl px-8 py-2.5.5 focus:border-[#009A5C] outline-none">
+              class="w-full border border-gray-200 rounded-xl px-8 py-2.5 focus:border-[#009A5C] outline-none">
           </div>
         </div>
         <div class="space-y-2">
@@ -40,7 +40,7 @@
             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
             <input type="number" name="weekly_price_2" placeholder="2 Weeks Price" 
               value="{{ old('weekly_price_2', $draft->hoarding->weekly_price_2 ?? '') }}"
-              class="w-full border border-gray-200 rounded-xl px-8 py-2.5.5 focus:border-[#009A5C] outline-none">
+              class="w-full border border-gray-200 rounded-xl px-8 py-2.5 focus:border-[#009A5C] outline-none">
           </div>
         </div>
         <div class="space-y-2">
@@ -49,7 +49,7 @@
             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
             <input type="number" name="weekly_price_3" placeholder="3 Weeks Price" 
               value="{{ old('weekly_price_3', $draft->hoarding->weekly_price_3 ?? '') }}"
-              class="w-full border border-gray-200 rounded-xl px-8 py-2.5.5 focus:border-[#009A5C] outline-none">
+              class="w-full border border-gray-200 rounded-xl px-8 py-2.5 focus:border-[#009A5C] outline-none">
           </div>
         </div>
       </div>
@@ -60,19 +60,19 @@
 
 
     <!-- Services -->
-    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+    <div class="bg-white rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-sm border border-gray-100 mt-6 md:mt-8">
       <div class="flex items-center gap-3 mb-4">
         <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
         <h3 class="text-xl font-bold text-gray-800">Services Includes in Base Price</h3>
       </div>
-      <p class="text-xs text-gray-400 mb-8">Set Services provided for free (Yes) or as additional charges (No)</p>
+      <p class="text-xs text-gray-400 mb-6 md:mb-8">Set Services provided for free (Yes) or as additional charges (No)</p>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 md:gap-x-12 md:gap-y-10">
         <!-- Graphics (PARENT TABLE: hoardings) -->
         <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <label class="text-sm font-bold text-gray-700">Graphics Included ?</label>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center justify-start gap-2 w-full sm:w-auto sm:shrink-0">
               <label class="cursor-pointer">
                 <input type="radio" name="graphics_included" value="1" 
                   {{ old('graphics_included', $draft->hoarding->graphics_included ?? 0) == 1 ? 'checked' : '' }}
@@ -101,9 +101,9 @@
 
         <!-- Printing (CHILD TABLE: ooh_hoardings) -->
         <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <label class="text-sm font-bold text-gray-700">Printing Included ?</label>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center justify-start gap-2 w-full sm:w-auto sm:shrink-0">
               <label class="cursor-pointer">
                 <input type="radio" name="printing_included" value="1" 
                   {{ old('printing_included', $draft->printing_included ?? 0) == 1 ? 'checked' : '' }}
@@ -138,9 +138,9 @@
 
         <!-- Mounting (CHILD TABLE: ooh_hoardings) -->
         <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <label class="text-sm font-bold text-gray-700">Mounting Included ?</label>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center justify-start gap-2 w-full sm:w-auto sm:shrink-0">
               <label class="cursor-pointer">
                 <input type="radio" name="mounting_included" value="1" 
                   {{ old('mounting_included', $draft->mounting_included ?? 0) == 1 ? 'checked' : '' }}
@@ -168,9 +168,9 @@
 
         <!-- Lighting (CHILD TABLE: ooh_hoardings) -->
         <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <label class="text-sm font-bold text-gray-700">Lighting Included ?</label>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center justify-start gap-2 w-full sm:w-auto sm:shrink-0">
                 <label class="cursor-pointer">
                 <input type="radio" name="lighting_included" value="0" 
                   {{ old('lighting_included', $draft->lighting_included ?? 0) == 0 ? 'checked' : '' }}
@@ -203,9 +203,9 @@
         </div>
 
         <!-- Fixed Charges -->
-        <div class="md:col-span-2 bg-gray-50/50 p-6 rounded-2xl border border-dashed border-gray-200 space-y-4">
+        <div class="md:col-span-2 bg-gray-50/50 p-4 md:p-6 rounded-2xl border border-dashed border-gray-200 space-y-4">
           <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Fixed Charges</h4>
-          <div class="bg-white border border-gray-100 rounded-[1.5rem] p-8 space-y-8">
+          <div class="bg-white border border-gray-100 rounded-[1.5rem] p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div class="space-y-1">
                 <h4 class="text-sm font-bold text-gray-700">Remounting Service Charge?</h4>

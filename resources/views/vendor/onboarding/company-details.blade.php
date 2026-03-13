@@ -9,7 +9,7 @@
 
     <!-- Header -->
     <div class="vendor-header mt-5">
-        <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHAPP">
+        <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHApp company logo">
         <span>Vendor</span>
     </div>
 

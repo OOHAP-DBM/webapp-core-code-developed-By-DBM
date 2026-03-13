@@ -6,7 +6,7 @@
 <div class="min-h-screen bg-gray-50 pb-16 font-sans">
 
     <header class="flex items-center gap-2 px-8 py-6 bg-white border-b border-gray-100">
-        <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHAPP" class="h-7">
+        <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHApp company logo" class="h-7">
         <span class="text-sm font-medium text-gray-500 uppercase tracking-wider">Vendor Portal</span>
     </header>
 
