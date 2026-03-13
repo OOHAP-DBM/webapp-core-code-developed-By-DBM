@@ -6,7 +6,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/png" href="/assets/images/favicon/Vector (1).png" />
     <title>Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP</title>
-    
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
@@ -27,7 +26,7 @@
 
     <!-- Open Graph for Social Media -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP">
+    <meta property="og:title" content="Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP">
     <meta property="og:description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.">
     <meta property="og:url" content="https://oohapp.io/">
     <meta property="og:site_name" content="OOHAPP">
@@ -43,11 +42,14 @@
     <meta name="twitter:description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations and launch campaigns instantly.">
     <meta name="twitter:image" content="https://oohapp.io/assets/images/logo/logo_image.jpeg">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ST51N3C0N6"></script>
+
+   
     <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -56,142 +58,6 @@
     gtag('config', 'G-ST51N3C0N6');
     </script>
     <meta name="google-site-verification" content="Cj2NPz4_gTnvaitO3OAv51DDtIaNmE1N4VIP6WiGlDM" />
-
-    <script type="application/ld+json">
-        {
-        "@context": "https://schema.org",
-        "@graph": [
-            {
-            "@type": "Organization",
-            "@id": "https://oohapp.io/#organization",
-            "name": "OOHAPP",
-            "url": "https://oohapp.io/",
-            "logo": {
-                "@type": "ImageObject",
-                "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png",
-                "width": 512,
-                "height": 512
-            },
-            "description": "Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.",
-            "telephone": "+91 8118805835",
-            "email": "info@oohapp.io",
-            "areaServed": "IN",
-            "foundingDate": "2022",
-            "sameAs": [
-                "https://www.linkedin.com/company/oohapp/",
-                "https://twitter.com/oohapads",
-                "https://www.instagram.com/realoohappofficial/",
-                "https://www.facebook.com/profile.php?id=100083678822547"
-            ],
-            "address": {
-                "@type": "PostalAddress",
-                "streetAddress": "B 25, Vibhuti Khand, Gomti Nagar",
-                "addressLocality": "Lucknow",
-                "addressRegion": "Uttar Pradesh",
-                "postalCode": "226010",
-                "addressCountry": "IN"
-            },
-            "contactPoint": {
-                "@type": "ContactPoint",
-                "telephone": "+91 8118805835",
-                "contactType": "customer support",
-                "areaServed": "IN",
-                "availableLanguage": [
-                "English",
-                "Hindi"
-                ]
-            }
-            },
-            {
-            "@type": "LocalBusiness",
-            "@id": "https://oohapp.io/#localbusiness",
-            "name": "OOHAPP",
-            "parentOrganization": {
-                "@id": "https://oohapp.io/#organization"
-            },
-            "image": {
-                "@type": "ImageObject",
-                "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png"
-            },
-            "url": "https://oohapp.io/",
-            "telephone": "+91 8118805835",
-            "email": "info@oohapp.io",
-            "priceRange": "₹₹",
-            "currenciesAccepted": "INR",
-            "paymentAccepted": "Cash, Credit Card, UPI",
-            "areaServed": "IN",
-            "address": {
-                "@type": "PostalAddress",
-                "streetAddress": "B 25, Vibhuti Khand, Gomti Nagar",
-                "addressLocality": "Lucknow",
-                "addressRegion": "Uttar Pradesh",
-                "postalCode": "226010",
-                "addressCountry": "IN"
-            },
-            "openingHours": [
-                "Mo-Fr 09:30-18:30"
-            ],
-            "openingHoursSpecification": {
-                "@type": "OpeningHoursSpecification",
-                "dayOfWeek": [
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday"
-                ],
-                "opens": "09:30",
-                "closes": "18:30"
-            }
-            },
-            {
-            "@type": "WebSite",
-            "@id": "https://oohapp.io/#website",
-            "url": "https://oohapp.io/",
-            "name": "OOHAPP",
-            "publisher": {
-                "@id": "https://oohapp.io/#organization"
-            },
-            "inLanguage": "en-IN",
-            "potentialAction": {
-                "@type": "SearchAction",
-                "target": {
-                "@type": "EntryPoint",
-                "urlTemplate": "https://oohapp.io/search?q={search_term_string}"
-                },
-                "query-input": "required name=search_term_string"
-            }
-            },
-            {
-            "@type": "WebPage",
-            "@id": "https://oohapp.io/#webpage",
-            "url": "https://oohapp.io/",
-            "name": "Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP",
-            "isPartOf": {
-                "@id": "https://oohapp.io/#website"
-            },
-            "about": {
-                "@id": "https://oohapp.io/#organization"
-            },
-            "description": "Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.",
-            "inLanguage": "en-IN",
-            "datePublished": "2023-01-01",
-            "dateModified": "2026-03-13",
-            "breadcrumb": {
-                "@type": "BreadcrumbList",
-                "itemListElement": [
-                {
-                    "@type": "ListItem",
-                    "position": 1,
-                    "name": "Home",
-                    "item": "https://oohapp.io/"
-                }
-                ]
-            }
-            }
-        ]
-        }
-    </script>
 </head>
 <body class="antialiased">
     <div id="app" class="min-h-screen bg-white">
@@ -592,7 +458,7 @@ function toggleShortlist(btn) {
     fbq('track', 'PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=1651081729239968&ev=PageView&noscript=1" alt="Facebook Pixel"
+    src="https://www.facebook.com/tr?id=1651081729239968&ev=PageView&noscript=1"
     />
 </noscript>
 

@@ -70,16 +70,16 @@
 
     {{-- TABLE --}}
     <div class="bg-white border border-gray-200 overflow-x-auto shadow-sm">
-        <table class="min-w-full text-sm">
+        <table class="w-full min-w-[920px] text-xs sm:text-sm">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
-                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Sn</th>
-                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Enquiry ID</th>
-                    <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">Vendors</th>
-                    <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">Requirement</th>
-                    <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">No. of Locations</th>
-                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs">Status</th>
-                    <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">Action</th>
+                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs whitespace-nowrap">Sn</th>
+                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs whitespace-nowrap">Enquiry ID</th>
+                    <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs whitespace-nowrap">Vendors</th>
+                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs whitespace-nowrap">Requirement</th>
+                    {{-- <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs">No. of Locations</th> --}}
+                    <th class="px-4 py-4 text-left font-semibold text-gray-700 text-xs whitespace-nowrap">Status</th>
+                    <th class="px-4 py-4 text-center font-semibold text-gray-700 text-xs whitespace-nowrap">Action</th>
                 </tr>
             </thead>
 
@@ -88,12 +88,12 @@
                     <tr class="hover:bg-gray-50 transition-colors">
 
                         {{-- SN --}}
-                        <td class="px-4 py-4 text-gray-700">
+                        <td class="px-4 py-4 text-gray-700 whitespace-nowrap">
                             {{ ($enquiries->currentPage() - 1) * $enquiries->perPage() + $index + 1 }}
                         </td>
 
                         {{-- ENQUIRY ID --}}
-                        <td class="px-4 py-4">
+                                <td class="px-4 py-4 whitespace-nowrap">
                             <a href="{{ route('customer.enquiries.show', $enquiry->id) }}" class="text-green-600 font-semibold hover:text-green-700 hover:underline">
                                {{ $enquiry->formatted_id }}
                             </a>
@@ -103,7 +103,7 @@
                         </td>
 
                         {{-- # OF VENDORS --}}
-                        <td class="px-4 py-4 text-center">
+                        <td class="px-4 py-4 text-center whitespace-nowrap">
                             @php
                                 $vendorCount = $enquiry->items->map(function($item) {
                                     return optional($item->hoarding)->vendor_id;
@@ -113,8 +113,10 @@
                                 {{ $vendorCount }}
                             </span>
                         </td>
-                        <td class="px-4 py-4 text-center">
-                            {{$enquiry->customer_note}}
+                        <td class="px-4 py-4 min-w-[220px]">
+                            <div class="text-gray-700 break-words">
+                                {{ $enquiry->customer_note }}
+                            </div>
                         </td>
 
                         {{-- # OF OFFERS --}}
@@ -125,7 +127,7 @@
                         </td> -->
 
                         {{-- # OF LOCATIONS --}}
-                        <td class="px-4 py-4 text-center">
+                        {{-- <td class="px-4 py-4 text-center">
                             @php
                                 $locationCount = $enquiry->items->flatMap(function($item) {
                                     $hoarding = optional($item->hoarding);
@@ -136,16 +138,16 @@
                             <span class="text-gray-900 font-semibold">
                                 {{ $locationCount }}
                             </span>
-                        </td>
+                        </td> --}}
 
                         {{-- STATUS --}}
-                        <td class="px-4 py-4">
+                        <td class="px-4 py-4 min-w-[220px]">
                             <div class="space-y-1">
 
                                 {{-- STATUS TEXT --}}
                                 @if($enquiry->status === 'submitted')
 
-                                    <div class="flex">
+                                    <div class="flex flex-wrap items-center">
                                         <i class="text-xs font-semibold text-gray-900">
                                             Enquiry Sent: &nbsp;
                                         </i>
@@ -191,8 +193,8 @@
 
 
                         {{-- ACTION --}}
-                        <td class="px-4 py-4 text-center">
-                            <div class="flex gap-2 justify-center flex-wrap">
+                        <td class="px-4 py-4 text-center whitespace-nowrap">
+                            <div class="flex gap-2 justify-center">
                                 <a href="{{ route('customer.enquiries.show', $enquiry->id) }}"
                                    class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-xs  font-semibold inline-block whitespace-nowrap transition-colors">
                                     View Details
@@ -324,11 +326,11 @@
 
 </div>
  {{-- PAGINATION --}}
-    <div class="mt-6 flex items-center justify-between text-sm text-gray-600">
+    <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600">
         <div class="font-medium">
             Showing {{ $enquiries->firstItem() ?? 0 }} - {{ $enquiries->lastItem() ?? 0 }} of {{ $enquiries->total() }}
         </div>
-        <div>
+        <div class="overflow-x-auto">
             {{ $enquiries->links() }}
         </div>
     </div>
