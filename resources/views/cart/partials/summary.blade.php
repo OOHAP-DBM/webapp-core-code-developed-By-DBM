@@ -47,7 +47,7 @@
 </div>
 
 <div id="enquiryModal"
-     class="hidden fixed inset-0 bg-black/50 z-[9999]
+     class="hidden fixed inset-0 bg-black/50 z-[99999]
             flex justify-center items-start
             overflow-y-auto
             px-4 sm:px-6
@@ -231,7 +231,11 @@ function loadEnquiryHoardings() {
                 /* ===============================
                  | 3. UI CALCULATION
                  =============================== */
-                const rowTotal = displayPrice;
+                // Calculate row total: if no package, multiply price by months
+                let rowTotal = displayPrice;
+                if (!selectedPkg) {
+                    rowTotal = displayPrice * 1; // default 1 month, will update on duration change
+                }
                 totalAmount += rowTotal;
 
                 /* ===============================
@@ -296,11 +300,7 @@ function loadEnquiryHoardings() {
                         <td class="py-4 px-4">
                             <div class="duration-select-wrapper">
                                 <select class="duration-select border border-gray-200 px-2 py-1 rounded w-full" name="duration" onchange="onDurationChange(this, ${hoardingId})">
-                                    <option value="1" data-months="1">1 Month</option>
-                                    <option value="2" data-months="2">2 Months</option>
-                                    <option value="3" data-months="3">3 Months</option>
-                                    <option value="6" data-months="6">6 Months</option>
-                                    <option value="12" data-months="12">12 Months</option>
+                                    ${Array.from({length:12},(_,i)=>`<option value="${i+1}" data-months="${i+1}">${i+1} Month${i+1>1?'s':''}</option>`).join('')}
                                 </select>
                                 <svg class="duration-arrow w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -309,7 +309,7 @@ function loadEnquiryHoardings() {
                         </td>
                         <td class="py-4 px-4">${packageHTML}</td>
                         <td class="py-4 px-4 font-semibold rental-cell">
-                            ₹${rowTotal} <span class="price-label text-sm"></span>
+                            ₹${!selectedPkg ? (displayPrice * 1) : rowTotal} <span class="price-label text-sm"></span>
                             <div class="text-xs text-gray-500">
                                 ${hoardingType === 'dooh' && priceLabel.includes('slot') ? 'per slot' : `${months} month${months > 1 ? '' : ''}`}
                             </div>
@@ -353,43 +353,43 @@ function loadEnquiryHoardings() {
 /* =====================================================
  | TOTAL RECALCULATION
  ===================================================== */
+
 function recalculateEnquiryTotal() {
-
     let total = 0;
-
     Object.values(window.enquiryState.items).forEach(item => {
-
         let rowTotal = 0;
-
-        // ✅ BASE PRICE CASE → multiply with duration
+        // BASE PRICE CASE → multiply with duration
         if (!item.package_id) {
             rowTotal = Number(item.price || 0) * Number(item.months || 1);
-        } 
-        // ✅ PACKAGE CASE → backend price only
-        else {
+        } else {
             rowTotal = Number(item.price || 0);
         }
-
         total += rowTotal;
-
-        // 🔹 Update rental column (price same rahe, sirf text update)
+        // Update rental column: show correct price and duration
         const row = document.querySelector(
             `tr[data-hoarding-id="${item.hoarding_id}"]`
         );
-
         if (row) {
             const rentalCell = row.querySelector('.rental-cell');
             if (rentalCell) {
-                rentalCell.innerHTML = `
-                    ₹${item.price}
-                    <div class="text-xs text-gray-500">
-                        ${item.months} month${item.months > 1 ? '' : ''}
-                    </div>
-                `;
+                if (!item.package_id) {
+                    rentalCell.innerHTML = `
+                        ₹${Number(item.price || 0) * Number(item.months || 1)}
+                        <div class="text-xs text-gray-500">
+                            ${item.months} month${item.months > 1 ? '' : ''}
+                        </div>
+                    `;
+                } else {
+                    rentalCell.innerHTML = `
+                        ₹${item.price}
+                        <div class="text-xs text-gray-500">
+                            ${item.months} month${item.months > 1 ? '' : ''}
+                        </div>
+                    `;
+                }
             }
         }
     });
-
     document.getElementById('enquiryTotal').innerText = total;
 }
 

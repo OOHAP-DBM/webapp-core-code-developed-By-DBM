@@ -878,6 +878,7 @@ Route::get('/avatar/{user}', [\App\Http\Controllers\Web\Vendor\ProfileController
 // ============================================
 Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\Modules\Admin\Controllers\Web\AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'edit'])->name('profile.edit');
 
     // Users Management
     Route::resource('users', \Modules\Admin\Controllers\Web\User\UserController::class);
