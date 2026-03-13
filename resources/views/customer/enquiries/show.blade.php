@@ -57,12 +57,12 @@
                 </span>
 
                 <span>
-                    # of Hoardings:
+                    No. of Hoardings:
                     <strong>{{ $enquiry->items->count() }}</strong>
                 </span>
 
                 <span>
-                    # of Hoardings Locations:
+                    No. of Hoardings Locations:
                     <strong>
                         {{
                             $enquiry->items->flatMap(fn($item) =>
