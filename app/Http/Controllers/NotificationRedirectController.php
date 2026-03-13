@@ -68,7 +68,7 @@ class NotificationRedirectController extends Controller
         }
 
         if ($this->hasAnyRole($user, ['customer'])) {
-            return '/customer/pos/bookings/' . $bookingId;
+            return '/customer/pos-booking/' . $bookingId;
         }
 
         return '/';
