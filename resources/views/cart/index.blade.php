@@ -22,7 +22,7 @@
     </p>
 
     {{-- Heading --}}
-    <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">
+    <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6 pl-5">
         Shortlisted
         <span class="text-gray-500 font-medium text-base sm:text-lg">
             ({{ $items->count() }} Hoardings)

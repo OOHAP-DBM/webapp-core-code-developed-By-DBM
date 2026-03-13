@@ -306,7 +306,7 @@ async function loadBookingDetails() {
                         <div><strong>Customer:</strong> ${b.customer_name}</div>
                         <div><strong>Phone:</strong> ${b.customer_phone || '-'} </div>
                         <div><strong>Booking Date:</strong> ${new Date(b.created_at).toLocaleString()} </div>
-                        <div><strong>Email:</strong> ${b.notes || '-'} </div>
+                        <div><strong>Email:</strong> ${b.customer_email || '-'} </div>
                     </div>
                     <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 pt-2 border-t">
                         ${renderActionButtons(b)}

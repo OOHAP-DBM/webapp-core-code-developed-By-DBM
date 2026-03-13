@@ -124,7 +124,7 @@
                 <h3 class="text-gray-900 text-lg font-semibold mb-4">Let us help you</h3>
                <ul class="space-y-2 text-sm">
                     <li>
-                        <a href="{{ route('about') }}" class="text-gray-600 hover:text-gray-900">
+                        <a href="{{ route('about') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
                             About OOHAPP
                         </a>
                     </li>
@@ -134,27 +134,27 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('faqs') }}" class="text-gray-600 hover:text-gray-900">
+                        <a href="{{ route('faqs') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
                             FAQs
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('terms') }}" class="text-gray-600 hover:text-gray-900">
+                        <a href="{{ route('terms') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
                             Terms & Conditions
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('disclaimer') }}" class="text-gray-600 hover:text-gray-900">
+                        <a href="{{ route('disclaimer') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
                             Legal Disclaimer
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('privacy') }}" class="text-gray-600 hover:text-gray-900">
+                        <a href="{{ route('privacy') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
                             Privacy Policy
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('refund') }}" class="text-gray-600 hover:text-gray-900">
+                        <a href="{{ route('refund') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
                             Refund & Cancellation Policy
                         </a>
                     </li>

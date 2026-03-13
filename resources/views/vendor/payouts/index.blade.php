@@ -3,189 +3,187 @@
 @section('page-title', 'Payouts')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="mb-1">Payouts</h2>
-        <p class="text-muted mb-0">Track earnings and payment history</p>
-    </div>
-    <button class="btn btn-vendor-primary" data-bs-toggle="modal" data-bs-target="#withdrawModal">
-        <i class="bi bi-cash-stack me-2"></i>Request Payout
-    </button>
-</div>
-
-<!-- Balance Overview -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="vendor-card">
-            <div class="vendor-card-body">
-                <div class="stat-icon" style="background: #d1fae5; color: #10b981;">
-                    <i class="bi bi-wallet2"></i>
-                </div>
-                <div class="stat-label">Available Balance</div>
-                <div class="stat-value">₹{{ number_format($balance['available'] ?? 0, 2) }}</div>
-                <small class="text-muted">Ready to withdraw</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="vendor-card">
-            <div class="vendor-card-body">
-                <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
-                    <i class="bi bi-hourglass-split"></i>
-                </div>
-                <div class="stat-label">Pending</div>
-                <div class="stat-value">₹{{ number_format($balance['pending'] ?? 0, 2) }}</div>
-                <small class="text-muted">Processing payments</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="vendor-card">
-            <div class="vendor-card-body">
-                <div class="stat-icon" style="background: #dbeafe; color: #2563eb;">
-                    <i class="bi bi-cash-coin"></i>
-                </div>
-                <div class="stat-label">This Month</div>
-                <div class="stat-value">₹{{ number_format($balance['this_month'] ?? 0, 2) }}</div>
-                <small class="text-muted">{{ date('F') }} earnings</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="vendor-card">
-            <div class="vendor-card-body">
-                <div class="stat-icon" style="background: #e0e7ff; color: #6366f1;">
-                    <i class="bi bi-graph-up"></i>
-                </div>
-                <div class="stat-label">Total Earned</div>
-                <div class="stat-value">₹{{ number_format($balance['total_earned'] ?? 0, 2) }}</div>
-                <small class="text-muted">All time</small>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Bank Account Info -->
-<div class="vendor-card mb-4">
-    <div class="vendor-card-header">
-        <h6 class="vendor-card-title mb-0">
-            <i class="bi bi-bank me-2"></i>Bank Account
-        </h6>
-        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bankDetailsModal">
-            <i class="bi bi-pencil"></i> Edit
-        </button>
-    </div>
-    <div class="vendor-card-body">
-        @if($bankDetails ?? false)
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label text-muted small">Account Holder</label>
-                    <div class="fw-semibold">{{ $bankDetails->account_holder_name }}</div>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label text-muted small">Account Number</label>
-                    <div class="fw-semibold">XXXX XXXX {{ substr($bankDetails->account_number, -4) }}</div>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label text-muted small">IFSC Code</label>
-                    <div class="fw-semibold">{{ $bankDetails->ifsc_code }}</div>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label text-muted small">Bank Name</label>
-                    <div class="fw-semibold">{{ $bankDetails->bank_name }}</div>
-                </div>
-            </div>
-        @else
-            <div class="alert alert-warning mb-0">
-                <i class="bi bi-exclamation-triangle me-2"></i>
-                Please add your bank account details to receive payouts
-            </div>
-        @endif
-    </div>
-</div>
-
-<!-- Payout History -->
-<div class="vendor-card">
-    <div class="vendor-card-header">
-        <h6 class="vendor-card-title mb-0">Payout History</h6>
-        <div class="d-flex gap-2">
-            <select class="form-select form-select-sm" style="width: 150px;" id="statusFilter">
-                <option value="">All Status</option>
-                <option value="completed">Completed</option>
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="failed">Failed</option>
-            </select>
-            <button class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-download"></i> Export
+<div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div class="bg-white rounded-md shadow">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-4 sm:px-6 py-4 bg-primary rounded-t-xl">
+            <h4 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <i class="bi bi-cash-stack"></i> Payouts
+            </h4>
+            <button class="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-gray-800 text-sm font-medium px-4 py-2 rounded-lg transition" data-bs-toggle="modal" data-bs-target="#withdrawModal">
+                <i class="bi bi-cash-stack"></i> Request Payout
             </button>
         </div>
-    </div>
-    <div class="vendor-card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Transaction ID</th>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Method</th>
-                        <th>Status</th>
-                        <th>Reference</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($payouts ?? [] as $payout)
-                        <tr>
-                            <td><strong>#{{ $payout->transaction_id }}</strong></td>
-                            <td>{{ \Carbon\Carbon::parse($payout->created_at)->format('d M Y, H:i') }}</td>
-                            <td><strong>₹{{ number_format($payout->amount, 2) }}</strong></td>
-                            <td>
-                                <i class="bi bi-bank me-1"></i>
-                                {{ $payout->method === 'bank_transfer' ? 'Bank Transfer' : ucfirst($payout->method) }}
-                            </td>
-                            <td>
-                                <span class="badge 
-                                    @if($payout->status === 'completed') bg-success
-                                    @elseif($payout->status === 'pending') bg-warning text-dark
-                                    @elseif($payout->status === 'processing') bg-info
-                                    @elseif($payout->status === 'failed') bg-danger
-                                    @else bg-secondary
-                                    @endif">
-                                    {{ ucfirst($payout->status) }}
-                                </span>
-                            </td>
-                            <td>
-                                @if($payout->reference_number)
-                                    <small class="text-muted">{{ $payout->reference_number }}</small>
-                                @else
-                                    <small class="text-muted">-</small>
-                                @endif
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary" onclick="viewPayout('{{ $payout->id }}')">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
-                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                                No payout history yet
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        
-        @if(isset($payouts) && $payouts->hasPages())
-            <div class="mt-3">
-                {{ $payouts->links() }}
+
+        <div class="p-4 sm:p-6 space-y-6">
+            <!-- Balance Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center bg-green-100 text-green-600">
+                        <i class="bi bi-wallet2 text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 font-medium">Available Balance</div>
+                        <div class="text-lg font-bold text-gray-800">₹{{ number_format($balance['available'] ?? 0, 2) }}</div>
+                        <div class="text-xs text-gray-400">Ready to withdraw</div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center bg-yellow-100 text-yellow-600">
+                        <i class="bi bi-hourglass-split text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 font-medium">Pending</div>
+                        <div class="text-lg font-bold text-gray-800">₹{{ number_format($balance['pending'] ?? 0, 2) }}</div>
+                        <div class="text-xs text-gray-400">Processing</div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center bg-blue-100 text-blue-600">
+                        <i class="bi bi-cash-coin text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 font-medium">This Month</div>
+                        <div class="text-lg font-bold text-gray-800">₹{{ number_format($balance['this_month'] ?? 0, 2) }}</div>
+                        <div class="text-xs text-gray-400">{{ date('F') }} earnings</div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center bg-indigo-100 text-indigo-600">
+                        <i class="bi bi-graph-up text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 font-medium">Total Earned</div>
+                        <div class="text-lg font-bold text-gray-800">₹{{ number_format($balance['total_earned'] ?? 0, 2) }}</div>
+                        <div class="text-xs text-gray-400">All time</div>
+                    </div>
+                </div>
             </div>
-        @endif
+
+            <!-- Bank Account -->
+            <div class="bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                    <h6 class="font-semibold text-gray-700 flex items-center gap-2 text-sm">
+                        <i class="bi bi-bank"></i> Bank Account
+                    </h6>
+                    <button class="text-xs bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition" data-bs-toggle="modal" data-bs-target="#bankDetailsModal">
+                        <i class="bi bi-pencil"></i> Edit
+                    </button>
+                </div>
+                <div class="p-4">
+                    @if($bankDetails ?? false)
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div>
+                                <div class="text-xs text-gray-500 mb-1">Account Holder</div>
+                                <div class="font-semibold text-gray-800 text-sm">{{ $bankDetails->account_holder_name }}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 mb-1">Account Number</div>
+                                <div class="font-semibold text-gray-800 text-sm">XXXX XXXX {{ substr($bankDetails->account_number, -4) }}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 mb-1">IFSC Code</div>
+                                <div class="font-semibold text-gray-800 text-sm">{{ $bankDetails->ifsc_code }}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 mb-1">Bank Name</div>
+                                <div class="font-semibold text-gray-800 text-sm">{{ $bankDetails->bank_name }}</div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="flex items-center gap-2 text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Please add your bank account details to receive payouts
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Payout History -->
+            <div>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                    <h6 class="font-semibold text-gray-700 text-sm">Payout History</h6>
+                    <div class="flex items-center gap-2">
+                        <select class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-1 focus:ring-primary focus:outline-none" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="completed">Completed</option>
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                        <button class="text-xs bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto rounded-lg shadow">
+                    <table class="min-w-full text-xs sm:text-sm">
+                        <thead class="bg-gray-100 text-left">
+                            <tr>
+                                <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Transaction ID</th>
+                                <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Date</th>
+                                <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Amount</th>
+                                <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Method</th>
+                                <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Status</th>
+                                <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Reference</th>
+                                <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 bg-white">
+                            @forelse($payouts ?? [] as $payout)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap font-bold text-gray-800">#{{ $payout->transaction_id }}</td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-gray-600">{{ \Carbon\Carbon::parse($payout->created_at)->format('d M Y, H:i') }}</td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap font-bold text-gray-800">₹{{ number_format($payout->amount, 2) }}</td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-gray-600">
+                                        <i class="bi bi-bank mr-1"></i>
+                                        {{ $payout->method === 'bank_transfer' ? 'Bank Transfer' : ucfirst($payout->method) }}
+                                    </td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                                        @if($payout->status === 'completed')
+                                            <span class="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">Completed</span>
+                                        @elseif($payout->status === 'pending')
+                                            <span class="px-2 py-1 rounded text-xs font-semibold bg-yellow-100 text-yellow-700">Pending</span>
+                                        @elseif($payout->status === 'processing')
+                                            <span class="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700">Processing</span>
+                                        @elseif($payout->status === 'failed')
+                                            <span class="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-700">Failed</span>
+                                        @else
+                                            <span class="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700">{{ ucfirst($payout->status) }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                                        @if($payout->reference_number)
+                                            <span class="text-xs text-gray-500">{{ $payout->reference_number }}</span>
+                                        @else
+                                            <span class="text-gray-400 text-xs">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                                        <button class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition" onclick="viewPayout('{{ $payout->id }}')">
+                                            <i class="bi bi-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-4 py-10 text-center text-gray-500">
+                                        <i class="bi bi-inbox text-4xl block mb-2 text-gray-300"></i>
+                                        No payout history yet
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                @if(isset($payouts) && $payouts->hasPages())
+                    <div class="pt-4">
+                        {{ $payouts->links() }}
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 </div>
 

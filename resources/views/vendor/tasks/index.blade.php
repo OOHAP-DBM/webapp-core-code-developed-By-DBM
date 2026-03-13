@@ -1,87 +1,78 @@
-@extends('layouts.vendor')
+﻿@extends('layouts.vendor')
 
 @section('page-title', 'Task Management')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="mb-1">Task Management</h2>
-        <p class="text-muted mb-0">Manage graphics, printing, and mounting tasks</p>
-    </div>
-    <button class="btn btn-vendor-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">
-        <i class="bi bi-plus-circle me-2"></i>Add Task
-    </button>
-</div>
+<div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div class="bg-white rounded-md shadow">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-4 sm:px-6 py-4 bg-primary rounded-t-xl">
+            <h4 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <i class="bi bi-kanban"></i> Task Management
+            </h4>
+            <button class="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-gray-800 text-sm font-medium px-4 py-2 rounded-lg transition" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                <i class="bi bi-plus-circle"></i> Add Task
+            </button>
+        </div>
 
-<!-- Task Stats -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="vendor-card">
-            <div class="vendor-card-body">
-                <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
-                    <i class="bi bi-hourglass-split"></i>
+        <div class="p-4 sm:p-6 space-y-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center bg-yellow-100 text-yellow-600">
+                        <i class="bi bi-hourglass-split text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 font-medium">Pending</div>
+                        <div class="text-xl font-bold text-gray-800">{{ $stats['pending'] ?? 0 }}</div>
+                    </div>
                 </div>
-                <div class="stat-label">Pending</div>
-                <div class="stat-value">{{ $stats['pending'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="vendor-card">
-            <div class="vendor-card-body">
-                <div class="stat-icon" style="background: #dbeafe; color: #2563eb;">
-                    <i class="bi bi-clock-history"></i>
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center bg-blue-100 text-blue-600">
+                        <i class="bi bi-clock-history text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 font-medium">In Progress</div>
+                        <div class="text-xl font-bold text-gray-800">{{ $stats['in_progress'] ?? 0 }}</div>
+                    </div>
                 </div>
-                <div class="stat-label">In Progress</div>
-                <div class="stat-value">{{ $stats['in_progress'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="vendor-card">
-            <div class="vendor-card-body">
-                <div class="stat-icon" style="background: #d1fae5; color: #10b981;">
-                    <i class="bi bi-check-circle"></i>
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center bg-green-100 text-green-600">
+                        <i class="bi bi-check-circle text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 font-medium">Completed</div>
+                        <div class="text-xl font-bold text-gray-800">{{ $stats['completed'] ?? 0 }}</div>
+                    </div>
                 </div>
-                <div class="stat-label">Completed</div>
-                <div class="stat-value">{{ $stats['completed'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="vendor-card">
-            <div class="vendor-card-body">
-                <div class="stat-icon" style="background: #fee2e2; color: #ef4444;">
-                    <i class="bi bi-exclamation-triangle"></i>
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center bg-red-100 text-red-600">
+                        <i class="bi bi-exclamation-triangle text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 font-medium">Overdue</div>
+                        <div class="text-xl font-bold text-gray-800">{{ $stats['overdue'] ?? 0 }}</div>
+                    </div>
                 </div>
-                <div class="stat-label">Overdue</div>
-                <div class="stat-value">{{ $stats['overdue'] ?? 0 }}</div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- Task Filters -->
-<div class="vendor-card mb-4">
-    <div class="vendor-card-body">
-        <div class="btn-group mb-3" role="group">
-            <input type="radio" class="btn-check" name="taskFilter" id="filterAll" checked>
-            <label class="btn btn-outline-primary" for="filterAll">All Tasks</label>
-            
-            <input type="radio" class="btn-check" name="taskFilter" id="filterGraphics">
-            <label class="btn btn-outline-primary" for="filterGraphics">Graphics</label>
-            
-            <input type="radio" class="btn-check" name="taskFilter" id="filterPrinting">
-            <label class="btn btn-outline-primary" for="filterPrinting">Printing</label>
-            
-            <input type="radio" class="btn-check" name="taskFilter" id="filterMounting">
-            <label class="btn btn-outline-primary" for="filterMounting">Mounting</label>
-            
-            <input type="radio" class="btn-check" name="taskFilter" id="filterMaintenance">
-            <label class="btn btn-outline-primary" for="filterMaintenance">Maintenance</label>
-        </div>
-    </div>
-</div>
+            <!-- Task Type Filter -->
+            <div class="flex flex-wrap gap-2">
+                <input type="radio" class="btn-check" name="taskFilter" id="filterAll" checked>
+                <label class="cursor-pointer px-3 py-1.5 rounded-lg text-sm font-medium border border-primary bg-primary text-white transition" for="filterAll">All Tasks</label>
+
+                <input type="radio" class="btn-check" name="taskFilter" id="filterGraphics">
+                <label class="cursor-pointer px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition" for="filterGraphics">Graphics</label>
+
+                <input type="radio" class="btn-check" name="taskFilter" id="filterPrinting">
+                <label class="cursor-pointer px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition" for="filterPrinting">Printing</label>
+
+                <input type="radio" class="btn-check" name="taskFilter" id="filterMounting">
+                <label class="cursor-pointer px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition" for="filterMounting">Mounting</label>
+
+                <input type="radio" class="btn-check" name="taskFilter" id="filterMaintenance">
+                <label class="cursor-pointer px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition" for="filterMaintenance">Maintenance</label>
+            </div>
 
 <!-- Task Kanban Board -->
 <div class="row g-4">
@@ -232,6 +223,9 @@
         </div>
     </div>
 </div>
+        </div>
+    </div>
+</div>
 
 <!-- Create Task Modal -->
 <div class="modal fade" id="createTaskModal" tabindex="-1">
@@ -294,6 +288,7 @@
         </div>
     </div>
 </div>
+
 @endsection
 
 @push('styles')
@@ -366,3 +361,4 @@ taskCards.forEach(card => {
 });
 </script>
 @endpush
+
