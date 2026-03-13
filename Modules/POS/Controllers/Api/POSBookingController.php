@@ -930,10 +930,10 @@ class POSBookingController extends Controller
             }
             $booking = $bookingQuery->findOrFail($id);
 
-            if ($booking->payment_status !== POSBooking::PAYMENT_STATUS_UNPAID) {
+            if (!in_array($booking->payment_status, [POSBooking::PAYMENT_STATUS_UNPAID, POSBooking::PAYMENT_STATUS_PARTIAL])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Can only send reminders for unpaid bookings',
+                    'message' => 'Can only send reminders for unpaid or partial paid bookings',
                 ], 422);
             }
 

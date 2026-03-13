@@ -56,6 +56,142 @@
     gtag('config', 'G-ST51N3C0N6');
     </script>
     <meta name="google-site-verification" content="Cj2NPz4_gTnvaitO3OAv51DDtIaNmE1N4VIP6WiGlDM" />
+
+    <script type="application/ld+json">
+        {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+            "@type": "Organization",
+            "@id": "https://oohapp.io/#organization",
+            "name": "OOHAPP",
+            "url": "https://oohapp.io/",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png",
+                "width": 512,
+                "height": 512
+            },
+            "description": "Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.",
+            "telephone": "+91 8118805835",
+            "email": "info@oohapp.io",
+            "areaServed": "IN",
+            "foundingDate": "2022",
+            "sameAs": [
+                "https://www.linkedin.com/company/oohapp/",
+                "https://twitter.com/oohapads",
+                "https://www.instagram.com/realoohappofficial/",
+                "https://www.facebook.com/profile.php?id=100083678822547"
+            ],
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "B 25, Vibhuti Khand, Gomti Nagar",
+                "addressLocality": "Lucknow",
+                "addressRegion": "Uttar Pradesh",
+                "postalCode": "226010",
+                "addressCountry": "IN"
+            },
+            "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+91 8118805835",
+                "contactType": "customer support",
+                "areaServed": "IN",
+                "availableLanguage": [
+                "English",
+                "Hindi"
+                ]
+            }
+            },
+            {
+            "@type": "LocalBusiness",
+            "@id": "https://oohapp.io/#localbusiness",
+            "name": "OOHAPP",
+            "parentOrganization": {
+                "@id": "https://oohapp.io/#organization"
+            },
+            "image": {
+                "@type": "ImageObject",
+                "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png"
+            },
+            "url": "https://oohapp.io/",
+            "telephone": "+91 8118805835",
+            "email": "info@oohapp.io",
+            "priceRange": "₹₹",
+            "currenciesAccepted": "INR",
+            "paymentAccepted": "Cash, Credit Card, UPI",
+            "areaServed": "IN",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "B 25, Vibhuti Khand, Gomti Nagar",
+                "addressLocality": "Lucknow",
+                "addressRegion": "Uttar Pradesh",
+                "postalCode": "226010",
+                "addressCountry": "IN"
+            },
+            "openingHours": [
+                "Mo-Fr 09:30-18:30"
+            ],
+            "openingHoursSpecification": {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+                ],
+                "opens": "09:30",
+                "closes": "18:30"
+            }
+            },
+            {
+            "@type": "WebSite",
+            "@id": "https://oohapp.io/#website",
+            "url": "https://oohapp.io/",
+            "name": "OOHAPP",
+            "publisher": {
+                "@id": "https://oohapp.io/#organization"
+            },
+            "inLanguage": "en-IN",
+            "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://oohapp.io/search?q={search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
+            }
+            },
+            {
+            "@type": "WebPage",
+            "@id": "https://oohapp.io/#webpage",
+            "url": "https://oohapp.io/",
+            "name": "Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP",
+            "isPartOf": {
+                "@id": "https://oohapp.io/#website"
+            },
+            "about": {
+                "@id": "https://oohapp.io/#organization"
+            },
+            "description": "Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.",
+            "inLanguage": "en-IN",
+            "datePublished": "2023-01-01",
+            "dateModified": "2026-03-13",
+            "breadcrumb": {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://oohapp.io/"
+                }
+                ]
+            }
+            }
+        ]
+        }
+    </script>
 </head>
 <body class="antialiased">
     <div id="app" class="min-h-screen bg-white">
