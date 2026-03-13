@@ -106,17 +106,17 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
+            <table class="w-full text-xs sm:text-sm" style="min-width: 880px;">
                 <thead class="bg-gray-100 text-gray-600">
                     <tr>
-                        <th class="px-4 py-3 text-left">Invoice</th>
-                        <th class="px-4 py-3 text-left">Customer</th>
-                        <th class="px-4 py-3 text-left">Total Hoardings</th>
-                        <th class="px-4 py-3 text-left">Booking Date</th>
-                        <th class="px-4 py-3 text-left">Amount</th>
-                        <th class="px-4 py-3 text-left">Payment</th>
-                        <th class="px-4 py-3 text-left">Status</th>
-                        <th class="px-4 py-3 text-left">Action</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Invoice</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Customer</th>
+                        <th class="px-4 py-3 text-center whitespace-nowrap">Total Hoardings</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Booking Date</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Amount</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Payment</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Status</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Action</th>
                     </tr>
                 </thead>
                 <tbody id="recent-bookings-body" class="">
@@ -249,60 +249,46 @@ document.addEventListener('DOMContentLoaded', function () {
     fetchJSON(`${POS_BASE_PATH}/api/bookings?per_page=10`)
         .then(data => {
             const tbody = document.getElementById('recent-bookings-body');
+            const bookings = data?.data?.data;
 
-            if (data.success && data.data.data.length) {
+            if (data.success && Array.isArray(bookings) && bookings.length) {
                 tbody.innerHTML = '';
-                data.data.data.forEach(b => {
+
+                bookings.forEach(b => {
+                    const invoiceNumber = b.invoice_number || 'N/A';
+                    const customerName = b.customer_name || 'N/A';
+                    const hoardingsCount = Array.isArray(b.hoardings) ? b.hoardings.length : (b.hoardings_count ?? 1);
+                    const bookingDate = formatDateTime(b.created_at);
+                    const totalAmount = parseFloat(b.total_amount || 0).toLocaleString();
+
                     tbody.innerHTML += `
-                    <tr class="hidden sm:table-row hover:bg-gray-50">
-                        <td class="px-2 py-2 sm:px-4 sm:py-3">${b.invoice_number || 'N/A'}</td>
-                        <td class="px-2 py-2 sm:px-4 sm:py-3">${b.customer_name}</td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-bold text-gray-800">
-                        ${Array.isArray(b.hoardings) ? b.hoardings.length : (b.hoardings_count ?? 1)}
-                    </td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3">
-                        ${formatDateTime(b.created_at)} 
-                    </td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-medium">₹${parseFloat(b.total_amount).toLocaleString()}</td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3">
-                        <span class="px-2 py-1 text-xs rounded-full ${paymentBadge(b.payment_status)}">
-                            ${paymentStatusLabel(b.payment_status)}
-                        </span>
-                    </td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3">
-                        <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">
-                            ${bookingStatusLabel(b.status)}
-                        </span>
-                    </td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3">
-                        <a href="${POS_BASE_PATH}/bookings/${b.id}"
-                           class="text-blue-600 hover:underline text-sm">
-                            View
-                        </a>
-                    </td>
-                </tr>
-                <tr class="sm:hidden border-b border-gray-100">
-                    <td colspan="8" class="px-3 py-3">
-                        <div class="rounded-lg border border-gray-200 p-3 space-y-1.5 bg-white">
-                            <div class="flex items-center justify-between gap-2">
-                                <p class="text-xs font-semibold text-gray-900">${b.invoice_number || 'N/A'}</p>
-                                <span class="px-2 py-0.5 text-[10px] rounded-full ${statusBadge(b.status)}">${bookingStatusLabel(b.status)}</span>
-                            </div>
-                            <p class="text-xs text-gray-600">${b.customer_name}</p>
-                            <p class="text-[11px] text-gray-500">${formatDateTime(b.created_at)}</p>
-                            <div class="flex items-center justify-between text-xs pt-1">
-                                <span class="font-medium text-gray-700">₹${parseFloat(b.total_amount).toLocaleString()}</span>
-                                <span class="px-2 py-0.5 text-[10px] rounded-full ${paymentBadge(b.payment_status)}">${paymentStatusLabel(b.payment_status)}</span>
-                            </div>
-                            <a href="${POS_BASE_PATH}/bookings/${b.id}" class="inline-flex mt-1 text-xs text-blue-600 hover:underline">View</a>
-                        </div>
-                    </td>
-                </tr>`;
-            });
-        } else {
-            tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
-        }
-    })
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${invoiceNumber}</td>
+                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${customerName}</td>
+                        <td class="px-3 py-3 sm:px-4 sm:py-3 font-bold text-gray-800 whitespace-nowrap text-center">${hoardingsCount}</td>
+                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${bookingDate}</td>
+                        <td class="px-3 py-3 sm:px-4 sm:py-3 font-medium whitespace-nowrap">₹${totalAmount}</td>
+                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs rounded-full ${paymentBadge(b.payment_status)}">
+                                ${paymentStatusLabel(b.payment_status)}
+                            </span>
+                        </td>
+                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">
+                                ${bookingStatusLabel(b.status)}
+                            </span>
+                        </td>
+                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+                            <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm">
+                                View
+                            </a>
+                        </td>
+                    </tr>`;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
+            }
+        })
         .catch(err => console.warn('Could not load bookings:', err));
 
     function renderPendingPaymentsPagination() {
