@@ -44,7 +44,7 @@
 
                         <td style="padding:0 4px;">
                             <a href="https://www.facebook.com/profile.php?id=100083678822547">
-                                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" width="22" style="display:block;">
+                                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" width="22" style="display:block;" alt="Facebook">
                             </a>
                         </td>
 

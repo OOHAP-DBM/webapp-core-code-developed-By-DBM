@@ -204,10 +204,10 @@
                     );
                 @endphp
                 @foreach($audiences as $audience)
-                <label class="flex items-center space-x-3 cursor-pointer group">
+                <label class="flex items-start sm:items-center gap-3 cursor-pointer group">
                     <input type="checkbox" name="audience_type[]" value="{{ $audience }}" 
                            {{ in_array($audience, (array)$selectedAudiences) ? 'checked' : '' }}
-                           class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
+                           class="w-5 h-5 shrink-0 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C] mt-0.5 sm:mt-0">
                     <span class="text-sm text-gray-600 group-hover:text-gray-900">{{ $audience }}</span>
                 </label>
                 @endforeach
@@ -308,10 +308,10 @@
                     );
                 @endphp
                 @foreach($visibleOptions as $option)
-                <label class="flex items-center p-4 border border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-green-50/50 hover:border-[#009A5C] transition-all group">
+                <label class="flex items-start sm:items-center gap-3 p-4 border border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-green-50/50 hover:border-[#009A5C] transition-all group">
                     <input type="checkbox" name="visible_from[]" value="{{ $option }}" 
                            {{ in_array($option, (array)$selectedVisible) ? 'checked' : '' }}
-                           class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
+                           class="w-5 h-5 shrink-0 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C] mt-0.5 sm:mt-0">
                     <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-[#009A5C]">{{ $option }}</span>
                 </label>
                 @endforeach
@@ -334,10 +334,10 @@
                     );
                 @endphp
                 @foreach($locationOptions as $loc)
-                <label class="flex items-center space-x-3 p-4 cursor-pointer group">
+                <label class="flex items-start sm:items-center gap-3 p-4 cursor-pointer group">
                     <input type="checkbox" name="located_at[]" value="{{ $loc }}" 
                            {{ in_array($loc, (array)$selectedLocations) ? 'checked' : '' }}
-                           class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
+                           class="w-5 h-5 shrink-0 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C] mt-0.5 sm:mt-0">
                     <span class="text-sm text-gray-600 group-hover:text-gray-900">{{ $loc }}</span>
                 </label>
                 @endforeach
@@ -382,7 +382,7 @@
               value="one_way"
               x-model="visibility"
               {{ $currentVisibility === 'one_way' ? 'checked' : '' }}
-              class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
+                            class="w-5 h-5 shrink-0 text-[#009A5C] focus:ring-[#009A5C]"
             >
             <span class="ml-3 text-sm font-bold text-gray-700">
               One Way Visibility
@@ -431,7 +431,7 @@
               value="both_side"
               x-model="visibility"
               {{ $currentVisibility === 'both_side' ? 'checked' : '' }}
-              class="w-5 h-5 text-[#009A5C] focus:ring-[#009A5C]"
+                            class="w-5 h-5 shrink-0 text-[#009A5C] focus:ring-[#009A5C]"
             >
             <span class="ml-3 text-sm font-bold text-gray-700">
               Both Side Visibility

@@ -10,7 +10,7 @@
         <a href="{{ route('home') }}" class="flex items-center">
             <img
                 src="{{ asset('assets/images/logo/logo_image.jpeg') }}"
-                alt="OOHAPP"
+                alt="OOHApp company logo"
                 class="h-7 w-auto"
             >
         </a>
