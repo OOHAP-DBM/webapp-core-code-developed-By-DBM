@@ -283,7 +283,10 @@ function fillFields(ad) {
 
     inputs.state.value = ad.state || "";
 
-    if (ad.postcode) {
+    const currentPincode = inputs.pincode.value.trim();
+    const hasUserEnteredValidPincode = /^\d{6}$/.test(currentPincode);
+
+    if (ad.postcode && !hasUserEnteredValidPincode) {
         inputs.pincode.value = ad.postcode;
     }
 }
