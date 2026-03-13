@@ -379,7 +379,7 @@
                             <th class="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Hoarding</th>
                             <th class="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
                             <th class="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Location</th>
-                            <th class="px-4 sm:px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Your Rate</th>
+                            <th class="px-4 md:px-5 py-3  text-left md:text-right text-xs font-semibold text-gray-500 uppercase">Your Rate</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -389,7 +389,7 @@
                             $hasOverride = $hoarding->commission_percent !== null && (float)$hoarding->commission_percent > 0;
                         @endphp
                         <tr class="hover:bg-gray-50 transition">
-                            <td class="px-4 sm:px-5 py-3 font-medium text-gray-900 max-w-[180px] sm:max-w-[220px] truncate" data-label="Hoarding">
+                            <td class="px-4 sm:px-5 py-3 font-medium text-gray-900 max-w-[220px] sm:max-w-[220px] truncate" data-label="Hoarding">
                                 {{ $hoarding->title ?? $hoarding->name }}
                             </td>
                             <td class="px-4 sm:px-5 py-3" data-label="Type">
@@ -401,7 +401,7 @@
                             <td class="px-4 sm:px-5 py-3 text-gray-500 text-xs" data-label="Location">
                                 {{ collect([$hoarding->city, $hoarding->state])->filter()->implode(', ') ?: '—' }}
                             </td>
-                            <td class="px-4 sm:px-5 py-3 text-right rate-cell" data-label="Your Rate">
+                            <td class="px-4 sm:px-5 py-3 md:text-right rate-cell" data-label="Your Rate">
                                 @if($effective !== null)
                                     <div class="inline-flex flex-col items-end">
                                         <span class="font-black text-[#009A5C] text-base">{{ number_format($effective, 2) }}%</span>
