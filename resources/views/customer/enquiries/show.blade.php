@@ -16,21 +16,23 @@
 @section('title', 'Enquiry Details')
 
 @section('content')
-<div class="px-6 py-6 bg-white">
+<div class="px-3 sm:px-6 py-4 sm:py-6 bg-white">
 
     {{-- ===== HEADER SECTION ===== --}}
-    <div class="flex items-center justify-between py-4 bg-white mb-6">
-        <div class="flex">
-            <a href="{{ route('customer.enquiries.index') }}" class="mx-2">
-                <svg width="16" class="mt-2" height="10" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between py-2 sm:py-4 bg-white mb-4 sm:mb-6">
+        <div class="flex items-start">
+            <a href="{{ route('customer.enquiries.index') }}" class="mr-2 mt-1 shrink-0">
+                <svg width="16" class="mt-1" height="10" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M15.414 7.91412L3.828 7.91412L8.328 12.4141L6.914 13.8281L-2.93326e-07 6.91412L6.914 0.000125592L8.328 1.41413L3.828 5.91412L15.414 5.91412L15.414 7.91412Z" fill="#3C3C3C"/>
                 </svg>
             </a>
-            <h2 class="text-base font-semibold text-gray-900">
-                Enquiry ID
-                <span class="text-green-600">({{ $enquiry->formatted_id }})</span><br>
-                <p class="text-xs text-gray-500">Details of enquiry and vendor responses</p>
-            </h2>
+            <div>
+                <h2 class="text-base sm:text-xl font-semibold text-gray-900 leading-tight">
+                    Enquiry ID
+                    <span class="text-green-600">({{ $enquiry->formatted_id }})</span>
+                </h2>
+                <p class="text-xs sm:text-sm text-gray-500 mt-1">Details of enquiry and vendor responses</p>
+            </div>
         </div>
 
         <div>
@@ -46,8 +48,8 @@
 
     {{-- ===== MAIN CONTENT ===== --}}
     <div class="space-y-6" x-data="{ openTop: true, openBottom: true }">
-        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-[#f7f7f7]">
-            <div class="flex flex-wrap gap-4 text-xs text-gray-700">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-3 sm:px-5 py-3 border-b border-gray-200 bg-[#f7f7f7]">
+            <div class="flex flex-wrap gap-3 sm:gap-4 text-xs text-gray-700">
                 <span>
                     <strong>Overview:</strong>
                     Enquiry Raised On:
@@ -74,7 +76,7 @@
             {{-- COLLAPSE --}}
             <button
                 @click="openTop = !openTop"
-                class="flex items-center cursor-pointer gap-1 text-xs bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
+                class="self-start sm:self-auto flex items-center cursor-pointer gap-1 text-xs bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
             >
                 <span x-text="openTop ? 'Collapse' : 'Expand'"></span>
                 <svg
@@ -87,12 +89,12 @@
                 </svg>
             </button>
         </div>
-        <div x-show="openTop" x-transition class="px-6 py-1 bg-[#f7f7f7]">
+        <div x-show="openTop" x-transition class="px-3 sm:px-6 py-2 sm:py-1 bg-[#f7f7f7]">
             {{-- ===== TOP INFO SECTION: 3 Columns ===== --}}
-            <div class="grid grid-cols-12 gap-8 bg-[#f7f7f7] my-3">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 bg-[#f7f7f7] my-3">
 
                 {{-- Column 1: Vendor Details (Multiple vendors if applicable) --}}
-                <div class="col-span-4">
+                <div class="col-span-12 md:col-span-4">
                     <h3 class="text-sm font-semibold mb-4">Vendor Details</h3>
 
                     @php
@@ -107,13 +109,13 @@
 
                         <details class="border border-gray-200 rounded-lg p-3 bg-gray-50">
                             <!-- Heading -->
-                            <summary class="cursor-pointer font-semibold text-sm text-gray-800 flex justify-between items-center">
+                            <summary class="cursor-pointer font-semibold text-sm text-gray-800 flex flex-col gap-1 sm:flex-row sm:justify-between sm:items-center">
                                 <span>Vendor: {{ $vendor->name ?? 'N/A' }}</span>
-                                <span class="text-gray-400 text-[11px]">Click to view</span>
+                                <span class="text-gray-400 text-[11px] shrink-0">Click to view</span>
                             </summary>
 
                             <!-- Hidden Content -->
-                            <div class="mt-3 space-y-2 text-xs text-gray-700">
+                            <div class="mt-3 space-y-2 text-xs text-gray-700 break-words">
 
                                 <div>
                                     <strong>Business Name:</strong>
@@ -151,9 +153,9 @@
                 </div>
 
                 {{-- Column 2: Enquiry Details --}}
-                <div class="col-span-4">
+                <div class="col-span-12 md:col-span-4">
                     <h3 class="text-sm font-semibold mb-4">Enquiry Details</h3>
-                    <div class="space-y-3 text-xs">
+                    <div class="space-y-3 text-xs break-words">
                         <div>Enquiry ID : <span class="font-medium">({{ $enquiry->formatted_id }})</span></div>
                         <div>Status : <span class="font-medium">
                             @if($enquiry->status === 'submitted')
@@ -171,13 +173,13 @@
                         <div>Total Hoardings : <span class="font-medium">{{ $enquiry->items->count() }}</span></div>
                         <div>Total Vendors : <span class="font-medium">{{ $vendors->count() }}</span></div>
                         @if($enquiry->customer_note)
-                            <div>Requirement : <span class="italic text-gray-700">{{ $enquiry->customer_note }}</span></div>
+                            <div>Requirement : <span class="italic text-gray-700 break-words">{{ $enquiry->customer_note }}</span></div>
                         @endif
                     </div>
                 </div>
 
                 {{-- Column 3: Submitted Date --}}
-                <div class="col-span-4 hidden md:block">
+                <div class="col-span-12 md:col-span-4">
                     <h3 class="text-sm font-semibold mb-4">Submitted On</h3>
                     <div>
                         <span class="text-sm text-gray-500 block">{{ $enquiry->created_at->format('d M y') }}</span>
@@ -190,7 +192,7 @@
             </div>
         </div> 
 
-        <div class="flex items-center justify-between px-6 py-1">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-3 sm:px-6 py-1">
 
             {{-- LEFT --}}
             <div>
@@ -213,14 +215,14 @@
         </div>
 
        
-        <div class="bg-[#f7f7f7] px-5 py-3">
-            <div class="flex items-center justify-between">
-                <h3 class="text-sm font-semibold mb-4">
+        <div class="bg-[#f7f7f7] px-3 sm:px-5 py-3">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h3 class="text-sm font-semibold">
                 Hoardings in Enquiry ({{ $enquiry->items->count() }})
             </h3>
             <button
                 @click="openBottom = !openBottom"
-                class="flex items-center cursor-pointer gap-1 text-xs bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
+                class="self-start sm:self-auto flex items-center cursor-pointer gap-1 text-xs bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
             >
                 <span x-text="openBottom ? 'Collapse' : 'Expand'"></span>
                 <svg
@@ -243,12 +245,12 @@
                     <div class="mb-8">
                         
                         {{-- Group Header --}}
-                        <div class="flex items-center justify-between bg-gray-100 px-4 py-2 rounded text-sm font-semibold border border-gray-300 mb-3">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between bg-gray-100 px-4 py-2 rounded text-sm font-semibold border border-gray-300 mb-3">
                             <div class="flex items-center gap-2">
                                 <span class="text-gray-900">{{ strtoupper($type) }}</span>
                                 <span class="text-gray-500 font-normal text-xs">({{ $items->count() }} items)</span>
                             </div>
-                            <span class="text-xs text-gray-500 font-normal">
+                            <span class="text-xs text-gray-500 font-normal sm:text-right">
                                 @if(strtoupper($type) === 'OOH')
                                     Selected hoardings for your enquiry
                                 @else
@@ -259,10 +261,10 @@
 
                         {{-- TABLE LAYOUT --}}
                         <div class="overflow-x-auto border border-gray-200 rounded">
-                            <table class="w-full text-xs">
+                            <table class="w-full min-w-[820px] text-xs sm:text-sm">
                                 <thead class="bg-gray-50 border-b border-gray-200">
                                     <tr>
-                                        <th class="hidden md:table-cell px-4 py-3 text-left font-semibold text-gray-700">Sn.</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Sn.</th>
                                         <th class="px-4 py-3 text-left font-semibold text-gray-700">
                                             @if(strtoupper($type) === 'OOH')
                                                 Hoarding
@@ -270,22 +272,22 @@
                                                 Screen
                                             @endif
                                         </th>
-                                        <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Campain Duration</th>
-                                        <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Campain Start</th>
-                                        <th class="hidden lg:table-cell px-4 py-3 text-left font-semibold text-gray-700">Selected Package</th>
-                                        <th class="px-4 py-3 text-right font-semibold text-gray-700">Total Price</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Campain Duration</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Campain Start</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Selected Package</th>
+                                        <th class="px-4 py-3 text-right font-semibold text-gray-700 whitespace-nowrap">Total Price</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @forelse($items as $index => $item)
                                         <tr class="border-b border-gray-200 hover:bg-gray-50">
                                             {{-- Serial --}}
-                                            <td class="hidden md:table-cell px-4 py-3 text-gray-600 font-medium">
+                                            <td class="px-4 py-3 text-gray-600 font-medium whitespace-nowrap">
                                                 {{ $index + 1 }}
                                             </td>
                                             
                                             {{-- Image & Details --}}
-                                            <td class="px-4 py-3 flex gap-3">
+                                            <td class="px-4 py-3 min-w-[280px]">
                                                 <a
                                                     href="{{ route('hoardings.show', $item->hoarding->id) }}"
                                                     class="flex gap-3 hover:bg-gray-50 transition cursor-pointer"
@@ -316,7 +318,7 @@
                                                         @endif
                                                     </div>
                                                     <div>
-                                                        <p class="font-medium text-gray-900">{{ $item->hoarding->title ?? 'N/A' }}</p>
+                                                        <p class="font-medium text-gray-900 break-words">{{ $item->hoarding->title ?? 'N/A' }}</p>
                                                         <p class="text-gray-500">{{ $item->hoarding->locality ?? 'N/A' }}</p>
                                                         <p class="text-gray-500">{{ $item->hoarding->size ?? '' }}</p>
                                                     </div>
@@ -324,7 +326,7 @@
                                             </td>
                                             
                                             {{-- Package --}}
-                                            <td class="hidden lg:table-cell px-4 py-3">
+                                            <td class="px-4 py-3 whitespace-nowrap">
                                                 <div class="space-y-1">
                                                     <p class="font-medium text-gray-900">
                                                         <span>{{ $item->expected_duration ?? '-' }}</span>
@@ -332,7 +334,7 @@
                                                 </div>
                                             </td>
                                             {{-- Package --}}
-                                            <td class="hidden lg:table-cell px-4 py-3">
+                                            <td class="px-4 py-3 whitespace-nowrap">
                                                 <div class="space-y-1">
                                                     <p class="font-medium text-gray-900">
                                                         <span>{{ \Carbon\Carbon::parse($item->preferred_start_date)->format('d M Y') }}</span>                                                
@@ -340,7 +342,7 @@
                                                 </div>
                                             </td>
                                             {{-- Package --}}
-                                        <td class="hidden lg:table-cell px-4 py-3">
+                                        <td class="px-4 py-3 min-w-[220px]">
                                                 <div class="space-y-1">
                                                     <p class="font-medium text-gray-900">
                                                         @if($item->package_name !== '-' && $item->discount_percent !== '-')
@@ -354,7 +356,7 @@
 
                                             
                                             {{-- Vendor --}}
-                                            <td class="px-4 py-3 text-right text-gray-900 font-medium">
+                                                                                        <td class="px-4 py-3 text-right text-gray-900 font-medium whitespace-nowrap">
                                                 <span>₹ {{ $item->final_price}}</span>
                                             </td>
                                         </tr>
@@ -384,27 +386,27 @@
 
             @if($enquiry->offers->count() > 0)
                 <div class="overflow-x-auto border border-gray-200 rounded">
-                    <table class="w-full text-xs">
+                    <table class="w-full min-w-[640px] text-xs sm:text-sm">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Sn.</th>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Vendor</th>
-                                <th class="px-4 py-3 text-center font-semibold text-gray-700">Offer Items</th>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Date</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Sn.</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Vendor</th>
+                                <th class="px-4 py-3 text-center font-semibold text-gray-700 whitespace-nowrap">Offer Items</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Status</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Date</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($enquiry->offers as $index => $offer)
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="px-4 py-3 text-gray-600 font-medium">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-3 font-medium text-gray-900">
+                                    <td class="px-4 py-3 text-gray-600 font-medium whitespace-nowrap">{{ $index + 1 }}</td>
+                                    <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
                                         {{ $offer->vendor->name ?? 'N/A' }}
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         <span class="text-gray-900 font-semibold">{{ $offer->items->count() ?? 0 }}</span>
                                     </td>
-                                    <td class="px-4 py-3">
+                                    <td class="px-4 py-3 whitespace-nowrap">
                                         <span class="inline-block px-2 py-1 rounded text-xs font-semibold
                                             @if($offer->status === 'pending')
                                                 bg-blue-100 text-blue-700
@@ -419,7 +421,7 @@
                                             {{ ucfirst(str_replace('_', ' ', $offer->status)) }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-gray-500">
+                                    <td class="px-4 py-3 text-gray-500 whitespace-nowrap">
                                         {{ $offer->created_at->format('d M, y') }}
                                     </td>
                                 </tr>
