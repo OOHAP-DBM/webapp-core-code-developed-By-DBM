@@ -7,7 +7,7 @@
 
 <div class="vendor-page-white min-h-screen bg-white pb-12">
     <div class="vendor-header px-4 md:px-8 py-6 flex items-center gap-2 mt-5">
-        <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHAPP" class="h-8">
+        <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHApp company logo" class="h-8">
         <span class="text-gray-500 text-sm font-medium">| Vendor</span>
     </div>
 

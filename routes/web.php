@@ -370,9 +370,9 @@ Route::middleware(['auth'])->group(function () {
     })->name('pos.bookings.redirect');
 
     // Backward-compatible path for older hold-expiry emails.
-    Route::get('/customer/pos/bookings/{id}', function ($id) {
-        return redirect()->route('pos.bookings.redirect', ['id' => $id]);
-    })->name('customer.pos.bookings.legacy');
+    // Route::get('/customer/pos/bookings/{id}', function ($id) {
+    //     return redirect()->route('pos.bookings.redirect', ['id' => $id]);
+    // })->name('customer.pos.bookings.legacy');
 });
 
 // ============================================
@@ -1313,4 +1313,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin
 Route::get('/twilio-test', function () {
     $service = app(\App\Services\Whatsapp\TwilioWhatsappService::class);
     return $service->send('911236547890', 'Test message');
+});
+
+
+// To download invoice PDFs for authenticated users 
+Route::middleware(['auth'])->prefix('invoices')->name('invoices.')->group(function () {
+    Route::get('/{invoice}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('download');
 });

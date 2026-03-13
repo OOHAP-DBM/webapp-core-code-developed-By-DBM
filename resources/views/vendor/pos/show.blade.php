@@ -25,8 +25,27 @@
             <div class="rounded-xl border bg-gray-50 p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                     <p class="text-sm text-gray-500">Invoice</p>
-                    <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" class="pointer-events-none text-inherit">—</a></h2>
-                    <a id="ui-invoice-link" href="#" target="_blank" class="hidden text-xs text-blue-600 hover:underline">View Invoice PDF</a>
+                    <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" target="_blank" class="pointer-events-none text-inherit">—</a></h2>
+                    @if(isset($invoice) && $invoice)
+                        <a id="ui-invoice-link" href="{{ route('invoice.download', ['invoice' => $invoice->id]) }}" target="_blank" class="text-xs text-blue-600 hover:underline">Download Invoice PDF</a>
+                    @else
+                        <a id="ui-invoice-link" href="#" onclick="downloadInvoice(event)" class="hidden text-xs text-blue-600 hover:underline">Download Invoice PDF</a>
+                    @endif
+                <script>
+                // If invoice_url is set dynamically, enable download
+                function downloadInvoice(event) {
+                    event.preventDefault();
+                    const btn = event.currentTarget;
+                    const url = btn.getAttribute('data-invoice-url') || btn.href;
+                    if (!url || url === '#') return;
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.setAttribute('download', 'Invoice.pdf');
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+                </script>
                 </div>
 
                 <div>
@@ -143,6 +162,8 @@
 }
 </style>
 
+@include('vendor.pos.components.status-formatters')
+
 <script>
 
 
@@ -195,20 +216,13 @@ async function loadBookingDetails() {
         document.getElementById('ui-total').textContent =
             '₹' + parseFloat(b.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
 
-        // If payment_status is unpaid, show 'Hold' as booking status
-        let bookingStatusText = b.status;
-        let bookingStatusColor = getStatusColor(b.status);
-        if (b.payment_status === 'pending_payment') {
-            bookingStatusText = 'Hold';
-            bookingStatusColor = 'bg-yellow-500 text-white';
-        }
-        document.getElementById('ui-booking-status').textContent = bookingStatusText;
+        document.getElementById('ui-booking-status').textContent = getPosBookingStatusLabel(b.status);
         document.getElementById('ui-booking-status').className =
-            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + bookingStatusColor;
+            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPosBookingStatusColor(b.status);
 
-        document.getElementById('ui-payment-status').textContent = b.payment_status;
+        document.getElementById('ui-payment-status').textContent = getPosPaymentStatusLabel(b.payment_status);
         document.getElementById('ui-payment-status').className =
-            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPaymentStatusColor(b.payment_status);
+            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPosPaymentStatusColor(b.payment_status);
 
         /* ---- REST OF YOUR EXISTING HTML BUILD LOGIC ---- */
             let hoardingsTableRows = '';
@@ -292,7 +306,7 @@ async function loadBookingDetails() {
                         <div><strong>Customer:</strong> ${b.customer_name}</div>
                         <div><strong>Phone:</strong> ${b.customer_phone || '-'} </div>
                         <div><strong>Booking Date:</strong> ${new Date(b.created_at).toLocaleString()} </div>
-                        <div><strong>Email:</strong> ${b.notes || '-'} </div>
+                        <div><strong>Email:</strong> ${b.customer_email || '-'} </div>
                     </div>
                     <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 pt-2 border-t">
                         ${renderActionButtons(b)}
@@ -640,24 +654,11 @@ function showActionMessage(message, type) {
 
 // Helper functions
 function getStatusColor(status) {
-    const colors = {
-        draft: 'bg-gray-400 text-white',
-        confirmed: 'bg-green-500 text-white',
-        active: 'bg-blue-500 text-white',
-        completed: 'bg-cyan-500 text-white',
-        cancelled: 'bg-red-500 text-white'
-    };
-    return colors[status] || 'bg-gray-400 text-white';
+    return getPosBookingStatusColor(status);
 }
 
 function getPaymentStatusColor(status) {
-    const colors = {
-        paid: 'bg-green-500 text-white',
-        unpaid: 'bg-red-500 text-white',
-        partial: 'bg-yellow-500 text-white',
-        credit: 'bg-cyan-500 text-white'
-    };
-    return colors[status] || 'bg-gray-400 text-white';
+    return getPosPaymentStatusColor(status);
 }
 
 // Close modals when clicking outside

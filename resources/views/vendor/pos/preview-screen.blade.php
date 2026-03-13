@@ -34,7 +34,7 @@
                             <th class="px-6 py-3">Location</th>
                             <th class="px-6 py-3">Type</th>
                             <th class="px-6 py-3">Duration</th>
-                            <th class="px-6 py-3 text-right">Amount</th>
+                            <th class="px-6 py-3 text-right">Total Amount</th>
                         </tr>
                     </thead>
                     <tbody id="preview-ooh-list" class="divide-y divide-gray-50 text-sm"></tbody>
@@ -334,12 +334,24 @@ let savedUpiDetails      = null;
 let countdownInterval    = null;
 
 /* ── calculateFinalTotals (also called from create.blade.php) ── */
+function getPosPricingBreakdown() {
+    const discountInput = parseFloat(document.getElementById('pos-discount')?.value || 0);
+    const discountVal = Math.min(Math.max(0, discountInput), globalBaseAmount || 0);
+    const gstRate = typeof window.POS_GST_RATE === 'number' ? window.POS_GST_RATE : 18;
+    const taxableAmount = Math.max(0, (globalBaseAmount || 0) - discountVal);
+    const tax = taxableAmount * (gstRate / 100);
+    const grandTotal = taxableAmount + tax;
+
+    return { discountVal, tax, grandTotal };
+}
+
 function calculateFinalTotals() {
-    const discountVal   = parseFloat(document.getElementById('pos-discount')?.value || 0);
-    const taxableAmount = Math.max(0, globalBaseAmount - discountVal);
-    const tax           = taxableAmount * 0.18;
-    const grandTotal    = taxableAmount + tax;
+    const { discountVal, tax, grandTotal } = getPosPricingBreakdown();
     const fmt = v => typeof formatINR === 'function' ? formatINR(v) : `₹${Math.round(v)}`;
+    const discountInput = document.getElementById('pos-discount');
+    if (discountInput && Number(discountInput.value) !== discountVal) {
+        discountInput.value = discountVal;
+    }
     document.getElementById('side-discount-display').innerText = `- ${fmt(discountVal)}`;
     document.getElementById('side-tax').innerText              = fmt(tax);
     document.getElementById('side-grand-total').innerText      = fmt(grandTotal);
@@ -643,9 +655,7 @@ function closeConfirmedModal() {
 function showBookingConfirmedModal(booking) {
     const modal     = document.getElementById('booking-confirmed-modal');
     const fmt       = v => typeof formatINR === 'function' ? formatINR(v) : `₹${Math.round(v)}`;
-    const discount  = parseFloat(document.getElementById('pos-discount')?.value || 0);
-    const taxable   = Math.max(0, globalBaseAmount - discount);
-    const grandTotal= taxable + taxable * 0.18;
+    const { grandTotal } = getPosPricingBreakdown();
 
     document.getElementById('modal-invoice-num').innerText  = `#${booking.invoice_number ?? booking.id}`;
     document.getElementById('modal-total-amount').innerText = fmt(grandTotal);
@@ -701,7 +711,7 @@ function updatePreviewScreen() {
         row.innerHTML = `
             <td class="px-6 py-3 font-bold text-gray-800">h</td>
             <td class="px-6 py-3 font-bold text-gray-800">${safe(h.title)}</td>
-            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.location) || safe(h.city)}</td>
+            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.display_location) || safe(h.city)}</td>
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.type)}</td>
 
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.total_slots_per_day)}</td>

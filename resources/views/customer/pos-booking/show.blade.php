@@ -4,23 +4,23 @@
 
 @section('content')
 
-<div class="px-6 py-6 bg-white" x-data="{ openTop: true, openBottom: true }">
+<div class="px-2 sm:px-4 md:px-6 py-4 md:py-6 bg-white min-h-screen" x-data="{ openTop: true, openBottom: true }">
 
     {{-- ===== HEADER ===== --}}
-    <div class="flex items-center justify-between py-4 bg-white mb-6">
-        <div class="flex">
-            <a href="{{ route('customer.pos.booking') }}" class="mx-2">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between py-4 bg-white mb-6 gap-2 sm:gap-0">
+        <div class="flex items-center">
+            <a href="{{ route('customer.pos.booking') }}" class="mr-2">
                 <svg width="16" class="mt-2" height="10" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M15.414 7.91412L3.828 7.91412L8.328 12.4141L6.914 13.8281L-2.93326e-07 6.91412L6.914 0.000125592L8.328 1.41413L3.828 5.91412L15.414 5.91412L15.414 7.91412Z" fill="#3C3C3C"/>
                 </svg>
             </a>
-            <h2 class="text-base font-semibold text-gray-900">
+            <h2 class="text-base md:text-lg font-semibold text-gray-900">
                 Booking ID
                 <span class="text-green-600">(#{{ $booking->id }})</span><br>
                 <p class="text-xs text-gray-500">View complete vendor, hoarding, and payment information for this order.</p>
             </h2>
         </div>
-        <div>
+        <div class="mt-2 sm:mt-0">
             {{-- Uncomment to enable chat
             <button class="inline-flex items-center gap-1 bg-green-600 text-white px-4 py-1.5 text-xs rounded">Chat</button>
             --}}
@@ -30,8 +30,8 @@
     <div class="space-y-6">
 
         {{-- ===== OVERVIEW BAR ===== --}}
-        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-[#f7f7f7]">
-            <div class="flex flex-wrap gap-4 text-xs text-gray-700">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between px-2 md:px-6 py-3 border-b border-gray-200 bg-[#f7f7f7] gap-2 md:gap-0">
+            <div class="flex flex-wrap gap-4 text-xs text-gray-700 ">
                 <span><strong>Overview:</strong></span>
                 {{-- <span>Offer ID: <strong>#{{ $booking->offer_code ?? '-' }}</strong></span> --}}
                 <span>No. of Hoardings: <strong>{{ $booking->hoardings->count() }}</strong></span>
@@ -50,7 +50,7 @@
         </div>
 
         {{-- ===== COLLAPSIBLE TOP SECTION ===== --}}
-        <div x-show="openTop" x-transition class="px-6 py-1 bg-[#f7f7f7]">
+        <div x-show="openTop" x-transition class="px-2 md:px-6 py-1 bg-[#f7f7f7]">
 
             @php
                 $allBh = $booking->bookingHoardings;
@@ -77,10 +77,10 @@
                 $milestones = $booking->milestones ?? collect([]);
             @endphp
 
-            <div class="grid grid-cols-12 gap-8 bg-[#f7f7f7] my-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 bg-[#f7f7f7] my-3">
 
                 {{-- Column 1: Vendor Details --}}
-                <div class="col-span-4">
+                <div class="">
                     <h3 class="text-sm font-semibold mb-4">Vendor Details</h3>
                     <div class="space-y-2 text-xs text-gray-700">
                         <div><strong>Name:</strong> {{ filled($booking->vendor->vendorProfile?->contact_person_name) ? $booking->vendor->vendorProfile->contact_person_name : (filled($booking->vendor?->name) ? $booking->vendor->name : '-') }}</div>
@@ -103,7 +103,7 @@
                 </div>
 
                 {{-- Column 2: Hoarding + Payment Details --}}
-                <div class="col-span-4">
+                <div class="">
                     <h3 class="text-sm font-semibold mb-4">Hoarding Details</h3>
                     <div class="space-y-2 text-xs text-gray-700">
                         <div>
@@ -127,20 +127,38 @@
                         <div>Balance: <strong class="text-red-600">₹{{ number_format($booking->total_amount - $booking->paid_amount, 2) }}</strong></div>
                         <div>Payment Status: <strong>{{ ucfirst($booking->payment_status) }}</strong></div>
                         <div>Payment Method: <strong>{{ ucfirst(str_replace('_', ' ', $booking->payment_mode)) }}</strong></div>
-                        <div class="flex items-center gap-1">Invoice Number: 
-                            <strong class="flex items-center gap-1 cursor-pointer">
-                                <span style="color:#0089E1">{{ $booking->invoice_number ?? '-' }}</span>
-                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M6 9L2.25 5.25L3.3 4.1625L5.25 6.1125V0H6.75V6.1125L8.7 4.1625L9.75 5.25L6 9ZM1.5 12C1.0875 12 0.7345 11.8533 0.441 11.5597C0.1475 11.2662 0.0005 10.913 0 10.5V8.25H1.5V10.5H10.5V8.25H12V10.5C12 10.9125 11.8533 11.2657 11.5597 11.5597C11.2662 11.8538 10.913 12.0005 10.5 12H1.5Z" fill="#0089E1"/>
-                                </svg>
-                            </strong>
-                        </div>
+                        <a href="{{ route('invoices.download', $booking->id) }}" target="_blank">
+                            <div class="flex items-center gap-2 flex-wrap mt-1">
+                                <span>Invoice Number:</span>
+                                <strong class="flex items-center gap-1 cursor-pointer">
+                                    <span style="color:#0089E1">{{ $booking->invoice_number ?? '-' }}</span>
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M6 9L2.25 5.25L3.3 4.1625L5.25 6.1125V0H6.75V6.1125L8.7 4.1625L9.75 5.25L6 9ZM1.5 12C1.0875 12 0.7345 11.8533 0.441 11.5597C0.1475 11.2662 0.0005 10.913 0 10.5V8.25H1.5V10.5H10.5V8.25H12V10.5C12 10.9125 11.8533 11.2657 11.5597 11.5597C11.2662 11.8538 10.913 12.0005 10.5 12H1.5Z" fill="#0089E1"/>
+                                    </svg>
+                                </strong>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="">
+                    <h3 class="text-sm font-semibold mb-1">Booking  Status</h3>
+                    <div class="space-y-0">
+                    
+                            <div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-200 last:border-0">
+                                <div>
+                                    <div class="font-bold text-gray-700 uppercase mb-1">{{ $booking->status}}</div>
+                                    <div class="text-gray-500">
+                                        Updated on {{ $booking->updated_at ? $booking->updated_at->format('d M, y') : '-' }}
+                                </div>
+                            </div>
+                     
                     </div>
                 </div>
 
                 {{-- Column 3: Milestone Timeline --}}
-                <div class="col-span-4">
-                    <h3 class="text-sm font-semibold mb-4">Milestone Timeline</h3>
+                <div class="lg:col-span-4 mt-6">
+                    <h3 class="text-sm font-semibold mb-1">Milestone Timeline</h3>
                     <div class="space-y-0">
                         @forelse($milestones as $ms)
                             <div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-200 last:border-0">
@@ -181,7 +199,7 @@
                 ];
             @endphp
 
-            <div class="mt-4 pb-4">
+            <!-- <div class="mt-4 pb-4">
                 <div class="flex items-center justify-between mb-1">
                     <h3 class="text-sm font-semibold text-gray-900">Booking Current Status</h3>
                     <div class="flex items-center gap-4 text-xs text-gray-500">
@@ -221,15 +239,15 @@
                         </div>
                     @endforeach
                 </div>
-            </div>
+            </div> -->
 
         </div>{{-- /openTop --}}
 
 
         {{-- ===== HOARDINGS SECTION ===== --}}
-        <div class="bg-[#f7f7f7] px-5 py-3">
+        <div class="bg-[#f7f7f7] pr-2  py-3">
 
-            <div class="flex items-center justify-between mb-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2 sm:gap-0">
                 <div>
                     <h3 class="text-sm font-semibold text-gray-900">
                         Hoarding Details ({{ $booking->bookingHoardings->count() }})
@@ -264,7 +282,7 @@
                 <div class="mb-6">
 
                     {{-- Group Header --}}
-                    <div class="flex items-center justify-between bg-gray-100 px-4 py-2 rounded text-sm font-semibold border border-gray-300 mb-3">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-100 px-2 md:px-4 py-2 rounded text-sm font-semibold border border-gray-300 mb-3 gap-2 sm:gap-0">
                         <div class="flex items-center gap-2">
                             <span class="text-gray-900">{{ $groupLabel }}</span>
                             <span class="text-gray-500 font-normal text-xs">({{ $groupItems->count() }} items)</span>
@@ -281,20 +299,20 @@
                     </div>
 
                     {{-- Table --}}
-                    <div class="overflow-x-auto border border-gray-200 rounded">
-                        <table class="w-full text-xs">
+                    <div class="overflow-x-auto border border-gray-200 rounded shadow-sm">
+                        <table class="w-full text-xs min-w-[700px]">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Sn.</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Hoarding</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Type</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Address</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Booking Start</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Booking End</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Booking Created</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Graphics Designer</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Price</th>
-                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
+                                    <th class="px-2 md:px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Sn.</th>
+                                    <th class="px-2 md:px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Hoarding</th>
+                                    <th class="px-2 md:px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Type</th>
+                                    <th class="px-2 md:px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Address</th>
+                                    <th class="px-2 md:px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Booking Start</th>
+                                    <th class="px-2 md:px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Booking End</th>
+                                    <th class="px-2 md:px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Booking Created</th>
+                                    <th class="px-2 md:px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Graphics Designer</th>
+                                    <th class="px-2 md:px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Price</th>
+                                    <th class="px-2 md:px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -318,11 +336,11 @@
                                             }
                                         }
                                     @endphp
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="px-4 py-3 text-gray-600 font-medium">{{ $loop->iteration }}</td>
-                                        <td class="px-4 py-3">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-14 h-14 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                        <td class="px-2 md:px-4 py-3 text-gray-600 font-medium">{{ $loop->iteration }}</td>
+                                        <td class="px-2 md:px-4 py-3">
+                                            <div class="flex items-center gap-2 md:gap-3">
+                                                <div class="w-12 h-12 md:w-14 md:h-14 bg-gray-200 rounded overflow-hidden flex-shrink-0">
                                                     @if($mediaItem)
                                                         <x-media-preview :media="$mediaItem" :alt="$bh->hoarding->title ?? 'Hoarding'" />
                                                     @else
@@ -332,7 +350,7 @@
                                                     @endif
                                                 </div>
                                                 <div>
-                                                    <p class="font-medium text-gray-900 truncate max-w-[160px]">
+                                                    <p class="font-medium text-gray-900 truncate max-w-[120px] md:max-w-[160px]">
                                                         {{ $bh->hoarding->title ?? '-' }}
                                                     </p>
                                                     <p class="text-gray-500 flex items-center gap-0.5">
@@ -350,20 +368,20 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-4 py-3">{{ strtoupper($bh->hoarding->hoarding_type ?? '-') }}</td>
-                                        <td class="px-4 py-3">{{ $bh->hoarding->address ?? '-' }}</td>
-                                        <td class="px-4 py-3">{{ $bh->start_date ? $bh->start_date->format('d M, Y') : '-' }}</td>
-                                        <td class="px-4 py-3">{{ $bh->end_date ? $bh->end_date->format('d M, Y') : '-' }}</td>
-                                        <td class="px-4 py-3">{{ $bh->created_at ? $bh->created_at->format('d M, Y') : '-' }}</td>
-                                        <td class="px-4 py-3 text-gray-500">Not Assigned</td>
-                                        <td class="px-4 py-3">₹{{ number_format($bh->hoarding_total, 2) }}</td>
-                                        <td class="px-4 py-3 text-gray-400">
+                                        <td class="px-2 md:px-4 py-3">{{ strtoupper($bh->hoarding->hoarding_type ?? '-') }}</td>
+                                        <td class="px-2 md:px-4 py-3">{{ $bh->hoarding->display_location  ?? '-' }}</td>
+                                        <td class="px-2 md:px-4 py-3">{{ $bh->start_date ? $bh->start_date->format('d M, Y') : '-' }}</td>
+                                        <td class="px-2 md:px-4 py-3">{{ $bh->end_date ? $bh->end_date->format('d M, Y') : '-' }}</td>
+                                        <td class="px-2 md:px-4 py-3">{{ $bh->created_at ? $bh->created_at->format('d M, Y') : '-' }}</td>
+                                        <td class="px-2 md:px-4 py-3 text-gray-500">Not Assigned</td>
+                                        <td class="px-2 md:px-4 py-3">₹{{ number_format($bh->hoarding_total, 2) }}</td>
+                                        <td class="px-2 md:px-4 py-3 text-gray-400">
                                             {{ $bh->status ? ucwords(str_replace('_', ' ', $bh->status)) : '–' }}
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-6 text-center text-gray-400">No hoardings found</td>
+                                        <td colspan="10" class="px-4 py-6 text-center text-gray-400">No hoardings found</td>
                                     </tr>
                                 @endforelse
                             </tbody>

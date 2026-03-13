@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/png" href="/assets/images/favicon/Vector (1).png" />
-    <title>Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP</title>
+    <title>Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
@@ -26,7 +26,7 @@
 
     <!-- Open Graph for Social Media -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP">
+    <meta property="og:title" content="Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP">
     <meta property="og:description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.">
     <meta property="og:url" content="https://oohapp.io/">
     <meta property="og:site_name" content="OOHAPP">
@@ -42,11 +42,14 @@
     <meta name="twitter:description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations and launch campaigns instantly.">
     <meta name="twitter:image" content="https://oohapp.io/assets/images/logo/logo_image.jpeg">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ST51N3C0N6"></script>
+
+   
     <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -62,7 +65,7 @@
         @include('layouts.partials.header') --}}
 
         <!-- Main Content -->
-        <main class="pt-16">
+        <main class="md:pt-16 mt-20 md:mt-5">
             @yield('content')
         </main>
 

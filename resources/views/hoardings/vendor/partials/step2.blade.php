@@ -2,8 +2,8 @@
 {{-- <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6"> --}}
 
   <!-- Body -->
-  <div class="md:p-8 space-y-8">
-    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+  <div class="md:px-8 space-y-8">
+    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
         <div class="flex items-center gap-3 mb-8">
             <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
             <h3 class="text-xl font-bold text-gray-800">Additional Settings</h3>
@@ -204,7 +204,7 @@
     </div>
    
     <!-- GazeFlow Section -->
-    <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mt-6">
+    <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
         <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
             <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>
             GazeFlow
@@ -238,7 +238,7 @@
     </div>
 
     <!-- Audience Type Section -->
-    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8 space-y-10">
+    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 space-y-10">
         <div>
             <div class="flex items-center gap-3 mb-8">
                 <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
@@ -257,7 +257,7 @@
                     );
                 @endphp
                 @foreach($audiences as $audience)
-                <label class="flex items-center space-x-3 p-4 cursor-pointer group">
+                <label class="flex items-center space-x-3 p-2 cursor-pointer group">
                     <input type="checkbox" name="audience_type[]" value="{{ $audience }}" 
                            {{ in_array($audience, (array)$selectedAudiences) ? 'checked' : '' }}
                            class="w-5 h-5 rounded border-gray-300  text-[#009A5C] focus:ring-[#009A5C]">
@@ -334,7 +334,7 @@
     </div>
 
     <!-- Hoardings Attributes -->
-    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
         <div class="flex items-center gap-3 mb-8">
             <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
             <h3 class="text-xl font-bold text-gray-800">Hoardings Attributes</h3>
@@ -382,7 +382,7 @@
                     );
                 @endphp
                 @foreach($locationOptions as $loc)
-                <label class="flex items-center space-x-3 p-4 cursor-pointer group">
+                <label class="flex items-center space-x-3 p-2 cursor-pointer group">
                     <input type="checkbox" name="located_at[]" value="{{ $loc }}" 
                            {{ in_array($loc, (array)$selectedLocations) ? 'checked' : '' }}
                            class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
@@ -408,7 +408,7 @@
     @endphp
     <div 
       x-data="{ visibility: '{{ $currentVisibility }}' }"
-      class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8"
+      class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100"
     >
       <h3 class="text-xl font-bold text-gray-800 mb-8 flex items-center">
         <span class="w-1.5 h-6 bg-[#009A5C] rounded-full mr-3"></span>

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Customer\CustomerHomeController;
 use Modules\Enquiries\Controllers\Api\DirectEnquiryApiController;
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\EmailSettingController;
+use App\Http\Controllers\Api\ReviewController ;
 
 /**
  * OOHAPP API v1 Routes
@@ -118,12 +119,19 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     
     // Hoarding Availability Calendar API (PROMPT 104 - Frontend calendar with availability status)
     require base_path('routes/api_v1/hoarding_availability.php');
+
+    Route::middleware(['auth:sanctum', 'role:vendor'])->prefix('vendor')->group(function () {
+        Route::post('reviews/{id}/reply',  [ReviewController::class, 'reply']);
+        Route::delete('reviews/{id}',      [ReviewController::class, 'destroy']);
+        Route::delete('reviews/bulk',      [ReviewController::class, 'bulkDelete']);
+    });
+
+   
 });
 Route::middleware(['auth:sanctum', 'throttle:authenticated'])->prefix('account')->group(function () {
         Route::post('/delete/send-otp', [AccountController::class, 'sendDeleteOtp']);
         Route::post('/delete/verify-otp', [AccountController::class, 'verifyDeleteOtp']);
         Route::delete('/delete', [AccountController::class, 'deleteAccount']);
 });
-
 
 

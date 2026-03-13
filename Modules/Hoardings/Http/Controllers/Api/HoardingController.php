@@ -137,26 +137,33 @@ class HoardingController extends Controller
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc", "desc"}, default="desc", example="asc")
      *     ),
-    *     @OA\Parameter(
-    *         name="featured",
-    *         in="query",
-    *         description="Filter only featured hoardings",
-    *         required=false,
-    *         @OA\Schema(type="boolean", example=true)
-    *     ),
-    *     @OA\Parameter(
-    *         name="filter",
-    *         in="query",
-    *         description="Special filter. Use 'weekly' to return only hoardings where enable_weekly_booking is true and weekly_price_1 is set. When applied, the price in the response will be weekly_price_1.",
-    *         required=false,
-    *         @OA\Schema(type="string", enum={"weekly"}, example="weekly")
-    *     ),
      *     @OA\Parameter(
-     *         name="date",
+     *         name="featured",
      *         in="query",
-     *         description="Filter hoardings by availability on this date (YYYY-MM-DD)",
+     *         description="Filter only featured hoardings",
+     *         required=false,
+     *         @OA\Schema(type="boolean", example=true)
+     *     ),
+     *     @OA\Parameter(
+     *         name="filter",
+     *         in="query",
+     *         description="Special filter. Use 'weekly' to return only hoardings where enable_weekly_booking is true and weekly_price_1 is set. When applied, the price in the response will be weekly_price_1.",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"weekly"}, example="weekly")
+     *     ),
+     *     @OA\Parameter(
+     *         name="start_date",
+     *         in="query",
+     *         description="Filter hoardings by availability from this start date (YYYY-MM-DD)",
      *         required=false,
      *         @OA\Schema(type="string", format="date", example="2026-03-12")
+     *     ),
+     *     @OA\Parameter(
+     *         name="end_date",
+     *         in="query",
+     *         description="Filter hoardings by availability until this end date (YYYY-MM-DD)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date", example="2026-03-15")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -253,13 +260,20 @@ class HoardingController extends Controller
         $perPage = $request->input('per_page', 15);
         $hoardings = $this->hoardingService->getAll($filters, $perPage);
 
-        // Filter by availability if date is provided
-        $selectedDate = $request->input('date');
-        if ($selectedDate) {
-            $hoardings = $hoardings->filter(function ($hoarding) use ($selectedDate) {
+        // Filter by availability if start_date and end_date are provided
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        if ($startDate && $endDate) {
+            $hoardings = $hoardings->filter(function ($hoarding) use ($startDate, $endDate) {
                 $availabilityService = app(HoardingAvailabilityService::class);
-                $calendar = $availabilityService->getAvailabilityCalendar($hoarding->id, $selectedDate, $selectedDate);
-                if (!empty($calendar['calendar'][0]['status']) && $calendar['calendar'][0]['status'] === 'available') {
+                $calendar = $availabilityService->getAvailabilityCalendar($hoarding->id, $startDate, $endDate);
+                // Check if all days in the range are available
+                if (!empty($calendar['calendar'])) {
+                    foreach ($calendar['calendar'] as $day) {
+                        if (empty($day['status']) || $day['status'] !== 'available') {
+                            return false;
+                        }
+                    }
                     return true;
                 }
                 return false;

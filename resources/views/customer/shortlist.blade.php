@@ -8,7 +8,7 @@
     <div class="max-w-[1460px] mx-auto px-6 py-6">
 
         {{-- HEADER --}}
-<div class="bg-white p-6 mb-6
+<div class="bg-white pt-5 mb-6
             flex flex-col sm:flex-row
             sm:items-center sm:justify-between
             gap-4 ">

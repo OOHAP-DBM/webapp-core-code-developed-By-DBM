@@ -1,10 +1,10 @@
-<div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+<div class="bg-white rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-sm border border-gray-100 mt-6 md:mt-8">
     <div class="flex items-center gap-3 mb-4">
         <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
         <h3 class="text-xl font-bold text-gray-800">Long term Campaign Packages</h3>
     </div>
 
-    <p class="text-xs text-gray-400 mb-8">
+    <p class="text-xs text-gray-400 mb-6 md:mb-8">
         Create specific inventory bundles (e.g.,Long term Booking)
     </p>
 
@@ -57,7 +57,7 @@
         <button
             type="button"
             id="add-offer-btn"
-            class="bg-[#1A1A1A] text-white px-8 py-3 rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-95 transition-transform flex items-center gap-2 w-fit">
+            class="bg-[#1A1A1A] text-white px-5 sm:px-8 py-3 rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-95 transition-transform inline-flex items-center justify-center gap-2 w-auto whitespace-nowrap">
             <span>+</span> Add Campaign Package
         </button>
     </div>
@@ -93,8 +93,8 @@ document.addEventListener('DOMContentLoaded', function () {
     ====================================================== */
     function renderOffer(data = {}) {
         const html = `
-        <div class="group bg-gray-50/50 rounded-2xl border border-gray-100 p-6">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+        <div class="group bg-gray-50/50 rounded-2xl border border-gray-100 p-4 sm:p-6">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 items-end">
 
                 <input type="hidden" class="offer_package_id" value="${data.package_id ?? ''}">
 
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         value="${data.end_date ?? ''}">
                 </div>
 
-                <div class="md:col-span-1 flex justify-center items-start pb-4">
+                <div class="md:col-span-1 flex justify-end md:justify-center items-start pb-1 md:pb-4">
                     <button type="button"
                         class="remove-offer text-red-500 hover:text-red-700 text-2xl leading-none mt-1 transition-colors">×</button>
                 </div>
