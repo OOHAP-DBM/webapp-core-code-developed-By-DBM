@@ -16,11 +16,13 @@
             </li>
         </ul>
 
+        @if(!in_array($hoarding->status, ['active', 'inactive']))
         <a id="editDetailsBtn"
             href="{{ route('vendor.hoardings.edit', $hoarding['id']) }}"
             class="ml-auto px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">
             Edit Details
         </a>
+        @endif
     </div>
 
     <div id="tabGeneral" class="tab-content">
