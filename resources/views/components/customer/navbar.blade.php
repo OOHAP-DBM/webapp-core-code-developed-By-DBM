@@ -9,7 +9,6 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
-
                 <!-- Logo -->
                 <div class="flex items-center flex-shrink-0">
                     <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
@@ -18,12 +17,10 @@
                     </a>
                 </div>
             </div>
-
             <!-- Search Bar (Desktop & Tablet only) -->
             <div class="hidden md:flex flex-1 justify-center px-6">
                 @include('components.customer.home-search')
             </div>
-
             <!-- Right Side Icons: User, Bookmark, Cart -->
             <div class="flex items-center space-x-4 lg:space-x-5">
 
