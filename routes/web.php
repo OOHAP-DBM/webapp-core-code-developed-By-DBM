@@ -370,9 +370,9 @@ Route::middleware(['auth'])->group(function () {
     })->name('pos.bookings.redirect');
 
     // Backward-compatible path for older hold-expiry emails.
-    Route::get('/customer/pos/bookings/{id}', function ($id) {
-        return redirect()->route('pos.bookings.redirect', ['id' => $id]);
-    })->name('customer.pos.bookings.legacy');
+    // Route::get('/customer/pos/bookings/{id}', function ($id) {
+    //     return redirect()->route('pos.bookings.redirect', ['id' => $id]);
+    // })->name('customer.pos.bookings.legacy');
 });
 
 // ============================================
