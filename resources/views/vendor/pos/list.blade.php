@@ -47,7 +47,7 @@
                         class="appearance-none w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none pr-8">
                         <option value="">All Payment Status</option>
                         <option value="paid">Paid</option>
-                        <option value="unpaid">Unpaid</option>
+                        <option value="unpaid">Pending</option>
                         <option value="partial">Partial</option>
                         <option value="credit">Credit Note</option>
                     </select>
@@ -103,6 +103,8 @@
         </div>
     </div>
 </div>
+
+@include('vendor.pos.components.status-formatters')
 
 <script>
 /**
@@ -245,12 +247,12 @@ function loadPosBookings(page = 1) {
                     </td>
                     <td class="px-2 py-2 sm:px-3 sm:py-2">
                         <span class="px-2 py-1 rounded text-xs font-semibold ${getPaymentStatusColor(booking.payment_status)}">
-                            ${booking.payment_status}
+                            ${getPaymentStatusLabel(booking.payment_status)}
                         </span>
                     </td>
                     <td class="px-2 py-2 sm:px-3 sm:py-2">
                         <span class="px-2 py-1 rounded text-xs font-semibold ${getStatusColor(booking.status)}">
-                            ${booking.status}
+                            ${getBookingStatusLabel(booking.status)}
                         </span>
                     </td>
                     <td class="px-2 py-2 sm:px-3 sm:py-2">
@@ -281,13 +283,13 @@ function loadPosBookings(page = 1) {
                         <div class="rounded-lg border border-gray-200 p-3 space-y-2 bg-white">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-xs font-semibold text-gray-900">${booking.invoice_number || 'N/A'}</p>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${getStatusColor(booking.status)}">${booking.status}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${getStatusColor(booking.status)}">${getBookingStatusLabel(booking.status)}</span>
                             </div>
                             <p class="text-xs text-gray-700 font-medium">${booking.customer_name}</p>
                             <p class="text-[11px] text-gray-500">${booking.customer_phone ?? '-'}</p>
                             <div class="flex items-center justify-between text-xs">
                                 <span class="font-semibold">₹${parseFloat(booking.total_amount).toLocaleString()}</span>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${getPaymentStatusColor(booking.payment_status)}">${booking.payment_status}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${getPaymentStatusColor(booking.payment_status)}">${getPaymentStatusLabel(booking.payment_status)}</span>
                             </div>
                             <p class="text-[11px] text-gray-500">${formatDateTime(booking.created_at)}</p>
                             <div class="flex flex-wrap gap-1 pt-1">
@@ -431,22 +433,19 @@ window.loadBookings = loadPosBookings;
 window.changePosPerPage = changePosPerPage;
 
 function getStatusColor(status) {
-    return {
-        draft: 'bg-gray-400 text-white',
-        confirmed: 'bg-green-500 text-white',
-        active: 'bg-blue-500 text-white',
-        completed: 'bg-cyan-500 text-white',
-        cancelled: 'bg-red-500 text-white'
-    }[status] || 'bg-gray-400 text-white';
+    return getPosBookingStatusColor(status);
 }
 
 function getPaymentStatusColor(status) {
-    return {
-        paid: 'bg-green-500 text-white',
-        unpaid: 'bg-red-500 text-white',
-        partial: 'bg-yellow-500 text-white',
-        credit: 'bg-cyan-500 text-white'
-    }[status] || 'bg-gray-400 text-white';
+    return getPosPaymentStatusColor(status);
+}
+
+function getBookingStatusLabel(status) {
+    return getPosBookingStatusLabel(status);
+}
+
+function getPaymentStatusLabel(status) {
+    return getPosPaymentStatusLabel(status);
 }
 </script>
 @endsection

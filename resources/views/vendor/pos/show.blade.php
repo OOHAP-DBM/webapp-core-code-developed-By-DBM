@@ -143,6 +143,8 @@
 }
 </style>
 
+@include('vendor.pos.components.status-formatters')
+
 <script>
 
 
@@ -195,20 +197,13 @@ async function loadBookingDetails() {
         document.getElementById('ui-total').textContent =
             '₹' + parseFloat(b.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
 
-        // If payment_status is unpaid, show 'Hold' as booking status
-        let bookingStatusText = b.status;
-        let bookingStatusColor = getStatusColor(b.status);
-        if (b.payment_status === 'pending_payment') {
-            bookingStatusText = 'Hold';
-            bookingStatusColor = 'bg-yellow-500 text-white';
-        }
-        document.getElementById('ui-booking-status').textContent = bookingStatusText;
+        document.getElementById('ui-booking-status').textContent = getPosBookingStatusLabel(b.status);
         document.getElementById('ui-booking-status').className =
-            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + bookingStatusColor;
+            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPosBookingStatusColor(b.status);
 
-        document.getElementById('ui-payment-status').textContent = b.payment_status;
+        document.getElementById('ui-payment-status').textContent = getPosPaymentStatusLabel(b.payment_status);
         document.getElementById('ui-payment-status').className =
-            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPaymentStatusColor(b.payment_status);
+            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPosPaymentStatusColor(b.payment_status);
 
         /* ---- REST OF YOUR EXISTING HTML BUILD LOGIC ---- */
             let hoardingsTableRows = '';
@@ -640,24 +635,11 @@ function showActionMessage(message, type) {
 
 // Helper functions
 function getStatusColor(status) {
-    const colors = {
-        draft: 'bg-gray-400 text-white',
-        confirmed: 'bg-green-500 text-white',
-        active: 'bg-blue-500 text-white',
-        completed: 'bg-cyan-500 text-white',
-        cancelled: 'bg-red-500 text-white'
-    };
-    return colors[status] || 'bg-gray-400 text-white';
+    return getPosBookingStatusColor(status);
 }
 
 function getPaymentStatusColor(status) {
-    const colors = {
-        paid: 'bg-green-500 text-white',
-        unpaid: 'bg-red-500 text-white',
-        partial: 'bg-yellow-500 text-white',
-        credit: 'bg-cyan-500 text-white'
-    };
-    return colors[status] || 'bg-gray-400 text-white';
+    return getPosPaymentStatusColor(status);
 }
 
 // Close modals when clicking outside

@@ -248,6 +248,15 @@ public function createBooking(array $data): POSBooking
         }
 
         $hoardingIds = $data['hoarding_ids'] ?? [];
+
+        $hoardingItemsMap = [];
+        if (!empty($data['hoarding_items']) && is_array($data['hoarding_items'])) {
+            foreach ($data['hoarding_items'] as $item) {
+                if (isset($item['hoarding_id'])) {
+                    $hoardingItemsMap[(int) $item['hoarding_id']] = $item;
+                }
+            }
+        }
         
         // Lock and Fetch
         $hoardings = \App\Models\Hoarding::whereIn('id', $hoardingIds)
@@ -257,7 +266,13 @@ public function createBooking(array $data): POSBooking
         Log::info('POSBookingService locked hoardings', ['vendor_id' => $effectiveVendorId, 'hoarding_ids' => $hoardings->pluck('id')->all(), 'count' => $hoardings->count()]);
 
         // Perform Pricing Calculation
-        $pricing = $this->calculateMultiHoardingPricing($hoardings, $start, $end, (float)($data['discount_amount'] ?? 0));
+        $pricing = $this->calculateMultiHoardingPricing(
+            $hoardings,
+            $start,
+            $end,
+            (float) ($data['discount_amount'] ?? 0),
+            $hoardingItemsMap
+        );
 
         Log::info('POSBookingService calculated pricing', ['vendor_id' => $effectiveVendorId, 'pricing' => $pricing]);
 
@@ -292,23 +307,13 @@ public function createBooking(array $data): POSBooking
         $booking = POSBooking::create($bookingPayload);
 
         // Inventory Linking
-        // Build map for per-hoarding details if provided
-        $hoardingItemsMap = [];
-        if (!empty($data['hoarding_items']) && is_array($data['hoarding_items'])) {
-            foreach ($data['hoarding_items'] as $item) {
-                if (isset($item['hoarding_id'])) {
-                    $hoardingItemsMap[(int)$item['hoarding_id']] = $item;
-                }
-            }
-        }
-
         foreach ($hoardings as $hoarding) {
-            $item = $hoardingItemsMap[$hoarding->id] ?? null;
+            $item = $pricing['line_items'][$hoarding->id] ?? ($hoardingItemsMap[$hoarding->id] ?? null);
             $itemStart = $item['start_date'] ?? $start;
             $itemEnd = $item['end_date'] ?? $end;
             $itemPrice = $item['price_per_month'] ?? null;
             $itemDiscount = $item['discount_amount'] ?? 0;
-            $this->attachHoardingToBooking($booking, $hoarding, $itemStart, $itemEnd, $itemPrice, $itemDiscount);
+            $this->attachHoardingToBooking($booking, $hoarding, $itemStart, $itemEnd, $itemPrice, $itemDiscount, $item ?? []);
         }
 
         Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => $effectiveVendorId, 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
@@ -360,36 +365,69 @@ public function createBooking(array $data): POSBooking
 /**
  * Calculates pricing for multiple hoardings
  */
-protected function calculateMultiHoardingPricing($hoardings, $start, $end, $discount = 0): array
+protected function calculateMultiHoardingPricing($hoardings, $start, $end, $discount = 0, array $hoardingItemsMap = []): array
 {
-   
-    $startDate = \Carbon\Carbon::parse($start);
-    $endDate = \Carbon\Carbon::parse($end);
-    $days = $startDate->diffInDays($endDate) + 1; // Minimum 1 day
-    
-    $gstRate = 18; // Default 18% or pull from settings
+    $gstRate = $this->getGSTRate();
+    $lineItems = [];
+    $totalBase = 0.0;
 
-    $totalBase = $hoardings->sum(function ($hoarding) use ($days) {
-        // Use monthly_price from your model and convert to daily
-        $monthlyRate = $hoarding->monthly_price ?? $hoarding->base_monthly_price ?? 0;
-        $dailyRate = $monthlyRate / 30; 
-        
-        return $dailyRate * $days;
-    });
+    foreach ($hoardings as $hoarding) {
+        $item = $hoardingItemsMap[$hoarding->id] ?? [];
+        $itemStart = $item['start_date'] ?? $start;
+        $itemEnd = $item['end_date'] ?? $end;
+        $durationDays = $this->calculateDurationDays($itemStart, $itemEnd);
+        $months = (int) ceil($durationDays / 30);
+        $monthlyRate = isset($item['price_per_month'])
+            ? (float) $item['price_per_month']
+            : (float) ($hoarding->monthly_price ?? $hoarding->base_monthly_price ?? 0);
+        $baseAmount = round($monthlyRate * $months, 2);
 
-    // If calculation results in 0, fallback to frontend provided base_amount
-    if ($totalBase <= 0) {
-        $totalBase = (float) request('base_amount', 0);
+        $lineItems[(int) $hoarding->id] = [
+            'hoarding_id' => (int) $hoarding->id,
+            'start_date' => $itemStart,
+            'end_date' => $itemEnd,
+            'duration_days' => $durationDays,
+            'price_per_month' => $monthlyRate,
+            'base_amount' => $baseAmount,
+        ];
+
+        $totalBase += $baseAmount;
     }
 
-    $taxAmount = ($totalBase - $discount) * ($gstRate / 100);
-    $totalAmount = ($totalBase - $discount) + $taxAmount;
+    $totalBase = round($totalBase, 2);
+    $normalizedDiscount = round(min(max(0, (float) $discount), $totalBase), 2);
+    $remainingDiscount = $normalizedDiscount;
+    $lineIds = array_keys($lineItems);
+    $lineCount = count($lineIds);
+
+    foreach ($lineIds as $index => $lineId) {
+        $lineBase = (float) $lineItems[$lineId]['base_amount'];
+
+        if ($lineCount === 0 || $normalizedDiscount <= 0) {
+            $lineDiscount = 0.0;
+        } elseif ($index === $lineCount - 1) {
+            $lineDiscount = $remainingDiscount;
+        } else {
+            $lineDiscount = round(($lineBase / max($totalBase, 0.01)) * $normalizedDiscount, 2);
+            $lineDiscount = min($lineBase, $lineDiscount, $remainingDiscount);
+        }
+
+        $remainingDiscount = round($remainingDiscount - $lineDiscount, 2);
+        $taxableAmount = max(0, round($lineBase - $lineDiscount, 2));
+        $taxAmount = round($taxableAmount * ($gstRate / 100), 2);
+        $totalAmount = round($taxableAmount + $taxAmount, 2);
+
+        $lineItems[$lineId]['discount_amount'] = round($lineDiscount, 2);
+        $lineItems[$lineId]['tax_amount'] = $taxAmount;
+        $lineItems[$lineId]['total_amount'] = $totalAmount;
+    }
 
     return [
-        'base_amount' => round($totalBase, 2),
-        'tax_amount' => round($taxAmount, 2),
-        'total_amount' => round($totalAmount, 2),
-        'discount_amount' => $discount
+        'base_amount' => round(array_sum(array_column($lineItems, 'base_amount')), 2),
+        'discount_amount' => round(array_sum(array_column($lineItems, 'discount_amount')), 2),
+        'tax_amount' => round(array_sum(array_column($lineItems, 'tax_amount')), 2),
+        'total_amount' => round(array_sum(array_column($lineItems, 'total_amount')), 2),
+        'line_items' => $lineItems,
     ];
 }
 
@@ -593,11 +631,11 @@ public function releaseHoardings(POSBooking $booking)
      */
     protected function calculatePricing(array $data): array
     {
-        $baseAmount = $data['base_amount'] ?? 0;
-        $discountAmount = $data['discount_amount'] ?? 0;
+        $baseAmount = round((float) ($data['base_amount'] ?? 0), 2);
+        $discountAmount = round(min(max(0, (float) ($data['discount_amount'] ?? 0)), $baseAmount), 2);
         $gstRate = $this->getGSTRate();
 
-        $amountAfterDiscount = $baseAmount - $discountAmount;
+        $amountAfterDiscount = max(0, round($baseAmount - $discountAmount, 2));
         $taxAmount = ($amountAfterDiscount * $gstRate) / 100;
         $totalAmount = $amountAfterDiscount + $taxAmount;
 
@@ -1047,7 +1085,7 @@ public function releaseHoardings(POSBooking $booking)
       /**
      * Attach a hoarding to a booking and save to pos_booking_hoardings table
      */
-    protected function attachHoardingToBooking(POSBooking $booking, Hoarding $hoarding, $start, $end, $pricePerMonth = null, $discount = 0)
+    protected function attachHoardingToBooking(POSBooking $booking, Hoarding $hoarding, $start, $end, $pricePerMonth = null, $discount = 0, array $pricingLine = [])
     {
         \Log::info('Attaching hoarding to booking', [
             'pos_booking_id' => $booking->id,
@@ -1057,15 +1095,23 @@ public function releaseHoardings(POSBooking $booking)
             'price_per_month' => $pricePerMonth,
             'discount' => $discount,
         ]);
-        $durationDays = $this->calculateDurationDays($start, $end);
-        // Use per-hoarding price if provided, else fallback to model
-        $monthlyRate = $pricePerMonth !== null ? (float)$pricePerMonth : ($hoarding->monthly_price ?? $hoarding->base_monthly_price ?? 0);
-        // Calculate number of months to charge (1 for <=30 days, 2 for <=60, etc.)
+        $durationDays = $pricingLine['duration_days'] ?? $this->calculateDurationDays($start, $end);
+        $monthlyRate = $pricePerMonth !== null ? (float) $pricePerMonth : ($hoarding->monthly_price ?? $hoarding->base_monthly_price ?? 0);
         $months = (int) ceil($durationDays / 30);
-        $base = $monthlyRate * $months;
+        $base = array_key_exists('base_amount', $pricingLine)
+            ? (float) $pricingLine['base_amount']
+            : round($monthlyRate * $months, 2);
         $gstRate = $this->getGSTRate();
-        $tax = ($base - $discount) * ($gstRate / 100);
-        $total = ($base - $discount) + $tax;
+        $discount = array_key_exists('discount_amount', $pricingLine)
+            ? (float) $pricingLine['discount_amount']
+            : (float) $discount;
+        $taxableAmount = max(0, round($base - $discount, 2));
+        $tax = array_key_exists('tax_amount', $pricingLine)
+            ? (float) $pricingLine['tax_amount']
+            : round($taxableAmount * ($gstRate / 100), 2);
+        $total = array_key_exists('total_amount', $pricingLine)
+            ? (float) $pricingLine['total_amount']
+            : round($taxableAmount + $tax, 2);
 
         \Modules\POS\Models\POSBookingHoarding::create([
             'pos_booking_id'   => $booking->id,

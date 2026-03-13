@@ -9,6 +9,8 @@
     body { font-family: 'Poppins', sans-serif; }
 </style>
 
+@include('vendor.pos.components.status-formatters')
+
 @section('content')
 <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8 bg-gray-50 min-h-screen">
     @include('vendor.pos.components.admin-vendor-switcher')
@@ -264,12 +266,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="px-2 py-2 sm:px-4 sm:py-3 font-medium">₹${parseFloat(b.total_amount).toLocaleString()}</td>
                     <td class="px-2 py-2 sm:px-4 sm:py-3">
                         <span class="px-2 py-1 text-xs rounded-full ${paymentBadge(b.payment_status)}">
-                            ${b.payment_status}
+                            ${paymentStatusLabel(b.payment_status)}
                         </span>
                     </td>
                     <td class="px-2 py-2 sm:px-4 sm:py-3">
                         <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">
-                            ${b.status}
+                            ${bookingStatusLabel(b.status)}
                         </span>
                     </td>
                     <td class="px-2 py-2 sm:px-4 sm:py-3">
@@ -284,13 +286,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="rounded-lg border border-gray-200 p-3 space-y-1.5 bg-white">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-xs font-semibold text-gray-900">${b.invoice_number || 'N/A'}</p>
-                                <span class="px-2 py-0.5 text-[10px] rounded-full ${statusBadge(b.status)}">${b.status}</span>
+                                <span class="px-2 py-0.5 text-[10px] rounded-full ${statusBadge(b.status)}">${bookingStatusLabel(b.status)}</span>
                             </div>
                             <p class="text-xs text-gray-600">${b.customer_name}</p>
                             <p class="text-[11px] text-gray-500">${formatDateTime(b.created_at)}</p>
                             <div class="flex items-center justify-between text-xs pt-1">
                                 <span class="font-medium text-gray-700">₹${parseFloat(b.total_amount).toLocaleString()}</span>
-                                <span class="px-2 py-0.5 text-[10px] rounded-full ${paymentBadge(b.payment_status)}">${b.payment_status}</span>
+                                <span class="px-2 py-0.5 text-[10px] rounded-full ${paymentBadge(b.payment_status)}">${paymentStatusLabel(b.payment_status)}</span>
                             </div>
                             <a href="${POS_BASE_PATH}/bookings/${b.id}" class="inline-flex mt-1 text-xs text-blue-600 hover:underline">View</a>
                         </div>
@@ -361,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="px-2 py-2 sm:px-4 sm:py-3 font-medium">${b.invoice_number || 'N/A'}</td>
                     <td class="px-2 py-2 sm:px-4 sm:py-3">${b.customer_name}</td>
                     <td class="px-2 py-2 sm:px-4 sm:py-3">
-                        <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">${b.status || 'N/A'}</span>
+                        <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">${bookingStatusLabel(b.status || 'N/A')}</span>
                     </td>
                     <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold">₹${totalAmount.toLocaleString()}</td>
                     <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-green-700">₹${paidAmount.toLocaleString()}</td>
@@ -378,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 space-y-1.5">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-xs font-semibold text-gray-900">${b.invoice_number || 'N/A'}</p>
-                                <span class="px-2 py-0.5 text-[10px] rounded-full ${statusBadge(b.status)}">${b.status || 'N/A'}</span>
+                                <span class="px-2 py-0.5 text-[10px] rounded-full ${statusBadge(b.status)}">${bookingStatusLabel(b.status || 'N/A')}</span>
                             </div>
                             <p class="text-xs text-gray-700">${b.customer_name}</p>
                             <div class="flex items-center justify-between text-xs">
@@ -457,22 +459,19 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function statusBadge(status) {
-    return {
-        draft: 'bg-gray-200 text-gray-700',
-        confirmed: 'bg-green-100 text-green-700',
-        active: 'bg-blue-100 text-blue-700',
-        completed: 'bg-cyan-100 text-cyan-700',
-        cancelled: 'bg-red-100 text-red-700'
-    }[status] || 'bg-gray-200 text-gray-700';
+    return getPosBookingStatusSoftColor(status);
 }
 
 function paymentBadge(status) {
-    return {
-        paid: 'bg-green-100 text-green-700',
-        unpaid: 'bg-red-100 text-red-700',
-        partial: 'bg-yellow-100 text-yellow-700',
-        credit: 'bg-cyan-100 text-cyan-700'
-    }[status] || 'bg-gray-200 text-gray-700';
+    return getPosPaymentStatusSoftColor(status);
+}
+
+function bookingStatusLabel(status) {
+    return getPosBookingStatusLabel(status);
+}
+
+function paymentStatusLabel(status) {
+    return getPosPaymentStatusLabel(status);
 }
 </script>
 @endsection
