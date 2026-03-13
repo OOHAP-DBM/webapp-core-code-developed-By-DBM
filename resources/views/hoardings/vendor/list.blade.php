@@ -134,52 +134,50 @@
 
         <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
             <div class="overflow-x-auto" style="max-height: 597px; overflow-y: auto;">
-                <table class="w-full text-left border-collapse">
+                <table class="min-w-full text-xs sm:text-sm">
                     <thead>
-                        <tr class="p-6">
-                            @php
-                                $selectedLetter = request('letter');
-                            @endphp
-                            <div class="flex flex-wrap gap-2 text-[11px] px-6 pt-6 font-bold text-gray-400 uppercase tracking-widest px-1">
-                                @foreach(range('A', 'Z') as $char)
-                                    <a
-                                        href="{{ route('vendor.hoardings.myHoardings', array_merge(request()->except(['page', 'letter']), ['tab' => $activeTab, 'letter' => $char])) }}"
-                                        class="
-                                            {{ $selectedLetter === $char
-                                                ? 'text-[#00A86B] underline'
-                                                : 'hover:text-[#00A86B]' }}
-                                        "
-                                    >
-                                        {{ $char }}
-                                    </a>
-                                @endforeach
+                        @php
+                            $selectedLetter = request('letter');
+                        @endphp
+                        <tr>
+                            <th colspan="{{ $activeTab !== 'draft' ? 8 : 7 }}" class="px-3 sm:px-4 pt-4 pb-2">
+                                <div class="flex flex-wrap gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                                    @foreach(range('A', 'Z') as $char)
+                                        <a
+                                            href="{{ route('vendor.hoardings.myHoardings', array_merge(request()->except(['page', 'letter']), ['tab' => $activeTab, 'letter' => $char])) }}"
+                                            class="{{ $selectedLetter === $char ? 'text-[#00A86B] underline' : 'hover:text-[#00A86B]' }}"
+                                        >
+                                            {{ $char }}
+                                        </a>
+                                    @endforeach
 
-                                @if($selectedLetter)
-                                    <a
-                                        href="{{ route('vendor.hoardings.myHoardings', array_merge(request()->except(['page', 'letter']), ['tab' => $activeTab])) }}"
-                                        class="ml-3 text-red-500 hover:underline"
-                                    >
-                                        Clear
-                                    </a>
-                                @endif
-                            </div>
+                                    @if($selectedLetter)
+                                        <a
+                                            href="{{ route('vendor.hoardings.myHoardings', array_merge(request()->except(['page', 'letter']), ['tab' => $activeTab])) }}"
+                                            class="ml-3 text-red-500 hover:underline"
+                                        >
+                                            Clear
+                                        </a>
+                                    @endif
+                                </div>
+                            </th>
                         </tr>
-                        <tr class="bg-white border-b border-gray-100 text-[12px] font-black text-gray-600  tracking-widest">
-                            <th class="px-6 py-5 w-12">
+                        <tr class="bg-gray-100 text-left">
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 w-12 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">
                                 <input type="checkbox" id="select-all" class="rounded-sm border-gray-300">
                             </th>
-                            <th class="px-4 py-5">SN</th>
-                            <th class="px-4 py-5">Hoarding Title</th>
-                            <th class="px-4 py-5">Type</th>
-                            <th class="px-4 py-5">Location</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">SN</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Hoarding Title</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Type</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Location</th>
                             @if($activeTab !== 'draft')
-                            <th class="px-4 py-5">No of Bookings</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">No of Bookings</th>
                             @endif
-                            <th class="px-4 py-5">Status</th>
-                            <th class="px-4 py-5 text-center">Action</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Status</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 text-center font-semibold text-gray-600 text-xs uppercase whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="text-[13px]">
+                    <tbody class="divide-y divide-gray-100 bg-white">
                         @forelse($hoardings as $index => $hoarding)
                         @php 
                             $status = strtolower($hoarding['status']);
@@ -188,30 +186,30 @@
                             $isDraft   = $status === 'draft';
                             $canEdit   = $isDraft || $isPending;
                         @endphp
-                        <tr class="hover:bg-[#F0F9FF] border-b border-gray-50 last:border-0 transition-colors">
-                            <td class="px-6 py-4"><input type="checkbox" class="row-checkbox rounded-sm border-gray-300"></td>
-                            <td class="px-4 py-4 text-gray-400 font-medium">{{ sprintf('%02d', $index + 1) }}</td>
-                            <td class="px-4 py-4 text-gray-700">
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-3 sm:px-4 py-2 sm:py-3"><input type="checkbox" class="row-checkbox rounded-sm border-gray-300"></td>
+                            <td class="px-3 sm:px-4 py-2 sm:py-3 text-gray-500 font-medium whitespace-nowrap">{{ sprintf('%02d', $index + 1) }}</td>
+                            <td class="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 whitespace-nowrap">
                                 <a href="{{ route('vendor.myHoardings.show', $hoarding['id']) }}"
                                 target="_blank"
                                 class="text-[#00A86B] font-medium hover:underline">
                                     {{ !empty($hoarding['title']) ? $hoarding['title'] : 'NA' }}
                                 </a>
                             </td>
-                            <td class="px-4 py-4 uppercase tracking-wide text-gray-500">
+                            <td class="px-3 sm:px-4 py-2 sm:py-3 uppercase tracking-wide text-gray-500 whitespace-nowrap">
                                 {{ !empty($hoarding['hoarding_type']) ? $hoarding['hoarding_type'] : 'NA' }}
                             </td>
-                            <td class="px-4 py-4 text-gray-400 truncate max-w-[180px]">
+                            <td class="px-3 sm:px-4 py-2 sm:py-3 text-gray-500 truncate max-w-[180px]">
                                 {{ !empty($hoarding['location']) ? $hoarding['location'] : 'NA' }}
                             </td>
                             
                             @if($activeTab !== 'draft')
-                            <td class="px-4 py-4 text-gray-500 underline decoration-gray-200">
+                            <td class="px-3 sm:px-4 py-2 sm:py-3 text-gray-500 underline decoration-gray-200 whitespace-nowrap">
                                 {{ $hoarding['bookings_count'] ?? '0' }}
                             </td>
                             @endif
 
-                            <td class="px-4 py-4">
+                            <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
                             @if(strtolower($hoarding['status']) === 'draft')
                                 <span class="text-gray-500 text-[11px] font-bold">Draft</span>
                             @elseif($isPending)
@@ -254,7 +252,7 @@
 
 
 
-                            <td class="px-4 py-4 text-center">
+                            <td class="px-3 sm:px-4 py-2 sm:py-3 text-center whitespace-nowrap">
                                 <div class="relative inline-block text-left">
                                     <button type="button" onclick="toggleActionMenu(event, 'menu-{{ $hoarding['id'] }}')" 
                                             class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded">
@@ -309,7 +307,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="py-16 text-gray-400">
+                            <td colspan="{{ $activeTab !== 'draft' ? 8 : 7 }}" class="py-16 text-gray-400">
                                 <div style="width: calc(100vw - 80px); display: flex; justify-content: center;" class="md:w-full">
                                     No records found.
                                 </div>
@@ -320,7 +318,7 @@
                 </table>
             </div>
             
-            <div class="bg-white px-6 py-4 flex items-center justify-between border-t border-gray-50 text-[12px] text-gray-500">
+            <div class="bg-white px-4 sm:px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 border-t border-gray-100 text-[12px] text-gray-500">
                 <div class="flex items-center gap-3 font-medium">
                     <form id="perPageForm" method="GET" action="" class="flex items-center gap-2">
                         @foreach(request()->except('page', 'per_page') as $key => $val)
@@ -345,40 +343,7 @@
                     </span>
                 </div>
                 <div>
-                    @php
-                        $compactPaginator = $hoardings->appends(request()->except('page'));
-                        $currentPage = $compactPaginator->currentPage();
-                        $lastPage = $compactPaginator->lastPage();
-                        $startPage = max(1, $currentPage - 1);
-                        $endPage = min($lastPage, $startPage + 2);
-                        $startPage = max(1, $endPage - 2);
-                    @endphp
-
-                    @if($compactPaginator->hasPages())
-                        <nav aria-label="Hoardings pagination" class="overflow-x-auto">
-                            <div class="flex items-center gap-2 whitespace-nowrap">
-                                @if ($compactPaginator->onFirstPage())
-                                    <span class="px-4 py-1.5 rounded-md border border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed">Previous</span>
-                                @else
-                                    <a href="{{ $compactPaginator->previousPageUrl() }}" class="px-4 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Previous</a>
-                                @endif
-
-                                @for ($page = $startPage; $page <= $endPage; $page++)
-                                    @if ($page === $currentPage)
-                                        <span class="min-w-[34px] text-center px-3 py-1.5 rounded-md border border-[#00A86B] bg-[#00A86B] text-white font-semibold">{{ $page }}</span>
-                                    @else
-                                        <a href="{{ $compactPaginator->url($page) }}" class="min-w-[34px] text-center px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">{{ $page }}</a>
-                                    @endif
-                                @endfor
-
-                                @if ($compactPaginator->hasMorePages())
-                                    <a href="{{ $compactPaginator->nextPageUrl() }}" class="px-4 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Next</a>
-                                @else
-                                    <span class="px-4 py-1.5 rounded-md border border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed">Next</span>
-                                @endif
-                            </div>
-                        </nav>
-                    @endif
+                    {{ $hoardings->appends(request()->except('page'))->links('pagination.dashboard-compact') }}
                 </div>
             </div>
         </div>
