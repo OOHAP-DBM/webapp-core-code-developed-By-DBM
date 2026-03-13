@@ -166,7 +166,7 @@ $reviews = $hoarding->ratings()->with(['user', 'vendorReply'])->latest()->pagina
             <span>Showing {{ $reviews->firstItem() }} to {{ $reviews->lastItem() }} of {{ $reviews->total() }} records</span>
         </div>
         <div>
-            {{ $reviews->links('vendor.pagination.tailwind') }}
+            {{ $reviews->links('pagination.dashboard-compact') }}
         </div>
     </div>
 

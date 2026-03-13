@@ -148,7 +148,7 @@
                     Showing {{ $vendors->firstItem() }} to {{ $vendors->lastItem() }} of {{ $vendors->total() }} records
                 </span>
             </div>
-            {{ $vendors->links('vendor.pagination.tailwind') }}
+            {{ $vendors->links('pagination.dashboard-compact') }}
         </div>
     </div>
 </div>
