@@ -25,7 +25,7 @@
             <div class="rounded-xl border bg-gray-50 p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                     <p class="text-sm text-gray-500">Invoice</p>
-                    <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" class="pointer-events-none text-inherit">—</a></h2>
+                    <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" target="_blank" class="pointer-events-none text-inherit">—</a></h2>
                     @if(isset($invoice) && $invoice)
                         <a id="ui-invoice-link" href="{{ route('invoice.download', ['invoice' => $invoice->id]) }}" target="_blank" class="text-xs text-blue-600 hover:underline">Download Invoice PDF</a>
                     @else
