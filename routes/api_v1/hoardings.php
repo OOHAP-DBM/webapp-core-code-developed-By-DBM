@@ -6,6 +6,7 @@ use Modules\Hoardings\Http\Controllers\Api\HoardingAttributeController;
 use Modules\Hoardings\Http\Controllers\Api\HoardingController;
 use Modules\Hoardings\Http\Controllers\Api\Vendor\HoardingController as VendorHoardingController;
 use Modules\Hoardings\Http\Controllers\Api\Vendor\OOHUpdateController;
+use App\Http\Controllers\Api\ReviewController;
 /**
  * Hoardings API Routes (v1)
  * Base: /api/v1/hoardings
@@ -24,6 +25,14 @@ Route::get('/map-pins', [\Modules\Hoardings\Http\Controllers\Api\HoardingControl
 Route::get('/{id}', [HoardingController::class, 'show']);
 Route::get('/search', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'search']);
 Route::get('/availability/{id}', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'checkAvailability']);
+
+ // Public — anyone can view reviews
+    Route::get('/{id}/reviews', [ReviewController::class, 'index']);
+
+    // Auth required — only logged-in customers can submit
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/{id}/reviews', [ReviewController::class, 'store']);
+    });
 
 // Vendor routes - Manage hoardings
 Route::middleware(['auth:sanctum', 'role:vendor', 'vendor.approved'])->prefix('vendor')->group(function () {

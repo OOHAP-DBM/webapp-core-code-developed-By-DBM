@@ -26,7 +26,26 @@
                 <div>
                     <p class="text-sm text-gray-500">Invoice</p>
                     <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" class="pointer-events-none text-inherit">—</a></h2>
-                    <a id="ui-invoice-link" href="#" target="_blank" class="hidden text-xs text-blue-600 hover:underline">View Invoice PDF</a>
+                    @if(isset($invoice) && $invoice)
+                        <a id="ui-invoice-link" href="{{ route('invoice.download', ['invoice' => $invoice->id]) }}" target="_blank" class="text-xs text-blue-600 hover:underline">Download Invoice PDF</a>
+                    @else
+                        <a id="ui-invoice-link" href="#" onclick="downloadInvoice(event)" class="hidden text-xs text-blue-600 hover:underline">Download Invoice PDF</a>
+                    @endif
+                <script>
+                // If invoice_url is set dynamically, enable download
+                function downloadInvoice(event) {
+                    event.preventDefault();
+                    const btn = event.currentTarget;
+                    const url = btn.getAttribute('data-invoice-url') || btn.href;
+                    if (!url || url === '#') return;
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.setAttribute('download', 'Invoice.pdf');
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+                </script>
                 </div>
 
                 <div>

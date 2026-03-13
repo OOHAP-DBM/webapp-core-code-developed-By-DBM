@@ -73,7 +73,7 @@
         top: 0;
         left: 0;
         height: 100vh;
-        z-index: 9999;
+        z-index: 99999;
         display: flex;
         flex-direction: column;
     }
@@ -109,11 +109,36 @@
     @include('layouts.partials.logout')
     <script>
     function openLogoutModal() {
-        document.getElementById('logoutModal').classList.remove('hidden');
+            const modal = document.getElementById('logoutModal');
+            if (!modal) return;
+
+            // Keep modal at document root so page-specific stacking contexts can't trap it.
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+
+            // Hard fallback for environments where arbitrary z-index classes are not generated.
+            modal.style.zIndex = '2147483647';
+            const dialog = modal.querySelector(':scope > div');
+            if (dialog) {
+                dialog.style.zIndex = '2147483647';
+            }
+
+            const sidebar = document.getElementById('vendor-sidebar');
+            if (sidebar && window.matchMedia('(max-width: 1023px)').matches) {
+                sidebar.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
     }
 
     function closeLogoutModal() {
-        document.getElementById('logoutModal').classList.add('hidden');
+            const modal = document.getElementById('logoutModal');
+            if (!modal) return;
+
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
     }
 </script>
 </body>

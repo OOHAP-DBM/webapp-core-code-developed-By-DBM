@@ -90,19 +90,24 @@ class PosBookingCreatedNotification extends Notification
 
         $notifiableId = (int) ($notifiable->id ?? 0);
 
+
         if ($this->hasAnyRole($notifiable, ['admin', 'superadmin', 'super_admin'])) {
             return '/admin/pos/bookings/' . $bookingId;
-        }
-
-        if ($this->hasAnyRole($notifiable, ['vendor']) || ($notifiableId > 0 && $notifiableId === (int) $this->booking->vendor_id)) {
-            return '/vendor/pos/bookings/' . $bookingId;
         }
 
         if (
             ($notifiableId > 0 && $notifiableId === (int) $this->booking->customer_id)
             || $this->hasAnyRole($notifiable, ['customer'])
         ) {
-            return '/customer/pos/bookings/' . $bookingId;
+            // Use the correct route for customer POS booking show
+            if (Route::has('pos.booking.show')) {
+                return route('pos.booking.show', ['booking' => $this->booking->id], false);
+            }
+            return '/pos-booking/' . $this->booking->id;
+        }
+
+        if ($this->hasAnyRole($notifiable, ['vendor']) || ($notifiableId > 0 && $notifiableId === (int) $this->booking->vendor_id)) {
+            return '/vendor/pos/bookings/' . $bookingId;
         }
 
         return '/';

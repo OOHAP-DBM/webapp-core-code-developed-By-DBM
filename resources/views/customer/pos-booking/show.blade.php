@@ -245,7 +245,7 @@
 
 
         {{-- ===== HOARDINGS SECTION ===== --}}
-        <div class="bg-[#f7f7f7] pr-2 md:px-5 py-3">
+        <div class="bg-[#f7f7f7] pr-2  py-3">
 
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2 sm:gap-0">
                 <div>

@@ -240,7 +240,7 @@
 <div id="ratingModal"
     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 px-2 sm:px-0">
 
-    <div class="bg-white w-full max-w-lg rounded-md shadow-lg relative overflow-hidden mx-2 sm:mx-0">
+    <div class="bg-white w-full max-w-lg rounded-md shadow-lg relative overflow-hidden mx-2 sm:mx-0 rating-modal-content">
 
         <!-- Green Header Bar -->
         <div class="bg-[#D9F2E6] h-10 w-full"></div>
@@ -263,7 +263,7 @@
             <!-- Stars (outlined style) -->
             <div class="flex justify-center gap-3 mb-8">
                 @for($i=1;$i<=5;$i++)
-                    <span class="star cursor-pointer text-5xl leading-none"
+                    <span class="star cursor-pointer text-3xl leading-none md:text-5xl"
                           data-value="{{ $i }}"
                           style="color: transparent; -webkit-text-stroke: 2px #aaaaaa;">★</span>
                 @endfor
@@ -283,8 +283,8 @@
                 <div class="border border-gray-300 rounded">
                     <textarea id="reviewText"
                               maxlength="250"
-                              rows="5"
-                              class="w-full p-3 text-sm outline-none resize-none rounded-t"
+                              rows="3"
+                              class="w-full p-2 text-sm outline-none resize-none rounded-t md:p-3 md:rows-5"
                               placeholder="Write here..."></textarea>
 
                     <div class="text-xs text-gray-400 text-right px-3 pb-2">
@@ -383,3 +383,14 @@ document.querySelectorAll('.star').forEach((star, idx, stars) => {
 });
 
 </script>
+<style>
+@media (max-width: 640px) {
+    .rating-modal-content {
+        width: 70vw !important;
+        min-width: 0 !important;
+        max-width: 400px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+}
+</style>

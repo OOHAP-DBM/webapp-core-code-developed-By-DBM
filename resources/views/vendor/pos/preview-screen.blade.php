@@ -711,7 +711,7 @@ function updatePreviewScreen() {
         row.innerHTML = `
             <td class="px-6 py-3 font-bold text-gray-800">h</td>
             <td class="px-6 py-3 font-bold text-gray-800">${safe(h.title)}</td>
-            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.location) || safe(h.city)}</td>
+            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.display_location) || safe(h.city)}</td>
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.type)}</td>
 
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.total_slots_per_day)}</td>

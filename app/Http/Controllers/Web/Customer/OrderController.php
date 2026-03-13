@@ -39,10 +39,15 @@ class OrderController extends Controller
      */
     public function show(int $id): View
     {
-        $booking = \Modules\Bookings\Models\Booking::where('customer_id', auth()->id())
-            ->with(['hoarding', 'vendor', 'payments'])
-            ->findOrFail($id);
+        // $booking = \Modules\Bookings\Models\Booking::where('customer_id', auth()->id())
+        //     ->with(['hoarding', 'vendor', 'payments'])
+        //     ->findOrFail($id);
 
-        return view('customer.orders.show', compact('booking'));
+        // this is for POS
+    $booking = \Modules\POS\Models\POSBooking::where('customer_id', auth()->id())
+        ->with(['hoarding', 'vendor', ])
+        ->findOrFail($id);
+
+        return view('customer.pos-booking.show', compact('booking'));
     }
 }

@@ -37,7 +37,7 @@
                         <span>{{ auth()->user()->phone ?? '-' }}</span>
                     </div>
                     <div>
-                        <span class="font-medium">{{ auth()->user()->address ?? '-' }}</span>
+                        <span class="font-medium">{{ auth()->user()->billing_address ?? '-' }}</span>
                     </div>
                 </div>
 
