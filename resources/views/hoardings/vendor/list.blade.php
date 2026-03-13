@@ -345,7 +345,40 @@
                     </span>
                 </div>
                 <div>
-                    {{ $hoardings->appends(request()->except('page'))->links() }}
+                    @php
+                        $compactPaginator = $hoardings->appends(request()->except('page'));
+                        $currentPage = $compactPaginator->currentPage();
+                        $lastPage = $compactPaginator->lastPage();
+                        $startPage = max(1, $currentPage - 1);
+                        $endPage = min($lastPage, $startPage + 2);
+                        $startPage = max(1, $endPage - 2);
+                    @endphp
+
+                    @if($compactPaginator->hasPages())
+                        <nav aria-label="Hoardings pagination" class="overflow-x-auto">
+                            <div class="flex items-center gap-2 whitespace-nowrap">
+                                @if ($compactPaginator->onFirstPage())
+                                    <span class="px-4 py-1.5 rounded-md border border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed">Previous</span>
+                                @else
+                                    <a href="{{ $compactPaginator->previousPageUrl() }}" class="px-4 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Previous</a>
+                                @endif
+
+                                @for ($page = $startPage; $page <= $endPage; $page++)
+                                    @if ($page === $currentPage)
+                                        <span class="min-w-[34px] text-center px-3 py-1.5 rounded-md border border-[#00A86B] bg-[#00A86B] text-white font-semibold">{{ $page }}</span>
+                                    @else
+                                        <a href="{{ $compactPaginator->url($page) }}" class="min-w-[34px] text-center px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">{{ $page }}</a>
+                                    @endif
+                                @endfor
+
+                                @if ($compactPaginator->hasMorePages())
+                                    <a href="{{ $compactPaginator->nextPageUrl() }}" class="px-4 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Next</a>
+                                @else
+                                    <span class="px-4 py-1.5 rounded-md border border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed">Next</span>
+                                @endif
+                            </div>
+                        </nav>
+                    @endif
                 </div>
             </div>
         </div>

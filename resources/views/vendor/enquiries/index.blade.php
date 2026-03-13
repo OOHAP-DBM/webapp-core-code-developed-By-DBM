@@ -54,17 +54,17 @@
     </div>
 
     {{-- FILTER MODAL --}}
-    <div x-show="openFilter === true" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4">
-        <div @click.away="openFilter = false" class="bg-white w-[86vw] max-w-[320px] sm:w-full sm:max-w-2xl rounded shadow-lg relative max-h-[85vh] overflow-y-auto">
-            <div class="flex items-center justify-between h-9 sm:h-10 bg-green-100 px-3 sm:px-4 rounded-t">
+    <div x-show="openFilter === true" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div @click.away="openFilter = false" class="bg-white w-full max-w-2xl rounded shadow-lg relative">
+            <div class="flex items-center justify-between h-10 bg-green-100 px-4 rounded-t">
                 <span></span>
-                <button @click="openFilter = false" class="text-gray-800 hover:text-black text-lg sm:text-xl cursor-pointer">✕</button>
+                <button @click="openFilter = false" class="text-gray-800 hover:text-black text-xl cursor-pointer">✕</button>
             </div>
-            <form method="GET" class="p-4 sm:p-6 space-y-4 sm:space-y-6">
-                <h2 class="inline-block text-base sm:text-lg font-semibold text-gray-900 border-b border-gray-700 pb-1">Filter</h2>
+            <form method="GET" class="p-6 space-y-6">
+                <h2 class="inline-block text-lg font-semibold text-gray-900 border-b border-gray-700 pb-1">Filter</h2>
                 <div>
                     <h3 class="text-sm font-semibold text-gray-800 mb-3">Created Enquiry by date</h3>
-                    <div class="flex flex-wrap items-center gap-3 sm:gap-6 text-sm text-gray-700">
+                    <div class="flex flex-wrap items-center gap-6 text-sm text-gray-700">
                         <label class="flex items-center gap-2">
                             <input type="radio" name="date_filter" value="all" x-model="dateFilter"> All
                         </label>
@@ -81,14 +81,14 @@
                             <input type="radio" name="date_filter" value="custom" x-model="dateFilter"> Custom Date
                         </label>
                     </div>
-                    <div x-show="dateFilter === 'custom'" x-transition class="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4">
+                    <div x-show="dateFilter === 'custom'" x-transition class="mt-4 flex gap-4">
                         <input type="date" name="from_date" class="px-3 py-2 border border-gray-300 text-sm w-full" placeholder="From">
                         <input type="date" name="to_date" class="px-3 py-2 border border-gray-300 text-sm w-full" placeholder="To">
                     </div>
                 </div>
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-6 pt-2 sm:pt-4">
-                    <a href="{{ route('vendor.enquiries.index') }}" class="text-sm text-black font-semibold hover:underline cursor-pointer text-center sm:text-left">Reset</a>
-                    <button type="submit" class="px-5 sm:px-6 py-2 bg-green-800 text-white text-sm font-semibold hover:bg-green-900 cursor-pointer">Apply Filter</button>
+                <div class="flex items-center justify-end gap-6 pt-4">
+                    <a href="{{ route('vendor.enquiries.index') }}" class="text-sm text-black font-semibold hover:underline cursor-pointer">Reset</a>
+                    <button type="submit" class="px-6 py-2 bg-green-800 text-white text-sm font-semibold hover:bg-green-900 cursor-pointer">Apply Filter</button>
                 </div>
             </form>
         </div>
