@@ -62,7 +62,7 @@
         @include('layouts.partials.header') --}}
 
         <!-- Main Content -->
-        <main class="">
+        <main class="pt-16">
             @yield('content')
         </main>
 
@@ -331,8 +331,6 @@
             window.shortlistManager = shortlistManager;
         })();
     </script>
-@include('hoardings.partials.enquiry-modal')
-@include('hoardings.scripts.enquiry-modal')
 @include('layouts.partials.logout')
 <script>
     function openLogoutModal() {
