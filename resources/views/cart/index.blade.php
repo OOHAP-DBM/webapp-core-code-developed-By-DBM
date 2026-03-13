@@ -30,42 +30,42 @@
     </h1>
 
     {{-- MAIN CONTENT (NO PAGE SCROLL) --}}
-    <div class="pb-12 pt-5 px-12 shadow bg-white grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 flex-1">
+    <div class="pb-12 pt-5 px-6 shadow bg-white grid grid-cols-1 lg:grid-cols-12 gap-6">
         @if($items->count() > 0)
-            <div class="lg:col-span-8 overflow-y-auto">
+            <div class="lg:col-span-8">
                 @include('cart.partials.list', ['items' => $items])
             </div>
             <div class="lg:col-span-4">
-                <div class="sticky top-4 sm:top-6">
+                <div class="sticky top-[110px]">
                     @include('cart.partials.summary')
                 </div>
             </div>
         @else
-<div class="col-span-full flex items-center justify-center text-center px-4 sm:px-6 py-12">
-            <div class="max-w-md">
+            <div class="col-span-full flex items-center justify-center text-center px-4 sm:px-6 py-12">
+                <div class="max-w-md">
 
-                <!-- <div class="text-4xl sm:text-6xl mb-4">🛒</div> -->
+                    <!-- <div class="text-4xl sm:text-6xl mb-4">🛒</div> -->
 
-                <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
-                    Your shortlist is empty
-                </h2>
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+                        Your shortlist is empty
+                    </h2>
 
-                <p class="text-xs sm:text-sm text-gray-500 mb-6">
-                    You haven’t shortlisted any hoardings yet.<br>
-                    Start exploring and add hoardings to compare & book.
-                </p>
+                    <p class="text-xs sm:text-sm text-gray-500 mb-6">
+                        You haven’t shortlisted any hoardings yet.<br>
+                        Start exploring and add hoardings to compare & book.
+                    </p>
 
-                <a href="{{ route('search') }}"
-                   class="inline-flex items-center gap-2
-                          text-white btn-color
-                          px-4 sm:px-6 py-2 sm:py-3 rounded-lg
-                          text-xs sm:text-sm font-medium
-                          transition">
-                    Browse Hoardings
-                </a>
+                    <a href="{{ route('search') }}"
+                    class="inline-flex items-center gap-2
+                            text-white btn-color
+                            px-4 sm:px-6 py-2 sm:py-3 rounded-lg
+                            text-xs sm:text-sm font-medium
+                            transition">
+                        Browse Hoardings
+                    </a>
 
+                </div>
             </div>
-        </div>
         @endif
     </div>
     <script>
