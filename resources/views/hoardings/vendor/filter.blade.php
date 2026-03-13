@@ -65,21 +65,21 @@
                         <p class="font-semibold mb-2 text-gray-800">Types of Hoarding</p>
                         <div class="flex flex-wrap gap-4 sm:gap-5">
                             <label class="flex items-center gap-2"><input type="radio" name="hoarding_type" value="" {{ $selectedType === '' ? 'checked' : '' }}> All</label>
-                            <label class="flex items-center gap-2"><input type="radio" name="hoarding_type" value="ooh" {{ $selectedType === 'ooh' ? 'checked' : '' }}> Ooh</label>
-                            <label class="flex items-center gap-2"><input type="radio" name="hoarding_type" value="dooh" {{ $selectedType === 'dooh' ? 'checked' : '' }}> Dooh</label>
+                            <label class="flex items-center gap-2"><input type="radio" name="hoarding_type" value="ooh" {{ $selectedType === 'ooh' ? 'checked' : '' }}> OOH</label>
+                            <label class="flex items-center gap-2"><input type="radio" name="hoarding_type" value="dooh" {{ $selectedType === 'dooh' ? 'checked' : '' }}> DOOH</label>
                         </div>
                     </div>
 
-                    <div>
+                    <!-- <div>
                         <p class="font-semibold mb-2 text-gray-800">Resolution</p>
                         <div class="flex flex-wrap gap-4 sm:gap-5">
                             <label class="flex items-center gap-2"><input type="checkbox" name="resolution[]" value="led" {{ in_array('led', $selectedResolution, true) ? 'checked' : '' }}> LED</label>
                             <label class="flex items-center gap-2"><input type="checkbox" name="resolution[]" value="hd" {{ in_array('hd', $selectedResolution, true) ? 'checked' : '' }}> HD</label>
                             <label class="flex items-center gap-2"><input type="checkbox" name="resolution[]" value="ultra_hd" {{ in_array('ultra_hd', $selectedResolution, true) ? 'checked' : '' }}> Ultra HD</label>
                         </div>
-                    </div>
+                    </div> -->
 
-                    <div>
+                    <!-- <div>
                         <p class="font-semibold mb-2 text-gray-800">Screen Size</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <input id="screen_size_min_input" type="number" name="screen_size_min" value="{{ $screenMinValue }}" placeholder="0" class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs bg-gray-50 min-h-[44px] focus:ring-1 focus:ring-emerald-500 focus:outline-none">
@@ -91,7 +91,7 @@
                             <input id="screen_size_min_slider" type="range" min="0" max="{{ $screenSliderMax }}" value="{{ $screenMinValue }}">
                             <input id="screen_size_max_slider" type="range" min="0" max="{{ $screenSliderMax }}" value="{{ $screenMaxValue }}">
                         </div>
-                    </div>
+                    </div> -->
 
                     <div>
                         <p class="font-semibold mb-2 text-gray-800">Category</p>

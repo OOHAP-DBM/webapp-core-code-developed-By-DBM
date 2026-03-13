@@ -3,12 +3,14 @@
 @section('title', 'Commission Rule Detail')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="container-fluid py-3 py-md-4 px-3 px-md-4">
     <div class="card shadow">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="bi bi-info-circle me-2"></i>{{ $commissionRule->name }}</h4>
-            <div>
-                <a href="{{ route('admin.commission-rules.edit', $commissionRule) }}" class="btn btn-light btn-sm me-2">
+        <div class="card-header bg-primary text-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h4 class="mb-0 fs-6 fs-md-4 text-truncate" style="max-width: 60%;">
+                <i class="bi bi-info-circle me-2"></i>{{ $commissionRule->name }}
+            </h4>
+            <div class="d-flex gap-2 flex-shrink-0">
+                <a href="{{ route('admin.commission-rules.edit', $commissionRule) }}" class="btn btn-light btn-sm">
                     <i class="bi bi-pencil me-1"></i>Edit
                 </a>
                 <a href="{{ route('admin.commission-rules.index') }}" class="btn btn-light btn-sm">
@@ -16,30 +18,32 @@
                 </a>
             </div>
         </div>
-        <div class="card-body">
-            <div class="row">
+
+        <div class="card-body p-3 p-md-4">
+            <div class="row g-4">
+
                 <!-- Left Column -->
-                <div class="col-md-6">
-                    <h6 class="text-muted border-bottom pb-2">Basic Information</h6>
-                    <table class="table table-sm">
+                <div class="col-12 col-md-6">
+                    <h6 class="text-muted border-bottom pb-2 mb-3">Basic Information</h6>
+                    <table class="table table-sm table-borderless">
                         <tr>
-                            <th width="40%">Name:</th>
+                            <th class="text-muted fw-semibold" style="width:45%; font-size:0.82rem;">Name</th>
                             <td>{{ $commissionRule->name }}</td>
                         </tr>
                         <tr>
-                            <th>Description:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Description</th>
                             <td>{{ $commissionRule->description ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <th>Rule Type:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Rule Type</th>
                             <td><span class="badge bg-info">{{ $commissionRule->getRuleTypeLabel() }}</span></td>
                         </tr>
                         <tr>
-                            <th>Priority:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Priority</th>
                             <td><span class="badge bg-dark">{{ $commissionRule->priority }}</span></td>
                         </tr>
                         <tr>
-                            <th>Status:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Status</th>
                             <td>
                                 <span class="badge bg-{{ $commissionRule->is_active ? 'success' : 'secondary' }}">
                                     {{ $commissionRule->is_active ? 'Active' : 'Inactive' }}
@@ -48,41 +52,41 @@
                         </tr>
                     </table>
 
-                    <h6 class="text-muted border-bottom pb-2 mt-4">Scope & Filters</h6>
-                    <table class="table table-sm">
+                    <h6 class="text-muted border-bottom pb-2 mb-3 mt-4">Scope &amp; Filters</h6>
+                    <table class="table table-sm table-borderless">
                         <tr>
-                            <th width="40%">Vendor:</th>
+                            <th class="text-muted fw-semibold" style="width:45%; font-size:0.82rem;">Vendor</th>
                             <td>{{ $commissionRule->vendor->name ?? 'All Vendors' }}</td>
                         </tr>
                         <tr>
-                            <th>Hoarding:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Hoarding</th>
                             <td>{{ $commissionRule->hoarding->title ?? 'All Hoardings' }}</td>
                         </tr>
                         <tr>
-                            <th>City:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">City</th>
                             <td>{{ $commissionRule->city ?? 'All Cities' }}</td>
                         </tr>
                         <tr>
-                            <th>Area:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Area</th>
                             <td>{{ $commissionRule->area ?? 'All Areas' }}</td>
                         </tr>
                         <tr>
-                            <th>Hoarding Type:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Hoarding Type</th>
                             <td>{{ $commissionRule->hoarding_type ? ucfirst($commissionRule->hoarding_type) : 'All Types' }}</td>
                         </tr>
                     </table>
                 </div>
 
                 <!-- Right Column -->
-                <div class="col-md-6">
-                    <h6 class="text-muted border-bottom pb-2">Commission Configuration</h6>
-                    <table class="table table-sm">
+                <div class="col-12 col-md-6">
+                    <h6 class="text-muted border-bottom pb-2 mb-3">Commission Configuration</h6>
+                    <table class="table table-sm table-borderless">
                         <tr>
-                            <th width="40%">Commission Type:</th>
+                            <th class="text-muted fw-semibold" style="width:45%; font-size:0.82rem;">Commission Type</th>
                             <td><span class="badge bg-success">{{ $commissionRule->getCommissionTypeLabel() }}</span></td>
                         </tr>
                         <tr>
-                            <th>Commission Value:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Commission Value</th>
                             <td>
                                 @if($commissionRule->commission_type === 'percentage')
                                 <strong class="text-success">{{ $commissionRule->commission_value }}%</strong>
@@ -93,66 +97,73 @@
                         </tr>
                     </table>
 
-                    <h6 class="text-muted border-bottom pb-2 mt-4">Validity Period</h6>
-                    <table class="table table-sm">
+                    <h6 class="text-muted border-bottom pb-2 mb-3 mt-4">Validity Period</h6>
+                    <table class="table table-sm table-borderless">
                         <tr>
-                            <th width="40%">Valid From:</th>
+                            <th class="text-muted fw-semibold" style="width:45%; font-size:0.82rem;">Valid From</th>
                             <td>{{ $commissionRule->valid_from?->format('F d, Y') ?? 'No start date' }}</td>
                         </tr>
                         <tr>
-                            <th>Valid To:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Valid To</th>
                             <td>{{ $commissionRule->valid_to?->format('F d, Y') ?? 'No end date' }}</td>
                         </tr>
                         @if($commissionRule->is_seasonal)
                         <tr>
-                            <th>Seasonal:</th>
-                            <td><span class="badge bg-warning">{{ $commissionRule->season_name }}</span></td>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Seasonal</th>
+                            <td><span class="badge bg-warning text-dark">{{ $commissionRule->season_name }}</span></td>
                         </tr>
                         @endif
                     </table>
 
-                    <h6 class="text-muted border-bottom pb-2 mt-4">Booking Constraints</h6>
-                    <table class="table table-sm">
+                    <h6 class="text-muted border-bottom pb-2 mb-3 mt-4">Booking Constraints</h6>
+                    <table class="table table-sm table-borderless">
                         <tr>
-                            <th width="40%">Amount Range:</th>
+                            <th class="text-muted fw-semibold" style="width:45%; font-size:0.82rem;">Amount Range</th>
                             <td>
                                 {{ $commissionRule->min_booking_amount ? '₹' . number_format($commissionRule->min_booking_amount, 2) : 'No min' }}
-                                -
+                                –
                                 {{ $commissionRule->max_booking_amount ? '₹' . number_format($commissionRule->max_booking_amount, 2) : 'No max' }}
                             </td>
                         </tr>
                         <tr>
-                            <th>Duration Range:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Duration Range</th>
                             <td>
                                 {{ $commissionRule->min_duration_days ?? 'No min' }} days
-                                -
+                                –
                                 {{ $commissionRule->max_duration_days ?? 'No max' }} days
                             </td>
                         </tr>
                     </table>
 
-                    <h6 class="text-muted border-bottom pb-2 mt-4">Usage Statistics</h6>
-                    <table class="table table-sm">
+                    <h6 class="text-muted border-bottom pb-2 mb-3 mt-4">Usage Statistics</h6>
+                    <table class="table table-sm table-borderless">
                         <tr>
-                            <th width="40%">Usage Count:</th>
+                            <th class="text-muted fw-semibold" style="width:45%; font-size:0.82rem;">Usage Count</th>
                             <td><strong>{{ $commissionRule->usage_count }}</strong></td>
                         </tr>
                         <tr>
-                            <th>Last Used:</th>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Last Used</th>
                             <td>{{ $commissionRule->last_used_at?->diffForHumans() ?? 'Never' }}</td>
                         </tr>
                         <tr>
-                            <th>Created By:</th>
-                            <td>{{ $commissionRule->creator->name ?? 'N/A' }} on {{ $commissionRule->created_at->format('M d, Y') }}</td>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Created By</th>
+                            <td>
+                                {{ $commissionRule->creator->name ?? 'N/A' }}
+                                <small class="text-muted d-block">{{ $commissionRule->created_at->format('M d, Y') }}</small>
+                            </td>
                         </tr>
                         @if($commissionRule->updater)
                         <tr>
-                            <th>Updated By:</th>
-                            <td>{{ $commissionRule->updater->name }} on {{ $commissionRule->updated_at->format('M d, Y') }}</td>
+                            <th class="text-muted fw-semibold" style="font-size:0.82rem;">Updated By</th>
+                            <td>
+                                {{ $commissionRule->updater->name }}
+                                <small class="text-muted d-block">{{ $commissionRule->updated_at->format('M d, Y') }}</small>
+                            </td>
                         </tr>
                         @endif
                     </table>
                 </div>
+
             </div>
         </div>
     </div>

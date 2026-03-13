@@ -24,16 +24,16 @@
                             <input type="radio" name="filter_type" value="all" checked onchange="handleTypeChange(this.value)"> All
                         </label>
                         <label class="flex items-center gap-2">
-                            <input type="radio" name="filter_type" value="ooh" onchange="handleTypeChange(this.value)"> Ooh
+                            <input type="radio" name="filter_type" value="ooh" onchange="handleTypeChange(this.value)"> OOH
                         </label>
                         <label class="flex items-center gap-2">
-                            <input type="radio" name="filter_type" value="dooh" onchange="handleTypeChange(this.value)"> Dooh
+                            <input type="radio" name="filter_type" value="dooh" onchange="handleTypeChange(this.value)"> DOOH
                         </label>
                     </div>
                 </div>
 
                 <!-- Resolution (DOOH only) -->
-                <div id="dooh-section">
+                <!-- <div id="dooh-section">
                     <p class="font-semibold mb-2">Resolution</p>
                     <div class="flex flex-wrap gap-4 sm:gap-5">
                         <label class="flex items-center gap-2">
@@ -46,10 +46,10 @@
                             <input type="checkbox" name="filter_resolution" value="ultra_hd"> Ultra HD
                         </label>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Screen Size -->
-                <div>
+                <!-- <div>
                     <p class="font-semibold mb-2">Screen Size</p>
                     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                         <input id="screen-size-min" name="filter_screen_min" type="number" min="0" max="1000" value="0"
@@ -65,7 +65,7 @@
                         <div class="absolute top-1/2 -translate-y-1/2 h-[3px] w-full bg-gray-200 rounded" style="z-index:1;"></div>
                         <div id="screen-size-fill" class="absolute top-1/2 -translate-y-1/2 h-[3px] bg-[#2D5A43] rounded" style="z-index:2;left:0%;width:100%;"></div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Category (OOH only) -->
                 <div id="ooh-section">

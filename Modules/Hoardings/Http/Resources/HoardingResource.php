@@ -67,11 +67,20 @@ class HoardingResource extends JsonResource
    
         $basePrice = (float) ($this->base_monthly_price ?? $this->doohScreen->price_per_slot ?? 0);
         $sellPrice = (float) ($this->monthly_price??0);
-        
+
+        // Check if weekly filter is applied
+        $weeklyFilter = false;
+        if (request()->has('filter') && request('filter') === 'weekly') {
+            $weeklyFilter = true;
+        }
+
+        if ($weeklyFilter && $this->enable_weekly_booking && $this->weekly_price_1) {
+            $sellPrice = (float) $this->weekly_price_1;
+        }
 
         $discount = HoardingHelper::discountBeforeOffer($basePrice, $sellPrice);
         // Build pricing based on hoarding type
-            $pricing = [
+        $pricing = [
             'base_price'      => $discount['base_price']?? $basePrice,
             'sell_price'      => $discount['sell_price']?? $sellPrice,
             'has_discount'    => $discount['has_discount']?? false,

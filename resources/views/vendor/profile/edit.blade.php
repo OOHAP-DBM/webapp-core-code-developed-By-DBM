@@ -589,7 +589,7 @@ window.lookupIfsc = async function () {
         const data = await response.json();
 
         document.getElementById("bankName").value = data.BANK;
-        document.getElementById("branchName").value = data.BRANCH;
+        // document.getElementById("branchName").value = data.BRANCH;
 
     } catch (error) {
 

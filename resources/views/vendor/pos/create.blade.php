@@ -347,12 +347,9 @@ function setViewMode(mode) {
 /* --- ACTIVE FILTER TAGS --- */
 const filterLabelMap = {
     type:              v => v && v !== '' && v !== 'ALL' ? v.toUpperCase() : null,
-    resolution:        v => v ? v.split(',').map(r => r.toUpperCase()).join(', ') : null,
     category:          v => v ? v.split(',').map(c => c.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ') : null,
     availability:      v => v ? v.split(',').map(a => a === 'available' ? 'Available Hoardings' : 'Booked Hoardings').join(', ') : null,
     surroundings:      v => v ? v.split(',').map(s => s.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ') : null,
-    screen_size_min:   v => null, // combined below
-    screen_size_max:   v => null,
     hoarding_size_min: v => null,
     hoarding_size_max: v => null,
 };

@@ -7,6 +7,7 @@ use Modules\Hoardings\Http\Resources\HoardingResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Modules\Hoardings\Services\HoardingService;
+use Modules\Hoardings\Services\HoardingAvailabilityService;
 use App\Models\Hoarding;
 use Modules\Hoardings\Models\HoardingAttribute;
 use Illuminate\Support\Facades\DB;
@@ -18,15 +19,17 @@ class HoardingController extends Controller
      * @var HoardingService
      */
     protected $hoardingService;
+    protected $availabilityService;
 
     /**
      * HoardingController constructor.
      *
      * @param HoardingService $hoardingService
      */
-    public function __construct(HoardingService $hoardingService)
+    public function __construct(HoardingService $hoardingService, HoardingAvailabilityService $availabilityService)
     {
         $this->hoardingService = $hoardingService;
+        $this->availabilityService = $availabilityService;
     }
 
     /**
@@ -134,12 +137,26 @@ class HoardingController extends Controller
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc", "desc"}, default="desc", example="asc")
      *     ),
+    *     @OA\Parameter(
+    *         name="featured",
+    *         in="query",
+    *         description="Filter only featured hoardings",
+    *         required=false,
+    *         @OA\Schema(type="boolean", example=true)
+    *     ),
+    *     @OA\Parameter(
+    *         name="filter",
+    *         in="query",
+    *         description="Special filter. Use 'weekly' to return only hoardings where enable_weekly_booking is true and weekly_price_1 is set. When applied, the price in the response will be weekly_price_1.",
+    *         required=false,
+    *         @OA\Schema(type="string", enum={"weekly"}, example="weekly")
+    *     ),
      *     @OA\Parameter(
-     *         name="featured",
+     *         name="date",
      *         in="query",
-     *         description="Filter only featured hoardings",
+     *         description="Filter hoardings by availability on this date (YYYY-MM-DD)",
      *         required=false,
-     *         @OA\Schema(type="boolean", example=true)
+     *         @OA\Schema(type="string", format="date", example="2026-03-12")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -216,9 +233,9 @@ class HoardingController extends Controller
     {
         $filters = [
             'vendor_id' => $request->input('vendor_id'),
-            'hoarding_type' => $request->input('hoarding_type'), // ooh or dooh
-            'category' => $request->input('category'), // billboard, digital, transit, etc.
-            'status' => 'active', // Only show active (approved) hoardings
+            'hoarding_type' => $request->input('hoarding_type'),
+            'category' => $request->input('category'),
+            'status' => 'active',
             'search' => $request->input('search'),
             'city' => $request->input('city'),
             'state' => $request->input('state'),
@@ -230,21 +247,42 @@ class HoardingController extends Controller
             'featured' => $request->input('featured'),
             'sort_by' => $request->input('sort_by', 'created_at'),
             'sort_order' => $request->input('sort_order', 'desc'),
+            'filter' => $request->input('filter'),
         ];
 
         $perPage = $request->input('per_page', 15);
         $hoardings = $this->hoardingService->getAll($filters, $perPage);
 
+        // Filter by availability if date is provided
+        $selectedDate = $request->input('date');
+        if ($selectedDate) {
+            $hoardings = $hoardings->filter(function ($hoarding) use ($selectedDate) {
+                $availabilityService = app(HoardingAvailabilityService::class);
+                $calendar = $availabilityService->getAvailabilityCalendar($hoarding->id, $selectedDate, $selectedDate);
+                if (!empty($calendar['calendar'][0]['status']) && $calendar['calendar'][0]['status'] === 'available') {
+                    return true;
+                }
+                return false;
+            });
+            // Convert to paginator if filtered
+            $hoardings = $hoardings->values();
+        }
+
+        $weeklyFilter = $request->input('filter') === 'weekly';
+        $data = HoardingResource::collection($hoardings)->additional([
+            'weekly_filter' => $weeklyFilter
+        ]);
+
         return response()->json([
             'success' => true,
-            'data' => HoardingResource::collection($hoardings),
+            'data' => $data,
             'meta' => [
-                'current_page' => $hoardings->currentPage(),
-                'from' => $hoardings->firstItem(),
-                'last_page' => $hoardings->lastPage(),
-                'per_page' => $hoardings->perPage(),
-                'to' => $hoardings->lastItem(),
-                'total' => $hoardings->total(),
+                'current_page' => method_exists($hoardings, 'currentPage') ? $hoardings->currentPage() : 1,
+                'from' => method_exists($hoardings, 'firstItem') ? $hoardings->firstItem() : 1,
+                'last_page' => method_exists($hoardings, 'lastPage') ? $hoardings->lastPage() : 1,
+                'per_page' => method_exists($hoardings, 'perPage') ? $hoardings->perPage() : $perPage,
+                'to' => method_exists($hoardings, 'lastItem') ? $hoardings->lastItem() : count($hoardings),
+                'total' => method_exists($hoardings, 'total') ? $hoardings->total() : count($hoardings),
             ],
         ]);
     }
