@@ -26,7 +26,7 @@
         <div class="flex gap-6">
 
             {{-- SMALL LEFT CARD --}}
-            <div class="w-72 bg-white rounded-lg shadow-sm border border-gray-200 p-4 relative">
+            <div class="w-72 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-6 relative">
                 <h3 class="text-sm font-semibold text-gray-800 mb-3">
                     {{ auth()->user()->name ?? '-' }}
                 </h3>
@@ -37,7 +37,8 @@
                         <span>{{ auth()->user()->phone ?? '-' }}</span>
                     </div>
                     <div>
-                        <span class="font-medium">{{ auth()->user()->address ?? '-' }}</span>
+                        <span class="">Address:</span>
+                        <span class="font-medium">{{ auth()->user()->billing_address ?? '-' }}</span>
                     </div>
                 </div>
 
@@ -45,8 +46,8 @@
                 <button
                     onclick="openEditModal()"
                     style="color:#108fe3;font-weight:600;"
-                    class="absolute bottom-3 right-3 px-3 py-1.5 text-xs hover:underline transition cursor-pointer"
-                   >
+                    class="absolute bottom-0 right-3 px-3 py-3 text-xs hover:underline transition cursor-pointer mt-4"
+                >
                     Edit
                 </button>
 
