@@ -1,4 +1,4 @@
-<div class="p-8 space-y-8">
+<div class="p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8">
     {{-- <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
         <div class="flex items-center gap-3 mb-4">
             <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
@@ -36,13 +36,13 @@
         </div>
     </div> --}}
 
-   <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
-        <div class="flex items-center justify-between mb-8">
+   <div class="bg-white rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-sm border border-gray-100 mt-6 md:mt-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 md:mb-8">
             <div class="flex items-center gap-3">
                 <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
                 <h3 class="text-xl font-bold text-gray-800">Available Slots</h3>
             </div>
-            <button type="button" id="add-slot-btn" class="bg-[#1A1A1A] text-white px-6 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-transform hover:scale-105 active:scale-95">
+            <button type="button" id="add-slot-btn" class="bg-[#1A1A1A] text-white px-6 py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-transform hover:scale-105 active:scale-95 w-full sm:w-auto whitespace-nowrap">
                 <span>+</span> Add slot
             </button>
         </div>
@@ -80,17 +80,17 @@
                     }
                 @endphp
                 
-                <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-50 hover:border-gray-200 transition-all">
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-bold text-gray-700">{{ $currentName }}</span>
-                        <span class="text-sm font-bold text-[#0094FF]">{{ $startTime }} - {{ $endTime }}</span>
+                <div class="flex items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-gray-50 hover:border-gray-200 transition-all">
+                    <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden pr-1">
+                        <span class="text-xs sm:text-sm font-bold text-gray-700 whitespace-nowrap shrink-0">{{ $currentName }}</span>
+                        <span class="text-xs sm:text-sm font-bold text-[#0094FF] whitespace-nowrap truncate">{{ $startTime }} - {{ $endTime }}</span>
                     </div>
                     
                     <input type="hidden" name="slots[{{ $index }}][slot_name]" value="{{ $currentName }}">
                     <input type="hidden" name="slots[{{ $index }}][start_time]" value="{{ $startTime }}">
                     <input type="hidden" name="slots[{{ $index }}][end_time]" value="{{ $endTime }}">
                     
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-4 shrink-0">
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="slots[{{ $index }}][is_active]" value="1" class="sr-only peer" {{ $isActive ? 'checked' : '' }}>
                             <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#009A5C] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
@@ -118,7 +118,7 @@
      @include('components.hoardings.create.package')
 
 
-    <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-8">
+    <div class="bg-white rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-sm border border-gray-100 mt-6 md:mt-8">
         <div class="flex items-center gap-3 mb-4">
             <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
             <h3 class="text-xl font-bold text-gray-800">Services Includes</h3>
@@ -127,11 +127,11 @@
             $graphicsCharge = old('graphics_charge', $parentHoading->graphics_charge ?? $parentHoarding->graphics_charge ?? 0);
             $isGraphicsFree = $graphicsCharge <= 0;
         @endphp
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 md:gap-x-12 gap-y-6 md:gap-y-10">
             <div class="space-y-4 p-4 border border-gray-50 rounded-2xl">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <label class="text-sm font-bold text-gray-700">Graphics Included ?</label>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center justify-start gap-2 w-full sm:w-auto sm:shrink-0">
                         <label class="cursor-pointer">
                             <input type="radio" name="graphics_included" value="1" class="hidden peer toggle-service" {{ $isGraphicsFree ? 'checked' : '' }}>
                             <span class="px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-bold peer-checked:bg-[#009A5C] peer-checked:text-white transition-all">Yes</span>
@@ -155,19 +155,19 @@
 
     <div id="slot-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div class="flex justify-end p-6 pb-0">
+            <div class="flex justify-end p-4 sm:p-6 pb-0">
                 <button type="button" onclick="closeSlotModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <div class="px-10 pb-10">
+            <div class="px-4 sm:px-10 pb-6 sm:pb-10">
                 <h3 class="text-xl font-bold text-center text-gray-800 mb-8">Add new slot</h3>
                 <div class="space-y-6">
                     <div class="space-y-2">
                         <label class="text-sm font-semibold text-gray-700">Enter slot name</label>
                         <input type="text" id="modal-slot-name" placeholder="E.g Morning" class="w-full border border-gray-300 rounded-2xl px-5 py-4 focus:border-[#009A5C] outline-none">
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input type="text" id="modal-slot-from" placeholder="From" class="time-picker w-full border border-gray-300 rounded-2xl px-5 py-4 outline-none cursor-pointer">
                         <input type="text" id="modal-slot-to" placeholder="To" class="time-picker w-full border border-gray-300 rounded-2xl px-5 py-4 outline-none cursor-pointer">
                     </div>
@@ -306,17 +306,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const index = Date.now(); // Unique index for the new input names
 
         const html = `
-            <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 hover:border-gray-200 transition-all">
-                <div class="flex items-center gap-2">
-                    <span class="text-sm font-bold text-gray-700">${name}</span>
-                    <span class="text-sm font-bold text-[#0094FF]">${from} - ${to}</span>
+            <div class="flex items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-gray-100 hover:border-gray-200 transition-all">
+                <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden pr-1">
+                    <span class="text-xs sm:text-sm font-bold text-gray-700 whitespace-nowrap shrink-0">${name}</span>
+                    <span class="text-xs sm:text-sm font-bold text-[#0094FF] whitespace-nowrap truncate">${from} - ${to}</span>
                 </div>
                 
                 <input type="hidden" name="slots[${index}][slot_name]" value="${name}">
                 <input type="hidden" name="slots[${index}][start_time]" value="${from}">
                 <input type="hidden" name="slots[${index}][end_time]" value="${to}">
                 
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-4 shrink-0">
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="slots[${index}][is_active]" value="1" class="sr-only peer" checked>
                         <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#009A5C] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>

@@ -13,7 +13,7 @@
                 <!-- Logo -->
                 <div class="flex items-center flex-shrink-0">
                     <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
-                        <img src="{{asset('assets/images/logo/logo_image.jpeg')}}" alt="" 
+                        <img src="{{asset('assets/images/logo/logo_image.jpeg')}}" alt="OOHApp company logo" 
                             class="w-24 md:w-[150px]">
                     </a>
                 </div>
@@ -187,7 +187,7 @@
             <!-- HEADER -->
             <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                 <a href="{{ route('home') }}" class="flex items-center">
-                    <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHAPP" width="140">
+                    <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHApp company logo" width="140">
                 </a>
                 <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-gray-700 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
