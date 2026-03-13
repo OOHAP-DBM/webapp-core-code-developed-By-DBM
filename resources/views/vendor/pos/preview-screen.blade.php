@@ -48,13 +48,14 @@
             <div class="bg-white rounded-md shadow-xl border border-gray-200 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-6 space-y-5">
                 <h3 class="font-bold text-gray-800 text-lg">POS Checkout</h3>
 
+
                 {{-- Discount --}}
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Discount (₹)</label>
                     <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0"
                         class="w-full p-2 border border-gray-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-green-300 focus:border-green-400 outline-none">
                 </div>
-
+                @include('vendor.pos.components.milestone-payment')   
                 {{-- Payment Mode --}}
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Payment Mode</label>

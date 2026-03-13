@@ -51,7 +51,7 @@
                             <div>Business Name : <span>{{ $enquiry->customer->company_name ?? 'N/A' }}</span></div>
                             <div>GSTIN : <span>{{ $enquiry->customer->gstin ?? 'N/A' }}</span></div>
                             <div>Mobile : <span>{{ $enquiry->customer->phone ?? '' }}</span></div>
-                            <div>Address : <span>{{ $enquiry->customer->address ?? '' }}</span></div>
+                            <div>Address : <span>{{ $enquiry->customer->address ?? $enquiry->customer->billing_address ?? '' }}</span></div>
                         </div>
                     </div>
                     {{-- Column 2: Enquiry Details --}}

@@ -33,7 +33,7 @@
                 </div>
 
                 <!-- Resolution (DOOH only) -->
-                <!-- <div id="dooh-section">
+                <div id="dooh-section">
                     <p class="font-semibold mb-2">Resolution</p>
                     <div class="flex flex-wrap gap-4 sm:gap-5">
                         <label class="flex items-center gap-2">
@@ -46,26 +46,9 @@
                             <input type="checkbox" name="filter_resolution" value="ultra_hd"> Ultra HD
                         </label>
                     </div>
-                </div> -->
+                </div>
 
-                <!-- Screen Size -->
-                <!-- <div>
-                    <p class="font-semibold mb-2">Screen Size</p>
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                        <input id="screen-size-min" name="filter_screen_min" type="number" min="0" max="1000" value="0"
-                            class="w-full sm:w-1/2 border border-gray-200 px-3 py-2 text-xs bg-gray-50 min-h-[44px]" placeholder="Min (Sq.ft)">
-                        <input id="screen-size-max" name="filter_screen_max" type="number" min="0" max="1000" value="1000"
-                            class="w-full sm:w-1/2 border border-gray-200 px-3 py-2 text-xs bg-gray-50 min-h-[44px]" placeholder="Max (Sq.ft)">
-                    </div>
-                    <div class="relative w-full h-5 mt-3">
-                        <input id="screen-size-range-min" type="range" min="0" max="1000" value="0" step="1"
-                            class="dual-range absolute w-full pointer-events-none" style="z-index:3;">
-                        <input id="screen-size-range-max" type="range" min="0" max="1000" value="1000" step="1"
-                            class="dual-range absolute w-full pointer-events-none" style="z-index:4;">
-                        <div class="absolute top-1/2 -translate-y-1/2 h-[3px] w-full bg-gray-200 rounded" style="z-index:1;"></div>
-                        <div id="screen-size-fill" class="absolute top-1/2 -translate-y-1/2 h-[3px] bg-[#2D5A43] rounded" style="z-index:2;left:0%;width:100%;"></div>
-                    </div>
-                </div> -->
+                <!-- Screen Size removed -->
 
                 <!-- Category (OOH only) -->
                 <div id="ooh-section">
@@ -216,8 +199,8 @@ function initDualRange(minInputId, maxInputId, rangeMinId, rangeMaxId, fillId) {
 
 document.addEventListener('DOMContentLoaded', function () {
     handleTypeChange('all');
-    initDualRange('screen-size-min',   'screen-size-max',   'screen-size-range-min',   'screen-size-range-max',   'screen-size-fill');
     initDualRange('hoarding-size-min', 'hoarding-size-max', 'hoarding-size-range-min', 'hoarding-size-range-max', 'hoarding-size-fill');
+    // Screen size filter removed
 });
 
 /* ── Apply Filters → calls loadHoardings(params) from create.blade.php ── */
@@ -233,11 +216,7 @@ function applyFilters() {
                            .map(function(i){ return i.value; });
     params.resolution = resolutions.join(',');
 
-    // --- Screen size ---
-    var sMin = document.getElementById('screen-size-min').value;
-    var sMax = document.getElementById('screen-size-max').value;
-    params.screen_size_min = sMin;
-    params.screen_size_max = sMax;
+    // (Screen size filter removed)
 
     // --- Category ---
     var categories = Array.from(document.querySelectorAll('input[name="filter_category"]:checked'))
@@ -281,18 +260,14 @@ function resetFilters() {
 
     document.querySelectorAll('#filterModal input[type="checkbox"]').forEach(function(cb){ cb.checked = false; });
 
-    document.getElementById('screen-size-min').value   = 0;
-    document.getElementById('screen-size-max').value   = 1000;
+    // (Screen size filter removed)
     document.getElementById('hoarding-size-min').value = 0;
     document.getElementById('hoarding-size-max').value = 1000;
 
-    document.getElementById('screen-size-range-min').value   = 0;
-    document.getElementById('screen-size-range-max').value   = 1000;
     document.getElementById('hoarding-size-range-min').value = 0;
     document.getElementById('hoarding-size-range-max').value = 1000;
-
-    document.getElementById('screen-size-fill').style.left    = '0%';
-    document.getElementById('screen-size-fill').style.width   = '100%';
+    document.getElementById('hoarding-size-fill').style.left  = '0%';
+    document.getElementById('hoarding-size-fill').style.width = '100%';
     document.getElementById('hoarding-size-fill').style.left  = '0%';
     document.getElementById('hoarding-size-fill').style.width = '100%';
 
