@@ -230,32 +230,32 @@ function loadPosBookings(page = 1) {
 
                 data.data.data.forEach(booking => {
                 tbody.innerHTML += `
-                <tr class="hidden sm:table-row hover:bg-gray-50">
-                    <td class="px-2 py-2 sm:px-3 sm:py-2">${booking.invoice_number || 'N/A'}</td>
-                    <td class="px-2 py-2 sm:px-3 sm:py-2">
+                <tr class="hover:bg-gray-50">
+                    <td class="px-2 py-2 sm:px-3 sm:py-2 whitespace-nowrap">${booking.invoice_number || 'N/A'}</td>
+                    <td class="px-2 py-2 sm:px-3 sm:py-2 whitespace-nowrap">
                         <strong>${booking.customer_name}</strong><br>
                         <span class="text-xs text-gray-500">${booking.customer_phone ?? '-'}</span>
                     </td>
-                    <td class="px-2 py-2 sm:px-3 sm:py-2 text-center font-bold">
+                    <td class="px-2 py-2 sm:px-3 sm:py-2 text-center font-bold whitespace-nowrap">
                         ${Array.isArray(booking.booking_hoardings) ? booking.booking_hoardings.length : (Array.isArray(booking.bookingHoardings) ? booking.bookingHoardings.length : 0)}
                     </td>
-                    <td class="px-2 py-2 sm:px-3 sm:py-2">
+                    <td class="px-2 py-2 sm:px-3 sm:py-2 whitespace-nowrap">
                         ${formatDateTime(booking.created_at)}
                     </td>
-                    <td class="px-2 py-2 sm:px-3 sm:py-2 font-medium">
+                    <td class="px-2 py-2 sm:px-3 sm:py-2 font-medium whitespace-nowrap">
                         ₹${parseFloat(booking.total_amount).toLocaleString()}
                     </td>
-                    <td class="px-2 py-2 sm:px-3 sm:py-2">
+                    <td class="px-2 py-2 sm:px-3 sm:py-2 whitespace-nowrap">
                         <span class="px-2 py-1 rounded text-xs font-semibold ${getPaymentStatusColor(booking.payment_status)}">
                             ${getPaymentStatusLabel(booking.payment_status)}
                         </span>
                     </td>
-                    <td class="px-2 py-2 sm:px-3 sm:py-2">
+                    <td class="px-2 py-2 sm:px-3 sm:py-2 whitespace-nowrap">
                         <span class="px-2 py-1 rounded text-xs font-semibold ${getStatusColor(booking.status)}">
                             ${getBookingStatusLabel(booking.status)}
                         </span>
                     </td>
-                    <td class="px-2 py-2 sm:px-3 sm:py-2">
+                    <td class="px-2 py-2 sm:px-3 sm:py-2 whitespace-nowrap">
                     <div class="flex flex-wrap gap-1">
                         <a href="${POS_BASE_PATH}/bookings/${booking.id}"
                            class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition">
@@ -276,34 +276,6 @@ function loadPosBookings(page = 1) {
                             </a>
                         ` : ``}
                     </div>
-                    </td>
-                </tr>
-                <tr class="sm:hidden border-b border-gray-100">
-                    <td colspan="8" class="px-3 py-3">
-                        <div class="rounded-lg border border-gray-200 p-3 space-y-2 bg-white">
-                            <div class="flex items-center justify-between gap-2">
-                                <p class="text-xs font-semibold text-gray-900">${booking.invoice_number || 'N/A'}</p>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${getStatusColor(booking.status)}">${getBookingStatusLabel(booking.status)}</span>
-                            </div>
-                            <p class="text-xs text-gray-700 font-medium">${booking.customer_name}</p>
-                            <p class="text-[11px] text-gray-500">${booking.customer_phone ?? '-'}</p>
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="font-semibold">₹${parseFloat(booking.total_amount).toLocaleString()}</span>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${getPaymentStatusColor(booking.payment_status)}">${getPaymentStatusLabel(booking.payment_status)}</span>
-                            </div>
-                            <p class="text-[11px] text-gray-500">${formatDateTime(booking.created_at)}</p>
-                            <div class="flex flex-wrap gap-1 pt-1">
-                                <a href="${POS_BASE_PATH}/bookings/${booking.id}" class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition">View</a>
-                                ${booking.status === 'draft' ? `
-                                    <a href="${POS_BASE_PATH}/bookings/${booking.id}/edit" class="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition">Edit</a>
-                                ` : `
-                                    <button disabled class="text-xs bg-gray-300 text-gray-500 px-2 py-1 rounded cursor-not-allowed" title="Can only edit draft bookings">Edit</button>
-                                `}
-                                ${['unpaid', 'partial'].includes(booking.payment_status) && booking.status !== 'cancelled' ? `
-                                    <a href="${POS_BASE_PATH}/bookings/${booking.id}" class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition">Mark Paid</a>
-                                ` : ``}
-                            </div>
-                        </div>
                     </td>
                 </tr>`;
             });
