@@ -12,6 +12,15 @@ class POSPaymentReminderNotification extends Notification implements \Illuminate
 {
     use Queueable;
 
+    /**
+     * Allow enough execution time for remote mail provider latency.
+     */
+    public int $timeout = 120;
+
+    public int $tries = 3;
+
+    public array $backoff = [10, 60, 180];
+
     public function __construct(protected POSBooking $booking, protected int $reminderCount = 1) {}
 
     public function via(object $notifiable): array
