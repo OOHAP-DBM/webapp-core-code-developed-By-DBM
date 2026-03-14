@@ -5,7 +5,7 @@
 <div class="px-3 sm:px-4 lg:px-6 py-4 sm:py-6 bg-gray-50">
     <div id="selection-screen" class="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6">
         
-        <div class="order-2 sm:order-1 sm:col-span-3 lg:col-span-7">
+        <div class="order-2 sm:order-1 sm:col-span-3 lg:col-span-8">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div class="px-3 sm:px-4 lg:px-6 py-4 border-b border-gray-100 items-center gap-2 bg-white">
                     <h2 class="text-xl font-bold text-gray-800">Create New POS Booking</h2>
@@ -121,15 +121,15 @@
         {{-- ══════════════════════════════════════════
              RIGHT PANEL — Available Hoardings
         ══════════════════════════════════════════ --}}
-        <div class="order-1 sm:order-2 sm:col-span-2 lg:col-span-5">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 lg:sticky lg:top-6">
+        <div class="order-1 sm:order-2 sm:col-span-2 lg:col-span-4">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 lg:col-span-2 lg:sticky lg:top-6">
                 <div class="px-3 sm:px-4 lg:px-5 pt-4 sm:pt-5 gap-3 flex">
                     <h3 class="font-bold text-gray-800">Select Hoardings for Booking</h3>
                     <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-bold" id="available-count">0</span>
                 </div>
                 <p class="px-3 sm:px-4 lg:px-5 text-xs text-gray-400 mt-0.5">Browse and select hoardings to add them to the booking.</p>
 
-                <div class="p-3 sm:p-4 lg:p-5">
+                <div class="p-3 sm:p-4 lg:p-5 ">
                     {{-- Search + Filter row --}}
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
                         <div class="relative flex-1">
@@ -172,7 +172,7 @@
                     </div>
 
                     {{-- Hoardings Grid --}}
-                    <div id="hoardings-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar"></div>
+                    <div id="hoardings-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar"></div>
                 </div>
             </div>
         </div>
@@ -538,7 +538,7 @@ function renderHoardings(list) {
         if (currentViewMode === 'list') {
             return `
                 <div class="hoarding-card flex items-center gap-3 bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} p-2 cursor-pointer" onclick="toggleHoarding(${h.id})">
-                    <img src="${h.image_url || '/placeholder.png'}" class="w-16 h-16 object-cover flex-shrink-0">
+                    <img src="${h.image_url || '/placeholder.png'}" class="w-16 h-16 object-cover object-center flex-shrink-0">
                     <div class="card-body flex-1 min-w-0">
                         <h4 class="text-[11px] font-bold text-gray-800 truncate" title="${h.title}">${h.title}</h4>
                         <span class="text-[10px] font-bold text-gray-600">${formatINR(h.price_per_month)}/M</span>
@@ -556,7 +556,7 @@ function renderHoardings(list) {
         // Grid view
         return `
             <div class="hoarding-card relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
-                <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover">
+                <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover object-center">
                 ${isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
                 <div class="p-2">
                     <h4 class="text-[10px] font-bold text-gray-800 truncate" title="${h.title}">${h.title}</h4>
