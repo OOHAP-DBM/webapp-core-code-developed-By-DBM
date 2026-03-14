@@ -59,16 +59,30 @@ class NotificationRedirectController extends Controller
     {
         $user = Auth::user();
 
+        $activeRole = strtolower((string) ($user->active_role ?? ''));
+
+        if (in_array($activeRole, ['admin', 'superadmin', 'super_admin'], true)) {
+            return '/admin/pos/bookings/' . $bookingId;
+        }
+
+        if ($activeRole === 'customer') {
+            return '/customer/pos-booking/' . $bookingId;
+        }
+
+        if ($activeRole === 'vendor') {
+            return '/vendor/pos/bookings/' . $bookingId;
+        }
+
         if ($this->hasAnyRole($user, ['admin', 'superadmin', 'super_admin'])) {
             return '/admin/pos/bookings/' . $bookingId;
         }
 
-        if ($this->hasAnyRole($user, ['vendor'])) {
-            return '/vendor/pos/bookings/' . $bookingId;
-        }
-
         if ($this->hasAnyRole($user, ['customer'])) {
             return '/customer/pos-booking/' . $bookingId;
+        }
+
+        if ($this->hasAnyRole($user, ['vendor'])) {
+            return '/vendor/pos/bookings/' . $bookingId;
         }
 
         return '/';
@@ -125,6 +139,10 @@ class NotificationRedirectController extends Controller
 
         if (preg_match('#^/admin/pos/(\d+)$#', $path, $matches) === 1) {
             return '/admin/pos/bookings/' . $matches[1];
+        }
+
+        if (preg_match('#^/customer/bookings/(\d+)$#', $path, $matches) === 1) {
+            return '/customer/pos-booking/' . $matches[1];
         }
 
         return $path;

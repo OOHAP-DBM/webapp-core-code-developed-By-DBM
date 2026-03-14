@@ -593,7 +593,7 @@ function toggleShortlist(btn) {
     fbq('track', 'PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=1651081729239968&ev=PageView&noscript=1"
+    src="https://www.facebook.com/tr?id=1651081729239968&ev=PageView&noscript=1" alt="facebook_pixel" 
     />
 </noscript>
 
