@@ -32,56 +32,16 @@
             @if($bestHoardings->hasPages())
                 @php
                     $compactPaginator = $bestHoardings->appends(request()->except('page'));
-                    $currentPage = $compactPaginator->currentPage();
-                    $lastPage = $compactPaginator->lastPage();
-                    $startPage = max(1, $currentPage - 1);
-                    $endPage = min($lastPage, $startPage + 2);
-                    $startPage = max(1, $endPage - 2);
                 @endphp
 
                 <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    
-                    {{-- LEFT : Showing text --}}
-                    <div class="text-sm text-gray-600">
-                        Showing
-                        <span class="font-semibold">
-                            {{ $bestHoardings->firstItem() }}
-                        </span>
-                        to
-                        <span class="font-semibold">
-                            {{ $bestHoardings->lastItem() }}
-                        </span>
-                        of
-                        <span class="font-semibold">
-                            {{ $bestHoardings->total() }}
-                        </span>
+                    <div class="text-sm text-gray-600 font-medium">
+                        Showing {{ $bestHoardings->firstItem() ?? 0 }} - {{ $bestHoardings->lastItem() ?? 0 }} of {{ $bestHoardings->total() }}
                     </div>
 
-                    {{-- RIGHT : Pagination --}}
-                    <nav aria-label="Best Hoardings pagination" class="overflow-x-auto">
-                        <div class="flex items-center gap-2 whitespace-nowrap">
-                            @if ($compactPaginator->onFirstPage())
-                                <span class="px-4 py-2 rounded-md border border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed text-sm">Previous</span>
-                            @else
-                                <a href="{{ $compactPaginator->previousPageUrl() }}" class="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-sm">Previous</a>
-                            @endif
-
-                            @for ($page = $startPage; $page <= $endPage; $page++)
-                                @if ($page === $currentPage)
-                                    <span class="min-w-[40px] text-center px-3 py-2 rounded-md border border-[#00A86B] bg-[#00A86B] text-white font-semibold text-sm">{{ $page }}</span>
-                                @else
-                                    <a href="{{ $compactPaginator->url($page) }}" class="min-w-[40px] text-center px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-sm">{{ $page }}</a>
-                                @endif
-                            @endfor
-
-                            @if ($compactPaginator->hasMorePages())
-                                <a href="{{ $compactPaginator->nextPageUrl() }}" class="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-sm">Next</a>
-                            @else
-                                <span class="px-4 py-2 rounded-md border border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed text-sm">Next</span>
-                            @endif
-                        </div>
-                    </nav>
-
+                    <div>
+                        {{ $compactPaginator->links('pagination.vendor-compact') }}
+                    </div>
                 </div>
             @endif
 

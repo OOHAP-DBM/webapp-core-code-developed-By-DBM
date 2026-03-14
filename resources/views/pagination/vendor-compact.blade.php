@@ -23,6 +23,28 @@
 
     <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}" class="overflow-x-auto">
         <div class="inline-flex items-center gap-3 whitespace-nowrap text-sm font-medium select-none">
+            @if ($paginator->onFirstPage())
+                <span
+                    aria-hidden="true"
+                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed"
+                >
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            @else
+                <a
+                    href="{{ $paginator->previousPageUrl() }}"
+                    rel="prev"
+                    aria-label="{{ __('Previous page') }}"
+                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                >
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+            @endif
+
             @php $previousPage = null; @endphp
 
             @foreach ($pages as $page)
@@ -31,12 +53,12 @@
                 @endif
 
                 @if ($page === $currentPage)
-                    <span aria-current="page" class="h-9 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md bg-[#00A86B] text-white">{{ $page }}</span>
+                    <span aria-current="page" class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md bg-[#00A86B] text-white">{{ $page }}</span>
                 @else
                     <a
                         href="{{ $paginator->url($page) }}"
                         aria-label="{{ __('Go to page :page', ['page' => $page]) }}"
-                        class="h-9 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                        class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
                     >
                         {{ $page }}
                     </a>
@@ -52,14 +74,18 @@
                     aria-label="{{ __('Next page') }}"
                     class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
                 >
-                    &gt;
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </a>
             @else
                 <span
                     aria-hidden="true"
-                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-300 cursor-not-allowed"
+                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed"
                 >
-                    &gt;
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </span>
             @endif
         </div>

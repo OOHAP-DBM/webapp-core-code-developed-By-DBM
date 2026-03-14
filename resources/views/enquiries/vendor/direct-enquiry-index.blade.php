@@ -134,8 +134,15 @@
 
         <!-- PAGINATION -->
         @if($enquiries->hasPages())
-        <div class="px-4 py-3 border-t bg-gray-50">
-            {{ $enquiries->links() }}
+        <div class="px-4 py-3 border-t bg-white">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-600">
+                <div class="font-medium">
+                    Showing {{ $enquiries->firstItem() ?? 0 }} - {{ $enquiries->lastItem() ?? 0 }} of {{ $enquiries->total() }}
+                </div>
+                <div>
+                    {{ $enquiries->links('pagination.vendor-compact') }}
+                </div>
+            </div>
         </div>
         @endif
     </div>
