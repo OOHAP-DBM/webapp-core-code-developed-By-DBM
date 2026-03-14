@@ -4,24 +4,24 @@
         {{-- ── Items Table ── --}}
         <div class="flex-1 bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
             <div class="p-3 sm:p-4 lg:p-6 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                <h2 class="text-lg sm:text-xl font-black text-gray-800">BOOKING PREVIEW</h2>
+                <h2 class="text-lg sm:text-xl font-black text-gray-800">Booking Summary & Checkout</h2>
                 <button onclick="backToSelection()" class="w-full sm:w-auto min-h-[44px] text-sm font-bold text-[#2D5A43]">← Edit Selection</button>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 p-3 sm:p-4 lg:p-6 border-b border-gray-100">
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Customer</label>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Customer Details</label>
                     <div class="space-y-1 text-xs">
-                        <div><span class="font-bold text-gray-700">Name:</span> <span id="preview-cust-name">---</span></div>
-                        <div><span class="font-bold text-gray-700">Phone:</span> <span id="preview-cust-phone">---</span></div>
-                        <div><span class="font-bold text-gray-700">Email:</span> <span id="preview-cust-email">---</span></div>
-                        <div><span class="font-bold text-gray-700">GSTIN:</span> <span id="preview-cust-gstin">---</span></div>
-                        <div><span class="font-bold text-gray-700">Address:</span> <span id="preview-cust-address">---</span></div>
+                        <div><span class="font-bold text-gray-700">Customer Name:</span> <span id="preview-cust-name">---</span></div>
+                        <div><span class="font-bold text-gray-700">Mobile Number:</span> <span id="preview-cust-phone">---</span></div>
+                        <div><span class="font-bold text-gray-700">Email Address:</span> <span id="preview-cust-email">---</span></div>
+                        <div><span class="font-bold text-gray-700">GST Number:</span> <span id="preview-cust-gstin">---</span></div>
+                        <div><span class="font-bold text-gray-700">Billing Address:</span> <span id="preview-cust-address">---</span></div>
                     </div>
                 </div>
                 <div class="text-left sm:text-right">
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Inventory</label>
-                    <p class="text-sm font-bold text-gray-800"><span id="preview-total-count">0</span> Items Selected</p>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Selected Inventory Summary / Booking Details</label>
+                    <p class="text-sm font-bold text-gray-800">Selected Hoardings: <span id="preview-total-count">0</span></p>
                 </div>
             </div>
 
@@ -29,12 +29,12 @@
                 <table class="w-full min-w-[760px] text-left">
                     <thead class="bg-gray-50 text-[10px] uppercase text-gray-400 font-bold">
                         <tr>
-                            <th class="px-4 py-3">Sn</th>
-                            <th class="px-6 py-3">Hoarding</th>
-                            <th class="px-6 py-3">Location</th>
-                            <th class="px-6 py-3">Type</th>
-                            <th class="px-6 py-3">Duration</th>
-                            <th class="px-6 py-3 text-right">Total Amount</th>
+                            <th class="px-4 py-3">Item</th>
+                            <th class="px-6 py-3">Hoarding / Screen</th>
+                            <th class="px-6 py-3">City / Location</th>
+                            <th class="px-6 py-3">Media Type</th>
+                            <th class="px-6 py-3">Campaign Duration</th>
+                            <th class="px-6 py-3 text-right">Booking Amount</th>
                         </tr>
                     </thead>
                     <tbody id="preview-ooh-list" class="divide-y divide-gray-50 text-sm"></tbody>
@@ -46,18 +46,18 @@
         {{-- ── POS Checkout ── --}}
         <div class="w-full lg:w-96">
             <div class="bg-white rounded-md shadow-xl border border-gray-200 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-6 space-y-5">
-                <h3 class="font-bold text-gray-800 text-lg">POS Checkout</h3>
+                <h3 class="font-bold text-gray-800 text-lg">Payment & Booking Confirmation</h3>
 
                 {{-- Discount --}}
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Discount (₹)</label>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Apply Discount (₹)</label>
                     <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0"
                         class="w-full p-2 border border-gray-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-green-300 focus:border-green-400 outline-none">
                 </div>
 
                 {{-- Payment Mode --}}
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Payment Mode</label>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Select Payment Method</label>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <button type="button" onclick="selectPaymentMode('cash')"
                             class="payment-mode-btn active-mode flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="cash">
@@ -193,7 +193,7 @@
                     <div class="flex justify-between text-xs text-red-500"><span>Discount</span><span id="side-discount-display">-₹0</span></div>
                     <div class="flex justify-between text-xs text-gray-500 font-bold"><span>Tax (GST 18%)</span><span id="side-tax">₹0</span></div>
                     <div class="flex justify-between items-center pt-2">
-                        <span class="font-black text-gray-900">Final Amount</span>
+                        <span class="font-black text-gray-900">Total Booking Amount</span>
                         <span id="side-grand-total" class="text-xl font-black text-[#2D5A43]">₹0</span>
                     </div>
                 </div>
