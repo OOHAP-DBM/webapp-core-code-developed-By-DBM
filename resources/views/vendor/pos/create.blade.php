@@ -2,7 +2,7 @@
 
 @section('title', 'POS Customers')
 @section('content')
-<div class="px-3 sm:px-4 lg:px-6 py-4 sm:py-6 bg-gray-50">
+<div class="sm:py-2 bg-gray-50">
     <div id="selection-screen" class="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6">
         
         <div class="order-2 sm:order-1 sm:col-span-3 lg:col-span-8">
@@ -122,7 +122,7 @@
              RIGHT PANEL — Available Hoardings
         ══════════════════════════════════════════ --}}
         <div class="order-1 sm:order-2 sm:col-span-2 lg:col-span-4">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 lg:col-span-2 lg:sticky lg:top-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 lg:col-span-2 lg:sticky">
                 <div class="px-3 sm:px-4 lg:px-5 pt-4 sm:pt-5 gap-3 flex">
                     <h3 class="font-bold text-gray-800">Select Hoardings for Booking</h3>
                     <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-bold" id="available-count">0</span>
@@ -172,7 +172,7 @@
                     </div>
 
                     {{-- Hoardings Grid --}}
-                    <div id="hoardings-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar"></div>
+                    <div id="hoardings-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar"></div>
                 </div>
             </div>
         </div>
@@ -221,6 +221,33 @@
     #hoardings-grid.list-view .hoarding-card { display: flex; flex-direction: row; align-items: center; }
     #hoardings-grid.list-view .hoarding-card img { width: 64px; height: 64px; flex-shrink: 0; }
     #hoardings-grid.list-view .hoarding-card .card-body { flex: 1; }
+
+    /* POS panel split: 55% left, 45% right on large screens */
+    @media (min-width: 1024px) {
+        #selection-screen:not(.hidden) {
+            display: flex;
+            flex-direction: row;
+            gap: 1.5rem;
+        }
+        #selection-screen > div:first-child {
+            width: 55% !important;
+            min-width: 0;
+        }
+        #selection-screen > div:last-child {
+            width: 45% !important;
+            min-width: 0;
+        }
+    }
+    @media (max-width: 1023.98px) {
+        #selection-screen:not(.hidden) {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        #selection-screen > div:first-child,
+        #selection-screen > div:last-child {
+            width: 100% !important;
+        }
+    }
 </style>
 
 <script>
@@ -239,7 +266,7 @@ let currentPage  = 1;
 let totalPages   = 1;
 let perPage      = 10;
 let currentViewMode   = 'grid';
-let activeFilters     = {};          // ← stores last applied filter params
+let activeFilters     = {};
 let availabilityIssues = {};
 
 const formatINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
@@ -272,17 +299,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const customerId = urlParams.get('customer_id');
 
     if (customerId) {
-        // Hide the New Customer button if a customer is preselected
         const newBtn = document.getElementById('new-customer-btn');
         if (newBtn) newBtn.style.display = 'none';
         try {
-            // Try direct fetch by ID first
             let found = null;
             let res = await fetchJSON(`${API_URL}/customers/${customerId}`);
             if (res && (res.data || res.customer)) {
                 found = res.data || res.customer;
             }
-            // Fallback to previous search if direct fetch fails
             if (!found || !found.id) {
                 res  = await fetchJSON(`${API_URL}/customers?search=${customerId}`);
                 const list = res.data?.data || res.data || [];
@@ -295,14 +319,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             if (found && found.id) {
                 selectCustomer(found);
-                // Fill the search input for clarity
                 const searchInput = document.getElementById('customer-search');
                 if (searchInput) searchInput.value = found.name;
-                // Hide the Change button if coming from customer selection
                 const changeBtn = document.getElementById('change-customer-btn');
                 if (changeBtn) changeBtn.style.display = 'none';
             } else {
-                // Hide search and show a message if not found
                 document.getElementById('search-container')?.classList.add('hidden');
                 document.getElementById('customer-selected-card')?.classList.remove('hidden');
                 if (document.getElementById('cust-name'))    document.getElementById('cust-name').innerText    = 'Customer not found';
@@ -368,7 +389,7 @@ function renderFilterTags(params) {
 
     Object.entries(params).forEach(([key, val]) => {
         if (!val || val === '' || val === 'ALL' || key === 'page' || key === 'per_page') return;
-        if (key === 'screen_size_min' || key === 'screen_size_max') return; // handle combined
+        if (key === 'screen_size_min' || key === 'screen_size_max') return;
         if (key === 'hoarding_size_min' || key === 'hoarding_size_max') return;
 
         const labelFn = filterLabelMap[key];
@@ -376,7 +397,6 @@ function renderFilterTags(params) {
         if (label) tags.push({ key, label });
     });
 
-    // Combine size ranges
     const sMin = params.screen_size_min, sMax = params.screen_size_max;
     if ((sMin && sMin !== '0') || (sMax && sMax !== '1000')) {
         tags.push({ key: 'screen_size', label: `${sMin ?? 0}Sq.ft - ${sMax ?? 1000}Sq.ft` });
@@ -386,12 +406,10 @@ function renderFilterTags(params) {
         tags.push({ key: 'hoarding_size', label: `Hoarding: ${hMin ?? 0} - ${hMax ?? 1000}Sq.ft` });
     }
 
-    // Price range
     if (params.price_min || params.price_max) {
         tags.push({ key: 'price', label: `₹${params.price_min ?? 0} - ₹${params.price_max ?? '∞'}` });
     }
 
-    // City/location
     if (params.city) tags.push({ key: 'city', label: params.city });
 
     tags.forEach(({ key, label }) => {
@@ -407,10 +425,10 @@ function renderFilterTags(params) {
 }
 
 function removeFilterTag(key) {
-    if (key === 'screen_size')   { delete activeFilters.screen_size_min; delete activeFilters.screen_size_max; }
+    if (key === 'screen_size')        { delete activeFilters.screen_size_min; delete activeFilters.screen_size_max; }
     else if (key === 'hoarding_size') { delete activeFilters.hoarding_size_min; delete activeFilters.hoarding_size_max; }
-    else if (key === 'price')    { delete activeFilters.price_min; delete activeFilters.price_max; }
-    else                         { delete activeFilters[key]; }
+    else if (key === 'price')         { delete activeFilters.price_min; delete activeFilters.price_max; }
+    else                              { delete activeFilters[key]; }
     currentPage = 1;
     loadHoardings(activeFilters);
 }
@@ -419,8 +437,7 @@ function clearAllFilters() {
     activeFilters = {};
     currentPage   = 1;
     loadHoardings({});
-    // Also reset filter modal UI
-    if (typeof resetFilters === 'function') resetFilters(false); // false = don't reload (we already did)
+    if (typeof resetFilters === 'function') resetFilters(false);
 }
 
 function updateUnselectBtn() {
@@ -553,7 +570,7 @@ function renderHoardings(list) {
                 </div>`;
         }
 
-        // Grid view
+        // Grid view — FIXED (backslash wali broken line hatayi, sahi wali lagayi)
         return `
             <div class="hoarding-card relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
                 <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover object-center">
@@ -632,11 +649,11 @@ function updateSummary() {
         let hasOoh = false, hasDooh = false;
 
         selectedHoardings.forEach((h, id) => {
-            const totalPrice   = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
-            const issue        = availabilityIssues[id];
+            const totalPrice    = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
+            const issue         = availabilityIssues[id];
             const conflictClass = issue ? 'availability-conflict' : '';
             const conflictBadge = issue ? `<span class="inline-block mt-1 text-[9px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">${issue.label}</span>` : '';
-            const isDooh       = h.type?.toUpperCase() === 'DOOH';
+            const isDooh        = h.type?.toUpperCase() === 'DOOH';
 
             if (isDooh) {
                 hasDooh = true;
@@ -845,7 +862,7 @@ window.finalCheckAvailability = async function() { return await checkAllAvailabi
 
 /* --- SUBMIT --- */
 document.getElementById('submit-btn').addEventListener('click', async () => {
-    if (!selectedCustomer)        { showToast('Select a customer.', 'warning'); return; }
+    if (!selectedCustomer)            { showToast('Select a customer.', 'warning'); return; }
     if (selectedHoardings.size === 0) { showToast('Select at least one hoarding.', 'warning'); return; }
 
     const btn = document.getElementById('submit-btn');
@@ -888,7 +905,6 @@ function populatePreview() {
     const doohTbody = document.getElementById('preview-dooh-list');
     if (!oohTbody || !doohTbody) { console.error('Preview DOM elements missing!'); return; }
 
-    // ── Customer fields ──
     const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = safe(val); };
     setEl('preview-cust-name',    selectedCustomer.name);
     setEl('preview-cust-phone',   selectedCustomer.phone);
@@ -904,11 +920,9 @@ function populatePreview() {
     setEl('preview-cust-updated', selectedCustomer.updated_at);
     setEl('preview-total-count',  selectedHoardings.size);
 
-    // ── Hoarding rows ──
     oohTbody.innerHTML = ''; doohTbody.innerHTML = '';
     globalBaseAmount   = 0;
 
-    // ── collect all rows first, then render with correct SN ──
     const allRows = [];
     selectedHoardings.forEach((h) => {
         const itemTotal = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
@@ -945,10 +959,9 @@ function populatePreview() {
                 </td>
                 <td class="px-4 py-2 text-right font-bold text-gray-800 text-xs">${formatINR(itemTotal)}</td>
             </tr>`;
-        // Both OOH and DOOH go into same tbody to preserve insertion-order SN
         oohTbody.innerHTML += row;
     });
-    doohTbody.innerHTML = ''; // clear unused tbody
+    doohTbody.innerHTML = '';
 
     const sideSubTotal = document.getElementById('side-sub-total');
     if (sideSubTotal) sideSubTotal.innerText = formatINR(globalBaseAmount);

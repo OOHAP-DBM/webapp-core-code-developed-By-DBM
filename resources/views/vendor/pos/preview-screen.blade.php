@@ -25,8 +25,8 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full min-w-[760px] text-left">
+            <div class="overflow-x-auto mx-2 sm:mx-4 lg:mx-8 my-3 sm:my-4 lg:my-6">
+                <table class="w-full min-w-[760px] text-left border border-gray-200 rounded-md">
                     <thead class="bg-gray-50 text-[10px] uppercase text-gray-400 font-bold">
                         <tr>
                             <th class="px-4 py-3">Item</th>
@@ -175,8 +175,8 @@
 
                 {{-- Booking Hold Timer --}}
                 <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
-                    <h4 class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Booking Hold Duration</h4>
-                    <p class="text-[11px] text-gray-500 mb-3">Booking will be released if payment is not received within this time.</p>
+                    <h4 class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Payment Timeout</h4>
+                    <p class="text-[11px] text-gray-500 mb-3">Selected inventory will be reserved until payment is completed.</p>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         <button type="button" onclick="selectHoldTime(15)" class="hold-time-btn py-2 text-xs font-bold border-2 rounded-lg transition" data-mins="15">15 min</button>
                         <button type="button" onclick="selectHoldTime(30)" class="hold-time-btn active-hold py-2 text-xs font-bold border-2 rounded-lg transition" data-mins="30">30 min</button>
@@ -190,11 +190,12 @@
 
                 {{-- Totals --}}
                 <div class="pt-4 border-t border-dashed space-y-3">
+                    <h2 class="text-lg font-semibold">Order Summary</h2>
                     <div class="flex justify-between text-xs text-gray-500"><span>Subtotal</span><span id="side-sub-total">₹0</span></div>
                     <div class="flex justify-between text-xs text-red-500"><span>Discount</span><span id="side-discount-display">-₹0</span></div>
                     <div class="flex justify-between text-xs text-gray-500 font-bold"><span>Tax (GST 18%)</span><span id="side-tax">₹0</span></div>
                     <div class="flex justify-between items-center pt-2">
-                        <span class="font-black text-gray-900">Total Booking Amount</span>
+                        <span class="font-black text-gray-900">Total Payable Amount</span>
                         <span id="side-grand-total" class="text-xl font-black text-[#2D5A43]">₹0</span>
                     </div>
                 </div>
@@ -202,7 +203,7 @@
                 <button id="create-booking-btn"
                     class="w-full py-4 bg-[#2D5A43] text-white rounded-xl font-bold shadow-lg hover:bg-opacity-90 transition active:scale-[0.98] flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-                    Finalize Booking
+                    Confirm & Create Booking
                 </button>
             </div>
         </div>
