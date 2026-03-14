@@ -26,8 +26,8 @@
     {{-- Header --}}
     <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
         <div>
-            <p class="text-xs font-bold text-gray-800">Milestone Creation</p>
-            <p class="text-[10px] text-gray-400 mt-0.5">Define work stages with due dates, deliverables, and payment amounts</p>
+            <p class="text-sm font-bold ">Milestone Creation</p>
+            <p class="text-[11px]  mt-0.5">Define work stages with due dates, deliverables, and payment amounts</p>
         </div>
         <button type="button"
                 id="ms-toggle-btn"
@@ -46,9 +46,9 @@
 
         {{-- Empty state --}}
         <div id="ms-empty-state" class="flex flex-col items-center justify-center py-6 text-center">
-            <p class="text-xs text-gray-400 mb-3">No Milestone Created</p>
+            <p class="text-sm  mb-3">No Milestone Created</p>
             <button type="button" onclick="MilestoneModule.addRow()"
-                    class="px-4 py-2 bg-[#2D5A43] text-white text-xs font-bold rounded-lg hover:bg-opacity-90 transition-colors">
+                    class="px-4 py-2 bg-[#2D5A43] text-white text-sm font-bold rounded-lg hover:bg-opacity-90 transition-colors">
                 + Create Milestone
             </button>
         </div>
@@ -66,16 +66,18 @@
                     </button>
                     <button type="button" id="ms-btn-pct"
                             onclick="MilestoneModule.setAmountType('percentage')"
-                            class="px-3 py-1.5 bg-white text-gray-600 hover:bg-gray-50 transition-colors">
+                            class="px-3 py-1.5 bg-white  hover:bg-gray-50 transition-colors">
                         %
                     </button>
                 </div>
             </div>
             <div class="grid grid-cols-12 gap-2 px-1 mb-1">
-                <div class="col-span-1 text-[9px] font-bold text-gray-400 uppercase">No.</div>
-                <div class="col-span-3 text-[9px] font-bold text-gray-400 uppercase">Due Date</div>
-                <div class="col-span-5 text-[9px] font-bold text-gray-400 uppercase">Work Done</div>
-                <div class="col-span-3 text-[9px] font-bold text-gray-400 uppercase text-right">Amount</div>
+                <div class="col-span-2 text-sm  font-semibold">Milestone</div>
+                <div class="col-span-3 text-sm  font-semibold">Due Date</div>
+                <div class="col-span-3 text-sm  font-semibold">Work Done</div>
+                <div class="col-span-2 text-sm  font-semibold text-right">Amount</div>
+                <div class="col-span-2 text-sm  font-semibold text-right">Action</div>
+
             </div>
         </div>
 
@@ -99,9 +101,8 @@
         {{-- Add Milestone button (shown after first row) --}}
         <div id="ms-add-btn-wrap" class="px-4 pb-4 hidden">
             <button type="button" onclick="MilestoneModule.addRow()"
-                    class="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border-2 border-dashed border-gray-300 text-[11px] font-bold text-gray-500 hover:border-[#2D5A43] hover:text-[#2D5A43] transition-colors">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
-                + Add Milestone
+                    class="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border-2 border-dashed border-gray-300 text-[11px] font-bold  hover:border-[#2D5A43] hover:text-[#2D5A43] transition-colors">
+                 + Add Milestone
             </button>
         </div>
 
@@ -116,27 +117,28 @@
 
         {{-- Col 1: Sequence --}}
         <div class="col-span-1 flex items-center justify-center pt-1.5">
-            <div class="ms-seq w-5 h-5 rounded-full bg-[#2D5A43] text-white text-[9px] font-black flex items-center justify-center flex-shrink-0">1</div>
+            <div class="ms-seq w-5 h-5 rounded-full bg-[#2D5A43] text-white text-[9px] font-black flex items-center justify-center flex-shrink-0">#</div>
         </div>
 
         {{-- Col 2-4: Due Date + edit icon --}}
         <div class="col-span-3">
             <div class="flex items-center gap-1">
                 <input type="date"
-                       class="ms-due-date w-full border border-gray-200 rounded text-[10px] text-gray-700 px-1.5 py-1 focus:outline-none focus:border-[#2D5A43]"
+                       class="ms-due-date w-full border  rounded text-sm px-1.5 py-1 focus:outline-none focus:border-[#2D5A43]"
                        min="{{ now()->format('Y-m-d') }}">
             </div>
         </div>
 
         {{-- Col 5-9: Work Done description --}}
         <div class="col-span-5">
-            <textarea class="ms-desc w-full border border-gray-200 rounded text-[10px] text-gray-700 placeholder-gray-400 px-1.5 py-1 resize-none focus:outline-none focus:border-[#2D5A43]"
-                      rows="2"
+            <textarea class="ms-desc w-full border border-gray-200 rounded text-sm placeholder-gray-400 px-1.5 py-0.5 resize-none focus:outline-none focus:border-[#2D5A43]"
+                      rows="1"
                       maxlength="64"
                       placeholder="Write here..."
+                      style="min-height:2.6em;max-height:3.5em;"
                       oninput="MilestoneModule.onDescInput(this)"></textarea>
-            <div class="text-right">
-                <span class="ms-char-count text-[9px] text-gray-400">0/64</span>
+            <div class="text-right mt-0.5">
+                <span class="ms-char-count text-[9px] text-gray-600">0/64</span>
             </div>
         </div>
 
@@ -144,10 +146,11 @@
         <div class="col-span-3">
             <div class="flex items-center gap-1">
                 <div class="relative flex-1">
-                    <span class="ms-currency-sym absolute left-1.5 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 font-bold pointer-events-none">₹</span>
+                    <span class="ms-currency-sym absolute left-1.5 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold pointer-events-none">₹</span>
                     <input type="number"
-                           class="ms-amount w-full border border-gray-200 rounded pl-4 pr-1 py-1 text-[11px] font-bold text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#2D5A43] focus:border-[#2D5A43]"
+                           class="ms-amount w-full border border-gray-200 rounded pl-4 pr-1 py-1 text-sm font-bold text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#2D5A43] focus:border-[#2D5A43]"
                            placeholder="0" min="0" step="0.01"
+                             style="min-height:2.6em;max-height:3.5em;"
                            oninput="MilestoneModule.recalculate()">
                 </div>
                 <button type="button" onclick="MilestoneModule.removeRow(this)"
@@ -227,10 +230,10 @@ window.MilestoneModule = (function () {
 
         var flatCls = type === 'fixed'
             ? 'px-3 py-1.5 bg-[#2D5A43] text-white transition-colors text-[11px] font-bold'
-            : 'px-3 py-1.5 bg-white text-gray-600 hover:bg-gray-50 transition-colors text-[11px] font-bold';
+            : 'px-3 py-1.5 bg-white hover:bg-gray-50 transition-colors text-[11px] font-bold';
         var pctCls = type === 'percentage'
             ? 'px-3 py-1.5 bg-[#2D5A43] text-white transition-colors text-[11px] font-bold'
-            : 'px-3 py-1.5 bg-white text-gray-600 hover:bg-gray-50 transition-colors text-[11px] font-bold';
+            : 'px-3 py-1.5 bg-white hover:bg-gray-50 transition-colors text-[11px] font-bold';
 
         $('ms-btn-flat').className = flatCls;
         $('ms-btn-pct').className  = pctCls;
@@ -284,10 +287,12 @@ window.MilestoneModule = (function () {
     }
 
     /* ── Reindex ─────────────────────────────── */
-    function reindex() {
+     function reindex() {
         rows().forEach(function (row, i) {
             var badge = row.querySelector('.ms-seq');
-            if (badge) badge.textContent = i + 1;
+            var n = i + 1;
+            row.dataset.idx = n;
+            if (badge) badge.textContent = String(n); // 1, 2, 3...
         });
     }
 
@@ -376,8 +381,12 @@ window.MilestoneModule = (function () {
             var amount = parseFloat(row.querySelector('.ms-amount').value);
             var due    = row.querySelector('.ms-due-date').value;
 
+             if (!due) {
+                return { enabled: true, valid: false, error: 'Milestone' + (i + 1) + ': Due Date is required.' };
+            }
+
             if (!amount || amount <= 0) {
-                return { enabled: true, valid: false, error: 'Milestone ' + (i + 1) + ': Amount is required (> 0).' };
+                return { enabled: true, valid: false, error: 'Milestone' + (i + 1) + ': Amount is required (> 0).' };
             }
 
             if (_type === 'percentage') sumPct  += amount;

@@ -2,8 +2,8 @@
 
 @section('content')
 @include('components.customer.navbar')
-<div id="gridView" class="bg-gray-100">
-<div class="max-w-[1460px] mx-auto px-6 py-6">
+<div id="gridView" class="bg-gray-100 pt-5 md:pt-0 ">
+<div class="max-w-[1460px] mx-auto px-6 md:py-6 py-10">
     <div class="bg-[#D9F2E6] rounded-lg overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-[#b9d1c5]">
             <h2 class="text-lg font-semibold text-gray-800">
