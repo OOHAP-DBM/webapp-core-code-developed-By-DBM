@@ -29,6 +29,7 @@ use App\Listeners\OnPaymentFailed;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Modules\Offers\Repositories\Contracts\OfferRepositoryInterface;
 use App\Services\OfferExpiryService;
 use Kreait\Firebase\Factory;
@@ -119,6 +120,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(\Illuminate\Routing\Events\RouteMatched::class, function ($event) {
+            $routeName = $event->request->route()?->getName() ?? '';
+
+            if (str_starts_with($routeName, 'vendor.') || str_starts_with($routeName, 'admin.')) {
+                Paginator::defaultView('pagination.dashboard-compact');
+                Paginator::defaultSimpleView('pagination.dashboard-simple');
+            }
+        });
+
         // Configure API rate limiters
         $this->configureRateLimiting();
 

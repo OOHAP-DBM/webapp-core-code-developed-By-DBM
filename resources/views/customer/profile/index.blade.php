@@ -178,7 +178,7 @@
                         </a>
                     @endif
             </div>
-             <div class="flex items-center justify-between gap-4">
+             <div class="flex items-center justify-between gap-4 mb-5">
                 <input
                     type="email"
                     id="emailInput"

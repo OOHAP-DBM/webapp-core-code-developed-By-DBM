@@ -136,6 +136,20 @@ class HoardingResource extends JsonResource
         }
 
 
+        // Get latest 3 reviews with user info
+        $latestReviews = $this->ratings()->latest('id')->take(3)->get()->map(function($rating) {
+            return [
+                'id' => $rating->id,
+                'user' => [
+                    'id' => $rating->user?->id,
+                    'name' => $rating->user?->name,
+                ],
+                'rating' => $rating->rating,
+                'review' => $rating->review,
+                'created_at' => $rating->created_at?->toIso8601String(),
+            ];
+        });
+
         return [
             'id' => $this->id,
             'vendor_id' => $this->vendor_id,
@@ -183,6 +197,11 @@ class HoardingResource extends JsonResource
             'packages' => $packages,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+
+            // Reviews summary
+            'average_rating' => $this->averageRating(),
+            'reviews_count' => $this->reviewsCount(),
+            'latest_reviews' => $latestReviews,
         ];
     }
 }

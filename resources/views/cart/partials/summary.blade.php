@@ -35,7 +35,7 @@
             <button onclick="closeEnquiryModal()" class="text-gray-500 hover:text-black text-lg cursor-pointer">✕</button>
         </div>
 
-        <div class="p-6 max-h-[70vh] overflow-y-auto">
+        <div class="p-6 max-h-[70vh] overflow-y-scroll scrollbar-visible-mobile">
             <table class="w-full text-sm border-collapse">
                 <thead class="bg-gray-50">
                     <tr class="text-left text-xs py-3 px-4 font-semibold text-gray-600 uppercase tracking-wide">
@@ -375,5 +375,32 @@ function onDurationChange(select, hoardingId) {
 }
 .enquiry-overlay {
     z-index: 2147483647 !important;
+}
+</style>
+
+<style>
+/* Custom scrollbar for modal table area on mobile */
+@media (max-width: 640px) {
+    .scrollbar-visible-mobile {
+        scrollbar-width: thin;
+        scrollbar-color: #a3a3a3 #f3f4f6;
+        -webkit-overflow-scrolling: touch;
+    }
+    .scrollbar-visible-mobile::-webkit-scrollbar {
+        width: 8px;
+        background: #f3f4f6;
+        border-radius: 8px;
+        display: block;
+    }
+    .scrollbar-visible-mobile::-webkit-scrollbar-thumb {
+        background: #a3a3a3;
+        border-radius: 8px;
+        min-height: 40px;
+        border: 2px solid #f3f4f6;
+    }
+    .scrollbar-visible-mobile::-webkit-scrollbar-track {
+        background: #f3f4f6;
+        border-radius: 8px;
+    }
 }
 </style>

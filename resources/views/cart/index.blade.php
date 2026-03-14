@@ -14,7 +14,7 @@
 @endauth
 
 {{-- FULL HEIGHT LAYOUT --}}
-<div class="bg-white max-w-7xl mx-auto px-3 sm:px-4 md:px-6 p-4 sm:p-6  flex flex-col border-b border-gray-200">
+<div class="bg-white max-w-7xl mx-auto px-3 sm:px-4 md:px-6  p-4 sm:p-6  flex flex-col border-b border-gray-200">
 
     {{-- Breadcrumb --}}
     <p class="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4">
@@ -22,7 +22,7 @@
     </p>
 
     {{-- Heading --}}
-    <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">
+    <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6 pl-5">
         Shortlisted
         <span class="text-gray-500 font-medium text-base sm:text-lg">
             ({{ $items->count() }} Hoardings)
