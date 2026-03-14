@@ -127,7 +127,7 @@ class ReleaseExpiredPosBookings extends Command
         $vendorPhone = $this->normalizePhone($vendor?->phone);
 
         if ($customerPhone && ($customer ? (bool) $customer->notification_whatsapp : true)) {
-            $customerActionUrl = url('/customer/bookings/' . $booking->id);
+            $customerActionUrl = route('customer.pos.booking.show', ['booking' => $booking->id]);
             $sent = $whatsapp->send($customerPhone, $this->buildCustomerHoldExpiredMessage($booking, $vendor, $customerActionUrl));
             Log::info('Hold expiry WhatsApp attempted for customer', [
                 'booking_id' => $booking->id,

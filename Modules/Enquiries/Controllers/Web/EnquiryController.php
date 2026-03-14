@@ -1,6 +1,7 @@
 <?php
 
 namespace Modules\Enquiries\Controllers\Web;
+
 use App\Http\Controllers\Controller;
 use App\Models\Hoarding;
 use Illuminate\Http\Request;
@@ -43,16 +44,20 @@ class EnquiryController extends Controller
             $query->where('status', $request->status);
         }
 
-        $searchId = null;
         if ($request->filled('search')) {
-            $searchId = preg_replace('/\D/', '', trim($request->search));
-            if ($searchId !== '') {
-                $query->where('id', (int) $searchId);
-                $query->orderByRaw(
-                    'CASE WHEN id = ? THEN 0 ELSE 1 END',
-                    [(int) $searchId]
-                );
-            }
+            $search   = trim($request->search);
+            $searchId = preg_replace('/\D/', '', $search);
+
+            $query->where(function ($q) use ($search, $searchId) {
+                if ($searchId !== '') {
+                    $q->orWhere('id', (int) $searchId);
+                }
+                $q->orWhere('customer_note', 'like', "%{$search}%")
+                    ->orWhereHas('items.hoarding', function ($hq) use ($search) {
+                        $hq->where('title', 'like', "%{$search}%")
+                            ->orWhere('address', 'like', "%{$search}%");
+                    });
+            });
         }
 
         /* ---------------- DATE FILTER (created_at) ---------------- */
@@ -144,7 +149,7 @@ class EnquiryController extends Controller
                 $pricingDisplay = [
                     'type' => 'package',
                     'text' => 'Select a package to see price',
-                    'packages' => $packages->map(function($pkg) use ($hoarding) {
+                    'packages' => $packages->map(function ($pkg) use ($hoarding) {
                         // Show package price only, do not multiply by months
                         $price = $pkg->price_per_month ?? $pkg->price_per_day ?? 0;
                         return [
@@ -191,7 +196,7 @@ class EnquiryController extends Controller
         }
 
         \Log::info('========== ENQUIRY MODAL POST DATA ==========', $request->all());
-        
+
         return $enquiryService->createEnquiry($request);
     }
     // public function store(Request $request)
@@ -343,9 +348,9 @@ class EnquiryController extends Controller
         $enquiry = Enquiry::where('customer_id', Auth::id())
             ->with(['items.hoarding.vendor', 'customer', 'offers'])
             ->findOrFail($id);
-        
+
         $enquiry = $this->enrichEnquiryDataForCustomer($enquiry);
-        
+
         return view('customer.enquiries.show', compact('enquiry'));
     }
 

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Carbon\Carbon;
 use Modules\Enquiries\Models\Enquiry;
+
 class HomeController extends Controller
 {
     /**
@@ -49,10 +50,10 @@ class HomeController extends Controller
                         sin(radians(latitude))
                     )) AS distance
                 ", [$lat, $lng, $lat])
-                ->having('distance', '<', 10)
-                ->orderBy('distance')
-                ->take(6)
-                ->get();
+                    ->having('distance', '<', 10)
+                    ->orderBy('distance')
+                    ->take(6)
+                    ->get();
             }
         }
 
@@ -63,32 +64,60 @@ class HomeController extends Controller
             $query = Enquiry::where('customer_id', auth()->id())
                 ->with(['items.hoarding']);
 
-            // SEARCH BY ID ONLY (match EnquiryController)
-            $searchId = null;
+            // SEARCH BY ENQUIRY ID + REQUIREMENT TEXT
             if ($request->filled('search')) {
-                $search = trim($request->search);
-                $searchId = preg_replace('/\D/', '', $search);
-                if ($searchId !== '') {
-                    $query->where('id', (int) $searchId);
-                    $query->orderByRaw(
-                        "CASE WHEN id = ? THEN 0 ELSE 1 END",
-                        [(int) $searchId]
-                    );
+                $search = trim((string) $request->search);
+
+                if ($search !== '') {
+                    $searchId = preg_replace('/\D/', '', $search);
+
+                    $query->where(function ($q) use ($search, $searchId) {
+                        if ($searchId !== '') {
+                            $q->orWhere('id', (int) $searchId);
+                        }
+
+                        $q->orWhere('customer_note', 'like', "%{$search}%")
+                            ->orWhereHas('items.hoarding', function ($hq) use ($search) {
+                                $hq->where('title', 'like', "%{$search}%")
+                                    ->orWhere('address', 'like', "%{$search}%");
+                            });
+                    });
+
+                    if ($searchId !== '') {
+                        $query->orderByRaw(
+                            'CASE WHEN id = ? THEN 0 ELSE 1 END',
+                            [(int) $searchId]
+                        );
+                    }
                 }
             }
 
-            /* DATE FILTER */
+            /* DATE FILTER (match customer enquiry page behavior) */
             if ($request->filled('date_filter')) {
+                $now = Carbon::now();
+
                 switch ($request->date_filter) {
                     case 'last_week':
-                        $query->where('created_at', '>=', Carbon::now()->subWeek());
+                        $query->whereBetween('created_at', [
+                            $now->copy()->subWeek()->startOfWeek(),
+                            $now->copy()->subWeek()->endOfWeek(),
+                        ]);
                         break;
+
                     case 'last_month':
-                        $query->where('created_at', '>=', Carbon::now()->subMonth());
+                        $query->whereBetween('created_at', [
+                            $now->copy()->subMonth()->startOfMonth(),
+                            $now->copy()->subMonth()->endOfMonth(),
+                        ]);
                         break;
+
                     case 'last_year':
-                        $query->where('created_at', '>=', Carbon::now()->subYear());
+                        $query->whereBetween('created_at', [
+                            $now->copy()->subYear()->startOfYear(),
+                            $now->copy()->subYear()->endOfYear(),
+                        ]);
                         break;
+
                     case 'custom':
                         if ($request->filled('from_date') && $request->filled('to_date')) {
                             $query->whereBetween('created_at', [

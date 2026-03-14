@@ -344,26 +344,67 @@ Route::post('/logout', [Modules\Auth\Http\Controllers\LoginController::class, 'l
 // Role-aware POS booking deep-link resolver for email/in-app action URLs.
 Route::middleware(['auth'])->group(function () {
     Route::get('/pos/bookings/{id}/view', function ($id) {
-        $user = auth()->user();
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $bookingId = (int) $id;
 
-        if ($user && method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'superadmin', 'super_admin'])) {
-            return redirect()->route('admin.pos.show', ['id' => $id]);
+        $hasAnyRole = static function ($candidate, array $roles): bool {
+            return is_object($candidate)
+                && is_callable([$candidate, 'hasAnyRole'])
+                && (bool) call_user_func([$candidate, 'hasAnyRole'], $roles);
+        };
+
+        $hasRole = static function ($candidate, string $role): bool {
+            return is_object($candidate)
+                && is_callable([$candidate, 'hasRole'])
+                && (bool) call_user_func([$candidate, 'hasRole'], $role);
+        };
+
+        if ($bookingId <= 0) {
+            abort(404, 'Invalid POS booking id.');
         }
 
-        if ($user && method_exists($user, 'hasRole') && $user->hasRole('vendor')) {
-            if (Route::has('vendor.pos.bookings.show')) {
-                return redirect()->route('vendor.pos.bookings.show', ['id' => $id]);
-            }
+        $booking = \Modules\POS\Models\POSBooking::query()
+            ->select(['id', 'customer_id', 'vendor_id'])
+            ->find($bookingId);
 
-            return redirect('/vendor/pos/bookings/' . $id);
+        if (!$booking) {
+            abort(404, 'POS booking not found.');
         }
 
-        if ($user && method_exists($user, 'hasRole') && $user->hasRole('customer')) {
-            if (Route::has('customer.pos.show')) {
-                return redirect()->route('customer.pos.show', ['id' => $id]);
-            }
+        $userId = (int) ($user->id ?? 0);
 
-            return redirect()->route('customer.bookings.show', ['id' => $id]);
+        $activeRole = strtolower((string) ($user->active_role ?? ''));
+
+        if (in_array($activeRole, ['admin', 'superadmin', 'super_admin'], true)) {
+            return redirect('/admin/pos/bookings/' . $bookingId);
+        }
+
+        if ($userId > 0 && $userId === (int) $booking->vendor_id && $hasRole($user, 'vendor')) {
+            return redirect('/vendor/pos/bookings/' . $bookingId);
+        }
+
+        if ($userId > 0 && $userId === (int) $booking->customer_id && $hasRole($user, 'customer')) {
+            return redirect('/customer/pos-booking/' . $bookingId);
+        }
+
+        if ($activeRole === 'customer') {
+            return redirect('/customer/pos-booking/' . $bookingId);
+        }
+
+        if ($activeRole === 'vendor') {
+            return redirect('/vendor/pos/bookings/' . $bookingId);
+        }
+
+        if ($hasAnyRole($user, ['admin', 'superadmin', 'super_admin'])) {
+            return redirect('/admin/pos/bookings/' . $bookingId);
+        }
+
+        if ($hasRole($user, 'vendor')) {
+            return redirect('/vendor/pos/bookings/' . $bookingId);
+        }
+
+        if ($hasRole($user, 'customer')) {
+            return redirect('/customer/pos-booking/' . $bookingId);
         }
 
         abort(403, 'User does not have the right roles.');
@@ -818,7 +859,9 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             Route::get('/', [\App\Http\Controllers\Vendor\POSController::class, 'index'])->name('index');
             Route::post('/store', [\App\Http\Controllers\Vendor\POSController::class, 'store'])->name('store');
             Route::get('/history', [\App\Http\Controllers\Vendor\POSController::class, 'history'])->name('history');
-            Route::get('/{id}', [\App\Http\Controllers\Vendor\POSController::class, 'show'])->name('show');
+            Route::get('/{id}', function ($id) {
+                return redirect('/vendor/pos/bookings/' . (int) $id);
+            })->name('show');
             Route::get('/{id}/preview', [\App\Http\Controllers\Vendor\POSController::class, 'preview'])->name('preview');
             Route::get('/{id}/download', [\App\Http\Controllers\Vendor\POSController::class, 'download'])->name('download');
             Route::post('/{id}/update-status', [\App\Http\Controllers\Vendor\POSController::class, 'updateStatus'])->name('update-status');

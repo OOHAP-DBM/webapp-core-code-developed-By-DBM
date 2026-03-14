@@ -319,75 +319,106 @@ function renderPosPagination(pagination) {
 
     const pages = [];
     if (last <= 7) {
-        for (let i = 1; i <= last; i++) pages.push(i);
-    } else {
-        pages.push(1);
-        if (current > 4) pages.push('...');
-
-        const start = Math.max(2, current - 1);
-        const end = Math.min(last - 1, current + 1);
-        for (let i = start; i <= end; i++) pages.push(i);
-
-        if (current < last - 3) pages.push('...');
+        for (let i = 1; i <= last; i++) {
+            pages.push(i);
+        }
+    } else if (current <= 4) {
+        for (let i = 1; i <= 5; i++) {
+            pages.push(i);
+        }
         pages.push(last);
+    } else if (current >= last - 3) {
+        pages.push(1);
+        for (let i = last - 4; i <= last; i++) {
+            pages.push(i);
+        }
+    } else {
+        pages.push(1, current - 1, current, current + 1, last);
     }
 
+    const normalizedPages = [...new Set(
+        pages.filter((page) => page >= 1 && page <= last)
+    )].sort((a, b) => a - b);
+
     let pageButtons = '';
-    pages.forEach((item) => {
-        if (item === '...') {
-            pageButtons += `<span class="px-3 py-1 text-sm text-gray-500">...</span>`;
-            return;
+    let previousPage = null;
+
+    normalizedPages.forEach((page) => {
+        if (previousPage !== null && page - previousPage > 1) {
+            pageButtons += '<span class="text-gray-400">...</span>';
         }
 
-        pageButtons += `
-            <button onclick="loadPosBookings(${item})"
-                class="px-3 py-1 rounded border text-sm ${item === current
-                    ? 'bg-[#00A86B] text-white border-[#00A86B] font-semibold'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border-gray-300'}">
-                ${item}
-            </button>`;
+        if (page === current) {
+            pageButtons += `
+                <button onclick="loadPosBookings(${page})"
+                    class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md bg-[#00A86B] text-white"
+                    aria-current="page">
+                    ${page}
+                </button>`;
+        } else {
+            pageButtons += `
+                <button onclick="loadPosBookings(${page})"
+                    class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                    aria-label="Go to page ${page}">
+                    ${page}
+                </button>`;
+        }
+
+        previousPage = page;
     });
+
+    const previousButton = current <= 1
+        ? `
+            <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
+        `
+        : `
+            <button onclick="loadPosBookings(${Math.max(1, current - 1)})"
+                class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                aria-label="Previous page">
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        `;
+
+    const nextButton = current >= last
+        ? `
+            <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
+        `
+        : `
+            <button onclick="loadPosBookings(${Math.min(last, current + 1)})"
+                class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                aria-label="Next page">
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        `;
 
     const pageNav = last > 1
         ? `
-            <div class="flex items-center gap-2">
-                <button onclick="loadPosBookings(${Math.max(1, current - 1)})"
-                    ${current <= 1 ? 'disabled' : ''}
-                    class="px-3 py-1 rounded border text-sm ${current <= 1
-                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}">
-                    Previous
-                </button>
-
-                ${pageButtons}
-
-                <button onclick="loadPosBookings(${Math.min(last, current + 1)})"
-                    ${current >= last ? 'disabled' : ''}
-                    class="px-3 py-1 rounded border text-sm ${current >= last
-                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}">
-                    Next
-                </button>
-            </div>
+            <nav role="navigation" aria-label="Pagination Navigation" class="overflow-x-auto">
+                <div class="inline-flex items-center gap-3 whitespace-nowrap text-sm font-medium select-none">
+                    ${previousButton}
+                    ${pageButtons}
+                    ${nextButton}
+                </div>
+            </nav>
         `
-        : '<div></div>';
+        : '';
 
     const html = `
-        <div class="bg-white px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-t border-gray-50 text-[12px] text-gray-500">
-            <div class="flex flex-wrap items-center gap-3 font-medium">
-                <label for="pos-per-page" class="text-gray-500">Show</label>
-                <select id="pos-per-page" onchange="changePosPerPage(this.value)" class="bg-[#F3F4F6] border-none rounded-md px-3 py-1 text-gray-700 font-bold">
-                    <option value="5" ${perPage === 5 ? 'selected' : ''}>5</option>
-                    <option value="10" ${perPage === 10 ? 'selected' : ''}>10</option>
-                    <option value="20" ${perPage === 20 ? 'selected' : ''}>20</option>
-                    <option value="50" ${perPage === 50 ? 'selected' : ''}>50</option>
-                    <option value="100" ${perPage === 100 ? 'selected' : ''}>100</option>
-                </select>
-                <span>per page</span>
-                <span>Showing ${startRecord} to ${endRecord} of ${total} records</span>
-            </div>
-
-            ${pageNav}
+        <div class="bg-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-100 text-sm text-gray-600">
+            <div class="font-medium">Showing ${startRecord} - ${endRecord} of ${total}</div>
+            <div>${pageNav}</div>
         </div>
     `;
 

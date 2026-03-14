@@ -42,10 +42,10 @@
     <!-- Filters -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <form method="GET" class="row g-3">
+            <form method="GET" action="{{ route('customer.my.offers') }}" id="dashboard-offers-filter-form" class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label">Search</label>
-                    <input type="text" name="search" class="form-control" placeholder="Offer code..." value="{{ request('search') }}">
+                    <input type="text" name="search" id="dashboard-offers-search-input" class="form-control" placeholder="Offer code..." value="{{ request('search') }}">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Status</label>
@@ -128,4 +128,46 @@
     </div>
     @endif
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('dashboard-offers-filter-form');
+    const input = document.getElementById('dashboard-offers-search-input');
+
+    if (!form || !input) {
+        return;
+    }
+
+    let debounceTimer;
+    const ignoredKeys = ['Shift', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Escape', 'Tab'];
+
+    const submitFilters = function () {
+        if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+        } else {
+            form.submit();
+        }
+    };
+
+    input.addEventListener('keyup', function (event) {
+        if (ignoredKeys.includes(event.key)) {
+            return;
+        }
+
+        if (debounceTimer) {
+            clearTimeout(debounceTimer);
+        }
+
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            submitFilters();
+            return;
+        }
+
+        debounceTimer = setTimeout(submitFilters, 450);
+    });
+});
+</script>
+@endpush
 @endsection
