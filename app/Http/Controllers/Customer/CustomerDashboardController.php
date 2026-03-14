@@ -26,19 +26,19 @@ class CustomerDashboardController extends Controller
     public function index()
     {
         $customer = auth()->user();
-        
+
         // Get statistics
         $stats = $this->dashboardService->getStats($customer);
-        
+
         // Get recent activities
         $recentActivities = $this->dashboardService->getRecentActivities($customer, 10);
-        
+
         // Get upcoming bookings
         $upcomingBookings = $this->dashboardService->getUpcomingBookings($customer, 5);
-        
+
         // Get pending payments
         $pendingPayments = $this->dashboardService->getPendingPayments($customer);
-        
+
         // Get chart data
         $bookingChart = $this->dashboardService->getBookingChartData($customer, 'monthly');
         $spendingSummary = $this->dashboardService->getSpendingSummary($customer);
@@ -59,7 +59,7 @@ class CustomerDashboardController extends Controller
     public function myBookings(Request $request)
     {
         $customer = auth()->user();
-        
+
         $query = Booking::where('customer_id', $customer->id)
             ->with(['hoarding', 'vendor']);
 
@@ -73,11 +73,11 @@ class CustomerDashboardController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('booking_number', 'like', "%{$request->search}%")
-                  ->orWhereHas('hoarding', function($hq) use ($request) {
-                      $hq->where('title', 'like', "%{$request->search}%");
-                  });
+                    ->orWhereHas('hoarding', function ($hq) use ($request) {
+                        $hq->where('title', 'like', "%{$request->search}%");
+                    });
             });
         }
 
@@ -112,7 +112,7 @@ class CustomerDashboardController extends Controller
     public function myPayments(Request $request)
     {
         $customer = auth()->user();
-        
+
         $query = DB::table('booking_payments')
             ->join('bookings', 'booking_payments.booking_id', '=', 'bookings.id')
             ->where('bookings.customer_id', $customer->id)
@@ -136,9 +136,9 @@ class CustomerDashboardController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('booking_payments.transaction_id', 'like', "%{$request->search}%")
-                  ->orWhere('bookings.booking_number', 'like', "%{$request->search}%");
+                    ->orWhere('bookings.booking_number', 'like', "%{$request->search}%");
             });
         }
 
@@ -177,7 +177,7 @@ class CustomerDashboardController extends Controller
     public function myEnquiries(Request $request)
     {
         $customer = auth()->user();
-        
+
         $query = Enquiry::where('customer_id', $customer->id)
             ->with(['hoarding', 'vendor']);
 
@@ -195,11 +195,11 @@ class CustomerDashboardController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('id', 'like', "%{$request->search}%")
-                  ->orWhereHas('hoarding', function($hq) use ($request) {
-                      $hq->where('title', 'like', "%{$request->search}%");
-                  });
+                    ->orWhereHas('hoarding', function ($hq) use ($request) {
+                        $hq->where('title', 'like', "%{$request->search}%");
+                    });
             });
         }
 
@@ -226,7 +226,7 @@ class CustomerDashboardController extends Controller
     public function myOffers(Request $request)
     {
         $customer = auth()->user();
-        
+
         $query = DB::table('offers')
             ->where('customer_id', $customer->id);
 
@@ -270,7 +270,7 @@ class CustomerDashboardController extends Controller
     public function myQuotations(Request $request)
     {
         $customer = auth()->user();
-        
+
         $query = DB::table('quotations')
             ->where('customer_id', $customer->id);
 
@@ -315,7 +315,7 @@ class CustomerDashboardController extends Controller
     public function myInvoices(Request $request)
     {
         $customer = auth()->user();
-        
+
         $query = Booking::where('customer_id', $customer->id)
             ->whereNotNull('invoice_number')
             ->with(['hoarding', 'vendor']);
@@ -334,9 +334,9 @@ class CustomerDashboardController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('invoice_number', 'like', "%{$request->search}%")
-                  ->orWhere('booking_number', 'like', "%{$request->search}%");
+                    ->orWhere('booking_number', 'like', "%{$request->search}%");
             });
         }
 
@@ -365,7 +365,7 @@ class CustomerDashboardController extends Controller
     public function myThreads(Request $request)
     {
         $customer = auth()->user();
-        
+
         $query = DB::table('threads')
             ->where('customer_id', $customer->id);
 
@@ -413,7 +413,7 @@ class CustomerDashboardController extends Controller
     public function exportBookings(Request $request, string $format = 'pdf')
     {
         $customer = auth()->user();
-        
+
         $query = Booking::where('customer_id', $customer->id)
             ->with(['hoarding', 'vendor']);
 
@@ -458,15 +458,15 @@ class CustomerDashboardController extends Controller
     protected function exportBookingsCSV($bookings, $customer)
     {
         $filename = 'my-bookings-' . now()->format('Y-m-d') . '.csv';
-        
+
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        $callback = function() use ($bookings) {
+        $callback = function () use ($bookings) {
             $file = fopen('php://output', 'w');
-            
+
             // Headers
             fputcsv($file, [
                 'Booking Number',
@@ -515,7 +515,7 @@ class CustomerDashboardController extends Controller
     public function exportPayments(Request $request, string $format = 'pdf')
     {
         $customer = auth()->user();
-        
+
         $payments = DB::table('booking_payments')
             ->join('bookings', 'booking_payments.booking_id', '=', 'bookings.id')
             ->where('bookings.customer_id', $customer->id)
@@ -530,9 +530,9 @@ class CustomerDashboardController extends Controller
                 'Content-Disposition' => "attachment; filename=\"{$filename}.csv\"",
             ];
 
-            $callback = function() use ($payments) {
+            $callback = function () use ($payments) {
                 $file = fopen('php://output', 'w');
-                
+
                 fputcsv($file, [
                     'Transaction ID',
                     'Booking Number',
@@ -570,7 +570,7 @@ class CustomerDashboardController extends Controller
     public function exportInvoices(Request $request, string $format = 'pdf')
     {
         $customer = auth()->user();
-        
+
         $invoices = Booking::where('customer_id', $customer->id)
             ->whereNotNull('invoice_number')
             ->with(['hoarding', 'vendor'])
@@ -584,9 +584,9 @@ class CustomerDashboardController extends Controller
                 'Content-Disposition' => "attachment; filename=\"{$filename}.csv\"",
             ];
 
-            $callback = function() use ($invoices) {
+            $callback = function () use ($invoices) {
                 $file = fopen('php://output', 'w');
-                
+
                 fputcsv($file, [
                     'Invoice Number',
                     'Booking Number',

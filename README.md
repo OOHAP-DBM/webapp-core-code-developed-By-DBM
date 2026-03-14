@@ -63,3 +63,7 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 php artisan schedule:run
 C:\xampp\php\php.exe" "artisan" pos:release-expired-bookings > "NUL" 2>&1
 php artisan queue:work
+
+
+Packages, need to install
+1.composer require intervention/image

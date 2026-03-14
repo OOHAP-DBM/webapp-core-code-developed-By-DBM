@@ -318,32 +318,12 @@
                 </table>
             </div>
             
-            <div class="bg-white px-4 sm:px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 border-t border-gray-100 text-[12px] text-gray-500">
-                <div class="flex items-center gap-3 font-medium">
-                    <form id="perPageForm" method="GET" action="" class="flex items-center gap-2">
-                        @foreach(request()->except('page', 'per_page') as $key => $val)
-                            @if(is_array($val))
-                                @foreach($val as $item)
-                                    <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
-                                @endforeach
-                            @else
-                                <input type="hidden" name="{{ $key }}" value="{{ $val }}">
-                            @endif
-                        @endforeach
-                        <label for="perPageSelect" class="mr-1 text-gray-500">Show</label>
-                        <select id="perPageSelect" name="per_page" onchange="document.getElementById('perPageForm').submit()" class="bg-[#F3F4F6] border-none rounded-md px-3 py-1 text-gray-700 font-bold">
-                            @foreach([5, 10, 20, 50, 100] as $size)
-                                <option value="{{ $size }}" {{ $perPage == $size ? 'selected' : '' }}>{{ $size }}</option>
-                            @endforeach
-                        </select>
-                        <span class="ml-2">per page</span>
-                    </form>
-                    <span>
-                        Showing {{ ($hoardings->firstItem() ?? 0) }} to {{ ($hoardings->lastItem() ?? count($hoardings)) }} of {{ ($hoardings->total() ?? count($hoardings)) }} records
-                    </span>
+            <div class="bg-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-100 text-sm text-gray-600">
+                <div class="font-medium">
+                    Showing {{ ($hoardings->firstItem() ?? 0) }} - {{ ($hoardings->lastItem() ?? count($hoardings)) }} of {{ ($hoardings->total() ?? count($hoardings)) }}
                 </div>
                 <div>
-                    {{ $hoardings->appends(request()->except('page'))->links('pagination.dashboard-compact') }}
+                    {{ $hoardings->appends(request()->except('page'))->links('pagination.vendor-compact') }}
                 </div>
             </div>
         </div>

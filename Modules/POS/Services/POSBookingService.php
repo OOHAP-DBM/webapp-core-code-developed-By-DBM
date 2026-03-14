@@ -235,7 +235,7 @@ class POSBookingService
 public function createBooking(array $data): POSBooking
 {
     Log::info('POSBookingService.createBooking start', ['vendor_id' => ($data['vendor_id'] ?? Auth::id()), 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids','start_date','end_date','payment_mode','customer_id']))]);
-
+    Log::info('', ['full_data' => $data]); // Log full data for debugging (remove in production)
     return DB::transaction(function () use ($data) {
         $effectiveVendorId = (int) ($data['vendor_id'] ?? Auth::id());
         // Normalization: Ensure dates exist
@@ -300,6 +300,15 @@ public function createBooking(array $data): POSBooking
             'payment_status'  => 'unpaid',
             'status'          => 'pending_payment',
             'hold_expiry_at'  => $data['hold_expiry_at'] ?? null,
+
+               // Milestone flag (WHEN) — bool stored on booking
+            'is_milestone'     => (bool) ($data['is_milestone'] ?? false),
+ 
+            // Milestone counters — set after milestone creation below
+            'milestone_total'            => 0,
+            'milestone_paid'             => 0,
+            'milestone_amount_paid'      => 0,
+            'milestone_amount_remaining' => 0,
         ];
 
         Log::info('POSBookingService creating booking record', ['vendor_id' => $effectiveVendorId, 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id','start_date','end_date','total_amount']))]);
@@ -318,6 +327,11 @@ public function createBooking(array $data): POSBooking
 
         Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => $effectiveVendorId, 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
 
+
+         // ── Milestone creation (owned by service, not controller) ─────
+        if ($booking->is_milestone && !empty($data['milestone_data'])) {
+            $this->createMilestonesForPOSBooking($booking, $data['milestone_data']);
+        }
         // Generate invoice after booking creation (auto-invoice)
         try {
             if ($this->isAutoInvoiceEnabled()) {
@@ -351,10 +365,14 @@ public function createBooking(array $data): POSBooking
             // Don't fail the booking if invoice fails
         }
 
-                    DB::afterCommit(function () use ($booking) {
+        DB::afterCommit(function () use ($booking) {
+            // 1. Domain event (existing)
             event(new \Modules\POS\Events\PosBookingCreated(
                 $booking->load(['customer', 'vendor', 'bookingHoardings.hoarding'])
             ));
+        
+            // 2. Notifications — runs after commit so booking is fully persisted
+            $this->dispatchBookingCreatedNotifications($booking);
         });
         return $booking->fresh(['bookingHoardings']);
     });
@@ -483,6 +501,96 @@ public function releaseHoardings(POSBooking $booking)
     }
 }
 
+
+/**
+ * Dispatch all post-booking notifications.
+ *
+ * Runs inside DB::afterCommit so the booking record is guaranteed to
+ * exist before any notification reads it.
+ *
+ * Called automatically by createBooking() — no controller needs to
+ * trigger this manually. Both web and API bookings benefit.
+ */
+private function dispatchBookingCreatedNotifications(POSBooking $booking): void
+{
+    // ── WhatsApp ──────────────────────────────────────────────────────
+    try {
+        $phone = $booking->customer_phone
+            ?? ($booking->customer_id
+                ? optional(\App\Models\User::find($booking->customer_id))->phone
+                : null);
+ 
+        if ($phone && $phone !== 'N/A') {
+            $this->sendWhatsAppNotification($booking, $phone);
+        }
+    } catch (\Throwable $e) {
+        Log::warning('POS WhatsApp notification failed', [
+            'booking_id' => $booking->id,
+            'error'      => $e->getMessage(),
+        ]);
+    }
+ 
+    // ── Email + Push ──────────────────────────────────────────────────
+    try {
+        if (!$this->isEmailNotificationEnabled()) {
+            return;
+        }
+ 
+        // Customer
+        if (!empty($booking->customer_id)) {
+            $customer = \App\Models\User::find($booking->customer_id);
+ 
+            if ($customer?->notification_email
+                && filter_var($customer->email ?? '', FILTER_VALIDATE_EMAIL)) {
+                \Mail::to($customer->email)
+                    ->queue(new \App\Mail\PosBookingCreatedMail($booking, $customer, 'customer'));
+            }
+ 
+            if ($customer?->notification_push) {
+                send(
+                    $customer,
+                    'Booking Created Successfully',
+                    "Your POS booking #{$booking->invoice_number} for ₹" . number_format($booking->total_amount, 2) . " has been created",
+                    [
+                        'type'           => 'pos_booking_created',
+                        'booking_id'     => $booking->id,
+                        'invoice_number' => $booking->invoice_number,
+                        'total_amount'   => $booking->total_amount,
+                        'source'         => 'pos_system',
+                    ]
+                );
+            }
+        }
+ 
+        // Vendor
+        $vendor = \App\Models\User::find($booking->vendor_id);
+        if ($vendor?->notification_email) {
+            foreach (array_unique(array_filter($vendor->notification_emails ?? [])) as $email) {
+                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    \Mail::to($email)
+                        ->queue(new \App\Mail\PosBookingCreatedMail($booking, $vendor, 'vendor'));
+                }
+            }
+        }
+ 
+        // Admins
+        \App\Models\User::whereHas('roles', function ($q) {
+            $q->whereIn('name', ['admin', 'super_admin']);
+        })->get()->each(function ($admin) use ($booking) {
+            if ($admin->notification_email
+                && filter_var($admin->email ?? '', FILTER_VALIDATE_EMAIL)) {
+                \Mail::to($admin->email)
+                    ->queue(new \App\Mail\PosBookingCreatedMail($booking, $admin, 'admin'));
+            }
+        });
+ 
+    } catch (\Throwable $e) {
+        Log::warning('POS email/push notification failed', [
+            'booking_id' => $booking->id,
+            'error'      => $e->getMessage(),
+        ]);
+    }
+}
     /**
      * Update POS booking
      */
@@ -567,6 +675,92 @@ public function releaseHoardings(POSBooking $booking)
         });
     }
 
+    /**
+     * Create milestones for a POS booking.
+     *
+     * Owned by the service (Single Responsibility).
+     * Called only from createBooking() — never from a controller.
+     *
+     * @param  POSBooking  $booking
+     * @param  array       $milestonesData  Validated milestone rows from request
+     * @return void
+     */
+    private function createMilestonesForPOSBooking(POSBooking $booking, array $milestonesData): void
+    {
+        $totalAmount  = (float) $booking->total_amount;
+        $amountType   = $milestonesData[0]['amount_type'] ?? 'percentage';
+        $created      = [];
+        $sequenceNo   = 1;
+    
+        // ── Server-side total validation ──────────────────────────────────
+        $sumPct   = 0.0;
+        $sumFixed = 0.0;
+        foreach ($milestonesData as $m) {
+            if (($m['amount_type'] ?? '') === 'percentage') {
+                $sumPct += (float) ($m['amount'] ?? 0);
+            } else {
+                $sumFixed += (float) ($m['amount'] ?? 0);
+            }
+        }
+    
+        if ($amountType === 'percentage' && abs($sumPct - 100) > 0.01) {
+            Log::warning('Milestone percentages do not total 100 — skipping milestone creation', [
+                'pos_booking_id' => $booking->id,
+                'sum'            => $sumPct,
+            ]);
+            $booking->update(['is_milestone' => false]);
+            return;
+        }
+    
+        if ($amountType === 'fixed' && abs($sumFixed - $totalAmount) > 0.01) {
+            Log::warning('Milestone fixed amounts do not match booking total — skipping milestone creation', [
+                'pos_booking_id' => $booking->id,
+                'sum'            => $sumFixed,
+                'total'          => $totalAmount,
+            ]);
+            $booking->update(['is_milestone' => false]);
+            return;
+        }
+    
+        // ── Create milestone records ──────────────────────────────────────
+        foreach ($milestonesData as $idx => $milestoneData) {
+            $isFirst    = ($idx === 0);
+            $calculated = $milestoneData['amount_type'] === 'percentage'
+                ? round(($totalAmount * (float) $milestoneData['amount']) / 100, 2)
+                : (float) $milestoneData['amount'];
+    
+            $milestone = \App\Models\QuotationMilestone::create([
+                'pos_booking_id'   => $booking->id,
+                'quotation_id'     => null,
+                'title'            => $milestoneData['title'],
+                'description'      => $milestoneData['description'] ?? null,
+                'sequence_no'      => $sequenceNo++,
+                'amount_type'      => $milestoneData['amount_type'],
+                'amount'           => $milestoneData['amount'],
+                'calculated_amount'=> $calculated,
+                'status'           => $isFirst ? 'due' : 'pending',
+                'due_date'         => $milestoneData['due_date'] ?? null,
+                'vendor_notes'     => $milestoneData['vendor_notes'] ?? null,
+            ]);
+    
+            $created[] = $milestone;
+        }
+    
+        // ── Update booking milestone counters ─────────────────────────────
+        $booking->update([
+            'milestone_total'            => count($created),
+            'milestone_paid'             => 0,
+            'milestone_amount_paid'      => 0,
+            'milestone_amount_remaining' => $totalAmount,
+            'current_milestone_id'       => $created[0]->id ?? null,
+        ]);
+    
+        Log::info('POSBookingService: milestones created', [
+            'pos_booking_id' => $booking->id,
+            'count'          => count($created),
+            'amount_type'    => $amountType,
+        ]);
+    }
     /**
      * Cancel booking
      */
