@@ -1,6 +1,6 @@
 @extends($posLayout ?? 'layouts.vendor')
 
-@section('title', 'POS Customers')
+@section('title', 'Create Booking')
 @section('content')
 <div class="px-3 sm:px-4 lg:px-6 py-4 sm:py-6 bg-gray-50">
     <div id="selection-screen" class="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6">

@@ -807,8 +807,8 @@ document.head.appendChild(style);
         return true;
     }
 
-    // Show modal at intervals: 3s, 1m, 2m, 5m
-    const intervals = [3,30, 60, 120, 300]; // seconds
+    // Show modal at intervals: 30s, 1m, 2m, 5m
+    const intervals = [30, 80, 160, 310]; // seconds
     let shown = false;
 
 
