@@ -71,6 +71,13 @@ class POSBooking extends Model
         'started_at',
         'completed_at',
         'cancelled_at',
+        'is_milestone',
+        'milestone_total',
+        'milestone_paid',
+        'milestone_amount_paid',
+        'milestone_amount_remaining',
+        'current_milestone_id',
+        'all_milestones_paid_at',
     ];
 
     protected $casts = [
@@ -92,6 +99,10 @@ class POSBooking extends Model
         'cancelled_at' => 'datetime',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'is_milestone' => 'boolean',
+        'milestone_amount_paid'      => 'decimal:2',
+        'milestone_amount_remaining' => 'decimal:2',
+        'all_milestones_paid_at'     => 'datetime',
     ];
 
     // Status constants
