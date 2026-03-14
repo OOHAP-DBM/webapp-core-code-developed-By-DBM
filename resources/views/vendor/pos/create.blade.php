@@ -2,30 +2,32 @@
 
 @section('title', 'Create Booking')
 @section('content')
-<div class="px-3 sm:px-4 lg:px-6 py-4 sm:py-6 bg-gray-50">
+<div class="sm:py-2 bg-gray-50">
     <div id="selection-screen" class="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6">
         
         <div class="order-2 sm:order-1 sm:col-span-3 lg:col-span-8">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div class="px-3 sm:px-4 lg:px-6 py-4 border-b border-gray-100 flex justify-between items-center gap-2 bg-white">
-                    <h2 class="text-xl font-bold text-gray-800">Create POS Booking</h2>
+                <div class="px-3 sm:px-4 lg:px-6 py-4 border-b border-gray-100 items-center gap-2 bg-white">
+                    <h2 class="text-xl font-bold text-gray-800">Create New POS Booking</h2>
+                    <p class="text-xs text-gray-400">Select a customer and choose hoardings to create a booking.</p>
                     <!-- <span id="booking-date" class="text-xs text-gray-400 font-medium"></span> -->
                 </div>
 
                 <div class="p-3 sm:p-4 lg:p-6">
                     <div class="mb-8">
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Customer Details</label>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider ">Select Customer</label>
+                        <p class="block text-xs text-gray-400 tracking-wider mb-2">Search an existing customer or add a new customer to proceed with booking.</p>
                         
                         <div id="search-container" class="flex flex-col sm:flex-row gap-2">
                             <div class="relative flex-1 border border-gray-300">
                                 <input type="text" id="customer-search" autocomplete="off" 
-                                    placeholder="Search by name, email, or mobile..." 
+                                    placeholder="Search customer by name, email, or mobile number" 
                                     class="w-full border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2 min-h-[44px]">
                                 <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
                             </div>
                             <button type="button" id="new-customer-btn" onclick="openCustomerModal()" class="w-full sm:w-auto min-h-[44px] bg-green-600 text-white px-4 hover:bg-green-700 transition flex items-center justify-center">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                <span class="ml-1 text-sm font-semibold">New</span>
+                                <span class="ml-1 text-sm font-semibold">Add New Customer</span>
                             </button>
                         </div>
 
@@ -59,18 +61,19 @@
 
                     <div class="space-y-6">
                         <div class="selection-group">
-                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center">
                                 <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> OOH (Static)
                             </h4>
+                            <p class="text-xs text-gray-400 mb-2 px-3.5">Select traditional billboard hoardings for long-term display.</p>
                             <div class="overflow-x-auto border border-gray-100">
                                 <table class="min-w-[700px] w-full divide-y divide-gray-200 text-left text-xs sm:text-sm">
                                     <thead class="bg-gray-50 text-gray-500">
                                         <tr>
-                                            <th class="px-3 sm:px-4 py-3 font-semibold">Hoarding</th>
-                                            <th class="px-3 sm:px-4 py-3 font-semibold hidden sm:table-cell">Rental/Mo</th>
-                                            <th class="px-4 py-3 font-semibold text-center">Duration</th>
-                                            <th class="px-3 sm:px-4 py-3 font-semibold">Total Price</th>
-                                            <th class="px-3 sm:px-4 py-3 font-semibold text-right">Action</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold">Hoarding Name</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold hidden sm:table-cell">Monthly Rental</th>
+                                            <th class="px-4 py-3 font-semibold text-center">Booking Duration</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold">Total Cost</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold text-right">Remove</th>
                                         </tr>
                                     </thead>
                                     <tbody id="ooh-selected-list" class="divide-y divide-gray-50 bg-white">
@@ -81,19 +84,20 @@
                         </div>
 
                         <div class="selection-group">
-                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-                                <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span> Digital (DOOH)
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center">
+                                <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span> Digital Hoardings (DOOH)
                             </h4>
+                            <p class="text-xs text-gray-400 mb-2 px-3.5">Select digital screens and configure slot bookings.</p>
                             <div class="overflow-x-auto border border-gray-100">
                                 <table class="min-w-[700px] w-full divide-y divide-gray-200 text-left text-xs sm:text-sm">
                                     <thead class="bg-gray-50 text-gray-500">
                                         <tr>
-                                            <th class="px-3 sm:px-4 py-3 font-semibold">Hoarding</th>
-                                            <th class="px-3 sm:px-4 py-3 font-semibold hidden sm:table-cell">Rental/Mo</th>
-                                            <th class="px-3 sm:px-4 py-3 font-semibold text-center hidden sm:table-cell">Slots/Day</th>
-                                            <th class="px-4 py-3 font-semibold text-center">Duration</th>
-                                            <th class="px-3 sm:px-4 py-3 font-semibold">Total Price</th>
-                                            <th class="px-3 sm:px-4 py-3 font-semibold text-right">Action</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold">Screen Location</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold hidden sm:table-cell">Slot Price</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold text-center hidden sm:table-cell">Slots Per Day</th>
+                                            <th class="px-4 py-3 font-semibold text-center">Booking Duration</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold">Total Cost</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold text-right">Remove</th>
                                         </tr>
                                     </thead>
                                     <tbody id="dooh-selected-list" class="divide-y divide-gray-50 bg-white">
@@ -105,9 +109,9 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-12 pt-6 border-t border-gray-100">
-                        <button type="button" onclick="location.reload()" class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#7A9C89] border border-gray-200 font-bold text-white transition cursor-pointer">Cancel</button>
+                        <button type="button" onclick="location.reload()" class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#7A9C89] border border-gray-200 font-bold text-white transition cursor-pointer">Cancel Booking</button>
                         <button id="submit-btn" class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#2E5B42] text-white font-bold shadow-lg shadow-green-900/20 hover:bg-opacity-90 active:scale-[0.98] transition cursor-pointer">
-                            Preview & Create Booking (<span id="btn-count">0</span>)
+                            Preview Booking & Confirm (<span id="btn-count">0</span>)
                         </button>
                     </div>
                 </div>
@@ -118,24 +122,24 @@
              RIGHT PANEL — Available Hoardings
         ══════════════════════════════════════════ --}}
         <div class="order-1 sm:order-2 sm:col-span-2 lg:col-span-4">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 lg:col-span-2 lg:sticky lg:top-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 lg:col-span-2 lg:sticky">
                 <div class="px-3 sm:px-4 lg:px-5 pt-4 sm:pt-5 gap-3 flex">
-                    <h3 class="font-bold text-gray-800">Available Hoardings</h3>
+                    <h3 class="font-bold text-gray-800">Select Hoardings for Booking</h3>
                     <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-bold" id="available-count">0</span>
                 </div>
-                <p class="px-3 sm:px-4 lg:px-5 text-xs text-gray-400 mt-0.5">Select available hoardings for your booking</p>
+                <p class="px-3 sm:px-4 lg:px-5 text-xs text-gray-400 mt-0.5">Browse and select hoardings to add them to the booking.</p>
 
                 <div class="p-3 sm:p-4 lg:p-5 ">
                     {{-- Search + Filter row --}}
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
                         <div class="relative flex-1">
-                            <input type="text" id="hoarding-search" placeholder="Search for available hoardings..." 
+                            <input type="text" id="hoarding-search" placeholder="Search hoardings by location, size, or name" 
                                 class="w-full pl-10 border border-gray-300 text-sm focus:ring-green-500 min-h-[44px]" style="height:40px;">
                             <span class="absolute left-3 top-0 bottom-0 my-auto text-gray-400 flex items-center" style="pointer-events:none; height:18px;">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-3.5-3.5"/></svg>
                             </span>
                         </div>
-                        <button type="button" class="w-full sm:w-auto min-h-[44px] border border-gray-300 bg-white px-5 py-2 text-gray-700 text-sm font-medium hover:bg-gray-100 transition" style="height:40px;" onclick="openFilterModal()">Filter</button>
+                        <button type="button" class="w-full sm:w-auto min-h-[44px] border border-gray-300 bg-white px-5 py-2 text-gray-700 text-sm font-medium hover:bg-gray-100 transition" style="height:40px;" onclick="openFilterModal()">Advanced Filters</button>
                         @include('vendor.pos.filter_modal')
                     </div>
 
@@ -168,7 +172,7 @@
                     </div>
 
                     {{-- Hoardings Grid --}}
-                    <div id="hoardings-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar"></div>
+                    <div id="hoardings-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar"></div>
                 </div>
             </div>
         </div>
@@ -217,6 +221,33 @@
     #hoardings-grid.list-view .hoarding-card { display: flex; flex-direction: row; align-items: center; }
     #hoardings-grid.list-view .hoarding-card img { width: 64px; height: 64px; flex-shrink: 0; }
     #hoardings-grid.list-view .hoarding-card .card-body { flex: 1; }
+
+    /* POS panel split: 55% left, 45% right on large screens */
+    @media (min-width: 1024px) {
+        #selection-screen:not(.hidden) {
+            display: flex;
+            flex-direction: row;
+            gap: 1.5rem;
+        }
+        #selection-screen > div:first-child {
+            width: 55% !important;
+            min-width: 0;
+        }
+        #selection-screen > div:last-child {
+            width: 45% !important;
+            min-width: 0;
+        }
+    }
+    @media (max-width: 1023.98px) {
+        #selection-screen:not(.hidden) {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        #selection-screen > div:first-child,
+        #selection-screen > div:last-child {
+            width: 100% !important;
+        }
+    }
 </style>
 
 <script>
@@ -235,7 +266,7 @@ let currentPage  = 1;
 let totalPages   = 1;
 let perPage      = 10;
 let currentViewMode   = 'grid';
-let activeFilters     = {};          // ← stores last applied filter params
+let activeFilters     = {};
 let availabilityIssues = {};
 
 const formatINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
@@ -268,17 +299,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const customerId = urlParams.get('customer_id');
 
     if (customerId) {
-        // Hide the New Customer button if a customer is preselected
         const newBtn = document.getElementById('new-customer-btn');
         if (newBtn) newBtn.style.display = 'none';
         try {
-            // Try direct fetch by ID first
             let found = null;
             let res = await fetchJSON(`${API_URL}/customers/${customerId}`);
             if (res && (res.data || res.customer)) {
                 found = res.data || res.customer;
             }
-            // Fallback to previous search if direct fetch fails
             if (!found || !found.id) {
                 res  = await fetchJSON(`${API_URL}/customers?search=${customerId}`);
                 const list = res.data?.data || res.data || [];
@@ -291,14 +319,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             if (found && found.id) {
                 selectCustomer(found);
-                // Fill the search input for clarity
                 const searchInput = document.getElementById('customer-search');
                 if (searchInput) searchInput.value = found.name;
-                // Hide the Change button if coming from customer selection
                 const changeBtn = document.getElementById('change-customer-btn');
                 if (changeBtn) changeBtn.style.display = 'none';
             } else {
-                // Hide search and show a message if not found
                 document.getElementById('search-container')?.classList.add('hidden');
                 document.getElementById('customer-selected-card')?.classList.remove('hidden');
                 if (document.getElementById('cust-name'))    document.getElementById('cust-name').innerText    = 'Customer not found';
@@ -364,7 +389,7 @@ function renderFilterTags(params) {
 
     Object.entries(params).forEach(([key, val]) => {
         if (!val || val === '' || val === 'ALL' || key === 'page' || key === 'per_page') return;
-        if (key === 'screen_size_min' || key === 'screen_size_max') return; // handle combined
+        if (key === 'screen_size_min' || key === 'screen_size_max') return;
         if (key === 'hoarding_size_min' || key === 'hoarding_size_max') return;
 
         const labelFn = filterLabelMap[key];
@@ -372,7 +397,6 @@ function renderFilterTags(params) {
         if (label) tags.push({ key, label });
     });
 
-    // Combine size ranges
     const sMin = params.screen_size_min, sMax = params.screen_size_max;
     if ((sMin && sMin !== '0') || (sMax && sMax !== '1000')) {
         tags.push({ key: 'screen_size', label: `${sMin ?? 0}Sq.ft - ${sMax ?? 1000}Sq.ft` });
@@ -382,12 +406,10 @@ function renderFilterTags(params) {
         tags.push({ key: 'hoarding_size', label: `Hoarding: ${hMin ?? 0} - ${hMax ?? 1000}Sq.ft` });
     }
 
-    // Price range
     if (params.price_min || params.price_max) {
         tags.push({ key: 'price', label: `₹${params.price_min ?? 0} - ₹${params.price_max ?? '∞'}` });
     }
 
-    // City/location
     if (params.city) tags.push({ key: 'city', label: params.city });
 
     tags.forEach(({ key, label }) => {
@@ -403,10 +425,10 @@ function renderFilterTags(params) {
 }
 
 function removeFilterTag(key) {
-    if (key === 'screen_size')   { delete activeFilters.screen_size_min; delete activeFilters.screen_size_max; }
+    if (key === 'screen_size')        { delete activeFilters.screen_size_min; delete activeFilters.screen_size_max; }
     else if (key === 'hoarding_size') { delete activeFilters.hoarding_size_min; delete activeFilters.hoarding_size_max; }
-    else if (key === 'price')    { delete activeFilters.price_min; delete activeFilters.price_max; }
-    else                         { delete activeFilters[key]; }
+    else if (key === 'price')         { delete activeFilters.price_min; delete activeFilters.price_max; }
+    else                              { delete activeFilters[key]; }
     currentPage = 1;
     loadHoardings(activeFilters);
 }
@@ -415,8 +437,7 @@ function clearAllFilters() {
     activeFilters = {};
     currentPage   = 1;
     loadHoardings({});
-    // Also reset filter modal UI
-    if (typeof resetFilters === 'function') resetFilters(false); // false = don't reload (we already did)
+    if (typeof resetFilters === 'function') resetFilters(false);
 }
 
 function updateUnselectBtn() {
@@ -536,7 +557,7 @@ function renderHoardings(list) {
                 <div class="hoarding-card flex items-center gap-3 bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} p-2 cursor-pointer" onclick="toggleHoarding(${h.id})">
                     <img src="${h.image_url || '/placeholder.png'}" class="w-16 h-16 object-cover object-center flex-shrink-0">
                     <div class="card-body flex-1 min-w-0">
-                        <h4 class="text-[11px] font-bold text-gray-800 truncate">${h.title}</h4>
+                        <h4 class="text-[11px] font-bold text-gray-800 truncate" title="${h.title}">${h.title}</h4>
                         <span class="text-[10px] font-bold text-gray-600">${formatINR(h.price_per_month)}/M</span>
                         ${isDooh ? `<span class="block text-[9px] text-purple-600 font-medium">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
                     </div>
@@ -549,13 +570,13 @@ function renderHoardings(list) {
                 </div>`;
         }
 
-        // Grid view
+        // Grid view — FIXED (backslash wali broken line hatayi, sahi wali lagayi)
         return `
             <div class="hoarding-card relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
                 <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover object-center">
                 ${isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
                 <div class="p-2">
-                    <h4 class="text-[10px] font-bold text-gray-800 truncate">${h.title}</h4>
+                    <h4 class="text-[10px] font-bold text-gray-800 truncate" title="${h.title}">${h.title}</h4>
                     <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
                     ${isDooh ? `<span class="block text-[9px] text-purple-600 font-medium">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
                 </div>
@@ -628,11 +649,11 @@ function updateSummary() {
         let hasOoh = false, hasDooh = false;
 
         selectedHoardings.forEach((h, id) => {
-            const totalPrice   = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
-            const issue        = availabilityIssues[id];
+            const totalPrice    = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
+            const issue         = availabilityIssues[id];
             const conflictClass = issue ? 'availability-conflict' : '';
             const conflictBadge = issue ? `<span class="inline-block mt-1 text-[9px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">${issue.label}</span>` : '';
-            const isDooh       = h.type?.toUpperCase() === 'DOOH';
+            const isDooh        = h.type?.toUpperCase() === 'DOOH';
 
             if (isDooh) {
                 hasDooh = true;
@@ -841,7 +862,7 @@ window.finalCheckAvailability = async function() { return await checkAllAvailabi
 
 /* --- SUBMIT --- */
 document.getElementById('submit-btn').addEventListener('click', async () => {
-    if (!selectedCustomer)        { showToast('Select a customer.', 'warning'); return; }
+    if (!selectedCustomer)            { showToast('Select a customer.', 'warning'); return; }
     if (selectedHoardings.size === 0) { showToast('Select at least one hoarding.', 'warning'); return; }
 
     const btn = document.getElementById('submit-btn');
@@ -884,7 +905,6 @@ function populatePreview() {
     const doohTbody = document.getElementById('preview-dooh-list');
     if (!oohTbody || !doohTbody) { console.error('Preview DOM elements missing!'); return; }
 
-    // ── Customer fields ──
     const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = safe(val); };
     setEl('preview-cust-name',    selectedCustomer.name);
     setEl('preview-cust-phone',   selectedCustomer.phone);
@@ -900,11 +920,9 @@ function populatePreview() {
     setEl('preview-cust-updated', selectedCustomer.updated_at);
     setEl('preview-total-count',  selectedHoardings.size);
 
-    // ── Hoarding rows ──
     oohTbody.innerHTML = ''; doohTbody.innerHTML = '';
     globalBaseAmount   = 0;
 
-    // ── collect all rows first, then render with correct SN ──
     const allRows = [];
     selectedHoardings.forEach((h) => {
         const itemTotal = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
@@ -941,10 +959,9 @@ function populatePreview() {
                 </td>
                 <td class="px-4 py-2 text-right font-bold text-gray-800 text-xs">${formatINR(itemTotal)}</td>
             </tr>`;
-        // Both OOH and DOOH go into same tbody to preserve insertion-order SN
         oohTbody.innerHTML += row;
     });
-    doohTbody.innerHTML = ''; // clear unused tbody
+    doohTbody.innerHTML = '';
 
     const sideSubTotal = document.getElementById('side-sub-total');
     if (sideSubTotal) sideSubTotal.innerText = formatINR(globalBaseAmount);
