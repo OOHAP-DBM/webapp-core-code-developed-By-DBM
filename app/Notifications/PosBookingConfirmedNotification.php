@@ -13,6 +13,21 @@ class PosBookingConfirmedNotification extends Notification implements ShouldQueu
 {
     use Queueable;
 
+    /**
+     * Prevent short worker timeouts from killing slower mail transports.
+     */
+    public int $timeout = 120;
+
+    /**
+     * Keep retries bounded to avoid noisy repeated failures.
+     */
+    public int $tries = 3;
+
+    /**
+     * Retry with progressive delay when SMTP/network is temporarily slow.
+     */
+    public array $backoff = [10, 60, 180];
+
     public function __construct(protected POSBooking $booking) {}
 
     public function via($notifiable): array

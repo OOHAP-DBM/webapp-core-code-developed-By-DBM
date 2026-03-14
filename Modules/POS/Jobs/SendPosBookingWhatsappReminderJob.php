@@ -4,6 +4,7 @@ namespace Modules\POS\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ use App\Services\Whatsapp\TwilioWhatsappService;
 
 class SendPosBookingWhatsappReminderJob implements ShouldQueue
 {
-    use InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $bookingId;
 
@@ -50,7 +51,7 @@ class SendPosBookingWhatsappReminderJob implements ShouldQueue
         });
     }
 
-    protected function buildMessage(PosBooking $booking): string
+    protected function buildMessage(POSBooking $booking): string
     {
         return <<<MSG
         Hello {$booking->customer_name},
