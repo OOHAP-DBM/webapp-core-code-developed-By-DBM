@@ -107,10 +107,17 @@
 
             // Open button (hamburger in navbar)
             const openBtn  = document.getElementById('mobile-menu-btn');
+            // User icon in navbar (open profile page)
+            const userBtn  = document.querySelector('#user button');
             // Close button (X inside sidebar)
             const closeBtn = document.getElementById('mobile-btn-close');
 
             if (openBtn)  openBtn.addEventListener('click', openSidebar);
+            if (userBtn) {
+                userBtn.addEventListener('click', function () {
+                    window.location.href = "{{ route('customer.profile.index') }}";
+                });
+            }
             if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
 
             // Near Me button in navbar search
