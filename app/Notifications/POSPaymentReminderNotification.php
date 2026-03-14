@@ -29,10 +29,12 @@ class POSPaymentReminderNotification extends Notification implements \Illuminate
         $actionUrl = null;
         if (Route::has('vendor.pos.bookings.invoice')) {
             $actionUrl = route('vendor.pos.bookings.invoice', ['id' => $this->booking->id]);
-        } elseif (Route::has('vendor.pos.show')) {
-            $actionUrl = route('vendor.pos.show', ['id' => $this->booking->id]);
+        } elseif (Route::has('vendor.pos.bookings.show')) {
+            $actionUrl = route('vendor.pos.bookings.show', ['id' => $this->booking->id]);
         } elseif (Route::has('admin.pos.show')) {
             $actionUrl = route('admin.pos.show', ['id' => $this->booking->id]);
+        } else {
+            $actionUrl = url('/vendor/pos/bookings/' . $this->booking->id);
         }
 
         $mailMessage = (new MailMessage)
