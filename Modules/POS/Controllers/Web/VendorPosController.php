@@ -258,6 +258,10 @@ class VendorPosController extends Controller
      */
     public function show($id)
     {
+        \Log::info("Vendor POS show booking details", [
+            'booking_id' => $id,
+            'user_id' => Auth::id(),
+        ]);
         $booking = POSBooking::findOrFail($id);
         \Log::info("this is" . $booking);
 
