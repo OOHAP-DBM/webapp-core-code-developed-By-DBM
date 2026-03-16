@@ -34,15 +34,26 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
-            <form method="GET" class="relative flex-1 md:w-72">
+            <form method="GET" action="{{ route('customer.enquiries.index') }}" id="customer-enquiries-search-form" class="relative flex-1 md:w-72">
                 <input
                     type="text"
                     name="search"
+                    id="customer-enquiries-search-input"
                     value="{{ request('search') }}"
-                    placeholder="Search enquiry by enquiry ID..."
+                    placeholder="Search by ID, requirement or hoarding..."
                     class="w-full px-4 py-2 pr-10 border border-gray-300 text-sm
                         focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
+
+                @if(request()->filled('date_filter'))
+                    <input type="hidden" name="date_filter" value="{{ request('date_filter') }}">
+                @endif
+                @if(request()->filled('from_date'))
+                    <input type="hidden" name="from_date" value="{{ request('from_date') }}">
+                @endif
+                @if(request()->filled('to_date'))
+                    <input type="hidden" name="to_date" value="{{ request('to_date') }}">
+                @endif
 
                 {{-- Search Icon --}}
                 <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
@@ -147,13 +158,13 @@
                                 {{-- STATUS TEXT --}}
                                 @if($enquiry->status === 'submitted')
 
-                                    <div class="flex flex-wrap items-center">
-                                        <i class="text-xs font-semibold text-gray-900">
-                                            Enquiry Sent: &nbsp;
-                                        </i>
-                                        <div class="text-xs font-semibold text-[var(--waiting)]">
+                                    <div class="flex flex-wrap items-center gap-x-1">
+                                        <span class="text-xs font-semibold text-gray-900 whitespace-nowrap">
+                                            Enquiry Sent:
+                                        </span>
+                                        <span class="text-xs font-semibold text-[var(--waiting)]">
                                             Waiting for Vendor Response
-                                        </div>
+                                        </span>
                                     </div>
 
                                 @else
@@ -334,4 +345,46 @@
             {{ $enquiries->links() }}
         </div>
     </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('customer-enquiries-search-form');
+    const input = document.getElementById('customer-enquiries-search-input');
+
+    if (!form || !input) {
+        return;
+    }
+
+    let debounceTimer;
+    const ignoredKeys = ['Shift', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Escape', 'Tab'];
+
+    const submitSearch = function () {
+        if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+        } else {
+            form.submit();
+        }
+    };
+
+    input.addEventListener('keyup', function (event) {
+        if (ignoredKeys.includes(event.key)) {
+            return;
+        }
+
+        if (debounceTimer) {
+            clearTimeout(debounceTimer);
+        }
+
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            submitSearch();
+            return;
+        }
+
+        debounceTimer = setTimeout(submitSearch, 450);
+    });
+});
+</script>
+@endpush
 @endsection

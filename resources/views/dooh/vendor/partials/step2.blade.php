@@ -321,7 +321,7 @@
         <!-- Located At -->
         <div>
             <label class="text-sm font-bold text-gray-500 mb-4 block uppercase tracking-wider">Located At</label>
-            <div class="grid grid-cols-2 md:grid-cols-2 gap-y-4 gap-x-12">
+            <div class="grid grid-cols-2 gap-y-2 gap-x-4 md:gap-y-3 md:gap-x-8">
                 @php 
                     $locationOptions = ['Highway hoarding', 'At Square', 'Shopping Mall', 'Airport', 'Park', 'Main Road', 'Intracity Highway', 'Pause Area']; 
                     $selectedLocations = old('located_at', 
@@ -334,7 +334,7 @@
                     );
                 @endphp
                 @foreach($locationOptions as $loc)
-                <label class="flex items-start sm:items-center gap-3 p-4 cursor-pointer group">
+                <label class="flex items-start sm:items-center gap-2 p-2 md:p-2.5 cursor-pointer group">
                     <input type="checkbox" name="located_at[]" value="{{ $loc }}" 
                            {{ in_array($loc, (array)$selectedLocations) ? 'checked' : '' }}
                            class="w-5 h-5 shrink-0 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C] mt-0.5 sm:mt-0">

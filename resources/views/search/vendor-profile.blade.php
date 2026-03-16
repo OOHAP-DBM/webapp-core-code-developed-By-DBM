@@ -2,8 +2,8 @@
 
 @section('content')
 @include('components.customer.navbar')
-<div id="gridView" class="bg-gray-100">
-<div class="max-w-[1460px] mx-auto px-6 py-6">
+<div id="gridView" class="bg-gray-100 pt-5 md:pt-0 ">
+<div class="max-w-[1460px] mx-auto px-6 md:py-6 py-10">
     <div class="bg-gradient-to-b from-[#D9F2E6] to-[#F4FFFB] rounded-lg overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-[#b9d1c5]">
             <h2 class="text-lg font-semibold text-gray-800">
@@ -60,7 +60,8 @@
                     class="h-8 px-3 pr-8 text-sm border border-gray-300 rounded-md bg-white
                     focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 cursor-pointer">
 
-                    <option value="">Recommended</option>
+                    <option value="" {{ request('sort') == '' ? 'selected' : '' }}>All Hoardings</option>
+                    <option value="recommended" {{ request('sort')=='recommended'?'selected':'' }}>Recommended</option>
                     <option value="latest" {{ request('sort')=='latest'?'selected':'' }}>Latest</option>
                     <option value="low_high" {{ request('sort')=='low_high'?'selected':'' }}>Low to high</option>
                     <option value="high_low" {{ request('sort')=='high_low'?'selected':'' }}>High to low</option>

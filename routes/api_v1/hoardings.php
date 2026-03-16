@@ -20,6 +20,7 @@ Route::get('/by-type', [HoardingController::class, 'activeOOHAndDOOH']);
 
 // Public routes - Browse hoardings
 Route::get('/', [HoardingController::class, 'index']);
+Route::get('/vendor/{vendorId}/active', [HoardingController::class, 'vendorActive'])->whereNumber('vendorId');
 Route::get('/cities', [HoardingController::class, 'getCitiesWithActiveHoardings']);
 Route::get('/map-pins', [\Modules\Hoardings\Http\Controllers\Api\HoardingController::class, 'mapPins']);
 Route::get('/{id}', [HoardingController::class, 'show']);

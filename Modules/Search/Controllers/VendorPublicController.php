@@ -15,25 +15,29 @@ class VendorPublicController extends Controller
             ->where('active_role', 'vendor')
             ->whereHas('vendorProfile', function ($q) {
                 $q->where('onboarding_status', 'approved')
-                ->whereNull('deleted_at');
+                    ->whereNull('deleted_at');
             })
             ->with('vendorProfile')
             ->firstOrFail();
         $query = Hoarding::query()
-        ->leftJoin('dooh_screens', 'dooh_screens.hoarding_id', '=', 'hoardings.id')
-        ->where('hoardings.vendor_id', $vendor)
-        ->where('hoardings.status', 'active')
-        ->select('hoardings.*')
-        ->with([
-            'vendor',
-            'hoardingMedia',
-            'doohScreen.media',
-            'doohScreen.packages',
-            'oohPackages'
-        ]);
+            ->leftJoin('dooh_screens', 'dooh_screens.hoarding_id', '=', 'hoardings.id')
+            ->where('hoardings.vendor_id', $vendor)
+            ->where('hoardings.status', 'active')
+            ->select('hoardings.*')
+            ->with([
+                'vendor',
+                'hoardingMedia',
+                'doohScreen.media',
+                'doohScreen.packages',
+                'oohPackages'
+            ]);
 
         $sort = request('sort');
-        if ($sort === 'low_high') {
+        if ($sort === 'recommended') {
+            $query->where('hoardings.is_recommended', true)
+                ->orderByDesc('hoardings.is_featured')
+                ->orderByDesc('hoardings.created_at');
+        } elseif ($sort === 'low_high') {
             $query->orderByRaw("
                 CASE
                     /* DOOH */
@@ -49,8 +53,7 @@ class VendorPublicController extends Controller
                     ELSE COALESCE(hoardings.base_monthly_price, 0)
                 END ASC
             ");
-        }
-        elseif ($sort === 'high_low') {
+        } elseif ($sort === 'high_low') {
             $query->orderByRaw("
                 CASE
                     WHEN hoardings.hoarding_type = 'dooh'
@@ -63,11 +66,9 @@ class VendorPublicController extends Controller
                     ELSE COALESCE(hoardings.base_monthly_price, 0)
                 END DESC
             ");
-        }
-        elseif ($sort === 'latest') {
+        } elseif ($sort === 'latest') {
             $query->orderBy('hoardings.created_at', 'desc');
-        }
-        else {
+        } else {
             $query->orderByDesc('hoardings.is_featured')
                 ->orderByDesc('hoardings.created_at');
         }
@@ -79,7 +80,6 @@ class VendorPublicController extends Controller
                 $hoarding->price_type = 'dooh';
                 $hoarding->base_price_for_enquiry =
                     (float) optional($hoarding->doohScreen)->price_per_slot;
-
             } else {
 
                 $hoarding->price_type = 'ooh';
@@ -99,7 +99,7 @@ class VendorPublicController extends Controller
             : [];
         return view('search.vendor-profile', [
             'vendor'   => $vendorData,
-            'hoardings'=> $hoardings,
+            'hoardings' => $hoardings,
             'cartIds'  => $cartIds
         ]);
     }

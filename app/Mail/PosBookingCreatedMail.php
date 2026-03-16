@@ -16,6 +16,15 @@ class PosBookingCreatedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    /**
+     * Queue worker timeout safety for SMTP delays.
+     */
+    public int $timeout = 120;
+
+    public int $tries = 3;
+
+    public array $backoff = [10, 60, 180];
+
     public function __construct(
         public POSBooking $booking,
         public ?User $customer = null,

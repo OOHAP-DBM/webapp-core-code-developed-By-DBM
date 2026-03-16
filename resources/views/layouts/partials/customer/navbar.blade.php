@@ -33,7 +33,7 @@
                  style="display: none;">
 
                 <div class="px-4 py-3 border-b border-gray-200">
-                    <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                    <h3 class="text-sm font-semibold text-gray-900">Notificationsdddd</h3>
                 </div>
 
                 <div class="max-h-96 overflow-y-auto">

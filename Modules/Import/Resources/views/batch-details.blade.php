@@ -22,7 +22,7 @@
 
 <div id="rowEditorSection" class="bg-white rounded-xl shadow mb-6 {{ $isApprovedBatch ? 'hidden' : '' }}">
     <div class="p-4 border-b border-gray-200 flex items-center justify-between gap-3 flex-wrap">
-        <h2 class="text-lg font-semibold text-gray-900">Batch Summary</h2>
+        <h2 class="text-lg font-semibold text-gray-900">UploadSummary</h2>
         @if(!$isAdmin)
             <button 
                 id="approveInventoryBtn"
@@ -84,7 +84,7 @@
                 <span id="rowImagePreviewText" class="text-sm text-gray-500">No image selected</span>
             </div>
             <div class="md:col-span-4 flex flex-col sm:flex-row gap-2">
-                <button type="submit" class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer touch-manipulation">Save Row</button>
+                <button type="submit" class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer touch-manipulation">Save Hoarding</button>
                 <button type="button" id="resetRowForm" class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer touch-manipulation">Reset</button>
             </div>
         </form>
@@ -93,7 +93,7 @@
 
 <div class="bg-white rounded-xl shadow overflow-hidden">
     <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 class="text-lg font-semibold text-gray-900">Batch Rows</h2>
+        <h2 class="text-lg font-semibold text-gray-900">Hoarding </h2>
         <div class="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-3">
             <button id="bulkDeleteBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation" disabled>
                 Delete Selected (0)

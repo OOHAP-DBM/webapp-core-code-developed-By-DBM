@@ -36,6 +36,7 @@ class QuotationMilestone extends Model
         'payment_details',
         'vendor_notes',
         'admin_notes',
+        'pos_booking_id',
     ];
 
     protected $casts = [

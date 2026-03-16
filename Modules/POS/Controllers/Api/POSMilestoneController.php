@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\POS\Http\Controllers\Api;
+namespace Modules\POS\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -11,23 +11,94 @@ use App\Models\Quotation;
 use App\Services\MilestoneService;
 
 /**
- * POSMilestoneController
- *
- * Handles milestone creation & management for POS bookings.
- * Sits at: POST /vendor/pos/api/bookings/{id}/milestones
- *
- * Called AFTER a POS booking is created (booking_id is in the response).
- * The frontend sends milestone_data[] in the same createBooking payload;
- * POSBookingController::store() delegates here when payment_mode=milestone.
+ * @OA\Tag(
+ *     name="POS",
+ *     description="POS booking milestone management APIs"
+ * )
  */
 class POSMilestoneController extends Controller
 {
     public function __construct(protected MilestoneService $milestoneService) {}
 
-    // ──────────────────────────────────────────────────────────────────────
-    // POST /vendor/pos/api/bookings/{bookingId}/milestones
-    // Body: { milestones: [{ title, amount_type, amount, due_date, vendor_notes }] }
-    // ──────────────────────────────────────────────────────────────────────
+    /**
+     * @OA\Post(
+     *     path="/pos/vendor/bookings/{bookingId}/milestones",
+     *     operationId="posStoreMilestones",
+     *     tags={"POS Milestones"},
+     *     summary="Create milestones for a POS booking",
+     *     description="Creates milestones for an unpaid or partially paid POS booking. All milestones must use the same amount type. Percentages must total 100%, fixed amounts must total the booking amount.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="bookingId",
+     *         in="path",
+     *         required=true,
+     *         description="ID of the POS booking",
+     *         @OA\Schema(type="integer", example=101)
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"milestones"},
+     *             @OA\Property(
+     *                 property="milestones",
+     *                 type="array",
+     *                 minItems=1,
+     *                 @OA\Items(
+     *                     type="object",
+     *                     required={"title","amount_type","amount"},
+     *                     @OA\Property(property="title", type="string", maxLength=100, example="Advance Payment"),
+     *                     @OA\Property(property="amount_type", type="string", enum={"percentage","fixed"}, example="percentage"),
+     *                     @OA\Property(property="amount", type="number", format="float", minimum=0.01, example=30),
+     *                     @OA\Property(property="due_date", type="string", format="date", nullable=true, example="2026-04-01"),
+     *                     @OA\Property(property="description", type="string", maxLength=500, nullable=true, example="Initial advance"),
+     *                     @OA\Property(property="vendor_notes", type="string", maxLength=500, nullable=true, example="Collect via bank transfer")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Milestones created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="3 milestones created successfully."),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="booking_id", type="integer", example=101),
+     *                 @OA\Property(property="payment_mode", type="string", example="milestone"),
+     *                 @OA\Property(property="total_milestones", type="integer", example=3),
+     *                 @OA\Property(
+     *                     property="milestones",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="title", type="string", example="Advance Payment"),
+     *                         @OA\Property(property="sequence_no", type="integer", example=1),
+     *                         @OA\Property(property="amount_type", type="string", example="percentage"),
+     *                         @OA\Property(property="amount", type="number", format="float", example=30),
+     *                         @OA\Property(property="calculated_amount", type="number", format="float", example=30000),
+     *                         @OA\Property(property="status", type="string", enum={"due","pending","paid"}, example="due"),
+     *                         @OA\Property(property="due_date", type="string", format="date", nullable=true, example="2026-04-01")
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation failed or invalid state",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Milestone percentages must total 100%. Got 90%."),
+     *             @OA\Property(property="data", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Booking not found"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function store(Request $request, int $bookingId)
     {
         $request->validate([
@@ -121,9 +192,62 @@ class POSMilestoneController extends Controller
         ], 201);
     }
 
-    // ──────────────────────────────────────────────────────────────────────
-    // GET /vendor/pos/api/bookings/{bookingId}/milestones
-    // ──────────────────────────────────────────────────────────────────────
+
+    /**
+     * @OA\Get(
+     *     path="/pos/vendor/bookings/{bookingId}/milestones",
+     *     operationId="posListMilestones",
+     *     tags={"POS Milestones"},
+     *     summary="List milestones for a POS booking",
+     *     description="Returns all milestones attached to a POS booking with payment summary.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="bookingId",
+     *         in="path",
+     *         required=true,
+     *         description="ID of the POS booking",
+     *         @OA\Schema(type="integer", example=101)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Milestones fetched successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Milestones fetched successfully."),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="booking_id", type="integer", example=101),
+     *                 @OA\Property(property="payment_mode", type="string", example="milestone"),
+     *                 @OA\Property(property="total_amount", type="number", format="float", example=100000),
+     *                 @OA\Property(property="paid_amount", type="number", format="float", example=30000),
+     *                 @OA\Property(property="remaining_amount", type="number", format="float", example=70000),
+     *                 @OA\Property(property="total_milestones", type="integer", example=3),
+     *                 @OA\Property(property="paid_count", type="integer", example=1),
+     *                 @OA\Property(
+     *                     property="milestones",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="title", type="string", example="Advance Payment"),
+     *                         @OA\Property(property="sequence_no", type="integer", example=1),
+     *                         @OA\Property(property="amount_type", type="string", enum={"percentage","fixed"}, example="percentage"),
+     *                         @OA\Property(property="amount", type="number", format="float", example=30),
+     *                         @OA\Property(property="calculated_amount", type="number", format="float", example=30000),
+     *                         @OA\Property(property="status", type="string", enum={"pending","due","paid"}, example="paid"),
+     *                         @OA\Property(property="due_date", type="string", format="date", nullable=true, example="2026-04-01"),
+     *                         @OA\Property(property="paid_at", type="string", format="date-time", nullable=true, example="2026-04-01 10:30:00"),
+     *                         @OA\Property(property="vendor_notes", type="string", nullable=true, example="Collected via bank transfer")
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Booking not found"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function index(int $bookingId)
     {
         $booking = POSBooking::where('id', $bookingId)
@@ -163,10 +287,43 @@ class POSMilestoneController extends Controller
         ]);
     }
 
-    // ──────────────────────────────────────────────────────────────────────
-    // DELETE /vendor/pos/api/bookings/{bookingId}/milestones
-    // Revert to full payment mode
-    // ──────────────────────────────────────────────────────────────────────
+     /**
+     * @OA\Delete(
+     *     path="/pos/vendor/bookings/{bookingId}/milestones",
+     *     operationId="posDestroyMilestones",
+     *     tags={"POS Milestones"},
+     *     summary="Remove all milestones from a POS booking",
+     *     description="Deletes all milestones and reverts booking payment mode to full. Not allowed if any milestone is already paid or booking is fully paid.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="bookingId",
+     *         in="path",
+     *         required=true,
+     *         description="ID of the POS booking",
+     *         @OA\Schema(type="integer", example=101)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Milestones removed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Milestones removed. Booking reverted to full payment."),
+     *             @OA\Property(property="data", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Cannot remove milestones",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Cannot remove milestones — one or more milestones have already been paid."),
+     *             @OA\Property(property="data", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Booking not found"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function destroy(int $bookingId)
     {
         $booking = POSBooking::where('id', $bookingId)

@@ -19,6 +19,7 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://oohapp.io/">
 
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="https://oohapp.io/assets/images/favicon/Vector%20(1).png">
     <link rel="shortcut icon" href="https://oohapp.io/assets/images/favicon/Vector%20(1).png">
@@ -51,13 +52,147 @@
 
    
     <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
 
-    gtag('config', 'G-ST51N3C0N6');
+        gtag('config', 'G-ST51N3C0N6');
     </script>
     <meta name="google-site-verification" content="Cj2NPz4_gTnvaitO3OAv51DDtIaNmE1N4VIP6WiGlDM" />
+
+    
+    @verbatim
+        <script type="application/ld+json">
+            {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                "@type": "Organization",
+                "@id": "https://oohapp.io/#organization",
+                "name": "OOHAPP",
+                "url": "https://oohapp.io/",
+                "logo": {
+                    "@type": "ImageObject",
+                    "@id": "https://oohapp.io/#logo",
+                    "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png",
+                    "width": 512,
+                    "height": 512
+                },
+                "description": "Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.",
+                "telephone": "+91 8118805835",
+                "email": "info@oohapp.io",
+                "foundingDate": "2022",
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "India"
+                },
+                "sameAs": [
+                    "https://www.linkedin.com/company/oohapp/",
+                    "https://twitter.com/oohapads",
+                    "https://www.instagram.com/realoohappofficial/",
+                    "https://www.facebook.com/profile.php?id=100083678822547"
+                ],
+                "address": {
+                    "@type": "PostalAddress",
+                    "streetAddress": "B 25, Vibhuti Khand, Gomti Nagar",
+                    "addressLocality": "Lucknow",
+                    "addressRegion": "Uttar Pradesh",
+                    "postalCode": "226010",
+                    "addressCountry": "IN"
+                },
+                "contactPoint": {
+                    "@type": "ContactPoint",
+                    "telephone": "+91 8118805835",
+                    "contactType": "customer support",
+                    "areaServed": "IN",
+                    "availableLanguage": ["English", "Hindi"]
+                }
+                },
+                {
+                "@type": "LocalBusiness",
+                "@id": "https://oohapp.io/#localbusiness",
+                "name": "OOHAPP",
+                "parentOrganization": {
+                    "@id": "https://oohapp.io/#organization"
+                },
+                "url": "https://oohapp.io/",
+                "image": {
+                    "@type": "ImageObject",
+                    "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png"
+                },
+                "telephone": "+91 8118805835",
+                "email": "info@oohapp.io",
+                "priceRange": "₹₹",
+                "currenciesAccepted": "INR",
+                "paymentAccepted": "Cash, Credit Card, UPI",
+                "address": {
+                    "@type": "PostalAddress",
+                    "streetAddress": "B 25, Vibhuti Khand, Gomti Nagar",
+                    "addressLocality": "Lucknow",
+                    "addressRegion": "Uttar Pradesh",
+                    "postalCode": "226010",
+                    "addressCountry": "IN"
+                },
+                "openingHoursSpecification": {
+                    "@type": "OpeningHoursSpecification",
+                    "dayOfWeek": [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday"
+                    ],
+                    "opens": "09:30",
+                    "closes": "18:30"
+                }
+                },
+                {
+                "@type": "WebSite",
+                "@id": "https://oohapp.io/#website",
+                "url": "https://oohapp.io/",
+                "name": "OOHAPP",
+                "publisher": {
+                    "@id": "https://oohapp.io/#organization"
+                },
+                "inLanguage": "en-IN",
+                "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://oohapp.io/search?q={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                }
+                },
+                {
+                "@type": "WebPage",
+                "@id": "https://oohapp.io/#webpage",
+                "url": "https://oohapp.io/",
+                "name": "Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP",
+                "isPartOf": {
+                    "@id": "https://oohapp.io/#website"
+                },
+                "about": {
+                    "@id": "https://oohapp.io/#organization"
+                },
+                "description": "Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.",
+                "inLanguage": "en-IN",
+                "datePublished": "2023-01-01",
+                "dateModified": "2026-03-13",
+                "breadcrumb": {
+                    "@type": "BreadcrumbList",
+                    "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Home",
+                        "item": "https://oohapp.io/"
+                    }
+                    ]
+                }
+                }
+            ]
+            }
+        </script>
+    @endverbatim
+    
 </head>
 <body class="antialiased">
     <div id="app" class="min-h-screen bg-white">
@@ -225,14 +360,14 @@
 
                     // Check if user is customer
                     @auth
-                    @if(!auth()->user()->hasRole('customer'))
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Access Denied',
-                        text: 'Only customers can add items to shortlist'
-                    });
-                    return;
-                    @endif
+                        @if(!auth()->user()->hasRole('customer'))
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Access Denied',
+                                text: 'Only customers can add items to shortlist'
+                            });
+                            return;
+                        @endif
                     @endauth
 
                     try {
@@ -458,11 +593,13 @@ function toggleShortlist(btn) {
     fbq('track', 'PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=1651081729239968&ev=PageView&noscript=1"
+    src="https://www.facebook.com/tr?id=1651081729239968&ev=PageView&noscript=1" alt="facebook_pixel" 
     />
 </noscript>
 
 
 
+
 </body>
+
 </html>

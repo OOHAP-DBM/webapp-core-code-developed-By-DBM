@@ -119,8 +119,8 @@ class PosBookingHoldExpiredNotification extends Notification
         }
 
         if ($this->hasAnyRole($notifiable, ['vendor']) || ($notifiableId > 0 && $notifiableId === (int) $this->booking->vendor_id)) {
-            if (Route::has('vendor.pos.show')) {
-                return route('vendor.pos.show', ['id' => $this->booking->id]);
+            if (Route::has('vendor.pos.bookings.show')) {
+                return route('vendor.pos.bookings.show', ['id' => $this->booking->id]);
             }
 
             return url('/vendor/pos/bookings/' . $this->booking->id);
@@ -130,18 +130,18 @@ class PosBookingHoldExpiredNotification extends Notification
             ($notifiableId > 0 && $notifiableId === (int) $this->booking->customer_id)
             || $this->hasAnyRole($notifiable, ['customer'])
         ) {
-            if (Route::has('customer.bookings.show')) {
-                return route('customer.bookings.show', ['id' => $this->booking->id]);
+            if (Route::has('customer.pos.booking.show')) {
+                return route('customer.pos.booking.show', ['booking' => $this->booking->id]);
             }
 
-            return url('/customer/bookings/' . $this->booking->id);
+            return url('/customer/pos-booking/' . $this->booking->id);
         }
 
-        if (Route::has('customer.bookings.show')) {
-            return route('customer.bookings.show', ['id' => $this->booking->id]);
+        if (Route::has('customer.pos.booking.show')) {
+            return route('customer.pos.booking.show', ['booking' => $this->booking->id]);
         }
 
-        return url('/customer/bookings/' . $this->booking->id);
+        return url('/customer/pos-booking/' . $this->booking->id);
     }
 
     protected function hasAnyRole($notifiable, array $roles): bool

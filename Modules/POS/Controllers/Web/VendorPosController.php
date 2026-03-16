@@ -288,6 +288,10 @@ class VendorPosController extends Controller
      */
     public function show($id)
     {
+        \Log::info("Vendor POS show booking details", [
+            'booking_id' => $id,
+            'user_id' => Auth::id(),
+        ]);
         $booking = POSBooking::findOrFail($id);
         \Log::info("this is" . $booking);
 
@@ -1280,6 +1284,13 @@ class VendorPosController extends Controller
                 'notes'                                 => 'nullable|string|max:1000',
                 'hold_minutes'                          => 'nullable|integer|min:0',
                 'payment_details_type'                  => 'nullable|string|in:bank_transfer,online',
+                'is_milestone'   => 'nullable|boolean',
+                'milestone_data' => 'required_if:is_milestone,true|array|min:1',
+                'milestone_data.*.title'       => 'required_if:is_milestone,true|string|max:100',
+                'milestone_data.*.amount_type' => 'required_if:is_milestone,true|in:percentage,fixed',
+                'milestone_data.*.amount'      => 'required_if:is_milestone,true|numeric|min:0.01',
+                'milestone_data.*.due_date'    => 'nullable|date',
+                'milestone_data.*.vendor_notes'=> 'nullable|string|max:500',
             ]);
 
             // ── Resolve hoarding IDs ─────────────────────────────────────
@@ -1346,6 +1357,9 @@ class VendorPosController extends Controller
                 ], 422);
             }
 
+             $isMilestone = (bool) ($validated['is_milestone'] ?? false);
+             $milestoneData = $isMilestone ? ($validated['milestone_data'] ?? []) : [];
+
             // ── Pricing ──────────────────────────────────────────────────
             $gstRate            = $this->posBookingService->getGSTRate();
             $baseAmount         = (float) $validated['base_amount'];
@@ -1386,9 +1400,12 @@ class VendorPosController extends Controller
                 'payment_status'   => 'unpaid',
                 'hold_minutes'     => $holdMinutes,
                 'hold_expiry_at'   => $holdExpiryAt,
+                'is_milestone'     => $isMilestone,
+               'milestone_data'   => $milestoneData,
             ];
 
             $booking = $this->posBookingService->createBooking($bookingData);
+            
 
             // ── Reload with hoardings for invoice ─────────────────────────
             $booking->load('bookingHoardings.hoarding');

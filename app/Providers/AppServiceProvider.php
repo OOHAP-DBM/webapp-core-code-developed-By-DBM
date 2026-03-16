@@ -123,7 +123,10 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(\Illuminate\Routing\Events\RouteMatched::class, function ($event) {
             $routeName = $event->request->route()?->getName() ?? '';
 
-            if (str_starts_with($routeName, 'vendor.') || str_starts_with($routeName, 'admin.')) {
+            if (str_starts_with($routeName, 'vendor.')) {
+                Paginator::defaultView('pagination.vendor-compact');
+                Paginator::defaultSimpleView('pagination.dashboard-simple');
+            } elseif (str_starts_with($routeName, 'admin.')) {
                 Paginator::defaultView('pagination.dashboard-compact');
                 Paginator::defaultSimpleView('pagination.dashboard-simple');
             }

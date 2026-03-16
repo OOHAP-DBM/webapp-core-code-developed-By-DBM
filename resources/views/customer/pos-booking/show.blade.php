@@ -7,16 +7,16 @@
 <div class="px-2 sm:px-4 md:px-6 py-4 md:py-6 bg-white min-h-screen" x-data="{ openTop: true, openBottom: true }">
 
     {{-- ===== HEADER ===== --}}
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between py-4 bg-white mb-6 gap-2 sm:gap-0">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between py-1 bg-white mb-6 gap-2 sm:gap-0">
         <div class="flex items-center">
             <a href="{{ route('customer.pos.booking') }}" class="mr-2">
-                <svg width="16" class="mt-2" height="10" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="16"  height="10" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M15.414 7.91412L3.828 7.91412L8.328 12.4141L6.914 13.8281L-2.93326e-07 6.91412L6.914 0.000125592L8.328 1.41413L3.828 5.91412L15.414 5.91412L15.414 7.91412Z" fill="#3C3C3C"/>
                 </svg>
             </a>
             <h2 class="text-base md:text-lg font-semibold text-gray-900">
                 Booking ID
-                <span class="text-green-600">(#{{ $booking->id }})</span><br>
+                <span class="text-green-600">({{ $booking->id }})</span><br>
                 <p class="text-xs text-gray-500">View complete vendor, hoarding, and payment information for this order.</p>
             </h2>
         </div>

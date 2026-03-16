@@ -4,31 +4,31 @@
 @section('title', 'Customer Management')
 @section('content')
 <script>window.POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');</script>
-<div class="px-3 sm:px-4 md:px-6 py-4 sm:py-6 bg-gray-50">
+<div class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 bg-gray-50">
     @include('vendor.pos.components.admin-vendor-switcher')
-    <div class="pb-4 px-2 bg-primary rounded-t-xl">
-            <h4 class="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
-               All Customers
-            </h4>
-        </div>
+    <div class="pb-2 px-2 bg-primary rounded-t-xl">
+        <h4 class="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
+            All Customers
+        </h4>
+    </div>
     <div class="bg-white rounded-xl shadow">
-            <div class="px-3 sm:px-4 md:px-6 bg-primary rounded-t-xl">
-                <div class="px-2 bg-primary rounded-t-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div class="pt-5 text-sm font-medium">
-                        Active Customers: <span class="font-bold">{{ $totalCustomers }}</span>
-                    </div>
-                    <div class="pt-5 w-full sm:w-auto flex items-center gap-2">
-                        <div class="flex flex-col sm:flex-row w-full gap-2">
-                            <form id="customer-search-form" method="GET" action="" class="w-full">
-                                <input type="text" id="customer-search" name="search" value="{{ request('search') }}" placeholder="Search by name, phone, or email" class="w-full px-3 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-200" autocomplete="off" />
-                            </form>
-                            <button type="button" id="filterBtn" class="w-full sm:w-auto px-3 py-2 text-sm border border-gray-200">Filter</button>
-                        </div>
+        <div class="px-3 sm:px-4 md:px-6 bg-primary rounded-t-xl">
+            <div class="px-2 bg-primary rounded-t-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div class="pt-4 text-sm font-medium">
+                    Active Customers: <span class="font-bold">{{ $totalCustomers }}</span>
+                </div>
+                <div class="pt-4 w-full sm:w-auto flex items-center gap-2">
+                    <div class="flex flex-col sm:flex-row w-full gap-2">
+                        <form id="customer-search-form" method="GET" action="" class="w-full">
+                            <input type="text" id="customer-search" name="search" value="{{ request('search') }}" placeholder="Search by name, phone, or email" class="w-full lg:w-[300px] px-3 py-2 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-200" autocomplete="off" />
+                        </form>
+                        <button type="button" id="filterBtn" class="w-full sm:w-auto px-3 py-2 text-sm border border-gray-200">Filter</button>
                     </div>
                 </div>
             </div>
+        </div>
         {{-- Body --}}
-        <div class="px-3 sm:p-4 md:p-6 m-2 sm:m-3 md:m-5">
+        <div class="px-2 sm:p-2 md:p-3 m-1 sm:m-2 md:m-3">
             <div class="overflow-x-auto max-w-full">
             <table class="w-full min-w-[920px] divide-y divide-gray-200 text-xs sm:text-sm">
                 <thead class="bg-gray-50 sticky top-0 z-10">
@@ -137,7 +137,7 @@
 
 <!-- FILTER MODAL -->
 <div id="filterModal"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden px-5">
 
     <div class="bg-white shadow-lg w-full max-w-md overflow-hidden">
 
@@ -145,7 +145,7 @@
         <div class="flex items-center justify-between px-5 py-3 bg-green-100 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-800">Filter</h3>
 
-            <button id="closeFilterModal" class="text-gray-600 hover:text-black text-xl">
+            <button id="closeFilterModal" class="text-gray-600 hover:text-black text-xl cursor-pointer">
                 &times;
             </button>
         </div>
@@ -178,12 +178,12 @@
                 <div class="flex items-center justify-end gap-3 mt-6">
 
                     <button type="button" id="filterResetBtn"
-                        class="text-gray-600 text-sm hover:text-black">
+                        class="text-gray-600 text-sm hover:text-black cursor-pointer">
                         Reset
                     </button>
 
                     <button type="submit"
-                        class="bg-green-700 text-white px-4 py-2 rounded text-sm hover:bg-green-800">
+                        class="bg-green-700 text-white px-4 py-2 rounded text-sm hover:bg-green-800 cursor-pointer">
                         Apply Filter
                     </button>
 

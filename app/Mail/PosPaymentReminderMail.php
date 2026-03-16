@@ -16,6 +16,15 @@ class PosPaymentReminderMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    /**
+     * Queue worker timeout safety for SMTP delays.
+     */
+    public int $timeout = 120;
+
+    public int $tries = 3;
+
+    public array $backoff = [10, 60, 180];
+
     public function __construct(
         public POSBooking $booking,
         public ?User $customer = null,
@@ -56,8 +65,8 @@ class PosPaymentReminderMail extends Mailable implements ShouldQueue
             return route('vendor.pos.bookings.invoice', ['id' => $this->booking->id]);
         }
 
-        if (Route::has('vendor.pos.show')) {
-            return route('vendor.pos.show', ['id' => $this->booking->id]);
+        if (Route::has('vendor.pos.bookings.show')) {
+            return route('vendor.pos.bookings.show', ['id' => $this->booking->id]);
         }
 
         if (Route::has('admin.pos.show')) {

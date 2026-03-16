@@ -318,7 +318,7 @@
     </div>
 </div>
 
-<script>
+<!-- <script>
 document.addEventListener('DOMContentLoaded', function() {
         var email = document.getElementById('enquiryEmail');
         var phone = document.getElementById('enquiryMobile');
@@ -448,8 +448,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('[DEBUG] OOH Hoarding - Removed DOOH field names before submission');
                 }
                 
-                console.log('[DEBUG] ===== VALIDATION RESULT =====');
-                console.log('[DEBUG] errorMsg:', errorMsg ? 'YES - ' + errorMsg : 'NONE');
+                // console.log('[DEBUG] ===== VALIDATION RESULT =====');
+                // console.log('[DEBUG] errorMsg:', errorMsg ? 'YES - ' + errorMsg : 'NONE');
                 
                 if (errorMsg) {
                     e.preventDefault();
@@ -507,7 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return false;
                 }
                 
-                console.log('[DEBUG] ✅ All validation passed, allowing form submission');
+                // console.log('[DEBUG] ✅ All validation passed, allowing form submission');
                 // Don't prevent default - let the form submit naturally
             });
 
@@ -531,6 +531,82 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('enquiryModal').addEventListener('modal:open', toggleDoohFields);
         // Or poll for changes if needed
         document.getElementById('hoardingType')?.addEventListener('change', toggleDoohFields);
+});
+</script> -->
+
+<script>
+    document.getElementById('enquiryForm').addEventListener('submit', function(e) {
+
+    syncEnquiryHiddenFields();
+
+    if (window.selectedPackageState && window.selectedPackageState.type) {
+        document.getElementById('hoardingType').value = window.selectedPackageState.type;
+    }
+
+    var hoardingType = document.getElementById('hoardingType')?.value || '';
+    var name = document.getElementById('enquiryName')?.value.trim();
+    var email = document.getElementById('enquiryEmail')?.value.trim();
+    var mobile = document.getElementById('enquiryMobile')?.value.trim();
+    var startDate = document.getElementById('enquiryStartDate')?.value;
+
+    var videoDurationField = document.querySelector('select[name="video_duration"]');
+    var slotsCountField = document.querySelector('input[name="slots_count"]');
+
+    var videoDuration = videoDurationField ? videoDurationField.value : '';
+    var slotsCount = slotsCountField ? slotsCountField.value : '';
+
+    var packageSelect = document.getElementById('enquiryPackage');
+    var monthsSelect = document.getElementById('packageSelect');
+
+    var errorMsg = '';
+
+    if (!name) errorMsg += 'Full Name is required.\n';
+    if (!email) errorMsg += 'Email is required.\n';
+    if (!mobile) errorMsg += 'Mobile is required.\n';
+    if (!startDate) errorMsg += 'Start Date is required.\n';
+
+    var isDoohHoarding = hoardingType.toLowerCase() === 'dooh';
+
+    if (isDoohHoarding) {
+
+        if (!videoDuration) errorMsg += 'Video Duration is required.\n';
+        if (!slotsCount) errorMsg += 'Slots Count is required.\n';
+
+        var videoDurationInt = parseInt(videoDuration);
+        if (videoDuration && ![15,30].includes(videoDurationInt)) {
+            errorMsg += 'Video Duration must be 15 or 30 seconds.\n';
+        }
+
+        var slotsCountInt = parseInt(slotsCount);
+        if (slotsCount && slotsCountInt < 1) {
+            errorMsg += 'Slots Count must be at least 1.\n';
+        }
+    }
+
+    if (!packageSelect || packageSelect.value === 'base' || !packageSelect.value) {
+
+        document.getElementById('enquiryPackageId').value = '';
+
+        if (monthsSelect && monthsSelect.value) {
+            document.getElementById('enquiryMonths').value = monthsSelect.value;
+        } else {
+            document.getElementById('enquiryMonths').value = '1';
+        }
+
+    } else {
+        document.getElementById('enquiryMonths').value = '';
+    }
+
+    if (hoardingType.toLowerCase() !== 'dooh') {
+        if (videoDurationField) videoDurationField.removeAttribute('name');
+        if (slotsCountField) slotsCountField.removeAttribute('name');
+    }
+
+    if (errorMsg) {
+        e.preventDefault();
+        alert(errorMsg);
+        return false;
+    }
 });
 </script>
 <script>

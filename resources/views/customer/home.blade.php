@@ -183,15 +183,26 @@
                         <h3 class="font-semibold text-lg text-gray-900">Recent Enquiries</h3>
                     </div>
                     <div class="flex items-center gap-3">
-                        <form method="GET" class="relative flex-1 md:w-72">
+                        <form method="GET" action="{{ route('customer.dashboard') }}" id="dashboard-enquiries-search-form" class="relative flex-1 md:w-72">
                             <input
                                 type="text"
                                 name="search"
+                                id="dashboard-enquiries-search-input"
                                 value="{{ request('search') }}"
                                 placeholder="Search enquiry by enquiry ID..."
                                 class="w-full px-4 py-2 pr-10 border border-gray-300 text-sm
                                     focus:outline-none focus:ring-2 focus:ring-green-500"
                             >
+
+                            @if(request()->filled('date_filter'))
+                                <input type="hidden" name="date_filter" value="{{ request('date_filter') }}">
+                            @endif
+                            @if(request()->filled('from_date'))
+                                <input type="hidden" name="from_date" value="{{ request('from_date') }}">
+                            @endif
+                            @if(request()->filled('to_date'))
+                                <input type="hidden" name="to_date" value="{{ request('to_date') }}">
+                            @endif
 
                             {{-- Search Icon --}}
                             <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
@@ -266,13 +277,13 @@
                                             {{-- STATUS TEXT --}}
                                             @if($enquiry->status === 'submitted')
 
-                                                <div class="flex">
-                                                    <i class="text-xs font-semibold text-gray-900">
-                                                        Enquiry Sent: &nbsp;
-                                                    </i>
-                                                    <div class="text-xs font-semibold text-[var(--waiting)]">
+                                                <div class="flex flex-wrap items-center gap-x-1">
+                                                    <span class="text-xs font-semibold text-gray-900 whitespace-nowrap">
+                                                        Enquiry Sent:
+                                                    </span>
+                                                    <span class="text-xs font-semibold text-[var(--waiting)]">
                                                         Waiting for Vendor Response
-                                                    </div>
+                                                    </span>
                                                 </div>
 
                                             @else
@@ -306,7 +317,6 @@
                                             <div class="text-xs text-gray-500">
                                                 {{ $enquiry->updated_at->format('d M, y | H:i') }}
                                             </div>
-
                                         </div>
                                     </td>
 
@@ -366,7 +376,11 @@
                                 ✕
                             </button>
                         </div>
-                        <form method="GET" class="p-6 space-y-6">
+                        <form method="GET" action="{{ route('customer.dashboard') }}" class="p-6 space-y-6">
+
+                            @if(request()->filled('search'))
+                                <input type="hidden" name="search" value="{{ request('search') }}">
+                            @endif
 
                             <h2 class="inline-block text-lg font-semibold text-gray-900 border-b border-gray-700 pb-1">
                                 Filter
@@ -419,12 +433,14 @@
                                     <input
                                         type="date"
                                         name="from_date"
+                                        value="{{ request('from_date') }}"
                                         class="px-3 py-2 border border-gray-300 text-sm w-full"
                                         placeholder="From"
                                     >
                                     <input
                                         type="date"
                                         name="to_date"
+                                        value="{{ request('to_date') }}"
                                         class="px-3 py-2 border border-gray-300 text-sm w-full"
                                         placeholder="To"
                                     >
@@ -452,5 +468,46 @@
             </div>
         </div>
     </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('dashboard-enquiries-search-form');
+    const input = document.getElementById('dashboard-enquiries-search-input');
+
+    if (!form || !input) {
+        return;
+    }
+
+    let debounceTimer;
+    const ignoredKeys = ['Shift', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Escape', 'Tab'];
+
+    const submitSearch = function () {
+        if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+        } else {
+            form.submit();
+        }
+    };
+
+    input.addEventListener('keyup', function (event) {
+        if (ignoredKeys.includes(event.key)) {
+            return;
+        }
+
+        if (debounceTimer) {
+            clearTimeout(debounceTimer);
+        }
+
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            submitSearch();
+            return;
+        }
+
+        debounceTimer = setTimeout(submitSearch, 450);
+    });
+});
+</script>
+@endpush
 @endsection
-<!-- No scripts needed: all data is now rendered server-side. -->

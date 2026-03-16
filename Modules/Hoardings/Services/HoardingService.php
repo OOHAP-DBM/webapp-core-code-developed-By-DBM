@@ -267,6 +267,13 @@ class HoardingService
     }
 
     /**
+     * Count vendor active hoardings that are currently unsold.
+     */
+    public function getUnsoldActiveCountByVendor(int $vendorId): int
+    {
+        return $this->hoardingRepository->getUnsoldActiveCountByVendor($vendorId);
+    }
+    /**
      * Search hoardings.
      *
      * @param string $keyword
