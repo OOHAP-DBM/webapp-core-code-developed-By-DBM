@@ -15,7 +15,7 @@
 <div class="bg-white border border-gray-200 rounded-xl">
 
     <div class="p-4">
-        <div class="flex gap-4">
+        <div class="flex gap-4" onclick="window.location.href='{{ route('hoardings.show', $item->slug ?? $item->hoarding_id) }}'">
 
                 {{-- IMAGE --}}
                 <div class="w-28 h-25 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">

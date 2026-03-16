@@ -33,7 +33,7 @@
         {{-- TITLE --}}
         <div>
             <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                My Shortlist
+                My Wishlist 
 
                 @if($wishlist->total() > 0)
                     <span class="text-xs font-semibold px-2 py-0.5
@@ -68,7 +68,7 @@
                         class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300
                                overflow-hidden group cursor-pointer flex flex-col h-full"
                         onclick="if(event.target.closest('button') === null)
-                                 window.location.href='{{ route('hoardings.show', $hoarding->id) }}';"
+                                 window.location.href='{{ route('hoardings.show', $hoarding->slug ?? $hoarding->id) }}';"
                     >
 
                         {{-- IMAGE --}}
@@ -83,10 +83,19 @@
                             @endif
 
                             {{-- BADGE --}}
-                            <span class="absolute top-3 left-3 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                                Recommended
-                            </span>
-
+                               @php
+                                    if (($hoarding->is_recommended ?? 0) == 1) {
+                                        $isRecommended = true;
+                                    } else {
+                                        $isRecommended = ($hoarding->view_count ?? 0) >= 50 ||
+                                                        ($hoarding->expected_eyeball ?? 0) >= 5000;
+                                    }
+                                @endphp
+                                @if($isRecommended)
+                                <span class="absolute top-3 left-3 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                                    Recommended
+                                </span>
+                              @endif
                             {{-- WISHLIST ICON (ACTIVE BY DEFAULT) --}}
                             <button
                                 class="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center

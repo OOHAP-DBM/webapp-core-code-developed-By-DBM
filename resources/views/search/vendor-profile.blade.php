@@ -59,7 +59,8 @@
                     class="h-8 px-3 pr-8 text-sm border border-gray-300 rounded-md bg-white
                     focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 cursor-pointer">
 
-                    <option value="">Recommended</option>
+                    <option value="" {{ request('sort') == '' ? 'selected' : '' }}>All Hoardings</option>
+                    <option value="recommended" {{ request('sort')=='recommended'?'selected':'' }}>Recommended</option>
                     <option value="latest" {{ request('sort')=='latest'?'selected':'' }}>Latest</option>
                     <option value="low_high" {{ request('sort')=='low_high'?'selected':'' }}>Low to high</option>
                     <option value="high_low" {{ request('sort')=='high_low'?'selected':'' }}>High to low</option>
