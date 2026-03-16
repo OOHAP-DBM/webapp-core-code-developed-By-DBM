@@ -1,20 +1,13 @@
 {{--
 ╔══════════════════════════════════════════════════════════════════════════╗
-║  POS MILESTONE COMPONENT  v3                                             ║
-║                                                                          ║
-║  Placement in preview-screen.blade.php:                                  ║
-║  Inside .w-full.lg:w-96 right panel, AFTER discount, BEFORE             ║
-║  Payment Mode section.                                                   ║
+║  POS MILESTONE COMPONENT  v4                                             ║
 ║                                                                          ║
 ║  @include('vendor.pos.components.milestone-payment')                     ║
 ║                                                                          ║
-║  Design matches: quotation milestone UI                                  ║
-║  — numbered rows, due date, work-done text, amount + Flat/% toggle       ║
-║                                                                          ║
-║  Responsibilities:                                                        ║
-║  • WHEN payment is split     → is_milestone = true                       ║
-║  • HOW payment is collected  → payment_mode = cash/bank/online/credit    ║
-║  • Both fully independent; nothing is hidden                             ║
+║  Changes in v4:                                                          ║
+║  • % symbol renders AFTER the value (right-side), ₹ stays left          ║
+║  • Due dates cascade: milestone N min = milestone N-1's selected date    ║
+║  • validate() enforces sequential due dates with clear error messages    ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 --}}
 
@@ -26,8 +19,8 @@
     {{-- Header --}}
     <div class="flex items-center justify-between px-4 py-1 bg-gray-50 border-b border-gray-200">
         <div>
-            <p class="text-sm font-bold ">Milestone Creation</p>
-            <p class="text-[11px]  mt-0.5">Define work stages with due dates, deliverables, and payment amounts</p>
+            <p class="text-sm font-bold">Milestone Creation</p>
+            <p class="text-[11px] mt-0.5">Define work stages with due dates, deliverables, and payment amounts</p>
         </div>
         <button type="button"
                 id="ms-toggle-btn"
@@ -46,7 +39,7 @@
 
         {{-- Empty state --}}
         <div id="ms-empty-state" class="flex flex-col items-center justify-center py-6 text-center">
-            <p class="text-sm  mb-3">No Milestone Created</p>
+            <p class="text-sm mb-3">No Milestone Created</p>
             <button type="button" onclick="MilestoneModule.addRow()"
                     class="px-4 py-2 bg-[#2D5A43] text-white text-sm font-bold rounded-lg hover:bg-opacity-90 transition-colors">
                 + Create Milestone
@@ -56,28 +49,26 @@
         {{-- Table header (shown once rows exist) --}}
         <div id="ms-table-header" class="hidden px-4 pt-3">
             <div class="flex items-center gap-2 mb-1">
-                {{-- Amount type toggle: Flat / % --}}
                 <div class="flex-1"></div>
+                {{-- Amount type toggle: Flat / % --}}
                 <div class="flex rounded-lg border border-gray-200 overflow-hidden text-[11px] font-bold ml-auto">
                     <button type="button" id="ms-btn-flat"
                             onclick="MilestoneModule.setAmountType('fixed')"
-                            class="px-3 py-1.5 bg-[#2D5A43] text-white transition-colors">
+                            class="px-3 py-1.5 bg-[#2D5A43] text-white transition-colors text-[11px] font-bold">
                         Flat
                     </button>
                     <button type="button" id="ms-btn-pct"
                             onclick="MilestoneModule.setAmountType('percentage')"
-                            class="px-3 py-1.5 bg-white  hover:bg-gray-50 transition-colors">
+                            class="px-3 py-1.5 bg-white hover:bg-gray-50 transition-colors text-[11px] font-bold">
                         %
                     </button>
                 </div>
             </div>
             <div class="grid grid-cols-12 gap-2 px-1 mb-1">
-                <div class="col-span-2 text-sm  font-semibold">Milestone</div>
-                <div class="col-span-3 text-sm  font-semibold">Due Date</div>
-                <div class="col-span-3 text-sm  font-semibold">Work Done</div>
-                <div class="col-span-2 text-sm  font-semibold text-right">Amount</div>
-                <div class="col-span-2 text-sm  font-semibold text-right">Action</div>
-
+                <div class="col-span-1 text-sm font-semibold">#</div>
+                <div class="col-span-3 text-sm font-semibold">Due Date</div>
+                <div class="col-span-5 text-sm font-semibold">Work Done</div>
+                <div class="col-span-3 text-sm font-semibold text-right">Amount</div>
             </div>
         </div>
 
@@ -101,8 +92,8 @@
         {{-- Add Milestone button (shown after first row) --}}
         <div id="ms-add-btn-wrap" class="px-4 pb-4 hidden">
             <button type="button" onclick="MilestoneModule.addRow()"
-                    class="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border-2 border-dashed border-gray-300 text-[11px] font-bold  hover:border-[#2D5A43] hover:text-[#2D5A43] transition-colors">
-                 + Add Milestone
+                    class="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border-2 border-dashed border-gray-300 text-[11px] font-bold hover:border-[#2D5A43] hover:text-[#2D5A43] transition-colors">
+                + Add Milestone
             </button>
         </div>
 
@@ -115,18 +106,17 @@
 <template id="ms-row-tpl">
     <div class="ms-row grid grid-cols-12 gap-2 items-start bg-white border border-gray-100 rounded-lg p-2" data-idx="">
 
-        {{-- Col 1: Sequence --}}
+        {{-- Col 1: Sequence badge --}}
         <div class="col-span-1 flex items-center justify-center pt-1.5">
             <div class="ms-seq w-5 h-5 rounded-full bg-[#2D5A43] text-white text-[9px] font-black flex items-center justify-center flex-shrink-0">#</div>
         </div>
 
-        {{-- Col 2-4: Due Date + edit icon --}}
+        {{-- Col 2-4: Due Date --}}
         <div class="col-span-3">
-            <div class="flex items-center gap-1">
-                <input type="date"
-                       class="ms-due-date w-full border  rounded text-sm px-1.5 py-1 focus:outline-none focus:border-[#2D5A43]"
-                       min="{{ now()->format('Y-m-d') }}">
-            </div>
+            <input type="date"
+                   class="ms-due-date w-full border border-gray-200 rounded text-sm px-1.5 py-1 focus:outline-none focus:border-[#2D5A43]"
+                   min="{{ now()->format('Y-m-d') }}"
+                   onchange="MilestoneModule.onDateChange(this)">
         </div>
 
         {{-- Col 5-9: Work Done description --}}
@@ -145,13 +135,19 @@
         {{-- Col 10-12: Amount + delete --}}
         <div class="col-span-3">
             <div class="flex items-center gap-1">
+                {{--
+                    ₹ symbol: left side, shown in fixed mode
+                    % symbol: right side, shown in percentage mode
+                    Padding on the input swaps accordingly via JS
+                --}}
                 <div class="relative flex-1">
-                    <span class="ms-currency-sym absolute left-1.5 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold pointer-events-none">₹</span>
+                    <span class="ms-sym-left absolute left-1.5 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold pointer-events-none">₹</span>
                     <input type="number"
-                           class="ms-amount w-full border border-gray-200 rounded pl-4 pr-1 py-1 text-sm font-bold text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#2D5A43] focus:border-[#2D5A43]"
+                           class="ms-amount w-full border border-gray-200 rounded py-1 text-sm font-bold text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#2D5A43] focus:border-[#2D5A43]"
                            placeholder="0" min="0" step="0.01"
-                             style="min-height:2.6em;max-height:3.5em;"
+                           style="min-height:2.6em;max-height:3.5em;padding-left:1.25rem;padding-right:0.4rem;"
                            oninput="MilestoneModule.recalculate()">
+                    <span class="ms-sym-right absolute right-1.5 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold pointer-events-none hidden">%</span>
                 </div>
                 <button type="button" onclick="MilestoneModule.removeRow(this)"
                         class="flex-shrink-0 text-red-300 hover:text-red-500 transition-colors">
@@ -160,7 +156,7 @@
                     </svg>
                 </button>
             </div>
-            {{-- Computed ₹ for % mode --}}
+            {{-- Computed ₹ equivalent shown only in % mode --}}
             <p class="ms-computed text-[9px] text-[#2D5A43] font-semibold mt-0.5 text-right hidden"></p>
         </div>
 
@@ -181,20 +177,21 @@
 </style>
 
 {{-- ══════════════════════════════════════════════
-     JAVASCRIPT  (strict IIFE, no global pollution)
+     JAVASCRIPT
 ══════════════════════════════════════════════ --}}
 <script>
 window.MilestoneModule = (function () {
     'use strict';
 
-    /* ── State ───────────────────────────────── */
-    var _enabled    = false;
-    var _type       = 'fixed';   // 'fixed' | 'percentage'
-    var _seq        = 0;
+    /* ── State ───────────────────────────────────────────────────────── */
+    var _enabled = false;
+    var _type    = 'fixed';   // 'fixed' | 'percentage'
+    var _seq     = 0;
 
-    /* ── Helpers ─────────────────────────────── */
+    /* ── DOM helper ──────────────────────────────────────────────────── */
     var $ = function (id) { return document.getElementById(id); };
 
+    /* ── Get booking grand total ─────────────────────────────────────── */
     function getTotal() {
         if (typeof window.getPosPricingBreakdown === 'function') {
             return window.getPosPricingBreakdown().grandTotal || 0;
@@ -204,10 +201,12 @@ window.MilestoneModule = (function () {
         return (typeof globalBaseAmount !== 'undefined') ? (globalBaseAmount || 0) : 0;
     }
 
+    /* ── All rows ────────────────────────────────────────────────────── */
     function rows() {
         return Array.from(document.querySelectorAll('#ms-rows-container .ms-row'));
     }
 
+    /* ── Show / hide sections based on row count ─────────────────────── */
     function updateVisibility() {
         var count = rows().length;
         $('ms-empty-state').classList.toggle('hidden', count > 0);
@@ -216,7 +215,58 @@ window.MilestoneModule = (function () {
         $('ms-add-btn-wrap').classList.toggle('hidden', count === 0);
     }
 
-    /* ── Toggle ──────────────────────────────── */
+    /* ── Apply symbol layout to a single row ────────────────────────── */
+    function applySymbolLayout(row, type) {
+        var symLeft  = row.querySelector('.ms-sym-left');
+        var symRight = row.querySelector('.ms-sym-right');
+        var input    = row.querySelector('.ms-amount');
+
+        if (type === 'percentage') {
+            if (symLeft)  symLeft.classList.add('hidden');
+            if (symRight) symRight.classList.remove('hidden');
+            if (input) {
+                input.style.paddingLeft  = '0.4rem';
+                input.style.paddingRight = '1.25rem';
+            }
+        } else {
+            if (symLeft)  symLeft.classList.remove('hidden');
+            if (symRight) symRight.classList.add('hidden');
+            if (input) {
+                input.style.paddingLeft  = '1.25rem';
+                input.style.paddingRight = '0.4rem';
+            }
+        }
+    }
+
+    /* ── Cascade due-date min values down all rows ───────────────────── */
+    function updateDueDateMins() {
+        var today = new Date().toISOString().split('T')[0];
+        var list  = rows();
+
+        list.forEach(function (row, i) {
+            var dateInput = row.querySelector('.ms-due-date');
+            if (!dateInput) return;
+
+            var minVal;
+            if (i === 0) {
+                // First milestone: minimum is today
+                minVal = today;
+            } else {
+                // Each subsequent milestone: minimum is the previous row's chosen date
+                var prevVal = list[i - 1].querySelector('.ms-due-date').value;
+                minVal = prevVal || today;
+            }
+
+            dateInput.min = minVal;
+
+            // If the currently selected value is now earlier than the new min, clear it
+            if (dateInput.value && dateInput.value < minVal) {
+                dateInput.value = '';
+            }
+        });
+    }
+
+    /* ── Toggle milestone feature on/off ─────────────────────────────── */
     function toggle() {
         _enabled = !_enabled;
         $('ms-toggle-btn').classList.toggle('ms-on', _enabled);
@@ -224,30 +274,28 @@ window.MilestoneModule = (function () {
         $('ms-builder').classList.toggle('hidden', !_enabled);
     }
 
-    /* ── Amount type ─────────────────────────── */
+    /* ── Switch between Flat / % mode ───────────────────────────────── */
     function setAmountType(type) {
         _type = type;
 
-        var flatCls = type === 'fixed'
-            ? 'px-3 py-1.5 bg-[#2D5A43] text-white transition-colors text-[11px] font-bold'
-            : 'px-3 py-1.5 bg-white hover:bg-gray-50 transition-colors text-[11px] font-bold';
-        var pctCls = type === 'percentage'
+        // Update toggle button styles
+        $('ms-btn-flat').className = (type === 'fixed')
             ? 'px-3 py-1.5 bg-[#2D5A43] text-white transition-colors text-[11px] font-bold'
             : 'px-3 py-1.5 bg-white hover:bg-gray-50 transition-colors text-[11px] font-bold';
 
-        $('ms-btn-flat').className = flatCls;
-        $('ms-btn-pct').className  = pctCls;
+        $('ms-btn-pct').className = (type === 'percentage')
+            ? 'px-3 py-1.5 bg-[#2D5A43] text-white transition-colors text-[11px] font-bold'
+            : 'px-3 py-1.5 bg-white hover:bg-gray-50 transition-colors text-[11px] font-bold';
 
-        // Update all currency symbols
+        // Update symbol position on every existing row
         rows().forEach(function (row) {
-            var sym = row.querySelector('.ms-currency-sym');
-            if (sym) sym.textContent = (type === 'percentage') ? '%' : '₹';
+            applySymbolLayout(row, type);
         });
 
         recalculate();
     }
 
-    /* ── Add row ─────────────────────────────── */
+    /* ── Add a new milestone row ─────────────────────────────────────── */
     function addRow(defaultDesc) {
         var tpl   = document.getElementById('ms-row-tpl');
         var clone = tpl.content.cloneNode(true);
@@ -256,6 +304,7 @@ window.MilestoneModule = (function () {
         _seq++;
         row.dataset.idx = _seq;
 
+        // Pre-fill description if provided
         if (defaultDesc) {
             var desc = row.querySelector('.ms-desc');
             if (desc) {
@@ -265,50 +314,59 @@ window.MilestoneModule = (function () {
             }
         }
 
-        var sym = row.querySelector('.ms-currency-sym');
-        if (sym) sym.textContent = (_type === 'percentage') ? '%' : '₹';
+        // Apply correct symbol layout for current mode
+        applySymbolLayout(row, _type);
 
         document.getElementById('ms-rows-container').appendChild(row);
         reindex();
+        updateDueDateMins();
         updateVisibility();
         recalculate();
     }
 
-    /* ── Remove row ──────────────────────────── */
+    /* ── Remove a milestone row ──────────────────────────────────────── */
     function removeRow(btn) {
         var row = btn.closest('.ms-row');
         row.style.cssText += 'opacity:0;transform:translateY(-4px);transition:all .12s ease;';
         setTimeout(function () {
             row.remove();
             reindex();
+            updateDueDateMins();
             updateVisibility();
             recalculate();
         }, 120);
     }
 
-    /* ── Reindex ─────────────────────────────── */
-     function reindex() {
+    /* ── Renumber badge labels 1, 2, 3 … ────────────────────────────── */
+    function reindex() {
         rows().forEach(function (row, i) {
             var badge = row.querySelector('.ms-seq');
             var n = i + 1;
             row.dataset.idx = n;
-            if (badge) badge.textContent = String(n); // 1, 2, 3...
+            if (badge) badge.textContent = String(n);
         });
     }
 
-    /* ── Char counter ────────────────────────── */
+    /* ── Live character counter for description textarea ────────────── */
     function onDescInput(el) {
         var ctr = el.closest('.ms-row').querySelector('.ms-char-count');
         if (ctr) ctr.textContent = el.value.length + '/64';
     }
 
-    /* ── Recalculate progress bar ────────────── */
+    /* ── Date change: cascade mins and recalculate ───────────────────── */
+    function onDateChange(el) {
+        updateDueDateMins();
+        recalculate();
+    }
+
+    /* ── Recalculate allocation progress bar ─────────────────────────── */
     function recalculate() {
         var total = getTotal();
         var sum   = 0;
 
+        // Update computed ₹ labels in % mode and sum amounts
         rows().forEach(function (row) {
-            var val = parseFloat(row.querySelector('.ms-amount').value) || 0;
+            var val  = parseFloat(row.querySelector('.ms-amount').value) || 0;
             sum += val;
 
             var comp = row.querySelector('.ms-computed');
@@ -322,6 +380,7 @@ window.MilestoneModule = (function () {
             }
         });
 
+        // Update progress bar
         var bar  = $('ms-alloc-bar');
         var disp = $('ms-alloc-display');
         var msg  = $('ms-alloc-msg');
@@ -330,8 +389,9 @@ window.MilestoneModule = (function () {
         var pct, barCls, msgTxt, msgCls;
 
         if (_type === 'percentage') {
-            pct    = Math.min(sum, 100);
+            pct  = Math.min(sum, 100);
             disp.textContent = sum.toFixed(1) + '%';
+
             if (sum > 100) {
                 barCls = 'ms-over'; msgCls = 'text-red-600';
                 msgTxt = '⚠ Over by ' + (sum - 100).toFixed(1) + '%';
@@ -343,8 +403,9 @@ window.MilestoneModule = (function () {
                 msgTxt = (100 - sum).toFixed(1) + '% remaining';
             }
         } else {
-            pct    = total > 0 ? Math.min((sum / total) * 100, 100) : 0;
+            pct  = total > 0 ? Math.min((sum / total) * 100, 100) : 0;
             disp.textContent = '₹' + sum.toLocaleString('en-IN');
+
             var diff = total - sum;
             if (sum > total + 0.01) {
                 barCls = 'ms-over'; msgCls = 'text-red-600';
@@ -363,9 +424,12 @@ window.MilestoneModule = (function () {
         msg.textContent = msgTxt;
         msg.className   = 'px-3 py-1 text-[10px] font-semibold ' + msgCls;
         msg.classList.remove('hidden');
+
+        // Always keep date mins in sync after any amount/total change
+        updateDueDateMins();
     }
 
-    /* ── Validate & build payload ────────────── */
+    /* ── Validate all milestone rows and build payload ───────────────── */
     function validate() {
         if (!_enabled) return { enabled: false, valid: true, milestones: [] };
 
@@ -375,56 +439,90 @@ window.MilestoneModule = (function () {
         var sumPct   = 0;
         var sumFixed = 0;
 
+        if (list.length === 0) {
+            return { enabled: true, valid: false, error: 'Add at least one milestone.' };
+        }
+
         for (var i = 0; i < list.length; i++) {
             var row    = list[i];
             var desc   = (row.querySelector('.ms-desc').value || '').trim();
             var amount = parseFloat(row.querySelector('.ms-amount').value);
             var due    = row.querySelector('.ms-due-date').value;
+            var n      = i + 1;
 
-             if (!due) {
-                return { enabled: true, valid: false, error: 'Milestone' + (i + 1) + ': Due Date is required.' };
+            // Due date required
+            if (!due) {
+                return {
+                    enabled: true,
+                    valid:   false,
+                    error:   'Milestone ' + n + ': Due date is required.',
+                };
             }
 
+            // Due date must be ≥ previous milestone's due date
+            if (i > 0) {
+                var prevDue = list[i - 1].querySelector('.ms-due-date').value;
+                if (prevDue && due < prevDue) {
+                    return {
+                        enabled: true,
+                        valid:   false,
+                        error:   'Milestone ' + n + ' due date (' + due + ') must be on or after Milestone ' + i + '\'s due date (' + prevDue + ').',
+                    };
+                }
+            }
+
+            // Amount required and > 0
             if (!amount || amount <= 0) {
-                return { enabled: true, valid: false, error: 'Milestone' + (i + 1) + ': Amount is required (> 0).' };
+                return {
+                    enabled: true,
+                    valid:   false,
+                    error:   'Milestone ' + n + ': Amount must be greater than 0.',
+                };
             }
 
             if (_type === 'percentage') sumPct  += amount;
             else                         sumFixed += amount;
 
             result.push({
-                title:        desc || ('Milestone ' + (i + 1)),
+                title:        desc || ('Milestone ' + n),
                 description:  desc || null,
                 amount_type:  _type,
                 amount:       amount,
-                due_date:     due || null,
+                due_date:     due,
                 vendor_notes: desc || null,
             });
         }
 
-        if (result.length === 0) return { enabled: true, valid: false, error: 'Add at least one milestone.' };
-
+        // Percentage must total exactly 100
         if (_type === 'percentage' && Math.abs(sumPct - 100) > 0.01) {
-            return { enabled: true, valid: false, error: 'Percentages must total 100%. Current: ' + sumPct.toFixed(1) + '%.' };
+            return {
+                enabled: true,
+                valid:   false,
+                error:   'Percentages must total 100%. Current total: ' + sumPct.toFixed(1) + '%.',
+            };
         }
+
+        // Fixed amounts must equal grand total
         if (_type === 'fixed' && Math.abs(sumFixed - total) > 0.01) {
             return {
-                enabled: true, valid: false,
-                error: 'Fixed amounts must total ₹' + total.toLocaleString('en-IN', { minimumFractionDigits: 2 })
-                     + '. Current: ₹' + sumFixed.toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '.',
+                enabled: true,
+                valid:   false,
+                error:   'Fixed amounts must total ₹' + total.toLocaleString('en-IN', { minimumFractionDigits: 2 })
+                       + '. Current total: ₹' + sumFixed.toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '.',
             };
         }
 
         return { enabled: true, valid: true, milestones: result };
     }
 
-    /* ── Hook: capture Finalize Booking click ── */
+    /* ── Hook: intercept Finalize Booking button click ───────────────── */
     document.addEventListener('DOMContentLoaded', function () {
         var btn = document.getElementById('create-booking-btn');
         if (!btn) return;
 
         btn.addEventListener('click', function (e) {
             if (!_enabled) return;
+
             var res = validate();
             if (!res.valid) {
                 e.stopImmediatePropagation();
@@ -436,7 +534,7 @@ window.MilestoneModule = (function () {
         }, true);
     });
 
-    /* ── Hook: patch fetch (additive only) ──── */
+    /* ── Hook: patch fetch to inject milestone data into booking POST ── */
     (function () {
         var _orig = window.fetch;
         window.fetch = function (url, options) {
@@ -449,9 +547,8 @@ window.MilestoneModule = (function () {
             ) {
                 try {
                     var body = JSON.parse(options.body || '{}');
-                    body.is_milestone   = true;           // WHEN (phases)
-                    body.milestone_data = window._pendingMilestoneData; // data
-                    // payment_mode stays as-is (HOW)
+                    body.is_milestone   = true;
+                    body.milestone_data = window._pendingMilestoneData;
                     options.body = JSON.stringify(body);
                     window._pendingMilestoneData = null;
                 } catch (e) {
@@ -462,7 +559,7 @@ window.MilestoneModule = (function () {
         };
     }());
 
-    /* ── Hook: recalculate on discount change ── */
+    /* ── Hook: recalculate when booking totals change ────────────────── */
     window.addEventListener('load', function () {
         var orig = window.calculateFinalTotals;
         if (typeof orig === 'function') {
@@ -473,13 +570,14 @@ window.MilestoneModule = (function () {
         }
     });
 
-    /* ── Public ──────────────────────────────── */
+    /* ── Public API ──────────────────────────────────────────────────── */
     return {
         toggle:        toggle,
         setAmountType: setAmountType,
         addRow:        addRow,
         removeRow:     removeRow,
         onDescInput:   onDescInput,
+        onDateChange:  onDateChange,
         recalculate:   recalculate,
         validate:      validate,
         isEnabled:     function () { return _enabled; },
