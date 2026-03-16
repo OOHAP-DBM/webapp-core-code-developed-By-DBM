@@ -9,8 +9,8 @@
     <button
         id="sidebar-toggle-btn"
         type="button"
-        class="absolute top-4 -right-3 z-[9999] w-7 h-7 flex items-center justify-center bg-white border border-gray-200 rounded-full shadow transition hover:bg-gray-100"
-        style="box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04); z-index: 2147483647;"
+        class="absolute top-4 -right-3 z-50 w-7 h-7 flex items-center justify-center bg-white border border-gray-200 rounded-full shadow transition hover:bg-gray-100"
+        style="box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);"
         onclick="toggleSidebar()"
         aria-label="Toggle sidebar"
     >

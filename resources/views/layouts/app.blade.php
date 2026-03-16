@@ -65,7 +65,7 @@
         @include('layouts.partials.header') --}}
 
         <!-- Main Content -->
-        <main class="md:pt-16 mt-20 md:mt-5">
+        <main class="md:mt-16 mt-28 md:mt-5">
             @yield('content')
         </main>
 
