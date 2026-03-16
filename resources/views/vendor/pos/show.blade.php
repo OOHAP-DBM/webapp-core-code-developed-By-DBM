@@ -22,7 +22,7 @@
         <div class="p-4 sm:p-6 space-y-6">
 
             <!-- Booking Summary -->
-            <div class="rounded-xl border bg-gray-50 p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                     <p class="text-sm text-gray-500">Invoice</p>
                     <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" target="_blank" class="pointer-events-none text-inherit">—</a></h2>
@@ -433,7 +433,7 @@ async function loadBookingDetails() {
                 let priceSummaryHtml = '';
                 if (hoardingsTableRows) {
                     priceSummaryHtml = `
-                        <div class="rounded-xl border bg-white p-4 mb-4">
+                        <div class="rounded-xl border border-gray-200 bg-white p-4 mb-4">
                             <h3 class="text-base sm:text-lg font-bold mb-2">Price Summary</h3>
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div><strong>Base Amount:</strong> ₹${totalBase.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
@@ -448,17 +448,17 @@ async function loadBookingDetails() {
                 let hoardingsTableHtml = '';
                 if (hoardingsTableRows) {
                     hoardingsTableHtml = `
-                        <div class="rounded-xl border bg-white p-4 mb-4">
+                        <div class="rounded-xl border border-gray-200 bg-white p-4 mb-4">
                             <h3 class="text-base sm:text-lg font-bold mb-2">Hoardings</h3>
                             <div class="overflow-x-auto">
-                            <table class="min-w-full text-sm border">
+                            <table class="min-w-full text-sm shadow-sm overflow-hidden">
                                 <thead>
                                     <tr class="bg-gray-100">
-                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Sn.</th>
-                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Hoardings</th>
-                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Rental</th>
-                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Duration</th>
-                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Total Price</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 ">Sn.</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 ">Hoardings</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 ">Rental</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 ">Duration</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 ">Total Price</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -472,14 +472,14 @@ async function loadBookingDetails() {
 
             // Customer details and actions inside invoice box
             let customerDetailsHtml = `
-                <div class="rounded-xl border bg-white p-4 mb-4">
+                <div class="rounded-xl border border-gray-200 bg-white p-4 mb-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
                         <div><strong>Customer:</strong> ${b.customer_name}</div>
                         <div><strong>Phone:</strong> ${b.customer_phone || '-'} </div>
                         <div><strong>Booking Date:</strong> ${new Date(b.created_at).toLocaleString()} </div>
                         <div><strong>Email:</strong> ${b.customer_email || '-'} </div>
                     </div>
-                    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 pt-2 border-t">
+                    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 pt-2 border-t border-gray-200">
                         ${renderActionButtons(b)}
                     </div>
                 </div>

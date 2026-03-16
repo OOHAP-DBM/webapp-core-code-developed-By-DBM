@@ -1,7 +1,7 @@
 @include('vendor.pos.components.pos-timer-notification')
 @extends($posLayout ?? 'layouts.vendor')
 
-@section('title', 'POS Dashboard')
+@section('title', 'POS Overview')
 @include('vendor.pos.components.pos-timer-notification')
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
@@ -18,8 +18,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#1D1D1D]">Welcome, {{ Auth::user()->name }}</h2>
-            <p class="text-sm text-gray-500 font-medium">POS Dashboard</p>
+            <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#1D1D1D]">Welcome back, {{ Auth::user()->name }}</h2>
+            <p class="text-lg text-gray-500 font-medium">POS Overview</p>
         </div>
         <button class="w-full sm:w-auto bg-[#1D1D1D] text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded shadow-sm text-sm font-medium">POS</button>
     </div>
@@ -50,7 +50,7 @@
                 </svg>
             </div>
            <div>
-                <h6 class="text-sm opacity-80">Total Revenue</h6>
+                <h6 class="text-sm opacity-80">Total Revenue Collected</h6>
                 <h2 id="total-revenue" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
         </a>
@@ -64,7 +64,7 @@
                 </svg>
             </div>
            <div>
-                <h6 class="text-sm opacity-80">Pending Payments</h6>
+                <h6 class="text-sm opacity-80">Outstanding Payments</h6>
                 <h2 id="pending-payments" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
         </a>
@@ -78,7 +78,7 @@
                 </svg>
             </div>
            <div>
-                <h6 class="text-sm opacity-80">Total Customers</h6>
+                <h6 class="text-sm opacity-80">Active Customers</h6>
                 <h2 id="total-customers" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
         </a>
@@ -90,7 +90,7 @@
             href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.create') }}"
             class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg btn-color text-white text-sm font-medium transition"
         >
-            + Create New POS Booking
+            + Create Booking
         </a>
 
         <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.list') }}"
@@ -102,21 +102,31 @@
     <!-- Recent Bookings -->
     <div class="bg-white shadow-sm border border-gray-200">
         <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
-            <h5 class="text-lg font-semibold">Recent POS Bookings</h5>
+            <div class="flex items-center justify-between w-full">
+                <h5 class="text-lg font-semibold">Recent Booking Activity</h5>
+                <div class="flex">
+                    <p class="text-xs mt-2 font-semibold">Sort By:</p>
+                    <select id="bookingRangeSelect" class="border-none rounded-sm px-1 py-0.5 text-xs h-7 focus:outline-none min-w-[80px]" onchange="filterBookingsByRange()">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-xs sm:text-sm" style="min-width: 880px;">
                 <thead class="bg-gray-100 text-gray-600">
                     <tr>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Invoice</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Customer</th>
-                        <th class="px-4 py-3 text-center whitespace-nowrap">Total Hoardings</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Booking Date</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Amount</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Payment</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Status</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Action</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Invoice ID</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Customer Name</th>
+                        <th class="px-4 py-3 text-center whitespace-nowrap">Hoardings Booked</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Booking Date & Time</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Total Amount</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Payment Status</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Booking Status</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="recent-bookings-body" class="">
@@ -135,14 +145,14 @@
         <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-yellow-50">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h5 class="text-lg font-semibold text-yellow-800">Pending Payment</h5>
+                    <h5 class="text-lg font-semibold text-yellow-800">Pending Payment Alerts</h5>
                     <p class="text-sm text-yellow-700">Bookings with pending payment that need attention</p>
                 </div>
                 <div class="w-full sm:w-72">
                     <input
                         id="pending-payments-search"
                         type="text"
-                        placeholder="Search invoice/customer/phone"
+                        placeholder="Search by Invoice ID, Customer Name, or Phone Number"
                         class="w-full px-3 py-2 text-sm border border-yellow-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-300"
                     >
                 </div>
@@ -153,14 +163,14 @@
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-100 text-gray-600">
                     <tr>
-                        <th class="px-4 py-3 text-left">Invoice</th>
-                        <th class="px-4 py-3 text-left">Customer</th>
+                        <th class="px-4 py-3 text-left">Invoice ID</th>
+                        <th class="px-4 py-3 text-left">Customer Name</th>
                         <th class="px-4 py-3 text-left">Booking Status</th>
                         <th class="px-4 py-3 text-left">Total Amount</th>
-                        <th class="px-4 py-3 text-left">Paid Amount</th>
-                        <th class="px-4 py-3 text-left">Balance Amount</th>
-                        <th class="px-4 py-3 text-left">Pending Since</th>
-                        <th class="px-4 py-3 text-left">Action</th>
+                        <th class="px-4 py-3 text-left">Amount Paid</th>
+                        <th class="px-4 py-3 text-left">Outstanding Balance</th>
+                        <th class="px-4 py-3 text-left">Days Pending</th>
+                        <th class="px-4 py-3 text-left">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="pending-payments-body" class="">
@@ -245,51 +255,68 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(err => console.warn('Could not load dashboard stats:', err));
 
-    // Load recent bookings
-    fetchJSON(`${POS_BASE_PATH}/api/bookings?per_page=10`)
-        .then(data => {
-            const tbody = document.getElementById('recent-bookings-body');
-            const bookings = data?.data?.data;
+    // Load recent bookings with filter
+    function loadRecentBookings(range = 'today') {
+        let url = `${POS_BASE_PATH}/api/bookings?per_page=10`;
+        if (range === 'today') {
+            url += '&range=today';
+        } else if (range === 'week') {
+            url += '&range=week';
+        } else if (range === 'month') {
+            url += '&range=month';
+        }
+        fetchJSON(url)
+            .then(data => {
+                const tbody = document.getElementById('recent-bookings-body');
+                const bookings = data?.data?.data;
+                if (data.success && Array.isArray(bookings) && bookings.length) {
+                    tbody.innerHTML = '';
+                    bookings.forEach(b => {
+                        const invoiceNumber = b.invoice_number || 'N/A';
+                        const customerName = b.customer_name || 'N/A';
+                        const hoardingsCount = Array.isArray(b.hoardings) ? b.hoardings.length : (b.hoardings_count ?? 1);
+                        const bookingDate = formatDateTime(b.created_at);
+                        const totalAmount = parseFloat(b.total_amount || 0).toLocaleString();
+                        tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${invoiceNumber}</td>
+                            <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${customerName}</td>
+                            <td class="px-3 py-3 sm:px-4 sm:py-3 font-bold text-gray-800 whitespace-nowrap text-center">${hoardingsCount}</td>
+                            <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${bookingDate}</td>
+                            <td class="px-3 py-3 sm:px-4 sm:py-3 font-medium whitespace-nowrap">₹${totalAmount}</td>
+                            <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs rounded-full ${paymentBadge(b.payment_status)}">
+                                    ${paymentStatusLabel(b.payment_status)}
+                                </span>
+                            </td>
+                            <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">
+                                    ${bookingStatusLabel(b.status)}
+                                </span>
+                            </td>
+                            <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+                                <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm">
+                                    View
+                                </a>
+                            </td>
+                        </tr>`;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
+                }
+            })
+            .catch(err => console.warn('Could not load bookings:', err));
+    }
 
-            if (data.success && Array.isArray(bookings) && bookings.length) {
-                tbody.innerHTML = '';
+    // Make select box functional
+    window.filterBookingsByRange = function() {
+        const select = document.getElementById('bookingRangeSelect');
+        const range = select.value;
+        loadRecentBookings(range);
+    };
 
-                bookings.forEach(b => {
-                    const invoiceNumber = b.invoice_number || 'N/A';
-                    const customerName = b.customer_name || 'N/A';
-                    const hoardingsCount = Array.isArray(b.hoardings) ? b.hoardings.length : (b.hoardings_count ?? 1);
-                    const bookingDate = formatDateTime(b.created_at);
-                    const totalAmount = parseFloat(b.total_amount || 0).toLocaleString();
-
-                    tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${invoiceNumber}</td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${customerName}</td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 font-bold text-gray-800 whitespace-nowrap text-center">${hoardingsCount}</td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${bookingDate}</td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 font-medium whitespace-nowrap">₹${totalAmount}</td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs rounded-full ${paymentBadge(b.payment_status)}">
-                                ${paymentStatusLabel(b.payment_status)}
-                            </span>
-                        </td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">
-                                ${bookingStatusLabel(b.status)}
-                            </span>
-                        </td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
-                            <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm">
-                                View
-                            </a>
-                        </td>
-                    </tr>`;
-                });
-            } else {
-                tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
-            }
-        })
-        .catch(err => console.warn('Could not load bookings:', err));
+    // Initial load
+    loadRecentBookings('today');
 
     function renderPendingPaymentsPagination() {
         const paginationWrap = document.getElementById('pending-payments-pagination');
@@ -357,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-red-600">${daysText}</td>
                     <td class="px-2 py-2 sm:px-4 sm:py-3">
                         <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm font-medium">
-                            View & Mark Paid
+                            Review & Mark as Paid
                         </a>
                     </td>
                 </tr>

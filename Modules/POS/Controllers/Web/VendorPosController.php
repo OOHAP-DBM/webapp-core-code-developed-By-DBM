@@ -213,11 +213,41 @@ class VendorPosController extends Controller
             ->values()
             ->toArray();
 
-        $users = User::whereIn('id', $allUserIds)
+        $search = trim($request->input('search', ''));
+        $status = (array) $request->input('status', []);
+        $usersQuery = User::whereIn('id', $allUserIds)
             ->with(['posProfile' => function ($query) use ($vendorId) {
                 $query->where('vendor_id', $vendorId);
-            }])
-            ->get();
+            }]);
+        if ($search !== '') {
+            $usersQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                  ->orWhere('email', 'like', "%$search%")
+                  ->orWhere('phone', 'like', "%$search%")
+                  ->orWhereHas('posProfile', function($q2) use ($search) {
+                      $q2->where('business_name', 'like', "%$search%")
+                          ;
+                  });
+            });
+        }
+            if (in_array('active', $status) && in_array('inactive', $status)) {
+                // No filter, show all
+            } else if (in_array('active', $status)) {
+                $usersQuery->whereIn('id', function($query) use ($vendorId) {
+                    return $query->select('customer_id')
+                        ->from('pos_bookings')
+                        ->where('vendor_id', $vendorId)
+                        ->whereNotNull('customer_id');
+                });
+            } else if (in_array('inactive', $status)) {
+                $usersQuery->whereNotIn('id', function($query) use ($vendorId) {
+                    return $query->select('customer_id')
+                        ->from('pos_bookings')
+                        ->where('vendor_id', $vendorId)
+                        ->whereNotNull('customer_id');
+                });
+            }
+        $users = $usersQuery->get();
 
         $customers = $users->map(function ($user) use ($vendorId) {
             $bookings = POSBooking::where('vendor_id', $vendorId)
@@ -958,6 +988,8 @@ class VendorPosController extends Controller
     //         //     'payment_reference' => 'nullable|string|max:255',
     //         //     'payment_notes' => 'nullable|string|max:500',
     //         //     'notes' => 'nullable|string|max:1000',
+    //         //     'hold_minutes'                          => 'nullable|integer|min:0',
+    //         //     'payment_details_type'                  => 'nullable|string|in:bank_transfer,online',
     //         // ]);
     //          $validated = $request->validate([
     //             'hoarding_ids'               => 'nullable',
@@ -983,6 +1015,8 @@ class VendorPosController extends Controller
     //             'payment_reference'          => 'nullable|string|max:255',
     //             'payment_notes'              => 'nullable|string|max:500',
     //             'notes'                      => 'nullable|string|max:1000',
+    //             'hold_minutes'                          => 'nullable|integer|min:0',
+    //             'payment_details_type'                  => 'nullable|string|in:bank_transfer,online',
     //         ]);
 
     //         $vendorId = Auth::id();
@@ -1097,9 +1131,9 @@ class VendorPosController extends Controller
     //             'tax_amount' => $taxAmount,
     //             'total_amount' => $totalAmount,
     //             'payment_mode' => $validated['payment_mode'],
-    //             'payment_reference' => $validated['payment_reference'],
-    //             'payment_notes' => $validated['payment_notes'],
-    //             'notes' => $validated['notes']??null,
+    //             'payment_reference' => $validated['payment_reference'] ?? null,
+    //             'payment_notes' => $validated['payment_notes']     ?? null,
+    //             'notes' => $validated['notes']             ?? null,
     //             'status' => 'draft',
     //             'payment_status' => 'unpaid',
     //         ];
@@ -1354,7 +1388,8 @@ class VendorPosController extends Controller
                 'booking_type'     => $validated['booking_type']     ?? 'ooh',
                 'start_date'       => $validated['start_date'],
                 'end_date'         => $validated['end_date'],
-                'duration_days'    => Carbon::parse($validated['end_date'])->diffInDays(Carbon::parse($validated['start_date'])) + 1,
+                'duration_days'    => Carbon::parse($validated['end_date'])
+                    ->diffInDays(Carbon::parse($validated['start_date'])) + 1,
                 'base_amount'      => $baseAmount,
                 'discount_amount'  => $discountAmount,
                 'tax_amount'       => round($taxAmount, 2),
