@@ -295,7 +295,7 @@ class POSBookingController extends Controller
         ]);
         try {
             $context = $this->resolveAdminBookingScopeContext($request);
-            $query = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver', 'scheduledReminders']);
+            $query = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver', 'scheduledReminders', 'milestones']);
 
             if ($context['scope'] !== 'overall') {
                 $query->where('vendor_id', $context['vendor_id']);
@@ -370,7 +370,7 @@ class POSBookingController extends Controller
             $customerId = (int) ($customer->id ?? 0);
             $customerEmail = strtolower(trim((string) ($customer->email ?? '')));
 
-            $bookingQuery = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver'])
+            $bookingQuery = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver', 'milestones'])
                 ->where(function ($query) use ($customerId, $customerEmail) {
                     if ($customerId > 0) {
                         $query->where('customer_id', $customerId);

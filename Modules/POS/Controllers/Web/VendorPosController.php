@@ -174,7 +174,9 @@ class VendorPosController extends Controller
     public function create(Request $request)
     {
         // Do not use or set any vendor context/session for create POS booking
-        return view('vendor.pos.create');
+        return view('vendor.pos.create', [
+            'posGstRate' => $this->posBookingService->getGSTRate(),
+        ]);
     }
 
     /**
@@ -1256,7 +1258,7 @@ class VendorPosController extends Controller
                 'milestone_data.*.amount_type' => 'required_if:is_milestone,true|in:percentage,fixed',
                 'milestone_data.*.amount'      => 'required_if:is_milestone,true|numeric|min:0.01',
                 'milestone_data.*.due_date'    => 'nullable|date',
-                'milestone_data.*.vendor_notes'=> 'nullable|string|max:500',
+                'milestone_data.*.vendor_notes' => 'nullable|string|max:500',
             ]);
 
             // ── Resolve hoarding IDs ─────────────────────────────────────
@@ -1323,8 +1325,8 @@ class VendorPosController extends Controller
                 ], 422);
             }
 
-             $isMilestone = (bool) ($validated['is_milestone'] ?? false);
-             $milestoneData = $isMilestone ? ($validated['milestone_data'] ?? []) : [];
+            $isMilestone = (bool) ($validated['is_milestone'] ?? false);
+            $milestoneData = $isMilestone ? ($validated['milestone_data'] ?? []) : [];
 
             // ── Pricing ──────────────────────────────────────────────────
             $gstRate            = $this->posBookingService->getGSTRate();
@@ -1366,11 +1368,11 @@ class VendorPosController extends Controller
                 'hold_minutes'     => $holdMinutes,
                 'hold_expiry_at'   => $holdExpiryAt,
                 'is_milestone'     => $isMilestone,
-               'milestone_data'   => $milestoneData,
+                'milestone_data'   => $milestoneData,
             ];
 
             $booking = $this->posBookingService->createBooking($bookingData);
-            
+
 
             // ── Reload with hoardings for invoice ─────────────────────────
             $booking->load('bookingHoardings.hoarding');
@@ -1555,6 +1557,33 @@ class VendorPosController extends Controller
             ? "⏳ *Payment Due Within:* " . ($holdMins >= 1440 ? round($holdMins / 1440) . ' day(s)' : ($holdMins >= 60 ? round($holdMins / 60) . ' hour(s)' : "{$holdMins} minutes"))
             : "ℹ️ No payment time limit.";
 
+        $milestones = \App\Models\QuotationMilestone::where('pos_booking_id', $booking->id)
+            ->orderBy('sequence_no')
+            ->get();
+
+        $milestoneBlock = '';
+        if ($milestones->isNotEmpty()) {
+            $milestoneLines = $milestones->values()->map(function ($ms, $idx) {
+                $seq = $ms->sequence_no ?? ($idx + 1);
+                $title = $ms->title ?? ('Milestone ' . $seq);
+                $amount = number_format((float) ($ms->calculated_amount ?? $ms->amount ?? 0), 2);
+                $dueDate = $ms->due_date ? \Carbon\Carbon::parse($ms->due_date)->format('d M Y') : 'N/A';
+
+                return "{$seq}. {$title} - ₹{$amount} (Due: {$dueDate})";
+            })->implode("\n");
+
+            $milestoneBlock = "\n🧩 *Milestones:*\n{$milestoneLines}\n";
+        }
+
+        $paymentBlock = '';
+        $paymentDetail = null;
+        if (in_array($booking->payment_mode, ['bank_transfer', 'cheque', 'online', 'upi'], true)) {
+            $detailType = in_array($booking->payment_mode, ['bank_transfer', 'cheque'], true) ? 'bank' : 'upi';
+            $paymentDetail = \Modules\POS\Models\VendorPaymentDetail::where('vendor_id', $booking->vendor_id)
+                ->where('type', $detailType)
+                ->first();
+        }
+
         // Build hoarding list with clickable links
         $hoardingLines = $booking->bookingHoardings->map(function ($bh) {
             $h = $bh->hoarding;
@@ -1573,7 +1602,7 @@ class VendorPosController extends Controller
             return $hoardingLink . " ({$bh->start_date} → {$bh->end_date})";
         })->implode("\n\n");
 
-        if ($booking->payment_mode === 'bank_transfer' && $paymentDetail) {
+        if (in_array($booking->payment_mode, ['bank_transfer', 'cheque'], true) && $paymentDetail) {
             $paymentBlock = "\n🏦 *Bank Transfer Details:*\n"
                 . "Bank: {$paymentDetail->bank_name}\n"
                 . "A/C No: {$paymentDetail->account_number}\n"
@@ -1596,6 +1625,7 @@ class VendorPosController extends Controller
             . "Invoice: #{$booking->invoice_number}\n"
             . "Total Amount: ₹{$totalAmount}\n\n"
             . "🏛️ *Hoardings Booked:*\n{$hoardingLines}\n\n"
+            . $milestoneBlock
             . "{$holdText}\n"
             . $paymentBlock
             . "\n\nThank you for your business!";

@@ -513,7 +513,7 @@ window.MilestoneModule = (function () {
     /* ── Grand total from parent page ────────────────────────────────── */
     function getTotal() {
         if (typeof window.getPosPricingBreakdown === 'function') {
-            return window.getPosPricingBreakdown().grandTotal || 0;
+            return Math.round((window.getPosPricingBreakdown().grandTotal || 0) * 100) / 100;
         }
         var el = $('side-grand-total');
         if (el) return parseFloat(el.innerText.replace(/[^\d.]/g,'')) || 0;
