@@ -124,4 +124,15 @@ interface HoardingRepositoryInterface
      * @return SupportCollection
      */
     public function getMapPins(array $filters = []): SupportCollection;
+
+       /**
+     * Count vendor active hoardings that are currently unsold.
+     *
+     * Unsold = active hoardings not present in confirmed/active/completed
+     * booking flows across online booking and POS booking sources.
+     *
+     * @param int $vendorId
+     * @return int
+     */
+    public function getUnsoldActiveCountByVendor(int $vendorId): int;
 }

@@ -9,9 +9,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\POS\Models\POSBooking;
 use Illuminate\Support\Collection;
-
+use Modules\Hoardings\Services\HoardingService;
+use Modules\POS\Models\POSBookingHoarding;
 class DashboardController extends Controller
 {
+
+  public function __construct(private HoardingService $hoardingService)
+    {
+    }
+
     public function index()
     {
         $vendor = Auth::user();
@@ -45,8 +51,7 @@ class DashboardController extends Controller
         $totalBookings = Booking::where('vendor_id', $userId)->count();
         $myOrders = Booking::where('vendor_id', $userId)->count();
         $posBookingsCount = $vendor->posBookings()->where('status', 'confirmed')->count();
-        $unsoldHoardings = $activeHoardings - $posBookingsCount;
-
+        $unsoldHoardings = $this->hoardingService->getUnsoldActiveCountByVendor($userId);
         $stats = [
             'earnings' => $totalEarnings,
             'total_hoardings' => $totalHoardings,

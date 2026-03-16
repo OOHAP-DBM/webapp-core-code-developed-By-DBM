@@ -301,6 +301,139 @@ class HoardingController extends Controller
         ]);
     }
 
+
+       /**
+     * @OA\Get(
+     *     path="/hoardings/vendor/{vendorId}/active",
+     *     operationId="getVendorActiveHoardings",
+     *     tags={"Hoardings"},
+     *     summary="Get active hoardings by vendor",
+     *     description="Returns paginated active hoardings for a specific vendor with optional recommended filter and rating/price sorting.",
+     *     @OA\Parameter(
+     *         name="vendorId",
+     *         in="path",
+     *         description="Vendor ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=12)
+     *     ),
+     *     @OA\Parameter(
+     *         name="recommended",
+     *         in="query",
+     *         description="Filter by recommended hoardings",
+     *         required=false,
+     *         @OA\Schema(type="boolean", example=true)
+     *     ),
+     *     @OA\Parameter(
+     *         name="rating_sort",
+     *         in="query",
+     *         description="Sort by average rating",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"high_to_low", "low_to_high", "asc", "desc"}, example="high_to_low")
+     *     ),
+     *     @OA\Parameter(
+     *         name="price_sort",
+     *         in="query",
+     *         description="Sort by price",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"high_to_low", "low_to_high", "asc", "desc"}, example="low_to_high")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=15, minimum=1, maximum=100, example=15)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(
+     *                 property="meta",
+     *                 type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="from", type="integer", example=1),
+     *                 @OA\Property(property="last_page", type="integer", example=2),
+     *                 @OA\Property(property="per_page", type="integer", example=15),
+     *                 @OA\Property(property="to", type="integer", example=15),
+     *                 @OA\Property(property="total", type="integer", example=28)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function vendorActive(Request $request, int $vendorId): JsonResponse
+    {
+        $validated = $request->validate([
+            'recommended' => ['nullable', 'boolean'],
+            'rating_sort' => ['nullable', 'in:high_to_low,low_to_high,asc,desc'],
+            'price_sort' => ['nullable', 'in:high_to_low,low_to_high,asc,desc'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $ratingSort = $this->mapSortDirection($validated['rating_sort'] ?? null);
+        $priceSort = $this->mapSortDirection($validated['price_sort'] ?? null);
+
+        $filters = [
+            'vendor_id' => $vendorId,
+            'status' => 'active',
+            'recommended' => $validated['recommended'] ?? null,
+        ];
+
+        // If both are provided, rating is primary sort and price works as fallback in repository default order.
+        if ($ratingSort !== null) {
+            $filters['sort_by'] = 'rating';
+            $filters['sort_order'] = $ratingSort;
+        } elseif ($priceSort !== null) {
+            $filters['sort_by'] = 'price';
+            $filters['sort_order'] = $priceSort;
+        }
+
+        $perPage = (int) ($validated['per_page'] ?? 15);
+        $hoardings = $this->hoardingService->getAll($filters, $perPage);
+
+        return response()->json([
+            'success' => true,
+            'data' => HoardingResource::collection($hoardings),
+            'meta' => [
+                'current_page' => $hoardings->currentPage(),
+                'from' => $hoardings->firstItem(),
+                'last_page' => $hoardings->lastPage(),
+                'per_page' => $hoardings->perPage(),
+                'to' => $hoardings->lastItem(),
+                'total' => $hoardings->total(),
+            ],
+        ]);
+    }
+
+    private function mapSortDirection(?string $direction): ?string
+    {
+        if ($direction === null || $direction === '') {
+            return null;
+        }
+
+        $direction = strtolower($direction);
+
+        if (in_array($direction, ['desc', 'high_to_low'], true)) {
+            return 'desc';
+        }
+
+        if (in_array($direction, ['asc', 'low_to_high'], true)) {
+            return 'asc';
+        }
+
+        return null;
+    }
     /**
      * @OA\Get(
      *     path="/hoardings/{id}",

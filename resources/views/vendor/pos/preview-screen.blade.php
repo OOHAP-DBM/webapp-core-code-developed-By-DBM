@@ -4,37 +4,37 @@
         {{-- ── Items Table ── --}}
         <div class="flex-1 bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
             <div class="p-3 sm:p-4 lg:p-6 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                <h2 class="text-lg sm:text-xl font-black text-gray-800">Booking Summary & Checkout</h2>
+                <h2 class="text-lg sm:text-xl font-black text-gray-800">BOOKING PREVIEW</h2>
                 <button onclick="backToSelection()" class="w-full sm:w-auto min-h-[44px] text-sm font-bold text-[#2D5A43]">← Edit Selection</button>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 p-3 sm:p-4 lg:p-6 border-b border-gray-100">
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Customer Details</label>
-                    <div class="space-y-1 text-sm">
-                        <div><span class="font-bold text-gray-700">Customer Name:</span> <span id="preview-cust-name">---</span></div>
-                        <div><span class="font-bold text-gray-700">Mobile Number:</span> <span id="preview-cust-phone">---</span></div>
-                        <div><span class="font-bold text-gray-700">Email Address:</span> <span id="preview-cust-email">---</span></div>
-                        <div><span class="font-bold text-gray-700">GST Number:</span> <span id="preview-cust-gstin">---</span></div>
-                        <div><span class="font-bold text-gray-700">Billing Address:</span> <span id="preview-cust-address">---</span></div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Customer</label>
+                    <div class="space-y-1 text-xs">
+                        <div><span class="font-bold text-gray-700">Name:</span> <span id="preview-cust-name">---</span></div>
+                        <div><span class="font-bold text-gray-700">Phone:</span> <span id="preview-cust-phone">---</span></div>
+                        <div><span class="font-bold text-gray-700">Email:</span> <span id="preview-cust-email">---</span></div>
+                        <div><span class="font-bold text-gray-700">GSTIN:</span> <span id="preview-cust-gstin">---</span></div>
+                        <div><span class="font-bold text-gray-700">Address:</span> <span id="preview-cust-address">---</span></div>
                     </div>
                 </div>
                 <div class="text-left sm:text-right">
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Selected Inventory Summary / Booking Details</label>
-                    <p class="text-sm font-bold text-gray-800">Selected Hoardings: <span id="preview-total-count">0</span></p>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Inventory</label>
+                    <p class="text-sm font-bold text-gray-800"><span id="preview-total-count">0</span> Items Selected</p>
                 </div>
             </div>
 
-            <div class="overflow-x-auto mx-2 sm:mx-4 lg:mx-8 my-3 sm:my-4 lg:my-6">
-                <table class="w-full min-w-[760px] text-left border border-gray-200 rounded-md">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[760px] text-left">
                     <thead class="bg-gray-50 text-[10px] uppercase text-gray-400 font-bold">
                         <tr>
-                            <th class="px-4 py-3">Item</th>
-                            <th class="px-6 py-3">Hoarding / Screen</th>
-                            <th class="px-6 py-3">City / Location</th>
-                            <th class="px-6 py-3">Media Type</th>
-                            <th class="px-6 py-3">Campaign Duration</th>
-                            <th class="px-6 py-3 text-right">Booking Amount</th>
+                            <th class="px-4 py-3">Sn</th>
+                            <th class="px-6 py-3">Hoarding</th>
+                            <th class="px-6 py-3">Location</th>
+                            <th class="px-6 py-3">Type</th>
+                            <th class="px-6 py-3">Duration</th>
+                            <th class="px-6 py-3 text-right">Total Amount</th>
                         </tr>
                     </thead>
                     <tbody id="preview-ooh-list" class="divide-y divide-gray-50 text-sm"></tbody>
@@ -44,35 +44,34 @@
         </div>
 
         {{-- ── POS Checkout ── --}}
-       <div class="w-full lg:w-[35%]">
+        <div class="w-full lg:w-96">
             <div class="bg-white rounded-md shadow-xl border border-gray-200 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-6 space-y-5">
-                <h3 class="font-bold text-gray-800 text-lg">Payment & Booking Confirmation</h3>
+                <h3 class="font-bold text-gray-800 text-lg">POS Checkout</h3>
 
 
                 {{-- Discount --}}
                 <div>
-                    <label class="block text-[10px] font-bold uppercase mb-1">Discount (₹)</label>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Discount (₹)</label>
                     <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0"
                         class="w-full p-2 border border-gray-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-green-300 focus:border-green-400 outline-none">
                 </div>
                 @include('vendor.pos.components.milestone-payment')   
                 {{-- Payment Mode --}}
                 <div>
-                    <label class="block text-[10px] font-bold  uppercase mb-2">Payment Mode</label>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Select Payment Method</label>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Payment Mode</label>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <button type="button" onclick="selectPaymentMode('cash')"
-                            class="payment-mode-btn active-mode flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-sm font-bold transition" data-mode="cash">
+                            class="payment-mode-btn active-mode flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="cash">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12a2 2 0 100-4 2 2 0 000 4z"/><path d="M6 12h.01M18 12h.01"/></svg>
                             Cash
                         </button>
                         <button type="button" onclick="selectPaymentMode('bank_transfer')"
-                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-sm font-bold transition" data-mode="bank_transfer" style="cursor: pointer;">
+                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="bank_transfer" style="cursor: pointer;">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             Bank Transfer
                         </button>
                         <button type="button" onclick="selectPaymentMode('online')"
-                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-sm font-bold transition" data-mode="online">
+                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="online">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                             UPI / Online
                         </button>
@@ -82,7 +81,7 @@
                 {{-- Bank Details Panel --}}
                 <div id="bank-details-panel" class="hidden space-y-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
                     <div class="flex items-center justify-between mb-1">
-                        <h4 class="text-sm font-bold text-blue-700 uppercase tracking-wider">Bank Details</h4>
+                        <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider">Bank Details</h4>
                         <span id="bank-saved-badge" class="hidden text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ Saved</span>
                     </div>
 
@@ -90,7 +89,7 @@
                     <div id="bank-saved-card" class="hidden bg-white border border-blue-200 rounded-lg p-3">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-sm font-bold text-gray-700" id="saved-bank-name">---</p>
+                                <p class="text-xs font-bold text-gray-700" id="saved-bank-name">---</p>
                                 <p class="text-[11px] text-gray-500 mt-0.5" id="saved-bank-acc">A/C: ---</p>
                                 <p class="text-[11px] text-gray-500" id="saved-bank-holder">Holder: ---</p>
                                 <p class="text-[11px] text-gray-400" id="saved-bank-ifsc">IFSC: ---</p>
@@ -107,7 +106,7 @@
                                 <input type="text" id="bank-ifsc" placeholder="e.g. SBIN0001234" maxlength="11"
                                     class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:ring-2 focus:ring-blue-300 outline-none"
                                     oninput="this.value=this.value.toUpperCase()" onblur="fetchBankFromIFSC()">
-                                <!-- <button onclick="fetchBankFromIFSC()" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700">Fetch</button> -->
+                                <!-- <button onclick="fetchBankFromIFSC()" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700">Fetch</button> -->
                             </div>
                             <div id="ifsc-result" class="hidden mt-1 text-[11px] text-blue-700 bg-blue-100 rounded px-2 py-1 font-medium"></div>
                         </div>
@@ -121,7 +120,7 @@
                             <input type="text" id="bank-acc-holder" placeholder="As per bank records"
                                 class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 outline-none">
                         </div>
-                        <button onclick="saveBankDetails()" class="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition">
+                        <button onclick="saveBankDetails()" class="w-full py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition">
                             Save Bank Details
                         </button>
                     </div>
@@ -130,7 +129,7 @@
                 {{-- UPI Details Panel --}}
                 <div id="upi-details-panel" class="hidden space-y-3 bg-purple-50 border border-purple-100 rounded-xl p-4">
                     <div class="flex items-center justify-between mb-1">
-                        <h4 class="text-sm font-bold text-purple-700 uppercase tracking-wider">UPI / Online Details</h4>
+                        <h4 class="text-xs font-bold text-purple-700 uppercase tracking-wider">UPI / Online Details</h4>
                         <span id="upi-saved-badge" class="hidden text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ Saved</span>
                     </div>
 
@@ -138,7 +137,7 @@
                     <div id="upi-saved-card" class="hidden bg-white border border-purple-200 rounded-lg p-3">
                         <div class="flex justify-between items-start gap-3">
                             <div class="flex-1">
-                                <p class="text-sm font-bold text-gray-700">UPI ID</p>
+                                <p class="text-xs font-bold text-gray-700">UPI ID</p>
                                 <p class="text-sm font-mono text-purple-700 mt-0.5" id="saved-upi-id">---</p>
                             </div>
                             <div id="saved-upi-qr" class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
@@ -165,10 +164,10 @@
                             </div>
                             <div id="qr-preview-container" class="hidden mt-2 flex items-center gap-2">
                                 <img id="qr-preview-img" src="" alt="QR" class="w-16 h-16 rounded border object-cover">
-                                <button onclick="clearQR()" class="text-red-500 text-sm font-bold">Remove</button>
+                                <button onclick="clearQR()" class="text-red-500 text-xs font-bold">Remove</button>
                             </div>
                         </div>
-                        <button onclick="saveUpiDetails()" class="w-full py-2 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700 transition">
+                        <button onclick="saveUpiDetails()" class="w-full py-2 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 transition">
                             Save UPI Details
                         </button>
                     </div>
@@ -176,29 +175,26 @@
 
                 {{-- Booking Hold Timer --}}
                 <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
-                    <h4 class="text-sm font-bold text-amber-700 uppercase tracking-wider mb-2">Booking Hold Duration</h4>
+                    <h4 class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Booking Hold Duration</h4>
                     <p class="text-[11px] text-gray-500 mb-3">Booking will be released if payment is not received within this time.</p>
-                    <h4 class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Payment Timeout</h4>
-                    <p class="text-[11px] text-gray-500 mb-3">Selected inventory will be reserved until payment is completed.</p>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        <button type="button" onclick="selectHoldTime(15)" class="hold-time-btn py-2 text-sm font-bold border-2 rounded-lg transition" data-mins="15">15 min</button>
-                        <button type="button" onclick="selectHoldTime(30)" class="hold-time-btn active-hold py-2 text-sm font-bold border-2 rounded-lg transition" data-mins="30">30 min</button>
-                        <button type="button" onclick="selectHoldTime(60)" class="hold-time-btn py-2 text-sm font-bold border-2 rounded-lg transition" data-mins="60">1 hour</button>
-                        <button type="button" onclick="selectHoldTime(120)" class="hold-time-btn py-2 text-sm font-bold border-2 rounded-lg transition" data-mins="120">2 hours</button>
-                        <button type="button" onclick="selectHoldTime(1440)" class="hold-time-btn py-2 text-sm font-bold border-2 rounded-lg transition" data-mins="1440">1 day</button>
-                        <button type="button" onclick="selectHoldTime(0)" class="hold-time-btn py-2 text-sm font-bold border-2 rounded-lg transition" data-mins="0">No limit</button>
+                        <button type="button" onclick="selectHoldTime(15)" class="hold-time-btn py-2 text-xs font-bold border-2 rounded-lg transition" data-mins="15">15 min</button>
+                        <button type="button" onclick="selectHoldTime(30)" class="hold-time-btn active-hold py-2 text-xs font-bold border-2 rounded-lg transition" data-mins="30">30 min</button>
+                        <button type="button" onclick="selectHoldTime(60)" class="hold-time-btn py-2 text-xs font-bold border-2 rounded-lg transition" data-mins="60">1 hour</button>
+                        <button type="button" onclick="selectHoldTime(120)" class="hold-time-btn py-2 text-xs font-bold border-2 rounded-lg transition" data-mins="120">2 hours</button>
+                        <button type="button" onclick="selectHoldTime(1440)" class="hold-time-btn py-2 text-xs font-bold border-2 rounded-lg transition" data-mins="1440">1 day</button>
+                        <button type="button" onclick="selectHoldTime(0)" class="hold-time-btn py-2 text-xs font-bold border-2 rounded-lg transition" data-mins="0">No limit</button>
                     </div>
                     <p id="hold-time-label" class="text-[11px] text-amber-600 font-semibold mt-2 text-center">Hold for 30 minutes</p>
                 </div>
 
                 {{-- Totals --}}
                 <div class="pt-4 border-t border-dashed space-y-3">
-                    <h2 class="text-lg font-semibold">Order Summary</h2>
                     <div class="flex justify-between text-xs text-gray-500"><span>Subtotal</span><span id="side-sub-total">₹0</span></div>
                     <div class="flex justify-between text-xs text-red-500"><span>Discount</span><span id="side-discount-display">-₹0</span></div>
                     <div class="flex justify-between text-xs text-gray-500 font-bold"><span>Tax (GST 18%)</span><span id="side-tax">₹0</span></div>
                     <div class="flex justify-between items-center pt-2">
-                        <span class="font-black text-gray-900">Total Payable Amount</span>
+                        <span class="font-black text-gray-900">Final Amount</span>
                         <span id="side-grand-total" class="text-xl font-black text-[#2D5A43]">₹0</span>
                     </div>
                 </div>
@@ -206,7 +202,7 @@
                 <button id="create-booking-btn"
                     class="w-full py-4 bg-[#2D5A43] text-white rounded-xl font-bold shadow-lg hover:bg-opacity-90 transition active:scale-[0.98] flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-                    Confirm & Create Booking
+                    Finalize Booking
                 </button>
             </div>
         </div>
@@ -244,8 +240,8 @@
 
             {{-- Payment info based on mode --}}
             <div id="modal-bank-info" class="hidden bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-2">
-                <h4 class="text-sm font-bold text-blue-700 uppercase tracking-wider">Bank Transfer Details</h4>
-                <div class="grid grid-cols-2 gap-y-1 text-sm">
+                <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider">Bank Transfer Details</h4>
+                <div class="grid grid-cols-2 gap-y-1 text-xs">
                     <span class="text-gray-500">Bank Name</span><span id="modal-bank-name" class="font-bold text-gray-800"></span>
                     <span class="text-gray-500">Account No.</span><span id="modal-bank-acc" class="font-bold font-mono text-gray-800"></span>
                     <span class="text-gray-500">Account Holder</span><span id="modal-bank-holder" class="font-bold text-gray-800"></span>
@@ -255,7 +251,7 @@
             </div>
 
             <div id="modal-upi-info" class="hidden bg-purple-50 border border-purple-100 rounded-xl p-4 space-y-2">
-                <h4 class="text-sm font-bold text-purple-700 uppercase tracking-wider">UPI Payment Details</h4>
+                <h4 class="text-xs font-bold text-purple-700 uppercase tracking-wider">UPI Payment Details</h4>
                 <div class="flex items-center gap-4">
                     <div id="modal-upi-qr" class="w-20 h-20 rounded-xl border bg-white overflow-hidden flex items-center justify-center flex-shrink-0">
                         <svg class="w-8 h-8 text-gray-300" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h7v7H3V3zm1 1v5h5V4H4zm1 1h3v3H5V5zm8-2h7v7h-7V3zm1 1v5h5V4h-5zm1 1h3v3h-3V5zM3 13h7v7H3v-7zm1 1v5h5v-5H4zm1 1h3v3H5v-3zm8 0h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2z"/></svg>
@@ -716,11 +712,11 @@ function updatePreviewScreen() {
         row.innerHTML = `
             <td class="px-6 py-3 font-bold text-gray-800">h</td>
             <td class="px-6 py-3 font-bold text-gray-800">${safe(h.title)}</td>
-            <td class="px-6 py-3 text-sm text-gray-500">${safe(h.display_location) || safe(h.city)}</td>
-            <td class="px-6 py-3 text-sm text-gray-500">${safe(h.type)}</td>
+            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.display_location) || safe(h.city)}</td>
+            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.type)}</td>
 
-            <td class="px-6 py-3 text-sm text-gray-500">${safe(h.total_slots_per_day)}</td>
-            <td class="px-6 py-3 text-sm text-gray-500">${safe(h.startDate)} to ${safe(h.endDate)}</td>
+            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.total_slots_per_day)}</td>
+            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.startDate)} to ${safe(h.endDate)}</td>
             <td class="px-6 py-3 text-right font-bold text-gray-900">${typeof formatINR === 'function' ? formatINR(h.price_per_month) : '₹' + safe(h.price_per_month)}</td>
         `;
         oohList.appendChild(row);
@@ -823,11 +819,11 @@ document.addEventListener('DOMContentLoaded', () => {
         notif.style.minWidth = '260px';
         notif.innerHTML = `
             <div class="flex-1">
-                <div class="font-bold text-amber-700 text-sm mb-1">Payment Due In</div>
+                <div class="font-bold text-amber-700 text-xs mb-1">Payment Due In</div>
                 <div class="font-mono text-lg font-black text-amber-700" id="notif-timer-${booking.id}">--:--:--</div>
-                <div class="text-sm text-gray-500 mt-1">Invoice #${booking.invoice_number ?? booking.id}</div>
+                <div class="text-xs text-gray-500 mt-1">Invoice #${booking.invoice_number ?? booking.id}</div>
             </div>
-            <button class="ml-2 text-sm text-gray-500 hover:text-red-600 font-bold" onclick="this.parentElement.remove();">✕</button>
+            <button class="ml-2 text-xs text-gray-500 hover:text-red-600 font-bold" onclick="this.parentElement.remove();">✕</button>
         `;
         document.body.appendChild(notif);
         // Timer logic
