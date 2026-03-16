@@ -198,6 +198,36 @@
 </td>
 </tr>
 
+@if(!empty($milestones) && $milestones->isNotEmpty())
+<tr>
+<td style="padding:16px 40px 0 40px;">
+    <p style="font-size:14px; color:#444; margin:0 0 8px 0;"><strong>Milestone Plan</strong></p>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;">
+        <tr style="background:#f3f4f6;">
+            <th align="left" style="padding:10px; font-size:12px;">#</th>
+            <th align="left" style="padding:10px; font-size:12px;">Title</th>
+            <th align="left" style="padding:10px; font-size:12px;">Due Date</th>
+            <th align="left" style="padding:10px; font-size:12px;">Amount</th>
+            <th align="left" style="padding:10px; font-size:12px;">Status</th>
+        </tr>
+        @foreach($milestones as $ms)
+        <tr>
+            <td style="padding:10px; font-size:12px;">{{ $ms->sequence_no }}</td>
+            <td style="padding:10px; font-size:12px;">{{ $ms->title ?? ('Milestone ' . $loop->iteration) }}</td>
+            <td style="padding:10px; font-size:12px;">
+                {{ $ms->due_date ? \Carbon\Carbon::parse($ms->due_date)->format('d M Y') : 'N/A' }}
+            </td>
+            <td style="padding:10px; font-size:12px;">
+                ₹{{ number_format((float) ($ms->calculated_amount ?? $ms->amount ?? 0), 2) }}
+            </td>
+            <td style="padding:10px; font-size:12px;">{{ ucfirst($ms->status ?? 'pending') }}</td>
+        </tr>
+        @endforeach
+    </table>
+</td>
+</tr>
+@endif
+
 <!-- HOARDING LIST -->
 <tr>
 <td style="padding:20px 40px 0 40px;">
