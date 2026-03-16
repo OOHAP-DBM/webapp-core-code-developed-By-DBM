@@ -317,7 +317,6 @@
                                             <div class="text-xs text-gray-500">
                                                 {{ $enquiry->updated_at->format('d M, y | H:i') }}
                                             </div>
-
                                         </div>
                                     </td>
 

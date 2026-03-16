@@ -244,7 +244,7 @@
                 <div class="w-1.5 h-6 bg-[#009A5C] rounded-full"></div>
                 <h3 class="text-xl font-bold text-gray-800">Select Audience Type</h3>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 @php
                     $audiences = ['Political activities', 'Students', 'Luxury consumers', 'Environments freeks', 'Average Class', 'Public', 'Tourism', 'Foodies'];
                     $selectedAudiences = old('audience_type', 
@@ -257,11 +257,11 @@
                     );
                 @endphp
                 @foreach($audiences as $audience)
-                <label class="flex items-center space-x-3 p-2 cursor-pointer group">
+                <label class="flex items-center gap-2.5 p-2 md:p-2.5 cursor-pointer group">
                     <input type="checkbox" name="audience_type[]" value="{{ $audience }}" 
                            {{ in_array($audience, (array)$selectedAudiences) ? 'checked' : '' }}
-                           class="w-5 h-5 rounded border-gray-300  text-[#009A5C] focus:ring-[#009A5C]">
-                    <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-[#009A5C]">{{ $audience }}</span>
+                       class="w-4 h-4 md:w-5 md:h-5 rounded border-gray-300 text-[#009A5C] accent-[#009A5C] focus:ring-[#009A5C] shrink-0">
+                  <span class="text-sm font-medium leading-5 text-gray-700 group-hover:text-[#009A5C]">{{ $audience }}</span>
                 </label>
                 @endforeach
             </div>
@@ -343,7 +343,7 @@
         <!-- Visible From -->
         <div class="mb-8">
             <label class="text-sm font-bold text-gray-500 mb-4 block uppercase tracking-wider">Visible From</label>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3 md:gap-4">
                 @php 
                     $visibleOptions = ['Metro Ride', 'From Flyover', 'From the road', 'Roof top', 'Wall hanging']; 
                     $selectedVisible = old('visible_from', 
@@ -356,11 +356,11 @@
                     );
                 @endphp
                 @foreach($visibleOptions as $option)
-                <label class="flex items-center p-4 border border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-green-50/50 hover:border-[#009A5C] transition-all group">
+                <label class="flex items-center gap-2 p-2.5 md:p-3 min-h-[56px] border border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-green-50/50 hover:border-[#009A5C] transition-all group">
                     <input type="checkbox" name="visible_from[]" value="{{ $option }}" 
                            {{ in_array($option, (array)$selectedVisible) ? 'checked' : '' }}
-                           class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
-                    <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-[#009A5C]">{{ $option }}</span>
+                       class="w-4 h-4 md:w-5 md:h-5 rounded border-gray-300 text-[#009A5C] accent-[#009A5C] focus:ring-[#009A5C] shrink-0">
+                  <span class="text-sm font-medium text-gray-700 leading-5 group-hover:text-[#009A5C]">{{ $option }}</span>
                 </label>
                 @endforeach
             </div>
@@ -369,7 +369,7 @@
         <!-- Located At -->
         <div>
             <label class="text-sm font-bold text-gray-500 mb-4 block uppercase tracking-wider">Located At</label>
-            <div class="grid grid-cols-2 md:grid-cols-2 gap-y-4 gap-x-12">
+            <div class="grid grid-cols-2 gap-y-3 gap-x-4 md:gap-x-8">
                 @php 
                     $locationOptions = ['Highway hoarding', 'At Square', 'Shopping Mall', 'Airport', 'Park', 'Main Road', 'Intracity Highway', 'Pause Area']; 
                     $selectedLocations = old('located_at', 
@@ -382,11 +382,11 @@
                     );
                 @endphp
                 @foreach($locationOptions as $loc)
-                <label class="flex items-center space-x-3 p-2 cursor-pointer group">
+                <label class="flex items-center gap-2 p-2 cursor-pointer group">
                     <input type="checkbox" name="located_at[]" value="{{ $loc }}" 
                            {{ in_array($loc, (array)$selectedLocations) ? 'checked' : '' }}
-                           class="w-5 h-5 rounded border-gray-300 text-[#009A5C] focus:ring-[#009A5C]">
-                    <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-[#009A5C]">{{ $loc }}</span>
+                       class="w-4 h-4 md:w-5 md:h-5 rounded border-gray-300 text-[#009A5C] accent-[#009A5C] focus:ring-[#009A5C] shrink-0">
+                  <span class="text-sm font-medium text-gray-700 leading-5 group-hover:text-[#009A5C]">{{ $loc }}</span>
                 </label>
                 @endforeach
             </div>
