@@ -19,6 +19,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
 
+
+ /**
+  * @OA\Tag(
+  *     name="POS",
+  *     description="POS booking and payment management APIs"
+  * )
+  */
 class POSBookingController extends Controller
 {
     protected POSBookingService $posBookingService;
@@ -151,8 +158,23 @@ class POSBookingController extends Controller
         ];
     }
 
-    /**
-     * Get vendor's POS bookings
+     /**
+     * @OA\Get(
+     *     path="/pos/vendor/bookings",
+     *     operationId="posListBookings",
+     *     tags={"POS Bookings"},
+     *     summary="List POS bookings",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="status", in="query", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="payment_status", in="query", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="booking_type", in="query", @OA\Schema(type="string", example="ooh")),
+     *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="per_page", in="query", @OA\Schema(type="integer", default=15)),
+     *     @OA\Parameter(name="booking_scope", in="query", @OA\Schema(type="string", enum={"overall","mine","vendor"})),
+     *     @OA\Parameter(name="vendor_id", in="query", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Bookings fetched"),
+     *     @OA\Response(response=500, description="Failed to fetch bookings")
+     * )
      */
     public function index(Request $request): JsonResponse
     {
@@ -207,8 +229,18 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Get POS dashboard statistics
+     /**
+     * @OA\Get(
+     *     path="/pos/vendor/dashboard",
+     *     operationId="posDashboard",
+     *     tags={"POS Bookings"},
+     *     summary="POS dashboard statistics",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="booking_scope", in="query", @OA\Schema(type="string", enum={"overall","mine","vendor"})),
+     *     @OA\Parameter(name="vendor_id", in="query", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Dashboard fetched"),
+     *     @OA\Response(response=500, description="Failed to fetch dashboard")
+     * )
      */
     public function dashboard(Request $request): JsonResponse
     {
@@ -240,10 +272,27 @@ class POSBookingController extends Controller
     }
 
     /**
-     * Get single booking details this is also being used in web view, so it has some additional data formatting for invoice URL and hoarding details
+     * @OA\Get(
+     *     path="/pos/vendor/bookings/{id}",
+     *     operationId="posShowBooking",
+     *     tags={"POS Bookings"},
+     *     summary="Get booking details",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="booking_scope", in="query", @OA\Schema(type="string", enum={"overall","mine","vendor"})),
+     *     @OA\Parameter(name="vendor_id", in="query", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Booking fetched"),
+     *     @OA\Response(response=404, description="Booking not found"),
+     *     @OA\Response(response=500, description="Failed to fetch booking")
+     * )
      */
     public function show(Request $request, int $id): JsonResponse
     {
+        \Log::info("Fetching POS booking details", [
+            'booking_id' => $id,
+            'user_id' => Auth::id(),
+            'request_data' => $request->all(),
+        ]);
         try {
             $context = $this->resolveAdminBookingScopeContext($request);
             $query = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver', 'scheduledReminders']);
@@ -388,8 +437,39 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Create new POS booking
+   /**
+     * @OA\Post(
+     *     path="/pos/vendor/bookings",
+     *     operationId="posCreateBooking",
+     *     tags={"POS Bookings"},
+     *     summary="Create POS booking",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"customer_name","customer_phone","booking_type","start_date","end_date","base_amount","payment_mode"},
+     *             @OA\Property(property="customer_name", type="string"),
+     *             @OA\Property(property="customer_email", type="string", format="email", nullable=true),
+     *             @OA\Property(property="customer_phone", type="string"),
+     *             @OA\Property(property="customer_address", type="string", nullable=true),
+     *             @OA\Property(property="customer_gstin", type="string", nullable=true),
+     *             @OA\Property(property="booking_type", type="string", enum={"ooh","dooh"}),
+     *             @OA\Property(property="hoarding_id", type="integer", nullable=true),
+     *             @OA\Property(property="start_date", type="string", format="date"),
+     *             @OA\Property(property="end_date", type="string", format="date"),
+     *             @OA\Property(property="duration_type", type="string", enum={"days","weeks","months"}, nullable=true),
+     *             @OA\Property(property="base_amount", type="number", format="float"),
+     *             @OA\Property(property="discount_amount", type="number", format="float", nullable=true),
+     *             @OA\Property(property="payment_mode", type="string", enum={"cash","credit_note","online","bank_transfer","cheque"}),
+     *             @OA\Property(property="payment_reference", type="string", nullable=true),
+     *             @OA\Property(property="payment_notes", type="string", nullable=true),
+     *             @OA\Property(property="notes", type="string", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Booking created"),
+     *     @OA\Response(response=422, description="Validation failed"),
+     *     @OA\Response(response=500, description="Failed to create booking")
+     * )
      */
     public function store(Request $request): JsonResponse
     {
@@ -438,7 +518,34 @@ class POSBookingController extends Controller
     }
 
     /**
-     * Update POS booking
+     * @OA\Put(
+     *     path="/pos/vendor/bookings/{id}",
+     *     operationId="posUpdateBooking",
+     *     tags={"POS Bookings"},
+     *     summary="Update POS booking",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="customer_name", type="string"),
+     *             @OA\Property(property="customer_email", type="string", format="email", nullable=true),
+     *             @OA\Property(property="customer_phone", type="string"),
+     *             @OA\Property(property="customer_address", type="string", nullable=true),
+     *             @OA\Property(property="customer_gstin", type="string", nullable=true),
+     *             @OA\Property(property="start_date", type="string", format="date"),
+     *             @OA\Property(property="end_date", type="string", format="date"),
+     *             @OA\Property(property="base_amount", type="number", format="float"),
+     *             @OA\Property(property="discount_amount", type="number", format="float", nullable=true),
+     *             @OA\Property(property="payment_reference", type="string", nullable=true),
+     *             @OA\Property(property="payment_notes", type="string", nullable=true),
+     *             @OA\Property(property="notes", type="string", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Booking updated"),
+     *     @OA\Response(response=400, description="Invalid state"),
+     *     @OA\Response(response=500, description="Failed to update booking")
+     * )
      */
     public function update(Request $request, int $id): JsonResponse
     {
@@ -484,7 +591,24 @@ class POSBookingController extends Controller
     }
 
     /**
-     * Mark payment as cash collected
+     * @OA\Post(
+     *     path="/pos/vendor/bookings/{id}/mark-cash-collected",
+     *     operationId="posMarkCashCollected",
+     *     tags={"POS Bookings"},
+     *     summary="Mark booking cash collected",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"amount"},
+     *             @OA\Property(property="amount", type="number", format="float"),
+     *             @OA\Property(property="reference", type="string", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Payment marked"),
+     *     @OA\Response(response=500, description="Failed to mark payment")
+     * )
      */
     public function markCashCollected(Request $request, int $id): JsonResponse
     {
@@ -517,7 +641,21 @@ class POSBookingController extends Controller
     }
 
     /**
-     * Convert to credit note
+     * @OA\Post(
+     *     path="/pos/vendor/bookings/{id}/convert-to-credit-note",
+     *     operationId="posConvertToCreditNote",
+     *     tags={"POS Bookings"},
+     *     summary="Convert booking to credit note",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="validity_days", type="integer", minimum=1, maximum=365)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Converted to credit note"),
+     *     @OA\Response(response=500, description="Failed to convert")
+     * )
      */
     public function convertToCreditNote(Request $request, int $id): JsonResponse
     {
@@ -547,8 +685,21 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Cancel credit note
+   /**
+     * @OA\Post(
+     *     path="/pos/vendor/bookings/{id}/cancel-credit-note",
+     *     operationId="posCancelCreditNote",
+     *     tags={"POS Bookings"},
+     *     summary="Cancel credit note",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(required={"reason"}, @OA\Property(property="reason", type="string"))
+     *     ),
+     *     @OA\Response(response=200, description="Credit note cancelled"),
+     *     @OA\Response(response=500, description="Failed to cancel")
+     * )
      */
     public function cancelCreditNote(Request $request, int $id): JsonResponse
     {
@@ -578,8 +729,22 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Cancel booking
+     /**
+     * @OA\Post(
+     *     path="/pos/vendor/bookings/{id}/cancel",
+     *     operationId="posCancelBooking",
+     *     tags={"POS Bookings"},
+     *     summary="Cancel booking",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(required={"reason"}, @OA\Property(property="reason", type="string"))
+     *     ),
+     *     @OA\Response(response=200, description="Booking cancelled"),
+     *     @OA\Response(response=400, description="Already cancelled"),
+     *     @OA\Response(response=500, description="Failed to cancel booking")
+     * )
      */
     public function cancel(Request $request, int $id): JsonResponse
     {
@@ -616,8 +781,19 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Get available hoardings for POS booking
+   /**
+     * @OA\Get(
+     *     path="/pos/vendor/search-hoardings",
+     *     operationId="posSearchHoardings",
+     *     tags={"POS Bookings"},
+     *     summary="Search hoardings for POS booking",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="start_date", in="query", @OA\Schema(type="string", format="date")),
+     *     @OA\Parameter(name="end_date", in="query", @OA\Schema(type="string", format="date")),
+     *     @OA\Response(response=200, description="Hoardings fetched"),
+     *     @OA\Response(response=500, description="Failed to search hoardings")
+     * )
      */
     public function searchHoardings(Request $request): JsonResponse
     {
@@ -678,8 +854,25 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Calculate pricing for booking
+     /**
+     * @OA\Post(
+     *     path="/pos/vendor/calculate-price",
+     *     operationId="posCalculatePrice",
+     *     tags={"POS Bookings"},
+     *     summary="Calculate booking price",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"base_amount"},
+     *             @OA\Property(property="base_amount", type="number", format="float", example=100000),
+     *             @OA\Property(property="discount_amount", type="number", format="float", nullable=true, example=5000)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Price calculated"),
+     *     @OA\Response(response=422, description="Validation failed"),
+     *     @OA\Response(response=500, description="Failed to calculate price")
+     * )
      */
     public function calculatePrice(Request $request): JsonResponse
     {

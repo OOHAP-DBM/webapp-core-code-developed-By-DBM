@@ -24,7 +24,7 @@
 <div id="ms-card" class="rounded-xl border border-gray-200 bg-white overflow-hidden">
 
     {{-- Header --}}
-    <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
+    <div class="flex items-center justify-between px-4 py-1 bg-gray-50 border-b border-gray-200">
         <div>
             <p class="text-sm font-bold ">Milestone Creation</p>
             <p class="text-[11px]  mt-0.5">Define work stages with due dates, deliverables, and payment amounts</p>

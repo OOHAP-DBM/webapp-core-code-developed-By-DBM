@@ -81,7 +81,7 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     // Route::prefix('reports')->group(base_path('routes/api_v1/reports.php'));
     // Route::prefix('media')->group(base_path('routes/api_v1/media.php'));
     Route::prefix('search')->group(base_path('routes/api_v1/search.php'));
-    Route::prefix('vendor/pos')->group(base_path('routes/api_v1/pos.php')); // POS Module
+    Route::prefix('pos')->group(base_path('routes/api_v1/pos.php')); // POS Module
     Route::prefix('pages')->group(base_path('routes/api_v1/cms.php')); // CMS Module
 
     Route::middleware('auth:sanctum')->prefix('/email-settings')->group(function () {
