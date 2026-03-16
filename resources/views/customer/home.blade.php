@@ -277,8 +277,8 @@
                                             {{-- STATUS TEXT --}}
                                             @if($enquiry->status === 'submitted')
 
-                                                <div class="flex flex-col">
-                                                    <span class="text-xs font-semibold text-gray-900">
+                                                <div class="flex flex-wrap items-center gap-x-1">
+                                                    <span class="text-xs font-semibold text-gray-900 whitespace-nowrap">
                                                         Enquiry Sent:
                                                     </span>
                                                     <span class="text-xs font-semibold text-[var(--waiting)]">
