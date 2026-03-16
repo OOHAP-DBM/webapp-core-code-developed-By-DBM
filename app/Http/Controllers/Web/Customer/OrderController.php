@@ -44,9 +44,14 @@ class OrderController extends Controller
         //     ->findOrFail($id);
 
         // this is for POS
-    $booking = \Modules\POS\Models\POSBooking::where('customer_id', auth()->id())
-        ->with(['hoarding', 'vendor', ])
-        ->findOrFail($id);
+        $booking = \Modules\POS\Models\POSBooking::where('customer_id', auth()->id())
+            ->with([
+                'vendor.vendorProfile',
+                'bookingHoardings.hoarding.hoardingMedia',
+                'hoardings',
+                'milestones',
+            ])
+            ->findOrFail($id);
 
         return view('customer.pos-booking.show', compact('booking'));
     }

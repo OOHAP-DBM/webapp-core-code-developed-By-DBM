@@ -7,6 +7,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use App\Models\QuotationMilestone;
 use Modules\POS\Models\POSBooking;
 use Modules\POS\Models\VendorPaymentDetail;
 use App\Models\User;
@@ -57,6 +58,10 @@ class PosBookingCreatedMail extends Mailable implements ShouldQueue
             }
         }
 
+        $milestones = QuotationMilestone::where('pos_booking_id', $this->booking->id)
+            ->orderBy('sequence_no')
+            ->get();
+
         return new Content(
             view: 'emails.pos_booking_created',
             with: [
@@ -67,6 +72,7 @@ class PosBookingCreatedMail extends Mailable implements ShouldQueue
                 'paymentDetail' => $paymentDetail,
                 'paymentQrUrl' => $paymentQrUrl,
                 'paymentQrAbsolutePath' => $paymentQrAbsolutePath,
+                'milestones' => $milestones,
             ]
         );
     }
