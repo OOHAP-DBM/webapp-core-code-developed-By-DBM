@@ -9,7 +9,16 @@
 
     <!-- Header -->
     <div class="vendor-header mt-5">
-        <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHApp company logo">
+        <x-optimized-image
+            src="assets/images/logo/logo_image.jpeg"
+            :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
+            :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
+            sizes="(max-width: 768px) 110px, 140px"
+            alt="OOHApp company logo"
+            width="600"
+            height="120"
+            loading="eager"
+        />
         <span>Vendor</span>
     </div>
 

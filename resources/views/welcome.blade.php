@@ -429,7 +429,7 @@
                 @forelse($bestHoardings as $hoarding)
                     <div class="card" onclick="window.location.href='{{ route('hoardings.show', $hoarding->slug ?? $hoarding->id) }}'">
                         @if($hoarding->hasMedia('images'))
-                            <img src="{{ $hoarding->getFirstMediaUrl('images') }}" alt="{{ $hoarding->title }}" class="card-image">
+                            <img src="{{ $hoarding->getFirstMediaUrl('images') }}" alt="{{ $hoarding->title }}" class="card-image" width="640" height="360" loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw">
                         @else
                             <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
                         @endif
@@ -487,7 +487,6 @@
             </div>
         </div>
     </section>
-  @dump($city);
     <!-- Top Cities Section -->
     <section class="section" id="cities">
               
@@ -500,7 +499,7 @@
             <div class="grid">
                 @foreach($topCities as $city)
                     <div class="city-card">
-                        <img src="{{ $city['image'] }}" alt="{{ $city['name'] }}">
+                        <img src="{{ $city['image'] }}" alt="{{ $city['name'] }}" width="640" height="384" loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw">
                         <div class="city-card-content">
                             <div class="city-name">{{ $city['name'] }}</div>
                             <div class="city-count">{{ $city['count'] }} Hoardings</div>

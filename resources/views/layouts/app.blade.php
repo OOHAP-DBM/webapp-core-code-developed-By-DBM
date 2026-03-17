@@ -30,9 +30,9 @@
     <meta property="og:description" content="@yield('og_description', 'Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.')">
     <meta property="og:url"         content="{{ $canonicalUrl }}">
     <meta property="og:site_name"   content="OOHAPP">
-    <meta property="og:image"       content="{{ asset('assets/images/logo/logo_image.jpeg') }}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+    <meta property="og:image"       content="{{ asset('assets/images/logo/logo_image.webp') }}">
+    <meta property="og:image:width" content="600">
+    <meta property="og:image:height" content="120">
 
     {{-- ── Twitter Card ────────────────────────────────────────────── --}}
     <meta name="twitter:card"        content="summary_large_image">
@@ -40,7 +40,7 @@
     <meta name="twitter:creator"     content="@oohapp">
     <meta name="twitter:title"       content="@yield('twitter_title', 'Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP')">
     <meta name="twitter:description" content="@yield('twitter_description', 'Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations and launch campaigns instantly.')">
-    <meta name="twitter:image"       content="{{ asset('assets/images/logo/logo_image.jpeg') }}">
+    <meta name="twitter:image"       content="{{ asset('assets/images/logo/logo_image.webp') }}">
 
     {{-- ── Fonts (preconnect first to avoid extra round-trips) ──────── --}}
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>

@@ -132,7 +132,10 @@
     text-decoration:none;
 }
 .auth-left {
-    background-image: url('{{ asset("assets/images/login/login_image.jpeg") }}');
+    background-image: image-set(
+        url('{{ asset("assets/images/login/login_image.webp") }}') type('image/webp'),
+        url('{{ asset("assets/images/login/login_image.jpeg") }}') type('image/jpeg')
+    );
     background-size: cover;
     background-position: left center; 
     background-repeat: no-repeat;
