@@ -49,7 +49,7 @@
                     </div>
 
                     <p class="text-muted mt-4 small">
-                        Need help? Contact us at <a href="mailto:support@oohapp.com">support@oohapp.com</a>
+                        Need help? Contact us at <a href="mailto:support@oohapp.com">support&#64;oohapp&#46;com</a>
                     </p>
                 </div>
             </div>

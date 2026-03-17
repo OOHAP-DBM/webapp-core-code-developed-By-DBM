@@ -306,7 +306,7 @@
         <div class="footer">
             <p><strong>Thank you for your business!</strong></p>
             <p>OohApp - Your Out-of-Home Advertising Platform</p>
-            <p>Email: support@oohapp.com | Phone: +91-XXXXXXXXXX</p>
+            <p>Email: <a href="mailto:support@oohapp.com">support&#64;oohapp&#46;com</a> | Phone: +91-XXXXXXXXXX</p>
             <p style="margin-top: 10px;">This is an electronically generated invoice and is valid without signature.</p>
             <p>Generated on: {{ now()->format('F d, Y h:i A') }}</p>
         </div>

@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Spatie\Permission\Exceptions\UnauthorizedException;
-
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class Handler extends ExceptionHandler
 {
     protected $dontFlash = [
@@ -94,6 +94,13 @@ class Handler extends ExceptionHandler
                 'success' => false,
                 'message' => config('app.debug') ? $exception->getMessage() : 'Internal server error',
             ], 500);
+        }
+        if ($exception instanceof NotFoundHttpException) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Not Found'], 404);
+            }
+
+            return response()->view('errors.404', [], 404);
         }
         return parent::render($request, $exception);
     }

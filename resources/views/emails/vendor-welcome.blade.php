@@ -94,7 +94,7 @@
 
             <p><strong>Security reminder:</strong> Keep your password safe. We never ask for your password via email.</p>
 
-            <p>If you need help, contact us at <strong>support@oohapp.com</strong>.</p>
+            <p>If you need help, contact us at <a href="mailto:support@oohapp.com">support&#64;oohapp&#46;com</a>.</p>
 
             <p>Best regards,<br><strong>Team OOHAPP</strong></p>
         </td>
