@@ -10,172 +10,139 @@ use Modules\Cart\Services\CartService;
 
 class ShortlistController extends Controller
 {
-    /**
-     * Ensure only customers can access shortlist
-     */
     public function __construct()
     {
-        $this->middleware(['auth']);
+        // index — guest bhi dekh sakta hai (JS LocalStorage IDs query string mein bhejega)
+        // toggle, check, count — sirf logged in (guest JS handle karega)
+        $this->middleware(['auth'])->only(['store', 'destroy', 'clear', 'toggle', 'check', 'count']);
     }
 
     /**
-     * Display customer's shortlist/wishlist.
-     *
-     * @return View
+     * Shortlist page.
+     * Logged in  → DB se wishlist
+     * Guest      → JS LocalStorage IDs query string mein bhejega (?ids=1,2,3)
      */
-    public function index(CartService $cartService): View
+    public function index(Request $request, CartService $cartService): View
     {
-        $cartIds = app(CartService::class)
-        ->getCartHoardingIds();
-        $wishlistCount = auth()->user()->wishlist()->count();
-        $wishlist = auth()->user()
-            ->wishlist()
-            ->whereHas('hoarding', function ($q) {
-                $q->where('status', \App\Models\Hoarding::STATUS_ACTIVE)
-                  ->whereNull('deleted_at');
-            })
-            ->with('hoarding')
-            ->latest()
-            ->paginate(12);
+        $cartIds = app(CartService::class)->getCartHoardingIds();
 
-        return view('customer.shortlist', compact('wishlist','cartIds','wishlistCount'));
+        if (auth()->check()) {
+            // ─── Logged in user ───────────────────────────────────
+            $wishlistCount = auth()->user()->wishlist()->count();
+            $wishlist      = auth()->user()
+                ->wishlist()
+                ->whereHas('hoarding', function ($q) {
+                    $q->where('status', \App\Models\Hoarding::STATUS_ACTIVE)
+                      ->whereNull('deleted_at');
+                })
+                ->with('hoarding')
+                ->latest()
+                ->paginate(12);
+
+        } else {
+            $ids           = array_filter(array_map('intval', explode(',', $request->query('ids', ''))));
+            $wishlistCount = 0;
+            $wishlist      = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
+
+            if (!empty($ids)) {
+                $query = \App\Models\Hoarding::whereIn('id', $ids)
+                    ->where('status', \App\Models\Hoarding::STATUS_ACTIVE)
+                    ->whereNull('deleted_at');
+
+                $wishlistCount = $query->count();
+
+                // Blade $item->hoarding expect karta hai
+                // Isliye fake wrapper objects banao
+                $allItems = $query->get()->map(function ($hoarding) {
+                    return (object) ['hoarding' => $hoarding];
+                });
+
+                $page    = $request->query('page', 1);
+                $perPage = 12;
+                $offset  = ($page - 1) * $perPage;
+
+                $wishlist = new \Illuminate\Pagination\LengthAwarePaginator(
+                    $allItems->slice($offset, $perPage)->values(),
+                    $wishlistCount,
+                    $perPage,
+                    $page,
+                    ['path' => $request->url(), 'query' => $request->query()]
+                );
+            }
+        }
+
+        return view('customer.shortlist', compact('wishlist', 'cartIds', 'wishlistCount'));
     }
 
-    /**
-     * Add hoarding to wishlist.
-     *
-     * @param int $hoardingId
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function store(int $hoardingId)
     {
         $hoarding = \App\Models\Hoarding::where('id', $hoardingId)->whereNull('deleted_at')->first();
         if (!$hoarding) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hoarding does not exist or has been deleted'
-            ], 404);
+            return response()->json(['success' => false, 'message' => 'Hoarding does not exist or has been deleted'], 404);
         }
 
-        auth()->user()->wishlist()->firstOrCreate([
-            'hoarding_id' => $hoardingId
-        ]);
-
+        auth()->user()->wishlist()->firstOrCreate(['hoarding_id' => $hoardingId]);
         $count = auth()->user()->wishlist()->count();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Added to shortlist',
-            'count' => $count
-        ]);
+        return response()->json(['success' => true, 'message' => 'Added to shortlist', 'count' => $count]);
     }
 
-    /**
-     * Remove hoarding from wishlist.
-     *
-     * @param int $hoardingId
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function destroy(int $hoardingId)
     {
-        auth()->user()->wishlist()
-            ->where('hoarding_id', $hoardingId)
-            ->delete();
-
+        auth()->user()->wishlist()->where('hoarding_id', $hoardingId)->delete();
         $count = auth()->user()->wishlist()->count();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Removed from shortlist',
-            'count' => $count,
-        ]);
+        return response()->json(['success' => true, 'message' => 'Removed from shortlist', 'count' => $count]);
     }
 
-    /**
-     * Clear all wishlist items.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function clear()
     {
         auth()->user()->wishlist()->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Shortlist cleared',
-            'count' => 0,
-        ]);
+        return response()->json(['success' => true, 'message' => 'Shortlist cleared', 'count' => 0]);
     }
 
-    /**
-     * Toggle wishlist status for a hoarding (PROMPT 50).
-     *
-     * @param int $hoardingId
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function toggle(int $hoardingId)
     {
-        if (!auth()->check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized'
-            ], 401);
+        // Guest JS LocalStorage handle karta hai — yahan sirf logged in
+        $hoarding = \App\Models\Hoarding::where('id', $hoardingId)->whereNull('deleted_at')->first();
+        if (!$hoarding) {
+            return response()->json(['success' => false, 'message' => 'Hoarding not found'], 404);
         }
+
         try {
             $result = Wishlist::toggle(auth()->id(), $hoardingId);
 
             return response()->json([
                 'success'      => true,
-                'action'       => $result['action'], 
-                'message'      => $result['action'] === 'added'
-                                    ? 'Added to shortlist'
-                                    : 'Removed from shortlist',
+                'action'       => $result['action'],
+                'message'      => $result['action'] === 'added' ? 'Added to shortlist' : 'Removed from shortlist',
                 'count'        => $result['count'],
                 'isWishlisted' => $result['action'] === 'added',
             ]);
 
         } catch (\Throwable $e) {
             \Log::error('Wishlist toggle failed', [
-                'user_id' => auth()->id(),
+                'user_id'     => auth()->id(),
                 'hoarding_id' => $hoardingId,
-                'error' => $e->getMessage()
+                'error'       => $e->getMessage()
             ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Something went wrong. Please try again.'
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Something went wrong. Please try again.'], 500);
         }
     }
 
-    /**
-     * Check if hoarding is in wishlist (PROMPT 50).
-     *
-     * @param int $hoardingId
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function check(int $hoardingId)
     {
         $isWishlisted = Wishlist::isInWishlist(auth()->id(), $hoardingId);
 
-        return response()->json([
-            'success' => true,
-            'isWishlisted' => $isWishlisted,
-        ]);
+        return response()->json(['success' => true, 'isWishlisted' => $isWishlisted]);
     }
 
-    /**
-     * Get wishlist count (PROMPT 50).
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function count()
     {
         $count = Wishlist::getCount(auth()->id());
 
-        return response()->json([
-            'success' => true,
-            'count' => $count,
-        ]);
+        return response()->json(['success' => true, 'count' => $count]);
     }
 }

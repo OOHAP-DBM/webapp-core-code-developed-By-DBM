@@ -24,7 +24,7 @@
                             placeholder="Your email" 
                             value="{{ old('email') }}"
                             required
-                            class="w-full sm:flex-1 px-4 py-3 rounded-md border-none bg-white 
+                            class="w-full sm:flex-1 px-4 py-3 rounded border-none bg-white 
                                 focus:outline-none focus:ring-2 focus:ring-teal-500 
                                 text-gray-900 @error('email') ring-2 ring-red-500 @enderror"
                         >
@@ -32,7 +32,7 @@
                         <button 
                             type="submit" 
                             class="w-full sm:w-auto px-8 py-3 btn-color 
-                                font-semibold rounded-md 
+                                font-semibold rounded 
                                 transition-colors whitespace-nowrap"
                           >
                             Subscribe

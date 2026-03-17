@@ -337,6 +337,7 @@ class AuthController extends Controller
                 'data' => [
                     'user' => new UserResource($user->fresh()),
                     'token' => $token,
+                    'should_merge' => true,
                 ],
             ], 201);
         } catch (\Exception $e) {
@@ -425,6 +426,7 @@ class AuthController extends Controller
                 'token' => $token,
                 'token_type' => 'Bearer',
                 'active_role' => $activeRole,
+                'should_merge' => true,
             ],
         ]);
     }
@@ -520,6 +522,7 @@ class AuthController extends Controller
                 'user' => new UserResource($user),
                 'token' => $token,
                 'token_type' => 'Bearer',
+                'should_merge' => true,
             ],
         ]);
     }

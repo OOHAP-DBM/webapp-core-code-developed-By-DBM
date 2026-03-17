@@ -12,7 +12,7 @@
     src="https://www.google.com/maps?q={{ $hoarding->latitude }},{{ $hoarding->longitude }}&z=15&output=embed"
     width="100%"
     height="280"
-    style="border-radius:12px;border:0;"
+    style="border-radius:5px;border:0;"
     loading="lazy"
     referrerpolicy="no-referrer-when-downgrade">
 </iframe>

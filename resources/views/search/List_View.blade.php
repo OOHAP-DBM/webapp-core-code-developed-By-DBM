@@ -1,4 +1,4 @@
-<div id="listView" class="bg-gray-100 ">
+<div id="listView" class="bg-white ">
     <div class="max-w-[1460px] mx-auto px-6 py-6">
 
         @if($results->total() > 0)
@@ -35,7 +35,7 @@
                         }
                     }
                 @endphp
-            <div class="bg-[#f0f0f0] rounded-xl p-5 mb-5 flex flex-col cursor-pointer"
+            <div class="bg-white border border-gray-200 rounded-lg p-5 mb-5 flex flex-col cursor-pointer"
                 onclick="if(event.target.closest('button, a') === null)
                         @php
                             $hoardingParam = $item->slug ?? $item->title;
@@ -98,24 +98,13 @@
                                     class="absolute top-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center shortlist-btn
                                         {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }}
                                         {{ $isOwnerVendor ? 'opacity-50' : '' }}"
-
                                     data-id="{{ $item->id }}"
                                     data-auth="{{ auth()->check() ? '1' : '0' }}"
-                                    data-role="{{ auth()->check() ? auth()->user()->role : '' }}"
-
-                                    {{-- 🔥 THIS IS THE KEY --}}
+                                    data-role="{{ auth()->check() ? auth()->user()->active_role : '' }}"
                                     onmouseenter="this.style.cursor='{{ $isOwnerVendor ? 'not-allowed' : 'pointer' }}'"
                                     onmouseleave="this.style.cursor='default'"
-
-                                    @if($isOwnerVendor)
-                                        disabled
-                                        onclick="event.stopPropagation(); return false;"
-                                    @else
-                                        onclick="event.stopPropagation(); toggleShortlist(this);"
-                                    @endif
+                                    onclick="event.preventDefault(); event.stopPropagation(); toggleShortlist(this);"
                                 >
-
-
                                     <svg
                                         class="wishlist-icon"
                                         width="20"
@@ -268,9 +257,12 @@
                                 <!-- Short List + Enquire -->
                                 <div class="flex flex-col">
                                     <button
+                                        id="cart-btn-{{ $item->id }}"
                                         class="cart-btn border border-[#c7c7c7] px-4 py-1.5 rounded text-sm whitespace-nowrap min-w-[96px] cursor-pointer"
+                                        data-id="{{ $item->id }}"
                                         data-in-cart="{{ in_array($item->id, $cartHoardingIds) ? '1' : '0' }}"
-                                        onclick="toggleCart(this, {{ $item->id }})"
+                                        data-auth="{{ auth()->check() ? '1' : '0' }}"
+                                        onclick="event.preventDefault(); event.stopPropagation(); toggleCart(this, {{ $item->id }})"
                                     >
                                     </button>
 

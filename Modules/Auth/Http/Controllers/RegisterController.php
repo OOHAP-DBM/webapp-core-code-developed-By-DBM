@@ -180,6 +180,7 @@ class RegisterController extends Controller
 
                 // 6️⃣ Login vendor
                 Auth::login($user);
+                session(['merge_guest_data' => true]);
 
                 // 7️⃣ Redirect to onboarding
                 return redirect()->route('vendor.onboarding.contact-details')
@@ -195,10 +196,11 @@ class RegisterController extends Controller
 
             // Login the customer
             Auth::login($user);
+            session(['merge_guest_data' => true]);
 
             // Redirect to customer dashboard
             return redirect()->route('home')
-                  ->with('success', 'Welcome to OohApp! Your account has been created successfully.');
+                ->with('success', 'Welcome to OohApp! Your account has been created successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
