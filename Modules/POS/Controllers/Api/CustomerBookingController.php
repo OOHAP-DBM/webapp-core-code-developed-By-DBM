@@ -377,6 +377,7 @@ class CustomerBookingController extends Controller
                 ->with([
                     'vendor.vendorProfile',
                     'bookingHoardings.hoarding.hoardingMedia',
+                    'bookingHoardings.hoarding.doohScreen.media',
                     'hoardings',
                 ])
                 ->firstOrFail();
@@ -400,21 +401,7 @@ class CustomerBookingController extends Controller
                 $hoarding = $bh->hoarding;
 
                 // Primary media image
-                $primaryMedia = $hoarding?->hoardingMedia
-                    ?->sortBy('sort_order')
-                    ->first();
-                $imageUrl = $primaryMedia
-                    ? asset('storage/' . ltrim($primaryMedia->file_path, '/'))
-                    : null;
-
-                // All media for gallery
-                $gallery = $hoarding?->hoardingMedia?->map(fn ($m) => [
-                    'id'        => $m->id,
-                    'url'       => asset('storage/' . ltrim($m->file_path, '/')),
-                    'is_primary'=> (bool) $m->is_primary,
-                    'sort_order'=> $m->sort_order,
-                ]) ?? [];
-
+                $imageUrl = $hoarding->heroImage();
                 $startDate = $bh->start_date
                     ? \Carbon\Carbon::parse($bh->start_date)->toDateString()
                     : null;
@@ -436,7 +423,6 @@ class CustomerBookingController extends Controller
                     'size'                 => $hoarding?->size ?? null,
                     'status'               => $hoarding?->status,
                     'image_url'            => $imageUrl,
-                    'gallery'              => $gallery,
                     // Campaign dates for this specific hoarding
                     'campaign_start_date'  => $startDate,
                     'campaign_end_date'    => $endDate,

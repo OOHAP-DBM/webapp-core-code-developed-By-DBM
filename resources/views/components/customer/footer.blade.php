@@ -124,37 +124,37 @@
                 <h3 class="text-gray-900 text-lg font-semibold mb-4">Let us help you</h3>
                <ul class="space-y-2 text-sm">
                     <li>
-                        <a href="{{ route('about') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
+                        <a href="{{ route('about') }}" class="text-gray-600 hover:text-gray-900" target="_blank" rel="noopener noreferrer">
                             About OOHAPP
                         </a>
                     </li>
                      <li>
-                        <a href="https://oohapp.io/service" class="text-gray-600 hover:text-gray-900" target="_blank">
+                        <a href="https://oohapp.io/service" class="text-gray-600 hover:text-gray-900" target="_blank" rel="noopener noreferrer">
                             Services
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('faqs') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
+                        <a href="{{ route('faqs') }}" class="text-gray-600 hover:text-gray-900" target="_blank" rel="noopener noreferrer">
                             FAQs
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('terms') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
+                        <a href="{{ route('terms') }}" class="text-gray-600 hover:text-gray-900" target="_blank" rel="noopener noreferrer">
                             Terms & Conditions
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('disclaimer') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
+                        <a href="{{ route('disclaimer') }}" class="text-gray-600 hover:text-gray-900" target="_blank" rel="noopener noreferrer">
                             Legal Disclaimer
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('privacy') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
+                        <a href="{{ route('privacy') }}" class="text-gray-600 hover:text-gray-900" target="_blank" rel="noopener noreferrer">
                             Privacy Policy
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('refund') }}" class="text-gray-600 hover:text-gray-900" target="_blank">
+                        <a href="{{ route('refund') }}" class="text-gray-600 hover:text-gray-900" target="_blank" rel="noopener noreferrer">
                             Refund & Cancellation Policy
                         </a>
                     </li>
