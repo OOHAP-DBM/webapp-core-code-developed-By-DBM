@@ -63,104 +63,49 @@
     </script>
 
     {{-- ── Structured Data (JSON-LD) ──────────────────────────────────── --}}
+    @verbatim
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
-        "@graph": [
-            {
-                "@type": "Organization",
-                "@id": "https://oohapp.io/#organization",
-                "name": "OOHAPP",
-                "url": "https://oohapp.io/",
-                "logo": {
-                    "@type": "ImageObject",
-                    "@id": "https://oohapp.io/#logo",
-                    "url": "{{ asset('assets/images/favicon/Vector (1).png') }}",
-                    "width": 512,
-                    "height": 512
-                },
-                "description": "Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.",
-                "telephone": "+91 8118805835",
-                "email": "info@oohapp.io",
-                "foundingDate": "2022",
-                "areaServed": { "@type": "Country", "name": "India" },
-                "sameAs": [
-                    "https://www.linkedin.com/company/oohapp/",
-                    "https://twitter.com/oohapads",
-                    "https://www.instagram.com/realoohappofficial/",
-                    "https://www.facebook.com/profile.php?id=100083678822547"
-                ],
-                "address": {
-                    "@type": "PostalAddress",
-                    "streetAddress": "B 25, Vibhuti Khand, Gomti Nagar",
-                    "addressLocality": "Lucknow",
-                    "addressRegion": "Uttar Pradesh",
-                    "postalCode": "226010",
-                    "addressCountry": "IN"
-                },
-                "contactPoint": {
-                    "@type": "ContactPoint",
-                    "telephone": "+91 8118805835",
-                    "contactType": "customer support",
-                    "areaServed": "IN",
-                    "availableLanguage": ["English", "Hindi"]
-                }
-            },
-            {
-                "@type": "LocalBusiness",
-                "@id": "https://oohapp.io/#localbusiness",
-                "name": "OOHAPP",
-                "parentOrganization": { "@id": "https://oohapp.io/#organization" },
-                "url": "https://oohapp.io/",
-                "image": { "@type": "ImageObject", "url": "{{ asset('assets/images/favicon/Vector (1).png') }}" },
-                "telephone": "+91 8118805835",
-                "email": "info@oohapp.io",
-                "priceRange": "₹₹",
-                "currenciesAccepted": "INR",
-                "paymentAccepted": "Cash, Credit Card, UPI",
-                "address": {
-                    "@type": "PostalAddress",
-                    "streetAddress": "B 25, Vibhuti Khand, Gomti Nagar",
-                    "addressLocality": "Lucknow",
-                    "addressRegion": "Uttar Pradesh",
-                    "postalCode": "226010",
-                    "addressCountry": "IN"
-                },
-                "openingHoursSpecification": {
-                    "@type": "OpeningHoursSpecification",
-                    "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
-                    "opens": "09:30",
-                    "closes": "18:30"
-                }
-            },
-            {
-                "@type": "WebSite",
-                "@id": "https://oohapp.io/#website",
-                "url": "https://oohapp.io/",
-                "name": "OOHAPP",
-                "publisher": { "@id": "https://oohapp.io/#organization" },
-                "inLanguage": "en-IN",
-                "potentialAction": {
-                    "@type": "SearchAction",
-                    "target": "https://oohapp.io/search?q={search_term_string}",
-                    "query-input": "required name=search_term_string"
-                }
-            },
-            {
-                "@type": "WebPage",
-                "@id": "{{ $canonicalUrl }}#webpage",
-                "url": "{{ $canonicalUrl }}",
-                "name": "@yield('title', 'Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP')",
-                "isPartOf": { "@id": "https://oohapp.io/#website" },
-                "about": { "@id": "https://oohapp.io/#organization" },
-                "description": "@yield('meta_description', 'Book billboard and hoarding ads across India with OOHAPP.')",
-                "inLanguage": "en-IN",
-                "datePublished": "2023-01-01",
-                "dateModified": "{{ now()->toDateString() }}"
-            }
-        ]
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://oohapp.io/#organization",
+          "name": "OOHAPP",
+          "url": "https://oohapp.io/",
+          "logo": {
+            "@type": "ImageObject",
+            "@id": "https://oohapp.io/#logo",
+            "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png",
+            "width": 512,
+            "height": 512
+          },
+          "telephone": "+91 8118805835",
+          "email": "info@oohapp.io",
+          "foundingDate": "2022",
+          "areaServed": { "@type": "Country", "name": "India" }
+        },
+        {
+          "@type": "LocalBusiness",
+          "@id": "https://oohapp.io/#localbusiness",
+          "name": "OOHAPP",
+          "parentOrganization": { "@id": "https://oohapp.io/#organization" },
+          "url": "https://oohapp.io/",
+          "image": { "@type": "ImageObject", "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png" },
+          "telephone": "+91 8118805835",
+          "email": "info@oohapp.io",
+          "priceRange": "INR"
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://oohapp.io/#website",
+          "url": "https://oohapp.io/",
+          "name": "OOHAPP"
+        }
+      ]
     }
     </script>
+    @endverbatim
 
 </head>
 <body class="antialiased">
