@@ -46,8 +46,10 @@ class POSPaymentReminderNotification extends Notification implements \Illuminate
             $actionUrl = url('/vendor/pos/bookings/' . $this->booking->id);
         }
 
+        $invoiceNumber = $this->booking->invoice_number ?? $this->booking->id;
+
         $mailMessage = (new MailMessage)
-            ->subject('Payment Reminder - Invoice #' . $this->booking->invoice_number)
+            ->subject('Payment Reminder (' . $this->reminderCount . '/3) - Invoice #' . $invoiceNumber)
             ->greeting("Hello {$this->booking->customer_name},")
             ->line("This is a payment reminder for your POS booking.")
             ->line("")

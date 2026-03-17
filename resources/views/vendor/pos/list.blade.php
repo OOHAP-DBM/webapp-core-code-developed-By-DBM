@@ -321,16 +321,16 @@ function renderPosPagination(pagination) {
     const endRecord = total > 0 ? Math.min(current * perPage, total) : 0;
 
     const pages = [];
-    if (last <= 7) {
+    if (last <= 5) {
         for (let i = 1; i <= last; i++) {
             pages.push(i);
         }
-    } else if (current <= 4) {
+    } else if (current <= 5) {
         for (let i = 1; i <= 5; i++) {
             pages.push(i);
         }
         pages.push(last);
-    } else if (current >= last - 3) {
+    } else if (current >= last - 4) {
         pages.push(1);
         for (let i = last - 4; i <= last; i++) {
             pages.push(i);

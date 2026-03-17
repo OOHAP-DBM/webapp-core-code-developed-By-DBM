@@ -157,7 +157,7 @@
 
             {{-- Pagination --}}
             @if(isset($bookings) && $bookings->hasPages())
-            <div>{{ $bookings->links() }}</div>
+            <div>{{ $bookings->links('pagination.vendor-compact') }}</div>
             @endif
 
         </div>

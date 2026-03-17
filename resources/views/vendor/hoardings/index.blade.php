@@ -183,7 +183,7 @@
 
         <!-- Pagination -->
         <div class="d-flex justify-content-center mt-4">
-            {{ $hoardings->links() }}
+            {{ $hoardings->links('pagination.vendor-compact') }}
         </div>
     @else
         <div class="card">

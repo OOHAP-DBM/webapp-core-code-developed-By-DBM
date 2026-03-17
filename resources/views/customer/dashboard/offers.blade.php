@@ -124,7 +124,7 @@
 
     @if($offers->hasPages())
     <div class="mt-4">
-        {{ $offers->links() }}
+        {{ $offers->links('pagination.vendor-compact') }}
     </div>
     @endif
 </div>

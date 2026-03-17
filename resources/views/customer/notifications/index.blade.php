@@ -121,7 +121,7 @@
         <!-- PAGINATION -->
         @if($notifications->hasPages())
             <div class="mt-3">
-                {{ $notifications->links() }}
+                {{ $notifications->links('pagination.vendor-compact') }}
             </div>
         @endif
 

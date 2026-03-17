@@ -342,7 +342,7 @@
             Showing {{ $enquiries->firstItem() ?? 0 }} - {{ $enquiries->lastItem() ?? 0 }} of {{ $enquiries->total() }}
         </div>
         <div class="overflow-x-auto">
-            {{ $enquiries->links() }}
+            {{ $enquiries->links('pagination.vendor-compact') }}
         </div>
     </div>
 

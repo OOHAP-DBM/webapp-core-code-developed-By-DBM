@@ -20,12 +20,12 @@ use Illuminate\Validation\ValidationException;
 use App\Models\User;
 
 
- /**
-  * @OA\Tag(
-  *     name="POS",
-  *     description="POS booking and payment management APIs"
-  * )
-  */
+/**
+ * @OA\Tag(
+ *     name="POS",
+ *     description="POS booking and payment management APIs"
+ * )
+ */
 class POSBookingController extends Controller
 {
     protected POSBookingService $posBookingService;
@@ -158,7 +158,7 @@ class POSBookingController extends Controller
         ];
     }
 
-     /**
+    /**
      * @OA\Get(
      *     path="/pos/vendor/bookings",
      *     operationId="posListBookings",
@@ -229,7 +229,7 @@ class POSBookingController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\Get(
      *     path="/pos/vendor/dashboard",
      *     operationId="posDashboard",
@@ -437,7 +437,7 @@ class POSBookingController extends Controller
         }
     }
 
-   /**
+    /**
      * @OA\Post(
      *     path="/pos/vendor/bookings",
      *     operationId="posCreateBooking",
@@ -685,7 +685,7 @@ class POSBookingController extends Controller
         }
     }
 
-   /**
+    /**
      * @OA\Post(
      *     path="/pos/vendor/bookings/{id}/cancel-credit-note",
      *     operationId="posCancelCreditNote",
@@ -729,7 +729,7 @@ class POSBookingController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\Post(
      *     path="/pos/vendor/bookings/{id}/cancel",
      *     operationId="posCancelBooking",
@@ -781,7 +781,7 @@ class POSBookingController extends Controller
         }
     }
 
-   /**
+    /**
      * @OA\Get(
      *     path="/pos/vendor/search-hoardings",
      *     operationId="posSearchHoardings",
@@ -854,7 +854,7 @@ class POSBookingController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\Post(
      *     path="/pos/vendor/calculate-price",
      *     operationId="posCalculatePrice",
@@ -925,6 +925,8 @@ class POSBookingController extends Controller
                 'amount' => 'required|numeric|min:0.01',
                 'payment_date' => 'nullable|date|before_or_equal:today',
                 'notes' => 'nullable|string|max:500',
+                'milestone_ids' => 'nullable|array',
+                'milestone_ids.*' => 'integer|distinct',
             ]);
 
             // Validate current state
@@ -967,8 +969,9 @@ class POSBookingController extends Controller
             $updated = $this->posBookingService->markPaymentReceived(
                 $booking,
                 $validated['amount'],
-                $validated['payment_date'] ?? today(),
-                $validated['notes'] ?? null
+                isset($validated['payment_date']) ? Carbon::parse((string) $validated['payment_date']) : today(),
+                $validated['notes'] ?? null,
+                $validated['milestone_ids'] ?? []
             );
 
             // Send WhatsApp notification for payment received

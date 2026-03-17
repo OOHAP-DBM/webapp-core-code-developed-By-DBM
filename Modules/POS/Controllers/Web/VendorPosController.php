@@ -1833,6 +1833,22 @@ class VendorPosController extends Controller
                 });
             }
 
+            if ($request->filled('period')) {
+                $period = strtolower(trim((string) $request->get('period')));
+                $from = match ($period) {
+                    'today'              => now()->startOfDay(),
+                    'week', 'this_week'  => now()->startOfWeek(),
+                    'month', 'this_month' => now()->startOfMonth(),
+                    '1m'                 => now()->subMonth()->startOfDay(),
+                    '6m'                 => now()->subMonths(6)->startOfDay(),
+                    '1y', 'year'         => now()->subYear()->startOfDay(),
+                    default              => null,
+                };
+                if ($from) {
+                    $query->where('created_at', '>=', $from);
+                }
+            }
+
             $bookings = $query->paginate($perPage);
 
             return response()->json([

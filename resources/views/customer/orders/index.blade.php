@@ -89,7 +89,7 @@
             <!-- Pagination -->
             @if($bookings->hasPages())
             <div class="mt-4">
-                {{ $bookings->links() }}
+                {{ $bookings->links('pagination.vendor-compact') }}
             </div>
             @endif
         </div>

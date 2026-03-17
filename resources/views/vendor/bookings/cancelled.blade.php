@@ -199,7 +199,7 @@
 
             @if($bookings->hasPages())
             <div class="pt-2">
-                {{ $bookings->links() }}
+                {{ $bookings->links('pagination.vendor-compact') }}
             </div>
             @endif
         </div>

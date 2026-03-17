@@ -172,7 +172,7 @@
                 of {{ $bookings->total() }} bookings
             </div>
             <div>
-                {{ $bookings->links('vendor.pagination.tailwind') }}
+                {{ $bookings->links('pagination.vendor-compact') }}
             </div>
         </div>
     </div>

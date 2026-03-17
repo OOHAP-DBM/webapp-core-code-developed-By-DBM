@@ -134,7 +134,7 @@
             </div>
         </div>
         @if($quotations->hasPages())
-        <div class="card-footer bg-white">{{ $quotations->links() }}</div>
+        <div class="card-footer bg-white">{{ $quotations->links('pagination.vendor-compact') }}</div>
         @endif
     </div>
 </div>

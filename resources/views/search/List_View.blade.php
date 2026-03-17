@@ -61,9 +61,19 @@
                                 </div>
 
                                 <!-- RECOMMENDED TAG -->
+                                @php
+                                    if (($item->is_recommended ?? 0) == 1) {
+                                        $isRecommended = true;
+                                    } else {
+                                        $isRecommended = ($item->view_count ?? 0) >= 50 ||
+                                                        ($item->expected_eyeball ?? 0) >= 5000;
+                                    }
+                                @endphp
+                                @if($isRecommended)
                                 <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded z-10">
                                     RECOMMENDED
                                 </span>
+                                @endif
 
                                 <!-- SAVE (BOOKMARK) ICON -->
                                  @php
@@ -303,7 +313,7 @@
 
             @if($results->total() > $results->perPage())
                 <div class="mt-6 flex w-full justify-end">
-                    {{ $results->links() }}
+                    {{ $results->links('pagination.vendor-compact') }}
                 </div>
             @endif
         @else

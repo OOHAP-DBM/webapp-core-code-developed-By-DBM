@@ -135,7 +135,7 @@
             </div>
         </div>
         @if($payments->hasPages())
-        <div class="card-footer bg-white">{{ $payments->links() }}</div>
+        <div class="card-footer bg-white">{{ $payments->links('pagination.vendor-compact') }}</div>
         @endif
     </div>
 </div>

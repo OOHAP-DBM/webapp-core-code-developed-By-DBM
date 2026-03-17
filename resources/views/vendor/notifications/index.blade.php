@@ -46,7 +46,7 @@
 
         @if($notifications->hasPages())
             <div class="mt-6">
-                {{ $notifications->links() }}
+                {{ $notifications->links('pagination.vendor-compact') }}
             </div>
         @endif
     </div>
