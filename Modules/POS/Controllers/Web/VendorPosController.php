@@ -1285,7 +1285,7 @@ class VendorPosController extends Controller
                 'payment_notes'                         => 'nullable|string|max:500',
                 'notes'                                 => 'nullable|string|max:1000',
                 'hold_minutes'                          => 'nullable|integer|min:0',
-                'payment_details_type'                  => 'nullable|string|in:bank_transfer,online',
+                'payment_details_type'                  => 'nullable|string|in:bank_transfer,online,credit_note',
                 'is_milestone'   => 'nullable|boolean',
                 'milestone_data' => 'required_if:is_milestone,true|array|min:1',
                 'milestone_data.*.title'       => 'required_if:is_milestone,true|string|max:100',
