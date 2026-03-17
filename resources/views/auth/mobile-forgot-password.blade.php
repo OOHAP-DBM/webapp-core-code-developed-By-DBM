@@ -131,7 +131,17 @@
         <!-- LEFT IMAGE -->
         <div class="col-md-5 d-none d-md-block auth-left">
             <a href="{{ route('home') }}">
-                <img src="{{ asset('assets/images/login/login_image.jpeg') }}" alt="OOHAPP">
+                <x-optimized-image
+                    src="assets/images/login/login_image.jpeg"
+                    :webp-srcset="asset('assets/images/login/login_image-390.webp') . ' 390w, ' . asset('assets/images/login/login_image-780.webp') . ' 780w, ' . asset('assets/images/login/login_image.webp') . ' 1250w'"
+                    :srcset="asset('assets/images/login/login_image-390.jpeg') . ' 390w, ' . asset('assets/images/login/login_image-780.jpeg') . ' 780w, ' . asset('assets/images/login/login_image.jpeg') . ' 1250w'"
+                    sizes="(min-width: 768px) 42vw, 100vw"
+                    alt="OOHAPP"
+                    width="1250"
+                    height="1600"
+                    loading="eager"
+                    fetchpriority="high"
+                />
             </a>
         </div>
 

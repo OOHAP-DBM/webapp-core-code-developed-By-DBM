@@ -6,13 +6,18 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', config('app.name', 'OOHAPP'))</title>
+    <meta name="description" content="@yield('meta_description', 'Sign in or register on OOHAPP — India\'s outdoor advertising booking platform.')">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="canonical" href="{{ url()->current() }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon/Vector (1).png') }}">
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet">
 
-    <!-- Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- CSS only in head -->
+    @vite(['resources/css/app.css'])
 
     @stack('styles')
 </head>
@@ -21,6 +26,8 @@
         @yield('content')
     </div>
 
+    {{-- JS at end of body to avoid render-blocking --}}
+    @vite(['resources/js/app.js'])
     @stack('scripts')
 </body>
 </html>

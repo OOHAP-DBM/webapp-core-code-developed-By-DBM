@@ -6,6 +6,11 @@
             src="{{ $city['image'] }}" 
             alt="{{ $city['name'] }}"
             class="w-full h-full object-cover"
+            width="640"
+            height="384"
+            loading="lazy"
+            decoding="async"
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
         >
         
         <!-- Overlay Gradient -->

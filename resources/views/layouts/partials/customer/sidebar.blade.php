@@ -9,11 +9,17 @@
     <div class="p-6 text-center">
         <!-- Logo -->
         <a href="{{ route('home') }}" class="flex items-center">
-            <img
-                src="{{ asset('assets/images/logo/logo_image.jpeg') }}"
+            <x-optimized-image
+                src="assets/images/logo/logo_image.jpeg"
+                :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
+                :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
+                sizes="112px"
                 alt="OOHApp company logo"
+                width="600"
+                height="120"
                 class="h-7 w-auto"
-            >
+                loading="eager"
+            />
         </a>
     </div>
 

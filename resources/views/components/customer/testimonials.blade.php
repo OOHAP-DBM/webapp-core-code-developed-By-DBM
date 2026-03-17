@@ -42,7 +42,11 @@
                                         : 'https://ui-avatars.com/api/?name=' . urlencode(optional($item->user)->name ?? 'User') . '&background=0D9488&color=fff'
                                     }}"
                                     alt="{{ optional($item->user)->name ?? 'User' }}"
-                                    class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg">
+                                    class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+                                    width="80"
+                                    height="80"
+                                    loading="lazy"
+                                    decoding="async">
                             </div>
 
 

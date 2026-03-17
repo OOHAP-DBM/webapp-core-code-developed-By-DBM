@@ -351,6 +351,16 @@ class Hoarding extends Model implements HasMedia
         return $this->enable_weekly_booking && $this->weekly_price !== null;
     }
 
+    public function getMediaAttribute()
+    {
+        if ($this->hoarding_type === self::TYPE_OOH) {
+            return $this->hoardingMedia;
+        }
+        if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
+            return $this->doohScreen->media;
+        }
+        return collect();
+    }
 
     /**
      * Register media collections for hoarding images.

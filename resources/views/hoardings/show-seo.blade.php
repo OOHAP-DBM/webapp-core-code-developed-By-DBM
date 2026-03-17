@@ -178,15 +178,15 @@
                         <h6 class="mb-2">Share this hoarding:</h6>
                         <div class="d-flex gap-2">
                             <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('hoardings.show', $hoarding->slug ?? $hoarding->id)) }}" 
-                               target="_blank" class="btn btn-sm btn-outline-primary">
+                               target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-facebook me-1"></i>Facebook
                             </a>
                             <a href="https://twitter.com/intent/tweet?url={{ urlencode(route('hoardings.show', $hoarding->slug ?? $hoarding->id)) }}&text={{ urlencode($hoarding->location_name) }}" 
-                               target="_blank" class="btn btn-sm btn-outline-info">
+                               target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info">
                                 <i class="bi bi-twitter me-1"></i>Twitter
                             </a>
                             <a href="https://api.whatsapp.com/send?text={{ urlencode($hoarding->location_name . ' - ' . route('hoardings.show', $hoarding->slug ?? $hoarding->id)) }}" 
-                               target="_blank" class="btn btn-sm btn-outline-success">
+                               target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success">
                                 <i class="bi bi-whatsapp me-1"></i>WhatsApp
                             </a>
                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('{{ route('hoardings.show', $hoarding->slug ?? $hoarding->id) }}')">

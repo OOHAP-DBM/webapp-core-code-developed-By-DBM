@@ -15,13 +15,13 @@
         <span id="summary-total">₹0</span>
     </div>
 
-    <center>
+    <div class="flex justify-center">
         <button
             id="enquireNowBtn"
             class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-semibold transition-colors cursor-pointer">
             Enquire Now
         </button>
-    </center>
+    </div>
 </div>
 
 @push('modals')

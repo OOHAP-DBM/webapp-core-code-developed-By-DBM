@@ -88,6 +88,7 @@
                                             <a
                                                 href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}"
                                                 target="_blank"
+                                                rel="noopener noreferrer"
                                                 class="text-blue-700 hover:underline cursor-pointer">
                                                 Facebook
                                             </a>
@@ -95,6 +96,7 @@
                                             <a
                                                 href="https://twitter.com/intent/tweet?url={{ urlencode(route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}&text={{ urlencode($item->title) }}"
                                                 target="_blank"
+                                                rel="noopener noreferrer"
                                                 class="text-sky-500 hover:underline cursor-pointer">
                                                 Twitter
                                             </a>
@@ -102,6 +104,7 @@
                                             <a
                                                 href="https://api.whatsapp.com/send?text={{ urlencode($item->title . ' - ' . route('hoardings.show', $item->slug ?? $item->hoarding_id)) }}"
                                                 target="_blank"
+                                                rel="noopener noreferrer"
                                                 class="text-green-600 hover:underline cursor-pointer">
                                                 WhatsApp
                                             </a>

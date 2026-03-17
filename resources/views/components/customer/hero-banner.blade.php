@@ -1,11 +1,25 @@
 <section class="relative bg-gray-900 text-white overflow-hidden" style="min-height: 400px;">
     <!-- Background Image with Overlay -->
     <div class="absolute inset-0">
-        <img 
-            src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1920&q=80" 
-            alt="City hoarding background" 
-            class="w-full h-full object-cover"
-        >
+        <picture>
+            <source
+                type="image/webp"
+                srcset="{{ asset('assets/images/hero/hero-oohapp-768.webp') }} 768w, {{ asset('assets/images/hero/hero-oohapp-1280.webp') }} 1280w, {{ asset('assets/images/hero/hero-oohapp-1920.webp') }} 1920w"
+                sizes="100vw"
+            >
+            <img
+                src="{{ asset('assets/images/hero/hero-oohapp-1280.jpg') }}"
+                srcset="{{ asset('assets/images/hero/hero-oohapp-768.jpg') }} 768w, {{ asset('assets/images/hero/hero-oohapp-1280.jpg') }} 1280w, {{ asset('assets/images/hero/hero-oohapp-1920.jpg') }} 1920w"
+                sizes="100vw"
+                width="1920"
+                height="1080"
+                alt="City hoarding background"
+                class="w-full h-full object-cover"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
+            >
+        </picture>
         <!-- Dark Overlay -->
         <div class="absolute inset-0 bg-black/60"></div>
     </div>
