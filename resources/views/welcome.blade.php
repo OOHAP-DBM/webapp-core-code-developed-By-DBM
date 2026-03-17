@@ -428,8 +428,46 @@
             <div class="grid">
                 @forelse($bestHoardings as $hoarding)
                     <div class="card" onclick="window.location.href='{{ route('hoardings.show', $hoarding->slug ?? $hoarding->id) }}'">
-                        @if($hoarding->hasMedia('images'))
-                            <img src="{{ $hoarding->getFirstMediaUrl('images') }}" alt="{{ $hoarding->title }}" class="card-image" width="640" height="360" loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw">
+                        @if($hoarding->hasMedia('gallery'))
+                            {{-- Responsive gallery image with WebP and multiple sizes --}}
+                            <picture>
+                                <source type="image/webp"
+                                        srcset="{{ $hoarding->getFirstMedia('gallery') ? $hoarding->getFirstMedia('gallery')->getUrl('responsive-480-webp') : '' }} 480w,
+                                                {{ $hoarding->getFirstMedia('gallery') ? $hoarding->getFirstMedia('gallery')->getUrl('responsive-768-webp') : '' }} 768w,
+                                                {{ $hoarding->getFirstMedia('gallery') ? $hoarding->getFirstMedia('gallery')->getUrl('responsive-1200-webp') : '' }} 1200w"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw">
+                                <img src="{{ $hoarding->getFirstMedia('gallery') ? $hoarding->getFirstMedia('gallery')->getUrl('responsive-768') : '' }}"
+                                     srcset="{{  $hoarding->getFirstMedia('gallery') ? $hoarding->getFirstMedia('gallery')->getUrl('responsive-480') : '' }} 480w,
+                                              {{ $hoarding->getFirstMedia('gallery') ? $hoarding->getFirstMedia('gallery')->getUrl('responsive-768') : '' }} 768w,
+                                              {{ $hoarding->getFirstMedia('gallery') ? $hoarding->getFirstMedia('gallery')->getUrl('responsive-1200') : '' }} 1200w"
+                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                     alt="{{ $hoarding->title }}"
+                                     class="card-image"
+                                     width="1200"
+                                     height="900"
+                                     loading="lazy"
+                                     decoding="async">
+                            </picture>
+                        @elseif($hoarding->hasMedia('hero_image'))
+                            {{-- Hero image with responsive variants --}}
+                            <picture>
+                                <source type="image/webp"
+                                        srcset="{{ $hoarding->getFirstMedia('hero_image')->getUrl('responsive-480-webp') }} 480w,
+                                                {{ $hoarding->getFirstMedia('hero_image')->getUrl('responsive-768-webp') }} 768w,
+                                                {{ $hoarding->getFirstMedia('hero_image')->getUrl('responsive-1200-webp') }} 1200w"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw">
+                                <img src="{{ $hoarding->getFirstMedia('hero_image')->getUrl('responsive-768') }}"
+                                     srcset="{{ $hoarding->getFirstMedia('hero_image')->getUrl('responsive-480') }} 480w,
+                                              {{ $hoarding->getFirstMedia('hero_image')->getUrl('responsive-768') }} 768w,
+                                              {{ $hoarding->getFirstMedia('hero_image')->getUrl('responsive-1200') }} 1200w"
+                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                     alt="{{ $hoarding->title }}"
+                                     class="card-image"
+                                     width="1200"
+                                     height="675"
+                                     loading="lazy"
+                                     decoding="async">
+                            </picture>
                         @else
                             <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
                         @endif

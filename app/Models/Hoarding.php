@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\HasSnapshots;
 use App\Traits\Auditable;
+use App\Traits\ResponsiveImageTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -25,7 +26,7 @@ use Modules\Hoardings\Http\Resources\HoardingResource;
 class Hoarding extends Model implements HasMedia
 
 {
-    use HasFactory, SoftDeletes, HasSnapshots, Auditable, InteractsWithMedia;
+    use HasFactory, SoftDeletes, HasSnapshots, Auditable, InteractsWithMedia, ResponsiveImageTrait;
 
     protected $table = 'hoardings';
 
@@ -357,12 +358,66 @@ class Hoarding extends Model implements HasMedia
      */
     public function registerMediaCollections(): void
     {
-        // Hero/Primary Image - Single file, auto-compress
+        // Hero/Primary Image - Single file, auto-compress with responsive variants
         $this->addMediaCollection('hero_image')
             ->singleFile()
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
             ->maxFilesize(10 * 1024 * 1024) // 10MB
             ->registerMediaConversions(function () {
+                // Responsive variants: 480, 768, 1200, 1920 (maintains 16:9 ratio)
+                $this->addMediaConversion('responsive-480')
+                    ->width(480)
+                    ->height(270)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-480-webp')
+                    ->width(480)
+                    ->height(270)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-768')
+                    ->width(768)
+                    ->height(432)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-768-webp')
+                    ->width(768)
+                    ->height(432)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1200')
+                    ->width(1200)
+                    ->height(675)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1200-webp')
+                    ->width(1200)
+                    ->height(675)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1920')
+                    ->width(1920)
+                    ->height(1080)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1920-webp')
+                    ->width(1920)
+                    ->height(1080)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                // Legacy conversions for backward compatibility
                 $this->addMediaConversion('thumb')
                     ->width(300)
                     ->height(200)
@@ -382,12 +437,66 @@ class Hoarding extends Model implements HasMedia
                     ->nonQueued();
             });
 
-        // Night View Image - Single file
+        // Night View Image - Single file with responsive variants
         $this->addMediaCollection('night_image')
             ->singleFile()
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
             ->maxFilesize(10 * 1024 * 1024)
             ->registerMediaConversions(function () {
+                // Responsive variants: 480, 768, 1200, 1920 (maintains 16:9 ratio)
+                $this->addMediaConversion('responsive-480')
+                    ->width(480)
+                    ->height(270)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-480-webp')
+                    ->width(480)
+                    ->height(270)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-768')
+                    ->width(768)
+                    ->height(432)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-768-webp')
+                    ->width(768)
+                    ->height(432)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1200')
+                    ->width(1200)
+                    ->height(675)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1200-webp')
+                    ->width(1200)
+                    ->height(675)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1920')
+                    ->width(1920)
+                    ->height(1080)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1920-webp')
+                    ->width(1920)
+                    ->height(1080)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                // Legacy conversions for backward compatibility
                 $this->addMediaConversion('thumb')
                     ->width(300)
                     ->height(200)
@@ -401,11 +510,52 @@ class Hoarding extends Model implements HasMedia
                     ->nonQueued();
             });
 
-        // Gallery/Angle Photos - Multiple files
+        // Gallery/Angle Photos - Multiple files with responsive variants
         $this->addMediaCollection('gallery')
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
             ->maxFilesize(10 * 1024 * 1024)
             ->registerMediaConversions(function () {
+                // Responsive variants: 480, 768, 1200 (maintains 4:3 ratio for wider preview)
+                $this->addMediaConversion('responsive-480')
+                    ->width(480)
+                    ->height(360)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-480-webp')
+                    ->width(480)
+                    ->height(360)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-768')
+                    ->width(768)
+                    ->height(576)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-768-webp')
+                    ->width(768)
+                    ->height(576)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1200')
+                    ->width(1200)
+                    ->height(900)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1200-webp')
+                    ->width(1200)
+                    ->height(900)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                // Legacy conversions for backward compatibility
                 $this->addMediaConversion('thumb')
                     ->width(300)
                     ->height(200)
@@ -419,7 +569,7 @@ class Hoarding extends Model implements HasMedia
                     ->nonQueued();
             });
 
-        // Size/Dimension Overlay Image - Single file
+        // Size/Dimension Overlay Image - Single file (SVG-like, no responsive variants needed)
         $this->addMediaCollection('size_overlay')
             ->singleFile()
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/svg+xml'])
@@ -428,6 +578,12 @@ class Hoarding extends Model implements HasMedia
                 $this->addMediaConversion('thumb')
                     ->width(300)
                     ->height(200)
+                    ->nonQueued();
+
+                $this->addMediaConversion('thumb-webp')
+                    ->width(300)
+                    ->height(200)
+                    ->format('webp')
                     ->nonQueued();
             });
     }
