@@ -15,19 +15,18 @@
     <link rel="icon" type="image/png" href="/assets/images/favicon/Vector (1).png" />
 
     <!-- External CSS Libraries -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    {{-- CSS only in head — no render-blocking JS --}}
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- External JS Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
-
-    <!-- Vite Assets -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Vite CSS only -->
+    @vite(['resources/css/app.css'])
 
     <!-- Page-specific styles -->
     @stack('styles')
@@ -303,7 +302,12 @@
          ============================================================ -->
 
     <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- JS deferred at end of body to avoid render-blocking --}}
+    @vite(['resources/js/app.js'])
+    <script defer src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     <script>
         /* -------------------------------------------------------

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', '404 - Page Not Found | OOHAPP')
+@section('meta_robots', 'noindex, nofollow')
 
 @section('content')
     <section class="min-h-[70vh] flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">

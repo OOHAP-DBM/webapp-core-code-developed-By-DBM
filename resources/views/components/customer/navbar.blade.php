@@ -13,7 +13,10 @@
                 <div class="flex items-center flex-shrink-0">
                     <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
                         <img src="{{asset('assets/images/logo/logo_image.jpeg')}}" alt="OOHApp company logo" 
-                            class="w-24 md:w-[150px]">
+                            width="150" height="40"
+                            class="w-24 md:w-[150px]"
+                            loading="eager"
+                            fetchpriority="high">
                     </a>
                 </div>
             </div>
