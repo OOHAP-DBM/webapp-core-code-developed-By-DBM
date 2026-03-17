@@ -5,7 +5,7 @@
             <!-- Logo -->
             <div class="flex items-center">
                 <a href="{{ route('home') }}" class="flex items-center">
-                    <img src="{{ asset('images/logo.svg') }}" alt="OOHAPP" class="h-8 w-auto">
+                    <img src="{{ asset('images/logo.svg') }}" alt="OOHAPP" class="h-8 w-auto" width="32" height="32" loading="eager" fetchpriority="high">
                     <span class="ml-2 text-xl font-bold text-gray-900">OOHAPP</span>
                 </a>
             </div>

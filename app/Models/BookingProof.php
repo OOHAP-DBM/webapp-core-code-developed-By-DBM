@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ResponsiveImageTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\HasMedia;
@@ -9,7 +10,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class BookingProof extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use InteractsWithMedia, ResponsiveImageTrait;
 
     /**
      * The table associated with the model.
@@ -57,7 +58,74 @@ class BookingProof extends Model implements HasMedia
     {
         $this->addMediaCollection('proof')
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'video/mp4', 'video/quicktime'])
-            ->maxFilesize(50 * 1024 * 1024); // 50MB max
+            ->maxFilesize(50 * 1024 * 1024) // 50MB max
+            ->registerMediaConversions(function () {
+                // Only generate image conversions (videos won't have these)
+                $this->addMediaConversion('responsive-480')
+                    ->width(480)
+                    ->height(360)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-480-webp')
+                    ->width(480)
+                    ->height(360)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-768')
+                    ->width(768)
+                    ->height(576)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-768-webp')
+                    ->width(768)
+                    ->height(576)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1200')
+                    ->width(1200)
+                    ->height(900)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('responsive-1200-webp')
+                    ->width(1200)
+                    ->height(900)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('thumb')
+                    ->width(300)
+                    ->height(225)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('thumb-webp')
+                    ->width(300)
+                    ->height(225)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('preview')
+                    ->width(800)
+                    ->height(600)
+                    ->sharpen(10)
+                    ->nonQueued();
+
+                $this->addMediaConversion('preview-webp')
+                    ->width(800)
+                    ->height(600)
+                    ->format('webp')
+                    ->sharpen(10)
+                    ->nonQueued();
+            });
     }
 
     /**

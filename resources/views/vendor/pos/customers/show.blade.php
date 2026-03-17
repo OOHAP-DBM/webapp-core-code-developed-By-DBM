@@ -27,10 +27,24 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
         <div class="bg-white rounded-xl shadow  p-5">
-            <h4 class="font-semibold mb-3">📞 Contact</h4>
+            <h4 class="font-semibold mb-3">📞 Contact Details</h4>
             <div class="text-sm space-y-2">
-                <div><strong>Phone:</strong> {{ $customer['phone'] ?? '—' }}</div>
-                <div><strong>Email:</strong> {{ $customer['email'] ?? '—' }}</div>
+                <div>
+                    <strong>Phone:</strong>
+                    @if($customer['phone'])
+                        <a href="tel:{{ $customer['phone'] }}" class="text-blue-600 hover:underline">{{ $customer['phone'] }}</a>
+                    @else
+                        —
+                    @endif
+                </div>
+                <div>
+                    <strong>Email:</strong>
+                    @if($customer['email'])
+                        <a href="mailto:{{ trim($customer['email']) }}" class="text-blue-600 underline hover:text-blue-800" style="word-break:break-all;">{{ $customer['email'] }}</a>
+                    @else
+                        —
+                    @endif
+                </div>
             </div>
         </div>
 

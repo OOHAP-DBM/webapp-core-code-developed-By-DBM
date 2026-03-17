@@ -7,7 +7,17 @@
 
 <div class="vendor-page-white min-h-screen bg-white pb-12">
     <div class="vendor-header px-4 md:px-8 py-6 flex items-center gap-2 mt-5">
-        <img src="{{ asset('assets/images/logo/logo_image.jpeg') }}" alt="OOHApp company logo" class="h-8">
+        <x-optimized-image
+            src="assets/images/logo/logo_image.jpeg"
+            :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
+            :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
+            sizes="120px"
+            alt="OOHApp company logo"
+            width="600"
+            height="120"
+            class="h-8 w-auto"
+            loading="eager"
+        />
         <span class="text-gray-500 text-sm font-medium">| Vendor</span>
     </div>
 

@@ -192,6 +192,7 @@
                             <td class="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 whitespace-nowrap">
                                 <a href="{{ route('vendor.myHoardings.show', $hoarding['id']) }}"
                                 target="_blank"
+                                rel="noopener noreferrer"
                                 class="text-[#00A86B] font-medium hover:underline">
                                     {{ !empty($hoarding['title']) ? $hoarding['title'] : 'NA' }}
                                 </a>

@@ -48,25 +48,26 @@
             <div class="bg-white rounded-md shadow-xl border border-gray-200 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-6 space-y-5">
                 <h3 class="font-bold text-gray-800 text-lg">POS Checkout</h3>
 
-
                 {{-- Discount --}}
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Discount (₹)</label>
                     <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0"
                         class="w-full p-2 border border-gray-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-green-300 focus:border-green-400 outline-none">
                 </div>
-                @include('vendor.pos.components.milestone-payment')   
+
+                @include('vendor.pos.components.milestone-payment')
+
                 {{-- Payment Mode --}}
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Payment Mode</label>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <button type="button" onclick="selectPaymentMode('cash')"
                             class="payment-mode-btn active-mode flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="cash">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12a2 2 0 100-4 2 2 0 000 4z"/><path d="M6 12h.01M18 12h.01"/></svg>
                             Cash
                         </button>
                         <button type="button" onclick="selectPaymentMode('bank_transfer')"
-                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="bank_transfer" style="cursor: pointer;">
+                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="bank_transfer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             Bank Transfer
                         </button>
@@ -74,6 +75,12 @@
                             class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="online">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                             UPI / Online
+                        </button>
+                        {{-- ── NEW: Credit Note button ── --}}
+                        <button type="button" onclick="selectPaymentMode('credit_note')"
+                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="credit_note">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+                            Credit Note
                         </button>
                     </div>
                 </div>
@@ -85,7 +92,6 @@
                         <span id="bank-saved-badge" class="hidden text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ Saved</span>
                     </div>
 
-                    {{-- Saved bank details card --}}
                     <div id="bank-saved-card" class="hidden bg-white border border-blue-200 rounded-lg p-3">
                         <div class="flex justify-between items-start">
                             <div>
@@ -98,7 +104,6 @@
                         </div>
                     </div>
 
-                    {{-- Bank input form --}}
                     <div id="bank-input-form" class="space-y-2">
                         <div>
                             <label class="block text-[10px] font-semibold text-gray-500 mb-1">IFSC Code</label>
@@ -106,7 +111,6 @@
                                 <input type="text" id="bank-ifsc" placeholder="e.g. SBIN0001234" maxlength="11"
                                     class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:ring-2 focus:ring-blue-300 outline-none"
                                     oninput="this.value=this.value.toUpperCase()" onblur="fetchBankFromIFSC()">
-                                <!-- <button onclick="fetchBankFromIFSC()" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700">Fetch</button> -->
                             </div>
                             <div id="ifsc-result" class="hidden mt-1 text-[11px] text-blue-700 bg-blue-100 rounded px-2 py-1 font-medium"></div>
                         </div>
@@ -133,7 +137,6 @@
                         <span id="upi-saved-badge" class="hidden text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ Saved</span>
                     </div>
 
-                    {{-- Saved UPI card --}}
                     <div id="upi-saved-card" class="hidden bg-white border border-purple-200 rounded-lg p-3">
                         <div class="flex justify-between items-start gap-3">
                             <div class="flex-1">
@@ -147,7 +150,6 @@
                         </div>
                     </div>
 
-                    {{-- UPI input form --}}
                     <div id="upi-input-form" class="space-y-2">
                         <div>
                             <label class="block text-[10px] font-semibold text-gray-500 mb-1">UPI ID</label>
@@ -173,8 +175,43 @@
                     </div>
                 </div>
 
-                {{-- Booking Hold Timer --}}
-                <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                {{-- ── NEW: Credit Note Details Panel ── --}}
+                <div id="credit-note-details-panel" class="hidden space-y-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-7 h-7 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-emerald-700 uppercase tracking-wider">Credit Note Booking</h4>
+                            <p class="text-[10px] text-emerald-600 mt-0.5">Booking will be confirmed immediately — no payment hold required.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-emerald-200 rounded-lg p-3 space-y-2">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1">Credit Note Validity (Days)</label>
+                            <input type="number" id="credit-note-days" value="30" min="1" max="365"
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 outline-none font-bold text-emerald-700">
+                            <p class="text-[10px] text-gray-400 mt-1">Payment due date will be set this many days from today.</p>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1">Credit Note Reference <span class="text-gray-400">(optional)</span></label>
+                            <input type="text" id="credit-note-reference" placeholder="e.g. CN-REF-001"
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1">Notes <span class="text-gray-400">(optional)</span></label>
+                            <textarea id="credit-note-notes" rows="2" placeholder="Reason for credit note..."
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300 outline-none resize-none"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2 bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-2">
+                        <svg class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p class="text-[11px] text-emerald-700 font-medium">Booking status will be set to <span class="font-black">Confirmed</span> automatically. A credit note number will be generated.</p>
+                    </div>
+                </div>
+
+                {{-- Booking Hold Timer — hidden for credit_note --}}
+                <div id="booking-hold-section" class="bg-amber-50 border border-amber-100 rounded-xl p-4">
                     <h4 class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Booking Hold Duration</h4>
                     <p class="text-[11px] text-gray-500 mb-3">Booking will be released if payment is not received within this time.</p>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -218,14 +255,14 @@
                 <div class="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
                 </div>
-                <h3 class="font-black text-xl">Booking Created!</h3>
+                <h3 class="font-black text-xl" id="modal-booking-title">Booking Created!</h3>
             </div>
             <p class="text-white/70 text-sm">Invoice <span id="modal-invoice-num" class="font-bold text-white"></span></p>
         </div>
 
         <div class="p-6 space-y-4">
 
-            {{-- Timer --}}
+            {{-- Timer (hidden for credit note) --}}
             <div id="payment-timer-block" class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
                 <p class="text-[11px] text-amber-600 font-bold uppercase tracking-wider mb-1">Payment Due In</p>
                 <div id="countdown-display" class="text-3xl font-black text-amber-700 tracking-widest font-mono">--:--:--</div>
@@ -236,6 +273,24 @@
 
             <div id="no-timer-block" class="hidden bg-green-50 border border-green-200 rounded-xl p-3 text-center">
                 <p class="text-sm text-green-700 font-bold">Booking is open indefinitely</p>
+            </div>
+
+            {{-- ── NEW: Credit Note confirmed block ── --}}
+            <div id="credit-note-confirmed-block" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-emerald-700 uppercase tracking-wider">Credit Note Issued</p>
+                        <p class="text-[11px] text-emerald-600">Booking confirmed — payment due by credit terms.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-y-1 text-xs mt-2">
+                    <span class="text-gray-500">Credit Note #</span><span id="modal-credit-note-number" class="font-bold text-emerald-700 font-mono"></span>
+                    <span class="text-gray-500">Due Date</span><span id="modal-credit-note-due-date" class="font-bold text-gray-800"></span>
+                    <span class="text-gray-500">Status</span><span class="font-bold text-emerald-700">✓ Confirmed</span>
+                </div>
             </div>
 
             {{-- Payment info based on mode --}}
@@ -300,6 +355,20 @@ button:not(:disabled) {
     background: #f0fdf4;
     box-shadow: 0 0 0 1px #2D5A43;
 }
+
+/* Credit Note button active state uses emerald/teal accent */
+.payment-mode-btn[data-mode="credit_note"].active-mode {
+    border-color: #059669;
+    color: #059669;
+    background: #ecfdf5;
+    box-shadow: 0 0 0 1px #059669;
+}
+.payment-mode-btn[data-mode="credit_note"]:hover {
+    border-color: #059669;
+    color: #059669;
+    background: #ecfdf5;
+}
+
 .hold-time-btn {
     border-color: #e5e7eb;
     color: #6b7280;
@@ -323,8 +392,9 @@ button:not(:disabled) {
 function safe(val, fallback = '---') {
     return (val !== undefined && val !== null && val !== '') ? val : fallback;
 }
+
 /* ======================================================
-   PREVIEW SCREEN — Payment Mode + Timer + Bank/UPI Logic
+   PREVIEW SCREEN — Payment Mode + Timer + Bank/UPI/CreditNote Logic
    ====================================================== */
 
 // State
@@ -334,7 +404,7 @@ let savedBankDetails     = null;
 let savedUpiDetails      = null;
 let countdownInterval    = null;
 
-/* ── calculateFinalTotals (also called from create.blade.php) ── */
+/* ── calculateFinalTotals ── */
 function getPosPricingBreakdown() {
     const discountInput = parseFloat(document.getElementById('pos-discount')?.value || 0);
     const discountVal = Math.min(Math.max(0, discountInput), globalBaseAmount || 0);
@@ -342,7 +412,6 @@ function getPosPricingBreakdown() {
     const taxableAmount = Math.max(0, (globalBaseAmount || 0) - discountVal);
     const tax = taxableAmount * (gstRate / 100);
     const grandTotal = taxableAmount + tax;
-
     return { discountVal, tax, grandTotal };
 }
 
@@ -362,12 +431,26 @@ window.calculateFinalTotals = calculateFinalTotals;
 /* ── Payment mode selection ── */
 function selectPaymentMode(mode) {
     selectedPaymentMode = mode;
+
+    // Toggle active state on buttons
     document.querySelectorAll('.payment-mode-btn').forEach(btn => {
         btn.classList.toggle('active-mode', btn.dataset.mode === mode);
     });
+
+    // Show/hide panels
     document.getElementById('bank-details-panel').classList.toggle('hidden', mode !== 'bank_transfer');
     document.getElementById('upi-details-panel').classList.toggle('hidden', mode !== 'online');
+    document.getElementById('credit-note-details-panel').classList.toggle('hidden', mode !== 'credit_note');
 
+    // ── Hide hold timer for credit note — it auto-confirms ──
+    const holdSection = document.getElementById('booking-hold-section');
+    if (mode === 'credit_note') {
+        holdSection.classList.add('hidden');
+    } else {
+        holdSection.classList.remove('hidden');
+    }
+
+    // Load saved details as needed
     if (mode === 'bank_transfer') loadSavedBankDetails();
     if (mode === 'online')        loadSavedUpiDetails();
 }
@@ -395,7 +478,6 @@ async function fetchBankFromIFSC() {
         const data = await res.json();
         el.innerText = `${data.BANK} — ${data.BRANCH}, ${data.CITY}`;
         el.style.color = '#1d4ed8';
-        // Pre-fill bank name in holder placeholder as hint
         document.getElementById('bank-acc-holder').placeholder = `Account holder at ${data.BANK}`;
     } catch (e) {
         el.innerText = 'Invalid IFSC or not found';
@@ -403,7 +485,7 @@ async function fetchBankFromIFSC() {
     }
 }
 
-/* ── Save bank details to server ── */
+/* ── Save bank details ── */
 async function saveBankDetails() {
     const ifsc   = document.getElementById('bank-ifsc').value.trim();
     const acc    = document.getElementById('bank-acc-number').value.trim();
@@ -451,7 +533,6 @@ async function loadSavedBankDetails() {
         const data = await res.json();
         if (data.success && data.data) {
             savedBankDetails = data.data;
-            // Pre-fill form
             document.getElementById('bank-ifsc').value       = data.data.ifsc_code || '';
             document.getElementById('bank-acc-number').value = data.data.account_number || '';
             document.getElementById('bank-acc-holder').value = data.data.account_holder || '';
@@ -513,41 +594,22 @@ async function saveUpiDetails() {
 function normalizeQrImageUrl(data) {
     const raw = data?.qr_image_url || data?.qr_image_path || '';
     if (!raw) return '';
-
     const normalizedRaw = String(raw).replace(/\\/g, '/').trim();
-
     if (/^https?:\/\//i.test(normalizedRaw)) {
         try {
             const parsed = new URL(normalizedRaw);
-            if (parsed.host === window.location.host) {
-                return normalizedRaw;
-            }
-            if (parsed.pathname.startsWith('/storage/')) {
-                return `${window.location.origin}${parsed.pathname}`;
-            }
+            if (parsed.host === window.location.host) return normalizedRaw;
+            if (parsed.pathname.startsWith('/storage/')) return `${window.location.origin}${parsed.pathname}`;
             return normalizedRaw;
-        } catch (e) {
-            // fallback to path normalization below
-        }
+        } catch (e) {}
     }
-
-    if (normalizedRaw.startsWith('data:')) {
-        return normalizedRaw;
-    }
-
+    if (normalizedRaw.startsWith('data:')) return normalizedRaw;
     const storagePrefixStripped = normalizedRaw
         .replace(/^\/?storage\/app\/public\/?/i, '')
         .replace(/^\/?public\/?/i, '');
-
     const normalizedPath = storagePrefixStripped.startsWith('/') ? storagePrefixStripped : `/${storagePrefixStripped}`;
-    if (normalizedPath.startsWith('/storage/')) {
-        return `${window.location.origin}${normalizedPath}`;
-    }
-
-    if (normalizedPath.startsWith('/vendor_qr/')) {
-        return `${window.location.origin}/storage${normalizedPath}`;
-    }
-
+    if (normalizedPath.startsWith('/storage/')) return `${window.location.origin}${normalizedPath}`;
+    if (normalizedPath.startsWith('/vendor_qr/')) return `${window.location.origin}/storage${normalizedPath}`;
     return `${window.location.origin}${normalizedPath}`;
 }
 
@@ -555,42 +617,31 @@ function buildQrImageCandidates(data) {
     const rawUrl = String(data?.qr_image_url || '').replace(/\\/g, '/').trim();
     const rawPath = String(data?.qr_image_path || '').replace(/\\/g, '/').trim();
     const normalizedPrimary = normalizeQrImageUrl(data);
-
     const normalizedPath = rawPath
         .replace(/^\/?storage\/app\/public\/?/i, '')
         .replace(/^\/?public\/?/i, '')
         .replace(/^\/+/, '');
-
     const candidates = [
-        normalizedPrimary,
-        rawUrl,
+        normalizedPrimary, rawUrl,
         normalizedPath ? `${window.location.origin}/storage/${normalizedPath}` : '',
         normalizedPath ? `/storage/${normalizedPath}` : '',
     ].filter(Boolean);
-
     return [...new Set(candidates)];
 }
 
 function renderQrImage(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container) return;
-
     const candidates = buildQrImageCandidates(data);
     if (!candidates.length) return;
-
     const img = document.createElement('img');
     img.className = 'w-full h-full object-cover';
-
     let index = 0;
     img.onerror = () => {
         index += 1;
-        if (index < candidates.length) {
-            img.src = candidates[index];
-            return;
-        }
+        if (index < candidates.length) { img.src = candidates[index]; return; }
         container.innerHTML = '';
     };
-
     img.src = candidates[index];
     container.innerHTML = '';
     container.appendChild(img);
@@ -619,7 +670,7 @@ async function loadSavedUpiDetails() {
             document.getElementById('upi-id-input').value = data.data.upi_id || '';
             renderSavedUpiCard(data.data);
         }
-    } catch (e) { /* no saved details yet */ }
+    } catch (e) {}
 }
 
 /* ── Countdown Timer ── */
@@ -654,24 +705,37 @@ function closeConfirmedModal() {
 }
 
 function showBookingConfirmedModal(booking) {
-    const modal     = document.getElementById('booking-confirmed-modal');
-    const fmt       = v => typeof formatINR === 'function' ? formatINR(v) : `₹${Math.round(v)}`;
+    const modal = document.getElementById('booking-confirmed-modal');
+    const fmt   = v => typeof formatINR === 'function' ? formatINR(v) : `₹${Math.round(v)}`;
     const { grandTotal } = getPosPricingBreakdown();
+    const isCreditNote = (selectedPaymentMode === 'credit_note');
+
+    // Update modal header title
+    document.getElementById('modal-booking-title').innerText = isCreditNote ? 'Booking Confirmed!' : 'Booking Created!';
 
     document.getElementById('modal-invoice-num').innerText  = `#${booking.invoice_number ?? booking.id}`;
     document.getElementById('modal-total-amount').innerText = fmt(grandTotal);
 
-    // Timer
-    if (booking.hold_expiry_at && selectedHoldMinutes > 0) {
+    // ── Timer blocks ──
+    document.getElementById('payment-timer-block').classList.add('hidden');
+    document.getElementById('no-timer-block').classList.add('hidden');
+    document.getElementById('credit-note-confirmed-block').classList.add('hidden');
+
+    if (isCreditNote) {
+        // Show credit note confirmed block — no timer needed
+        document.getElementById('credit-note-confirmed-block').classList.remove('hidden');
+        document.getElementById('modal-credit-note-number').innerText  = booking.credit_note_number || '---';
+        document.getElementById('modal-credit-note-due-date').innerText = booking.credit_note_due_date
+            ? new Date(booking.credit_note_due_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '---';
+    } else if (booking.hold_expiry_at && selectedHoldMinutes > 0) {
         document.getElementById('payment-timer-block').classList.remove('hidden');
-        document.getElementById('no-timer-block').classList.add('hidden');
         startCountdown(booking.hold_expiry_at);
     } else {
-        document.getElementById('payment-timer-block').classList.add('hidden');
         document.getElementById('no-timer-block').classList.remove('hidden');
     }
 
-    // Payment info
+    // ── Payment info panels ──
     document.getElementById('modal-bank-info').classList.add('hidden');
     document.getElementById('modal-upi-info').classList.add('hidden');
 
@@ -691,11 +755,8 @@ function showBookingConfirmedModal(booking) {
     modal.classList.remove('hidden');
 }
 
-/* ── Create Booking ── */
-
-// --- Populate preview screen with all customer and hoarding details ---
+/* ── Preview screen population ── */
 function updatePreviewScreen() {
-    // Customer info
     document.getElementById('preview-cust-name').innerText    = safe(selectedCustomer?.name);
     document.getElementById('preview-cust-phone').innerText   = safe(selectedCustomer?.phone);
     document.getElementById('preview-cust-email').innerText   = safe(selectedCustomer?.email);
@@ -703,19 +764,16 @@ function updatePreviewScreen() {
     document.getElementById('preview-cust-address').innerText = safe(selectedCustomer?.address);
     document.getElementById('preview-total-count').innerText  = selectedHoardings.size;
 
-    // Hoarding details
     const oohList = document.getElementById('preview-ooh-list');
     oohList.innerHTML = '';
+    let sn = 1;
     selectedHoardings.forEach((h, id) => {
-        // ...existing code...
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td class="px-6 py-3 font-bold text-gray-800">h</td>
+            <td class="px-6 py-3 font-bold text-gray-800">${sn++}</td>
             <td class="px-6 py-3 font-bold text-gray-800">${safe(h.title)}</td>
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.display_location) || safe(h.city)}</td>
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.type)}</td>
-
-            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.total_slots_per_day)}</td>
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.startDate)} to ${safe(h.endDate)}</td>
             <td class="px-6 py-3 text-right font-bold text-gray-900">${typeof formatINR === 'function' ? formatINR(h.price_per_month) : '₹' + safe(h.price_per_month)}</td>
         `;
@@ -727,17 +785,14 @@ document.addEventListener('DOMContentLoaded', () => {
     selectPaymentMode('cash');
     selectHoldTime(30);
     updatePreviewScreen();
-
-    // If customer or hoarding selection changes elsewhere, call updatePreviewScreen()
     window.updatePreviewScreen = updatePreviewScreen;
 
-      document.getElementById('create-booking-btn')?.addEventListener('click', async (e) => {
-        // Prevent accidental trigger if modal is closed
-        if (document.getElementById('booking-confirmed-modal').classList.contains('hidden') === false) return;
+    document.getElementById('create-booking-btn')?.addEventListener('click', async (e) => {
+        if (!document.getElementById('booking-confirmed-modal').classList.contains('hidden')) return;
         const btn = document.getElementById('create-booking-btn');
         if (btn.disabled) return;
 
-        // Validate payment details for non-cash modes
+        // Validate payment-specific requirements
         if (selectedPaymentMode === 'bank_transfer' && !savedBankDetails) {
             showToast('Please save bank details before finalizing', 'warning'); return;
         }
@@ -747,11 +802,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Build per-hoarding items
         const hoardingItems = Array.from(selectedHoardings.entries()).map(([id, h]) => ({
-            hoarding_id:        id,
-            start_date:         h.startDate,
-            end_date:           h.endDate,
-            price_per_month:    h.price_per_month,
-            type:               h.type || 'ooh',
+            hoarding_id:         id,
+            start_date:          h.startDate,
+            end_date:            h.endDate,
+            price_per_month:     h.price_per_month,
+            type:                h.type || 'ooh',
             total_slots_per_day: h.total_slots_per_day ?? null,
         }));
 
@@ -764,23 +819,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const discountVal = parseFloat(document.getElementById('pos-discount')?.value || 0);
 
         const payload = {
-            hoarding_ids:       Array.from(selectedHoardings.keys()),
-            hoarding_items:     hoardingItems,
-            customer_id:        selectedCustomer?.id   ?? null,
-            customer_name:      selectedCustomer?.name ?? '',
-            customer_phone:     selectedCustomer?.phone ?? '',
-            customer_email:     selectedCustomer?.email ?? '',
-            customer_address:   selectedCustomer?.address ?? 'N/A',
-            customer_gstin:     selectedCustomer?.gstin ?? '',
-            booking_type:       hoardingItems.some(i => i.type?.toUpperCase() === 'DOOH') ? 'dooh' : 'ooh',
-            start_date:         sDate,
-            end_date:           eDate,
-            base_amount:        globalBaseAmount,
-            discount_amount:    discountVal,
-            payment_mode:       selectedPaymentMode,
-            payment_reference:  '',
-            payment_notes:      'POS Booking',
-            hold_minutes:       selectedHoldMinutes,
+            hoarding_ids:         Array.from(selectedHoardings.keys()),
+            hoarding_items:       hoardingItems,
+            customer_id:          selectedCustomer?.id   ?? null,
+            customer_name:        selectedCustomer?.name ?? '',
+            customer_phone:       selectedCustomer?.phone ?? '',
+            customer_email:       selectedCustomer?.email ?? '',
+            customer_address:     selectedCustomer?.address ?? 'N/A',
+            customer_gstin:       selectedCustomer?.gstin ?? '',
+            booking_type:         hoardingItems.some(i => i.type?.toUpperCase() === 'DOOH') ? 'dooh' : 'ooh',
+            start_date:           sDate,
+            end_date:             eDate,
+            base_amount:          globalBaseAmount,
+            discount_amount:      discountVal,
+            payment_mode:         selectedPaymentMode,
+            payment_reference:    '',
+            payment_notes:        selectedPaymentMode === 'credit_note'
+                                    ? (document.getElementById('credit-note-notes')?.value || 'Credit Note Booking')
+                                    : 'POS Booking',
+            // Credit note specific fields — only sent when mode is credit_note
+            ...(selectedPaymentMode === 'credit_note' ? {
+                credit_note_days:      parseInt(document.getElementById('credit-note-days')?.value || 30),
+                credit_note_reference: document.getElementById('credit-note-reference')?.value?.trim() || null,
+            } : {
+                hold_minutes:          selectedHoldMinutes,
+            }),
             payment_details_type: selectedPaymentMode !== 'cash' ? selectedPaymentMode : null,
         };
 
@@ -788,7 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> Creating...`;
 
         try {
-            const res    = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/bookings`, {
+            const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/bookings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json', 'Accept': 'application/json',
@@ -808,12 +871,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Timer notification logic
+    // Timer notification logic (for non credit-note bookings)
     let timerNotifications = [];
     function showTimerNotification(booking) {
-        // Remove existing for same booking
         timerNotifications = timerNotifications.filter(n => n.bookingId !== booking.id);
-        // Create notification
         const notif = document.createElement('div');
         notif.className = 'fixed z-50 right-6 bottom-6 bg-amber-100 border border-amber-300 rounded-xl shadow-lg p-4 flex items-center gap-4 animate-fade-in';
         notif.style.minWidth = '260px';
@@ -826,7 +887,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="ml-2 text-xs text-gray-500 hover:text-red-600 font-bold" onclick="this.parentElement.remove();">✕</button>
         `;
         document.body.appendChild(notif);
-        // Timer logic
         let interval = setInterval(() => {
             const remaining = new Date(booking.hold_expiry_at) - new Date();
             if (remaining <= 0) {
@@ -843,16 +903,13 @@ document.addEventListener('DOMContentLoaded', () => {
         timerNotifications.push({ bookingId: booking.id, notif, interval });
     }
 
-    // Patch closeConfirmedModal to show timer notification
     const origCloseConfirmedModal = window.closeConfirmedModal;
     window.closeConfirmedModal = function() {
         const modal = document.getElementById('booking-confirmed-modal');
         if (!modal.classList.contains('hidden')) {
-            // If timer is running, show notification
-            const bookingId = document.getElementById('modal-invoice-num')?.innerText?.replace('#', '');
             const timerBlock = document.getElementById('payment-timer-block');
-            if (timerBlock && !timerBlock.classList.contains('hidden') && bookingId) {
-                // Get hold_expiry_at from last booking (store in window)
+            // Only show timer notification for non credit-note bookings with active timer
+            if (timerBlock && !timerBlock.classList.contains('hidden') && selectedPaymentMode !== 'credit_note') {
                 if (window.lastConfirmedBooking && window.lastConfirmedBooking.hold_expiry_at) {
                     if (typeof window.upsertPosTimerBooking === 'function') {
                         window.upsertPosTimerBooking(window.lastConfirmedBooking);
@@ -861,13 +918,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        // Reset the create button state when closing modal
         const btn = document.getElementById('create-booking-btn');
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Finalize Booking`;
         }
-        // Redirect to booking details if available
         if (window.lastConfirmedBooking && window.lastConfirmedBooking.id) {
             window.location.href = `${window.POS_BASE_PATH || '/vendor/pos'}/bookings/${window.lastConfirmedBooking.id}`;
             return;
@@ -875,7 +930,6 @@ document.addEventListener('DOMContentLoaded', () => {
         origCloseConfirmedModal();
     };
 
-    // Patch showBookingConfirmedModal to store last booking
     const origShowBookingConfirmedModal = window.showBookingConfirmedModal;
     window.showBookingConfirmedModal = function(booking) {
         window.lastConfirmedBooking = booking;
