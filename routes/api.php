@@ -38,7 +38,14 @@ Route::middleware(['auth:sanctum'])
         Route::get('/check/{hoardingId}', [ShortlistController::class, 'check']);
         Route::get('/count', [ShortlistController::class, 'count']);
 });
-
+// Guest merge — login/register ke baad Flutter call karega
+// Sanctum token based
+Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
+    Route::post('/guest/merge', [
+        \App\Http\Controllers\Web\Customer\GuestMergeController::class, 
+        'merge'
+    ]);
+});
 
 Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     

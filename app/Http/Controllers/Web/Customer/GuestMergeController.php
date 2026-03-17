@@ -19,7 +19,6 @@ class GuestMergeController extends Controller
         $wishlist = array_filter(array_map('intval', $request->input('wishlist', [])));
         $cart     = array_filter(array_map('intval', $request->input('cart', [])));
 
-        // Find hoarding IDs owned by this vendor
         $ownedHoardingIds = collect();
         if (auth()->user() && auth()->user()->hasRole('vendor')) {
             $ownedHoardingIds = \App\Models\Hoarding::whereIn('id', array_merge($wishlist, $cart))
@@ -27,20 +26,15 @@ class GuestMergeController extends Controller
                 ->pluck('id');
         }
 
-        $skipped = [
-            'wishlist' => [],
-            'cart' => [],
-        ];
+        $skipped = ['wishlist' => [], 'cart' => []];
 
-        // ─── Wishlist merge ───────────────────────────────────────
         foreach ($wishlist as $hoardingId) {
             if ($ownedHoardingIds->contains($hoardingId)) {
                 $skipped['wishlist'][] = $hoardingId;
                 continue;
             }
             $exists = \App\Models\Hoarding::where('id', $hoardingId)
-                ->whereNull('deleted_at')
-                ->exists();
+                ->whereNull('deleted_at')->exists();
             if (!$exists) continue;
             Wishlist::firstOrCreate([
                 'user_id'     => $userId,
@@ -48,15 +42,13 @@ class GuestMergeController extends Controller
             ]);
         }
 
-        // ─── Cart merge ───────────────────────────────────────────
         foreach ($cart as $hoardingId) {
             if ($ownedHoardingIds->contains($hoardingId)) {
                 $skipped['cart'][] = $hoardingId;
                 continue;
             }
             $exists = \App\Models\Hoarding::where('id', $hoardingId)
-                ->whereNull('deleted_at')
-                ->exists();
+                ->whereNull('deleted_at')->exists();
             if (!$exists) continue;
             $alreadyInCart = DB::table('carts')
                 ->where('user_id', $userId)
@@ -72,14 +64,17 @@ class GuestMergeController extends Controller
             }
         }
 
-        // Session flag clear karo — dobara merge na ho
-        session()->forget('merge_guest_data');
+        // ✅ Web + API dono ke liye safe
+        if ($request->hasSession()) {
+            session()->forget('merge_guest_data');
+        }
 
         $response = ['success' => true];
         if (!empty($skipped['wishlist']) || !empty($skipped['cart'])) {
             $response['skipped_owner_hoardings'] = $skipped;
-            $response['message'] = 'Some hoardings you own were not merged into your wishlist/cart.';
+            $response['message'] = 'Some hoardings you own were not merged.';
         }
+
         return response()->json($response);
     }
 }

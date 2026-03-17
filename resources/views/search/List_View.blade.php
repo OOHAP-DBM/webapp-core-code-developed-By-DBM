@@ -1,4 +1,4 @@
-<div id="listView" class="bg-gray-100 ">
+<div id="listView" class="bg-white ">
     <div class="max-w-[1460px] mx-auto px-6 py-6">
 
         @if($results->total() > 0)
@@ -35,7 +35,7 @@
                         }
                     }
                 @endphp
-            <div class="bg-[#f0f0f0] rounded-xl p-5 mb-5 flex flex-col cursor-pointer"
+            <div class="bg-white border border-gray-200 rounded-lg p-5 mb-5 flex flex-col cursor-pointer"
                 onclick="if(event.target.closest('button, a') === null)
                         @php
                             $hoardingParam = $item->slug ?? $item->title;

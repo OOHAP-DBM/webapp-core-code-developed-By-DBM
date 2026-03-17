@@ -12,7 +12,7 @@
     aspect-ratio:16/9;
     max-height:550px;
     overflow:hidden;
-    border-radius:12px;
+    border-radius:5px;
     background:#f5f5f5;
     position:relative;
 }
@@ -42,7 +42,7 @@
     position:relative;
     width:100%;
     height:180px;
-    border-radius:10px;
+    border-radius:5px;
     overflow:hidden;
     cursor:pointer;
     border:2px solid #ddd;

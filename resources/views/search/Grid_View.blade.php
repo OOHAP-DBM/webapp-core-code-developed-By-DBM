@@ -1,4 +1,4 @@
-<div id="gridView" class="bg-gray-100">
+<div id="gridView" class="bg-white">
     <div class="max-w-[1460px] mx-auto py-6 px-4">
 
         @if($results->total() > 0)

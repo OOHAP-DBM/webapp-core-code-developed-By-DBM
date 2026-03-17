@@ -110,5 +110,5 @@
 
 </div>
 
-<hr class="my-6 border-gray-300">
+<hr class="my-6 border-gray-200">
 @endif
