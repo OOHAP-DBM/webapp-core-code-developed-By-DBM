@@ -122,7 +122,7 @@
             </div>
         </div>
         @if($enquiries->hasPages())
-        <div class="card-footer bg-white">{{ $enquiries->links() }}</div>
+        <div class="card-footer bg-white">{{ $enquiries->links('pagination.vendor-compact') }}</div>
         @endif
     </div>
 </div>

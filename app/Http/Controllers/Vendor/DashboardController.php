@@ -7,23 +7,21 @@ use App\Models\Booking;
 use App\Models\Hoarding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 use Modules\POS\Models\POSBooking;
-use Illuminate\Support\Collection;
 use Modules\Hoardings\Services\HoardingService;
-use Modules\POS\Models\POSBookingHoarding;
+
 class DashboardController extends Controller
 {
 
-  public function __construct(private HoardingService $hoardingService)
-    {
-    }
+    public function __construct(private HoardingService $hoardingService) {}
 
     public function index()
     {
         $vendor = Auth::user();
         $userId = $vendor->id;
         $profile = $vendor->vendorProfile;
-        
+
         // Only allow dashboard if onboarding_status is pending_approval or approved
         if (!$profile || !in_array($profile->onboarding_status, ['pending_approval', 'approved'])) {
             // Redirect to correct onboarding step
@@ -68,26 +66,28 @@ class DashboardController extends Controller
         // dd($unsoldHoardings);
         // Get top hoardings by bookings
         $topHoardings = Hoarding::where('vendor_id', $userId)
-            ->withCount('bookings')
+            ->withCount(['bookings as bookings_count'])
             ->orderBy('bookings_count', 'desc')
             ->take(5)
             ->get()
-            ->map(function($h) {
+            ->map(function ($h) {
                 return [
                     'id' => $h->id,
                     'title' => $h->title,
                     'type' => strtoupper($h->hoarding_type),
                     'cat' => $h->category ?? '-',
                     'loc' => $h->display_location ?? '-',
-                     'size'      => $h->display_size ?? '-', 
+                    'size'      => $h->display_size ?? '-',
                     'bookings' => $h->bookings_count,
                     'status' => $h->status,
 
-            ];
+                ];
             })->toArray();
 
-                // Get Booking stats
-        $bookingStats = Booking::where('vendor_id', $userId)
+        // Get Booking stats
+        $bookingStatsQuery = Booking::where('vendor_id', $userId);
+
+        $bookingStats = $bookingStatsQuery
             ->selectRaw('customer_id, COUNT(*) as bookings, SUM(total_amount) as amount')
             ->groupBy('customer_id')
             ->with('customer')
@@ -95,7 +95,9 @@ class DashboardController extends Controller
             ->keyBy('customer_id');
 
         // Get POS Booking stats
-        $posBookingStats = POSBooking::where('vendor_id', $userId)
+        $posBookingStatsQuery = POSBooking::where('vendor_id', $userId);
+
+        $posBookingStats = $posBookingStatsQuery
             ->selectRaw('customer_id, COUNT(*) as bookings, SUM(total_amount) as amount')
             ->groupBy('customer_id')
             ->with('customer')
@@ -127,12 +129,12 @@ class DashboardController extends Controller
         }
 
         // Sort by amount descending
-        usort($allCustomerStats, function($a, $b) {
+        usort($allCustomerStats, function ($a, $b) {
             return $b['amount'] <=> $a['amount'];
         });
 
         // Take top 5
-        $topCustomers = collect($allCustomerStats)->take(5)->map(function($b) {
+        $topCustomers = collect($allCustomerStats)->take(5)->map(function ($b) {
             return [
                 'name' => $b['customer']->name ?? 'Unknown',
                 'id' => isset($b['customer']->id) ? 'OOHAPP' . str_pad($b['customer']->id, 4, '0', STR_PAD_LEFT) : 'N/A',
@@ -150,7 +152,7 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get()
-            ->map(function($t) {
+            ->map(function ($t) {
                 return [
                     'id' => '#' . str_pad($t->id, 5, '0', STR_PAD_LEFT),
                     'customer' => $t->customer->name ?? 'Unknown',
@@ -169,7 +171,7 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get()
-            ->map(function($t) {
+            ->map(function ($t) {
                 return [
                     'id' => '#' . str_pad($t->id, 5, '0', STR_PAD_LEFT),
                     'customer' => $t->customer->name ?? 'Unknown',
@@ -183,12 +185,11 @@ class DashboardController extends Controller
             });
 
         // Merge and sort by date descending, then take top 5
-       $transactions = collect($onlineTransactions)
-        ->merge($posTransactions)
-        ->sortByDesc('date')
-        ->take(5)
-        ->values()
-        ->toArray();
+        $transactions = collect($onlineTransactions)
+            ->merge($posTransactions)
+            ->take(5)
+            ->values()
+            ->toArray();
 
         return view('vendor.dashboard', compact(
             'stats',
@@ -197,6 +198,7 @@ class DashboardController extends Controller
             'transactions'
         ));
     }
+
     public function downloadInvoice($id)
     {
         // Try to find the booking (online or POS)

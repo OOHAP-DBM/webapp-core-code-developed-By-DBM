@@ -68,7 +68,7 @@
 
                 <div>
                     <p class="text-sm text-gray-500">Milestone Status</p>
-                    <div id="ui-milestone-wrap" class="hidden mt-2 space-y-0">
+                    <div id="ui-milestone-wrap">
                         <div id="ui-milestone-timeline" class="space-y-0"></div>
                     </div>
                 </div>
@@ -97,37 +97,60 @@
 <div id="mark-paid-modal"
      class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full mx-4 shadow-xl animate-fadeIn">
-        <h3 class="text-lg sm:text-xl font-semibold mb-2"> Mark Payment as Received</h3>
+        <div id="mark-paid-mobile-handle" class="hidden w-16 h-1.5 rounded-full bg-gray-200 mx-auto mb-4 sm:hidden"></div>
+        <h3 class="text-lg sm:text-xl font-semibold mb-2">Mark Payment as Received</h3>
         <p class="text-gray-600 text-sm mb-4">
             Confirm payment details before marking as paid.
         </p>
+
+        <div id="milestone-payment-summary" class="hidden mb-4 space-y-1 text-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-gray-700">Total Amount:</span>
+                <span id="milestone-total-amount" class="font-semibold text-blue-600">₹0.00</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-700">Received Amount:</span>
+                <span id="milestone-received-amount" class="font-semibold text-green-600">₹0.00</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-700">Balance Amount:</span>
+                <span id="milestone-balance-amount" class="font-semibold text-orange-500">₹0.00</span>
+            </div>
+        </div>
+
+        <div id="milestone-details-section" class="hidden border-t border-b border-dashed border-gray-300 py-4 mb-4">
+            <p class="text-2xl font-semibold text-gray-800 mb-3">Milestones Details</p>
+            <div id="milestone-checkbox-list" class="space-y-2"></div>
+            <p id="milestone-selection-help" class="text-xs text-gray-500 mt-2"></p>
+        </div>
 
         <div class="space-y-3 mb-5">
             <div>
                 <label class="block text-sm font-medium mb-1">Payment Amount *</label>
                 <input type="number" id="payment-amount"
                        min="0.01" step="0.01"
-                       class="w-full rounded-lg border border-gray-300 p-2">
+                      class="w-full rounded-lg border border-gray-300 p-2">
                 <p id="payment-amount-help" class="text-xs text-gray-500 mt-1"></p>
             </div>
 
             <div>
-                <label class="block text-sm font-medium mb-1">Reference (Optional)</label>
+                  <label class="block text-sm font-medium mb-1">Reference (Optional)</label>
                 <input type="text" id="payment-reference"
-                       class="w-full rounded-lg border border-gray-300 p-2"
+                      class="w-full rounded-lg border border-gray-300 p-2"
                        placeholder="Transaction ID / Cash Ref">
             </div>
         </div>
 
-        <div class="flex flex-col-reverse sm:flex-row justify-end gap-2">
-            <button onclick="closeMarkPaidModal()"
-                    class="w-full sm:w-auto px-4 py-2 rounded-lg border hover:bg-gray-100">
-                Cancel
-            </button>
-            <button onclick="confirmMarkPaid()"
-                    class="w-full sm:w-auto px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 flex items-center justify-center gap-2">
+        <div id="mark-paid-actions"
+             class="flex flex-col gap-2">
+            <button id="mark-paid-confirm-btn" onclick="confirmMarkPaid()"
+                    class="w-full px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 flex items-center justify-center gap-2 font-semibold">
                 <span id="confirm-btn-text">Mark as Paid</span>
                 <span id="confirm-spinner" class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            </button>
+            <button id="mark-paid-cancel-btn" onclick="closeMarkPaidModal()"
+                    class="w-full px-4 py-2 rounded-lg border hover:bg-gray-100">
+                Cancel
             </button>
         </div>
     </div>
@@ -188,15 +211,15 @@
                     <p class="text-sm font-medium text-gray-700 mb-2">When?</p>
                     <div class="flex flex-wrap gap-2">
                         <button id="day-today" onclick="selectReminderDay('today')"
-                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
+                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium">
                             Today
                         </button>
                         <button id="day-tomorrow" onclick="selectReminderDay('tomorrow')"
-                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
+                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium">
                             Tomorrow
                         </button>
                         <button id="day-custom" onclick="selectReminderDay('custom')"
-                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
+                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
                             </svg>
@@ -215,7 +238,7 @@
                     <div class="flex flex-wrap gap-2">
                         <div id="time-btn-group" class="contents"></div>
                         <button id="custom-time-toggle-btn" onclick="toggleCustomTimeInput()"
-                                class="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
+                                class="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium">
                             Custom Time
                         </button>
                     </div>
@@ -607,6 +630,188 @@ function renderActionButtons(booking) {
 }
 
 // Modal functions
+let _markPaidMilestoneMode = false;
+let _markPaidPayableAmount = 0;
+
+function formatCurrencyINR(value) {
+    return '₹' + Number(value || 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+}
+
+function getMilestonesForMarkPaid() {
+    const milestones = Array.isArray(currentBooking?.milestones) ? currentBooking.milestones : [];
+
+    return milestones
+        .filter(ms => {
+            const status = String(ms?.status || '').toLowerCase();
+            return status !== 'cancelled';
+        })
+        .map(ms => ({
+            id: Number(ms?.id || 0),
+            title: ms?.title || `Milestone ${ms?.sequence_no || ''}`.trim(),
+            status: String(ms?.status || 'pending').toLowerCase(),
+            amount: Number(ms?.calculated_amount ?? ms?.amount ?? 0),
+            sequenceNo: Number(ms?.sequence_no || 0),
+            isPaid: String(ms?.status || '').toLowerCase() === 'paid',
+            isSelectable: ['due', 'overdue'].includes(String(ms?.status || '').toLowerCase()),
+        }))
+        .sort((a, b) => a.sequenceNo - b.sequenceNo);
+}
+
+function setMarkPaidActionLayout(isMilestoneMode) {
+    const actionsWrap = document.getElementById('mark-paid-actions');
+    const cancelBtn = document.getElementById('mark-paid-cancel-btn');
+    const confirmBtn = document.getElementById('mark-paid-confirm-btn');
+    const mobileHandle = document.getElementById('mark-paid-mobile-handle');
+    const modalTitle = document.querySelector('#mark-paid-modal h3');
+    const amountInput = document.getElementById('payment-amount');
+    const referenceInput = document.getElementById('payment-reference');
+
+    if (!actionsWrap || !cancelBtn || !confirmBtn) {
+        return;
+    }
+
+    if (isMilestoneMode) {
+        actionsWrap.className = 'flex flex-col gap-3';
+
+        confirmBtn.className = 'w-full px-4 py-2.5 rounded-lg bg-green-500 text-white hover:bg-green-600 flex items-center justify-center gap-2 font-semibold text-lg';
+        cancelBtn.className = 'w-full px-4 py-1.5 text-red-500 hover:text-red-600 text-base bg-transparent border-0';
+
+        if (mobileHandle) {
+            mobileHandle.classList.remove('hidden');
+        }
+        if (modalTitle) {
+            modalTitle.className = 'text-2xl font-semibold mb-2';
+        }
+        if (amountInput) {
+            amountInput.className = 'w-full rounded-lg border border-gray-300 p-3 text-lg';
+        }
+        if (referenceInput) {
+            referenceInput.className = 'w-full rounded-lg border border-gray-300 p-3 text-lg';
+        }
+    } else {
+        actionsWrap.className = 'flex flex-col gap-2';
+
+        confirmBtn.className = 'w-full px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 flex items-center justify-center gap-2 font-semibold';
+        cancelBtn.className = 'w-full px-4 py-2 rounded-lg border hover:bg-gray-100';
+
+        if (mobileHandle) {
+            mobileHandle.classList.add('hidden');
+        }
+        if (modalTitle) {
+            modalTitle.className = 'text-lg sm:text-xl font-semibold mb-2';
+        }
+        if (amountInput) {
+            amountInput.className = 'w-full rounded-lg border border-gray-300 p-2';
+        }
+        if (referenceInput) {
+            referenceInput.className = 'w-full rounded-lg border border-gray-300 p-2';
+        }
+    }
+}
+
+function updateMilestoneSelectionForMarkPaid() {
+    const amountInput = document.getElementById('payment-amount');
+    const helpText = document.getElementById('payment-amount-help');
+    const selectionHelp = document.getElementById('milestone-selection-help');
+    const confirmBtn = document.getElementById('mark-paid-confirm-btn');
+    const checkboxes = Array.from(document.querySelectorAll('.mark-paid-milestone-checkbox:not(:disabled)'));
+
+    const selected = checkboxes.filter(cb => cb.checked);
+    const selectedAmount = selected.reduce((sum, cb) => sum + Number(cb.dataset.amount || 0), 0);
+    const selectedCount = selected.length;
+    const finalAmount = selectedAmount;
+
+    if (selectedCount > 0) {
+        amountInput.value = finalAmount.toFixed(2);
+    }
+
+    if (_markPaidMilestoneMode && confirmBtn) {
+        confirmBtn.disabled = selectedCount === 0;
+    }
+
+    if (selectionHelp) {
+        if (selectedCount === 0) {
+            selectionHelp.textContent = 'Only due milestone can be paid. Select the due milestone to continue.';
+        } else {
+            selectionHelp.textContent = `Selected ${selectedCount} milestone(s): ${formatCurrencyINR(selectedAmount)}` +
+                '. Payment amount must match selected due milestone amount.';
+        }
+    }
+
+    const currentAmount = Number(amountInput.value || 0);
+    helpText.textContent = `Maximum payable amount: ${formatCurrencyINR(_markPaidPayableAmount)}` +
+        (currentAmount > _markPaidPayableAmount ? ' (amount will be validated before submit)' : '');
+}
+
+function renderMilestoneMarkPaidSection(payableAmount) {
+    const milestones = getMilestonesForMarkPaid();
+    const selectableMilestones = milestones.filter(ms => ms.isSelectable);
+    const listWrap = document.getElementById('milestone-checkbox-list');
+    const summaryWrap = document.getElementById('milestone-payment-summary');
+    const detailsWrap = document.getElementById('milestone-details-section');
+
+    _markPaidMilestoneMode = Number(currentBooking?.is_milestone || 0) === 1 && milestones.length > 0;
+
+    summaryWrap.classList.toggle('hidden', !_markPaidMilestoneMode);
+    detailsWrap.classList.toggle('hidden', !_markPaidMilestoneMode);
+    setMarkPaidActionLayout(_markPaidMilestoneMode);
+
+    if (!_markPaidMilestoneMode) {
+        listWrap.innerHTML = '';
+        document.getElementById('milestone-selection-help').textContent = '';
+        return;
+    }
+
+    const totalAmount = Number(currentBooking?.total_amount || 0);
+    const paidAmount = Number(currentBooking?.paid_amount || 0);
+
+    document.getElementById('milestone-total-amount').textContent = formatCurrencyINR(totalAmount);
+    document.getElementById('milestone-received-amount').textContent = formatCurrencyINR(paidAmount);
+    document.getElementById('milestone-balance-amount').textContent = formatCurrencyINR(payableAmount);
+
+    const firstSelectableId = selectableMilestones.length ? selectableMilestones[0].id : null;
+
+    listWrap.innerHTML = milestones.map((ms, idx) => {
+        const isChecked = ms.id === firstSelectableId;
+        const isDisabled = !ms.isSelectable;
+        const label = ms.title || `Milestone ${idx + 1}`;
+        const statusLabel = ms.status.charAt(0).toUpperCase() + ms.status.slice(1);
+        const statusClass = ms.isSelectable
+            ? 'text-orange-600'
+            : (ms.isPaid ? 'text-green-600' : 'text-gray-400');
+
+        return `
+            <label class="flex items-center gap-3 text-sm ${isDisabled ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 cursor-pointer'}">
+                <input type="checkbox"
+                    class="mark-paid-milestone-checkbox h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    data-id="${ms.id}"
+                    data-amount="${ms.amount}"
+                    ${isChecked ? 'checked' : ''}
+                    ${isDisabled ? 'disabled' : ''}>
+                <span>
+                    <span class="font-medium">${formatCurrencyINR(ms.amount)}</span>
+                    <span class="${statusClass}">(${label} • ${statusLabel})</span>
+                </span>
+            </label>
+        `;
+    }).join('');
+
+    if (selectableMilestones.length === 0) {
+        document.getElementById('milestone-selection-help').textContent = 'No due milestone available right now.';
+        document.getElementById('mark-paid-confirm-btn').disabled = true;
+        return;
+    }
+
+    document.querySelectorAll('.mark-paid-milestone-checkbox').forEach(cb => {
+        cb.addEventListener('change', updateMilestoneSelectionForMarkPaid);
+    });
+
+    updateMilestoneSelectionForMarkPaid();
+}
+
 function openMarkPaidModal() {
     const totalAmount = parseFloat(currentBooking?.total_amount || 0);
     const paidAmount = parseFloat(currentBooking?.paid_amount || 0);
@@ -619,10 +824,25 @@ function openMarkPaidModal() {
     amountInput.max = payableAmount.toFixed(2);
     helpText.textContent = `Maximum payable amount: ₹${payableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
     document.getElementById('payment-reference').value = '';
+
+    _markPaidPayableAmount = payableAmount;
+    renderMilestoneMarkPaidSection(payableAmount);
 }
 
 function closeMarkPaidModal() {
     document.getElementById('mark-paid-modal').classList.add('hidden');
+    _markPaidMilestoneMode = false;
+    setMarkPaidActionLayout(false);
+
+    const detailsWrap = document.getElementById('milestone-details-section');
+    const summaryWrap = document.getElementById('milestone-payment-summary');
+    const listWrap = document.getElementById('milestone-checkbox-list');
+    const selectionHelp = document.getElementById('milestone-selection-help');
+
+    if (detailsWrap) detailsWrap.classList.add('hidden');
+    if (summaryWrap) summaryWrap.classList.add('hidden');
+    if (listWrap) listWrap.innerHTML = '';
+    if (selectionHelp) selectionHelp.textContent = '';
 }
 
 function openReleaseModal() {
@@ -644,6 +864,23 @@ async function confirmMarkPaid() {
     const paidAmount = parseFloat(currentBooking?.paid_amount || 0);
     const payableAmount = Math.max(0, totalAmount - paidAmount);
     const reference = document.getElementById('payment-reference').value;
+    const selectedMilestoneCheckboxes = Array.from(document.querySelectorAll('.mark-paid-milestone-checkbox:checked:not(:disabled)'));
+    const selectedMilestoneIds = selectedMilestoneCheckboxes
+        .map(cb => Number(cb.dataset.id || 0))
+        .filter(id => id > 0);
+    const selectedMilestoneAmount = selectedMilestoneCheckboxes
+        .reduce((sum, cb) => sum + Number(cb.dataset.amount || 0), 0);
+
+    if (_markPaidMilestoneMode && selectedMilestoneIds.length === 0) {
+        showActionMessage('Please select at least one milestone to mark payment.', 'error');
+        return;
+    }
+
+    if (_markPaidMilestoneMode && Math.abs(amount - selectedMilestoneAmount) > 0.01) {
+        showActionMessage(`For milestone payment, amount must match selected due milestone amount (${formatCurrencyINR(selectedMilestoneAmount)}).`, 'error');
+        amountInput.focus();
+        return;
+    }
 
     if (!amount || amount <= 0) {
         showActionMessage('Please enter a valid amount', 'error');
@@ -659,7 +896,7 @@ async function confirmMarkPaid() {
     // Show loading
     document.getElementById('confirm-btn-text').classList.add('hidden');
     document.getElementById('confirm-spinner').classList.remove('hidden');
-    document.querySelector('[onclick="confirmMarkPaid()"]').disabled = true;
+    document.getElementById('mark-paid-confirm-btn').disabled = true;
 
     try {
         const response = await fetch(`${API_URL}/bookings/${bookingId}/mark-paid`, {
@@ -673,7 +910,9 @@ async function confirmMarkPaid() {
             credentials: 'same-origin',
             body: JSON.stringify({
                 amount: amount,
-                payment_reference: reference
+                payment_reference: reference,
+                notes: reference || null,
+                milestone_ids: selectedMilestoneIds
             })
         });
 
@@ -706,7 +945,7 @@ async function confirmMarkPaid() {
         // Reset loading
         document.getElementById('confirm-btn-text').classList.remove('hidden');
         document.getElementById('confirm-spinner').classList.add('hidden');
-        document.querySelector('[onclick="confirmMarkPaid()"]').disabled = false;
+        document.getElementById('mark-paid-confirm-btn').disabled = false;
     }
 }
 
@@ -869,7 +1108,15 @@ function startNewReminderDraft() {
     resetReminderComposer();
 }
 
+function canComposeReminder() {
+    return _editingReminderKey !== null || getReminderAvailableSlots() > 0;
+}
+
 function selectReminderDay(day) {
+    if (!canComposeReminder()) {
+        return;
+    }
+
     _reminderDay = day;
 
     const today = new Date().toISOString().split('T')[0];
@@ -923,7 +1170,7 @@ function renderPresetTimes(isToday) {
     let times;
     if (isToday) {
         customTimeInput.min = addMinutesToNow(5);
-        times = [addMinutesToNow(5), '08:30', '10:30'];
+        times = [addMinutesToNow(5), addMinutesToNow(125), addMinutesToNow(245)];
     } else {
         customTimeInput.removeAttribute('min');
         times = ['08:00', '10:00', '12:00'];
@@ -938,7 +1185,7 @@ function renderPresetTimes(isToday) {
     wrap.innerHTML = times.map(t => {
         const label = formatTime24ToLabel(t);
         return `<button id="time-${t.replace(':', '')}" onclick="selectReminderTime('${t}')"
-                class="time-btn px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
+                class="time-btn px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium">
             ${label}
         </button>`;
     }).join('');
@@ -954,6 +1201,10 @@ function renderPresetTimes(isToday) {
 }
 
 function handleCustomReminderDateChange(value) {
+    if (!canComposeReminder()) {
+        return;
+    }
+
     if (value) {
         _reminderDay = 'custom';
         const today = new Date().toISOString().split('T')[0];
@@ -963,6 +1214,10 @@ function handleCustomReminderDateChange(value) {
 }
 
 function selectReminderTime(time24) {
+    if (!canComposeReminder()) {
+        return;
+    }
+
     _reminderTime = time24;
     document.querySelectorAll('.time-btn').forEach(b => {
         b.classList.remove('bg-green-600', 'text-white', 'border-green-600');
@@ -983,6 +1238,14 @@ function selectReminderTime(time24) {
 }
 
 function toggleCustomTimeInput() {
+    if (!canComposeReminder()) {
+        const wrapper = document.getElementById('custom-time-wrapper');
+        const toggleBtn = document.getElementById('custom-time-toggle-btn');
+        wrapper.classList.add('hidden');
+        toggleBtn.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+        return;
+    }
+
     const wrapper = document.getElementById('custom-time-wrapper');
     const isHidden = wrapper.classList.contains('hidden');
     wrapper.classList.toggle('hidden');
@@ -1006,6 +1269,10 @@ function toggleCustomTimeInput() {
 }
 
 function applyCustomTime(time24) {
+    if (!canComposeReminder()) {
+        return;
+    }
+
     _reminderTime = time24 || null;
     updateSelectedTimeDisplay();
     updateReminderActionButtons();
@@ -1094,9 +1361,57 @@ function updateReminderActionButtons() {
     const hasPendingChanges = getPendingReminderSignature() !== _reminderBasePendingSignature;
     const hasUnsavedComposerState = _editingReminderKey !== null || hasDraftDate;
     const canAddMore = getReminderAvailableSlots() > 0;
+    const canCompose = canAddMore || _editingReminderKey !== null;
 
     saveButton.disabled = !canSave;
     scheduleButton.disabled = !hasPending || hasUnsavedComposerState || !hasPendingChanges;
+
+    document.querySelectorAll('.day-btn, .time-btn').forEach(btn => {
+        btn.disabled = !canCompose;
+        btn.classList.toggle('opacity-50', !canCompose);
+        btn.classList.toggle('cursor-not-allowed', !canCompose);
+    });
+
+    const customTimeToggleBtn = document.getElementById('custom-time-toggle-btn');
+    const customDateInput = document.getElementById('reminder-custom-date');
+    const customTimeInput = document.getElementById('reminder-custom-time');
+
+    if (customTimeToggleBtn) {
+        customTimeToggleBtn.disabled = !canCompose;
+        customTimeToggleBtn.classList.toggle('opacity-50', !canCompose);
+        customTimeToggleBtn.classList.toggle('cursor-not-allowed', !canCompose);
+    }
+
+    if (customDateInput) {
+        customDateInput.disabled = !canCompose;
+    }
+
+    if (customTimeInput) {
+        customTimeInput.disabled = !canCompose;
+    }
+
+    if (!canCompose && _editingReminderKey === null) {
+        _reminderDay = null;
+        _reminderTime = null;
+
+        document.getElementById('custom-date-wrapper').classList.add('hidden');
+        document.getElementById('reminder-time-section').classList.add('hidden');
+        document.getElementById('custom-time-wrapper').classList.add('hidden');
+        document.getElementById('selected-time-display').classList.add('hidden');
+        document.getElementById('selected-time-display').textContent = '';
+        document.getElementById('reminder-custom-date').value = '';
+        document.getElementById('reminder-custom-time').value = '';
+
+        document.querySelectorAll('.day-btn, .time-btn').forEach(btn => {
+            btn.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+            btn.classList.add('border-gray-300');
+        });
+
+        if (customTimeToggleBtn) {
+            customTimeToggleBtn.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+        }
+    }
+
     if (addMoreButton) {
         addMoreButton.disabled = !canAddMore;
         addMoreButton.classList.toggle('text-green-500', canAddMore);

@@ -199,7 +199,7 @@
 
             @if($results->total() > $results->perPage())
                 <div class="mt-6 flex w-full justify-end">
-                    {{ $results->links() }}
+                    {{ $results->links('pagination.vendor-compact') }}
                 </div>
             @endif
 

@@ -2,11 +2,13 @@
 
 namespace App\Notifications;
 
+use App\Models\QuotationMilestone;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Collection;
 use Modules\POS\Models\POSBooking;
 
 class PosBookingConfirmedNotification extends Notification implements ShouldQueue
@@ -28,7 +30,7 @@ class PosBookingConfirmedNotification extends Notification implements ShouldQueu
      */
     public array $backoff = [10, 60, 180];
 
-    public function __construct(protected POSBooking $booking) {}
+    public function __construct(protected POSBooking $booking, protected array $context = []) {}
 
     public function via($notifiable): array
     {
@@ -47,20 +49,24 @@ class PosBookingConfirmedNotification extends Notification implements ShouldQueu
         $paidAmount = (float) ($this->booking->paid_amount ?? 0);
         $remainingAmount = max(0, $totalAmount - $paidAmount);
         $isFullyPaid = $remainingAmount < 0.01;
+        $paidMilestones = $this->resolvePaidMilestones();
+        $nextMilestone = $this->resolveNextMilestone();
+        $subject = ($isFullyPaid ? 'POS Booking Confirmed' : 'POS Payment Received')
+            . ' - Invoice #' . ($this->booking->invoice_number ?? $this->booking->id);
 
         return (new MailMessage)
-            ->subject(($isFullyPaid ? 'POS Booking Confirmed' : 'POS Payment Received') . ' - Invoice #' . ($this->booking->invoice_number ?? $this->booking->id))
-            ->greeting('Hello ' . ($notifiable->name ?? 'User') . ',')
-            ->line($isFullyPaid
-                ? 'Payment has been received and the POS booking is now confirmed.'
-                : 'Partial payment has been received for this POS booking.')
-            ->line('**Booking ID:** #' . $this->booking->id)
-            ->line('**Invoice Number:** ' . ($this->booking->invoice_number ?? ('#' . $this->booking->id)))
-            ->line('**Total Amount:** ₹' . number_format($totalAmount, 2))
-            ->line('**Paid Amount:** ₹' . number_format($paidAmount, 2))
-            ->line('**Payment Status:** ' . ($isFullyPaid ? 'Paid' : 'Partial'))
-            ->lineIf(!$isFullyPaid, '**Remaining Amount:** ₹' . number_format($remainingAmount, 2))
-            ->action('View Booking', $this->resolveActionUrl($notifiable));
+            ->subject($subject)
+            ->view('emails.pos_payment_received', [
+                'booking' => $this->booking,
+                'greetingName' => $notifiable->name ?? ($this->booking->customer_name ?? 'Customer'),
+                'isFullyPaid' => $isFullyPaid,
+                'totalAmount' => number_format($totalAmount, 2),
+                'paidAmount' => number_format($paidAmount, 2),
+                'remainingAmount' => number_format($remainingAmount, 2),
+                'paidMilestones' => $paidMilestones,
+                'nextMilestone' => $nextMilestone,
+                'actionUrl' => $this->resolveActionUrl($notifiable),
+            ]);
     }
 
     public function toArray($notifiable): array
@@ -69,8 +75,9 @@ class PosBookingConfirmedNotification extends Notification implements ShouldQueu
         $paidAmount = (float) ($this->booking->paid_amount ?? 0);
         $remainingAmount = max(0, $totalAmount - $paidAmount);
         $isFullyPaid = $remainingAmount < 0.01;
+        $paidMilestones = $this->resolvePaidMilestones();
 
-        return [
+        $payload = [
             'type' => 'pos_booking_confirmed',
             'booking_id' => $this->booking->id,
             'invoice_number' => $this->booking->invoice_number,
@@ -87,6 +94,65 @@ class PosBookingConfirmedNotification extends Notification implements ShouldQueu
                 : 'Partial payment received for POS booking. Awaiting remaining amount.',
             'action_url' => $this->resolveActionUrl($notifiable),
         ];
+
+        if ($paidMilestones->isNotEmpty()) {
+            $payload['paid_milestones'] = $paidMilestones->map(function (QuotationMilestone $milestone) {
+                return [
+                    'id' => (int) $milestone->id,
+                    'title' => $milestone->title,
+                    'sequence_no' => (int) ($milestone->sequence_no ?? 0),
+                    'status' => $milestone->status,
+                    'amount' => (float) ($milestone->calculated_amount ?? $milestone->amount ?? 0),
+                    'due_date' => $milestone->due_date ? $milestone->due_date->format('Y-m-d') : null,
+                ];
+            })->values()->all();
+        }
+
+        return $payload;
+    }
+
+    protected function resolvePaidMilestones(): Collection
+    {
+        $paidMilestoneIds = collect($this->context['paid_milestone_ids'] ?? [])
+            ->map(function ($id) {
+                return (int) $id;
+            })
+            ->filter(function ($id) {
+                return $id > 0;
+            })
+            ->unique()
+            ->values();
+
+        if ($paidMilestoneIds->isEmpty()) {
+            return collect();
+        }
+
+        return QuotationMilestone::query()
+            ->where('pos_booking_id', $this->booking->id)
+            ->whereIn('id', $paidMilestoneIds->all())
+            ->orderBy('sequence_no')
+            ->get();
+    }
+
+    protected function resolveNextMilestone(): ?QuotationMilestone
+    {
+        $hasMilestoneFlow = ((int) ($this->booking->is_milestone ?? 0) === 1)
+            || QuotationMilestone::query()->where('pos_booking_id', $this->booking->id)->exists();
+
+        if (!$hasMilestoneFlow) {
+            return null;
+        }
+
+        return QuotationMilestone::query()
+            ->where('pos_booking_id', $this->booking->id)
+            ->whereIn('status', [
+                QuotationMilestone::STATUS_DUE,
+                QuotationMilestone::STATUS_OVERDUE,
+                QuotationMilestone::STATUS_PENDING,
+            ])
+            ->orderByRaw("CASE WHEN status IN ('due', 'overdue') THEN 0 ELSE 1 END")
+            ->orderBy('sequence_no')
+            ->first();
     }
 
     protected function resolveActionUrl($notifiable): string

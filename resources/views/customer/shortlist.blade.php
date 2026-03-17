@@ -240,7 +240,7 @@
 
             {{-- PAGINATION --}}
             <div class="mt-8 flex justify-center">
-                {{ $wishlist->links() }}
+                {{ $wishlist->links('pagination.vendor-compact') }}
             </div>
         @else
             {{-- EMPTY --}}

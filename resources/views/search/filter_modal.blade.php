@@ -144,6 +144,7 @@
     }
 </style>
 <form method="GET" action="{{ route('search.seo', ['city' => request('location', 'india'), 'area' => request('area')]) }}" id="filterForm">
+    <input type="hidden" name="sort" value="{{ request('sort', '') }}">
     <div id="filterModal" class="fixed inset-0 z-[9999] hidden p-4 sm:p-6 md:p-8 lg:p-0">
 
         <!-- Overlay -->

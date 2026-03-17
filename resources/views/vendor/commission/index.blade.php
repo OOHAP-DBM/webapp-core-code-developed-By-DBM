@@ -425,7 +425,7 @@
                     Showing {{ $allHoardings->firstItem() }} to {{ $allHoardings->lastItem() }} of {{ $allHoardings->total() }} hoardings
                 </span>
                 <div class="overflow-x-auto w-full sm:w-auto">
-                    {{ $allHoardings->links() }}
+                    {{ $allHoardings->links('pagination.vendor-compact') }}
                 </div>
             </div>
             @endif

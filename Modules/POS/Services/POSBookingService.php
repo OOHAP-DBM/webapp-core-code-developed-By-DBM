@@ -1112,9 +1112,10 @@ class POSBookingService
         \Modules\POS\Models\POSBooking $booking,
         float $amount,
         \Carbon\Carbon $paymentDate,
-        ?string $notes = null
+        ?string $notes = null,
+        array $milestoneIds = []
     ): \Modules\POS\Models\POSBooking {
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($booking, $amount, $paymentDate, $notes) {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($booking, $amount, $paymentDate, $notes, $milestoneIds) {
 
             // ── Validate state ──────────────────────────────────────────────
             if (!in_array($booking->payment_status, ['unpaid', 'partial'])) {
@@ -1136,6 +1137,89 @@ class POSBookingService
             $newStatus     = abs($newPaidAmount - $totalAmount) < 0.01
                 ? \Modules\POS\Models\POSBooking::PAYMENT_STATUS_PAID
                 : \Modules\POS\Models\POSBooking::PAYMENT_STATUS_PARTIAL;
+            $paidMilestoneIdsForNotification = [];
+
+            $bookingMilestones = \App\Models\QuotationMilestone::query()
+                ->where('pos_booking_id', $booking->id)
+                ->orderBy('sequence_no')
+                ->lockForUpdate()
+                ->get();
+
+            $isMilestoneFlow = ((int) ($booking->is_milestone ?? 0) === 1) || $bookingMilestones->isNotEmpty();
+
+            if ($isMilestoneFlow) {
+                $dueMilestones = $bookingMilestones->filter(function ($item) {
+                    return in_array($item->status, ['due', 'overdue'], true);
+                })->values();
+
+                if ($dueMilestones->isEmpty()) {
+                    $nextPendingMilestone = $bookingMilestones->first(function ($item) {
+                        return $item->status === 'pending';
+                    });
+
+                    if ($nextPendingMilestone) {
+                        $nextPendingMilestone->update(['status' => 'due']);
+                        $nextPendingMilestone->refresh();
+                        $bookingMilestones = \App\Models\QuotationMilestone::query()
+                            ->where('pos_booking_id', $booking->id)
+                            ->orderBy('sequence_no')
+                            ->lockForUpdate()
+                            ->get();
+                        $dueMilestones = $bookingMilestones->filter(function ($item) {
+                            return in_array($item->status, ['due', 'overdue'], true);
+                        })->values();
+                    }
+                }
+
+                if ($dueMilestones->isEmpty()) {
+                    throw new \Exception('No due milestone found for this booking.');
+                }
+
+                $normalizedMilestoneIds = collect($milestoneIds)
+                    ->map(function ($id) {
+                        return (int) $id;
+                    })
+                    ->filter(function ($id) {
+                        return $id > 0;
+                    })
+                    ->unique()
+                    ->values();
+
+                if ($normalizedMilestoneIds->isEmpty()) {
+                    $normalizedMilestoneIds = collect([(int) $dueMilestones->first()->id]);
+                }
+
+                $selectedMilestones = $dueMilestones->filter(function ($item) use ($normalizedMilestoneIds) {
+                    return $normalizedMilestoneIds->contains((int) $item->id);
+                })->values();
+
+                if ($selectedMilestones->count() !== $normalizedMilestoneIds->count()) {
+                    throw new \Exception('Only due milestones can be paid.');
+                }
+
+                $selectedMilestoneAmount = (float) $selectedMilestones->sum(function ($item) {
+                    return (float) ($item->calculated_amount ?? $item->amount ?? 0);
+                });
+
+                if (abs($amount - $selectedMilestoneAmount) > 0.01) {
+                    throw new \Exception('Payment amount must match selected due milestone amount (₹' . number_format($selectedMilestoneAmount, 2) . ').');
+                }
+
+                $paidMilestoneIdsForNotification = $selectedMilestones
+                    ->pluck('id')
+                    ->map(function ($id) {
+                        return (int) $id;
+                    })
+                    ->values()
+                    ->all();
+
+                foreach ($selectedMilestones as $milestone) {
+                    $milestone->update([
+                        'status' => 'paid',
+                        'paid_at' => $paymentDate,
+                    ]);
+                }
+            }
 
             // ── Update POS booking ──────────────────────────────────────────
             $booking->update([
@@ -1147,6 +1231,60 @@ class POSBookingService
                 'status'               => \Modules\POS\Models\POSBooking::STATUS_CONFIRMED,
                 'last_reminder_at'     => null,
             ]);
+
+            if ($isMilestoneFlow) {
+                $milestonesAfterPayment = \App\Models\QuotationMilestone::query()
+                    ->where('pos_booking_id', $booking->id)
+                    ->orderBy('sequence_no')
+                    ->lockForUpdate()
+                    ->get();
+
+                $hasDueOrOverdue = $milestonesAfterPayment->contains(function ($item) {
+                    return in_array($item->status, ['due', 'overdue'], true);
+                });
+
+                if (!$hasDueOrOverdue) {
+                    $nextPendingMilestone = $milestonesAfterPayment->first(function ($item) {
+                        return $item->status === 'pending';
+                    });
+
+                    if ($nextPendingMilestone) {
+                        $nextPendingMilestone->update(['status' => 'due']);
+                    }
+
+                    $milestonesAfterPayment = \App\Models\QuotationMilestone::query()
+                        ->where('pos_booking_id', $booking->id)
+                        ->orderBy('sequence_no')
+                        ->lockForUpdate()
+                        ->get();
+                }
+
+                $milestonePaidCount = (int) $milestonesAfterPayment->where('status', 'paid')->count();
+                $milestoneAmountPaid = (float) $milestonesAfterPayment
+                    ->where('status', 'paid')
+                    ->sum(function ($item) {
+                        return (float) ($item->calculated_amount ?? $item->amount ?? 0);
+                    });
+
+                $currentMilestone = $milestonesAfterPayment->first(function ($item) {
+                    return in_array($item->status, ['due', 'overdue'], true);
+                })
+                    ?? $milestonesAfterPayment->first(function ($item) {
+                        return $item->status === 'pending';
+                    });
+
+                $allMilestonesPaid = $milestonesAfterPayment->isNotEmpty()
+                    && $milestonePaidCount === $milestonesAfterPayment->count();
+
+                $booking->update([
+                    'milestone_total' => (int) $milestonesAfterPayment->count(),
+                    'milestone_paid' => $milestonePaidCount,
+                    'milestone_amount_paid' => round($milestoneAmountPaid, 2),
+                    'milestone_amount_remaining' => max(0, round($totalAmount - $milestoneAmountPaid, 2)),
+                    'current_milestone_id' => $currentMilestone?->id,
+                    'all_milestones_paid_at' => $allMilestonesPaid ? now() : null,
+                ]);
+            }
 
             // ── Lock inventory as confirmed ─────────────────────────────────
             foreach ($booking->bookingHoardings as $bookingHoarding) {
@@ -1180,15 +1318,19 @@ class POSBookingService
                 'notes'               => $notes,
             ]);
 
-            \Illuminate\Support\Facades\DB::afterCommit(function () use ($booking) {
-                $this->sendPaymentReceivedNotifications((int) $booking->id);
+            \Illuminate\Support\Facades\DB::afterCommit(function () use ($booking, $amount, $paymentDate, $paidMilestoneIdsForNotification) {
+                $this->sendPaymentReceivedNotifications((int) $booking->id, [
+                    'payment_amount' => round((float) $amount, 2),
+                    'payment_date' => $paymentDate->toDateString(),
+                    'paid_milestone_ids' => $paidMilestoneIdsForNotification,
+                ]);
             });
 
             return $booking->fresh();
         });
     }
 
-    protected function sendPaymentReceivedNotifications(int $bookingId): void
+    protected function sendPaymentReceivedNotifications(int $bookingId, array $context = []): void
     {
         try {
             $booking = \Modules\POS\Models\POSBooking::query()->find($bookingId);
@@ -1197,7 +1339,7 @@ class POSBookingService
                 return;
             }
 
-            $notification = new \App\Notifications\PosBookingConfirmedNotification($booking);
+            $notification = new \App\Notifications\PosBookingConfirmedNotification($booking, $context);
 
             $recipientIds = collect();
 
@@ -1230,7 +1372,7 @@ class POSBookingService
                 ->get()
                 ->each(function ($user) use ($notification) {
                     if (method_exists($user, 'notify')) {
-                        $user->notify($notification);
+                        \Illuminate\Support\Facades\Notification::sendNow($user, $notification);
                     }
                 });
         } catch (\Throwable $e) {

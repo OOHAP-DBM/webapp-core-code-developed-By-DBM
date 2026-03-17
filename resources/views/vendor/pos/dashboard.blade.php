@@ -101,8 +101,19 @@
 
     <!-- Recent Bookings -->
     <div class="bg-white shadow-sm border border-gray-200">
-        <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
+        <div class="px-4 sm:px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h5 class="text-lg font-semibold">Recent POS Bookings</h5>
+            <div class="text-xs text-gray-500 flex items-center gap-1">
+                <span class="text-black font-semibold">SORT BY:</span>
+                <select id="bookings_period_filter" class="border rounded px-2 py-1 text-xs">
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="1m" selected>1 Month</option>
+                    <option value="6m">6 Month</option>
+                    <option value="1y">1 Year</option>
+                </select>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -128,6 +139,8 @@
                 </tbody>
             </table>
         </div>
+
+        <div id="recent-bookings-pagination" class="overflow-x-auto"></div>
     </div>
 
     <!-- Pending Payments Widget -->
@@ -168,15 +181,7 @@
             </table>
         </div>
 
-        <div id="pending-payments-pagination" class="px-4 sm:px-6 py-3 border-t border-gray-200 bg-white hidden">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <p id="pending-payments-page-info" class="text-sm text-gray-600"></p>
-                <div class="flex gap-2">
-                    <button id="pending-payments-prev" class="px-3 py-1.5 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
-                    <button id="pending-payments-next" class="px-3 py-1.5 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
-                </div>
-            </div>
-        </div>
+        <div id="pending-payments-pagination" class="overflow-x-auto"></div>
     </div>
 
 </div>
@@ -197,6 +202,14 @@ document.addEventListener('DOMContentLoaded', function () {
         page: 1,
         perPage: 5,
         search: '',
+        lastPage: 1,
+        total: 0,
+    };
+
+    const bookingsState = {
+        page: 1,
+        perPage: 10,
+        period: '1m',
         lastPage: 1,
         total: 0,
     };
@@ -246,10 +259,150 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(err => console.warn('Could not load dashboard stats:', err));
 
     // Load recent bookings
-    fetchJSON(`${POS_BASE_PATH}/api/bookings?per_page=10`)
+    function renderBookingsPagination() {
+        const container = document.getElementById('recent-bookings-pagination');
+        if (!container) return;
+
+        const current = Number(bookingsState.page || 1);
+        const last = Number(bookingsState.lastPage || 1);
+        const total = Number(bookingsState.total || 0);
+        const perPage = Number(bookingsState.perPage || 10);
+
+        if (total === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        const startRecord = ((current - 1) * perPage) + 1;
+        const endRecord = Math.min(current * perPage, total);
+
+        const pages = [];
+        if (last <= 5) {
+            for (let i = 1; i <= last; i++) {
+                pages.push(i);
+            }
+        } else if (current <= 5) {
+            for (let i = 1; i <= 5; i++) {
+                pages.push(i);
+            }
+            pages.push(last);
+        } else if (current >= last - 4) {
+            pages.push(1);
+            for (let i = last - 4; i <= last; i++) {
+                pages.push(i);
+            }
+        } else {
+            pages.push(1, current - 1, current, current + 1, last);
+        }
+
+        const normalizedPages = [...new Set(
+            pages.filter((page) => page >= 1 && page <= last)
+        )].sort((a, b) => a - b);
+
+        let pageButtons = '';
+        let previousPage = null;
+
+        normalizedPages.forEach((page) => {
+            if (previousPage !== null && page - previousPage > 1) {
+                pageButtons += '<span class="text-gray-400">...</span>';
+            }
+
+            if (page === current) {
+                pageButtons += `
+                    <button type="button" data-bookings-page="${page}"
+                        class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md bg-[#00A86B] text-white"
+                        aria-current="page">
+                        ${page}
+                    </button>`;
+            } else {
+                pageButtons += `
+                    <button type="button" data-bookings-page="${page}"
+                        class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                        aria-label="Go to page ${page}">
+                        ${page}
+                    </button>`;
+            }
+
+            previousPage = page;
+        });
+
+        const previousButton = current <= 1
+            ? `
+                <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            `
+            : `
+                <button type="button" data-bookings-page="${Math.max(1, current - 1)}"
+                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                    aria-label="Previous page">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            `;
+
+        const nextButton = current >= last
+            ? `
+                <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            `
+            : `
+                <button type="button" data-bookings-page="${Math.min(last, current + 1)}"
+                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                    aria-label="Next page">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            `;
+
+        const pageNav = last > 1
+            ? `
+                <nav role="navigation" aria-label="Pagination Navigation" class="overflow-x-auto">
+                    <div class="inline-flex items-center gap-3 whitespace-nowrap text-sm font-medium select-none">
+                        ${previousButton}
+                        ${pageButtons}
+                        ${nextButton}
+                    </div>
+                </nav>
+            `
+            : '';
+
+        container.innerHTML = `
+            <div class="bg-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-100 text-sm text-gray-600">
+                <div class="font-medium">Showing ${startRecord} - ${endRecord} of ${total}</div>
+                <div>${pageNav}</div>
+            </div>
+        `;
+
+        container.querySelectorAll('[data-bookings-page]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const nextPage = Number(button.getAttribute('data-bookings-page') || current);
+                loadRecentBookings(undefined, nextPage);
+            });
+        });
+    }
+
+    function loadRecentBookings(period, page) {
+        if (period !== undefined) bookingsState.period = period;
+        if (page !== undefined) bookingsState.page = page;
+
+        const tbody = document.getElementById('recent-bookings-body');
+        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">Loading...</td></tr>`;
+        const params = new URLSearchParams({ per_page: String(bookingsState.perPage), page: String(bookingsState.page) });
+        if (bookingsState.period) params.set('period', bookingsState.period);
+        fetchJSON(`${POS_BASE_PATH}/api/bookings?${params.toString()}`)
         .then(data => {
-            const tbody = document.getElementById('recent-bookings-body');
             const bookings = data?.data?.data;
+            bookingsState.lastPage = data?.data?.last_page || 1;
+            bookingsState.total = data?.data?.total || 0;
+            bookingsState.page = data?.data?.current_page || bookingsState.page;
 
             if (data.success && Array.isArray(bookings) && bookings.length) {
                 tbody.innerHTML = '';
@@ -288,27 +441,148 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
             }
+            renderBookingsPagination();
         })
         .catch(err => console.warn('Could not load bookings:', err));
+    }
+
+    const bookingsPeriodFilter = document.getElementById('bookings_period_filter');
+    if (bookingsPeriodFilter) {
+        bookingsPeriodFilter.addEventListener('change', function () {
+            loadRecentBookings(this.value, 1);
+        });
+    }
+
+    loadRecentBookings('1m', 1);
 
     function renderPendingPaymentsPagination() {
-        const paginationWrap = document.getElementById('pending-payments-pagination');
-        const info = document.getElementById('pending-payments-page-info');
-        const prevBtn = document.getElementById('pending-payments-prev');
-        const nextBtn = document.getElementById('pending-payments-next');
+        const container = document.getElementById('pending-payments-pagination');
+        if (!container) return;
 
-        if (!paginationWrap || !info || !prevBtn || !nextBtn) return;
+        const current = Number(pendingPaymentsState.page || 1);
+        const last = Number(pendingPaymentsState.lastPage || 1);
+        const total = Number(pendingPaymentsState.total || 0);
+        const perPage = Number(pendingPaymentsState.perPage || 5);
 
-        const start = pendingPaymentsState.total === 0
-            ? 0
-            : ((pendingPaymentsState.page - 1) * pendingPaymentsState.perPage) + 1;
-        const end = Math.min(pendingPaymentsState.total, pendingPaymentsState.page * pendingPaymentsState.perPage);
+        if (total === 0) {
+            container.innerHTML = '';
+            return;
+        }
 
-        info.textContent = `Showing ${start}-${end} of ${pendingPaymentsState.total}`;
-        prevBtn.disabled = pendingPaymentsState.page <= 1;
-        nextBtn.disabled = pendingPaymentsState.page >= pendingPaymentsState.lastPage;
+        const startRecord = ((current - 1) * perPage) + 1;
+        const endRecord = Math.min(current * perPage, total);
 
-        paginationWrap.classList.toggle('hidden', pendingPaymentsState.total === 0);
+        const pages = [];
+        if (last <= 5) {
+            for (let i = 1; i <= last; i++) {
+                pages.push(i);
+            }
+        } else if (current <= 5) {
+            for (let i = 1; i <= 5; i++) {
+                pages.push(i);
+            }
+            pages.push(last);
+        } else if (current >= last - 4) {
+            pages.push(1);
+            for (let i = last - 4; i <= last; i++) {
+                pages.push(i);
+            }
+        } else {
+            pages.push(1, current - 1, current, current + 1, last);
+        }
+
+        const normalizedPages = [...new Set(
+            pages.filter((page) => page >= 1 && page <= last)
+        )].sort((a, b) => a - b);
+
+        let pageButtons = '';
+        let previousPage = null;
+
+        normalizedPages.forEach((page) => {
+            if (previousPage !== null && page - previousPage > 1) {
+                pageButtons += '<span class="text-gray-400">...</span>';
+            }
+
+            if (page === current) {
+                pageButtons += `
+                    <button type="button" data-pending-page="${page}"
+                        class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md bg-[#00A86B] text-white"
+                        aria-current="page">
+                        ${page}
+                    </button>`;
+            } else {
+                pageButtons += `
+                    <button type="button" data-pending-page="${page}"
+                        class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                        aria-label="Go to page ${page}">
+                        ${page}
+                    </button>`;
+            }
+
+            previousPage = page;
+        });
+
+        const previousButton = current <= 1
+            ? `
+                <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            `
+            : `
+                <button type="button" data-pending-page="${Math.max(1, current - 1)}"
+                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                    aria-label="Previous page">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            `;
+
+        const nextButton = current >= last
+            ? `
+                <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            `
+            : `
+                <button type="button" data-pending-page="${Math.min(last, current + 1)}"
+                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                    aria-label="Next page">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            `;
+
+        const pageNav = last > 1
+            ? `
+                <nav role="navigation" aria-label="Pagination Navigation" class="overflow-x-auto">
+                    <div class="inline-flex items-center gap-3 whitespace-nowrap text-sm font-medium select-none">
+                        ${previousButton}
+                        ${pageButtons}
+                        ${nextButton}
+                    </div>
+                </nav>
+            `
+            : '';
+
+        container.innerHTML = `
+            <div class="bg-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-100 text-sm text-gray-600">
+                <div class="font-medium">Showing ${startRecord}-${endRecord} of ${total}</div>
+                <div>${pageNav}</div>
+            </div>
+        `;
+
+        container.querySelectorAll('[data-pending-page]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const nextPage = Number(button.getAttribute('data-pending-page') || current);
+                loadPendingPayments(nextPage);
+            });
+        });
     }
 
     function renderPendingPaymentsRows(rows) {
@@ -420,24 +694,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 pendingPaymentsState.search = event.target.value || '';
                 loadPendingPayments(1);
             }, 300);
-        });
-    }
-
-    const pendingPrevBtn = document.getElementById('pending-payments-prev');
-    if (pendingPrevBtn) {
-        pendingPrevBtn.addEventListener('click', () => {
-            if (pendingPaymentsState.page > 1) {
-                loadPendingPayments(pendingPaymentsState.page - 1);
-            }
-        });
-    }
-
-    const pendingNextBtn = document.getElementById('pending-payments-next');
-    if (pendingNextBtn) {
-        pendingNextBtn.addEventListener('click', () => {
-            if (pendingPaymentsState.page < pendingPaymentsState.lastPage) {
-                loadPendingPayments(pendingPaymentsState.page + 1);
-            }
         });
     }
 

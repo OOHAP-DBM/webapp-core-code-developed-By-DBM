@@ -192,7 +192,7 @@
                 </table>
             </div>
             {{-- Pagination --}}
-            <div>{{ $bookings->links() }}</div>
+            <div>{{ $bookings->links('pagination.vendor-compact') }}</div>
             @else
             <div class="text-center py-10 text-gray-400">
                 <i class="bi bi-play-circle" style="font-size:2.5rem;"></i>

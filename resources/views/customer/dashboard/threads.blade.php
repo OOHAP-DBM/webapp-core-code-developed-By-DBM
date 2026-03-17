@@ -118,7 +118,7 @@
             </div>
         </div>
         @if($threads->hasPages())
-        <div class="card-footer bg-white">{{ $threads->links() }}</div>
+        <div class="card-footer bg-white">{{ $threads->links('pagination.vendor-compact') }}</div>
         @endif
     </div>
 </div>

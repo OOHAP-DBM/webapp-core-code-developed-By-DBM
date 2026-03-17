@@ -150,7 +150,7 @@
 
         <!-- Pagination -->
         <div class="mt-4">
-            {{ $quotations->links() }}
+            {{ $quotations->links('pagination.vendor-compact') }}
         </div>
     @else
         <!-- Empty State -->

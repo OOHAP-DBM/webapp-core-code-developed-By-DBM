@@ -205,9 +205,9 @@ class POSReminderService
         try {
             if (!empty($emailRecipient)) {
                 Mail::to($emailRecipient)
-                    ->queue(new PosPaymentReminderMail($booking, $booking->customer, $nextReminderCount));
+                    ->sendNow(new PosPaymentReminderMail($booking, $booking->customer, $nextReminderCount));
 
-                Log::info('Payment reminder email queued', [
+                Log::info('Payment reminder email sent', [
                     'booking_id' => $booking->id,
                     'email' => $emailRecipient,
                     'reminder_count' => $nextReminderCount,
