@@ -58,10 +58,19 @@
 
                 <div>
                     <p class="text-sm text-gray-500">Payment Status</p>
-                    <span id="ui-payment-status"
-                          class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-300">
-                        —
-                    </span>
+                    <div class="mt-1">
+                        <span id="ui-payment-status"
+                              class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-gray-300">
+                            —
+                        </span>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Milestone Status</p>
+                    <div id="ui-milestone-wrap" class="hidden mt-2 space-y-0">
+                        <div id="ui-milestone-timeline" class="space-y-0"></div>
+                    </div>
                 </div>
 
                 <div class="text-left lg:text-right">
@@ -201,21 +210,10 @@
                     </div>
                 </div>
 
-                <div>
+                <div id="reminder-time-section" class="hidden">
                     <p class="text-sm font-medium text-gray-700 mb-2">At What Time?</p>
                     <div class="flex flex-wrap gap-2">
-                        <button id="time-0800" onclick="selectReminderTime('08:00')"
-                                class="time-btn px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
-                            08:00 AM
-                        </button>
-                        <button id="time-1000" onclick="selectReminderTime('10:00')"
-                                class="time-btn px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
-                            10:00 AM
-                        </button>
-                        <button id="time-1200" onclick="selectReminderTime('12:00')"
-                                class="time-btn px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
-                            12:00 PM
-                        </button>
+                        <div id="time-btn-group" class="contents"></div>
                         <button id="custom-time-toggle-btn" onclick="toggleCustomTimeInput()"
                                 class="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
                             Custom Time
@@ -276,7 +274,7 @@
         </div>
         <h4 class="text-lg font-semibold text-gray-900">Reminder scheduled successfully</h4>
         <p class="text-sm text-gray-500 mt-2">It will automatically send to the customer as scheduled.</p>
-        <button onclick="openReminderModalFromSuccess()"
+        <button id="success-add-more-btn" onclick="openReminderModalFromSuccess()"
                 class="w-full mt-5 py-3 rounded-xl bg-green-500 text-white font-semibold text-sm hover:bg-green-600">
             Add more reminder
         </button>
@@ -354,6 +352,48 @@ async function loadBookingDetails() {
         document.getElementById('ui-payment-status').textContent = getPosPaymentStatusLabel(b.payment_status);
         document.getElementById('ui-payment-status').className =
             'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPosPaymentStatusColor(b.payment_status);
+
+        const milestoneWrap = document.getElementById('ui-milestone-wrap');
+        const milestoneTimelineEl = document.getElementById('ui-milestone-timeline');
+        const isMilestoneBooking = Number(b.is_milestone || 0) === 1;
+        const milestoneTotal = parseInt(b.milestone_total || 0, 10) || 0;
+        const milestones = Array.isArray(b.milestones) ? b.milestones : [];
+
+        const formatMilestoneDate = (value) => {
+            if (!value) return '-';
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return '-';
+            const day = String(d.getDate()).padStart(2, '0');
+            const mon = d.toLocaleString('en-US', { month: 'short' });
+            const yr = String(d.getFullYear()).slice(-2);
+            return `${day} ${mon}, ${yr}`;
+        };
+
+        if (isMilestoneBooking && milestoneTotal > 0) {
+            milestoneTimelineEl.innerHTML = milestones.length
+                ? milestones.map((ms, idx) => {
+                    const title = ms.title || `Milestone ${ms.sequence_no || (idx + 1)}`;
+                    const amount = parseFloat(ms.calculated_amount ?? ms.amount ?? 0) || 0;
+                    const dueDate = formatMilestoneDate(ms.due_date);
+                    const status = (ms.status || 'pending').toString();
+                    const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+                    return `
+                        <div class="text-xs py-1.5 border-b border-gray-200 last:border-0">
+                            <div class="font-semibold text-gray-700">${title}</div>
+                            <div class="text-gray-500">
+                                ₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                &nbsp;<span class="text-red-500">Due ${dueDate}</span>
+                                &nbsp;<span class="text-gray-400">| ${statusLabel}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('')
+                : '<p class="text-xs text-gray-400 py-1">No milestones added yet.</p>';
+            milestoneWrap.classList.remove('hidden');
+        } else {
+            milestoneTimelineEl.innerHTML = '';
+            milestoneWrap.classList.add('hidden');
+        }
 
         /* ---- REST OF YOUR EXISTING HTML BUILD LOGIC ---- */
             let hoardingsTableRows = '';
@@ -799,6 +839,7 @@ function resetReminderComposer() {
     _editingReminderKey = null;
 
     document.getElementById('custom-date-wrapper').classList.add('hidden');
+    document.getElementById('reminder-time-section').classList.add('hidden');
     document.getElementById('custom-time-wrapper').classList.add('hidden');
     document.getElementById('selected-time-display').classList.add('hidden');
     document.getElementById('selected-time-display').textContent = '';
@@ -815,6 +856,7 @@ function resetReminderComposer() {
     });
     document.getElementById('custom-time-toggle-btn').classList.remove('bg-green-600', 'text-white', 'border-green-600');
     document.getElementById('save-reminder-draft-text').textContent = 'Save Reminder';
+    renderPresetTimes(false);
     updateReminderActionButtons();
 }
 
@@ -853,12 +895,69 @@ function selectReminderDay(day) {
         document.getElementById('custom-date-wrapper').classList.add('hidden');
     }
 
+    document.getElementById('reminder-time-section').classList.remove('hidden');
+
+    renderPresetTimes(day === 'today');
+
     updateReminderActionButtons();
+}
+
+function formatTime24ToLabel(t) {
+    const [h, m] = t.split(':');
+    const hour = parseInt(h, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${String(hour12).padStart(2, '0')}:${m} ${ampm}`;
+}
+
+function addMinutesToNow(deltaMinutes) {
+    const d = new Date(Date.now() + deltaMinutes * 60000);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function renderPresetTimes(isToday) {
+    const wrap = document.getElementById('time-btn-group');
+    const customTimeInput = document.getElementById('reminder-custom-time');
+    if (!wrap) return;
+
+    let times;
+    if (isToday) {
+        customTimeInput.min = addMinutesToNow(5);
+        times = [addMinutesToNow(5), '08:30', '10:30'];
+    } else {
+        customTimeInput.removeAttribute('min');
+        times = ['08:00', '10:00', '12:00'];
+    }
+
+    // Clear selected time if it no longer matches a preset
+    if (_reminderTime && !times.includes(_reminderTime)) {
+        _reminderTime = null;
+        updateSelectedTimeDisplay();
+    }
+
+    wrap.innerHTML = times.map(t => {
+        const label = formatTime24ToLabel(t);
+        return `<button id="time-${t.replace(':', '')}" onclick="selectReminderTime('${t}')"
+                class="time-btn px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
+            ${label}
+        </button>`;
+    }).join('');
+
+    // Re-highlight if selected time still valid
+    if (_reminderTime) {
+        const activeBtn = document.getElementById('time-' + _reminderTime.replace(':', ''));
+        if (activeBtn) {
+            activeBtn.classList.add('bg-green-600', 'text-white', 'border-green-600');
+            activeBtn.classList.remove('border-gray-300');
+        }
+    }
 }
 
 function handleCustomReminderDateChange(value) {
     if (value) {
         _reminderDay = 'custom';
+        const today = new Date().toISOString().split('T')[0];
+        renderPresetTimes(value === today);
     }
     updateReminderActionButtons();
 }
@@ -1288,6 +1387,11 @@ async function confirmSendReminder() {
                 currentBooking.remaining_reminder_slots = Number(result?.data?.remaining_reminder_slots ?? 0);
             }
             closeReminderModal();
+            const slotsLeft = getReminderAvailableSlots();
+            const successAddMoreBtn = document.getElementById('success-add-more-btn');
+            if (successAddMoreBtn) {
+                successAddMoreBtn.classList.toggle('hidden', slotsLeft <= 0);
+            }
             document.getElementById('reminder-success-modal').classList.remove('hidden');
             await loadBookingDetails();
         } else if (response.status === 400 || response.status === 422 || response.status === 429) {

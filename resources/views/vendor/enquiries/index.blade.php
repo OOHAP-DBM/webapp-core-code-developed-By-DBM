@@ -134,7 +134,8 @@
                                     <div class="flex gap-2 justify-center flex-wrap">
                                         @if($enquiry->status === 'submitted')
                                             <a href="{{ route('vendor.enquiries.show', $enquiry->id) }}"
-                                               class="inline-flex items-center justify-center px-3 py-1.5 rounded text-xs font-semibold bg-blue-500 text-white hover:bg-blue-600 transition whitespace-nowrap">
+                                               class="inline-flex items-center justify-center px-3 py-1.5 rounded text-xs font-semibold  text-white hover:bg-blue-600 transition whitespace-nowrap"
+                                                style="background-color: var(--booking-btn-color);">
                                                 View Enquiry
                                             </a>
                                         @elseif($enquiry->status === 'accepted')

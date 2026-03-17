@@ -252,6 +252,8 @@
 
 <script>
 /* --- CONFIG & STATE --- */
+window.POS_GST_RATE = Number(@json((float) ($posGstRate ?? 18)));
+
 function showToast(message, type = 'info') {
     if (window.Swal) {
         Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, icon: type, title: message });

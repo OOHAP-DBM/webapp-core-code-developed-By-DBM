@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use App\Models\User;
 use App\Models\Hoarding;
+use App\Models\QuotationMilestone;
 use Modules\POS\Models\POSBookingReminder;
 
 
@@ -180,6 +181,15 @@ class POSBooking extends Model
     {
         return $this->hasMany(POSBookingReminder::class, 'pos_booking_id')
             ->orderBy('scheduled_at');
+    }
+
+    /**
+     * Get all milestones linked to this POS booking.
+     */
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(QuotationMilestone::class, 'pos_booking_id')
+            ->orderBy('sequence_no');
     }
 
 

@@ -511,7 +511,7 @@
     </div> 
     <!-- Best Selling Hoardings -->
 @if(count($topHoardings) > 0)
-    <div class="bg-white rounded-xl shadow-sm mb-6">
+    <div id="recent-hoardings-section" class="bg-white rounded-xl shadow-sm mb-6">
         <div class="px-6 pt-5 pb-3 flex justify-between items-center">
             {{-- <h4 class="text-sm font-semibold text-gray-800">
                 Top 5 Best Selling Hoardings
@@ -521,10 +521,10 @@
             </h4>
             <div class="text-xs text-gray-500 flex items-center gap-1">
                 <span class="text-black font-semibold">SORT BY:</span>
-                <select name="" id="">
-                    <option value="">1 Month</option>
-                    <option value="">6 Month</option>
-                    <option value="">1 Year</option>
+                <select id="hoardings_period_filter" class="border rounded px-2 py-1 text-xs">
+                    <option value="1m" @selected(request('hoardings_period', '1m') === '1m')>1 Month</option>
+                    <option value="6m" @selected(request('hoardings_period') === '6m')>6 Month</option>
+                    <option value="1y" @selected(request('hoardings_period') === '1y')>1 Year</option>
                 </select>
             </div>
         </div>
@@ -736,17 +736,17 @@
 
 
     <!-- Top 5 Customers -->
-     <div class="bg-white rounded-xl shadow-sm mb-6">
+    <div id="top-customers-section" class="bg-white rounded-xl shadow-sm mb-6">
         <div class="px-6 pt-5 pb-3 flex justify-between items-center">
             <h4 class="text-sm font-semibold text-gray-800">
                 Top 5 Customers
             </h4>
             <div class="text-xs text-gray-500 flex items-center gap-1">
                 SORT BY:
-                <select name="" id="">
-                    <option value="">1 Month</option>
-                    <option value="">6 Month</option>
-                    <option value="">1 Year</option>
+               <select id="customers_period_filter" class="border rounded px-2 py-1 text-xs">
+                    <option value="1m" @selected(request('customers_period', '1m') === '1m')>1 Month</option>
+                    <option value="6m" @selected(request('customers_period') === '6m')>6 Month</option>
+                    <option value="1y" @selected(request('customers_period') === '1y')>1 Year</option>
                 </select>
             </div>
         </div>
@@ -993,7 +993,7 @@
         </div>
     </div>
     <!-- Recent Transactions -->
-    <div class="bg-white rounded-xl shadow-sm">
+    <div id="recent-transactions-section" class="bg-white rounded-xl shadow-sm">
         <div class="px-6 pt-5 pb-1 flex justify-between items-center">
             <div>
                 <h4 class="text-sm font-semibold text-gray-800">
@@ -1006,10 +1006,10 @@
 
             <div class="text-xs text-gray-500 flex items-center gap-1">
                 SORT BY: 
-                <select name="" id="">
-                    <option value="">1 Month</option>
-                    <option value="">6 Month</option>
-                    <option value="">1 Year</option>
+               <select id="transactions_period_filter" class="border rounded px-2 py-1 text-xs">
+                    <option value="1m" @selected(request('transactions_period', '1m') === '1m')>1 Month</option>
+                    <option value="6m" @selected(request('transactions_period') === '6m')>6 Month</option>
+                    <option value="1y" @selected(request('transactions_period') === '1y')>1 Year</option>
                 </select>
             </div>
         </div>
@@ -1139,5 +1139,22 @@
             },
             options:{plugins:{legend:{display:false}}}
         });
+
+
+    function bindPeriodFilter(selectId, queryKey, sectionHash) {
+        const el = document.getElementById(selectId);
+        if (!el) return;
+
+        el.addEventListener('change', function () {
+            const url = new URL(window.location.href);
+            url.searchParams.set(queryKey, this.value);
+            url.hash = sectionHash; // stay on same section after reload
+            window.location.assign(url.toString());
+        });
+    }
+
+    bindPeriodFilter('hoardings_period_filter', 'hoardings_period', 'recent-hoardings-section');
+    bindPeriodFilter('customers_period_filter', 'customers_period', 'top-customers-section');
+    bindPeriodFilter('transactions_period_filter', 'transactions_period', 'recent-transactions-section');
     </script>
 @endpush

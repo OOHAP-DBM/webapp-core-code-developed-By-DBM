@@ -163,13 +163,18 @@
                         @forelse($milestones as $ms)
                             <div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-200 last:border-0">
                                 <div>
-                                    <div class="font-semibold text-gray-700">{{ $ms->name }}</div>
+                                    <div class="font-semibold text-gray-700">{{ $ms->title ?? ('Milestone ' . ($ms->sequence_no ?? $loop->iteration)) }}</div>
                                     <div class="text-gray-500">
-                                        ₹{{ number_format($ms->amount, 0) }}
+                                        ₹{{ number_format((float) ($ms->calculated_amount ?? $ms->amount ?? 0), 2) }}
                                         &nbsp;<span class="text-red-500">Due {{ $ms->due_date ? \Carbon\Carbon::parse($ms->due_date)->format('d M, y') : '-' }}</span>
+                                        &nbsp;<span class="text-gray-400">| {{ ucfirst($ms->status ?? 'pending') }}</span>
                                     </div>
                                 </div>
-                                <button class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-0.5 rounded text-xs font-semibold">Pay Now</button>
+                                {{-- @if(in_array($ms->status, ['due', 'overdue']))
+                                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-0.5 rounded text-xs font-semibold">Pay Now</button>
+                                @else
+                                    <span class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-gray-100 text-gray-600">{{ ucfirst($ms->status ?? 'pending') }}</span>
+                                @endif --}}
                             </div>
                         @empty
                             <p class="text-xs text-gray-400">No milestones added yet.</p>

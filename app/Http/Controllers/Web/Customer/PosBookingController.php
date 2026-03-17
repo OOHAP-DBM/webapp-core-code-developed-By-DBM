@@ -95,6 +95,7 @@ class PosBookingController extends Controller
                 'vendor.vendorProfile',
                 'bookingHoardings.hoarding.hoardingMedia',
                 'hoardings',
+                'milestones',
             ])
             ->firstOrFail();
 
