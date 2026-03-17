@@ -73,7 +73,7 @@
                 $citiesSuffix = '+';
             @endphp
 
-            <div id="stats-section" class="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white rounded-2xl shadow-xl p-8">
+            <div id="stats-section" class="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white rounded-lg shadow-xl p-8">
                 <div class="text-center">
                     <div class="text-4xl font-bold theme-gradient-text mb-2">
                         <span class="stat-number" data-target="{{ $totalHoardings }}" data-suffix="{{ $hoardingsSuffix }}">0</span>{{ $hoardingsSuffix }}
@@ -106,7 +106,7 @@
                 <a href="{{ route('register.role-selection') }}"
                     class="inline-flex items-center px-8 py-4
                             theme-gradient
-                            text-white rounded-xl font-bold text-lg
+                            text-white rounded font-bold text-lg
                             transform hover:scale-105 transition-all
                             shadow-lg hover:shadow-xl">
                         <span>Get Started Now</span>

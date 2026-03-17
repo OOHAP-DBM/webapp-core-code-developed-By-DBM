@@ -2,7 +2,7 @@
 
 @section('content')
 @include('components.customer.navbar')
-<div id="gridView" class="bg-gray-100 pt-5 md:pt-0 ">
+<div id="gridView" class="bg-white pt-5 md:pt-0 ">
 <div class="max-w-[1460px] mx-auto px-6 md:py-6 py-10">
     <div class="bg-gradient-to-b from-[#D9F2E6] to-[#F4FFFB] rounded-lg overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-[#b9d1c5]">
@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="flex flex-row gap-4 md:gap-6 items-center md:justify-end">
-                    <span class="px-4 py-2 border border-green-400 text-green-700 rounded-md text-sm font-semibold flex items-center gap-2 bg-green-50">
+                    <span class="px-4 py-2 border border-green-200 text-green-700 rounded text-sm font-semibold flex items-center gap-2 bg-green-50">
                         Total Hoardings: <span class="font-bold">{{ $hoardings->total() }}</span>
                     </span>
                     {{-- <span class="px-4 py-2 border border-orange-400 text-orange-700 rounded-md text-sm font-semibold flex items-center gap-2 bg-orange-50">
@@ -57,7 +57,7 @@
                 @endforeach
                 <select name="sort"
                     onchange="this.form.submit()"
-                    class="h-8 px-3 pr-8 text-sm border border-gray-300 rounded-md bg-white
+                    class="h-8 px-3 pr-8 text-sm border border-gray-200 rounded bg-white
                     focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 cursor-pointer">
 
                     <option value="" {{ request('sort') == '' ? 'selected' : '' }}>All Hoardings</option>

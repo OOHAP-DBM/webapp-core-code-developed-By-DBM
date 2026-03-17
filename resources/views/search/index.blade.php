@@ -271,7 +271,7 @@
                 <span>Sort by</span>
                 <select
                     onchange="applySort(this.value)"
-                    class="border border-gray-300 rounded-md px-2 py-1 text-sm"
+                    class="border border-gray-200 rounded-md px-2 py-1 text-sm"
                 >
                     <option value="">Select</option>
                     <option value="rating" {{ request('sort')=='rating' ? 'selected' : '' }}>
