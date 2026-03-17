@@ -1,6 +1,6 @@
 <a href="{{ route('search', ['location' => $city['name']]) }}"
    class="block">
-    <div class="relative rounded-xl overflow-hidden group cursor-pointer h-48 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl">
+    <div class="relative rounded-lg overflow-hidden group cursor-pointer h-48 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl">
         <!-- Background Image -->
         <img 
             src="{{ $city['image'] }}" 

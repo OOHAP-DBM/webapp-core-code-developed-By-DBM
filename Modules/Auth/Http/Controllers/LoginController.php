@@ -98,6 +98,7 @@ class LoginController extends Controller
 
         // Login the user
         Auth::login($user, $request->boolean('remember'));
+        session(['merge_guest_data' => true]);
 
         // Update last login timestamp
         $user->updateLastLogin();

@@ -26,7 +26,7 @@
 
                         <div
                             class="relative bg-gradient-to-br from-white to-gray-50
-                                rounded-3xl px-6 pt-16 pb-8 text-center
+                                rounded-lg px-6 pt-16 pb-8 text-center
                                 border border-gray-200
                                 transition-all duration-700
                                 scale-95 opacity-70 shadow-lg">

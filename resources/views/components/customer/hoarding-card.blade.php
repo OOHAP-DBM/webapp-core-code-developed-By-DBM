@@ -31,11 +31,12 @@
         <!-- Top Right Icons -->
         <div class="absolute top-3 right-3 flex items-center space-x-2">
             @php
+                // Logged in → DB se check
+                // Guest → hamesha false, JS LocalStorage page load pe restore karega
                 $isWishlisted = auth()->check()
                     ? auth()->user()->wishlist()->where('hoarding_id', $hoarding->id)->exists()
                     : false;
-            @endphp
-            @php
+
                 $isOwnerVendor = false;
                 if (
                     auth()->check()
@@ -46,18 +47,15 @@
                     $isOwnerVendor = true;
                 }
             @endphp
+
             @if(!$isOwnerVendor)
             <button
                 class="w-8 h-8 rounded-full flex items-center justify-center shortlist-btn
-                    {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }} {{ $isOwnerVendor ? 'cursor-not-allowed opacity-50' : 'cursor-pointer' }}"
+                    {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }} cursor-pointer"
                 data-id="{{ $hoarding->id }}"
                 data-auth="{{ auth()->check() ? '1' : '0' }}"
                 data-role="{{ auth()->check() ? auth()->user()->role : '' }}"
-                @if($isOwnerVendor)
-                    disabled
-                @else
-                    onclick="event.preventDefault(); event.stopPropagation(); toggleShortlist(this);"
-                @endif
+                onclick="event.preventDefault(); event.stopPropagation(); toggleShortlist(this);"
             >
                 <svg class="wishlist-icon" width="20" height="19" viewBox="0 0 20 19" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5.5 0.75C2.877 0.75 0.75 3.01 0.75 5.797C0.75 11.375 9.75 17.75 9.75 17.75C9.75 17.75 18.75 11.375 18.75 5.797C18.75 2.344 16.623 0.75 14 0.75C12.14 0.75 10.53 1.886 9.75 3.54C8.97 1.886 7.36 0.75 5.5 0.75Z"
@@ -101,8 +99,8 @@
         <!-- Price -->
         <div class="mb-3">
             @php
-                $base  = $hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price;
-                $sale  = $hoarding->monthly_price_display ?? $hoarding->monthly_price;
+                $base    = $hoarding->base_monthly_price_display ?? $hoarding->base_monthly_price;
+                $sale    = $hoarding->monthly_price_display ?? $hoarding->monthly_price;
                 $hasSale = !empty($sale) && $sale > 0;
             @endphp
 
@@ -123,8 +121,8 @@
                         ₹{{ number_format($base, 0) }}
                     </span>
                     @php
-                        $basePrice     = (float) ($base ?? 0);
-                        $salePrice     = (float) ($sale ?? 0);
+                        $basePrice      = (float) ($base ?? 0);
+                        $salePrice      = (float) ($sale ?? 0);
                         $discountAmount = 0;
                         if ($basePrice > 0 && $salePrice > 0 && $salePrice < $basePrice) {
                             $discountAmount = $basePrice - $salePrice;
@@ -167,9 +165,12 @@
         <!-- Action Buttons -->
         <div class="flex items-center space-x-2 mb-2 mt-auto">
             @php
-                $isInCart = in_array($hoarding->id, $cartIds ?? []);
-            @endphp
-            @php
+                // Logged in → DB se check
+                // Guest → hamesha false, JS LocalStorage page load pe restore karega
+                $isInCart = auth()->check()
+                    ? in_array($hoarding->id, $cartIds ?? [])
+                    : false;
+
                 $isOwnerVendor = false;
                 if (
                     auth()->check()
@@ -182,9 +183,12 @@
             @endphp
 
             @if(!$isOwnerVendor)
+                {{-- Cart — guest ke liye JS LocalStorage handle karega --}}
                 <button
                     id="cart-btn-{{ $hoarding->id }}"
+                    data-id="{{ $hoarding->id }}"
                     data-in-cart="{{ $isInCart ? '1' : '0' }}"
+                    data-auth="{{ auth()->check() ? '1' : '0' }}"
                     onclick="event.preventDefault(); event.stopPropagation(); toggleCart(this, {{ $hoarding->id }})"
                     class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded cursor-pointer"
                 ></button>
@@ -205,6 +209,7 @@
                         Enquiry Now
                     </button>
                 @else
+                    {{-- Enquiry sirf login ke baad --}}
                     <button
                         type="button"
                         class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded cursor-pointer"

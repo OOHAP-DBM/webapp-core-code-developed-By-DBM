@@ -28,7 +28,7 @@
                         class="w-[223px] h-[44px]
                             flex items-center justify-center
                             bg-[#2CB67D] hover:bg-[#24a26d]
-                            rounded-[6px]
+                            rounded
                             font-medium text-[16px] leading-[21px]
                             text-white
                             transition"
@@ -40,7 +40,7 @@
                     <button
                         type="button"
                         onclick="showDirectEnquiryModal()"
-                        class="w-[223px] h-[44px] flex items-center justify-center bg-[#1B84FF] hover:bg-[#0f6fe0] rounded-[6px] font-medium text-[16px] leading-[21px] text-white transition cursor-pointer"
+                        class="w-[223px] h-[44px] flex items-center justify-center bg-[#1B84FF] hover:bg-[#0f6fe0] rounded font-medium text-[16px] leading-[21px] text-white transition cursor-pointer"
                     >
                         Direct Enquiry
                     </button>

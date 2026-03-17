@@ -79,7 +79,7 @@
                                         data-id="{{ $item->id }}"
                                         data-auth="{{ auth()->check() ? '1' : '0' }}"
                                         data-role="{{ auth()->check() ? auth()->user()->active_role : '' }}"
-                                        onclick="event.stopPropagation(); toggleShortlist(this);"
+                                        onclick="event.preventDefault(); event.stopPropagation(); toggleShortlist(this);"
                                     >
                                         <svg class="wishlist-icon" width="20" height="19" viewBox="0 0 20 19" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M5.5 0.75C2.877 0.75 0.75 3.01 0.75 5.797C0.75 11.375 9.75 17.75 9.75 17.75C9.75 17.75 18.75 11.375 18.75 5.797C18.75 2.344 16.623 0.75 14 0.75C12.14 0.75 10.53 1.886 9.75 3.54C8.97 1.886 7.36 0.75 5.5 0.75Z"
@@ -155,9 +155,12 @@
                             <div class="mt-auto pt-4 flex gap-2">
                                 @if(!$isOwnerVendor)
                                     <button
+                                        id="cart-btn-{{ $item->id }}"
                                         class="cart-btn flex-1 border border-[#c7c7c7] py-2 text-sm rounded cursor-pointer"
+                                        data-id="{{ $item->id }}"
                                         data-in-cart="{{ in_array($item->id, $cartHoardingIds) ? '1' : '0' }}"
-                                        onclick="event.stopPropagation(); toggleCart(this, {{ $item->id }})"
+                                        data-auth="{{ auth()->check() ? '1' : '0' }}"
+                                        onclick="event.preventDefault(); event.stopPropagation(); toggleCart(this, {{ $item->id }})"
                                     ></button>
                                     @auth
                                         <button

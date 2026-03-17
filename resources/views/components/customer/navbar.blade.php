@@ -12,15 +12,17 @@
                 <!-- Logo -->
                 <div class="flex items-center flex-shrink-0">
                     <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
-                        <img src="{{asset('assets/images/logo/logo_image.jpeg')}}" alt="OOHApp company logo" 
+                        <img src="{{asset('assets/images/logo/logo_image.jpeg')}}" alt="OOHApp company logo"
                             class="w-24 md:w-[150px]">
                     </a>
                 </div>
             </div>
+
             <!-- Search Bar (Desktop & Tablet only) -->
             <div class="hidden md:flex flex-1 justify-center px-6">
                 @include('components.customer.home-search')
             </div>
+
             <!-- Right Side Icons: User, Bookmark, Cart -->
             <div class="flex items-center space-x-4 lg:space-x-5">
 
@@ -107,49 +109,50 @@
                     onclick="openWishlist(event)"
                     class="relative inline-block text-gray-400 hover:text-gray-600"
                     data-auth="{{ auth()->check() ? '1' : '0' }}"
-                    data-role="{{ auth()->check() ? auth()->user()->active_role : '' }}"
                     title="Wishlist">
                     <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M1 1h14a1 1 0 0 1 1 1v16.438a.5.5 0 0 1-.8.4L8 14 .8 18.838A.5.5 0 0 1 0 18.438V2a1 1 0 0 1 1-1z" stroke="#6E6E6E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
+
                     @php
-                        $wishlistCount = 0;
-                        if(auth()->check()) {
-                            $wishlistCount = auth()->user()
-                                ->wishlist()
-                                ->whereHas('hoarding', function ($q) {
-                                    $q->whereNull('deleted_at');
-                                })
-                                ->count();
-                        }
+                        // Logged in → DB se count
+                        // Guest → 0 rakho, JS LocalStorage se update karega
+                        $wishlistCount = auth()->check()
+                            ? auth()->user()->wishlist()->whereHas('hoarding', fn($q) => $q->whereNull('deleted_at'))->count()
+                            : 0;
                     @endphp
-                    @if($wishlistCount > 0)
-                        <span class="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                            {{$wishlistCount}}
-                        </span>
-                    @endif
+
+                    {{-- Logged in ke liye DB count, guest ke liye JS update karega --}}
+                    <span class="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 items-center justify-center shortlist-count {{ $wishlistCount > 0 ? 'flex' : 'hidden' }}">
+                        {{ $wishlistCount }}
+                    </span>
                 </a>
 
                 <!-- Cart Icon -->
-                <a href="{{ route('cart.index') }}" class="relative inline-block text-gray-400 hover:text-gray-600" title="Shortlist">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <a href="javascript:void(0)"
+                    onclick="openCart(event)"
+                    data-auth="{{ auth()->check() ? '1' : '0' }}"
+                    class="relative inline-block text-gray-400 hover:text-gray-600" title="Cart">
+                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.75C11.4033 2.75 10.831 2.98705 10.409 3.40901C9.98706 3.83097 9.75001 4.40326 9.75001 5V5.26C10.307 5.25 10.918 5.25 11.59 5.25H12.411C13.081 5.25 13.693 5.25 14.251 5.26V5C14.251 4.70444 14.1928 4.41178 14.0796 4.13873C13.9665 3.86568 13.8007 3.6176 13.5916 3.40866C13.3826 3.19971 13.1345 3.034 12.8614 2.92098C12.5883 2.80797 12.2956 2.74987 12 2.75ZM15.75 5.328V5C15.75 4.00544 15.3549 3.05161 14.6517 2.34835C13.9484 1.64509 12.9946 1.25 12 1.25C11.0054 1.25 10.0516 1.64509 9.34836 2.34835C8.6451 3.05161 8.25001 4.00544 8.25001 5V5.328C8.10734 5.34 7.96934 5.35433 7.83601 5.371C6.82601 5.496 5.99401 5.758 5.28601 6.345C4.57801 6.932 4.16801 7.702 3.86001 8.672C3.56001 9.612 3.33401 10.819 3.05001 12.338L3.02901 12.448C2.62701 14.591 2.31101 16.28 2.25201 17.611C2.19201 18.976 2.39601 20.106 3.16601 21.033C3.93601 21.961 5.00901 22.369 6.36101 22.562C7.68101 22.75 9.39801 22.75 11.579 22.75H12.424C14.604 22.75 16.322 22.75 17.641 22.562C18.993 22.369 20.067 21.961 20.837 21.033C21.607 20.105 21.809 18.976 21.75 17.611C21.692 16.28 21.375 14.591 20.973 12.448L20.953 12.338C20.668 10.819 20.441 9.611 20.143 8.672C19.833 7.702 19.423 6.932 18.715 6.345C18.008 5.758 17.175 5.495 16.165 5.371C16.0273 5.35406 15.8893 5.33972 15.751 5.328M8.02001 6.86C7.16501 6.965 6.64801 7.164 6.24401 7.5C5.84101 7.834 5.55001 8.305 5.28801 9.127C5.02101 9.967 4.81001 11.085 4.51401 12.664C4.09801 14.881 3.80301 16.464 3.75001 17.677C3.69801 18.867 3.89001 19.557 4.31901 20.076C4.74901 20.593 5.39201 20.908 6.57201 21.076C7.77201 21.248 9.38401 21.25 11.64 21.25H12.36C14.617 21.25 16.227 21.248 17.428 21.077C18.608 20.908 19.251 20.593 19.681 20.076C20.111 19.558 20.302 18.868 20.251 17.676C20.197 16.465 19.902 14.881 19.486 12.664C19.19 11.084 18.98 9.968 18.712 9.127C18.45 8.305 18.16 7.834 17.756 7.499C17.352 7.164 16.836 6.965 15.98 6.859C15.104 6.751 13.967 6.75 12.36 6.75H11.64C10.033 6.75 8.89601 6.751 8.02001 6.86Z" fill="#6E6E6E"/>
                     </svg>
+
                     @php
-                        $cartCount = 0;
-                        if(auth()->check()) {
-                            $cartCount = \Illuminate\Support\Facades\DB::table('carts')
+                        // Logged in → DB se count
+                        // Guest → 0 rakho, JS LocalStorage se update karega
+                        $cartCount = auth()->check()
+                            ? \Illuminate\Support\Facades\DB::table('carts')
                                 ->join('hoardings', 'hoardings.id', '=', 'carts.hoarding_id')
                                 ->where('carts.user_id', auth()->id())
                                 ->whereNull('hoardings.deleted_at')
-                                ->count();
-                        }
+                                ->count()
+                            : 0;
                     @endphp
-                    @if($cartCount > 0)
-                        <span class="absolute -top-1.5 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                            {{ $cartCount }}
-                        </span>
-                    @endif
+
+                    {{-- Logged in ke liye DB count, guest ke liye JS update karega --}}
+                    <span class="absolute -top-1.5 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 items-center justify-center cart-count {{ $cartCount > 0 ? 'flex' : 'hidden' }}">
+                        {{ $cartCount }}
+                    </span>
                 </a>
 
             </div>
@@ -287,24 +290,44 @@ document.addEventListener('DOMContentLoaded', function () {
 <script>
 function openWishlist(event) {
     event.preventDefault();
-    const link = event.currentTarget;
-    const isAuth = link.dataset.auth === '1';
+    const isAuth = document.querySelector('[data-auth]')?.dataset?.auth === '1';
 
     if (!isAuth) {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'warning',
-            title: 'Please login to view your wishlist',
-            showConfirmButton: false,
-            timer: 2500
-        });
-        setTimeout(() => {
-            window.location.href = "{{ route('login') }}";
-        }, 2000);
+        // Guest — LocalStorage IDs URL mein bhejo
+        const saved = JSON.parse(localStorage.getItem('guest_wishlist') || '[]');
+        if (saved.length === 0) {
+            Swal.fire({
+                toast: true, position: 'top-end', icon: 'info',
+                title: 'Wishlist empty hai', showConfirmButton: false, timer: 1800
+            });
+            return;
+        }
+        window.location.href = "{{ route('shortlist') }}?ids=" + saved.join(',');
         return;
     }
+
     window.location.href = "{{ route('shortlist') }}";
+}
+</script>
+<script>
+function openCart(event) {
+    event.preventDefault();
+    const isAuth = event.currentTarget.dataset.auth === '1';
+
+    if (!isAuth) {
+        const saved = JSON.parse(localStorage.getItem('guest_cart') || '[]');
+        if (saved.length === 0) {
+            Swal.fire({
+                toast: true, position: 'top-end', icon: 'info',
+                title: 'Cart empty hai', showConfirmButton: false, timer: 1800
+            });
+            return;
+        }
+        window.location.href = "{{ route('cart.index') }}?ids=" + saved.join(',');
+        return;
+    }
+
+    window.location.href = "{{ route('cart.index') }}";
 }
 </script>
 @endpush

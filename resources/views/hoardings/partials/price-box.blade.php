@@ -169,7 +169,7 @@
 
                 <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ $hoarding->vendor->email }}"
                     target="_blank"
-                    class="flex items-center gap-2 px-5 py-1 rounded-xl bg-orange-200 text-orange-800 font-medium hover:bg-orange-300 transition">
+                    class="flex items-center gap-2 px-5 py-1 rounded-xl bg-orange-200 text-orange-800 font-medium hover:bg-orange-300 transition w-full max-w-xs justify-center"
                         <svg width="17" height="14" viewBox="0 0 17 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M0.75 0.75V0.125C0.58424 0.125 0.425268 0.190848 0.308058 0.308058C0.190848 0.425268 0.125 0.58424 0.125 0.75H0.75ZM15.75 0.75H16.375C16.375 0.58424 16.3092 0.425268 16.1919 0.308058C16.0747 0.190848 15.9158 0.125 15.75 0.125V0.75ZM0.75 1.375H15.75V0.125H0.75V1.375ZM15.125 0.75V10.75H16.375V0.75H15.125ZM14.0833 11.7917H2.41667V13.0417H14.0833V11.7917ZM1.375 10.75V0.75H0.125V10.75H1.375ZM2.41667 11.7917C1.84167 11.7917 1.375 11.325 1.375 10.75H0.125C0.125 11.3578 0.366443 11.9407 0.796214 12.3705C1.22598 12.8002 1.80888 13.0417 2.41667 13.0417V11.7917ZM15.125 10.75C15.125 11.325 14.6583 11.7917 14.0833 11.7917V13.0417C14.6911 13.0417 15.274 12.8002 15.7038 12.3705C16.1336 11.9407 16.375 11.3578 16.375 10.75H15.125Z" fill="#AD4800"/>
                         <path d="M0.75 0.75L8.25 8.25L15.75 0.75" stroke="#AD4800" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -178,7 +178,7 @@
                     </a>
 
                      <a href="tel:{{ $hoarding->vendor->vendorProfile->phone ?? $hoarding->vendor->phone }}"
-                           class="flex items-center gap-2 px-5 py-1 rounded-xl bg-blue-300 text-blue-900 font-medium">
+                           class="flex items-center gap-2 px-5 py-1 rounded-xl bg-blue-300 text-blue-900 font-medium w-full max-w-xs justify-center"
 
                     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M14.9987 10.3833L10.607 9.875L8.50703 11.975C6.14153 10.7716 4.21875 8.84884 3.01536 6.48333L5.1237 4.375L4.61536 0H0.0236981C-0.459635 8.48333 6.51536 15.4583 14.9987 14.975V10.3833Z" fill="#0089E1"/>
@@ -195,7 +195,7 @@
 
                     View all hoardings
 
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M9 18l6-6-6-6"/>
                     </svg>
 

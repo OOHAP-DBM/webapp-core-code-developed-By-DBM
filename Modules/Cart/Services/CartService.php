@@ -229,7 +229,7 @@ class CartService
             'message' => $message,
         ], $extra);
     }
-    private function buildCartItem($item)
+    public function buildCartItem($item)
     {
         $item->image_url = asset('assets/images/placeholder.jpg');
 

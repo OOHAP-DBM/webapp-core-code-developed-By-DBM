@@ -15,7 +15,7 @@
 <div class="bg-white border border-gray-200 rounded-xl">
 
     <div class="p-4">
-        <div class="flex gap-4" onclick="window.location.href='{{ route('hoardings.show', $item->slug ?? $item->hoarding_id) }}'">
+        <div class="flex gap-4" onclick="if(!event.target.closest('.cart-btn') && !event.target.closest('.text-blue-500')) window.location.href='{{ route('hoardings.show', $item->slug ?? $item->hoarding_id) }}';">
 
                 {{-- IMAGE --}}
                 <div class="w-28 h-25 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
@@ -64,11 +64,15 @@
 
                                 {{-- ACTION LINKS --}}
                                 <button
+                                    id="cart-btn-{{ $item->hoarding_id }}"
                                     type="button"
-                                    class="text-red-500 border border-none hover:underline cart-btn remove"
+                                    class="cart-btn text-red-500 border border-none hover:underline remove cursor-pointer"
+                                    data-id="{{ $item->hoarding_id }}"
                                     data-in-cart="1"
+                                    data-auth="{{ auth()->check() ? '1' : '0' }}"
                                     onclick="toggleCart(this, {{ $item->hoarding_id }})"
-                                    >
+                                >
+                                    Remove
                                 </button>
 
                                 <div class="relative inline-block">

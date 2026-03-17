@@ -78,6 +78,24 @@ document.addEventListener('DOMContentLoaded', function () {
     const enquireBtn = document.getElementById('enquireNowBtn');
     if (enquireBtn) {
         enquireBtn.addEventListener('click', function () {
+            var isAuth = false;
+            try {
+                isAuth = document.querySelector('[data-auth]')?.dataset?.auth === '1';
+            } catch (e) {}
+            if (!isAuth) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'info',
+                    title: 'Login Required',
+                    showConfirmButton: false,
+                    timer: 1800
+                });
+                setTimeout(function() {
+                    window.location.href = '/login?intended=' + encodeURIComponent(window.location.href);
+                }, 1200);
+                return;
+            }
             openCartEnquiryModal();
             loadEnquiryHoardings();
         });
@@ -269,8 +287,8 @@ function submitEnquiryFromCart() {
         _token: '{{ csrf_token() }}',
         duration_type: 'months',
         preferred_start_date: '{{ now()->toDateString() }}',
-        customer_name: '{{ auth()->user()->name }}',
-        customer_mobile: '{{ auth()->user()->phone ?? auth()->user()->mobile }}',
+        customer_name: '{{ auth()->check() ? auth()->user()->name : "" }}',
+        customer_mobile: '{{ auth()->check() ? (auth()->user()->phone ?? auth()->user()->mobile) : "" }}',
         hoarding_id: [], package_id: [], package_label: [],
         amount: [], campaign_start_date: [], min_booking_duration: [], months: []
     };
