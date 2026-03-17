@@ -8,49 +8,49 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Wishlist;
 
 class CartService
- 
+
 {
     /* =====================================================
      | ADD TO CART
      ===================================================== */
-   public function add(
-    int $hoardingId,
-    ?int $packageId = null,
-    ?string $packageSource = null
-): array {
+    public function add(
+        int $hoardingId,
+        ?int $packageId = null,
+        ?string $packageSource = null
+    ): array {
 
-    if (!Auth::check()) {
-        return $this->response('login_required', false, 'Please login to add item to cart');
+        if (!Auth::check()) {
+            return $this->response('login_required', false, 'Please login to add item to cart');
+        }
+
+        $hoarding = Hoarding::where('status', 'active')
+            ->whereNull('deleted_at')
+            ->findOrFail($hoardingId);
+
+        // 🔥 FORCE ADD (idempotent behaviour optional)
+        DB::table('carts')->updateOrInsert(
+            [
+                'user_id'     => Auth::id(),
+                'hoarding_id' => $hoardingId,
+            ],
+            [
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+        DB::table('wishlists')
+            ->where('user_id', Auth::id())
+            ->where('hoarding_id', $hoardingId)
+            ->delete();
+        $priceData = $this->resolveFinalPrice($hoarding, $packageId, $packageSource);
+
+        return $this->response(
+            'added',
+            true,
+            'Added to cart',
+            ['final_price' => $priceData['final_price']]
+        );
     }
-
-    $hoarding = Hoarding::where('status', 'active')
-        ->whereNull('deleted_at')
-        ->findOrFail($hoardingId);
-
-    // 🔥 FORCE ADD (idempotent behaviour optional)
-    DB::table('carts')->updateOrInsert(
-        [
-            'user_id'     => Auth::id(),
-            'hoarding_id' => $hoardingId,
-        ],
-        [
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]
-    );
-    DB::table('wishlists')
-        ->where('user_id', Auth::id())
-        ->where('hoarding_id', $hoardingId)
-        ->delete();
-    $priceData = $this->resolveFinalPrice($hoarding, $packageId, $packageSource);
-
-    return $this->response(
-        'added',
-        true,
-        'Added to cart',
-        ['final_price' => $priceData['final_price']]
-    );
-}
 
 
     /* =====================================================
@@ -78,7 +78,7 @@ class CartService
         return $this->resolveOOHPrice($hoarding, $packageId, $source);
     }
 
-    private function resolveOOHPrice(Hoarding $hoarding, ?int $packageId, ?string $source): array 
+    private function resolveOOHPrice(Hoarding $hoarding, ?int $packageId, ?string $source): array
     {
         if (is_null($hoarding->base_monthly_price)) {
             throw new \Exception('Base monthly price not set for hoarding');
@@ -143,7 +143,7 @@ class CartService
      ===================================================== */
     public function getCartForUI()
     {
-        
+
         $items = DB::table('carts')
             ->join('hoardings', 'hoardings.id', '=', 'carts.hoarding_id')
             ->where('carts.user_id', Auth::id())
@@ -151,9 +151,10 @@ class CartService
             ->where('hoardings.status', Hoarding::STATUS_ACTIVE)
             ->select(
                 'carts.id as cart_id',
-                'carts.package_id', 
+                'carts.package_id',
                 'hoardings.id as hoarding_id',
                 'hoardings.title',
+                'hoardings.slug',
                 'hoardings.city',
                 'hoardings.state',
                 'hoardings.locality',
@@ -165,7 +166,7 @@ class CartService
             )
             ->get();
 
-        return $items->map(fn ($item) => $this->buildCartItem($item));
+        return $items->map(fn($item) => $this->buildCartItem($item));
     }
 
 
@@ -186,7 +187,7 @@ class CartService
             $item->packages = DB::table('hoarding_packages')
                 ->where('hoarding_id', $item->hoarding_id)
                 ->where('is_active', 1)
-                ->get(['id', 'package_name', 'discount_percent', 'min_booking_duration', 'duration_unit', 'services_included', ]);
+                ->get(['id', 'package_name', 'discount_percent', 'min_booking_duration', 'duration_unit', 'services_included',]);
         }
 
         if ($item->hoarding_type === 'dooh') {
@@ -197,10 +198,10 @@ class CartService
 
             $item->packages = $screen
                 ? DB::table('dooh_packages')
-                    ->where('dooh_screen_id', $screen->id)
-                    ->where('is_active', 1)
-                    ->whereNull('deleted_at')
-                    ->get(['id', 'package_name', 'discount_percent', 'min_booking_duration', 'duration_unit', 'services_included', ])
+                ->where('dooh_screen_id', $screen->id)
+                ->where('is_active', 1)
+                ->whereNull('deleted_at')
+                ->get(['id', 'package_name', 'discount_percent', 'min_booking_duration', 'duration_unit', 'services_included',])
                 : collect();
         }
 
@@ -230,7 +231,7 @@ class CartService
     }
     private function buildCartItem($item)
     {
-         $item->image_url = asset('assets/images/placeholder.jpg');
+        $item->image_url = asset('assets/images/placeholder.jpg');
 
         // ---------- OOH IMAGE ----------
         if ($item->hoarding_type === 'ooh') {
@@ -295,9 +296,9 @@ class CartService
                     $screen->width . '×' .
                     $screen->height . ' ' .
                     ($screen->measurement_unit ?? '');
-            }else{
+            } else {
                 $item->size = $screen->resolution_width . '×' .
-                $screen->resolution_height . ' px';
+                    $screen->resolution_height . ' px';
             }
         }
 
@@ -359,7 +360,7 @@ class CartService
                 ]
                 : null;
         }
-        
+
 
         /* =====================================================
         PRICE LOGIC (DOOH)
@@ -421,5 +422,4 @@ class CartService
         }
         return round($baseMonthlyPrice, 2);
     }
-
 }

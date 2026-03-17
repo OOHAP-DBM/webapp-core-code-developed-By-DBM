@@ -8,6 +8,9 @@ use Modules\Hoardings\Repositories\Contracts\HoardingRepositoryInterface;
 use App\Repositories\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Modules\POS\Models\POSBooking;
+use Modules\POS\Models\POSBookingHoarding;
+use App\Models\Booking;
 
 class HoardingRepository extends BaseRepository implements HoardingRepositoryInterface
 {
@@ -119,11 +122,13 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
 
         // Sorting
         $sortBy = $filters['sort_by'] ?? 'created_at';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
-        
+       $sortOrder = strtolower($filters['sort_order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
         // Map 'price' to monthly_price with fallback to base_monthly_price
         if ($sortBy === 'price') {
             $sortBy = 'base_monthly_price';
+        }
+          if ($sortBy === 'rating') {
+            $query->withAvg('ratings as average_rating', 'rating');
         }
         
         // Don't add additional orderBy if location-based sorting is already applied
@@ -131,6 +136,8 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
             // For price sorting, use COALESCE to handle null monthly_price
             if ($sortBy === 'base_monthly_price') {
                 $query->orderByRaw("COALESCE(monthly_price, base_monthly_price) {$sortOrder}");
+            } elseif ($sortBy === 'rating') {
+                $query->orderByRaw("COALESCE(average_rating, 0) {$sortOrder}");
             } else {
                 $query->orderBy($sortBy, $sortOrder);
             }
@@ -139,6 +146,58 @@ class HoardingRepository extends BaseRepository implements HoardingRepositoryInt
         return $query->paginate($perPage);
     }
 
+
+    public function getUnsoldActiveCountByVendor(int $vendorId): int
+    {
+        $activeHoardingIds = $this->model->query()
+            ->where('vendor_id', $vendorId)
+            ->where('status', Hoarding::STATUS_ACTIVE)
+            ->pluck('id');
+
+        if ($activeHoardingIds->isEmpty()) {
+            return 0;
+        }
+
+        $soldOnlineHoardingIds = Booking::query()
+            ->where('vendor_id', $vendorId)
+            ->where('status', Booking::STATUS_CONFIRMED)
+            ->whereNotNull('hoarding_id')
+            ->distinct()
+            ->pluck('hoarding_id');
+
+        $soldPosDirectHoardingIds = POSBooking::query()
+            ->where('vendor_id', $vendorId)
+            ->whereIn('status', [
+                POSBooking::STATUS_CONFIRMED,
+                POSBooking::STATUS_ACTIVE,
+                POSBooking::STATUS_COMPLETED,
+            ])
+            ->whereNotNull('hoarding_id')
+            ->distinct()
+            ->pluck('hoarding_id');
+
+        $soldPosLinkedHoardingIds = POSBookingHoarding::query()
+            ->whereHas('posBooking', function ($query) use ($vendorId) {
+                $query->where('vendor_id', $vendorId)
+                    ->whereIn('status', [
+                        POSBooking::STATUS_CONFIRMED,
+                        POSBooking::STATUS_ACTIVE,
+                        POSBooking::STATUS_COMPLETED,
+                    ]);
+            })
+            ->whereNotNull('hoarding_id')
+            ->distinct()
+            ->pluck('hoarding_id');
+
+        $soldHoardingIds = $soldOnlineHoardingIds
+            ->merge($soldPosDirectHoardingIds)
+            ->merge($soldPosLinkedHoardingIds)
+            ->unique();
+
+        $soldActiveHoardingsCount = $activeHoardingIds->intersect($soldHoardingIds)->count();
+
+        return max(0, $activeHoardingIds->count() - $soldActiveHoardingsCount);
+    }
     /**
      * Find a hoarding by ID.
      *

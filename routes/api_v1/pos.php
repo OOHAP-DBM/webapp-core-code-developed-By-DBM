@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\POS\Controllers\Api\POSBookingController;
+use Modules\POS\Controllers\Api\POSCustomerController;
+use Modules\POS\Controllers\Api\CustomerBookingController;
 
 /**
  * POS Booking API Routes (v1)
@@ -10,7 +12,9 @@ use Modules\POS\Controllers\Api\POSBookingController;
  * Vendor POS booking management
  */
 
-Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:vendor|admin|superadmin'])
+    ->prefix('/vendor')
+    ->group(function () {
     // Dashboard & Statistics
     Route::get('/dashboard', [POSBookingController::class, 'dashboard']);
     
@@ -69,4 +73,17 @@ Route::middleware(['auth:sanctum', 'role:vendor'])->group(function () {
     
     // Booking Actions
     Route::post('/bookings/{id}/cancel', [POSBookingController::class, 'cancel']);
+
+    // POS Customers Management
+    Route::get('customers/search', [POSCustomerController::class, 'search']);
+    Route::get('customers', [POSCustomerController::class, 'index']);
+    Route::post('customers', [POSCustomerController::class, 'store']);
+    Route::get('customers/{id}', [POSCustomerController::class, 'show']);
+});
+
+Route::middleware('auth:sanctum')
+    ->prefix('customer/')
+    ->group(function () {
+        Route::get('/', [CustomerBookingController::class, 'index']);
+        Route::get('{bookingId}', [CustomerBookingController::class, 'show']);
 });

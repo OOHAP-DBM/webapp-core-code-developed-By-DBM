@@ -174,7 +174,9 @@ class VendorPosController extends Controller
     public function create(Request $request)
     {
         // Do not use or set any vendor context/session for create POS booking
-        return view('vendor.pos.create');
+        return view('vendor.pos.create', [
+            'posGstRate' => $this->posBookingService->getGSTRate(),
+        ]);
     }
 
     /**
@@ -211,11 +213,41 @@ class VendorPosController extends Controller
             ->values()
             ->toArray();
 
-        $users = User::whereIn('id', $allUserIds)
+        $search = trim($request->input('search', ''));
+        $status = (array) $request->input('status', []);
+        $usersQuery = User::whereIn('id', $allUserIds)
             ->with(['posProfile' => function ($query) use ($vendorId) {
                 $query->where('vendor_id', $vendorId);
-            }])
-            ->get();
+            }]);
+        if ($search !== '') {
+            $usersQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                  ->orWhere('email', 'like', "%$search%")
+                  ->orWhere('phone', 'like', "%$search%")
+                  ->orWhereHas('posProfile', function($q2) use ($search) {
+                      $q2->where('business_name', 'like', "%$search%")
+                          ;
+                  });
+            });
+        }
+            if (in_array('active', $status) && in_array('inactive', $status)) {
+                // No filter, show all
+            } else if (in_array('active', $status)) {
+                $usersQuery->whereIn('id', function($query) use ($vendorId) {
+                    return $query->select('customer_id')
+                        ->from('pos_bookings')
+                        ->where('vendor_id', $vendorId)
+                        ->whereNotNull('customer_id');
+                });
+            } else if (in_array('inactive', $status)) {
+                $usersQuery->whereNotIn('id', function($query) use ($vendorId) {
+                    return $query->select('customer_id')
+                        ->from('pos_bookings')
+                        ->where('vendor_id', $vendorId)
+                        ->whereNotNull('customer_id');
+                });
+            }
+        $users = $usersQuery->get();
 
         $customers = $users->map(function ($user) use ($vendorId) {
             $bookings = POSBooking::where('vendor_id', $vendorId)
@@ -258,6 +290,10 @@ class VendorPosController extends Controller
      */
     public function show($id)
     {
+        \Log::info("Vendor POS show booking details", [
+            'booking_id' => $id,
+            'user_id' => Auth::id(),
+        ]);
         $booking = POSBooking::findOrFail($id);
         \Log::info("this is" . $booking);
 
@@ -952,6 +988,8 @@ class VendorPosController extends Controller
     //         //     'payment_reference' => 'nullable|string|max:255',
     //         //     'payment_notes' => 'nullable|string|max:500',
     //         //     'notes' => 'nullable|string|max:1000',
+    //         //     'hold_minutes'                          => 'nullable|integer|min:0',
+    //         //     'payment_details_type'                  => 'nullable|string|in:bank_transfer,online',
     //         // ]);
     //          $validated = $request->validate([
     //             'hoarding_ids'               => 'nullable',
@@ -977,6 +1015,8 @@ class VendorPosController extends Controller
     //             'payment_reference'          => 'nullable|string|max:255',
     //             'payment_notes'              => 'nullable|string|max:500',
     //             'notes'                      => 'nullable|string|max:1000',
+    //             'hold_minutes'                          => 'nullable|integer|min:0',
+    //             'payment_details_type'                  => 'nullable|string|in:bank_transfer,online',
     //         ]);
 
     //         $vendorId = Auth::id();
@@ -1091,9 +1131,9 @@ class VendorPosController extends Controller
     //             'tax_amount' => $taxAmount,
     //             'total_amount' => $totalAmount,
     //             'payment_mode' => $validated['payment_mode'],
-    //             'payment_reference' => $validated['payment_reference'],
-    //             'payment_notes' => $validated['payment_notes'],
-    //             'notes' => $validated['notes']??null,
+    //             'payment_reference' => $validated['payment_reference'] ?? null,
+    //             'payment_notes' => $validated['payment_notes']     ?? null,
+    //             'notes' => $validated['notes']             ?? null,
     //             'status' => 'draft',
     //             'payment_status' => 'unpaid',
     //         ];
@@ -1252,7 +1292,7 @@ class VendorPosController extends Controller
                 'milestone_data.*.amount_type' => 'required_if:is_milestone,true|in:percentage,fixed',
                 'milestone_data.*.amount'      => 'required_if:is_milestone,true|numeric|min:0.01',
                 'milestone_data.*.due_date'    => 'nullable|date',
-                'milestone_data.*.vendor_notes'=> 'nullable|string|max:500',
+                'milestone_data.*.vendor_notes' => 'nullable|string|max:500',
             ]);
 
             // ── Resolve hoarding IDs ─────────────────────────────────────
@@ -1319,8 +1359,8 @@ class VendorPosController extends Controller
                 ], 422);
             }
 
-             $isMilestone = (bool) ($validated['is_milestone'] ?? false);
-             $milestoneData = $isMilestone ? ($validated['milestone_data'] ?? []) : [];
+            $isMilestone = (bool) ($validated['is_milestone'] ?? false);
+            $milestoneData = $isMilestone ? ($validated['milestone_data'] ?? []) : [];
 
             // ── Pricing ──────────────────────────────────────────────────
             $gstRate            = $this->posBookingService->getGSTRate();
@@ -1348,7 +1388,8 @@ class VendorPosController extends Controller
                 'booking_type'     => $validated['booking_type']     ?? 'ooh',
                 'start_date'       => $validated['start_date'],
                 'end_date'         => $validated['end_date'],
-                'duration_days'    => Carbon::parse($validated['end_date'])->diffInDays(Carbon::parse($validated['start_date'])) + 1,
+                'duration_days'    => Carbon::parse($validated['end_date'])
+                    ->diffInDays(Carbon::parse($validated['start_date'])) + 1,
                 'base_amount'      => $baseAmount,
                 'discount_amount'  => $discountAmount,
                 'tax_amount'       => round($taxAmount, 2),
@@ -1362,11 +1403,11 @@ class VendorPosController extends Controller
                 'hold_minutes'     => $holdMinutes,
                 'hold_expiry_at'   => $holdExpiryAt,
                 'is_milestone'     => $isMilestone,
-               'milestone_data'   => $milestoneData,
+                'milestone_data'   => $milestoneData,
             ];
 
             $booking = $this->posBookingService->createBooking($bookingData);
-            
+
 
             // ── Reload with hoardings for invoice ─────────────────────────
             $booking->load('bookingHoardings.hoarding');
@@ -1551,6 +1592,33 @@ class VendorPosController extends Controller
             ? "⏳ *Payment Due Within:* " . ($holdMins >= 1440 ? round($holdMins / 1440) . ' day(s)' : ($holdMins >= 60 ? round($holdMins / 60) . ' hour(s)' : "{$holdMins} minutes"))
             : "ℹ️ No payment time limit.";
 
+        $milestones = \App\Models\QuotationMilestone::where('pos_booking_id', $booking->id)
+            ->orderBy('sequence_no')
+            ->get();
+
+        $milestoneBlock = '';
+        if ($milestones->isNotEmpty()) {
+            $milestoneLines = $milestones->values()->map(function ($ms, $idx) {
+                $seq = $ms->sequence_no ?? ($idx + 1);
+                $title = $ms->title ?? ('Milestone ' . $seq);
+                $amount = number_format((float) ($ms->calculated_amount ?? $ms->amount ?? 0), 2);
+                $dueDate = $ms->due_date ? \Carbon\Carbon::parse($ms->due_date)->format('d M Y') : 'N/A';
+
+                return "{$seq}. {$title} - ₹{$amount} (Due: {$dueDate})";
+            })->implode("\n");
+
+            $milestoneBlock = "\n🧩 *Milestones:*\n{$milestoneLines}\n";
+        }
+
+        $paymentBlock = '';
+        $paymentDetail = null;
+        if (in_array($booking->payment_mode, ['bank_transfer', 'cheque', 'online', 'upi'], true)) {
+            $detailType = in_array($booking->payment_mode, ['bank_transfer', 'cheque'], true) ? 'bank' : 'upi';
+            $paymentDetail = \Modules\POS\Models\VendorPaymentDetail::where('vendor_id', $booking->vendor_id)
+                ->where('type', $detailType)
+                ->first();
+        }
+
         // Build hoarding list with clickable links
         $hoardingLines = $booking->bookingHoardings->map(function ($bh) {
             $h = $bh->hoarding;
@@ -1569,7 +1637,7 @@ class VendorPosController extends Controller
             return $hoardingLink . " ({$bh->start_date} → {$bh->end_date})";
         })->implode("\n\n");
 
-        if ($booking->payment_mode === 'bank_transfer' && $paymentDetail) {
+        if (in_array($booking->payment_mode, ['bank_transfer', 'cheque'], true) && $paymentDetail) {
             $paymentBlock = "\n🏦 *Bank Transfer Details:*\n"
                 . "Bank: {$paymentDetail->bank_name}\n"
                 . "A/C No: {$paymentDetail->account_number}\n"
@@ -1592,6 +1660,7 @@ class VendorPosController extends Controller
             . "Invoice: #{$booking->invoice_number}\n"
             . "Total Amount: ₹{$totalAmount}\n\n"
             . "🏛️ *Hoardings Booked:*\n{$hoardingLines}\n\n"
+            . $milestoneBlock
             . "{$holdText}\n"
             . $paymentBlock
             . "\n\nThank you for your business!";

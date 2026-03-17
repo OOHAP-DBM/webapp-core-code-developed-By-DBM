@@ -16,7 +16,7 @@
         autoplay muted loop playsinline preload="metadata"
         style="width:100%; height:100%; object-fit:contain;"
     >
-        <source src="{{ $url1500 }}" type="{{ $mimeType }}">
+        <source src="{{ $url600 }}" type="{{ $mimeType }}">
     </video>
 @else
     <img
@@ -27,10 +27,15 @@
             {{ $url1000 }} 1000w,
             {{ $url1500 }} 1500w
         "
-        sizes="(max-width: 768px) 300px, (max-width: 1200px) 600px, 1000px"
+        sizes="
+            (max-width: 480px) 300px,
+            (max-width: 900px) 360px,
+            600px
+        "
         alt="{{ $alt ?? '' }}"
         class="{{ $classes }}"
         loading="lazy"
+        decoding="async"
         style="width:100%; height:100%; object-fit:cover;"
     >
 @endif

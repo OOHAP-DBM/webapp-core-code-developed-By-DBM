@@ -4,9 +4,13 @@ namespace Modules\POS\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use App\Models\User;
 use App\Models\Hoarding;
+use App\Models\QuotationMilestone;
+use Modules\POS\Models\POSBookingReminder;
 
 
 use \App\Traits\Auditable;
@@ -44,7 +48,7 @@ class POSBooking extends Model
         'payment_mode',
         'payment_status',
         'paid_amount',
-         'payment_received_at',
+        'payment_received_at',
         'payment_reference',
         'payment_notes',
         'hold_expiry_at',
@@ -80,6 +84,7 @@ class POSBooking extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'last_reminder_at' => 'datetime',
         'credit_note_date' => 'date',
         'credit_note_due_date' => 'date',
         'invoice_date' => 'date',
@@ -150,7 +155,7 @@ class POSBooking extends Model
         return $this->belongsTo(Hoarding::class);
     }
 
-        /**
+    /**
      * Get all hoardings linked to this booking
      */
     public function hoardings()
@@ -170,6 +175,21 @@ class POSBooking extends Model
     public function bookingHoardings()
     {
         return $this->hasMany(POSBookingHoarding::class, 'pos_booking_id');
+    }
+
+    public function scheduledReminders(): HasMany
+    {
+        return $this->hasMany(POSBookingReminder::class, 'pos_booking_id')
+            ->orderBy('scheduled_at');
+    }
+
+    /**
+     * Get all milestones linked to this POS booking.
+     */
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(QuotationMilestone::class, 'pos_booking_id')
+            ->orderBy('sequence_no');
     }
 
 
@@ -253,7 +273,7 @@ class POSBooking extends Model
         $prefix = 'POS-INV-';
         $date = now()->format('Ymd');
         $random = strtoupper(substr(md5(uniqid()), 0, 6));
-        
+
         return $prefix . $date . '-' . $random;
     }
 
@@ -265,7 +285,7 @@ class POSBooking extends Model
         $prefix = 'CN-';
         $date = now()->format('Ymd');
         $random = strtoupper(substr(md5(uniqid()), 0, 6));
-        
+
         return $prefix . $date . '-' . $random;
     }
 
@@ -301,10 +321,10 @@ class POSBooking extends Model
         return $query->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_ACTIVE, self::STATUS_PAID]);
     }
 
-//     public function scopeActive($query)
-// {
-//     return $query->whereIn('status', ['confirmed', 'partial_paid', 'paid']);
-// }
+    //     public function scopeActive($query)
+    // {
+    //     return $query->whereIn('status', ['confirmed', 'partial_paid', 'paid']);
+    // }
 
     public function scopeOverdue($query)
     {
@@ -325,7 +345,7 @@ class POSBooking extends Model
             ->where('reminder_count', '<', 3)
             ->where(function ($q) {
                 $q->whereNull('last_reminder_at')
-                ->orWhere('last_reminder_at', '<', now()->subDay());
+                    ->orWhere('last_reminder_at', '<', now()->subDay());
             })
             ->whereNull('cancelled_at')
             ->select('id')
@@ -401,6 +421,4 @@ class POSBooking extends Model
         $this->status = $newStatus;
         return $this->save();
     }
-
-    
 }

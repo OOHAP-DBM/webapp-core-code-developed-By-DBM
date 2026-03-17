@@ -187,7 +187,7 @@
     </div>
 
 
-    {{-- EXISTING CODE START (UNCHANGED) --}}
+    {{-- EXISTING CODE START (UNCHANGED)
     <div class="border-gray-300">
         <h2>Business Name: {{ $hoarding->vendor->vendorProfile->company_name ?? $hoarding->vendor->company_name ?? 'N/A' }}</h2>
         <a href="{{ route('vendors.show', $hoarding->vendor->id) }}">
@@ -198,7 +198,7 @@
         <p class="text-xs text-gray-500 mb-4">
             {{ $hoarding->created_at->format('d M, Y') }}
         </p>
-    </div>
+    </div> --}}
 
 
     {{-- BRAND LOGOS --}}

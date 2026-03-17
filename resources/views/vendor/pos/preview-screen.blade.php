@@ -44,7 +44,7 @@
         </div>
 
         {{-- ── POS Checkout ── --}}
-        <div class="w-full lg:w-96">
+        <div class="w-full lg:w-[35%]">
             <div class="bg-white rounded-md shadow-xl border border-gray-200 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-6 space-y-5">
                 <h3 class="font-bold text-gray-800 text-lg">POS Checkout</h3>
 

@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Services\GracePeriodService;
 use App\Services\Whatsapp\TwilioWhatsappService;
 use App\Models\Hoarding;
-use App\Mail\PosPaymentReminderMail;
-use App\Notifications\PosPaymentReminderInAppNotification;
+use Carbon\Carbon;
 use Modules\POS\Services\POSBookingService;
+use Modules\POS\Services\POSReminderService;
 use Modules\POS\Models\POSBooking;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -16,18 +16,27 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 use App\Models\User;
 
+
+ /**
+  * @OA\Tag(
+  *     name="POS",
+  *     description="POS booking and payment management APIs"
+  * )
+  */
 class POSBookingController extends Controller
 {
     protected POSBookingService $posBookingService;
     protected GracePeriodService $gracePeriodService;
+    protected POSReminderService $posReminderService;
 
-    public function __construct(POSBookingService $posBookingService, GracePeriodService $gracePeriodService)
+    public function __construct(POSBookingService $posBookingService, GracePeriodService $gracePeriodService, POSReminderService $posReminderService)
     {
         $this->posBookingService = $posBookingService;
         $this->gracePeriodService = $gracePeriodService;
+        $this->posReminderService = $posReminderService;
     }
 
     private function resolveEffectiveVendorId(Request $request): int
@@ -149,8 +158,23 @@ class POSBookingController extends Controller
         ];
     }
 
-    /**
-     * Get vendor's POS bookings
+     /**
+     * @OA\Get(
+     *     path="/pos/vendor/bookings",
+     *     operationId="posListBookings",
+     *     tags={"POS Bookings"},
+     *     summary="List POS bookings",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="status", in="query", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="payment_status", in="query", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="booking_type", in="query", @OA\Schema(type="string", example="ooh")),
+     *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="per_page", in="query", @OA\Schema(type="integer", default=15)),
+     *     @OA\Parameter(name="booking_scope", in="query", @OA\Schema(type="string", enum={"overall","mine","vendor"})),
+     *     @OA\Parameter(name="vendor_id", in="query", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Bookings fetched"),
+     *     @OA\Response(response=500, description="Failed to fetch bookings")
+     * )
      */
     public function index(Request $request): JsonResponse
     {
@@ -205,8 +229,18 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Get POS dashboard statistics
+     /**
+     * @OA\Get(
+     *     path="/pos/vendor/dashboard",
+     *     operationId="posDashboard",
+     *     tags={"POS Bookings"},
+     *     summary="POS dashboard statistics",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="booking_scope", in="query", @OA\Schema(type="string", enum={"overall","mine","vendor"})),
+     *     @OA\Parameter(name="vendor_id", in="query", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Dashboard fetched"),
+     *     @OA\Response(response=500, description="Failed to fetch dashboard")
+     * )
      */
     public function dashboard(Request $request): JsonResponse
     {
@@ -238,13 +272,30 @@ class POSBookingController extends Controller
     }
 
     /**
-     * Get single booking details this is also being used in web view, so it has some additional data formatting for invoice URL and hoarding details
+     * @OA\Get(
+     *     path="/pos/vendor/bookings/{id}",
+     *     operationId="posShowBooking",
+     *     tags={"POS Bookings"},
+     *     summary="Get booking details",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="booking_scope", in="query", @OA\Schema(type="string", enum={"overall","mine","vendor"})),
+     *     @OA\Parameter(name="vendor_id", in="query", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Booking fetched"),
+     *     @OA\Response(response=404, description="Booking not found"),
+     *     @OA\Response(response=500, description="Failed to fetch booking")
+     * )
      */
     public function show(Request $request, int $id): JsonResponse
     {
+        \Log::info("Fetching POS booking details", [
+            'booking_id' => $id,
+            'user_id' => Auth::id(),
+            'request_data' => $request->all(),
+        ]);
         try {
             $context = $this->resolveAdminBookingScopeContext($request);
-            $query = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver']);
+            $query = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver', 'scheduledReminders', 'milestones']);
 
             if ($context['scope'] !== 'overall') {
                 $query->where('vendor_id', $context['vendor_id']);
@@ -287,6 +338,9 @@ class POSBookingController extends Controller
                 ];
             }
 
+            $bookingData['scheduled_reminders'] = $this->posReminderService->serializeScheduledReminders($booking);
+            $bookingData['remaining_reminder_slots'] = $this->posReminderService->getRemainingReminderSlots($booking);
+
             return response()->json([
                 'success' => true,
                 'data' => $bookingData,
@@ -316,7 +370,7 @@ class POSBookingController extends Controller
             $customerId = (int) ($customer->id ?? 0);
             $customerEmail = strtolower(trim((string) ($customer->email ?? '')));
 
-            $bookingQuery = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver'])
+            $bookingQuery = POSBooking::with(['hoardings', 'bookingHoardings.hoarding', 'customer', 'vendor', 'approver', 'milestones'])
                 ->where(function ($query) use ($customerId, $customerEmail) {
                     if ($customerId > 0) {
                         $query->where('customer_id', $customerId);
@@ -383,8 +437,39 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Create new POS booking
+   /**
+     * @OA\Post(
+     *     path="/pos/vendor/bookings",
+     *     operationId="posCreateBooking",
+     *     tags={"POS Bookings"},
+     *     summary="Create POS booking",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"customer_name","customer_phone","booking_type","start_date","end_date","base_amount","payment_mode"},
+     *             @OA\Property(property="customer_name", type="string"),
+     *             @OA\Property(property="customer_email", type="string", format="email", nullable=true),
+     *             @OA\Property(property="customer_phone", type="string"),
+     *             @OA\Property(property="customer_address", type="string", nullable=true),
+     *             @OA\Property(property="customer_gstin", type="string", nullable=true),
+     *             @OA\Property(property="booking_type", type="string", enum={"ooh","dooh"}),
+     *             @OA\Property(property="hoarding_id", type="integer", nullable=true),
+     *             @OA\Property(property="start_date", type="string", format="date"),
+     *             @OA\Property(property="end_date", type="string", format="date"),
+     *             @OA\Property(property="duration_type", type="string", enum={"days","weeks","months"}, nullable=true),
+     *             @OA\Property(property="base_amount", type="number", format="float"),
+     *             @OA\Property(property="discount_amount", type="number", format="float", nullable=true),
+     *             @OA\Property(property="payment_mode", type="string", enum={"cash","credit_note","online","bank_transfer","cheque"}),
+     *             @OA\Property(property="payment_reference", type="string", nullable=true),
+     *             @OA\Property(property="payment_notes", type="string", nullable=true),
+     *             @OA\Property(property="notes", type="string", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Booking created"),
+     *     @OA\Response(response=422, description="Validation failed"),
+     *     @OA\Response(response=500, description="Failed to create booking")
+     * )
      */
     public function store(Request $request): JsonResponse
     {
@@ -433,7 +518,34 @@ class POSBookingController extends Controller
     }
 
     /**
-     * Update POS booking
+     * @OA\Put(
+     *     path="/pos/vendor/bookings/{id}",
+     *     operationId="posUpdateBooking",
+     *     tags={"POS Bookings"},
+     *     summary="Update POS booking",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="customer_name", type="string"),
+     *             @OA\Property(property="customer_email", type="string", format="email", nullable=true),
+     *             @OA\Property(property="customer_phone", type="string"),
+     *             @OA\Property(property="customer_address", type="string", nullable=true),
+     *             @OA\Property(property="customer_gstin", type="string", nullable=true),
+     *             @OA\Property(property="start_date", type="string", format="date"),
+     *             @OA\Property(property="end_date", type="string", format="date"),
+     *             @OA\Property(property="base_amount", type="number", format="float"),
+     *             @OA\Property(property="discount_amount", type="number", format="float", nullable=true),
+     *             @OA\Property(property="payment_reference", type="string", nullable=true),
+     *             @OA\Property(property="payment_notes", type="string", nullable=true),
+     *             @OA\Property(property="notes", type="string", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Booking updated"),
+     *     @OA\Response(response=400, description="Invalid state"),
+     *     @OA\Response(response=500, description="Failed to update booking")
+     * )
      */
     public function update(Request $request, int $id): JsonResponse
     {
@@ -479,7 +591,24 @@ class POSBookingController extends Controller
     }
 
     /**
-     * Mark payment as cash collected
+     * @OA\Post(
+     *     path="/pos/vendor/bookings/{id}/mark-cash-collected",
+     *     operationId="posMarkCashCollected",
+     *     tags={"POS Bookings"},
+     *     summary="Mark booking cash collected",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"amount"},
+     *             @OA\Property(property="amount", type="number", format="float"),
+     *             @OA\Property(property="reference", type="string", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Payment marked"),
+     *     @OA\Response(response=500, description="Failed to mark payment")
+     * )
      */
     public function markCashCollected(Request $request, int $id): JsonResponse
     {
@@ -512,7 +641,21 @@ class POSBookingController extends Controller
     }
 
     /**
-     * Convert to credit note
+     * @OA\Post(
+     *     path="/pos/vendor/bookings/{id}/convert-to-credit-note",
+     *     operationId="posConvertToCreditNote",
+     *     tags={"POS Bookings"},
+     *     summary="Convert booking to credit note",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="validity_days", type="integer", minimum=1, maximum=365)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Converted to credit note"),
+     *     @OA\Response(response=500, description="Failed to convert")
+     * )
      */
     public function convertToCreditNote(Request $request, int $id): JsonResponse
     {
@@ -542,8 +685,21 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Cancel credit note
+   /**
+     * @OA\Post(
+     *     path="/pos/vendor/bookings/{id}/cancel-credit-note",
+     *     operationId="posCancelCreditNote",
+     *     tags={"POS Bookings"},
+     *     summary="Cancel credit note",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(required={"reason"}, @OA\Property(property="reason", type="string"))
+     *     ),
+     *     @OA\Response(response=200, description="Credit note cancelled"),
+     *     @OA\Response(response=500, description="Failed to cancel")
+     * )
      */
     public function cancelCreditNote(Request $request, int $id): JsonResponse
     {
@@ -573,8 +729,22 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Cancel booking
+     /**
+     * @OA\Post(
+     *     path="/pos/vendor/bookings/{id}/cancel",
+     *     operationId="posCancelBooking",
+     *     tags={"POS Bookings"},
+     *     summary="Cancel booking",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(required={"reason"}, @OA\Property(property="reason", type="string"))
+     *     ),
+     *     @OA\Response(response=200, description="Booking cancelled"),
+     *     @OA\Response(response=400, description="Already cancelled"),
+     *     @OA\Response(response=500, description="Failed to cancel booking")
+     * )
      */
     public function cancel(Request $request, int $id): JsonResponse
     {
@@ -611,8 +781,19 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Get available hoardings for POS booking
+   /**
+     * @OA\Get(
+     *     path="/pos/vendor/search-hoardings",
+     *     operationId="posSearchHoardings",
+     *     tags={"POS Bookings"},
+     *     summary="Search hoardings for POS booking",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="start_date", in="query", @OA\Schema(type="string", format="date")),
+     *     @OA\Parameter(name="end_date", in="query", @OA\Schema(type="string", format="date")),
+     *     @OA\Response(response=200, description="Hoardings fetched"),
+     *     @OA\Response(response=500, description="Failed to search hoardings")
+     * )
      */
     public function searchHoardings(Request $request): JsonResponse
     {
@@ -673,8 +854,25 @@ class POSBookingController extends Controller
         }
     }
 
-    /**
-     * Calculate pricing for booking
+     /**
+     * @OA\Post(
+     *     path="/pos/vendor/calculate-price",
+     *     operationId="posCalculatePrice",
+     *     tags={"POS Bookings"},
+     *     summary="Calculate booking price",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"base_amount"},
+     *             @OA\Property(property="base_amount", type="number", format="float", example=100000),
+     *             @OA\Property(property="discount_amount", type="number", format="float", nullable=true, example=5000)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Price calculated"),
+     *     @OA\Response(response=422, description="Validation failed"),
+     *     @OA\Response(response=500, description="Failed to calculate price")
+     * )
      */
     public function calculatePrice(Request $request): JsonResponse
     {
@@ -916,271 +1114,71 @@ class POSBookingController extends Controller
     }
 
     /**
-     * Send reminder for pending payment
-     * Limit to max 3 reminders per booking
+     * Send reminder for pending payment or save scheduled reminders.
      */
     public function sendReminder(Request $request, int $id): JsonResponse
     {
-
         try {
             $context = $this->resolveAdminBookingScopeContext($request);
             $bookingQuery = POSBooking::query();
             if ($context['scope'] !== 'overall') {
                 $bookingQuery->where('vendor_id', $context['vendor_id']);
             }
+
             $booking = $bookingQuery->findOrFail($id);
 
-            if (!in_array($booking->payment_status, [POSBooking::PAYMENT_STATUS_UNPAID, POSBooking::PAYMENT_STATUS_PARTIAL])
-                || $booking->status === POSBooking::STATUS_CANCELLED) {
+            if ($request->has('scheduled_reminders')) {
+                $validated = $request->validate([
+                    'scheduled_reminders' => ['required', 'array', 'min:1', 'max:3'],
+                    'scheduled_reminders.*.scheduled_at' => ['required', 'date'],
+                ]);
+
+                $result = $this->posReminderService->replacePendingSchedules(
+                    $booking,
+                    $validated['scheduled_reminders'],
+                    Auth::id()
+                );
+
                 return response()->json([
-                    'success' => false,
-                    'message' => 'Can only send reminders for unpaid or partial paid bookings that are not cancelled',
-                ], 422);
-            }
-
-            if ($booking->reminder_count >= 3) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Maximum reminders already sent (3 limit)',
-                ], 422);
-            }
-
-            // Rate limit: at least 12 hours between reminders
-            if ($booking->last_reminder_at && now()->diffInHours($booking->last_reminder_at) < 12) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please wait before sending another reminder',
-                ], 429);
-            }
-
-            $nextReminderCount = ((int) $booking->reminder_count) + 1;
-            $reminderSentAt = now();
-
-            $booking->update([
-                'reminder_count' => $nextReminderCount,
-                'last_reminder_at' => $reminderSentAt,
-            ]);
-
-            if (!$booking->relationLoaded('customer')) {
-                $booking->load('customer:id,email');
-            }
-
-            $bookingCustomerEmail = trim((string) ($booking->customer_email ?? ''));
-            $customerProfileEmail = trim((string) ($booking->customer?->email ?? ''));
-
-            $emailRecipient = null;
-            if (!empty($bookingCustomerEmail) && filter_var($bookingCustomerEmail, FILTER_VALIDATE_EMAIL)) {
-                $emailRecipient = $bookingCustomerEmail;
-            } elseif (!empty($customerProfileEmail) && filter_var($customerProfileEmail, FILTER_VALIDATE_EMAIL)) {
-                $emailRecipient = $customerProfileEmail;
-            }
-
-            $emailSent = false;
-            $emailError = null;
-
-            // Send email notification
-            try {
-                if (!empty($emailRecipient)) {
-                    Mail::to($emailRecipient)
-                        ->queue(new PosPaymentReminderMail($booking, $booking->customer, $nextReminderCount));
-
-                    Log::info('Payment reminder email queued', [
-                        'booking_id' => $booking->id,
-                        'email' => $emailRecipient,
-                        'reminder_count' => $nextReminderCount,
-                    ]);
-
-                    $emailSent = true;
-                } else {
-                    $emailError = 'No valid customer email found on booking or customer profile';
-                    Log::warning('Payment reminder email skipped - no valid recipient email', [
-                        'booking_id' => $booking->id,
-                        'booking_customer_email' => $booking->customer_email,
-                        'customer_id' => $booking->customer_id,
-                        'customer_profile_email' => $booking->customer?->email,
-                    ]);
-                }
-            } catch (\Exception $e) {
-                $emailError = $e->getMessage();
-                Log::warning('Failed to send payment reminder email', [
-                    'booking_id' => $booking->id,
-                    'email' => $emailRecipient,
-                    'error' => $e->getMessage(),
+                    'success' => true,
+                    'message' => 'Reminder scheduled successfully',
+                    'data' => $result,
                 ]);
             }
 
-            $inAppSent = false;
-            $inAppError = null;
+            if ($request->filled('scheduled_at')) {
+                $scheduledAt = Carbon::parse((string) $request->input('scheduled_at'));
 
-            try {
-                if (!empty($booking->customer_id) && $booking->customer) {
-                    $booking->customer->notify(new PosPaymentReminderInAppNotification($booking, $nextReminderCount));
-                    $inAppSent = true;
-                } else {
-                    $inAppError = 'Customer account not found for in-app notification';
-                    Log::warning('Payment reminder in-app skipped - customer not found', [
-                        'booking_id' => $booking->id,
-                        'customer_id' => $booking->customer_id,
+                if ($scheduledAt->greaterThan(now()->addMinute())) {
+                    $result = $this->posReminderService->scheduleSingleReminder($booking, $scheduledAt, Auth::id());
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Reminder scheduled successfully',
+                        'data' => $result,
                     ]);
                 }
-            } catch (\Throwable $e) {
-                $inAppError = $e->getMessage();
-                Log::warning('Failed to send payment reminder in-app notification', [
-                    'booking_id' => $booking->id,
-                    'customer_id' => $booking->customer_id,
-                    'error' => $e->getMessage(),
-                ]);
             }
 
-            $whatsappSent = $this->sendReminderWhatsAppMessage($booking);
-
-            $deliverySuccess = $emailSent || $whatsappSent || $inAppSent;
-
-            if ($emailSent && $whatsappSent && $inAppSent) {
-                $message = 'Reminder sent successfully via email, WhatsApp, and in-app notification';
-            } elseif ($deliverySuccess) {
-                $successfulChannels = [];
-                if ($emailSent) {
-                    $successfulChannels[] = 'email';
-                }
-                if ($whatsappSent) {
-                    $successfulChannels[] = 'WhatsApp';
-                }
-                if ($inAppSent) {
-                    $successfulChannels[] = 'in-app notification';
-                }
-                $message = 'Reminder sent via ' . implode(', ', $successfulChannels);
-            } else {
-                $message = 'Reminder could not be delivered via email, WhatsApp, or in-app notification';
-            }
+            $result = $this->posReminderService->sendImmediateReminder($booking, null, Auth::id());
 
             return response()->json([
-                'success' => $deliverySuccess,
-                'message' => $message,
-                'data' => [
-                    'reminder_count' => $nextReminderCount,
-                    'last_reminder_at' => $reminderSentAt,
-                    'channels' => [
-                        'email' => [
-                            'sent' => $emailSent,
-                            'recipient' => $emailRecipient,
-                            'error' => $emailError,
-                        ],
-                        'whatsapp' => [
-                            'sent' => $whatsappSent,
-                        ],
-                        'in_app' => [
-                            'sent' => $inAppSent,
-                            'error' => $inAppError,
-                        ],
-                    ],
-                ],
-            ], $deliverySuccess ? 200 : 500);
+                'success' => $result['success'],
+                'message' => $result['message'],
+                'data' => $result['data'] ?? null,
+            ], $result['status'] ?? 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->validator->errors()->first(),
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to send reminder',
                 'error' => $e->getMessage(),
             ], 500);
-        }
-    }
-
-    /**
-     * Send WhatsApp reminder message for pending payment
-     */
-    private function sendReminderWhatsAppMessage(POSBooking $booking): bool
-    {
-        try {
-            // Ensure relationships are loaded
-            if (!$booking->relationLoaded('bookingHoardings')) {
-                $booking->load('bookingHoardings.hoarding');
-            }
-
-            // Get customer phone
-            $phone = $booking->customer_phone;
-            if (empty($phone) || $phone === 'N/A') {
-                Log::warning('Reminder WhatsApp skipped - no valid phone', [
-                    'booking_id' => $booking->id,
-                    'phone' => $phone,
-                ]);
-                return false;
-            }
-
-            // Build hoarding list
-            $hoardingLines = $booking->bookingHoardings->map(function ($bh) {
-                $h = $bh->hoarding;
-                return "• " . ($h->title ?? 'Hoarding') . " ({$bh->start_date} → {$bh->end_date})";
-            })->implode("\n");
-
-            // Calculate payment details
-            $totalAmount = (float) $booking->total_amount;
-            $paidAmount = (float) ($booking->paid_amount ?? 0);
-            $remainingAmount = max(0, $totalAmount - $paidAmount);
-            $paidFormatted = number_format($paidAmount, 2);
-            $totalFormatted = number_format($totalAmount, 2);
-            $remainingFormatted = number_format($remainingAmount, 2);
-
-            // Build WhatsApp message
-            $message = "⏰ *Payment Reminder - Invoice #{$booking->invoice_number}*\n\n"
-                . "Hello *{$booking->customer_name}*,\n\n"
-                . "This is a friendly payment reminder for your POS booking.\n\n"
-                . "📋 *Booking Details:*\n"
-                . "Status: {$booking->status}\n"
-                . "Reminder Count: {$booking->reminder_count}/3\n\n"
-                . "💰 *Payment Status:*\n"
-                . "Total Amount: ₹{$totalFormatted}\n"
-                . "Paid Amount: ₹{$paidFormatted}\n"
-                . "Outstanding Balance: ₹{$remainingFormatted}\n\n"
-                . "🏛️ *Hoardings Booked:*\n{$hoardingLines}\n\n"
-                . "Please clear the outstanding balance at your earliest convenience.\n\n"
-                . "Thank you!";
-
-            // Normalize phone number
-            $normalizedPhone = preg_replace('/\D+/', '', $phone);
-
-            if (empty($normalizedPhone) || strlen($normalizedPhone) < 10) {
-                Log::warning('Reminder WhatsApp skipped - invalid phone', [
-                    'booking_id' => $booking->id,
-                    'original_phone' => $phone,
-                    'normalized_phone' => $normalizedPhone,
-                ]);
-                return false;
-            }
-
-            // Add country code if needed
-            if (!str_starts_with($normalizedPhone, '91')) {
-                $normalizedPhone = '91' . ltrim($normalizedPhone, '0');
-            }
-
-            $normalizedPhone = '+' . $normalizedPhone;
-
-            Log::info('Reminder WhatsApp attempting to send', [
-                'booking_id' => $booking->id,
-                'phone' => $normalizedPhone,
-                'reminder_count' => $booking->reminder_count,
-            ]);
-
-            // Send via WhatsApp
-            $whatsapp = app(TwilioWhatsappService::class);
-            $sent = $whatsapp->send($normalizedPhone, $message);
-
-            Log::info('Reminder WhatsApp notification dispatched', [
-                'booking_id' => $booking->id,
-                'phone' => $normalizedPhone,
-                'sent' => $sent,
-                'reminder_count' => $booking->reminder_count,
-                'message_preview' => substr($message, 0, 100),
-            ]);
-
-            return (bool) $sent;
-        } catch (\Throwable $e) {
-            Log::error('Reminder WhatsApp notification failed', [
-                'booking_id' => $booking->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return false;
         }
     }
 

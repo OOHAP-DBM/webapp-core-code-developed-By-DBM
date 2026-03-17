@@ -13,6 +13,8 @@ use Modules\Hoardings\Models\HoardingAttribute;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\HoardingHelper;
+use Carbon\Carbon;
 class HoardingController extends Controller
 {
     /**
@@ -301,6 +303,297 @@ class HoardingController extends Controller
         ]);
     }
 
+
+       /**
+     * @OA\Get(
+     *     path="/hoardings/vendor/{vendorId}/active",
+     *     operationId="getVendorActiveHoardings",
+     *     tags={"Hoardings"},
+     *     summary="Get active hoardings by vendor",
+     *     description="Returns paginated active hoardings for a specific vendor with optional recommended filter and rating/price sorting.",
+     *     @OA\Parameter(
+     *         name="vendorId",
+     *         in="path",
+     *         description="Vendor ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=12)
+     *     ),
+     *     @OA\Parameter(
+     *         name="recommended",
+     *         in="query",
+     *         description="Filter by recommended hoardings",
+     *         required=false,
+     *         @OA\Schema(type="boolean", example=true)
+     *     ),
+     *     @OA\Parameter(
+     *         name="rating_sort",
+     *         in="query",
+     *         description="Sort by average rating",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"high_to_low", "low_to_high", "asc", "desc"}, example="high_to_low")
+     *     ),
+     *     @OA\Parameter(
+     *         name="price_sort",
+     *         in="query",
+     *         description="Sort by price",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"high_to_low", "low_to_high", "asc", "desc"}, example="low_to_high")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=15, minimum=1, maximum=100, example=15)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(
+     *                 property="meta",
+     *                 type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="from", type="integer", example=1),
+     *                 @OA\Property(property="last_page", type="integer", example=2),
+     *                 @OA\Property(property="per_page", type="integer", example=15),
+     *                 @OA\Property(property="to", type="integer", example=15),
+     *                 @OA\Property(property="total", type="integer", example=28)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
+     */
+
+    public function vendorActive(Request $request, int $vendorId): JsonResponse
+    {
+        $validated = $request->validate([
+            'recommended' => ['nullable', 'boolean'],
+            'rating_sort' => ['nullable', 'in:high_to_low,low_to_high,asc,desc'],
+            'price_sort' => ['nullable', 'in:high_to_low,low_to_high,asc,desc'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'filter' => ['nullable', 'string'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+        ]);
+
+        $ratingSort = $this->mapSortDirection($validated['rating_sort'] ?? null);
+        $priceSort = $this->mapSortDirection($validated['price_sort'] ?? null);
+        $weeklyFilter = ($validated['filter'] ?? null) === 'weekly';
+
+        $startDate = $validated['start_date'] ?? now()->toDateString();
+        $endDate = $validated['end_date'] ?? $startDate;
+
+        $filters = [
+            'vendor_id' => $vendorId,
+            'status' => 'active',
+            'recommended' => $validated['recommended'] ?? null,
+            'filter' => $validated['filter'] ?? null,
+        ];
+
+        if ($ratingSort !== null) {
+            $filters['sort_by'] = 'rating';
+            $filters['sort_order'] = $ratingSort;
+        } elseif ($priceSort !== null) {
+            $filters['sort_by'] = 'price';
+            $filters['sort_order'] = $priceSort;
+        }
+
+        $perPage = (int) ($validated['per_page'] ?? 15);
+        $hoardings = $this->hoardingService->getAll($filters, $perPage);
+
+        $hoardings->getCollection()->loadMissing(['vendor']);
+
+        $firstHoarding = $hoardings->getCollection()->first();
+        $vendor = $firstHoarding?->vendor;
+
+        return response()->json([
+            'success' => true,
+            'vendor' => [
+                'id' => $vendorId,
+                'name' => data_get($vendor, 'name', 'vendor'),
+                'email' => data_get($vendor, 'email'),
+                'address' => $this->formatVendorAddress($vendor),
+                'total_hoardings' => Hoarding::where('vendor_id', $vendorId)
+                    ->where('status', 'active')
+                    ->count(),
+            ],
+            'hoardings' => $hoardings->getCollection()
+                ->map(fn ($hoarding) => $this->transformVendorActiveHoarding(
+                    $hoarding,
+                    $weeklyFilter,
+                    $startDate,
+                    $endDate
+                ))
+                ->values(),
+            'meta' => [
+                'current_page' => $hoardings->currentPage(),
+                'from' => $hoardings->firstItem(),
+                'last_page' => $hoardings->lastPage(),
+                'per_page' => $hoardings->perPage(),
+                'to' => $hoardings->lastItem(),
+                'total' => $hoardings->total(),
+            ],
+        ]);
+    }
+
+
+
+ 
+   private function transformVendorActiveHoarding(
+        $hoarding,
+        bool $weeklyFilter = false,
+        ?string $startDate = null,
+        ?string $endDate = null
+    ): array {
+        $basePrice = $weeklyFilter
+            ? (float) ($hoarding->base_weekly_price_1 ?? $hoarding->weekly_price_1 ?? 0)
+            : (float) ($hoarding->base_monthly_price ?? $hoarding->monthly_price ?? 0);
+
+        $sellPrice = $weeklyFilter
+            ? (float) ($hoarding->weekly_price_1 ?? 0)
+            : (float) ($hoarding->monthly_price ?? 0);
+
+        $price = HoardingHelper::discountBeforeOffer($basePrice, $sellPrice);
+
+        $pricing = [
+            ...$price,
+        ];
+
+        $rangeStart = $startDate ?? now()->toDateString();
+        $rangeEnd = $endDate ?? $rangeStart;
+
+        $availabilityCalendar = $this->availabilityService->getAvailabilityCalendar(
+            $hoarding->id,
+            $rangeStart,
+            $rangeEnd
+        );
+
+        $calendar = collect(data_get($availabilityCalendar, 'calendar', []));
+        $isAvailable = $calendar->isNotEmpty()
+            ? $calendar->every(fn ($day) => data_get($day, 'status') === 'available')
+            : false;
+
+        $firstAvailableDayInRange = $calendar->first(
+            fn ($day) => data_get($day, 'status') === 'available'
+        );
+
+        $availableFrom = data_get($firstAvailableDayInRange, 'date')
+            ?? data_get($firstAvailableDayInRange, 'day')
+            ?? data_get($firstAvailableDayInRange, 'slot_date');
+
+        // If booked in requested range, find next available date after end_date
+        if (!$isAvailable && empty($availableFrom)) {
+            $availableFrom = $this->findNextAvailableDate(
+                (int) $hoarding->id,
+                Carbon::parse($rangeEnd)->addDay()->toDateString()
+            );
+        }
+
+        $availability = [
+            'status' => $isAvailable ? 'active' : 'inactive',
+            'is_available' => $isAvailable,
+            'available_from' => $availableFrom,
+            'calendar' => $calendar->values(),
+        ];
+
+        return [
+            'id' => (int) $hoarding->id,
+            'title' => $hoarding->title,
+            'slug' => $hoarding->slug ?? $hoarding->title ?? null,
+            'hoarding_type' => strtoupper((string) ($hoarding->hoarding_type ?? '')),
+            'category' => $hoarding->category,
+            'city' => $hoarding->city,
+            'rating' => (float) ($hoarding->average_rating ?? $hoarding->rating ?? 0),
+            'pricing' => $pricing,
+            'availability' => $availability,
+            'recommended' => (bool) ($hoarding->recommended ?? false),
+        ];
+    }
+
+    private function findNextAvailableDate(int $hoardingId, string $fromDate, int $maxDays = 365): ?string
+    {
+        $cursor = Carbon::parse($fromDate)->startOfDay();
+        $limit = $cursor->copy()->addDays($maxDays);
+
+        while ($cursor->lte($limit)) {
+            $windowEnd = $cursor->copy()->addDays(29);
+            if ($windowEnd->gt($limit)) {
+                $windowEnd = $limit->copy();
+            }
+
+            $calendarResponse = $this->availabilityService->getAvailabilityCalendar(
+                $hoardingId,
+                $cursor->toDateString(),
+                $windowEnd->toDateString()
+            );
+
+            $days = collect(data_get($calendarResponse, 'calendar', []));
+            $firstAvailable = $days->first(
+                fn ($day) => data_get($day, 'status') === 'available'
+            );
+
+            if ($firstAvailable) {
+                return data_get($firstAvailable, 'date')
+                    ?? data_get($firstAvailable, 'day')
+                    ?? data_get($firstAvailable, 'slot_date');
+            }
+
+            $cursor = $windowEnd->addDay();
+        }
+
+        return null;
+    }
+
+      private function formatVendorAddress($vendor): string
+    {
+        if (!$vendor) {
+            return '';
+        }
+
+        $address = data_get($vendor, 'address');
+
+        if (!empty($address)) {
+            return (string) $address;
+        }
+
+        return implode(', ', array_filter([
+            data_get($vendor, 'address_line_1'),
+            data_get($vendor, 'address_line_2'),
+            data_get($vendor, 'city'),
+            data_get($vendor, 'state'),
+            data_get($vendor, 'pincode'),
+        ]));
+    }
+// ...existing code...
+    private function mapSortDirection(?string $direction): ?string
+    {
+        if ($direction === null || $direction === '') {
+            return null;
+        }
+
+        $direction = strtolower($direction);
+
+        if (in_array($direction, ['desc', 'high_to_low'], true)) {
+            return 'desc';
+        }
+
+        if (in_array($direction, ['asc', 'low_to_high'], true)) {
+            return 'asc';
+        }
+
+        return null;
+    }
     /**
      * @OA\Get(
      *     path="/hoardings/{id}",

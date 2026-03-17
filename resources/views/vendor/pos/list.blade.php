@@ -1,7 +1,7 @@
 @include('vendor.pos.components.pos-timer-notification')
 @extends($posLayout ?? 'layouts.vendor')
 
-@section('title', 'POS Bookings List')
+@section('title', 'Bookings Management')
 @section('content')
 <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
     @include('vendor.pos.components.admin-vendor-switcher')
@@ -9,14 +9,17 @@
     <div class="bg-white rounded-md shadow ">
 
         {{-- Header --}}
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-4 sm:px-6 py-4 bg-primary rounded-t-xl">
-            <h4 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                 POS Bookings
-            </h4>
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-4 sm:px-6 pt-4 bg-primary rounded-t-xl">
+            <div>
+                <h4 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    All Bookings
+                </h4>
+                <p class="text-xs">View, manage, and track all POS bookings and payment statuses.</p>
+            </div>
 
             <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.create') }}"
                 class="w-full sm:w-auto inline-flex items-center justify-center btn-color text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg text-sm font-medium transition">
-                + New Booking
+                + Create New Booking
             </a>
 
         </div>
@@ -28,7 +31,7 @@
                 <div class="sm:col-span-1 lg:col-span-3 relative">
                     <select id="filter-status"
                         class="appearance-none w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none pr-8">
-                        <option value="">All Status</option>
+                        <option value="">Booking Status</option>
                         <option value="draft">Draft</option>
                         <option value="confirmed">Confirmed</option>
                         <option value="active">Active</option>
@@ -45,7 +48,7 @@
                 <div class="sm:col-span-1 lg:col-span-3 relative">
                     <select id="filter-payment-status"
                         class="appearance-none w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none pr-8">
-                        <option value="">All Payment Status</option>
+                        <option value="">Payment Status</option>
                         <option value="paid">Paid</option>
                         <option value="unpaid">Pending</option>
                         <option value="partial">Partial</option>
@@ -60,7 +63,7 @@
 
                 <div class="sm:col-span-2 lg:col-span-4">
                     <input id="search-box" type="text"
-                        placeholder="Search by name, phone, invoice..."
+                        placeholder="Search bookings by customer name, phone, or invoice no."
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none">
                 </div>
 
@@ -77,13 +80,13 @@
                 <table class="min-w-[880px] sm:min-w-full text-xs sm:text-sm">
                     <thead class="bg-gray-100 text-left">
                         <tr>
-                            <th class="px-2 py-2 sm:px-3 sm:py-2">Invoice #</th>
-                            <th class="px-2 py-2 sm:px-3 sm:py-2">Customer</th>
-                            <th class="text-center px-2 py-2 sm:px-3 sm:py-2">Total Hoardings</th>
-                            <th class="px-2 py-2 sm:px-3 sm:py-2">Booking Date</th>
-                            <th class="px-2 py-2 sm:px-3 sm:py-2">Amount</th>
-                            <th class="px-2 py-2 sm:px-3 sm:py-2">Payment</th>
-                            <th class="px-2 py-2 sm:px-3 sm:py-2">Status</th>
+                            <th class="px-2 py-2 sm:px-3 sm:py-2">Invoice ID</th>
+                            <th class="px-2 py-2 sm:px-3 sm:py-2">Customer Details</th>
+                            <th class="text-center px-2 py-2 sm:px-3 sm:py-2">Hoardings Booked</th>
+                            <th class="px-2 py-2 sm:px-3 sm:py-2">Booking Date & Time</th>
+                            <th class="px-2 py-2 sm:px-3 sm:py-2">Total Amount</th>
+                            <th class="px-2 py-2 sm:px-3 sm:py-2">Payment Status</th>
+                            <th class="px-2 py-2 sm:px-3 sm:py-2">Booking Status</th>
                             <th class="px-2 py-2 sm:px-3 sm:py-2">Actions</th>
                         </tr>
                     </thead>
@@ -259,7 +262,7 @@ function loadPosBookings(page = 1) {
                     <div class="flex flex-wrap gap-1">
                         <a href="${POS_BASE_PATH}/bookings/${booking.id}"
                            class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition">
-                            View
+                            View Details
                         </a>
                         <!-- BACKEND RULE: Only show Edit if status = draft -->
                         ${booking.status === 'draft' ? `
@@ -272,7 +275,7 @@ function loadPosBookings(page = 1) {
                         ${['unpaid', 'partial'].includes(booking.payment_status) && booking.status !== 'cancelled' ? `
                             <a href="${POS_BASE_PATH}/bookings/${booking.id}"
                                class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition">
-                                Mark Paid
+                                Mark as Paid
                             </a>
                         ` : ``}
                     </div>

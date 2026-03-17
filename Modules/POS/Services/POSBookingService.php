@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+
 class POSBookingService
-  
+
 {
     protected SettingsService $settingsService;
     protected TaxService $taxService;
@@ -57,7 +58,7 @@ class POSBookingService
     //         $paymentMode = $data['payment_mode'] ?? POSBooking::PAYMENT_MODE_CASH;
     //         $paymentStatus = POSBooking::PAYMENT_STATUS_UNPAID;
     //         $holdExpiryAt = null;
-            
+
     //         // Set hold expiry for payment modes that require payment
     //         $holdDays = 7; // Grace period before auto-release
     //         if (in_array($paymentMode, [
@@ -129,14 +130,14 @@ class POSBookingService
     //                     \App\Models\Invoice::TYPE_POS,
     //                     Auth::id()
     //                 );
-                    
+
     //                 // Store invoice reference in POS booking
     //                 $booking->update([
     //                     'invoice_number' => $invoice->invoice_number,
     //                     'invoice_date' => $invoice->invoice_date,
     //                     'invoice_path' => $invoice->pdf_path,
     //                 ]);
-                    
+
     //                 Log::info('POS invoice generated', [
     //                     'pos_booking_id' => $booking->id,
     //                     'invoice_id' => $invoice->id,
@@ -154,443 +155,450 @@ class POSBookingService
     //         return $booking->fresh();
     //     });
     // }
-//     public function createBooking(array $data): POSBooking
-// {
-//     return DB::transaction(function () use ($data) {
-//         // 1. DATA NORMALIZATION (Fixes the 422 error)
-//         // If the frontend sends 'booking_date', use it for start/end if they are missing
-//         $fromDate = $data['start_date'] ?? $data['booking_date'] ?? now()->format('Y-m-d');
-//         $toDate = $data['end_date'] ?? $data['booking_date'] ?? now()->format('Y-m-d');
-        
-//         $hoardingIds = $data['hoarding_ids'] ?? [];
-//         if (empty($hoardingIds)) {
-//             throw new \Illuminate\Validation\ValidationException(null, ['hoarding_ids' => 'At least one hoarding must be selected']);
-//         }
+    //     public function createBooking(array $data): POSBooking
+    // {
+    //     return DB::transaction(function () use ($data) {
+    //         // 1. DATA NORMALIZATION (Fixes the 422 error)
+    //         // If the frontend sends 'booking_date', use it for start/end if they are missing
+    //         $fromDate = $data['start_date'] ?? $data['booking_date'] ?? now()->format('Y-m-d');
+    //         $toDate = $data['end_date'] ?? $data['booking_date'] ?? now()->format('Y-m-d');
 
-//         // 2. AVAILABILITY CHECK WITH LOCKING
-//         // Fetch and lock hoardings to prevent double-booking during this request
-//         $hoardings = Hoarding::whereIn('id', $hoardingIds)->lockForUpdate()->get();
+    //         $hoardingIds = $data['hoarding_ids'] ?? [];
+    //         if (empty($hoardingIds)) {
+    //             throw new \Illuminate\Validation\ValidationException(null, ['hoarding_ids' => 'At least one hoarding must be selected']);
+    //         }
 
-//         if ($hoardings->count() !== count($hoardingIds)) {
-//             throw new \Exception('One or more selected hoardings are invalid.');
-//         }
+    //         // 2. AVAILABILITY CHECK WITH LOCKING
+    //         // Fetch and lock hoardings to prevent double-booking during this request
+    //         $hoardings = Hoarding::whereIn('id', $hoardingIds)->lockForUpdate()->get();
 
-//         foreach ($hoardings as $hoarding) {
-//             if (!$this->checkAvailability($hoarding->id, $fromDate, $toDate)) {
-//                 throw new \Exception("Hoarding '{$hoarding->title}' is already booked for these dates.");
-//             }
-//         }
+    //         if ($hoardings->count() !== count($hoardingIds)) {
+    //             throw new \Exception('One or more selected hoardings are invalid.');
+    //         }
 
-//         // 3. DYNAMIC PRICING CALCULATION
-//         // Calculate total based on the sum of individual hoarding rates
-//         $calc = $this->calculateMultiHoardingPricing($hoardings, $fromDate, $toDate, $data['discount_amount'] ?? 0);
+    //         foreach ($hoardings as $hoarding) {
+    //             if (!$this->checkAvailability($hoarding->id, $fromDate, $toDate)) {
+    //                 throw new \Exception("Hoarding '{$hoarding->title}' is already booked for these dates.");
+    //             }
+    //         }
 
-//         // 4. CREATE MAIN BOOKING RECORD
-//         $booking = POSBooking::create([
-//             'vendor_id' => Auth::id(),
-//             'customer_id' => $data['customer_id'] ?? null,
-//             'customer_name' => $data['customer_name'] ?? 'Walk-in Customer',
-//             'customer_email' => $data['customer_email'] ?? null,
-//             'customer_phone' => $data['customer_phone'] ?? null,
-//             'customer_address' => $data['customer_address'] ?? null,
-//             'customer_gstin' => $data['customer_gstin'] ?? null,
-//             'booking_type' => $data['booking_type'] ?? 'ooh',
-//             'start_date' => $fromDate,
-//             'end_date' => $toDate,
-//             'duration_days' => $this->calculateDurationDays($fromDate, $toDate),
-//             'base_amount' => $calc['base_amount'],
-//             'discount_amount' => $calc['discount_amount'],
-//             'tax_amount' => $calc['tax_amount'],
-//             'total_amount' => $calc['total_amount'],
-//             'payment_mode' => $data['payment_mode'] ?? 'cash',
-//             'payment_status' => POSBooking::PAYMENT_STATUS_UNPAID,
-//             'status' => 'pending_payment',
-//             'notes' => $data['notes'] ?? null,
-//             'booking_snapshot' => $this->createMultiBookingSnapshot($hoardings),
-//         ]);
+    //         // 3. DYNAMIC PRICING CALCULATION
+    //         // Calculate total based on the sum of individual hoarding rates
+    //         $calc = $this->calculateMultiHoardingPricing($hoardings, $fromDate, $toDate, $data['discount_amount'] ?? 0);
 
-//         // 5. ATTACH HOARDINGS & SET HOLDS
-//         foreach ($hoardings as $hoarding) {
-//             POSBookingHoarding::create([
-//                 'pos_booking_id' => $booking->id,
-//                 'hoarding_id' => $hoarding->id,
-//                 'start_date' => $fromDate,
-//                 'end_date' => $toDate,
-//                 'duration_days' => $booking->duration_days,
-//                 'status' => 'pending',
-//             ]);
+    //         // 4. CREATE MAIN BOOKING RECORD
+    //         $booking = POSBooking::create([
+    //             'vendor_id' => Auth::id(),
+    //             'customer_id' => $data['customer_id'] ?? null,
+    //             'customer_name' => $data['customer_name'] ?? 'Walk-in Customer',
+    //             'customer_email' => $data['customer_email'] ?? null,
+    //             'customer_phone' => $data['customer_phone'] ?? null,
+    //             'customer_address' => $data['customer_address'] ?? null,
+    //             'customer_gstin' => $data['customer_gstin'] ?? null,
+    //             'booking_type' => $data['booking_type'] ?? 'ooh',
+    //             'start_date' => $fromDate,
+    //             'end_date' => $toDate,
+    //             'duration_days' => $this->calculateDurationDays($fromDate, $toDate),
+    //             'base_amount' => $calc['base_amount'],
+    //             'discount_amount' => $calc['discount_amount'],
+    //             'tax_amount' => $calc['tax_amount'],
+    //             'total_amount' => $calc['total_amount'],
+    //             'payment_mode' => $data['payment_mode'] ?? 'cash',
+    //             'payment_status' => POSBooking::PAYMENT_STATUS_UNPAID,
+    //             'status' => 'pending_payment',
+    //             'notes' => $data['notes'] ?? null,
+    //             'booking_snapshot' => $this->createMultiBookingSnapshot($hoardings),
+    //         ]);
 
-//             // Mark hoarding as on hold
-//             $hoarding->update([
-//                 'is_on_hold' => true,
-//                 'hold_till' => now()->addMinutes($this->settingsService->get('pos_hold_minutes', 15)),
-//                 'held_by_booking_id' => $booking->id
-//             ]);
-//         }
+    //         // 5. ATTACH HOARDINGS & SET HOLDS
+    //         foreach ($hoardings as $hoarding) {
+    //             POSBookingHoarding::create([
+    //                 'pos_booking_id' => $booking->id,
+    //                 'hoarding_id' => $hoarding->id,
+    //                 'start_date' => $fromDate,
+    //                 'end_date' => $toDate,
+    //                 'duration_days' => $booking->duration_days,
+    //                 'status' => 'pending',
+    //             ]);
 
-//         return $booking->fresh(['bookingHoardings.hoarding']);
-//     });
-// }
+    //             // Mark hoarding as on hold
+    //             $hoarding->update([
+    //                 'is_on_hold' => true,
+    //                 'hold_till' => now()->addMinutes($this->settingsService->get('pos_hold_minutes', 15)),
+    //                 'held_by_booking_id' => $booking->id
+    //             ]);
+    //         }
 
-public function createBooking(array $data): POSBooking
-{
-    Log::info('POSBookingService.createBooking start', ['vendor_id' => ($data['vendor_id'] ?? Auth::id()), 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids','start_date','end_date','payment_mode','customer_id']))]);
-    Log::info('', ['full_data' => $data]); // Log full data for debugging (remove in production)
-    return DB::transaction(function () use ($data) {
-        $effectiveVendorId = (int) ($data['vendor_id'] ?? Auth::id());
-        // Normalization: Ensure dates exist
-        $start = $data['start_date'] ?? $data['booking_date'] ?? null;
-        $end = $data['end_date'] ?? $data['booking_date'] ?? null;
+    //         return $booking->fresh(['bookingHoardings.hoarding']);
+    //     });
+    // }
 
-        if (!$start || !$end) {
-            Log::warning('POSBookingService.createBooking missing dates', ['data' => $data]);
-            throw new \Exception("The booking dates are required.");
-        }
+    public function createBooking(array $data): POSBooking
+    {
+        Log::info('POSBookingService.createBooking start', ['vendor_id' => ($data['vendor_id'] ?? Auth::id()), 'data_preview' => array_intersect_key($data, array_flip(['hoarding_ids', 'start_date', 'end_date', 'payment_mode', 'customer_id']))]);
+        Log::info('', ['full_data' => $data]); // Log full data for debugging (remove in production)
+        return DB::transaction(function () use ($data) {
+            $effectiveVendorId = (int) ($data['vendor_id'] ?? Auth::id());
+            // Normalization: Ensure dates exist
+            $start = $data['start_date'] ?? $data['booking_date'] ?? null;
+            $end = $data['end_date'] ?? $data['booking_date'] ?? null;
 
-        $hoardingIds = $data['hoarding_ids'] ?? [];
+            if (!$start || !$end) {
+                Log::warning('POSBookingService.createBooking missing dates', ['data' => $data]);
+                throw new \Exception("The booking dates are required.");
+            }
 
-        $hoardingItemsMap = [];
-        if (!empty($data['hoarding_items']) && is_array($data['hoarding_items'])) {
-            foreach ($data['hoarding_items'] as $item) {
-                if (isset($item['hoarding_id'])) {
-                    $hoardingItemsMap[(int) $item['hoarding_id']] = $item;
+            $hoardingIds = $data['hoarding_ids'] ?? [];
+
+            $hoardingItemsMap = [];
+            if (!empty($data['hoarding_items']) && is_array($data['hoarding_items'])) {
+                foreach ($data['hoarding_items'] as $item) {
+                    if (isset($item['hoarding_id'])) {
+                        $hoardingItemsMap[(int) $item['hoarding_id']] = $item;
+                    }
                 }
             }
-        }
-        
-        // Lock and Fetch
-        $hoardings = \App\Models\Hoarding::whereIn('id', $hoardingIds)
-            ->lockForUpdate()
-            ->get();
 
-        Log::info('POSBookingService locked hoardings', ['vendor_id' => $effectiveVendorId, 'hoarding_ids' => $hoardings->pluck('id')->all(), 'count' => $hoardings->count()]);
+            // Lock and Fetch
+            $hoardings = \App\Models\Hoarding::whereIn('id', $hoardingIds)
+                ->lockForUpdate()
+                ->get();
 
-        // Perform Pricing Calculation
-        $pricing = $this->calculateMultiHoardingPricing(
-            $hoardings,
-            $start,
-            $end,
-            (float) ($data['discount_amount'] ?? 0),
-            $hoardingItemsMap
-        );
+            Log::info('POSBookingService locked hoardings', ['vendor_id' => $effectiveVendorId, 'hoarding_ids' => $hoardings->pluck('id')->all(), 'count' => $hoardings->count()]);
 
-        Log::info('POSBookingService calculated pricing', ['vendor_id' => $effectiveVendorId, 'pricing' => $pricing]);
+            // Perform Pricing Calculation
+            $pricing = $this->calculateMultiHoardingPricing(
+                $hoardings,
+                $start,
+                $end,
+                (float) ($data['discount_amount'] ?? 0),
+                $hoardingItemsMap
+            );
 
-        // Create the record
-        $bookingPayload = [
-            'vendor_id'       => $effectiveVendorId,
-            'customer_id'     => $data['customer_id'] ?? null,
-            'customer_name'   => $data['customer_name'], // Required by DB
-            'customer_phone'  => $data['customer_phone'], // Required by DB
-            'customer_email'  => $data['customer_email'] ?? null,
-            'customer_address'=> $data['customer_address'] ?? null,
-            'customer_gstin'  => $data['customer_gstin'] ?? null,
-            'booking_type'    => $data['booking_type'] ?? 'ooh',
-            'start_date'      => $start,
-            'end_date'        => $end,
-            'duration_days'   => $this->calculateDurationDays($start, $end),
-            'base_amount'     => $pricing['base_amount'],
-            'discount_amount' => $pricing['discount_amount'],
-            'tax_amount'      => $pricing['tax_amount'],
-            'total_amount'    => $pricing['total_amount'],
-            'payment_mode'    => $data['payment_mode'] ?? 'cash',
-            'payment_reference' => $data['payment_reference'] ?? null,
-            'payment_notes'   => $data['payment_notes'] ?? null,
-            'notes'           => $data['notes'] ?? null,
-            'payment_status'  => 'unpaid',
-            'status'          => 'pending_payment',
-            'hold_expiry_at'  => $data['hold_expiry_at'] ?? null,
+            Log::info('POSBookingService calculated pricing', ['vendor_id' => $effectiveVendorId, 'pricing' => $pricing]);
 
-               // Milestone flag (WHEN) — bool stored on booking
-            'is_milestone'     => (bool) ($data['is_milestone'] ?? false),
- 
-            // Milestone counters — set after milestone creation below
-            'milestone_total'            => 0,
-            'milestone_paid'             => 0,
-            'milestone_amount_paid'      => 0,
-            'milestone_amount_remaining' => 0,
-        ];
+            // Create the record
+            $bookingPayload = [
+                'vendor_id'       => $effectiveVendorId,
+                'customer_id'     => $data['customer_id'] ?? null,
+                'customer_name'   => $data['customer_name'], // Required by DB
+                'customer_phone'  => $data['customer_phone'], // Required by DB
+                'customer_email'  => $data['customer_email'] ?? null,
+                'customer_address' => $data['customer_address'] ?? null,
+                'customer_gstin'  => $data['customer_gstin'] ?? null,
+                'booking_type'    => $data['booking_type'] ?? 'ooh',
+                'start_date'      => $start,
+                'end_date'        => $end,
+                'duration_days'   => $this->calculateDurationDays($start, $end),
+                'base_amount'     => $pricing['base_amount'],
+                'discount_amount' => $pricing['discount_amount'],
+                'tax_amount'      => $pricing['tax_amount'],
+                'total_amount'    => $pricing['total_amount'],
+                'payment_mode'    => $data['payment_mode'] ?? 'cash',
+                'payment_reference' => $data['payment_reference'] ?? null,
+                'payment_notes'   => $data['payment_notes'] ?? null,
+                'notes'           => $data['notes'] ?? null,
+                'payment_status'  => 'unpaid',
+                'status'          => 'pending_payment',
+                'hold_expiry_at'  => $data['hold_expiry_at'] ?? null,
 
-        Log::info('POSBookingService creating booking record', ['vendor_id' => $effectiveVendorId, 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id','start_date','end_date','total_amount']))]);
+                // Milestone flag (WHEN) — bool stored on booking
+                'is_milestone'     => (bool) ($data['is_milestone'] ?? false),
 
-        $booking = POSBooking::create($bookingPayload);
+                // Milestone counters — set after milestone creation below
+                'milestone_total'            => 0,
+                'milestone_paid'             => 0,
+                'milestone_amount_paid'      => 0,
+                'milestone_amount_remaining' => 0,
+            ];
 
-        // Inventory Linking
+            Log::info('POSBookingService creating booking record', ['vendor_id' => $effectiveVendorId, 'booking_payload_preview' => array_intersect_key($bookingPayload, array_flip(['vendor_id', 'start_date', 'end_date', 'total_amount']))]);
+
+            $booking = POSBooking::create($bookingPayload);
+
+            // Inventory Linking
+            foreach ($hoardings as $hoarding) {
+                $item = $pricing['line_items'][$hoarding->id] ?? ($hoardingItemsMap[$hoarding->id] ?? null);
+                $itemStart = $item['start_date'] ?? $start;
+                $itemEnd = $item['end_date'] ?? $end;
+                $itemPrice = $item['price_per_month'] ?? null;
+                $itemDiscount = $item['discount_amount'] ?? 0;
+                $this->attachHoardingToBooking($booking, $hoarding, $itemStart, $itemEnd, $itemPrice, $itemDiscount, $item ?? []);
+            }
+
+            Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => $effectiveVendorId, 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
+
+
+            // ── Milestone creation (owned by service, not controller) ─────
+            // Log what was received to aid future diagnosis
+            Log::info('POSBookingService: milestone input', [
+                'pos_booking_id'       => $booking->id,
+                'is_milestone_flag'    => $data['is_milestone'] ?? null,
+                'milestone_data_count' => count($data['milestone_data'] ?? []),
+            ]);
+            if ($booking->is_milestone && !empty($data['milestone_data'])) {
+                $this->createMilestonesForPOSBooking($booking, $data['milestone_data']);
+            }
+            // Generate invoice after booking creation (auto-invoice)
+            try {
+                if ($this->isAutoInvoiceEnabled()) {
+                    $invoice = $this->invoiceService->generateInvoiceForPOSBooking(
+                        $booking,
+                        $effectiveVendorId
+                    );
+                    // Store invoice reference in POS booking
+                    $booking->update([
+                        'invoice_number' => $invoice->invoice_number,
+                        'invoice_date' => $invoice->invoice_date,
+                        'invoice_path' => $invoice->pdf_path,
+                    ]);
+                    Log::info('POS invoice generated', [
+                        'pos_booking_id' => $booking->id,
+                        'invoice_id' => $invoice->id,
+                        'invoice_number' => $invoice->invoice_number,
+                    ]);
+                } else {
+                    Log::info('POS auto-invoice disabled; skipping invoice generation', [
+                        'pos_booking_id' => $booking->id,
+                        'vendor_id' => $effectiveVendorId,
+                        'setting_key' => 'pos_auto_invoice',
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to generate POS invoice', [
+                    'pos_booking_id' => $booking->id,
+                    'error' => $e->getMessage(),
+                ]);
+                // Don't fail the booking if invoice fails
+            }
+
+            DB::afterCommit(function () use ($booking) {
+                // 1. Domain event (existing)
+                event(new \Modules\POS\Events\PosBookingCreated(
+                    $booking->load(['customer', 'vendor', 'bookingHoardings.hoarding'])
+                ));
+
+                // 2. Notifications — runs after commit so booking is fully persisted
+                $this->dispatchBookingCreatedNotifications($booking);
+            });
+            return $booking->fresh(['bookingHoardings']);
+        });
+    }
+
+    /**
+     * Calculates pricing for multiple hoardings
+     */
+    protected function calculateMultiHoardingPricing($hoardings, $start, $end, $discount = 0, array $hoardingItemsMap = []): array
+    {
+        $gstRate = $this->getGSTRate();
+        $lineItems = [];
+        $totalBase = 0.0;
+
         foreach ($hoardings as $hoarding) {
-            $item = $pricing['line_items'][$hoarding->id] ?? ($hoardingItemsMap[$hoarding->id] ?? null);
+            $item = $hoardingItemsMap[$hoarding->id] ?? [];
             $itemStart = $item['start_date'] ?? $start;
             $itemEnd = $item['end_date'] ?? $end;
-            $itemPrice = $item['price_per_month'] ?? null;
-            $itemDiscount = $item['discount_amount'] ?? 0;
-            $this->attachHoardingToBooking($booking, $hoarding, $itemStart, $itemEnd, $itemPrice, $itemDiscount, $item ?? []);
+            $durationDays = $this->calculateDurationDays($itemStart, $itemEnd);
+            $months = (int) ceil($durationDays / 30);
+            $monthlyRate = isset($item['price_per_month'])
+                ? (float) $item['price_per_month']
+                : (float) ($hoarding->monthly_price ?? $hoarding->base_monthly_price ?? 0);
+            $baseAmount = round($monthlyRate * $months, 2);
+
+            $lineItems[(int) $hoarding->id] = [
+                'hoarding_id' => (int) $hoarding->id,
+                'start_date' => $itemStart,
+                'end_date' => $itemEnd,
+                'duration_days' => $durationDays,
+                'price_per_month' => $monthlyRate,
+                'base_amount' => $baseAmount,
+            ];
+
+            $totalBase += $baseAmount;
         }
 
-        Log::info('POSBookingService attached hoardings to booking', ['vendor_id' => $effectiveVendorId, 'pos_booking_id' => $booking->id, 'attached_count' => $booking->bookingHoardings->count()]);
+        $totalBase = round($totalBase, 2);
+        $normalizedDiscount = round(min(max(0, (float) $discount), $totalBase), 2);
+        $remainingDiscount = $normalizedDiscount;
+        $lineIds = array_keys($lineItems);
+        $lineCount = count($lineIds);
 
+        foreach ($lineIds as $index => $lineId) {
+            $lineBase = (float) $lineItems[$lineId]['base_amount'];
 
-         // ── Milestone creation (owned by service, not controller) ─────
-        if ($booking->is_milestone && !empty($data['milestone_data'])) {
-            $this->createMilestonesForPOSBooking($booking, $data['milestone_data']);
-        }
-        // Generate invoice after booking creation (auto-invoice)
-        try {
-            if ($this->isAutoInvoiceEnabled()) {
-                $invoice = $this->invoiceService->generateInvoiceForPOSBooking(
-                    $booking,
-                    $effectiveVendorId
-                );
-                // Store invoice reference in POS booking
-                $booking->update([
-                    'invoice_number' => $invoice->invoice_number,
-                    'invoice_date' => $invoice->invoice_date,
-                    'invoice_path' => $invoice->pdf_path,
-                ]);
-                Log::info('POS invoice generated', [
-                    'pos_booking_id' => $booking->id,
-                    'invoice_id' => $invoice->id,
-                    'invoice_number' => $invoice->invoice_number,
-                ]);
+            if ($lineCount === 0 || $normalizedDiscount <= 0) {
+                $lineDiscount = 0.0;
+            } elseif ($index === $lineCount - 1) {
+                $lineDiscount = $remainingDiscount;
             } else {
-                Log::info('POS auto-invoice disabled; skipping invoice generation', [
-                    'pos_booking_id' => $booking->id,
-                    'vendor_id' => $effectiveVendorId,
-                    'setting_key' => 'pos_auto_invoice',
-                ]);
+                $lineDiscount = round(($lineBase / max($totalBase, 0.01)) * $normalizedDiscount, 2);
+                $lineDiscount = min($lineBase, $lineDiscount, $remainingDiscount);
             }
-        } catch (\Exception $e) {
-            Log::error('Failed to generate POS invoice', [
-                'pos_booking_id' => $booking->id,
-                'error' => $e->getMessage(),
-            ]);
-            // Don't fail the booking if invoice fails
+
+            $remainingDiscount = round($remainingDiscount - $lineDiscount, 2);
+            $taxableAmount = max(0, round($lineBase - $lineDiscount, 2));
+            $taxAmount = round($taxableAmount * ($gstRate / 100), 2);
+            $totalAmount = round($taxableAmount + $taxAmount, 2);
+
+            $lineItems[$lineId]['discount_amount'] = round($lineDiscount, 2);
+            $lineItems[$lineId]['tax_amount'] = $taxAmount;
+            $lineItems[$lineId]['total_amount'] = $totalAmount;
         }
 
-        DB::afterCommit(function () use ($booking) {
-            // 1. Domain event (existing)
-            event(new \Modules\POS\Events\PosBookingCreated(
-                $booking->load(['customer', 'vendor', 'bookingHoardings.hoarding'])
-            ));
-        
-            // 2. Notifications — runs after commit so booking is fully persisted
-            $this->dispatchBookingCreatedNotifications($booking);
-        });
-        return $booking->fresh(['bookingHoardings']);
-    });
-
-      
-    }
-
-/**
- * Calculates pricing for multiple hoardings
- */
-protected function calculateMultiHoardingPricing($hoardings, $start, $end, $discount = 0, array $hoardingItemsMap = []): array
-{
-    $gstRate = $this->getGSTRate();
-    $lineItems = [];
-    $totalBase = 0.0;
-
-    foreach ($hoardings as $hoarding) {
-        $item = $hoardingItemsMap[$hoarding->id] ?? [];
-        $itemStart = $item['start_date'] ?? $start;
-        $itemEnd = $item['end_date'] ?? $end;
-        $durationDays = $this->calculateDurationDays($itemStart, $itemEnd);
-        $months = (int) ceil($durationDays / 30);
-        $monthlyRate = isset($item['price_per_month'])
-            ? (float) $item['price_per_month']
-            : (float) ($hoarding->monthly_price ?? $hoarding->base_monthly_price ?? 0);
-        $baseAmount = round($monthlyRate * $months, 2);
-
-        $lineItems[(int) $hoarding->id] = [
-            'hoarding_id' => (int) $hoarding->id,
-            'start_date' => $itemStart,
-            'end_date' => $itemEnd,
-            'duration_days' => $durationDays,
-            'price_per_month' => $monthlyRate,
-            'base_amount' => $baseAmount,
+        return [
+            'base_amount' => round(array_sum(array_column($lineItems, 'base_amount')), 2),
+            'discount_amount' => round(array_sum(array_column($lineItems, 'discount_amount')), 2),
+            'tax_amount' => round(array_sum(array_column($lineItems, 'tax_amount')), 2),
+            'total_amount' => round(array_sum(array_column($lineItems, 'total_amount')), 2),
+            'line_items' => $lineItems,
         ];
-
-        $totalBase += $baseAmount;
     }
 
-    $totalBase = round($totalBase, 2);
-    $normalizedDiscount = round(min(max(0, (float) $discount), $totalBase), 2);
-    $remainingDiscount = $normalizedDiscount;
-    $lineIds = array_keys($lineItems);
-    $lineCount = count($lineIds);
+    public function checkAvailability($hoardingId, $fromDate, $toDate): bool
+    {
+        $hoarding = Hoarding::lockForUpdate()->find($hoardingId);
+        if (!$hoarding) return false;
 
-    foreach ($lineIds as $index => $lineId) {
-        $lineBase = (float) $lineItems[$lineId]['base_amount'];
-
-        if ($lineCount === 0 || $normalizedDiscount <= 0) {
-            $lineDiscount = 0.0;
-        } elseif ($index === $lineCount - 1) {
-            $lineDiscount = $remainingDiscount;
-        } else {
-            $lineDiscount = round(($lineBase / max($totalBase, 0.01)) * $normalizedDiscount, 2);
-            $lineDiscount = min($lineBase, $lineDiscount, $remainingDiscount);
+        // Check if on hold by another booking
+        if ($hoarding->is_on_hold && $hoarding->hold_till && $hoarding->hold_till->isFuture()) {
+            return false;
         }
 
-        $remainingDiscount = round($remainingDiscount - $lineDiscount, 2);
-        $taxableAmount = max(0, round($lineBase - $lineDiscount, 2));
-        $taxAmount = round($taxableAmount * ($gstRate / 100), 2);
-        $totalAmount = round($taxableAmount + $taxAmount, 2);
+        // Check for overlapping bookings
+        $hasBooking = POSBookingHoarding::where('hoarding_id', $hoardingId)
+            ->where(function ($q) use ($fromDate, $toDate) {
+                $q->whereBetween('start_date', [$fromDate, $toDate])
+                    ->orWhereBetween('end_date', [$fromDate, $toDate])
+                    ->orWhere(function ($q2) use ($fromDate, $toDate) {
+                        $q2->where('start_date', '<=', $fromDate)
+                            ->where('end_date', '>=', $toDate);
+                    });
+            })
+            ->whereHas('booking', function ($q) {
+                $q->whereIn('status', ['pending_payment', 'confirmed', 'active']);
+            })
+            ->exists();
 
-        $lineItems[$lineId]['discount_amount'] = round($lineDiscount, 2);
-        $lineItems[$lineId]['tax_amount'] = $taxAmount;
-        $lineItems[$lineId]['total_amount'] = $totalAmount;
+        return !$hasBooking;
     }
 
-    return [
-        'base_amount' => round(array_sum(array_column($lineItems, 'base_amount')), 2),
-        'discount_amount' => round(array_sum(array_column($lineItems, 'discount_amount')), 2),
-        'tax_amount' => round(array_sum(array_column($lineItems, 'tax_amount')), 2),
-        'total_amount' => round(array_sum(array_column($lineItems, 'total_amount')), 2),
-        'line_items' => $lineItems,
-    ];
-}
-
-public function checkAvailability($hoardingId, $fromDate, $toDate): bool
-{
-    $hoarding = Hoarding::lockForUpdate()->find($hoardingId);
-    if (!$hoarding) return false;
-
-    // Check if on hold by another booking
-    if ($hoarding->is_on_hold && $hoarding->hold_till && $hoarding->hold_till->isFuture()) {
-        return false;
-    }
-
-    // Check for overlapping bookings
-    $hasBooking = POSBookingHoarding::where('hoarding_id', $hoardingId)
-        ->where(function ($q) use ($fromDate, $toDate) {
-            $q->whereBetween('start_date', [$fromDate, $toDate])
-              ->orWhereBetween('end_date', [$fromDate, $toDate])
-              ->orWhere(function ($q2) use ($fromDate, $toDate) {
-                  $q2->where('start_date', '<=', $fromDate)
-                     ->where('end_date', '>=', $toDate);
-              });
-        })
-        ->whereHas('booking', function ($q) {
-            $q->whereIn('status', ['pending_payment', 'confirmed', 'active']);
-        })
-        ->exists();
-
-    return !$hasBooking;
-}
-
-public function holdHoardings(POSBooking $booking)
-{
-    foreach ($booking->bookingHoardings as $bh) {
-        $hoarding = $bh->hoarding;
-        $hoarding->is_on_hold = true;
-        $hoarding->hold_till = now()->addMinutes(15);
-        $hoarding->held_by_booking_id = $booking->id;
-        $hoarding->save();
-    }
-}
-
-public function releaseHoardings(POSBooking $booking)
-{
-    foreach ($booking->bookingHoardings as $bh) {
-        $hoarding = $bh->hoarding;
-        if ($hoarding->held_by_booking_id == $booking->id) {
-            $hoarding->is_on_hold = false;
-            $hoarding->hold_till = null;
-            $hoarding->held_by_booking_id = null;
+    public function holdHoardings(POSBooking $booking)
+    {
+        foreach ($booking->bookingHoardings as $bh) {
+            $hoarding = $bh->hoarding;
+            $hoarding->is_on_hold = true;
+            $hoarding->hold_till = now()->addMinutes(15);
+            $hoarding->held_by_booking_id = $booking->id;
             $hoarding->save();
         }
     }
-}
 
-
-/**
- * Dispatch all post-booking notifications.
- *
- * Runs inside DB::afterCommit so the booking record is guaranteed to
- * exist before any notification reads it.
- *
- * Called automatically by createBooking() — no controller needs to
- * trigger this manually. Both web and API bookings benefit.
- */
-private function dispatchBookingCreatedNotifications(POSBooking $booking): void
-{
-    // ── WhatsApp ──────────────────────────────────────────────────────
-    try {
-        $phone = $booking->customer_phone
-            ?? ($booking->customer_id
-                ? optional(\App\Models\User::find($booking->customer_id))->phone
-                : null);
- 
-        if ($phone && $phone !== 'N/A') {
-            $this->sendWhatsAppNotification($booking, $phone);
+    public function releaseHoardings(POSBooking $booking)
+    {
+        foreach ($booking->bookingHoardings as $bh) {
+            $hoarding = $bh->hoarding;
+            if ($hoarding->held_by_booking_id == $booking->id) {
+                $hoarding->is_on_hold = false;
+                $hoarding->hold_till = null;
+                $hoarding->held_by_booking_id = null;
+                $hoarding->save();
+            }
         }
-    } catch (\Throwable $e) {
-        Log::warning('POS WhatsApp notification failed', [
-            'booking_id' => $booking->id,
-            'error'      => $e->getMessage(),
-        ]);
     }
- 
-    // ── Email + Push ──────────────────────────────────────────────────
-    try {
-        if (!$this->isEmailNotificationEnabled()) {
-            return;
-        }
- 
-        // Customer
-        if (!empty($booking->customer_id)) {
-            $customer = \App\Models\User::find($booking->customer_id);
- 
-            if ($customer?->notification_email
-                && filter_var($customer->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                \Mail::to($customer->email)
-                    ->queue(new \App\Mail\PosBookingCreatedMail($booking, $customer, 'customer'));
+
+
+    /**
+     * Dispatch all post-booking notifications.
+     *
+     * Runs inside DB::afterCommit so the booking record is guaranteed to
+     * exist before any notification reads it.
+     *
+     * Called automatically by createBooking() — no controller needs to
+     * trigger this manually. Both web and API bookings benefit.
+     */
+    private function dispatchBookingCreatedNotifications(POSBooking $booking): void
+    {
+        // ── WhatsApp ──────────────────────────────────────────────────────
+        try {
+            $phone = $booking->customer_phone
+                ?? ($booking->customer_id
+                    ? optional(\App\Models\User::find($booking->customer_id))->phone
+                    : null);
+
+            if ($phone && $phone !== 'N/A') {
+                $this->sendWhatsAppNotification($booking, $phone);
             }
- 
-            if ($customer?->notification_push) {
-                send(
-                    $customer,
-                    'Booking Created Successfully',
-                    "Your POS booking #{$booking->invoice_number} for ₹" . number_format($booking->total_amount, 2) . " has been created",
-                    [
-                        'type'           => 'pos_booking_created',
-                        'booking_id'     => $booking->id,
-                        'invoice_number' => $booking->invoice_number,
-                        'total_amount'   => $booking->total_amount,
-                        'source'         => 'pos_system',
-                    ]
-                );
-            }
+        } catch (\Throwable $e) {
+            Log::warning('POS WhatsApp notification failed', [
+                'booking_id' => $booking->id,
+                'error'      => $e->getMessage(),
+            ]);
         }
- 
-        // Vendor
-        $vendor = \App\Models\User::find($booking->vendor_id);
-        if ($vendor?->notification_email) {
-            foreach (array_unique(array_filter($vendor->notification_emails ?? [])) as $email) {
-                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    \Mail::to($email)
-                        ->queue(new \App\Mail\PosBookingCreatedMail($booking, $vendor, 'vendor'));
+
+        // ── Email + Push ──────────────────────────────────────────────────
+        try {
+            if (!$this->isEmailNotificationEnabled()) {
+                return;
+            }
+
+            // Customer
+            if (!empty($booking->customer_id)) {
+                $customer = \App\Models\User::find($booking->customer_id);
+
+                if (
+                    $customer?->notification_email
+                    && filter_var($customer->email ?? '', FILTER_VALIDATE_EMAIL)
+                ) {
+                    \Mail::to($customer->email)
+                        ->queue(new \App\Mail\PosBookingCreatedMail($booking, $customer, 'customer'));
+                }
+
+                if ($customer?->notification_push) {
+                    send(
+                        $customer,
+                        'Booking Created Successfully',
+                        "Your POS booking #{$booking->invoice_number} for ₹" . number_format($booking->total_amount, 2) . " has been created",
+                        [
+                            'type'           => 'pos_booking_created',
+                            'booking_id'     => $booking->id,
+                            'invoice_number' => $booking->invoice_number,
+                            'total_amount'   => $booking->total_amount,
+                            'source'         => 'pos_system',
+                        ]
+                    );
                 }
             }
-        }
- 
-        // Admins
-        \App\Models\User::whereHas('roles', function ($q) {
-            $q->whereIn('name', ['admin', 'super_admin']);
-        })->get()->each(function ($admin) use ($booking) {
-            if ($admin->notification_email
-                && filter_var($admin->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                \Mail::to($admin->email)
-                    ->queue(new \App\Mail\PosBookingCreatedMail($booking, $admin, 'admin'));
+
+            // Vendor
+            $vendor = \App\Models\User::find($booking->vendor_id);
+            if ($vendor?->notification_email) {
+                foreach (array_unique(array_filter($vendor->notification_emails ?? [])) as $email) {
+                    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        \Mail::to($email)
+                            ->queue(new \App\Mail\PosBookingCreatedMail($booking, $vendor, 'vendor'));
+                    }
+                }
             }
-        });
- 
-    } catch (\Throwable $e) {
-        Log::warning('POS email/push notification failed', [
-            'booking_id' => $booking->id,
-            'error'      => $e->getMessage(),
-        ]);
+
+            // Admins
+            \App\Models\User::whereHas('roles', function ($q) {
+                $q->whereIn('name', ['admin', 'super_admin']);
+            })->get()->each(function ($admin) use ($booking) {
+                if (
+                    $admin->notification_email
+                    && filter_var($admin->email ?? '', FILTER_VALIDATE_EMAIL)
+                ) {
+                    \Mail::to($admin->email)
+                        ->queue(new \App\Mail\PosBookingCreatedMail($booking, $admin, 'admin'));
+                }
+            });
+        } catch (\Throwable $e) {
+            Log::warning('POS email/push notification failed', [
+                'booking_id' => $booking->id,
+                'error'      => $e->getMessage(),
+            ]);
+        }
     }
-}
     /**
      * Update POS booking
      */
@@ -691,7 +699,7 @@ private function dispatchBookingCreatedNotifications(POSBooking $booking): void
         $amountType   = $milestonesData[0]['amount_type'] ?? 'percentage';
         $created      = [];
         $sequenceNo   = 1;
-    
+
         // ── Server-side total validation ──────────────────────────────────
         $sumPct   = 0.0;
         $sumFixed = 0.0;
@@ -702,7 +710,7 @@ private function dispatchBookingCreatedNotifications(POSBooking $booking): void
                 $sumFixed += (float) ($m['amount'] ?? 0);
             }
         }
-    
+
         if ($amountType === 'percentage' && abs($sumPct - 100) > 0.01) {
             Log::warning('Milestone percentages do not total 100 — skipping milestone creation', [
                 'pos_booking_id' => $booking->id,
@@ -711,24 +719,48 @@ private function dispatchBookingCreatedNotifications(POSBooking $booking): void
             $booking->update(['is_milestone' => false]);
             return;
         }
-    
-        if ($amountType === 'fixed' && abs($sumFixed - $totalAmount) > 0.01) {
-            Log::warning('Milestone fixed amounts do not match booking total — skipping milestone creation', [
-                'pos_booking_id' => $booking->id,
-                'sum'            => $sumFixed,
-                'total'          => $totalAmount,
-            ]);
-            $booking->update(['is_milestone' => false]);
-            return;
+
+        if ($amountType === 'fixed' && abs($sumFixed - $totalAmount) > 1.00) {
+            // Auto-balance fixed milestones by adjusting the final row.
+            $lastIndex = count($milestonesData) - 1;
+            if ($lastIndex >= 0) {
+                $delta = round($totalAmount - $sumFixed, 2);
+                $lastAmount = (float) ($milestonesData[$lastIndex]['amount'] ?? 0);
+                $adjustedLastAmount = round($lastAmount + $delta, 2);
+
+                if ($adjustedLastAmount > 0) {
+                    $milestonesData[$lastIndex]['amount'] = $adjustedLastAmount;
+                    $sumFixed = round($sumFixed + $delta, 2);
+
+                    Log::warning('Milestone fixed amounts auto-adjusted to booking total', [
+                        'pos_booking_id'      => $booking->id,
+                        'original_sum'        => round($sumFixed - $delta, 2),
+                        'adjusted_sum'        => $sumFixed,
+                        'total'               => $totalAmount,
+                        'adjusted_last_index' => $lastIndex,
+                        'adjusted_last_amount' => $adjustedLastAmount,
+                    ]);
+                }
+            }
+
+            if (abs($sumFixed - $totalAmount) > 0.01) {
+                Log::warning('Milestone fixed amounts do not match booking total — skipping milestone creation', [
+                    'pos_booking_id' => $booking->id,
+                    'sum'            => $sumFixed,
+                    'total'          => $totalAmount,
+                ]);
+                $booking->update(['is_milestone' => false]);
+                return;
+            }
         }
-    
+
         // ── Create milestone records ──────────────────────────────────────
         foreach ($milestonesData as $idx => $milestoneData) {
             $isFirst    = ($idx === 0);
             $calculated = $milestoneData['amount_type'] === 'percentage'
                 ? round(($totalAmount * (float) $milestoneData['amount']) / 100, 2)
                 : (float) $milestoneData['amount'];
-    
+
             $milestone = \App\Models\QuotationMilestone::create([
                 'pos_booking_id'   => $booking->id,
                 'quotation_id'     => null,
@@ -737,15 +769,15 @@ private function dispatchBookingCreatedNotifications(POSBooking $booking): void
                 'sequence_no'      => $sequenceNo++,
                 'amount_type'      => $milestoneData['amount_type'],
                 'amount'           => $milestoneData['amount'],
-                'calculated_amount'=> $calculated,
+                'calculated_amount' => $calculated,
                 'status'           => $isFirst ? 'due' : 'pending',
                 'due_date'         => $milestoneData['due_date'] ?? null,
                 'vendor_notes'     => $milestoneData['vendor_notes'] ?? null,
             ]);
-    
+
             $created[] = $milestone;
         }
-    
+
         // ── Update booking milestone counters ─────────────────────────────
         $booking->update([
             'milestone_total'            => count($created),
@@ -754,7 +786,7 @@ private function dispatchBookingCreatedNotifications(POSBooking $booking): void
             'milestone_amount_remaining' => $totalAmount,
             'current_milestone_id'       => $created[0]->id ?? null,
         ]);
-    
+
         Log::info('POSBookingService: milestones created', [
             'pos_booking_id' => $booking->id,
             'count'          => count($created),
@@ -956,7 +988,7 @@ private function dispatchBookingCreatedNotifications(POSBooking $booking): void
      */
     public function getVendorBookings(int $vendorId, array $filters = [])
     {
-        $query = POSBooking::with(['hoardings', 'customer', 'approver',''])
+        $query = POSBooking::with(['hoardings', 'customer', 'approver', ''])
             ->forVendor($vendorId);
         \Log::info('POSBookingService.getVendorBookings query', ['vendor_id' => $vendorId, 'filters' => $filters]);
 
@@ -1000,8 +1032,8 @@ private function dispatchBookingCreatedNotifications(POSBooking $booking): void
             'active_credit_notes' => $bookings->creditNotes()->count(),
             'credit_notes_value' => $bookings->creditNotes()->sum('total_amount'),
             'total_customers'  => POSBooking::where('vendor_id', $vendorId)
-                                ->distinct('customer_phone') // or customer_email
-                                ->count('customer_phone'),
+                ->distinct('customer_phone') // or customer_email
+                ->count('customer_phone'),
         ];
     }
 
@@ -1185,7 +1217,7 @@ private function dispatchBookingCreatedNotifications(POSBooking $booking): void
 
             $recipientIds = $recipientIds
                 ->merge($adminIds)
-                ->filter(fn ($id) => (int) $id > 0)
+                ->filter(fn($id) => (int) $id > 0)
                 ->unique()
                 ->values();
 
@@ -1276,7 +1308,7 @@ private function dispatchBookingCreatedNotifications(POSBooking $booking): void
     }
 
 
-      /**
+    /**
      * Attach a hoarding to a booking and save to pos_booking_hoardings table
      */
     protected function attachHoardingToBooking(POSBooking $booking, Hoarding $hoarding, $start, $end, $pricePerMonth = null, $discount = 0, array $pricingLine = [])
@@ -1311,7 +1343,7 @@ private function dispatchBookingCreatedNotifications(POSBooking $booking): void
             'pos_booking_id'   => $booking->id,
             'hoarding_id'      => $hoarding->id,
             'hoarding_price'   => round($base, 2),
-            'hoarding_discount'=> round($discount, 2),
+            'hoarding_discount' => round($discount, 2),
             'hoarding_tax'     => round($tax, 2),
             'hoarding_total'   => round($total, 2),
             // 'url'              => $hoarding->getUrlAttribute(),
@@ -1352,103 +1384,103 @@ private function dispatchBookingCreatedNotifications(POSBooking $booking): void
 
 
     public function transitionStatus(POSBooking $booking, string $newStatus): POSBooking
-{
-    $validTransitions = [
-        'draft' => ['confirmed'],
-        'confirmed' => ['partial_paid', 'cancelled'],
-        'partial_paid' => ['paid', 'cancelled'],
-        'paid' => ['completed'],
-    ];
+    {
+        $validTransitions = [
+            'draft' => ['confirmed'],
+            'confirmed' => ['partial_paid', 'cancelled'],
+            'partial_paid' => ['paid', 'cancelled'],
+            'paid' => ['completed'],
+        ];
 
-    $current = $booking->status;
-    if (!isset($validTransitions[$current]) || !in_array($newStatus, $validTransitions[$current])) {
-        throw new \Exception("Invalid status transition from {$current} to {$newStatus}");
-    }
-
-    return DB::transaction(function () use ($booking, $newStatus) {
-        $booking->status = $newStatus;
-        $booking->save();
-
-        // Inventory hold logic
-        if (in_array($newStatus, ['confirmed', 'partial_paid', 'paid'])) {
-            foreach ($booking->bookingHoardings as $bh) {
-                $hoarding = $bh->hoarding;
-                $hoarding->is_on_hold = true;
-                $hoarding->hold_till = $booking->end_date;
-                $hoarding->held_by_booking_id = $booking->id;
-                $hoarding->save();
-            }
+        $current = $booking->status;
+        if (!isset($validTransitions[$current]) || !in_array($newStatus, $validTransitions[$current])) {
+            throw new \Exception("Invalid status transition from {$current} to {$newStatus}");
         }
 
-        // Release inventory on cancel
-        if ($newStatus === 'cancelled') {
-            foreach ($booking->bookingHoardings as $bh) {
-                $hoarding = $bh->hoarding;
-                if ($hoarding->held_by_booking_id == $booking->id) {
-                    $hoarding->is_on_hold = false;
-                    $hoarding->hold_till = null;
-                    $hoarding->held_by_booking_id = null;
+        return DB::transaction(function () use ($booking, $newStatus) {
+            $booking->status = $newStatus;
+            $booking->save();
+
+            // Inventory hold logic
+            if (in_array($newStatus, ['confirmed', 'partial_paid', 'paid'])) {
+                foreach ($booking->bookingHoardings as $bh) {
+                    $hoarding = $bh->hoarding;
+                    $hoarding->is_on_hold = true;
+                    $hoarding->hold_till = $booking->end_date;
+                    $hoarding->held_by_booking_id = $booking->id;
                     $hoarding->save();
                 }
             }
-        }
 
-        // Mark as completed after end_date
-        if ($newStatus === 'completed') {
-            foreach ($booking->bookingHoardings as $bh) {
-                $hoarding = $bh->hoarding;
-                if ($hoarding->held_by_booking_id == $booking->id) {
-                    $hoarding->is_on_hold = false;
-                    $hoarding->hold_till = null;
-                    $hoarding->held_by_booking_id = null;
-                    $hoarding->save();
+            // Release inventory on cancel
+            if ($newStatus === 'cancelled') {
+                foreach ($booking->bookingHoardings as $bh) {
+                    $hoarding = $bh->hoarding;
+                    if ($hoarding->held_by_booking_id == $booking->id) {
+                        $hoarding->is_on_hold = false;
+                        $hoarding->hold_till = null;
+                        $hoarding->held_by_booking_id = null;
+                        $hoarding->save();
+                    }
                 }
             }
-        }
 
-        return $booking->fresh();
-    });
-}
+            // Mark as completed after end_date
+            if ($newStatus === 'completed') {
+                foreach ($booking->bookingHoardings as $bh) {
+                    $hoarding = $bh->hoarding;
+                    if ($hoarding->held_by_booking_id == $booking->id) {
+                        $hoarding->is_on_hold = false;
+                        $hoarding->hold_till = null;
+                        $hoarding->held_by_booking_id = null;
+                        $hoarding->save();
+                    }
+                }
+            }
 
-public function cancelBooking(POSBooking $booking, string $reason): POSBooking
-{
-    return $this->transitionStatus($booking, 'cancelled');
-}
-// ADDITION (STEP 4)
-
-
-// ADDITION (STEP 4)
-public function isHoardingAvailable($hoardingId, $fromDate, $toDate, $excludeBookingId = null): bool
-{
-    // Check for overlapping bookings or holds
-    $query = \Modules\POS\Models\POSBookingHoarding::where('hoarding_id', $hoardingId)
-        ->where(function ($q) use ($fromDate, $toDate) {
-            $q->whereBetween('start_date', [$fromDate, $toDate])
-              ->orWhereBetween('end_date', [$fromDate, $toDate])
-              ->orWhere(function ($q2) use ($fromDate, $toDate) {
-                  $q2->where('start_date', '<=', $fromDate)
-                     ->where('end_date', '>=', $toDate);
-              });
-        })
-        ->whereHas('booking', function ($q) use ($excludeBookingId) {
-            $q->whereIn('status', ['confirmed', 'partial_paid', 'paid'])
-              ->when($excludeBookingId, function ($q2) use ($excludeBookingId) {
-                  $q2->where('id', '!=', $excludeBookingId);
-              });
+            return $booking->fresh();
         });
-
-    $hoarding = \App\Models\Hoarding::find($hoardingId);
-    if ($hoarding && $hoarding->is_on_hold && $hoarding->hold_till && $hoarding->hold_till >= now() && $hoarding->held_by_booking_id !== $excludeBookingId) {
-        return false;
     }
 
-    return !$query->exists();
-}
-// ADDITION (STEP 4)
+    public function cancelBooking(POSBooking $booking, string $reason): POSBooking
+    {
+        return $this->transitionStatus($booking, 'cancelled');
+    }
+    // ADDITION (STEP 4)
 
 
-// File: Modules/POS/Models/POSBooking.php
+    // ADDITION (STEP 4)
+    public function isHoardingAvailable($hoardingId, $fromDate, $toDate, $excludeBookingId = null): bool
+    {
+        // Check for overlapping bookings or holds
+        $query = \Modules\POS\Models\POSBookingHoarding::where('hoarding_id', $hoardingId)
+            ->where(function ($q) use ($fromDate, $toDate) {
+                $q->whereBetween('start_date', [$fromDate, $toDate])
+                    ->orWhereBetween('end_date', [$fromDate, $toDate])
+                    ->orWhere(function ($q2) use ($fromDate, $toDate) {
+                        $q2->where('start_date', '<=', $fromDate)
+                            ->where('end_date', '>=', $toDate);
+                    });
+            })
+            ->whereHas('booking', function ($q) use ($excludeBookingId) {
+                $q->whereIn('status', ['confirmed', 'partial_paid', 'paid'])
+                    ->when($excludeBookingId, function ($q2) use ($excludeBookingId) {
+                        $q2->where('id', '!=', $excludeBookingId);
+                    });
+            });
 
-// ADDITION (STEP 4)
+        $hoarding = \App\Models\Hoarding::find($hoardingId);
+        if ($hoarding && $hoarding->is_on_hold && $hoarding->hold_till && $hoarding->hold_till >= now() && $hoarding->held_by_booking_id !== $excludeBookingId) {
+            return false;
+        }
+
+        return !$query->exists();
+    }
+    // ADDITION (STEP 4)
+
+
+    // File: Modules/POS/Models/POSBooking.php
+
+    // ADDITION (STEP 4)
 
 }

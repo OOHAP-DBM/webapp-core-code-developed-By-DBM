@@ -22,7 +22,7 @@
         <div class="p-4 sm:p-6 space-y-6">
 
             <!-- Booking Summary -->
-            <div class="rounded-xl border bg-gray-50 p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                     <p class="text-sm text-gray-500">Invoice</p>
                     <h2 class="text-lg font-semibold"><a id="ui-invoice" href="#" target="_blank" class="pointer-events-none text-inherit">—</a></h2>
@@ -58,10 +58,19 @@
 
                 <div>
                     <p class="text-sm text-gray-500">Payment Status</p>
-                    <span id="ui-payment-status"
-                          class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-300">
-                        —
-                    </span>
+                    <div class="mt-1">
+                        <span id="ui-payment-status"
+                              class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-gray-300">
+                            —
+                        </span>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Milestone Status</p>
+                    <div id="ui-milestone-wrap" class="hidden mt-2 space-y-0">
+                        <div id="ui-milestone-timeline" class="space-y-0"></div>
+                    </div>
                 </div>
 
                 <div class="text-left lg:text-right">
@@ -152,6 +161,126 @@
     </div>
 </div>
 
+<!-- SEND REMINDER MODAL -->
+<div id="send-reminder-modal"
+     class="hidden fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50">
+    <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md sm:mx-4 shadow-xl animate-fadeIn overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+            <button onclick="closeReminderModal()"
+                    class="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50"
+                    aria-label="Close reminder modal">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <h3 class="text-lg font-semibold text-gray-900">Send Reminder</h3>
+            <div class="w-9"></div>
+        </div>
+
+        <div class="px-5 py-5 space-y-5 max-h-[72vh] overflow-y-auto">
+            <div>
+                <h4 class="text-xl font-semibold text-gray-900">Schedule Reminders</h4>
+                <p class="text-sm text-gray-500 mt-1">Select multiple dates and times to automate your customer follow-ups.</p>
+            </div>
+
+            <div id="reminder-composer-panel" class="space-y-4 transition-opacity duration-150">
+                <div>
+                    <p class="text-sm font-medium text-gray-700 mb-2">When?</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button id="day-today" onclick="selectReminderDay('today')"
+                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
+                            Today
+                        </button>
+                        <button id="day-tomorrow" onclick="selectReminderDay('tomorrow')"
+                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
+                            Tomorrow
+                        </button>
+                        <button id="day-custom" onclick="selectReminderDay('custom')"
+                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                            </svg>
+                            Custom Date
+                        </button>
+                    </div>
+                    <div id="custom-date-wrapper" class="hidden mt-3">
+                        <input type="date" id="reminder-custom-date"
+                               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                               onchange="handleCustomReminderDateChange(this.value)">
+                    </div>
+                </div>
+
+                <div id="reminder-time-section" class="hidden">
+                    <p class="text-sm font-medium text-gray-700 mb-2">At What Time?</p>
+                    <div class="flex flex-wrap gap-2">
+                        <div id="time-btn-group" class="contents"></div>
+                        <button id="custom-time-toggle-btn" onclick="toggleCustomTimeInput()"
+                                class="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
+                            Custom Time
+                        </button>
+                    </div>
+                    <div id="custom-time-wrapper" class="hidden mt-3">
+                        <input type="time" id="reminder-custom-time"
+                               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                               onchange="applyCustomTime(this.value)">
+                    </div>
+                    <p id="selected-time-display" class="hidden mt-2 text-sm font-semibold text-orange-500"></p>
+                </div>
+            </div>
+
+            <button id="save-reminder-draft-btn" onclick="saveReminderDraft()"
+                    class="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed disabled:opacity-100">
+                <span id="save-reminder-draft-text">Save Reminder</span>
+            </button>
+
+            <div id="reminder-list-section" class="hidden border-t border-gray-200 pt-4 space-y-3">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="text-base font-semibold text-gray-900">Scheduled Reminder</p>
+                    <button id="reminder-add-more-btn" onclick="startNewReminderDraft()"
+                            class="text-sm font-medium text-green-500 hover:text-green-600">
+                        Add more
+                    </button>
+                </div>
+                <div id="reminder-list" class="space-y-3"></div>
+            </div>
+
+            <p class="text-xs text-gray-500">Note: Reminder will automatically send to the customer as scheduled.</p>
+
+            <button id="send-reminder-btn" onclick="confirmSendReminder()"
+                    class="w-full py-3 rounded-xl bg-green-500 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-green-600 disabled:bg-green-300 disabled:cursor-not-allowed"
+                    disabled>
+                <span id="reminder-btn-text">Schedule Reminder</span>
+                <span id="reminder-spinner"
+                      class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="reminder-success-modal"
+     class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[60] px-4">
+    <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl animate-fadeIn text-center">
+        <button onclick="closeReminderSuccessModal()"
+                class="ml-auto flex text-gray-400 hover:text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <div class="mx-auto -mt-2 mb-4 w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center text-green-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" />
+            </svg>
+        </div>
+        <h4 class="text-lg font-semibold text-gray-900">Reminder scheduled successfully</h4>
+        <p class="text-sm text-gray-500 mt-2">It will automatically send to the customer as scheduled.</p>
+        <button id="success-add-more-btn" onclick="openReminderModalFromSuccess()"
+                class="w-full mt-5 py-3 rounded-xl bg-green-500 text-white font-semibold text-sm hover:bg-green-600">
+            Add more reminder
+        </button>
+    </div>
+</div>
+
 <style>
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(.96); }
@@ -224,6 +353,48 @@ async function loadBookingDetails() {
         document.getElementById('ui-payment-status').className =
             'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPosPaymentStatusColor(b.payment_status);
 
+        const milestoneWrap = document.getElementById('ui-milestone-wrap');
+        const milestoneTimelineEl = document.getElementById('ui-milestone-timeline');
+        const isMilestoneBooking = Number(b.is_milestone || 0) === 1;
+        const milestoneTotal = parseInt(b.milestone_total || 0, 10) || 0;
+        const milestones = Array.isArray(b.milestones) ? b.milestones : [];
+
+        const formatMilestoneDate = (value) => {
+            if (!value) return '-';
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return '-';
+            const day = String(d.getDate()).padStart(2, '0');
+            const mon = d.toLocaleString('en-US', { month: 'short' });
+            const yr = String(d.getFullYear()).slice(-2);
+            return `${day} ${mon}, ${yr}`;
+        };
+
+        if (isMilestoneBooking && milestoneTotal > 0) {
+            milestoneTimelineEl.innerHTML = milestones.length
+                ? milestones.map((ms, idx) => {
+                    const title = ms.title || `Milestone ${ms.sequence_no || (idx + 1)}`;
+                    const amount = parseFloat(ms.calculated_amount ?? ms.amount ?? 0) || 0;
+                    const dueDate = formatMilestoneDate(ms.due_date);
+                    const status = (ms.status || 'pending').toString();
+                    const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+                    return `
+                        <div class="text-xs py-1.5 border-b border-gray-200 last:border-0">
+                            <div class="font-semibold text-gray-700">${title}</div>
+                            <div class="text-gray-500">
+                                ₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                &nbsp;<span class="text-red-500">Due ${dueDate}</span>
+                                &nbsp;<span class="text-gray-400">| ${statusLabel}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('')
+                : '<p class="text-xs text-gray-400 py-1">No milestones added yet.</p>';
+            milestoneWrap.classList.remove('hidden');
+        } else {
+            milestoneTimelineEl.innerHTML = '';
+            milestoneWrap.classList.add('hidden');
+        }
+
         /* ---- REST OF YOUR EXISTING HTML BUILD LOGIC ---- */
             let hoardingsTableRows = '';
             let totalBase = 0, totalDiscount = 0, totalTax = 0, totalFinal = 0;
@@ -262,7 +433,7 @@ async function loadBookingDetails() {
                 let priceSummaryHtml = '';
                 if (hoardingsTableRows) {
                     priceSummaryHtml = `
-                        <div class="rounded-xl border bg-white p-4 mb-4">
+                        <div class="rounded-xl border border-gray-200 bg-white p-4 mb-4">
                             <h3 class="text-base sm:text-lg font-bold mb-2">Price Summary</h3>
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div><strong>Base Amount:</strong> ₹${totalBase.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
@@ -277,17 +448,17 @@ async function loadBookingDetails() {
                 let hoardingsTableHtml = '';
                 if (hoardingsTableRows) {
                     hoardingsTableHtml = `
-                        <div class="rounded-xl border bg-white p-4 mb-4">
+                        <div class="rounded-xl border border-gray-200 bg-white p-4 mb-4">
                             <h3 class="text-base sm:text-lg font-bold mb-2">Hoardings</h3>
                             <div class="overflow-x-auto">
-                            <table class="min-w-full text-sm border">
+                            <table class="min-w-full text-sm shadow-sm overflow-hidden">
                                 <thead>
                                     <tr class="bg-gray-100">
-                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Sn.</th>
-                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Hoardings</th>
-                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Rental</th>
-                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Duration</th>
-                                        <th class="px-2 py-1 sm:px-3 sm:py-2 border">Total Price</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 ">Sn.</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 ">Hoardings</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 ">Rental</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 ">Duration</th>
+                                        <th class="px-2 py-1 sm:px-3 sm:py-2 ">Total Price</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -301,14 +472,14 @@ async function loadBookingDetails() {
 
             // Customer details and actions inside invoice box
             let customerDetailsHtml = `
-                <div class="rounded-xl border bg-white p-4 mb-4">
+                <div class="rounded-xl border border-gray-200 bg-white p-4 mb-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
                         <div><strong>Customer:</strong> ${b.customer_name}</div>
                         <div><strong>Phone:</strong> ${b.customer_phone || '-'} </div>
                         <div><strong>Booking Date:</strong> ${new Date(b.created_at).toLocaleString()} </div>
                         <div><strong>Email:</strong> ${b.customer_email || '-'} </div>
                     </div>
-                    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 pt-2 border-t">
+                    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 pt-2 border-t border-gray-200">
                         ${renderActionButtons(b)}
                     </div>
                 </div>
@@ -400,46 +571,31 @@ function renderActionButtons(booking) {
     }
 
     // Send Reminder button
-    // BACKEND RULE: reminder_count < 10
-    // if (booking.reminder_count !== undefined && booking.reminder_count < 10) {
-    //     html += `
-    //         <button onclick="sendReminder()"
-    //             class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium">
-    //             📧 Send Reminder
-    //         </button>`;
-    // } else if (booking.reminder_count === 10) {
-    //     html += `
-    //         <button disabled 
-    //             class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
-    //             title="Maximum 10 reminders sent">
-    //             📧 Max Reminders Sent
-    //         </button>`;
-    // }
-    // Send Reminder button
-// RULE: Only if reminder_count < 10, payment not paid, and booking not cancelled
-if (booking.status !== 'cancelled' && booking.payment_status !== 'paid' && booking.reminder_count !== undefined && booking.reminder_count < 10) {
-    html += `
-        <button onclick="sendReminder()"
-            class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium text-center">
-             Send Reminder
-        </button>`;
-} 
-else if (booking.payment_status === 'paid') {
-    html += `
-        <button disabled 
-            class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
-            title="Payment already completed">
-            ✓ Payment Completed
-        </button>`;
-} 
-else if (booking.reminder_count === 10) {
-    html += `
-        <button disabled 
-            class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
-            title="Maximum 10 reminders sent">
-            📧 Max Reminders Sent
-        </button>`;
-}
+    // RULE: Only if reminder_count < 3, payment not paid, and booking not cancelled
+    const reminderCount = Number(booking.reminder_count ?? 0);
+    if (booking.status !== 'cancelled' && booking.payment_status !== 'paid' && reminderCount < 3) {
+        html += `
+            <button onclick="sendReminder()"
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium text-center">
+                 Send Reminder
+            </button>`;
+    } 
+    else if (booking.payment_status === 'paid') {
+        html += `
+            <button disabled 
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
+                title="Payment already completed">
+                ✓ Payment Completed
+            </button>`;
+    } 
+    else if (reminderCount >= 3) {
+        html += `
+            <button disabled 
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
+                title="Maximum 3 reminders sent">
+                Send Reminder
+            </button>`;
+    }
 
     // Back button
     html += `<a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
@@ -603,38 +759,656 @@ async function confirmRelease() {
 }
 
 /**
- * Send reminder
+ * Reminder scheduling state
  */
-async function sendReminder() {
-    if (!confirm('Send payment reminder to customer?')) {
+let _reminderDay = null;
+let _reminderTime = null;
+let _editingReminderKey = null;
+let _reminderDrafts = [];
+let _reminderBasePendingSignature = '';
+
+function sendReminder() {
+    openReminderModal();
+}
+
+function openReminderModal() {
+    hydrateReminderDraftsFromBooking();
+    resetReminderComposer();
+    renderReminderDrafts();
+    document.getElementById('send-reminder-modal').classList.remove('hidden');
+}
+
+function closeReminderModal() {
+    document.getElementById('send-reminder-modal').classList.add('hidden');
+}
+
+function closeReminderSuccessModal() {
+    document.getElementById('reminder-success-modal').classList.add('hidden');
+}
+
+function openReminderModalFromSuccess() {
+    closeReminderSuccessModal();
+    openReminderModal();
+}
+
+function hydrateReminderDraftsFromBooking() {
+    const bookingReminders = Array.isArray(currentBooking?.scheduled_reminders) ? currentBooking.scheduled_reminders : [];
+
+    _reminderDrafts = bookingReminders.map((reminder, index) => ({
+        key: reminder.id ? `saved-${reminder.id}` : `draft-${Date.now()}-${index}`,
+        id: reminder.id ?? null,
+        scheduled_at: reminder.scheduled_at,
+        status: reminder.status || 'pending',
+        sent_at: reminder.sent_at || null,
+    }));
+
+    _reminderBasePendingSignature = getPendingReminderSignature(
+        _reminderDrafts.filter(reminder => reminder.status === 'pending')
+    );
+}
+
+function parseReminderDateTime(value) {
+    if (!value) {
+        return null;
+    }
+
+    if (value instanceof Date) {
+        return new Date(value.getTime());
+    }
+
+    if (typeof value === 'string' && value.includes(' ') && !value.includes('T')) {
+        return new Date(value.replace(' ', 'T'));
+    }
+
+    return new Date(value);
+}
+
+function formatReminderPayloadDate(dateObj) {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const hour = String(dateObj.getHours()).padStart(2, '0');
+    const minute = String(dateObj.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hour}:${minute}:00`;
+}
+
+function resetReminderComposer() {
+    _reminderDay = null;
+    _reminderTime = null;
+    _editingReminderKey = null;
+
+    document.getElementById('custom-date-wrapper').classList.add('hidden');
+    document.getElementById('reminder-time-section').classList.add('hidden');
+    document.getElementById('custom-time-wrapper').classList.add('hidden');
+    document.getElementById('selected-time-display').classList.add('hidden');
+    document.getElementById('selected-time-display').textContent = '';
+    document.getElementById('reminder-custom-date').value = '';
+    document.getElementById('reminder-custom-time').value = '';
+
+    document.querySelectorAll('.day-btn').forEach(b => {
+        b.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+        b.classList.add('border-gray-300');
+    });
+    document.querySelectorAll('.time-btn').forEach(b => {
+        b.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+        b.classList.add('border-gray-300');
+    });
+    document.getElementById('custom-time-toggle-btn').classList.remove('bg-green-600', 'text-white', 'border-green-600');
+    document.getElementById('save-reminder-draft-text').textContent = 'Save Reminder';
+    renderPresetTimes(false);
+    updateReminderActionButtons();
+}
+
+function startNewReminderDraft() {
+    if (getReminderAvailableSlots() <= 0) {
+        showActionMessage('You can schedule only 3 reminders for this booking.', 'error');
         return;
     }
+
+    resetReminderComposer();
+}
+
+function selectReminderDay(day) {
+    _reminderDay = day;
+
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('reminder-custom-date').min = today;
+
+    document.querySelectorAll('.day-btn').forEach(b => {
+        b.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+        b.classList.add('border-gray-300');
+    });
+
+    const btn = document.getElementById('day-' + day);
+    if (btn) {
+        btn.classList.add('bg-green-600', 'text-white', 'border-green-600');
+        btn.classList.remove('border-gray-300');
+    }
+
+    if (day === 'custom') {
+        document.getElementById('custom-date-wrapper').classList.remove('hidden');
+        if (!document.getElementById('reminder-custom-date').value) {
+            document.getElementById('reminder-custom-date').value = today;
+        }
+    } else {
+        document.getElementById('custom-date-wrapper').classList.add('hidden');
+    }
+
+    document.getElementById('reminder-time-section').classList.remove('hidden');
+
+    renderPresetTimes(day === 'today');
+
+    updateReminderActionButtons();
+}
+
+function formatTime24ToLabel(t) {
+    const [h, m] = t.split(':');
+    const hour = parseInt(h, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${String(hour12).padStart(2, '0')}:${m} ${ampm}`;
+}
+
+function addMinutesToNow(deltaMinutes) {
+    const d = new Date(Date.now() + deltaMinutes * 60000);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function renderPresetTimes(isToday) {
+    const wrap = document.getElementById('time-btn-group');
+    const customTimeInput = document.getElementById('reminder-custom-time');
+    if (!wrap) return;
+
+    let times;
+    if (isToday) {
+        customTimeInput.min = addMinutesToNow(5);
+        times = [addMinutesToNow(5), '08:30', '10:30'];
+    } else {
+        customTimeInput.removeAttribute('min');
+        times = ['08:00', '10:00', '12:00'];
+    }
+
+    // Clear selected time if it no longer matches a preset
+    if (_reminderTime && !times.includes(_reminderTime)) {
+        _reminderTime = null;
+        updateSelectedTimeDisplay();
+    }
+
+    wrap.innerHTML = times.map(t => {
+        const label = formatTime24ToLabel(t);
+        return `<button id="time-${t.replace(':', '')}" onclick="selectReminderTime('${t}')"
+                class="time-btn px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
+            ${label}
+        </button>`;
+    }).join('');
+
+    // Re-highlight if selected time still valid
+    if (_reminderTime) {
+        const activeBtn = document.getElementById('time-' + _reminderTime.replace(':', ''));
+        if (activeBtn) {
+            activeBtn.classList.add('bg-green-600', 'text-white', 'border-green-600');
+            activeBtn.classList.remove('border-gray-300');
+        }
+    }
+}
+
+function handleCustomReminderDateChange(value) {
+    if (value) {
+        _reminderDay = 'custom';
+        const today = new Date().toISOString().split('T')[0];
+        renderPresetTimes(value === today);
+    }
+    updateReminderActionButtons();
+}
+
+function selectReminderTime(time24) {
+    _reminderTime = time24;
+    document.querySelectorAll('.time-btn').forEach(b => {
+        b.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+        b.classList.add('border-gray-300');
+    });
+    const id = 'time-' + time24.replace(':', '');
+    const btn = document.getElementById(id);
+    if (btn) {
+        btn.classList.add('bg-green-600', 'text-white', 'border-green-600');
+        btn.classList.remove('border-gray-300');
+    }
+
+    document.getElementById('custom-time-wrapper').classList.add('hidden');
+    document.getElementById('custom-time-toggle-btn').classList.remove('bg-green-600', 'text-white', 'border-green-600');
+
+    updateSelectedTimeDisplay();
+    updateReminderActionButtons();
+}
+
+function toggleCustomTimeInput() {
+    const wrapper = document.getElementById('custom-time-wrapper');
+    const isHidden = wrapper.classList.contains('hidden');
+    wrapper.classList.toggle('hidden');
+    const toggleBtn = document.getElementById('custom-time-toggle-btn');
+    if (isHidden) {
+        toggleBtn.classList.add('bg-green-600', 'text-white', 'border-green-600');
+        document.querySelectorAll('.time-btn').forEach(b => {
+            b.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+            b.classList.add('border-gray-300');
+        });
+        document.getElementById('reminder-custom-time').focus();
+    } else {
+        toggleBtn.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+        if (!document.getElementById('reminder-custom-time').value) {
+            _reminderTime = null;
+            updateSelectedTimeDisplay();
+        }
+    }
+
+    updateReminderActionButtons();
+}
+
+function applyCustomTime(time24) {
+    _reminderTime = time24 || null;
+    updateSelectedTimeDisplay();
+    updateReminderActionButtons();
+}
+
+function updateSelectedTimeDisplay() {
+    const display = document.getElementById('selected-time-display');
+    if (_reminderTime) {
+        const [h, m] = _reminderTime.split(':');
+        const hour = parseInt(h, 10);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        display.textContent = String(hour12).padStart(2, '0') + ':' + m + ' ' + ampm;
+        display.classList.remove('hidden');
+    } else {
+        display.classList.add('hidden');
+    }
+}
+
+function buildReminderDateFromSelection() {
+    if (!_reminderDay || !_reminderTime) {
+        return null;
+    }
+
+    let scheduledDate;
+    if (_reminderDay === 'today') {
+        scheduledDate = new Date();
+    } else if (_reminderDay === 'tomorrow') {
+        scheduledDate = new Date();
+        scheduledDate.setDate(scheduledDate.getDate() + 1);
+    } else {
+        const customVal = document.getElementById('reminder-custom-date').value;
+        if (!customVal) {
+            return null;
+        }
+        scheduledDate = new Date(customVal + 'T00:00:00');
+    }
+
+    const [h, m] = _reminderTime.split(':');
+    scheduledDate.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
+
+    return scheduledDate;
+}
+
+function getPendingReminderDrafts() {
+    return _reminderDrafts.filter(reminder => reminder.status === 'pending');
+}
+
+function getPendingReminderSignature(reminders = null) {
+    const source = Array.isArray(reminders) ? reminders : getPendingReminderDrafts();
+
+    return source
+        .map(reminder => {
+            const reminderDate = parseReminderDateTime(reminder.scheduled_at);
+
+            if (reminderDate && !Number.isNaN(reminderDate.getTime())) {
+                return formatReminderPayloadDate(reminderDate);
+            }
+
+            return String(reminder.scheduled_at || '');
+        })
+        .sort()
+        .join('|');
+}
+
+function getSentReminderDraftCount() {
+    const sentInList = _reminderDrafts.filter(reminder => reminder.status === 'sent').length;
+    const sentFromBooking = Number(currentBooking?.reminder_count ?? 0);
+
+    return Math.max(sentInList, Number.isFinite(sentFromBooking) ? sentFromBooking : 0);
+}
+
+function getReminderAvailableSlots() {
+    const usedSlots = getSentReminderDraftCount() + getPendingReminderDrafts().length;
+
+    return Math.max(0, 3 - usedSlots);
+}
+
+function updateReminderActionButtons() {
+    const saveButton = document.getElementById('save-reminder-draft-btn');
+    const scheduleButton = document.getElementById('send-reminder-btn');
+    const addMoreButton = document.getElementById('reminder-add-more-btn');
+    const hasDraftDate = !!buildReminderDateFromSelection();
+    const canSave = hasDraftDate && (_editingReminderKey !== null || getReminderAvailableSlots() > 0);
+    const hasPending = getPendingReminderDrafts().length > 0;
+    const hasPendingChanges = getPendingReminderSignature() !== _reminderBasePendingSignature;
+    const hasUnsavedComposerState = _editingReminderKey !== null || hasDraftDate;
+    const canAddMore = getReminderAvailableSlots() > 0;
+
+    saveButton.disabled = !canSave;
+    scheduleButton.disabled = !hasPending || hasUnsavedComposerState || !hasPendingChanges;
+    if (addMoreButton) {
+        addMoreButton.disabled = !canAddMore;
+        addMoreButton.classList.toggle('text-green-500', canAddMore);
+        addMoreButton.classList.toggle('hover:text-green-600', canAddMore);
+        addMoreButton.classList.toggle('text-green-300', !canAddMore);
+        addMoreButton.classList.toggle('pointer-events-none', !canAddMore);
+    }
+}
+
+function sortReminderDrafts() {
+    _reminderDrafts = _reminderDrafts
+        .slice()
+        .sort((first, second) => parseReminderDateTime(first.scheduled_at).getTime() - parseReminderDateTime(second.scheduled_at).getTime());
+}
+
+function saveReminderDraft() {
+    const scheduledDate = buildReminderDateFromSelection();
+    if (!scheduledDate) {
+        showActionMessage('Please choose both date and time before saving.', 'error');
+        return;
+    }
+
+    if (scheduledDate.getTime() < Date.now() - 60000) {
+        showActionMessage('Reminder time must be now or in the future.', 'error');
+        return;
+    }
+
+    const scheduledAtValue = formatReminderPayloadDate(scheduledDate);
+
+    const hasDuplicate = _reminderDrafts.some(reminder => {
+        if (reminder.key === _editingReminderKey || reminder.status !== 'pending') {
+            return false;
+        }
+
+        const existingDate = parseReminderDateTime(reminder.scheduled_at);
+        if (!existingDate || Number.isNaN(existingDate.getTime())) {
+            return false;
+        }
+
+        return formatReminderPayloadDate(existingDate) === scheduledAtValue;
+    });
+
+    if (hasDuplicate) {
+        showActionMessage('This reminder time is already in the list. Choose a different time.', 'error');
+        return;
+    }
+
+    if (_editingReminderKey) {
+        _reminderDrafts = _reminderDrafts.map(reminder => {
+            if (reminder.key !== _editingReminderKey) {
+                return reminder;
+            }
+
+            return {
+                ...reminder,
+                scheduled_at: scheduledAtValue,
+            };
+        });
+
+        showActionMessage('Reminder updated in list. Click Schedule Reminder to save changes.', 'success');
+    } else {
+        if (getReminderAvailableSlots() <= 0) {
+            showActionMessage('You can schedule only 3 reminders for this booking.', 'error');
+            return;
+        }
+
+        _reminderDrafts.push({
+            key: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            id: null,
+            scheduled_at: scheduledAtValue,
+            status: 'pending',
+            sent_at: null,
+        });
+    }
+
+    sortReminderDrafts();
+    renderReminderDrafts();
+    resetReminderComposer();
+}
+
+function renderReminderDrafts() {
+    const section = document.getElementById('reminder-list-section');
+    const list = document.getElementById('reminder-list');
+    const addMoreButton = document.getElementById('reminder-add-more-btn');
+
+    if (_reminderDrafts.length === 0) {
+        section.classList.add('hidden');
+        list.innerHTML = '';
+        updateReminderActionButtons();
+        return;
+    }
+
+    section.classList.remove('hidden');
+    list.innerHTML = _reminderDrafts.map((reminder, index) => renderReminderDraftItem(reminder, index)).join('');
+
+    const canAddMore = getReminderAvailableSlots() > 0;
+    addMoreButton.disabled = !canAddMore;
+    addMoreButton.classList.toggle('text-green-500', canAddMore);
+    addMoreButton.classList.toggle('hover:text-green-600', canAddMore);
+    addMoreButton.classList.toggle('text-green-300', !canAddMore);
+    addMoreButton.classList.toggle('cursor-not-allowed', !canAddMore);
+    addMoreButton.classList.toggle('pointer-events-none', !canAddMore);
+
+    updateReminderActionButtons();
+}
+
+function renderReminderDraftItem(reminder, index) {
+    const reminderDate = parseReminderDateTime(reminder.scheduled_at);
+    const dateLabel = getReminderDateLabel(reminderDate);
+    const timeLabel = reminderDate.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+    });
+
+    let actions = '';
+    if (reminder.status === 'pending') {
+        actions = `
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="editReminderDraft('${reminder.key}')" class="text-gray-400 hover:text-gray-700" aria-label="Edit reminder">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                </button>
+                <button type="button" onclick="deleteReminderDraft('${reminder.key}')" class="text-red-400 hover:text-red-600" aria-label="Delete reminder">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8" />
+                    </svg>
+                </button>
+            </div>`;
+    }
+
+    const sentLabel = reminder.status === 'sent'
+        ? '<span class="text-xs italic text-blue-500">(Sent)</span>'
+        : '';
+
+    return `
+        <div class="border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
+            <div class="flex items-start justify-between gap-3">
+                <div class="text-sm text-gray-800 leading-6">
+                    <span class="font-medium mr-2">${index + 1}.</span>${dateLabel}
+                    <span class="text-gray-400 mx-1">|</span>
+                    <span class="text-orange-500">${timeLabel}</span>
+                    ${sentLabel}
+                </div>
+                ${actions}
+            </div>
+        </div>`;
+}
+
+function getReminderDateLabel(reminderDate) {
+    if (!(reminderDate instanceof Date) || Number.isNaN(reminderDate.getTime())) {
+        return '-';
+    }
+
+    const today = new Date();
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const tomorrowOnly = new Date(todayOnly);
+    tomorrowOnly.setDate(tomorrowOnly.getDate() + 1);
+    const reminderOnly = new Date(reminderDate.getFullYear(), reminderDate.getMonth(), reminderDate.getDate());
+
+    if (reminderOnly.getTime() === todayOnly.getTime()) {
+        return 'Today';
+    }
+
+    if (reminderOnly.getTime() === tomorrowOnly.getTime()) {
+        return 'Tomorrow';
+    }
+
+    return reminderDate.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
+}
+
+function editReminderDraft(reminderKey) {
+    const reminder = _reminderDrafts.find(item => item.key === reminderKey && item.status === 'pending');
+    if (!reminder) {
+        return;
+    }
+
+    resetReminderComposer();
+    _editingReminderKey = reminderKey;
+    document.getElementById('save-reminder-draft-text').textContent = 'Update Reminder';
+
+    const scheduledDate = parseReminderDateTime(reminder.scheduled_at);
+    if (!(scheduledDate instanceof Date) || Number.isNaN(scheduledDate.getTime())) {
+        showActionMessage('Unable to edit this reminder because its date/time is invalid.', 'error');
+        return;
+    }
+    const today = new Date();
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const tomorrowOnly = new Date(todayOnly);
+    tomorrowOnly.setDate(tomorrowOnly.getDate() + 1);
+    const scheduledOnly = new Date(scheduledDate.getFullYear(), scheduledDate.getMonth(), scheduledDate.getDate());
+
+    if (scheduledOnly.getTime() === todayOnly.getTime()) {
+        selectReminderDay('today');
+    } else if (scheduledOnly.getTime() === tomorrowOnly.getTime()) {
+        selectReminderDay('tomorrow');
+    } else {
+        selectReminderDay('custom');
+        document.getElementById('reminder-custom-date').value = `${scheduledDate.getFullYear()}-${String(scheduledDate.getMonth() + 1).padStart(2, '0')}-${String(scheduledDate.getDate()).padStart(2, '0')}`;
+    }
+
+    const timeValue = `${String(scheduledDate.getHours()).padStart(2, '0')}:${String(scheduledDate.getMinutes()).padStart(2, '0')}`;
+    if (['08:00', '10:00', '12:00'].includes(timeValue)) {
+        selectReminderTime(timeValue);
+    } else {
+        document.getElementById('reminder-custom-time').value = timeValue;
+        toggleCustomTimeInput();
+        applyCustomTime(timeValue);
+    }
+
+    updateReminderActionButtons();
+}
+
+function deleteReminderDraft(reminderKey) {
+    const reminder = _reminderDrafts.find(item => item.key === reminderKey);
+    if (!reminder) {
+        return;
+    }
+
+    const reminderDate = parseReminderDateTime(reminder.scheduled_at);
+    const label = reminderDate && !Number.isNaN(reminderDate.getTime())
+        ? `${getReminderDateLabel(reminderDate)} ${reminderDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}`
+        : 'this reminder';
+
+    if (!window.confirm(`Are you sure you want to delete ${label}?`)) {
+        return;
+    }
+
+    _reminderDrafts = _reminderDrafts.filter(reminder => reminder.key !== reminderKey);
+    if (_editingReminderKey === reminderKey) {
+        resetReminderComposer();
+    }
+    renderReminderDrafts();
+}
+
+async function confirmSendReminder() {
+    if (_editingReminderKey !== null) {
+        showActionMessage('Please save the edited reminder before scheduling.', 'error');
+        return;
+    }
+
+    if (buildReminderDateFromSelection()) {
+        showActionMessage('Please save the current reminder before scheduling.', 'error');
+        return;
+    }
+
+    const pendingReminders = getPendingReminderDrafts().map(reminder => {
+        const reminderDate = parseReminderDateTime(reminder.scheduled_at);
+
+        return {
+            scheduled_at: reminderDate ? formatReminderPayloadDate(reminderDate) : reminder.scheduled_at,
+        };
+    });
+
+    if (pendingReminders.length === 0) {
+        showActionMessage('Add at least one reminder before scheduling.', 'error');
+        return;
+    }
+
+    document.getElementById('reminder-btn-text').classList.add('hidden');
+    document.getElementById('reminder-spinner').classList.remove('hidden');
+    document.getElementById('send-reminder-btn').disabled = true;
 
     try {
         const response = await fetch(`${API_URL}/bookings/${bookingId}/send-reminder`, {
             method: 'POST',
             headers: {
-               'Accept': 'application/json',
-                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            credentials: 'same-origin'
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                scheduled_reminders: pendingReminders
+            })
         });
 
         if (response.ok) {
-            showActionMessage('✅ Reminder sent successfully!', 'success');
-            loadBookingDetails();
-        } else if (response.status === 429) {
-            showActionMessage('⏰ You have already sent a reminder recently. Please wait 12 hours before sending another.', 'error');
-        } else if (response.status === 400) {
+            const result = await response.json();
+            if (currentBooking) {
+                currentBooking.scheduled_reminders = result?.data?.scheduled_reminders || [];
+                currentBooking.remaining_reminder_slots = Number(result?.data?.remaining_reminder_slots ?? 0);
+            }
+            closeReminderModal();
+            const slotsLeft = getReminderAvailableSlots();
+            const successAddMoreBtn = document.getElementById('success-add-more-btn');
+            if (successAddMoreBtn) {
+                successAddMoreBtn.classList.toggle('hidden', slotsLeft <= 0);
+            }
+            document.getElementById('reminder-success-modal').classList.remove('hidden');
+            await loadBookingDetails();
+        } else if (response.status === 400 || response.status === 422 || response.status === 429) {
             const error = await response.json();
-            showActionMessage(error.message || 'Cannot send reminder', 'error');
+            showActionMessage(error.message || 'Cannot schedule reminder', 'error');
+            await loadBookingDetails();
         } else {
             const error = await response.json();
-            showActionMessage(error.message || 'Error sending reminder', 'error');
+            showActionMessage(error.message || 'Error scheduling reminder', 'error');
         }
-    } catch (error) {
-        console.error('Error:', error);
+    } catch (err) {
+        console.error('scheduleReminder error:', err);
         showActionMessage('Network error. Please try again.', 'error');
+    } finally {
+        document.getElementById('reminder-btn-text').classList.remove('hidden');
+        document.getElementById('reminder-spinner').classList.add('hidden');
+        document.getElementById('send-reminder-btn').disabled = false;
     }
 }
 
@@ -665,12 +1439,20 @@ function getPaymentStatusColor(status) {
 document.addEventListener('click', function(event) {
     const markPaidModal = document.getElementById('mark-paid-modal');
     const releaseModal = document.getElementById('release-modal');
-    
+    const reminderModal = document.getElementById('send-reminder-modal');
+    const reminderSuccessModal = document.getElementById('reminder-success-modal');
+
     if (event.target === markPaidModal) {
         closeMarkPaidModal();
     }
     if (event.target === releaseModal) {
         closeReleaseModal();
+    }
+    if (event.target === reminderModal) {
+        closeReminderModal();
+    }
+    if (event.target === reminderSuccessModal) {
+        closeReminderSuccessModal();
     }
 });
 </script>
