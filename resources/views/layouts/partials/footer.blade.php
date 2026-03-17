@@ -35,7 +35,7 @@
             <div>
                 <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider">Contact</h3>
                 <ul class="mt-4 space-y-2 text-sm text-gray-600">
-                    <li>Email: support@oohapp.com</li>
+                    <li>Email: <a href="mailto:support@oohapp.com">support&#64;oohapp&#46;com</a></li>
                     <li>Phone: +91 1234567890</li>
                 </ul>
             </div>

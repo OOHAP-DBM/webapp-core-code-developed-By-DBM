@@ -44,13 +44,11 @@
 
     {{-- ── Fonts (preconnect first to avoid extra round-trips) ──────── --}}
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap"></noscript>
 
     {{-- ── CSS (non-blocking order: base → icons → datepicker) ──────── --}}
-    @vite(['resources/css/app.css'])
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 
     {{-- ── Google Analytics (async — does NOT block render) ──────────── --}}
@@ -128,10 +126,7 @@
     @stack('scripts')
 
     {{-- JS loaded at end of body to avoid render-blocking --}}
-    @vite(['resources/js/app.js'])
-    <script defer src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    {{-- All JS is now bundled via Vite --}}
 
     <script>
         (function () {

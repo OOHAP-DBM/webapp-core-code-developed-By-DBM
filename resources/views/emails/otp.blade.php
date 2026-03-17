@@ -105,7 +105,7 @@
     <p style="margin:8px 0 0 0; color:#666; font-size:14px;">
         Contact us at
         <a href="mailto:care@oohapp.com" style="color:#2563eb; text-decoration:none;">
-            care@oohapp.com
+            care&#64;oohapp&#46;com
         </a>
     </p>
 </td>
