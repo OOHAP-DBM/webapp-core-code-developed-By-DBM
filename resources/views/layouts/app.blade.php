@@ -4,195 +4,107 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/png" href="/assets/images/favicon/Vector (1).png" />
-    <title>Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP</title>
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <meta name="description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.">
+
+    {{-- Dynamic page title: child views can override via @section('title', '...') --}}
+    <title>@yield('title', 'Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP')</title>
+
+    {{-- ── SEO Meta ──────────────────────────────────────────────── --}}
+    <meta name="description" content="@yield('meta_description', 'Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.')">
     <meta name="keywords" content="outdoor advertising India, billboard advertising India, hoarding advertising India, outdoor media booking, OOH advertising platform, billboard booking India">
-    <meta name="robots" content="index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large">
+    <meta name="robots" content="@yield('meta_robots', 'index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large')">
     <meta name="author" content="OOHAPP">
+    <meta name="google-site-verification" content="Cj2NPz4_gTnvaitO3OAv51DDtIaNmE1N4VIP6WiGlDM" />
 
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://oohapp.io/">
+    {{-- ── Canonical (dynamic — reflects the actual page URL sans query string) --}}
+    @php $canonicalUrl = url()->current(); @endphp
+    <link rel="canonical" href="{{ $canonicalUrl }}">
 
+    {{-- ── Favicon ────────────────────────────────────────────────── --}}
+    <link rel="icon"            type="image/png"  href="{{ asset('assets/images/favicon/Vector (1).png') }}">
+    <link rel="shortcut icon"                     href="{{ asset('assets/images/favicon/Vector (1).png') }}">
+    <link rel="apple-touch-icon"                  href="{{ asset('assets/images/favicon/Vector (1).png') }}">
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="https://oohapp.io/assets/images/favicon/Vector%20(1).png">
-    <link rel="shortcut icon" href="https://oohapp.io/assets/images/favicon/Vector%20(1).png">
-    <link rel="apple-touch-icon" href="https://oohapp.io/assets/images/favicon/Vector%20(1).png">
+    {{-- ── Open Graph ─────────────────────────────────────────────── --}}
+    <meta property="og:type"        content="website">
+    <meta property="og:title"       content="@yield('og_title', 'Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP')">
+    <meta property="og:description" content="@yield('og_description', 'Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.')">
+    <meta property="og:url"         content="{{ $canonicalUrl }}">
+    <meta property="og:site_name"   content="OOHAPP">
+    <meta property="og:image"       content="{{ asset('assets/images/logo/logo_image.webp') }}">
+    <meta property="og:image:width" content="600">
+    <meta property="og:image:height" content="120">
 
-    <!-- Open Graph for Social Media -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP">
-    <meta property="og:description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.">
-    <meta property="og:url" content="https://oohapp.io/">
-    <meta property="og:site_name" content="OOHAPP">
-    <meta property="og:image" content="https://oohapp.io/assets/images/logo/logo_image.jpeg">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+    {{-- ── Twitter Card ────────────────────────────────────────────── --}}
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:site"        content="@oohapp">
+    <meta name="twitter:creator"     content="@oohapp">
+    <meta name="twitter:title"       content="@yield('twitter_title', 'Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP')">
+    <meta name="twitter:description" content="@yield('twitter_description', 'Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations and launch campaigns instantly.')">
+    <meta name="twitter:image"       content="{{ asset('assets/images/logo/logo_image.webp') }}">
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@oohapp">
-    <meta name="twitter:creator" content="@oohapp">
-    <meta name="twitter:title" content="Outdoor Advertising in India | Book Billboard & Hoarding Ads | OOHAPP">
-    <meta name="twitter:description" content="Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations and launch campaigns instantly.">
-    <meta name="twitter:image" content="https://oohapp.io/assets/images/logo/logo_image.jpeg">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    
-    <!-- Scripts & Styles -->
+    {{-- ── Fonts (preconnect first to avoid extra round-trips) ──────── --}}
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap"></noscript>
+
+    {{-- ── CSS (non-blocking order: base → icons → datepicker) ──────── --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ST51N3C0N6"></script>
 
-   
+    {{-- ── Google Analytics (async — does NOT block render) ──────────── --}}
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ST51N3C0N6"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
         gtag('config', 'G-ST51N3C0N6');
     </script>
-    <meta name="google-site-verification" content="Cj2NPz4_gTnvaitO3OAv51DDtIaNmE1N4VIP6WiGlDM" />
 
-    
+    {{-- ── Structured Data (JSON-LD) ──────────────────────────────────── --}}
     @verbatim
-        <script type="application/ld+json">
-            {
-            "@context": "https://schema.org",
-            "@graph": [
-                {
-                "@type": "Organization",
-                "@id": "https://oohapp.io/#organization",
-                "name": "OOHAPP",
-                "url": "https://oohapp.io/",
-                "logo": {
-                    "@type": "ImageObject",
-                    "@id": "https://oohapp.io/#logo",
-                    "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png",
-                    "width": 512,
-                    "height": 512
-                },
-                "description": "Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.",
-                "telephone": "+91 8118805835",
-                "email": "info@oohapp.io",
-                "foundingDate": "2022",
-                "areaServed": {
-                    "@type": "Country",
-                    "name": "India"
-                },
-                "sameAs": [
-                    "https://www.linkedin.com/company/oohapp/",
-                    "https://twitter.com/oohapads",
-                    "https://www.instagram.com/realoohappofficial/",
-                    "https://www.facebook.com/profile.php?id=100083678822547"
-                ],
-                "address": {
-                    "@type": "PostalAddress",
-                    "streetAddress": "B 25, Vibhuti Khand, Gomti Nagar",
-                    "addressLocality": "Lucknow",
-                    "addressRegion": "Uttar Pradesh",
-                    "postalCode": "226010",
-                    "addressCountry": "IN"
-                },
-                "contactPoint": {
-                    "@type": "ContactPoint",
-                    "telephone": "+91 8118805835",
-                    "contactType": "customer support",
-                    "areaServed": "IN",
-                    "availableLanguage": ["English", "Hindi"]
-                }
-                },
-                {
-                "@type": "LocalBusiness",
-                "@id": "https://oohapp.io/#localbusiness",
-                "name": "OOHAPP",
-                "parentOrganization": {
-                    "@id": "https://oohapp.io/#organization"
-                },
-                "url": "https://oohapp.io/",
-                "image": {
-                    "@type": "ImageObject",
-                    "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png"
-                },
-                "telephone": "+91 8118805835",
-                "email": "info@oohapp.io",
-                "priceRange": "₹₹",
-                "currenciesAccepted": "INR",
-                "paymentAccepted": "Cash, Credit Card, UPI",
-                "address": {
-                    "@type": "PostalAddress",
-                    "streetAddress": "B 25, Vibhuti Khand, Gomti Nagar",
-                    "addressLocality": "Lucknow",
-                    "addressRegion": "Uttar Pradesh",
-                    "postalCode": "226010",
-                    "addressCountry": "IN"
-                },
-                "openingHoursSpecification": {
-                    "@type": "OpeningHoursSpecification",
-                    "dayOfWeek": [
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
-                    "Friday"
-                    ],
-                    "opens": "09:30",
-                    "closes": "18:30"
-                }
-                },
-                {
-                "@type": "WebSite",
-                "@id": "https://oohapp.io/#website",
-                "url": "https://oohapp.io/",
-                "name": "OOHAPP",
-                "publisher": {
-                    "@id": "https://oohapp.io/#organization"
-                },
-                "inLanguage": "en-IN",
-                "potentialAction": {
-                    "@type": "SearchAction",
-                    "target": "https://oohapp.io/search?q={search_term_string}",
-                    "query-input": "required name=search_term_string"
-                }
-                },
-                {
-                "@type": "WebPage",
-                "@id": "https://oohapp.io/#webpage",
-                "url": "https://oohapp.io/",
-                "name": "Book Outdoor Ads in India | Billboard & Hoarding | OOHAPP",
-                "isPartOf": {
-                    "@id": "https://oohapp.io/#website"
-                },
-                "about": {
-                    "@id": "https://oohapp.io/#organization"
-                },
-                "description": "Book billboard and hoarding ads across India with OOHAPP. Explore 1000+ outdoor advertising locations, compare prices, and launch your ad campaign instantly.",
-                "inLanguage": "en-IN",
-                "datePublished": "2023-01-01",
-                "dateModified": "2026-03-13",
-                "breadcrumb": {
-                    "@type": "BreadcrumbList",
-                    "itemListElement": [
-                    {
-                        "@type": "ListItem",
-                        "position": 1,
-                        "name": "Home",
-                        "item": "https://oohapp.io/"
-                    }
-                    ]
-                }
-                }
-            ]
-            }
-        </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://oohapp.io/#organization",
+          "name": "OOHAPP",
+          "url": "https://oohapp.io/",
+          "logo": {
+            "@type": "ImageObject",
+            "@id": "https://oohapp.io/#logo",
+            "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png",
+            "width": 512,
+            "height": 512
+          },
+          "telephone": "+91 8118805835",
+          "email": "info@oohapp.io",
+          "foundingDate": "2022",
+          "areaServed": { "@type": "Country", "name": "India" }
+        },
+        {
+          "@type": "LocalBusiness",
+          "@id": "https://oohapp.io/#localbusiness",
+          "name": "OOHAPP",
+          "parentOrganization": { "@id": "https://oohapp.io/#organization" },
+          "url": "https://oohapp.io/",
+          "image": { "@type": "ImageObject", "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png" },
+          "telephone": "+91 8118805835",
+          "email": "info@oohapp.io",
+          "priceRange": "INR"
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://oohapp.io/#website",
+          "url": "https://oohapp.io/",
+          "name": "OOHAPP"
+        }
+      ]
+    }
+    </script>
     @endverbatim
-    
+
 </head>
 <body class="antialiased">
     <div id="app" class="min-h-screen bg-white">
@@ -200,7 +112,7 @@
         @include('layouts.partials.header') --}}
 
         <!-- Main Content -->
-        <main class="md:pt-16 mt-20 md:mt-5">
+        <main class="md:mt-16 mt-28 md:mt-5">
             @yield('content')
         </main>
 
@@ -212,8 +124,9 @@
 
     @stack('modals')
     @stack('scripts')
-   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    {{-- JS loaded at end of body to avoid render-blocking --}}
+    {{-- All JS is now bundled via Vite --}}
 
     <script>
         (function () {

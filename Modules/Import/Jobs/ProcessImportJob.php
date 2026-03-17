@@ -174,8 +174,31 @@ class ProcessImportJob implements ShouldQueue
      */
     protected function processRow(array $row): void
     {
+        // Integrate duplicate detection
+        $duplicateService = app(\App\Services\HoardingDuplicateService::class);
+        $duplicate = $duplicateService->checkDuplicate($row);
+
+        if ($duplicate) {
+            // Log duplicate, collect for report, skip creation
+            \Log::info('Duplicate hoarding skipped', [
+                'hoarding_id' => $duplicate->id,
+                'title' => $duplicate->title,
+                'city' => $duplicate->city,
+                'locality' => $duplicate->locality,
+            ]);
+            // Optionally: collect duplicates in a property for later UI/report
+            // $this->skippedDuplicates[] = [
+            //     'status' => 'duplicate',
+            //     'message' => "Duplicate hoarding skipped (Already exists in {$duplicate->city} - {$duplicate->locality})",
+            //     'hoarding_id' => $duplicate->id,
+            //     'title' => $duplicate->title
+            // ];
+            return;
+        }
+
         // Implement your row processing logic here
         // This is a placeholder method
         \Log::info('Processing import row', ['row' => $row]);
+        // Proceed with creation logic here
     }
 }

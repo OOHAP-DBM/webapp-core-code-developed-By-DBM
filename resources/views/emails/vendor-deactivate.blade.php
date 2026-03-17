@@ -108,7 +108,7 @@
     </div>
 
     <p>
-        Support Email: <strong>support@oohapp.com</strong>
+        Support Email: <a href="mailto:support@oohapp.com">support&#64;oohapp&#46;com</a>
     </p>
 
     <p>

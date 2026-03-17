@@ -1,7 +1,7 @@
 @include('vendor.pos.components.pos-timer-notification')
 @extends($posLayout ?? 'layouts.vendor')
 
-@section('title', 'POS Dashboard')
+@section('title', 'POS Overview')
 @include('vendor.pos.components.pos-timer-notification')
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
@@ -18,8 +18,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#1D1D1D]">Welcome, {{ Auth::user()->name }}</h2>
-            <p class="text-sm text-gray-500 font-medium">POS Dashboard</p>
+            <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#1D1D1D]">Welcome back, {{ Auth::user()->name }}</h2>
+            <p class="text-lg text-gray-500 font-medium">POS Overview</p>
         </div>
         <button class="w-full sm:w-auto bg-[#1D1D1D] text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded shadow-sm text-sm font-medium">POS</button>
     </div>
@@ -50,7 +50,7 @@
                 </svg>
             </div>
            <div>
-                <h6 class="text-sm opacity-80">Total Revenue</h6>
+                <h6 class="text-sm opacity-80">Total Revenue Collected</h6>
                 <h2 id="total-revenue" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
         </a>
@@ -64,7 +64,7 @@
                 </svg>
             </div>
            <div>
-                <h6 class="text-sm opacity-80">Pending Payments</h6>
+                <h6 class="text-sm opacity-80">Outstanding Payments</h6>
                 <h2 id="pending-payments" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
         </a>
@@ -78,7 +78,7 @@
                 </svg>
             </div>
            <div>
-                <h6 class="text-sm opacity-80">Total Customers</h6>
+                <h6 class="text-sm opacity-80">Active Customers</h6>
                 <h2 id="total-customers" class="text-xl sm:text-2xl lg:text-3xl font-semibold">-</h2>
            </div>
         </a>
@@ -90,7 +90,7 @@
             href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.create') }}"
             class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg btn-color text-white text-sm font-medium transition"
         >
-            + Create New POS Booking
+            + Create Booking
         </a>
 
         <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.list') }}"
@@ -120,14 +120,14 @@
             <table class="w-full text-xs sm:text-sm" style="min-width: 880px;">
                 <thead class="bg-gray-100 text-gray-600">
                     <tr>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Invoice</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Customer</th>
-                        <th class="px-4 py-3 text-center whitespace-nowrap">Total Hoardings</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Booking Date</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Amount</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Payment</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Status</th>
-                        <th class="px-4 py-3 text-left whitespace-nowrap">Action</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Invoice ID</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Customer Name</th>
+                        <th class="px-4 py-3 text-center whitespace-nowrap">Hoardings Booked</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Booking Date & Time</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Total Amount</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Payment Status</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Booking Status</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="recent-bookings-body" class="">
@@ -148,14 +148,14 @@
         <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-yellow-50">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h5 class="text-lg font-semibold text-yellow-800">Pending Payment</h5>
+                    <h5 class="text-lg font-semibold text-yellow-800">Pending Payment Alerts</h5>
                     <p class="text-sm text-yellow-700">Bookings with pending payment that need attention</p>
                 </div>
                 <div class="w-full sm:w-72">
                     <input
                         id="pending-payments-search"
                         type="text"
-                        placeholder="Search invoice/customer/phone"
+                        placeholder="Search by Invoice ID, Customer Name, or Phone Number"
                         class="w-full px-3 py-2 text-sm border border-yellow-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-300"
                     >
                 </div>
@@ -166,14 +166,14 @@
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-100 text-gray-600">
                     <tr>
-                        <th class="px-4 py-3 text-left">Invoice</th>
-                        <th class="px-4 py-3 text-left">Customer</th>
+                        <th class="px-4 py-3 text-left">Invoice ID</th>
+                        <th class="px-4 py-3 text-left">Customer Name</th>
                         <th class="px-4 py-3 text-left">Booking Status</th>
                         <th class="px-4 py-3 text-left">Total Amount</th>
-                        <th class="px-4 py-3 text-left">Paid Amount</th>
-                        <th class="px-4 py-3 text-left">Balance Amount</th>
-                        <th class="px-4 py-3 text-left">Pending Since</th>
-                        <th class="px-4 py-3 text-left">Action</th>
+                        <th class="px-4 py-3 text-left">Amount Paid</th>
+                        <th class="px-4 py-3 text-left">Outstanding Balance</th>
+                        <th class="px-4 py-3 text-left">Days Pending</th>
+                        <th class="px-4 py-3 text-left">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="pending-payments-body" class="">
@@ -196,6 +196,513 @@
 const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
 window.POS_BASE_PATH = POS_BASE_PATH;
 
+// document.addEventListener('DOMContentLoaded', function () {
+
+//     const pendingPaymentsState = {
+//         page: 1,
+//         perPage: 5,
+//         search: '',
+//         lastPage: 1,
+//         total: 0,
+//     };
+
+//     const bookingsState = {
+//         page: 1,
+//         perPage: 10,
+//         period: '1m',
+//         lastPage: 1,
+//         total: 0,
+//     };
+
+//     // Helper: Fetch with session auth
+//     const fetchJSON = async (url) => {
+//         const res = await fetch(url, {
+//             credentials: 'same-origin',
+//             headers: {
+//                 'Accept': 'application/json',
+//                 'X-Requested-With': 'XMLHttpRequest',
+//             }
+//         });
+
+//         if (!res.ok) {
+//             throw { status: res.status, message: 'Failed to fetch' };
+//         }
+
+//         return res.json();
+//     };
+
+//     // Helper: Format date to DD/MM/YYYY HH:mm
+//     function formatDateTime(dateStr) {
+//         if (!dateStr) return 'N/A';
+//         const date = new Date(dateStr);
+//         if (isNaN(date.getTime())) return dateStr;
+        
+//         const day = String(date.getDate()).padStart(2, '0');
+//         const month = String(date.getMonth() + 1).padStart(2, '0');
+//         const year = date.getFullYear();
+//         const hour = String(date.getHours()).padStart(2, '0');
+//         const minute = String(date.getMinutes()).padStart(2, '0');
+        
+//         return `${day}/${month}/${year} ${hour}:${minute}`;
+//     }
+
+//     // Load dashboard statistics
+//     fetchJSON(`${POS_BASE_PATH}/api/dashboard`)
+//         .then(data => {
+//             if (data.success) {
+//                 document.getElementById('total-bookings').textContent = data.data.total_bookings;
+//                 document.getElementById('total-revenue').textContent = '₹' + data.data.total_revenue.toLocaleString();
+//                 document.getElementById('pending-payments').textContent = '₹' + data.data.pending_payments.toLocaleString();
+//                 document.getElementById('total-customers').textContent = data.data.total_customers;
+//             }
+//         })
+//         .catch(err => console.warn('Could not load dashboard stats:', err));
+
+//     // Load recent bookings
+//     function renderBookingsPagination() {
+//         const container = document.getElementById('recent-bookings-pagination');
+//         if (!container) return;
+
+//         const current = Number(bookingsState.page || 1);
+//         const last = Number(bookingsState.lastPage || 1);
+//         const total = Number(bookingsState.total || 0);
+//         const perPage = Number(bookingsState.perPage || 10);
+
+//         if (total === 0) {
+//             container.innerHTML = '';
+//             return;
+//         }
+
+//         const startRecord = ((current - 1) * perPage) + 1;
+//         const endRecord = Math.min(current * perPage, total);
+
+//         const pages = [];
+//         if (last <= 5) {
+//             for (let i = 1; i <= last; i++) {
+//                 pages.push(i);
+//             }
+//         } else if (current <= 5) {
+//             for (let i = 1; i <= 5; i++) {
+//                 pages.push(i);
+//             }
+//             pages.push(last);
+//         } else if (current >= last - 4) {
+//             pages.push(1);
+//             for (let i = last - 4; i <= last; i++) {
+//                 pages.push(i);
+//             }
+//         } else {
+//             pages.push(1, current - 1, current, current + 1, last);
+//         }
+
+//         const normalizedPages = [...new Set(
+//             pages.filter((page) => page >= 1 && page <= last)
+//         )].sort((a, b) => a - b);
+
+//         let pageButtons = '';
+//         let previousPage = null;
+
+//         normalizedPages.forEach((page) => {
+//             if (previousPage !== null && page - previousPage > 1) {
+//                 pageButtons += '<span class="text-gray-400">...</span>';
+//             }
+
+//             if (page === current) {
+//                 pageButtons += `
+//                     <button type="button" data-bookings-page="${page}"
+//                         class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md bg-[#00A86B] text-white"
+//                         aria-current="page">
+//                         ${page}
+//                     </button>`;
+//             } else {
+//                 pageButtons += `
+//                     <button type="button" data-bookings-page="${page}"
+//                         class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+//                         aria-label="Go to page ${page}">
+//                         ${page}
+//                     </button>`;
+//             }
+
+//             previousPage = page;
+//         });
+
+//         const previousButton = current <= 1
+//             ? `
+//                 <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+//                     <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+//                         <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+//                     </svg>
+//                 </span>
+//             `
+//             : `
+//                 <button type="button" data-bookings-page="${Math.max(1, current - 1)}"
+//                     class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+//                     aria-label="Previous page">
+//                     <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+//                         <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+//                     </svg>
+//                 </button>
+//             `;
+
+//         const nextButton = current >= last
+//             ? `
+//                 <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+//                     <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+//                         <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+//                     </svg>
+//                 </span>
+//             `
+//             : `
+//                 <button type="button" data-bookings-page="${Math.min(last, current + 1)}"
+//                     class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+//                     aria-label="Next page">
+//                     <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+//                         <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+//                     </svg>
+//                 </button>
+//             `;
+
+//         const pageNav = last > 1
+//             ? `
+//                 <nav role="navigation" aria-label="Pagination Navigation" class="overflow-x-auto">
+//                     <div class="inline-flex items-center gap-3 whitespace-nowrap text-sm font-medium select-none">
+//                         ${previousButton}
+//                         ${pageButtons}
+//                         ${nextButton}
+//                     </div>
+//                 </nav>
+//             `
+//             : '';
+
+//         container.innerHTML = `
+//             <div class="bg-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-100 text-sm text-gray-600">
+//                 <div class="font-medium">Showing ${startRecord} - ${endRecord} of ${total}</div>
+//                 <div>${pageNav}</div>
+//             </div>
+//         `;
+
+//         container.querySelectorAll('[data-bookings-page]').forEach((button) => {
+//             button.addEventListener('click', () => {
+//                 const nextPage = Number(button.getAttribute('data-bookings-page') || current);
+//                 loadRecentBookings(undefined, nextPage);
+//             });
+//         });
+//     }
+
+//     function loadRecentBookings(period, page) {
+//         if (period !== undefined) bookingsState.period = period;
+//         if (page !== undefined) bookingsState.page = page;
+
+//         const tbody = document.getElementById('recent-bookings-body');
+//         tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">Loading...</td></tr>`;
+//         const params = new URLSearchParams({ per_page: String(bookingsState.perPage), page: String(bookingsState.page) });
+//         if (bookingsState.period) params.set('period', bookingsState.period);
+//         fetchJSON(`${POS_BASE_PATH}/api/bookings?${params.toString()}`)
+//         .then(data => {
+//             const bookings = data?.data?.data;
+//             bookingsState.lastPage = data?.data?.last_page || 1;
+//             bookingsState.total = data?.data?.total || 0;
+//             bookingsState.page = data?.data?.current_page || bookingsState.page;
+
+//     // Make select box functional
+//     window.filterBookingsByRange = function() {
+//         const select = document.getElementById('bookingRangeSelect');
+//         const range = select.value;
+//         loadRecentBookings(range);
+//     };
+
+//                 bookings.forEach(b => {
+//                     const invoiceNumber = b.invoice_number || 'N/A';
+//                     const customerName = b.customer_name || 'N/A';
+//                     const hoardingsCount = Array.isArray(b.hoardings) ? b.hoardings.length : (b.hoardings_count ?? 1);
+//                     const bookingDate = formatDateTime(b.created_at);
+//                     const totalAmount = parseFloat(b.total_amount || 0).toLocaleString();
+
+//                     tbody.innerHTML += `
+//                     <tr class="hover:bg-gray-50">
+//                         <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${invoiceNumber}</td>
+//                         <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${customerName}</td>
+//                         <td class="px-3 py-3 sm:px-4 sm:py-3 font-bold text-gray-800 whitespace-nowrap text-center">${hoardingsCount}</td>
+//                         <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${bookingDate}</td>
+//                         <td class="px-3 py-3 sm:px-4 sm:py-3 font-medium whitespace-nowrap">₹${totalAmount}</td>
+//                         <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+//                             <span class="px-2 py-1 text-xs rounded-full ${paymentBadge(b.payment_status)}">
+//                                 ${paymentStatusLabel(b.payment_status)}
+//                             </span>
+//                         </td>
+//                         <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+//                             <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">
+//                                 ${bookingStatusLabel(b.status)}
+//                             </span>
+//                         </td>
+//                         <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+//                             <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm">
+//                                 View
+//                             </a>
+//                         </td>
+//                     </tr>`;
+//                 });
+//             } else {
+//                 tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
+//             }
+//             renderBookingsPagination();
+//         })
+//         .catch(err => console.warn('Could not load bookings:', err));
+//     }
+
+//     const bookingsPeriodFilter = document.getElementById('bookings_period_filter');
+//     if (bookingsPeriodFilter) {
+//         bookingsPeriodFilter.addEventListener('change', function () {
+//             loadRecentBookings(this.value, 1);
+//         });
+//     }
+
+//     loadRecentBookings('1m', 1);
+
+//     function renderPendingPaymentsPagination() {
+//         const container = document.getElementById('pending-payments-pagination');
+//         if (!container) return;
+
+//         const current = Number(pendingPaymentsState.page || 1);
+//         const last = Number(pendingPaymentsState.lastPage || 1);
+//         const total = Number(pendingPaymentsState.total || 0);
+//         const perPage = Number(pendingPaymentsState.perPage || 5);
+
+//         if (total === 0) {
+//             container.innerHTML = '';
+//             return;
+//         }
+
+//         const startRecord = ((current - 1) * perPage) + 1;
+//         const endRecord = Math.min(current * perPage, total);
+
+//         const pages = [];
+//         if (last <= 5) {
+//             for (let i = 1; i <= last; i++) {
+//                 pages.push(i);
+//             }
+//         } else if (current <= 5) {
+//             for (let i = 1; i <= 5; i++) {
+//                 pages.push(i);
+//             }
+//             pages.push(last);
+//         } else if (current >= last - 4) {
+//             pages.push(1);
+//             for (let i = last - 4; i <= last; i++) {
+//                 pages.push(i);
+//             }
+//         } else {
+//             pages.push(1, current - 1, current, current + 1, last);
+//         }
+
+//         const normalizedPages = [...new Set(
+//             pages.filter((page) => page >= 1 && page <= last)
+//         )].sort((a, b) => a - b);
+
+//         let pageButtons = '';
+//         let previousPage = null;
+
+//         normalizedPages.forEach((page) => {
+//             if (previousPage !== null && page - previousPage > 1) {
+//                 pageButtons += '<span class="text-gray-400">...</span>';
+//             }
+
+//             if (page === current) {
+//                 pageButtons += `
+//                     <button type="button" data-pending-page="${page}"
+//                         class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md bg-[#00A86B] text-white"
+//                         aria-current="page">
+//                         ${page}
+//                     </button>`;
+//             } else {
+//                 pageButtons += `
+//                     <button type="button" data-pending-page="${page}"
+//                         class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+//                         aria-label="Go to page ${page}">
+//                         ${page}
+//                     </button>`;
+//             }
+
+//             previousPage = page;
+//         });
+
+//         const previousButton = current <= 1
+//             ? `
+//                 <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+//                     <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+//                         <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+//                     </svg>
+//                 </span>
+//             `
+//             : `
+//                 <button type="button" data-pending-page="${Math.max(1, current - 1)}"
+//                     class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+//                     aria-label="Previous page">
+//                     <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+//                         <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+//                     </svg>
+//                 </button>
+//             `;
+
+//         const nextButton = current >= last
+//             ? `
+//                 <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+//                     <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+//                         <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+//                     </svg>
+//                 </span>
+//             `
+//             : `
+//                 <button type="button" data-pending-page="${Math.min(last, current + 1)}"
+//                     class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+//                     aria-label="Next page">
+//                     <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+//                         <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+//                     </svg>
+//                 </button>
+//             `;
+
+//         const pageNav = last > 1
+//             ? `
+//                 <nav role="navigation" aria-label="Pagination Navigation" class="overflow-x-auto">
+//                     <div class="inline-flex items-center gap-3 whitespace-nowrap text-sm font-medium select-none">
+//                         ${previousButton}
+//                         ${pageButtons}
+//                         ${nextButton}
+//                     </div>
+//                 </nav>
+//             `
+//             : '';
+
+//         container.innerHTML = `
+//             <div class="bg-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-100 text-sm text-gray-600">
+//                 <div class="font-medium">Showing ${startRecord}-${endRecord} of ${total}</div>
+//                 <div>${pageNav}</div>
+//             </div>
+//         `;
+
+//         container.querySelectorAll('[data-pending-page]').forEach((button) => {
+//             button.addEventListener('click', () => {
+//                 const nextPage = Number(button.getAttribute('data-pending-page') || current);
+//                 loadPendingPayments(nextPage);
+//             });
+//         });
+//     }
+
+//     function renderPendingPaymentsRows(rows) {
+//         const widget = document.getElementById('pending-payments-widget');
+//         const tbody = document.getElementById('pending-payments-body');
+//         if (!widget || !tbody) return;
+
+//         if (!rows.length) {
+//             if (pendingPaymentsState.search.trim() === '') {
+//                 widget.classList.add('hidden');
+//             } else {
+//                 widget.classList.remove('hidden');
+//             }
+
+//             tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No pending payments found</td></tr>`;
+//             renderPendingPaymentsPagination();
+//             return;
+//         }
+
+//         widget.classList.remove('hidden');
+//         tbody.innerHTML = '';
+
+//         rows.forEach(b => {
+//             const createdDate = new Date(b.created_at);
+//             const now = new Date();
+//             const daysPending = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+//             const totalAmount = parseFloat(b.total_amount || 0);
+//             const paidAmount = parseFloat(b.paid_amount || 0);
+//             const balanceAmount = Math.max(0, totalAmount - paidAmount);
+
+//             const daysText = `${daysPending} day${daysPending !== 1 ? 's' : ''} pending`;
+//             const rowClass = daysPending > 7
+//                 ? 'bg-red-100 border-l-4 border-red-600'
+//                 : (daysPending > 3 ? 'bg-red-50' : 'bg-yellow-50');
+
+//             tbody.innerHTML += `
+//                 <tr class="hidden sm:table-row ${rowClass}">
+//                     <td class="px-2 py-2 sm:px-4 sm:py-3 font-medium">${b.invoice_number || 'N/A'}</td>
+//                     <td class="px-2 py-2 sm:px-4 sm:py-3">${b.customer_name}</td>
+//                     <td class="px-2 py-2 sm:px-4 sm:py-3">
+//                         <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">${bookingStatusLabel(b.status || 'N/A')}</span>
+//                     </td>
+//                     <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold">₹${totalAmount.toLocaleString()}</td>
+//                     <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-green-700">₹${paidAmount.toLocaleString()}</td>
+//                     <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-red-700">₹${balanceAmount.toLocaleString()}</td>
+//                     <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-red-600">${daysText}</td>
+//                     <td class="px-2 py-2 sm:px-4 sm:py-3">
+//                         <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm font-medium">
+//                             Review & Mark as Paid
+//                         </a>
+//                     </td>
+//                 </tr>
+//                 <tr class="sm:hidden border-b border-gray-100">
+//                     <td colspan="8" class="px-3 py-3">
+//                         <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 space-y-1.5">
+//                             <div class="flex items-center justify-between gap-2">
+//                                 <p class="text-xs font-semibold text-gray-900">${b.invoice_number || 'N/A'}</p>
+//                                 <span class="px-2 py-0.5 text-[10px] rounded-full ${statusBadge(b.status)}">${bookingStatusLabel(b.status || 'N/A')}</span>
+//                             </div>
+//                             <p class="text-xs text-gray-700">${b.customer_name}</p>
+//                             <div class="flex items-center justify-between text-xs">
+//                                 <span class="font-semibold">Total: ₹${totalAmount.toLocaleString()}</span>
+//                                 <span class="font-semibold text-red-600">${daysText}</span>
+//                             </div>
+//                             <div class="flex items-center justify-between text-xs text-gray-700">
+//                                 <span>Paid: ₹${paidAmount.toLocaleString()}</span>
+//                                 <span>Balance: ₹${balanceAmount.toLocaleString()}</span>
+//                             </div>
+//                             <a href="${POS_BASE_PATH}/bookings/${b.id}" class="inline-flex text-xs text-blue-600 hover:underline font-medium">View & Mark Paid</a>
+//                         </div>
+//                     </td>
+//                 </tr>`;
+//         });
+
+//         renderPendingPaymentsPagination();
+//     }
+
+//     function loadPendingPayments(page = 1) {
+//         pendingPaymentsState.page = page;
+
+//         const params = new URLSearchParams({
+//             page: String(pendingPaymentsState.page),
+//             per_page: String(pendingPaymentsState.perPage),
+//             search: pendingPaymentsState.search,
+//         });
+
+//         fetchJSON(`${POS_BASE_PATH}/api/pending-payments?${params.toString()}`)
+//             .then(data => {
+//                 if (!data.success) {
+//                     return;
+//                 }
+
+//                 const pagination = data.pagination || {};
+//                 pendingPaymentsState.lastPage = pagination.last_page || 1;
+//                 pendingPaymentsState.total = pagination.total || 0;
+//                 pendingPaymentsState.page = pagination.current_page || 1;
+
+//                 renderPendingPaymentsRows(Array.isArray(data.data) ? data.data : []);
+//             })
+//             .catch(err => console.warn('Could not load pending payments:', err));
+//     }
+
+//     const pendingSearchInput = document.getElementById('pending-payments-search');
+//     if (pendingSearchInput) {
+//         let debounceTimer = null;
+//         pendingSearchInput.addEventListener('input', (event) => {
+//             clearTimeout(debounceTimer);
+//             debounceTimer = setTimeout(() => {
+//                 pendingPaymentsState.search = event.target.value || '';
+//                 loadPendingPayments(1);
+//             }, 300);
+//         });
+//     }
+
+//     loadPendingPayments(1);
+// });
 document.addEventListener('DOMContentLoaded', function () {
 
     const pendingPaymentsState = {
@@ -236,13 +743,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!dateStr) return 'N/A';
         const date = new Date(dateStr);
         if (isNaN(date.getTime())) return dateStr;
-        
+
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
         const hour = String(date.getHours()).padStart(2, '0');
         const minute = String(date.getMinutes()).padStart(2, '0');
-        
+
         return `${day}/${month}/${year} ${hour}:${minute}`;
     }
 
@@ -258,14 +765,15 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(err => console.warn('Could not load dashboard stats:', err));
 
-    // Load recent bookings
+    // ─── Bookings Pagination ───────────────────────────────────────────────────
+
     function renderBookingsPagination() {
         const container = document.getElementById('recent-bookings-pagination');
         if (!container) return;
 
         const current = Number(bookingsState.page || 1);
-        const last = Number(bookingsState.lastPage || 1);
-        const total = Number(bookingsState.total || 0);
+        const last    = Number(bookingsState.lastPage || 1);
+        const total   = Number(bookingsState.total || 0);
         const perPage = Number(bookingsState.perPage || 10);
 
         if (total === 0) {
@@ -274,29 +782,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const startRecord = ((current - 1) * perPage) + 1;
-        const endRecord = Math.min(current * perPage, total);
+        const endRecord   = Math.min(current * perPage, total);
 
         const pages = [];
         if (last <= 5) {
-            for (let i = 1; i <= last; i++) {
-                pages.push(i);
-            }
+            for (let i = 1; i <= last; i++) pages.push(i);
         } else if (current <= 5) {
-            for (let i = 1; i <= 5; i++) {
-                pages.push(i);
-            }
+            for (let i = 1; i <= 5; i++) pages.push(i);
             pages.push(last);
         } else if (current >= last - 4) {
             pages.push(1);
-            for (let i = last - 4; i <= last; i++) {
-                pages.push(i);
-            }
+            for (let i = last - 4; i <= last; i++) pages.push(i);
         } else {
             pages.push(1, current - 1, current, current + 1, last);
         }
 
         const normalizedPages = [...new Set(
-            pages.filter((page) => page >= 1 && page <= last)
+            pages.filter(p => p >= 1 && p <= last)
         )].sort((a, b) => a - b);
 
         let pageButtons = '';
@@ -306,80 +808,53 @@ document.addEventListener('DOMContentLoaded', function () {
             if (previousPage !== null && page - previousPage > 1) {
                 pageButtons += '<span class="text-gray-400">...</span>';
             }
-
             if (page === current) {
                 pageButtons += `
                     <button type="button" data-bookings-page="${page}"
                         class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md bg-[#00A86B] text-white"
-                        aria-current="page">
-                        ${page}
-                    </button>`;
+                        aria-current="page">${page}</button>`;
             } else {
                 pageButtons += `
                     <button type="button" data-bookings-page="${page}"
                         class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
-                        aria-label="Go to page ${page}">
-                        ${page}
-                    </button>`;
+                        aria-label="Go to page ${page}">${page}</button>`;
             }
-
             previousPage = page;
         });
 
         const previousButton = current <= 1
-            ? `
-                <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-            `
-            : `
-                <button type="button" data-bookings-page="${Math.max(1, current - 1)}"
+            ? `<span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none"><path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+               </span>`
+            : `<button type="button" data-bookings-page="${Math.max(1, current - 1)}"
                     class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
                     aria-label="Previous page">
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            `;
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none"><path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+               </button>`;
 
         const nextButton = current >= last
-            ? `
-                <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-            `
-            : `
-                <button type="button" data-bookings-page="${Math.min(last, current + 1)}"
+            ? `<span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none"><path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+               </span>`
+            : `<button type="button" data-bookings-page="${Math.min(last, current + 1)}"
                     class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
                     aria-label="Next page">
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            `;
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none"><path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+               </button>`;
 
         const pageNav = last > 1
-            ? `
-                <nav role="navigation" aria-label="Pagination Navigation" class="overflow-x-auto">
+            ? `<nav role="navigation" aria-label="Pagination Navigation" class="overflow-x-auto">
                     <div class="inline-flex items-center gap-3 whitespace-nowrap text-sm font-medium select-none">
-                        ${previousButton}
-                        ${pageButtons}
-                        ${nextButton}
+                        ${previousButton}${pageButtons}${nextButton}
                     </div>
-                </nav>
-            `
+               </nav>`
             : '';
 
         container.innerHTML = `
             <div class="bg-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-100 text-sm text-gray-600">
                 <div class="font-medium">Showing ${startRecord} - ${endRecord} of ${total}</div>
                 <div>${pageNav}</div>
-            </div>
-        `;
+            </div>`;
 
         container.querySelectorAll('[data-bookings-page]').forEach((button) => {
             button.addEventListener('click', () => {
@@ -389,61 +864,69 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ─── Load Recent Bookings ──────────────────────────────────────────────────
+
     function loadRecentBookings(period, page) {
         if (period !== undefined) bookingsState.period = period;
-        if (page !== undefined) bookingsState.page = page;
+        if (page !== undefined)   bookingsState.page   = page;
 
         const tbody = document.getElementById('recent-bookings-body');
         tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">Loading...</td></tr>`;
-        const params = new URLSearchParams({ per_page: String(bookingsState.perPage), page: String(bookingsState.page) });
+
+        const params = new URLSearchParams({
+            per_page: String(bookingsState.perPage),
+            page:     String(bookingsState.page),
+        });
         if (bookingsState.period) params.set('period', bookingsState.period);
+
         fetchJSON(`${POS_BASE_PATH}/api/bookings?${params.toString()}`)
-        .then(data => {
-            const bookings = data?.data?.data;
-            bookingsState.lastPage = data?.data?.last_page || 1;
-            bookingsState.total = data?.data?.total || 0;
-            bookingsState.page = data?.data?.current_page || bookingsState.page;
+            .then(data => {
+                const bookings = data?.data?.data;
 
-            if (data.success && Array.isArray(bookings) && bookings.length) {
-                tbody.innerHTML = '';
+                bookingsState.lastPage = data?.data?.last_page    || 1;
+                bookingsState.total    = data?.data?.total        || 0;
+                bookingsState.page     = data?.data?.current_page || bookingsState.page;
 
-                bookings.forEach(b => {
-                    const invoiceNumber = b.invoice_number || 'N/A';
-                    const customerName = b.customer_name || 'N/A';
-                    const hoardingsCount = Array.isArray(b.hoardings) ? b.hoardings.length : (b.hoardings_count ?? 1);
-                    const bookingDate = formatDateTime(b.created_at);
-                    const totalAmount = parseFloat(b.total_amount || 0).toLocaleString();
+                if (data.success && Array.isArray(bookings) && bookings.length) {
+                    tbody.innerHTML = '';
 
-                    tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${invoiceNumber}</td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${customerName}</td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 font-bold text-gray-800 whitespace-nowrap text-center">${hoardingsCount}</td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${bookingDate}</td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 font-medium whitespace-nowrap">₹${totalAmount}</td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs rounded-full ${paymentBadge(b.payment_status)}">
-                                ${paymentStatusLabel(b.payment_status)}
-                            </span>
-                        </td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">
-                                ${bookingStatusLabel(b.status)}
-                            </span>
-                        </td>
-                        <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
-                            <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm">
-                                View
-                            </a>
-                        </td>
-                    </tr>`;
-                });
-            } else {
-                tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
-            }
-            renderBookingsPagination();
-        })
-        .catch(err => console.warn('Could not load bookings:', err));
+                    bookings.forEach(b => {
+                        const invoiceNumber  = b.invoice_number || 'N/A';
+                        const customerName   = b.customer_name  || 'N/A';
+                        const hoardingsCount = Array.isArray(b.hoardings) ? b.hoardings.length : (b.hoardings_count ?? 1);
+                        const bookingDate    = formatDateTime(b.created_at);
+                        const totalAmount    = parseFloat(b.total_amount || 0).toLocaleString();
+
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${invoiceNumber}</td>
+                                <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${customerName}</td>
+                                <td class="px-3 py-3 sm:px-4 sm:py-3 font-bold text-gray-800 whitespace-nowrap text-center">${hoardingsCount}</td>
+                                <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">${bookingDate}</td>
+                                <td class="px-3 py-3 sm:px-4 sm:py-3 font-medium whitespace-nowrap">₹${totalAmount}</td>
+                                <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full ${paymentBadge(b.payment_status)}">
+                                        ${paymentStatusLabel(b.payment_status)}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">
+                                        ${bookingStatusLabel(b.status)}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-3 sm:px-4 sm:py-3 whitespace-nowrap">
+                                    <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm">View</a>
+                                </td>
+                            </tr>`;
+                    });
+
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No bookings found</td></tr>`;
+                }
+
+                renderBookingsPagination();
+            })
+            .catch(err => console.warn('Could not load bookings:', err));
     }
 
     const bookingsPeriodFilter = document.getElementById('bookings_period_filter');
@@ -455,13 +938,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     loadRecentBookings('1m', 1);
 
+    // ─── Pending Payments Pagination ──────────────────────────────────────────
+
     function renderPendingPaymentsPagination() {
         const container = document.getElementById('pending-payments-pagination');
         if (!container) return;
 
         const current = Number(pendingPaymentsState.page || 1);
-        const last = Number(pendingPaymentsState.lastPage || 1);
-        const total = Number(pendingPaymentsState.total || 0);
+        const last    = Number(pendingPaymentsState.lastPage || 1);
+        const total   = Number(pendingPaymentsState.total || 0);
         const perPage = Number(pendingPaymentsState.perPage || 5);
 
         if (total === 0) {
@@ -470,29 +955,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const startRecord = ((current - 1) * perPage) + 1;
-        const endRecord = Math.min(current * perPage, total);
+        const endRecord   = Math.min(current * perPage, total);
 
         const pages = [];
         if (last <= 5) {
-            for (let i = 1; i <= last; i++) {
-                pages.push(i);
-            }
+            for (let i = 1; i <= last; i++) pages.push(i);
         } else if (current <= 5) {
-            for (let i = 1; i <= 5; i++) {
-                pages.push(i);
-            }
+            for (let i = 1; i <= 5; i++) pages.push(i);
             pages.push(last);
         } else if (current >= last - 4) {
             pages.push(1);
-            for (let i = last - 4; i <= last; i++) {
-                pages.push(i);
-            }
+            for (let i = last - 4; i <= last; i++) pages.push(i);
         } else {
             pages.push(1, current - 1, current, current + 1, last);
         }
 
         const normalizedPages = [...new Set(
-            pages.filter((page) => page >= 1 && page <= last)
+            pages.filter(p => p >= 1 && p <= last)
         )].sort((a, b) => a - b);
 
         let pageButtons = '';
@@ -502,80 +981,53 @@ document.addEventListener('DOMContentLoaded', function () {
             if (previousPage !== null && page - previousPage > 1) {
                 pageButtons += '<span class="text-gray-400">...</span>';
             }
-
             if (page === current) {
                 pageButtons += `
                     <button type="button" data-pending-page="${page}"
                         class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md bg-[#00A86B] text-white"
-                        aria-current="page">
-                        ${page}
-                    </button>`;
+                        aria-current="page">${page}</button>`;
             } else {
                 pageButtons += `
                     <button type="button" data-pending-page="${page}"
                         class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
-                        aria-label="Go to page ${page}">
-                        ${page}
-                    </button>`;
+                        aria-label="Go to page ${page}">${page}</button>`;
             }
-
             previousPage = page;
         });
 
         const previousButton = current <= 1
-            ? `
-                <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-            `
-            : `
-                <button type="button" data-pending-page="${Math.max(1, current - 1)}"
+            ? `<span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none"><path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+               </span>`
+            : `<button type="button" data-pending-page="${Math.max(1, current - 1)}"
                     class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
                     aria-label="Previous page">
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            `;
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none"><path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+               </button>`;
 
         const nextButton = current >= last
-            ? `
-                <span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-            `
-            : `
-                <button type="button" data-pending-page="${Math.min(last, current + 1)}"
+            ? `<span class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed" aria-hidden="true">
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none"><path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+               </span>`
+            : `<button type="button" data-pending-page="${Math.min(last, current + 1)}"
                     class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
                     aria-label="Next page">
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            `;
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none"><path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+               </button>`;
 
         const pageNav = last > 1
-            ? `
-                <nav role="navigation" aria-label="Pagination Navigation" class="overflow-x-auto">
+            ? `<nav role="navigation" aria-label="Pagination Navigation" class="overflow-x-auto">
                     <div class="inline-flex items-center gap-3 whitespace-nowrap text-sm font-medium select-none">
-                        ${previousButton}
-                        ${pageButtons}
-                        ${nextButton}
+                        ${previousButton}${pageButtons}${nextButton}
                     </div>
-                </nav>
-            `
+               </nav>`
             : '';
 
         container.innerHTML = `
             <div class="bg-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-100 text-sm text-gray-600">
-                <div class="font-medium">Showing ${startRecord}-${endRecord} of ${total}</div>
+                <div class="font-medium">Showing ${startRecord} - ${endRecord} of ${total}</div>
                 <div>${pageNav}</div>
-            </div>
-        `;
+            </div>`;
 
         container.querySelectorAll('[data-pending-page]').forEach((button) => {
             button.addEventListener('click', () => {
@@ -585,9 +1037,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ─── Render Pending Payment Rows ──────────────────────────────────────────
+
     function renderPendingPaymentsRows(rows) {
         const widget = document.getElementById('pending-payments-widget');
-        const tbody = document.getElementById('pending-payments-body');
+        const tbody  = document.getElementById('pending-payments-body');
         if (!widget || !tbody) return;
 
         if (!rows.length) {
@@ -596,7 +1050,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 widget.classList.remove('hidden');
             }
-
             tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No pending payments found</td></tr>`;
             renderPendingPaymentsPagination();
             return;
@@ -606,11 +1059,11 @@ document.addEventListener('DOMContentLoaded', function () {
         tbody.innerHTML = '';
 
         rows.forEach(b => {
-            const createdDate = new Date(b.created_at);
-            const now = new Date();
-            const daysPending = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
-            const totalAmount = parseFloat(b.total_amount || 0);
-            const paidAmount = parseFloat(b.paid_amount || 0);
+            const createdDate   = new Date(b.created_at);
+            const now           = new Date();
+            const daysPending   = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+            const totalAmount   = parseFloat(b.total_amount || 0);
+            const paidAmount    = parseFloat(b.paid_amount  || 0);
             const balanceAmount = Math.max(0, totalAmount - paidAmount);
 
             const daysText = `${daysPending} day${daysPending !== 1 ? 's' : ''} pending`;
@@ -631,7 +1084,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-red-600">${daysText}</td>
                     <td class="px-2 py-2 sm:px-4 sm:py-3">
                         <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm font-medium">
-                            View & Mark Paid
+                            Review & Mark as Paid
                         </a>
                     </td>
                 </tr>
@@ -660,25 +1113,25 @@ document.addEventListener('DOMContentLoaded', function () {
         renderPendingPaymentsPagination();
     }
 
+    // ─── Load Pending Payments ─────────────────────────────────────────────────
+
     function loadPendingPayments(page = 1) {
         pendingPaymentsState.page = page;
 
         const params = new URLSearchParams({
-            page: String(pendingPaymentsState.page),
+            page:     String(pendingPaymentsState.page),
             per_page: String(pendingPaymentsState.perPage),
-            search: pendingPaymentsState.search,
+            search:   pendingPaymentsState.search,
         });
 
         fetchJSON(`${POS_BASE_PATH}/api/pending-payments?${params.toString()}`)
             .then(data => {
-                if (!data.success) {
-                    return;
-                }
+                if (!data.success) return;
 
                 const pagination = data.pagination || {};
-                pendingPaymentsState.lastPage = pagination.last_page || 1;
-                pendingPaymentsState.total = pagination.total || 0;
-                pendingPaymentsState.page = pagination.current_page || 1;
+                pendingPaymentsState.lastPage = pagination.last_page    || 1;
+                pendingPaymentsState.total    = pagination.total        || 0;
+                pendingPaymentsState.page     = pagination.current_page || 1;
 
                 renderPendingPaymentsRows(Array.isArray(data.data) ? data.data : []);
             })

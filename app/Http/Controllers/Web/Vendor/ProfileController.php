@@ -343,13 +343,6 @@ class ProfileController extends Controller
 
     public function viewAvatar($userId)
     {
-        $authUser = Auth::user();
-        
-        // Only allow user to view their own avatar or admins to view any
-        if ($authUser->id != $userId && !$authUser->hasRole('admin')) {
-            abort(403);
-        }
-
         $user = User::find($userId);
 
         if (!$user || !$user->avatar) {
@@ -361,7 +354,7 @@ class ProfileController extends Controller
                 Storage::disk('private')->path($user->avatar),
                 [
                     'Content-Type' => 'image/jpeg',
-                    'Cache-Control' => 'private, max-age=3600',
+                    'Cache-Control' => 'public, max-age=3600',
                 ]
             );
         } catch (\Exception $e) {

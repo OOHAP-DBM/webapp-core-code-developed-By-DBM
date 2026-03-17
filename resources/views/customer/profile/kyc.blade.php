@@ -315,7 +315,7 @@
                         <li class="mb-2">KYC verification typically takes 24-48 hours</li>
                         <li class="mb-2">Ensure all uploaded documents are clear and legible</li>
                         <li class="mb-2">Document information must match your profile details</li>
-                        <li class="mb-2">Contact support if your verification is rejected: <a href="mailto:support@oohapp.com">support@oohapp.com</a></li>
+                        <li class="mb-2">Contact support if your verification is rejected: <a href="mailto:support@oohapp.com">support&#64;oohapp&#46;com</a></li>
                     </ul>
                 </div>
             </div>

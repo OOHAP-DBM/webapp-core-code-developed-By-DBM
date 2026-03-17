@@ -25,7 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\EnsureActiveRole::class,
-            \App\Http\Middleware\CheckVendorStatus::class, // 👈 Add this
+              \App\Http\Middleware\CheckVendorStatus::class,
+              \App\Http\Middleware\SecurityHeaders::class,    // SEO: security response headers
+              \App\Http\Middleware\CanonicalRedirect::class,  // SEO: enforce non-www + HTTPS
         ]);
 
         $middleware->api(prepend: [
