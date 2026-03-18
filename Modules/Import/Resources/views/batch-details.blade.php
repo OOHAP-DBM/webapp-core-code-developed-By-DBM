@@ -38,7 +38,7 @@
         @endif
     </div>
     <div class="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-        <div><span class="text-gray-500">Batch</span><p class="font-semibold">#{{ $batch->id }}</p></div>
+        <div><span class="text-gray-500">Inventory</span><p class="font-semibold">#{{ $batch->id }}</p></div>
         <div><span class="text-gray-500">Type</span><p class="font-semibold">{{ strtoupper($batch->media_type) }}</p></div>
         <div><span class="text-gray-500">Status</span><p class="font-semibold" id="batchStatusText">{{ $batch->status }}</p></div>
         <div><span class="text-gray-500">Valid Rows</span><p class="font-semibold" id="validCount">{{ $batch->valid_rows }}</p></div>
@@ -51,7 +51,7 @@
         <h2 class="text-lg font-semibold text-gray-900">Search & Filters</h2>
     </div>
     <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
-        <input id="searchInput" type="text" placeholder="Search by code / city / image" class="w-full min-h-[44px] border rounded-lg p-2" />
+        <input id="searchInput" type="text" placeholder="Search by city " class="w-full min-h-[44px] border rounded-lg p-2" />
         <select id="statusFilter" class="w-full min-h-[44px] border rounded-lg p-2">
             <option value="">All statuses</option>
             <option value="valid">valid</option>

@@ -27,21 +27,25 @@ class RatingController extends Controller
                         ->first();
 
         if($rating){
-
             $rating->update([
                 'rating' => $request->rating,
                 'review' => $request->review
             ]);
-
         }else{
-
             Rating::create([
                 'user_id' => $userId,
                 'hoarding_id' => $hoardingId,
                 'rating' => $request->rating,
                 'review' => $request->review
             ]);
+        }
 
+        // Notify vendor
+        $hoarding = \App\Models\Hoarding::find($hoardingId);
+        if ($hoarding && $hoarding->vendor) {
+            $vendor = $hoarding->vendor;
+            $customer = Auth::user();
+            $vendor->notify(new \App\Notifications\VendorHoardingRatedNotification($hoarding, $request->rating, $request->review, $customer));
         }
 
         return back()->with('success','Thanks For Rating.');

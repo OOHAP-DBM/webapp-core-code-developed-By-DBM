@@ -5,69 +5,64 @@
     
     <!-- Modal Container -->
     <div class="relative h-full flex items-center justify-center p-4 sm:p-6">
-        <div class="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
+        <div class="bg-white rounded-lg sm:rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
             
             <!-- Header - Sticky -->
-            <div class="bg-gradient-to-r from-[#009A5C] to-[#00b36b] px-4 sm:px-6 py-4 sm:py-5 text-white flex justify-between items-start sticky top-0 z-10 shadow-lg">
+            <div class="bg-gradient-to-r from-[#009A5C] to-[#00b36b] px-4 sm:px-5 py-3 sm:py-4 text-white flex justify-between items-start sticky top-0 z-10 shadow-lg">
                 <div class="flex-1">
-                    <h3 class="text-lg sm:text-xl font-bold mb-1">Get Your Hoarding Quote</h3>
-                    <p class="text-xs sm:text-sm opacity-90">Fill in your details and we'll connect you with the best options</p>
+                    <h3 class="text-base sm:text-lg font-bold mb-1">Get Your Hoarding Quote</h3>
+                    <p class="text-xs opacity-90">Fill in your details and we'll connect you with the best options</p>
                 </div>
                 <button onclick="closeDirectEnquiryModal()" 
-                        class="ml-3 text-white/80 hover:text-white hover:rotate-90 transition-all duration-300 text-2xl leading-none mt-1">
+                        class="ml-3 text-white/80 hover:text-white hover:rotate-90 transition-all duration-300 text-2xl leading-none mt-1 cursor-pointer">
                     &times;
                 </button>
             </div>
 
             <!-- Form - Scrollable -->
             <div class="flex-1 overflow-y-auto">
-                <form id="directEnquiryForm" action="{{ route('direct.enquiry.submit') }}" method="POST" class="p-4 sm:p-6 lg:p-8 space-y-5">
+                <form id="directEnquiryForm" action="{{ route('direct.enquiry.submit') }}" method="POST" class="p-4 sm:p-5 space-y-4">
                     @csrf
 
-                    <!-- Full Name -->
-                    <div class="form-group">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
-                            Your Full Name <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" 
-                               name="name" 
-                               id="nameInput"
-                               required 
-                               minlength="3"
-                               placeholder="e.g. Rajesh Kumar"
-                               class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
-                    </div>
-
-                    <!-- Phone with Auto-OTP -->
-                    <div class="form-group">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
-                            Mobile Number <span class="text-red-500">*</span>
-                        </label>
-                        <div class="relative">
-                            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">
-                                +91
-                            </div>
-                            <input type="tel" 
-                                   id="phoneInput" 
-                                   name="phone" 
-                                   required 
-                                   maxlength="10"
-                                   pattern="[6-9][0-9]{9}"
-                                   placeholder="10-digit mobile number" 
-                                   class="w-full pl-14 pr-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
-                            
-                            <!-- Verification Status Indicator -->
-                            <div id="phoneStatusIndicator" class="absolute right-3 top-1/2 -translate-y-1/2 hidden">
-                                <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
+                   <div class="form-group grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {{-- Full Name --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                                Your Full Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                name="name" 
+                                id="nameInput"
+                                required 
+                                minlength="3"
+                                placeholder="e.g. Rajesh Kumar"
+                                class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                         </div>
-                        <input type="hidden" id="phoneVerified" name="phone_verified" value="0">
-                        <!-- <p class="text-xs text-gray-500 mt-2">
-                            <span class="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse mr-1"></span>
-                            OTP will be sent automatically when you proceed
-                        </p> -->
+                        {{-- Phone with Auto-OTP --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                                Mobile Number <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">
+                                    +91
+                                </div>
+                                <input type="tel" 
+                                    id="phoneInput" 
+                                    name="phone" 
+                                    required 
+                                    maxlength="10"
+                                    pattern="[6-9][0-9]{9}"
+                                    placeholder="10-digit mobile number" 
+                                    class="w-full pl-14 pr-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                                <div id="phoneStatusIndicator" class="absolute right-3 top-1/2 -translate-y-1/2 hidden">
+                                    <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <input type="hidden" id="phoneVerified" name="phone_verified" value="0">
+                        </div>
                     </div>
 
                     <!-- Email (No Verification Required) -->
@@ -233,7 +228,7 @@
                     <button type="submit" 
                             id="submitBtn" 
                             disabled
-                            class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm sm:text-base">
+                            class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-3 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm sm:text-base">
                         <span id="submitBtnText">Submit Enquiry</span>
                     </button>
 

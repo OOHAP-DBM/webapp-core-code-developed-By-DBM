@@ -151,64 +151,74 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/auth/register",
-     *     tags={"Authentication"},
-     *     summary="Complete registration after OTP verification",
-     *     description="Registers user after OTP verification and issues access token",
+    *     path="/auth/register",
+    *     tags={"Authentication"},
+    *     summary="Complete registration after OTP verification",
+    *     description="Registers user after OTP verification, handles merge logic, and issues access token. If the user has previous data (e.g., guest cart or shortlist), the response will include 'should_merge' to indicate frontend should merge local data.",
      *
      *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"email","name","password","password_confirmation"},
+    *         required=true,
+    *         @OA\JsonContent(
+    *             required={"email","name","password","password_confirmation"},
+    *             @OA\Property(
+    *                 property="email",
+    *                 type="string",
+    *                 example="test@email.com",
+    *                 description="User email address or phone number used during OTP verification"
+    *             ),
+    *             @OA\Property(
+    *                 property="name",
+    *                 type="string",
+    *                 example="John Doe"
+    *             ),
+    *             @OA\Property(
+    *                 property="password",
+    *                 type="string",
+    *                 example="Password@123"
+    *             ),
+    *             @OA\Property(
+    *                 property="password_confirmation",
+    *                 type="string",
+    *                 example="Password@123"
+    *             ),
+    *             @OA\Property(
+    *                 property="role",
+    *                 type="string",
+    *                 enum={"customer","vendor"},
+    *                 example="customer",
+    *                 description="Allowed values: customer, vendor. Default is customer"
+    *             ),
+    *             @OA\Property(
+    *                 property="fcm_token",
+    *                 type="string",
+    *                 example="fcm_token_example",
+    *                 description="Optional. FCM token for push notifications."
+    *             )
+    *         )
+    *     ),
      *
-     *             @OA\Property(
-     *                  property="email",
-     *                 type="string",
-     *                 example="test@email.com",
-     *                 description="User email address or phone number used during OTP verification"
-     *             ),
-     *             @OA\Property(
-     *                 property="name",
-     *                 type="string",
-     *                 example="John Doe"
-     *             ),
-     *             @OA\Property(
-     *                 property="password",
-     *                 type="string",
-     *                 example="Password@123"
-     *             ),
-     *
-     *             @OA\Property(
-     *                 property="password_confirmation",
-     *                 type="string",
-     *                 example="Password@123"
-     *             ),
-     *
-     *             @OA\Property(
-     *                 property="role",
-     *                 type="string",
-     *                 enum={"customer","vendor"},
-     *                 example="customer",
-     *                 description="Allowed values: customer, vendor. Default is customer"
-     *             )
-     *         )
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=201,
-     *         description="Registration successful"
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=403,
-     *         description="OTP not verified"
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=404,
-     *         description="User not found"
-     *     )
-     * )
+    *     @OA\Response(
+    *         response=201,
+    *         description="Registration successful",
+    *         @OA\JsonContent(
+    *             @OA\Property(property="success", type="boolean", example=true),
+    *             @OA\Property(property="message", type="string", example="Registration complete!"),
+    *             @OA\Property(property="data", type="object",
+    *                 @OA\Property(property="user", type="object", description="User resource object"),
+    *                 @OA\Property(property="token", type="string", description="Access token"),
+    *                 @OA\Property(property="should_merge", type="boolean", description="Indicates if frontend should merge local data (cart, shortlist, etc.)", example=true)
+    *             )
+    *         )
+    *     ),
+    *     @OA\Response(
+    *         response=403,
+    *         description="OTP not verified"
+    *     ),
+    *     @OA\Response(
+    *         response=404,
+    *         description="User not found"
+    *     )
+    * )
      */
 
     // public function register(RegisterRequest $request): JsonResponse

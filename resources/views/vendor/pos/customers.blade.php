@@ -15,7 +15,9 @@
         <div class="px-3 sm:px-4 md:px-6 bg-primary rounded-t-xl">
             <div class="px-2 bg-primary rounded-t-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div class="pt-4 text-sm font-medium">
-                    Active Customers: <span class="font-bold">{{ $totalCustomers }}</span>
+                    Active Customers: <span class="font-bold">
+                        {{ collect($customers)->where('is_active', true)->count() }}
+                    </span>
                 </div>
                 <div class="pt-4 w-full sm:w-auto flex items-center gap-2">
                     <div class="flex flex-col sm:flex-row w-full gap-2">

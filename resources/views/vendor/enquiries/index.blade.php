@@ -3,7 +3,7 @@
     $layout = ($user && $user->hasRole('admin')) ? 'layouts.admin' : 'layouts.vendor';
 @endphp
 @extends($layout)
-@section('title', 'Enquiries')
+@section('title', 'All Enquiries')
 @section('content')
 <div x-data="{ openFilter: false, dateFilter: '{{ request('date_filter', 'all') }}',
     init() {
