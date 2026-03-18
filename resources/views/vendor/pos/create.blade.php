@@ -243,7 +243,7 @@
 ══════════════════════════════════════════════════════════════ --}}
 <div id="datePickerModal" class="fixed inset-0 flex items-center justify-center z-[60] hidden">
     <div class="bg-black/60 backdrop-blur-sm absolute inset-0" onclick="closeDatePickerModal()"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-[96vw] sm:w-full sm:max-w-[820px] z-10 flex flex-col max-h-[92vh] overflow-y-auto">
+    <div class="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-5 w-[94vw] sm:w-full sm:max-w-[760px] z-10 flex flex-col max-h-[92vh] overflow-y-auto lg:max-h-none lg:overflow-y-visible">
 
         {{-- Header --}}
         <div class="flex justify-between items-start mb-3 gap-3">
@@ -260,16 +260,16 @@
         </div>
 
         {{-- Duration / cost summary bar --}}
-        <div class="grid grid-cols-3 gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-3">
             <div>
                 <p class="text-[9px] text-emerald-600 font-bold uppercase tracking-wider mb-0.5">Period</p>
                 <p id="dp-range-label" class="text-[11px] font-black text-emerald-900 leading-tight">— Pick a date</p>
             </div>
-            <div class="text-center">
+            <div class="sm:text-center">
                 <p class="text-[9px] text-emerald-600 font-bold uppercase tracking-wider mb-0.5">Duration</p>
                 <p id="dp-months-label" class="text-[11px] font-black text-emerald-900">—</p>
             </div>
-            <div class="text-right">
+            <div class="sm:text-right">
                 <p class="text-[9px] text-emerald-600 font-bold uppercase tracking-wider mb-0.5">Est. Cost</p>
                 <p id="dp-cost-label" class="text-[11px] font-black text-emerald-900">—</p>
             </div>
@@ -296,7 +296,7 @@
 
         {{-- Flatpickr mount --}}
         <input id="date-picker-input" type="text" class="hidden">
-        <div id="date-picker-inline" class="w-full overflow-x-auto"></div>
+        <div id="date-picker-inline" class="w-full overflow-x-auto calander-picker-styling"></div>
 
         {{-- Quick-select chips --}}
         <div class="flex flex-wrap items-center gap-2 mt-3">
@@ -361,6 +361,12 @@
 
 /* --- flatpickr day colours (light palette) --- */
 .flatpickr-day.avail-day       { background:#dcfce7!important; border-color:#86efac!important; color:#14532d!important; }
+.flatpickr-day.avail-day.flatpickr-disabled {
+    background:#f3f4f6!important;
+    border-color:#e5e7eb!important;
+    color:#9ca3af!important;
+    cursor:not-allowed!important;
+}
 .flatpickr-day.day-booked,
 .flatpickr-day.day-partial     { background:#fee2e2!important; color:#991b1b!important; border-color:#fca5a5!important; cursor:not-allowed!important; text-decoration:line-through; pointer-events:none; }
 .flatpickr-day.day-blocked     { background:#f3f4f6!important; color:#9ca3af!important; border-color:#e5e7eb!important; cursor:not-allowed!important; pointer-events:none; }
@@ -369,7 +375,7 @@
 .flatpickr-day.selected,
 .flatpickr-day.startRange,
 .flatpickr-day.endRange        { background:#2D5A43!important; border-color:#2D5A43!important; color:#fff!important; }
-.flatpickr-day.inRange         { background:#d1fae5!important; border-color:#a7f3d0!important; color:#065f46!important; box-shadow:none!important; }
+.flatpickr-day.inRange         { background:#e5e7eb!important; border-color:#d1d5db!important; color:#1f2937!important; box-shadow:none!important; }
 .flatpickr-day.today:not(.selected):not(.startRange):not(.endRange) { border-bottom:2px solid #2D5A43!important; font-weight:700; }
 
 /* --- quick-chip active state --- */
@@ -379,6 +385,128 @@
 .dur-btn { font-size:11px; font-weight:700; color:#2D5A43; text-align:left; line-height:1.5; }
 .dur-btn:hover { color:#1d4ed8; }
 .dur-btn .dur-sub { font-size:9px; color:#059669; font-weight:600; }
+
+@media (min-width:768px) {
+    #datePickerModal {
+        padding: 1.5rem;
+    }
+
+    #datePickerModal > .relative {
+        max-height: none !important;
+        overflow-y: visible !important;
+    }
+
+    #date-picker-inline {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+    }
+}
+
+#date-picker-inline .flatpickr-calendar.inline {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+#date-picker-inline .flatpickr-months,
+#date-picker-inline .flatpickr-innerContainer,
+#date-picker-inline .flatpickr-rContainer,
+#date-picker-inline .flatpickr-weekdays,
+#date-picker-inline .flatpickr-days {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+@media (min-width:640px) {
+    #date-picker-inline .flatpickr-weekdaycontainer,
+    #date-picker-inline .dayContainer {
+        width: 50% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        flex: 1 1 50%;
+    }
+}
+
+@media (max-width:639.98px) {
+    #date-picker-inline .flatpickr-weekdaycontainer,
+    #date-picker-inline .dayContainer {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+}
+/* ── Date picker modal responsive fixes ── */
+#date-picker-inline .flatpickr-calendar.inline {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    box-shadow: none !important;
+}
+
+#date-picker-inline .flatpickr-months,
+#date-picker-inline .flatpickr-innerContainer,
+#date-picker-inline .flatpickr-rContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+#date-picker-inline .flatpickr-days {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Mobile: single month, full width */
+@media (max-width: 767px) {
+    #datePickerModal > .relative {
+        max-height: 92vh !important;
+        overflow-y: auto !important;
+    }
+
+    #date-picker-inline {
+        overflow-x: hidden !important;
+    }
+
+    #date-picker-inline .flatpickr-weekdaycontainer,
+    #date-picker-inline .dayContainer {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Desktop: two months side by side */
+@media (min-width: 768px) {
+    #datePickerModal > .relative {
+        max-height: none !important;
+        overflow-y: visible !important;
+    }
+
+    #date-picker-inline {
+        overflow-x: visible !important;
+    }
+
+    #date-picker-inline .flatpickr-weekdaycontainer,
+    #date-picker-inline .dayContainer {
+        width: 50% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        flex: 1 1 50%;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+
+div#date-picker-inline.calander-picker-styling .flatpickr-days {
+    flex-wrap: wrap;
+}
+.flatpickr-weekdays .flatpickr-weekdaycontainer:last-child {
+    display: none;
+}
+
+}
+
 </style>
 
 {{-- ══════════════════════════════════════════════════════════════
@@ -1063,7 +1191,14 @@ async function openDatePickerForHoarding(id) {
     if (!h) { showToast('Please select the hoarding first.', 'warning'); return; }
 
     dpCurrentStart = h.startDate;
-    document.getElementById('datePickerTitle').innerText = h.title;
+    const titleEl = document.getElementById('datePickerTitle');
+    const fullTitle = (h.title || 'Select Booking Dates').toString();
+    if (titleEl) {
+        titleEl.innerText = fullTitle.length > 40
+            ? `${fullTitle.slice(0, 40).trimEnd()}...`
+            : fullTitle;
+        titleEl.title = fullTitle;
+    }
     document.getElementById('datePickerModal').classList.remove('hidden');
     document.getElementById('date-picker-inline').innerHTML =
         '<div class="text-center py-8 text-sm text-gray-400 animate-pulse">Loading calendar…</div>';
@@ -1098,7 +1233,7 @@ async function openDatePickerForHoarding(id) {
             minDate:     today,
             disable:     disabledDates,
             defaultDate: [h.startDate, h.endDate],
-            showMonths:  window.innerWidth < 640 ? 1 : 2,
+            showMonths:  window.innerWidth < 668 ? 1 : 2,
 
             onDayCreate(dObj, dStr, fp, dayElem) {
                 const date   = toLocalYMD(dayElem.dateObj);
@@ -1215,7 +1350,6 @@ async function handleSubmit() {
     const allClear = await checkAllAvailability();
     btn.disabled   = false;
     btn.innerHTML  = orig;
-
     if (!allClear) {
         updateSummary();
         showAvailabilityAlert(availabilityIssues);
