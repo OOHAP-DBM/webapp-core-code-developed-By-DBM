@@ -556,7 +556,7 @@ async function loadBookingDetails() {
  * BACKEND RULES:
  * - Mark paid: Only if payment_status in [unpaid, partial] AND status != cancelled
  * - Cancel booking: Vendor can cancel at any time
- * - Send reminder: Only if reminder_count < 3
+ * - Send reminder: Only if pending reminders < 3
  */
 function renderActionButtons(booking) {
     let html = '';
@@ -597,9 +597,11 @@ function renderActionButtons(booking) {
     }
 
     // Send Reminder button
-    // RULE: Only if reminder_count < 3, payment not paid, and booking not cancelled
-    const reminderCount = Number(booking.reminder_count ?? 0);
-    if (booking.status !== 'cancelled' && booking.payment_status !== 'paid' && reminderCount < 3) {
+    // RULE: Only if pending reminders < 3, payment not paid, and booking not cancelled
+    const pendingReminderCount = Array.isArray(booking.scheduled_reminders)
+        ? booking.scheduled_reminders.filter(reminder => String(reminder?.status || 'pending').toLowerCase() === 'pending').length
+        : 0;
+    if (booking.status !== 'cancelled' && booking.payment_status !== 'paid' && pendingReminderCount < 3) {
         html += `
             <button onclick="sendReminder()"
                 class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium text-center">
@@ -614,11 +616,11 @@ function renderActionButtons(booking) {
                 ✓ Payment Completed
             </button>`;
     } 
-    else if (reminderCount >= 3) {
+    else if (pendingReminderCount >= 3) {
         html += `
             <button disabled 
                 class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
-                title="Maximum 3 reminders sent">
+                title="Maximum 3 pending reminders allowed">
                 Send Reminder
             </button>`;
     }
@@ -1444,7 +1446,7 @@ function getSentReminderDraftCount() {
 }
 
 function getReminderAvailableSlots() {
-    const usedSlots = getSentReminderDraftCount() + getPendingReminderDrafts().length;
+    const usedSlots = getPendingReminderDrafts().length;
 
     return Math.max(0, 3 - usedSlots);
 }
