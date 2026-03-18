@@ -53,7 +53,7 @@
     </div>
 
     {{-- Table --}}
-    <div class="overflow-x-auto bg-white rounded-lg shadow border border-gray-200">
+    <div class="overflow-x-auto bg-white shadow border border-gray-200">
         <table class="min-w-full text-xs sm:text-sm">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -145,8 +145,8 @@
 
                     <td class="px-3 py-2 text-center">
                         <a href="{{ route('customer.pos.booking.show', $booking->id) }}"
-                            class="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 text-xs font-semibold">
-                            View
+                            class="px-3 py-1 bg-gray-900 hover:bg-gray-800 text-white text-xs  font-semibold inline-block whitespace-nowrap transition-colors">
+                            View Details
                         </a>
                     </td>
                 </tr>

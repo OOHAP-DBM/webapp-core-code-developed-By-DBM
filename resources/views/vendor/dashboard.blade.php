@@ -1086,14 +1086,19 @@
 @endif
 @endsection
 @push('scripts')
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
+        const earningLabels = @json($monthLabels ?? []);
+        const earningData = @json($monthlyEarnings ?? []);
+        const bookingData = @json($monthlyBookings ?? []);
+
         new Chart(document.getElementById('earningChart'),{
             type:'line',
             data:{
-                labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                labels: earningLabels,
                 datasets:[{
-                    data:[0,0,0,0,0,0,0,0,0,0,0,0],
+                    data: earningData,
                     borderColor:'#2563eb',
                     tension:.4,
                     fill:false
@@ -1105,9 +1110,9 @@
         new Chart(document.getElementById('bookingChart'),{
             type:'line',
             data:{
-                labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                labels: earningLabels,
                 datasets:[{
-                    data:[0,0,0,0,0,0,0,0,0,0,0,0],
+                    data: bookingData,
                     borderColor:'#ec4899',
                     tension:.4,
                     fill:false

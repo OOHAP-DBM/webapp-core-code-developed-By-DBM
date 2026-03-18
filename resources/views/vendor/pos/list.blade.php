@@ -35,6 +35,7 @@
                         <option value="draft">Draft</option>
                         <option value="confirmed">Confirmed</option>
                         <option value="active">Active</option>
+                        <option value="pending_payment">Hold</option>
                         <option value="completed">Completed</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
