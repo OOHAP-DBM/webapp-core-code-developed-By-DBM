@@ -13,8 +13,8 @@
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
         <div>
-            <h1 class="text-xl sm:text-2xl font-bold">My Bookings ({{ $stats['total_bookings'] ?? 0 }})</h1>
-            <p class="text-gray-500 text-xs sm:text-sm">View and manage booked hoardings</p>
+            <h1 class="md:text-xl font-semibold text-gray-900">My Bookings ({{ $stats['total_bookings'] ?? 0 }})</h1>
+            <p class="text-sm text-gray-500 mt-1">View and manage booked hoardings</p>
         </div>
 
         <div class="flex flex-row gap-2 items-center w-full sm:w-auto">
@@ -163,10 +163,10 @@
                 @endforelse
             </tbody>
         </table>
-
-        {{-- Pagination --}}
-        <div class="flex flex-col sm:flex-row items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
-            <div class="text-xs text-gray-500 mb-2 sm:mb-0">
+    </div>
+     {{-- Pagination --}}
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600">
+            <div class="font-medium">
                 Showing
                 {{ $bookings->firstItem() ?? 0 }} - {{ $bookings->lastItem() ?? 0 }}
                 of {{ $bookings->total() }} bookings
@@ -175,7 +175,6 @@
                 {{ $bookings->links('pagination.vendor-compact') }}
             </div>
         </div>
-    </div>
 
     {{-- ════════════════════════════════════════════
          FILTER MODAL  (same design as your enquiry modal)

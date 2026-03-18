@@ -537,25 +537,78 @@ button { cursor: pointer; }
     }
 
     function profileModal() {
-        return {
-            showModal: false,
-            modalType: null,
-            init() {
-                const reopenPersonal = @json(session('reopen_personal_modal'));
-                const passwordError  = @json($errors->has('current_password') || $errors->has('password') || $errors->has('password_confirmation'));
-                if (reopenPersonal === true) {
-                    this.showModal = true;
-                    this.modalType = 'personal';
-                } else if (passwordError === true) {
-                    this.showModal = true;
-                    this.modalType = 'change-password';
-                } else {
-                    this.showModal = false;
-                    this.modalType = null;
-                }
+    return {
+        showModal: false,
+        modalType: null,
+        init() {
+            const reopenPersonal = @json(session('reopen_personal_modal'));
+            const passwordError  = @json($errors->has('current_password') || $errors->has('password') || $errors->has('password_confirmation'));
+            if (reopenPersonal === true) {
+                this.showModal = true;
+                this.modalType = 'personal';
+            } else if (passwordError === true) {
+                this.showModal = true;
+                this.modalType = 'change-password';
+            } else {
+                this.showModal = false;
+                this.modalType = null;
             }
+
+            // Pincode watcher
+            this.$watch('modalType', (value) => {
+                if (value === 'address') {
+                    setTimeout(() => {
+                        const el = document.getElementById('vendor-pincode');
+                        if (el && !el.dataset.listenerAttached) {
+                            el.dataset.listenerAttached = 'true';
+                            el.addEventListener('input', async function() {
+                                const pincode = this.value.trim();
+                                const cityEl    = document.getElementById('vendor-city');
+                                const stateEl   = document.getElementById('vendor-state');
+                                const countryEl = document.getElementById('vendor-country');
+                                const errorEl   = document.getElementById('vendor-pincode-error');
+
+                                if (errorEl) errorEl.classList.add('hidden');
+
+                                if (pincode.length === 6 && /^\d{6}$/.test(pincode)) {
+                                    if (cityEl)  cityEl.placeholder  = 'Fetching...';
+                                    if (stateEl) stateEl.placeholder = 'Fetching...';
+                                    try {
+                                        const res  = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+                                        const data = await res.json();
+                                        if (data[0].Status === 'Success') {
+                                            const d = data[0].PostOffice[0];
+                                            if (cityEl)    cityEl.value    = d.District || '';
+                                            if (stateEl)   stateEl.value   = d.State    || '';
+                                            if (countryEl) countryEl.value = d.Country  || 'India';
+                                        } else {
+                                            if (errorEl) {
+                                                errorEl.textContent = 'Invalid pincode.';
+                                                errorEl.classList.remove('hidden');
+                                            }
+                                        }
+                                    } catch {
+                                        if (errorEl) {
+                                            errorEl.textContent = 'Could not fetch. Fill manually.';
+                                            errorEl.classList.remove('hidden');
+                                        }
+                                    } finally {
+                                        if (cityEl)  cityEl.placeholder  = 'Auto-filled from pincode';
+                                        if (stateEl) stateEl.placeholder = 'Auto-filled from pincode';
+                                    }
+                                } else if (pincode.length < 6) {
+                                    if (cityEl)    cityEl.value    = '';
+                                    if (stateEl)   stateEl.value   = '';
+                                    if (countryEl) countryEl.value = 'India';
+                                }
+                            });
+                        }
+                    }, 100);
+                }
+            });
         }
     }
+}
 </script>
 <script>
     function confirmRemoveAvatar() {
