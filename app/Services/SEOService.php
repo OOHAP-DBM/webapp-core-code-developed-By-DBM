@@ -25,7 +25,86 @@ class SEOService
             'meta_keywords' => $keywords,
         ];
     }
+ public function generateMetaDescription(array $data): string
+    {
 
+        $brand = 'OOHAPP';
+        $type = $data['type'] ?? null;
+        $city = $data['city'] ?? null;
+        $locality = $data['locality'] ?? null;
+        $width = $data['width'] ?? null;
+        $height = $data['height'] ?? null;
+        $price = $data['price'] ?? null;
+        $title = $data['title'] ?? null;
+        $count = $data['count'] ?? null;
+        $vendor = $data['vendor'] ?? null;
+        $inventory = $data['inventory'] ?? null;
+        $campaign = $data['campaign'] ?? null;
+        $locations = $data['locations'] ?? null;
+        $duration = $data['duration'] ?? null;
+
+        $description = '';
+
+        switch ($type) {
+            case 'hoarding':                
+                if ($width && $height && $locality && $city) {
+                    $description = "Advertise on a {$width}x{$height} hoarding in {$locality}, {$city}. Affordable outdoor advertising options available on {$brand}.";
+                } elseif ($title && $city) {
+
+                    $description = "Book {$title} in {$city}. Find the best OOH & DOOH advertising options on {$brand}.";
+                }
+                break;
+            case 'city':
+                if ($city && $count) {
+                    $description = "Explore {$count}+ hoardings in {$city} for outdoor advertising. Compare OOH & DOOH options on {$brand}.";
+                } elseif ($city) {
+                    $description = "Find hoardings and outdoor advertising in {$city} with {$brand}.";
+                }
+                break;
+            case 'vendor':
+                if ($vendor && $city && $inventory) {
+                    $description = "View hoardings by {$vendor} in {$city}. Discover premium outdoor advertising locations on {$brand}.";
+                } elseif ($vendor && $city) {
+                    $description = "View outdoor advertising by {$vendor} in {$city} on {$brand}.";
+                }
+                break;
+            case 'campaign':
+                if ($campaign && $locations && $duration) {
+                    $description = "Manage your advertising campaign across {$locations} for {$duration} with real-time tracking and flexible booking on {$brand}.";
+                } elseif ($campaign && $locations) {
+                    $description = "Manage your {$campaign} campaign in {$locations} with {$brand}.";
+                }
+                break;
+            default:
+                // fallback
+                break;
+        }
+
+        // Fallback if not enough data
+        if (!$description) {
+            $description = "Discover outdoor advertising opportunities across India with {$brand}.";
+        }
+
+        // Ensure length 150–160 chars, trim intelligently
+        $description = $this->trimToLength($description, 160);
+        return $description;
+    }
+
+    /**
+     * Trim string to max length without cutting words
+     */
+    protected function trimToLength(string $text, int $max = 160): string
+    {
+        if (mb_strlen($text) <= $max) {
+            return $text;
+        }
+        $trimmed = mb_substr($text, 0, $max);
+        // Avoid cutting last word
+        if (($lastSpace = mb_strrpos($trimmed, ' ')) !== false) {
+            $trimmed = mb_substr($trimmed, 0, $lastSpace);
+        }
+        return rtrim($trimmed, ',. ') . '.';
+    }
     /**
      * Generate SEO-friendly slug
      */
@@ -61,26 +140,26 @@ class SEOService
     /**
      * Generate meta description
      */
-    protected function generateMetaDescription(Hoarding $hoarding): string
-    {
-        $size = $hoarding->width . 'x' . $hoarding->height;
-        $price = '₹' . number_format($hoarding->price_per_month, 0);
-        $type = ucfirst(str_replace('_', ' ', $hoarding->board_type));
-        $lit = $hoarding->is_lit ? 'illuminated ' : '';
+    // protected function generateMetaDescription(Hoarding $hoarding): string
+    // {
+    //     $size = $hoarding->width . 'x' . $hoarding->height;
+    //     $price = '₹' . number_format($hoarding->price_per_month, 0);
+    //     $type = ucfirst(str_replace('_', ' ', $hoarding->board_type));
+    //     $lit = $hoarding->is_lit ? 'illuminated ' : '';
         
-        $description = "Book {$lit}{$type} hoarding in {$hoarding->location_name}, {$hoarding->city}. ";
-        $description .= "Size: {$size}m. Price: {$price}/month. ";
+    //     $description = "Book {$lit}{$type} hoarding in {$hoarding->location_name}, {$hoarding->city}. ";
+    //     $description .= "Size: {$size}m. Price: {$price}/month. ";
         
-        if ($hoarding->traffic_density) {
-            $description .= ucfirst($hoarding->traffic_density) . " traffic area. ";
-        }
+    //     if ($hoarding->traffic_density) {
+    //         $description .= ucfirst($hoarding->traffic_density) . " traffic area. ";
+    //     }
         
-        if ($hoarding->description) {
-            $description .= Str::limit($hoarding->description, 50, '');
-        }
+    //     if ($hoarding->description) {
+    //         $description .= Str::limit($hoarding->description, 50, '');
+    //     }
         
-        return $description;
-    }
+    //     return $description;
+    // }
 
     /**
      * Generate meta keywords

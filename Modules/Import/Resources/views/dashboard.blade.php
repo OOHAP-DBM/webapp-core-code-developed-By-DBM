@@ -2,138 +2,145 @@
 @section('title', 'Manage Import')
 
 @section('content')
-<div class="mb-6">
-    <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Manage Import</h1>
-    <p class="text-gray-600 mt-1 ">Manage imported inventories and staged rows</p>
-</div>
 
-<div id="toastContainer" class="fixed top-4 left-3 right-3 sm:left-auto sm:right-4 z-50 space-y-2"></div>
 
-<!-- <div class="mb-6 border-b border-gray-200">
-    <nav class="-mb-px flex space-x-6" aria-label="Tabs">
-        <button id="tabBatches" class="tab-btn border-b-2 border-blue-500 py-2 px-1 text-sm font-medium text-blue-600" data-target="batchesPanel">Imported Inventories</button>
-        @if($isAdmin)
-            <button id="tabPermissions" class="tab-btn border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700" data-target="permissionsPanel">Role Permissions</button>
-        @endif
-    </nav>
-</div> -->
+<div class=" sm:px-8">
+    {{-- BACK BUTTON --}}
+  
 
-<div id="batchesPanel" class="tab-panel">
-    <div class="bg-white rounded-xl shadow overflow-hidden">
-        <div class="p-4 border-b border-gray-200 space-y-3">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <h2 class="text-xl font-semibold text-gray-900">Imported Inventories</h2>
-                <button id="refreshBatchesBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer touch-manipulation">Refresh</button>
+    <div class="mb-6">
+        <!-- <h1 class="text-2xl md:text-2xl font-bold text-gray-900">Manage Import</h1> -->
+        <p class="text-gray-600 mt-1 ">Manage imported inventories </p>
+    </div>
+
+    <div id="toastContainer" class="fixed top-4 left-3 right-3 sm:left-auto sm:right-4 z-50 space-y-2"></div>
+
+    <!-- <div class="mb-6 border-b border-gray-200">
+        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+            <button id="tabBatches" class="tab-btn border-b-2 border-blue-500 py-2 px-1 text-sm font-medium text-blue-600" data-target="batchesPanel">Imported Inventories</button>
+            @if($isAdmin)
+                <button id="tabPermissions" class="tab-btn border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700" data-target="permissionsPanel">Role Permissions</button>
+            @endif
+        </nav>
+    </div> -->
+        <div id="batchesPanel" class="tab-panel">
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="p-4 border-b border-gray-200 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <h2 class="text-xl font-semibold text-gray-900">Imported Inventories</h2>
+                    <button id="refreshBatchesBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer touch-manipulation">Refresh</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                    <input id="batchSearch" type="text" class="border border-gray-300 rounded-lg p-2 text-sm" placeholder="Search by status, type" />
+                    <select id="batchStatusFilter" class="border border-gray-300 rounded-lg p-2 text-sm cursor-pointer">
+                        <option value="">All statuses</option>
+                        <option value="uploaded">uploaded</option>
+                        <option value="processing">processing</option>
+                        <option value="processed">processed</option>
+                        <option value="completed">completed</option>
+                        <option value="approved">approved</option>
+                        <option value="failed">failed</option>
+                        <option value="cancelled">cancelled</option>
+                    </select>
+                    <select id="batchPerPage" class="border border-gray-300 rounded-lg p-2 text-sm cursor-pointer">
+                        <option value="10">10 / page</option>
+                        <option value="15" selected>15 / page</option>
+                        <option value="25">25 / page</option>
+                        <option value="50">50 / page</option>
+                    </select>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <button id="applyBatchFiltersBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 cursor-pointer touch-manipulation">Apply</button>
+                        <button id="resetBatchFiltersBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer touch-manipulation">Reset</button>
+                    </div>
+                </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                <input id="batchSearch" type="text" class="border border-gray-300 rounded-lg p-2 text-sm" placeholder="Search by batch id, status, type" />
-                <select id="batchStatusFilter" class="border border-gray-300 rounded-lg p-2 text-sm cursor-pointer">
-                    <option value="">All statuses</option>
-                    <option value="uploaded">uploaded</option>
-                    <option value="processing">processing</option>
-                    <option value="processed">processed</option>
-                    <option value="completed">completed</option>
-                    <option value="approved">approved</option>
-                    <option value="failed">failed</option>
-                    <option value="cancelled">cancelled</option>
-                </select>
-                <select id="batchPerPage" class="border border-gray-300 rounded-lg p-2 text-sm cursor-pointer">
-                    <option value="10">10 / page</option>
-                    <option value="15" selected>15 / page</option>
-                    <option value="25">25 / page</option>
-                    <option value="50">50 / page</option>
-                </select>
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <button id="applyBatchFiltersBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 cursor-pointer touch-manipulation">Apply</button>
-                    <button id="resetBatchFiltersBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer touch-manipulation">Reset</button>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[780px]">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm">S.N.</th>
+                            <th class="px-4 py-3 text-left text-sm">Type</th>
+                            <th class="px-4 py-3 text-left text-sm">Status</th>
+                            <th class="px-4 py-3 text-left text-sm">Hoardings</th>
+                            <th class="px-4 py-3 text-left text-sm">Created At</th>
+                            <th class="px-4 py-3 text-left text-sm">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="batchesBody" class="divide-y divide-gray-200">
+                        <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <p id="batchPageInfo" class="text-sm text-gray-500">Showing 0 of 0</p>
+                <div class="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2">
+                    <button id="batchPrevPage" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 cursor-pointer touch-manipulation">Previous</button>
+                    <span id="batchPageLabel" class="text-sm text-gray-600">Page 1 / 1</span>
+                    <button id="batchNextPage" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 cursor-pointer touch-manipulation">Next</button>
                 </div>
             </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full min-w-[780px]">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-sm">Batch</th>
-                        <th class="px-4 py-3 text-left text-sm">Type</th>
-                        <th class="px-4 py-3 text-left text-sm">Status</th>
-                        <th class="px-4 py-3 text-left text-sm">Rows</th>
-                        <th class="px-4 py-3 text-left text-sm">Created</th>
-                        <th class="px-4 py-3 text-left text-sm">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="batchesBody" class="divide-y divide-gray-200">
-                    <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">Loading...</td></tr>
-                </tbody>
-            </table>
+    </div>
+
+    @if($isAdmin)
+    <div id="permissionsPanel" class="tab-panel hidden">
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <h2 class="text-xl font-semibold text-gray-900">Role Import Permissions</h2>
+                <button id="refreshPermissionsBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer touch-manipulation">Refresh</button>
+            </div>
+            <div id="permissionsContainer" class="p-4 space-y-4">
+                <p class="text-sm text-gray-500">Loading role permissions...</p>
+            </div>
         </div>
-        <div class="p-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <p id="batchPageInfo" class="text-sm text-gray-500">Showing 0 of 0</p>
-            <div class="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2">
-                <button id="batchPrevPage" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 cursor-pointer touch-manipulation">Previous</button>
-                <span id="batchPageLabel" class="text-sm text-gray-600">Page 1 / 1</span>
-                <button id="batchNextPage" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 cursor-pointer touch-manipulation">Next</button>
+    </div>
+    @endif
+
+    <div id="rowsModal" class="fixed inset-0 bg-black bg-opacity-40 hidden z-40 items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] sm:max-h-[92vh] flex flex-col">
+            <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <h3 id="rowsTitle" class="font-semibold text-lg text-gray-900">Inventory Rows</h3>
+                <button id="closeRowsModal" class="w-full sm:w-auto min-h-[44px] text-gray-500 hover:text-gray-700 cursor-pointer touch-manipulation">Close</button>
+            </div>
+
+            <div class="p-4 border-b border-gray-200">
+                <form id="rowForm" class="grid grid-cols-1 md:grid-cols-7 gap-2">
+                    <input type="hidden" id="rowId">
+                    <input id="rowCode" class="border rounded p-2" placeholder="Code" required>
+                    <input id="rowCity" class="border rounded p-2" placeholder="City">
+                    <input id="rowWidth" type="number" step="0.01" min="0" class="border rounded p-2" placeholder="Width">
+                    <input id="rowHeight" type="number" step="0.01" min="0" class="border rounded p-2" placeholder="Height">
+                    <select id="rowStatus" class="border rounded p-2">
+                        <option value="valid">valid</option>
+                        <option value="invalid">invalid</option>
+                    </select>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button type="submit" class="w-full sm:w-auto min-h-[44px] bg-blue-600 text-white rounded px-3 py-2 text-sm cursor-pointer touch-manipulation">Save Row</button>
+                        <button type="button" id="resetRowForm" class="w-full sm:w-auto min-h-[44px] bg-gray-100 rounded px-3 py-2 text-sm cursor-pointer touch-manipulation">Reset</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="flex-1 overflow-auto">
+                <table class="w-full min-w-[720px]">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-sm">ID</th>
+                            <th class="px-4 py-2 text-left text-sm">Code</th>
+                            <th class="px-4 py-2 text-left text-sm">City</th>
+                            <th class="px-4 py-2 text-left text-sm">W</th>
+                            <th class="px-4 py-2 text-left text-sm">H</th>
+                            <th class="px-4 py-2 text-left text-sm">Status</th>
+                            <th class="px-4 py-2 text-left text-sm">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rowsBody" class="divide-y divide-gray-200"></tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
-@if($isAdmin)
-<div id="permissionsPanel" class="tab-panel hidden">
-    <div class="bg-white rounded-xl shadow overflow-hidden">
-        <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2 class="text-xl font-semibold text-gray-900">Role Import Permissions</h2>
-            <button id="refreshPermissionsBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 cursor-pointer touch-manipulation">Refresh</button>
-        </div>
-        <div id="permissionsContainer" class="p-4 space-y-4">
-            <p class="text-sm text-gray-500">Loading role permissions...</p>
-        </div>
-    </div>
-</div>
-@endif
-
-<div id="rowsModal" class="fixed inset-0 bg-black bg-opacity-40 hidden z-40 items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] sm:max-h-[92vh] flex flex-col">
-        <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <h3 id="rowsTitle" class="font-semibold text-lg text-gray-900">Batch Rows</h3>
-            <button id="closeRowsModal" class="w-full sm:w-auto min-h-[44px] text-gray-500 hover:text-gray-700 cursor-pointer touch-manipulation">Close</button>
-        </div>
-
-        <div class="p-4 border-b border-gray-200">
-            <form id="rowForm" class="grid grid-cols-1 md:grid-cols-7 gap-2">
-                <input type="hidden" id="rowId">
-                <input id="rowCode" class="border rounded p-2" placeholder="Code" required>
-                <input id="rowCity" class="border rounded p-2" placeholder="City">
-                <input id="rowWidth" type="number" step="0.01" min="0" class="border rounded p-2" placeholder="Width">
-                <input id="rowHeight" type="number" step="0.01" min="0" class="border rounded p-2" placeholder="Height">
-                <select id="rowStatus" class="border rounded p-2">
-                    <option value="valid">valid</option>
-                    <option value="invalid">invalid</option>
-                </select>
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <button type="submit" class="w-full sm:w-auto min-h-[44px] bg-blue-600 text-white rounded px-3 py-2 text-sm cursor-pointer touch-manipulation">Save Row</button>
-                    <button type="button" id="resetRowForm" class="w-full sm:w-auto min-h-[44px] bg-gray-100 rounded px-3 py-2 text-sm cursor-pointer touch-manipulation">Reset</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="flex-1 overflow-auto">
-            <table class="w-full min-w-[720px]">
-                <thead class="bg-gray-50 sticky top-0">
-                    <tr>
-                        <th class="px-4 py-2 text-left text-sm">ID</th>
-                        <th class="px-4 py-2 text-left text-sm">Code</th>
-                        <th class="px-4 py-2 text-left text-sm">City</th>
-                        <th class="px-4 py-2 text-left text-sm">W</th>
-                        <th class="px-4 py-2 text-left text-sm">H</th>
-                        <th class="px-4 py-2 text-left text-sm">Status</th>
-                        <th class="px-4 py-2 text-left text-sm">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="rowsBody" class="divide-y divide-gray-200"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -493,7 +500,7 @@ async function editBatch(batchId, currentType) {
             method: 'PUT',
             body: JSON.stringify({ media_type: mediaType }),
         });
-        notify('Batch updated');
+        notify('Inventory updated');
         loadBatches();
     } catch (error) {
         notify(error.message, 'error');
@@ -508,20 +515,20 @@ async function deleteBatch(batchId) {
     const confirmation = window.Swal
         ? await Swal.fire({
             icon: 'warning',
-            title: `Delete batch #${batchId}?`,
-            text: 'This will delete the batch and all related stored files.',
+            title: `Delete inventory #${batchId}?`,
+            text: 'This will delete the inventory and all related stored files.',
             showCancelButton: true,
             confirmButtonText: 'Yes, delete',
             confirmButtonColor: '#dc2626',
         })
-        : { isConfirmed: confirm(`Delete batch #${batchId}?`) };
+        : { isConfirmed: confirm(`Delete inventory #${batchId}?`) };
 
     if (!confirmation.isConfirmed) return;
 
     if (window.Swal) {
         Swal.fire({
-            title: 'Deleting batch...',
-            text: 'Please wait while we remove the batch and files.',
+            title: 'Deleting inventory...',
+            text: 'Please wait while we remove the inventory and files.',
             allowOutsideClick: false,
             allowEscapeKey: false,
             didOpen: () => Swal.showLoading(),
@@ -536,10 +543,10 @@ async function deleteBatch(batchId) {
             await Swal.fire({
                 icon: 'success',
                 title: 'Deleted',
-                text: 'Batch deleted successfully',
+                text: 'Inventory deleted successfully',
             });
         } else {
-            notify('Batch deleted');
+            notify('Inventory deleted');
         }
 
         loadBatches();
@@ -549,7 +556,7 @@ async function deleteBatch(batchId) {
             await Swal.fire({
                 icon: 'error',
                 title: 'Delete Failed',
-                text: error.message || 'Failed to delete batch',
+                text: error.message || 'Failed to delete inventory',
             });
         } else {
             notify(error.message, 'error');
@@ -599,7 +606,7 @@ async function approveBatch(batchId) {
 
 async function openRows(batchId) {
     selectedBatchId = batchId;
-    document.getElementById('rowsTitle').textContent = `Batch #${batchId} Rows`;
+    document.getElementById('rowsTitle').textContent = `Inventory #${batchId} Rows`;
     document.getElementById('rowsModal').classList.remove('hidden');
     document.getElementById('rowsModal').classList.add('flex');
     await loadRows();

@@ -191,13 +191,14 @@
             <li>✓ For DOOH, include additional pricing fields</li>
         </ul>
         <div class="flex flex-wrap gap-2">
-            <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'ooh']) }}"
-               class="text-xs px-3 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg font-medium hover:bg-blue-100 transition-colors">
-                Download OOH Sample (CSV)
+           <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'ooh', 'format' => 'xlsx']) }}"
+            class="text-xs px-3 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg font-medium hover:bg-blue-100 transition-colors flex items-center gap-1.5">
+                
+                Download OOH Sample (Excel)
             </a>
-            <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'dooh']) }}"
-               class="text-xs px-3 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg font-medium hover:bg-blue-100 transition-colors">
-                Download DOOH Sample (CSV)
+            <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'dooh', 'format' => 'xlsx']) }}"
+            class="text-xs px-3 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg font-medium hover:bg-blue-100 transition-colors flex items-center gap-1.5">
+                Download DOOH Sample (Excel)
             </a>
         </div>
     </div>
@@ -262,9 +263,9 @@
             <h3 class="text-lg font-bold text-gray-900">Confirm Approval</h3>
         </div>
         <div class="p-6">
-            <p class="text-gray-600 mb-4">Are you sure you want to approve this batch? This will create all hoardings from valid records.</p>
+            <p class="text-gray-600 mb-4">Are you sure you want to approve this inventory? This will create all hoardings from valid records.</p>
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p class="text-sm text-blue-800"><strong>Batch ID:</strong> <span id="approveBatchId" class="font-mono">N/A</span></p>
+                <p class="text-sm text-blue-800"><strong>Invendtory ID:</strong> <span id="approveBatchId" class="font-mono">N/A</span></p>
                 <p class="text-sm text-blue-800 mt-2"><strong>Valid Records:</strong> <span id="approveBatchValid">0</span></p>
             </div>
         </div>
@@ -499,7 +500,7 @@
         const timeText  = formatRemaining(remaining);
         countdown.textContent  = timeText;
         minimized.textContent  = `Processing ${timeText}`;
-        batchLabel.textContent = `Batch #${lockState.batchId || '-'} is processing`;
+        batchLabel.textContent = `Inventory #${lockState.batchId || '-'} is processing`;
 
         const statusText = (lockState.status || 'processing').toLowerCase();
         if      (statusText === 'failed')    message.textContent = 'Processing failed. Please re-upload after checking content.';
@@ -522,10 +523,91 @@
         clearUploadLockState();
         renderUploadLock(null);
         if (!withMessage) return;
-        if      (finalStatus === 'completed') showToast('Import completed successfully. You can upload again.', 'success');
-        else if (finalStatus === 'failed')    showToast('Import failed. Please re-upload after checking content.', 'error');
-        else if (finalStatus === 'timeout')   showToast('Import did not complete in 5 minutes. Please re-upload after checking content.', 'error');
-        else if (lock?.status)                showToast(`Import status changed to ${lock.status}.`, 'info');
+        if (finalStatus === 'completed') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'bg-green-500 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg shadow-lg flex flex-col gap-2 w-full sm:w-auto max-w-md break-words';
+            toast.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <span class="font-bold text-lg leading-tight">✓</span>
+                    <div>
+                        <p class="font-semibold text-sm leading-snug">Import completed successfully.</p>
+                        <p class="text-xs mt-0.5 text-green-100">You can Review, verify and send for admin approval.</p>
+                    </div>
+                </div>
+                <a href="${DETAILS_BASE}"
+                class="inline-block text-center bg-white text-green-700 font-semibold text-xs px-4 py-2 rounded-lg hover:bg-green-50 transition-colors mt-1">
+                    Import Preview
+                </a>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => toast.remove(), 500);
+            }, 8000);
+        }
+       else if (finalStatus === 'failed') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'bg-red-500 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg shadow-lg flex flex-col gap-2 w-full sm:w-auto max-w-md break-words';
+            toast.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <span class="font-bold text-lg leading-tight">✕</span>
+                    <div>
+                        <p class="font-semibold text-sm leading-snug">Import Failed</p>
+                        <p class="text-xs mt-0.5 text-red-100">Something went wrong while processing your files. Please check your Excel &amp; PowerPoint content and try uploading again.</p>
+                    </div>
+                </div>
+                <div class="bg-red-600 rounded-lg px-3 py-2 text-xs text-red-100 leading-relaxed">
+                    💡 <strong class="text-white">Tips:</strong> Ensure your file follows the sample template format, all required columns are present, and file size is within limits.
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => toast.remove(), 500);
+            }, 10000);
+        }
+        else if (finalStatus === 'timeout') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'bg-orange-500 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg shadow-lg flex flex-col gap-2 w-full sm:w-auto max-w-md break-words';
+            toast.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <span class="font-bold text-lg leading-tight">⏱</span>
+                    <div>
+                        <p class="font-semibold text-sm leading-snug">Processing Timed Out</p>
+                        <p class="text-xs mt-0.5 text-orange-100">Your import is taking longer than expected (5 minutes). The file may still be processing in the background.</p>
+                    </div>
+                </div>
+                <div class="bg-orange-600 rounded-lg px-3 py-2 text-xs text-orange-100 leading-relaxed">
+                    💡 <strong class="text-white">What to do:</strong> Check the Import History below to see the latest status. If it still shows processing, please wait a few more minutes before re-uploading.
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => toast.remove(), 500);
+            }, 10000);
+        }
+        else if (lock?.status) {
+            const statusLabel = lock.status.charAt(0).toUpperCase() + lock.status.slice(1);
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'bg-blue-500 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg shadow-lg flex items-start gap-3 w-full sm:w-auto max-w-md break-words';
+            toast.innerHTML = `
+                <span class="font-bold text-lg leading-tight mt-0.5">ℹ</span>
+                <div>
+                    <p class="font-semibold text-sm leading-snug">Status Update</p>
+                    <p class="text-xs mt-0.5 text-blue-100">Your import status has been updated to <strong class="text-white">${statusLabel}</strong>. You can check the Import History for more details.</p>
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => toast.remove(), 500);
+            }, 7000);
+        }
     }
 
     async function pollUploadStatus() {
@@ -597,16 +679,56 @@
 
         const mediaType = mediaTypeElement.value;
 
+        // WITH THIS:
         if (window.Swal) {
             const result = await Swal.fire({
-                icon: 'warning',
-                title: 'Hoarding Type Verification Required',
-                html: `You have selected the Hoarding Type for this bulk upload.<br><br>Please ensure that the selected type is correct:<br><br><strong>OOH</strong> – Static Outdoor Hoardings (Billboards, Unipoles, Wall Paintings, etc.)<br><br><strong>DOOH</strong> – Digital Outdoor Hoardings (LED Screens, Digital Displays, etc.)<br><br>The selected hoarding type will determine how the inventory is processed, displayed, and booked on the OOHAPP platform.<br><br>Please verify that the correct type has been selected before proceeding.`,
+                html: `
+                    <div style="text-align:center; padding: 0 4px;">
+                        <button onclick="document.querySelector('.swal2-cancel').click()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;line-height:1;">&#x2715;</button>
+                        <h2 style="font-size:1.25rem;font-weight:700;color:#111827;margin-bottom:8px;">Inventory Files verification Required</h2>
+                        <p style="font-size:0.875rem;color:#6b7280;margin-bottom:18px;line-height:1.5;">You are about to upload inventory files<br>for the selected hoarding type</p>
+                        <p style="font-size:0.875rem;color:#b45309;font-weight:500;margin-bottom:18px;line-height:1.6;">Please ensure that the Excel &amp; Powerpoint file correspond to the same hoarding type selected above</p>
+                        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 18px;margin-bottom:14px;text-align:left;">
+                            <p style="margin:0 0 8px 0;font-size:0.875rem;color:#374151;"><strong style="color:#111827;">OOH</strong> <span style="color:#16a34a;"> - Out of home (Billboards, Unipoles etc)</span></p>
+                            <p style="margin:0;font-size:0.875rem;color:#374151;"><strong style="color:#111827;">DOOH</strong> <span style="color:#16a34a;"> - Digital Out of home (LED Screens, Digital Displays etc)</span></p>
+                        </div>
+                        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px 18px;margin-bottom:18px;text-align:center;">
+                            <p style="margin:0;font-size:0.875rem;color:#92400e;line-height:1.6;">The system will process and categorize the uploaded inventory based on the hoarding type you selected</p>
+                        </div>
+                        <p style="font-size:0.875rem;color:#374151;line-height:1.6;margin-bottom:0;"><strong>Please verify that the</strong> Excel file and Powerpoint file belong to the same hoarding type before proceeding</p>
+                    </div>
+                `,
                 showCancelButton: true,
                 confirmButtonText: 'Proceed',
                 cancelButtonText: 'Cancel',
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: 'transparent',
+                customClass: {
+                    popup: 'swal-inventory-popup',
+                    confirmButton: 'swal-inventory-confirm',
+                    cancelButton: 'swal-inventory-cancel',
+                    actions: 'swal-inventory-actions',
+                    htmlContainer: 'swal-inventory-html',
+                },
+                showCloseButton: false,
+                width: 'min(480px, 95vw)',
+                padding: '28px 20px 24px',
+                didOpen: () => {
+                    // Inject scoped styles once
+                    if (!document.getElementById('swal-inventory-styles')) {
+                        const style = document.createElement('style');
+                        style.id = 'swal-inventory-styles';
+                        style.textContent = `
+                            .swal-inventory-popup { border-radius: 18px !important; position: relative !important; }
+                            .swal-inventory-html { padding: 0 !important; margin: 0 !important; }
+                            .swal-inventory-actions { border-top: 1px solid #e5e7eb !important; margin-top: 20px !important; padding-top: 16px !important; width: 100% !important; display: flex !important; gap: 12px !important; justify-content: center !important; }
+                            .swal-inventory-confirm { border-radius: 10px !important; font-size: 0.95rem !important; font-weight: 600 !important; padding: 12px 0 !important; flex: 1 !important; max-width: 220px !important; box-shadow: none !important; }
+                            .swal-inventory-cancel { border-radius: 10px !important; font-size: 0.95rem !important; font-weight: 500 !important; padding: 12px 0 !important; flex: 1 !important; max-width: 160px !important; color: #374151 !important; box-shadow: none !important; border: none !important; background: transparent !important; }
+                            .swal-inventory-cancel:hover { background: #f3f4f6 !important; }
+                        `;
+                        document.head.appendChild(style);
+                    }
+                }
             });
             if (!result.isConfirmed) return;
         }
@@ -763,7 +885,7 @@
         btn.disabled  = true;
         try {
             await http.post(`${API_BASE}/${batchId}/approve`, {}, { headers: { 'X-CSRF-TOKEN': csrfToken } });
-            showToast('Batch approved successfully!', 'success');
+            showToast('Inventory approved successfully!', 'success');
             closeApproveModal();
             await loadBatches();
         } catch(error) { showToast(error.response?.data?.message || 'Approval failed', 'error'); }
@@ -802,7 +924,7 @@
                document.querySelector('meta[name="auth-token"]')?.content || 'test-token';
     }
 
-    function refreshBatches() { loadBatches(); showToast('Batches refreshed', 'info'); }
+    function refreshBatches() { loadBatches(); showToast('Inventories refreshed', 'info'); }
 
     function filterByStatus(status) { openImportManagement(status); }
 
