@@ -133,124 +133,335 @@ class ImportController extends Controller
      * @param string $mediaType
      * @return StreamedResponse
      */
-    public function downloadSampleTemplate(string $mediaType): StreamedResponse
-    {
-        $normalizedMediaType = strtolower(trim($mediaType));
-        if (!in_array($normalizedMediaType, ['ooh', 'dooh'], true)) {
-            abort(404);
-        }
+    // public function downloadSampleTemplate(string $mediaType): StreamedResponse
+    // {
+    //     $normalizedMediaType = strtolower(trim($mediaType));
+    //     if (!in_array($normalizedMediaType, ['ooh', 'dooh'], true)) {
+    //         abort(404);
+    //     }
 
-        $oohColumns = [
-            'Media ID',
-            'Hoarding Type',
-            'Media Type',
-            'Full Address',
-            'Locality',
-            'Landmark',
-            'City',
-            'State',
-            'Pincode',
-            'Width',
-            'Height',
-            'Unit',
-            'Illumination',
-            'Latitude',
-            'Longitude',
-            'Minimum Duration (Days)',
-            'DCPM / Price',
-            'Availability',
-            'Discount Type',
-            'Discount Value',
-            'Monthly Sale Price',
-            'Designing Charge',
-            'Printing Charge',
-            'Mounting Charge',
-            'Description',
-        ];
+    //     $oohColumns = [
+    //         'Media ID',
+    //         'Hoarding Type',
+    //         'Media Type',
+    //         'Full Address',
+    //         'Locality',
+    //         'Landmark',
+    //         'City',
+    //         'State',
+    //         'Pincode',
+    //         'Width',
+    //         'Height',
+    //         'Unit',
+    //         'Illumination',
+    //         'Latitude',
+    //         'Longitude',
+    //         'Minimum Duration (Days)',
+    //         'DCPM / Price',
+    //         'Availability',
+    //         'Discount Type',
+    //         'Discount Value',
+    //         'Monthly Sale Price',
+    //         'Designing Charge',
+    //         'Printing Charge',
+    //         'Mounting Charge',
+    //         'Description',
+    //     ];
 
-        $doohColumns = [
-            'Media ID',
-            'Hoarding Type',
-            'Media Type',
-            'Full Address',
-            'Locality',
-            'Landmark',
-            'City',
-            'State',
-            'Pincode',
-            'Width',
-            'Height',
-            'Unit',
-            'Illumination',
-            'Latitude',
-            'Longitude',
-            'Ad Duration (Sec)',
-            'Price Per Spot (₹)',
-            'Spots Per Day',
-            'Daily Play Hours',
-            'Minimum Duration (Days)',
-            'DCPM / Price',
-            'Availability',
-            'Discount Type',
-            'Discount Value',
-            'Monthly Sale Price',
-            'Designing Charge',
-            'Printing Charge',
-            'Mounting Charge',
-            'Description',
-        ];
+    //     $doohColumns = [
+    //         'Media ID',
+    //         'Hoarding Type',
+    //         'Media Type',
+    //         'Full Address',
+    //         'Locality',
+    //         'Landmark',
+    //         'City',
+    //         'State',
+    //         'Pincode',
+    //         'Width',
+    //         'Height',
+    //         'Unit',
+    //         'Illumination',
+    //         'Latitude',
+    //         'Longitude',
+    //         'Ad Duration (Sec)',
+    //         'Price Per Spot (₹)',
+    //         'Spots Per Day',
+    //         'Daily Play Hours',
+    //         'Minimum Duration (Days)',
+    //         'DCPM / Price',
+    //         'Availability',
+    //         'Discount Type',
+    //         'Discount Value',
+    //         'Monthly Sale Price',
+    //         'Designing Charge',
+    //         'Printing Charge',
+    //         'Mounting Charge',
+    //         'Description',
+    //     ];
 
-        $columns = $normalizedMediaType === 'dooh' ? $doohColumns : $oohColumns;
+    //     $columns = $normalizedMediaType === 'dooh' ? $doohColumns : $oohColumns;
 
-        $sampleRow = [
-            'Media ID' => strtoupper($normalizedMediaType) . '001',
-            'Hoarding Type' => strtoupper($normalizedMediaType),
-            'Media Type' => 'Billboard',
-            'Full Address' => 'Connaught Place, New Delhi',
-            'Locality' => 'Connaught Place',
-            'Landmark' => 'Near Central Park',
-            'City' => 'Delhi',
-            'State' => 'Delhi',
-            'Pincode' => '110001',
-            'Width' => '20',
-            'Height' => '10',
-            'Unit' => 'ft',
-            'Illumination' => 'Front Lit',
-            'Latitude' => '28.6315',
-            'Longitude' => '77.2167',
-            'Ad Duration (Sec)' => '10',
-            'Price Per Spot (₹)' => '250',
-            'Spots Per Day' => '120',
-            'Daily Play Hours' => '18 Hrs',
-            'Minimum Duration (Days)' => '30',
-            'DCPM / Price' => '120000',
-            'Availability' => 'Available',
-            'Discount Type' => 'fixed',
-            'Discount Value' => '5000',
-            'Monthly Sale Price' => '45000',
-            'Designing Charge' => '1500',
-            'Printing Charge' => '3000',
-            'Mounting Charge' => '2000',
-            'Description' => 'Prime location inventory sample',
-        ];
+    //     $sampleRow = [
+    //         'Media ID' => strtoupper($normalizedMediaType) . '001',
+    //         'Hoarding Type' => strtoupper($normalizedMediaType),
+    //         'Media Type' => 'Billboard',
+    //         'Full Address' => 'Connaught Place, New Delhi',
+    //         'Locality' => 'Connaught Place',
+    //         'Landmark' => 'Near Central Park',
+    //         'City' => 'Delhi',
+    //         'State' => 'Delhi',
+    //         'Pincode' => '110001',
+    //         'Width' => '20',
+    //         'Height' => '10',
+    //         'Unit' => 'ft',
+    //         'Illumination' => 'Front Lit',
+    //         'Latitude' => '28.6315',
+    //         'Longitude' => '77.2167',
+    //         'Ad Duration (Sec)' => '10',
+    //         'Price Per Spot (₹)' => '250',
+    //         'Spots Per Day' => '120',
+    //         'Daily Play Hours' => '18 Hrs',
+    //         'Minimum Duration (Days)' => '30',
+    //         'DCPM / Price' => '120000',
+    //         'Availability' => 'Available',
+    //         'Discount Type' => 'fixed',
+    //         'Discount Value' => '5000',
+    //         'Monthly Sale Price' => '45000',
+    //         'Designing Charge' => '1500',
+    //         'Printing Charge' => '3000',
+    //         'Mounting Charge' => '2000',
+    //         'Description' => 'Prime location inventory sample',
+    //     ];
 
-        $filename = 'import_sample_' . $normalizedMediaType . '.csv';
+    //     $filename = 'import_sample_' . $normalizedMediaType . '.xlsx';
 
-        return response()->streamDownload(function () use ($columns, $sampleRow) {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, $columns);
+    //     return response()->streamDownload(function () use ($columns, $sampleRow) {
+    //         $handle = fopen('php://output', 'w');
+    //         fputcsv($handle, $columns);
 
-            $row = [];
-            foreach ($columns as $column) {
-                $row[] = $sampleRow[$column] ?? '';
-            }
+    //         $row = [];
+    //         foreach ($columns as $column) {
+    //             $row[] = $sampleRow[$column] ?? '';
+    //         }
 
-            fputcsv($handle, $row);
-            fclose($handle);
-        }, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-        ]);
+    //         fputcsv($handle, $row);
+    //         fclose($handle);
+    //     }, $filename, [
+    //         'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8',
+    //     ]);
+    // }
+
+  public function downloadSampleTemplate(string $mediaType): \Symfony\Component\HttpFoundation\BinaryFileResponse
+{
+    $normalizedMediaType = strtolower(trim($mediaType));
+    if (!in_array($normalizedMediaType, ['ooh', 'dooh'], true)) {
+        abort(404);
     }
+
+    $oohColumns = [
+        'Media ID'                => true,
+        'Hoarding Type'           => true,
+        'Media Type'              => true,
+        'Full Address'            => true,
+        'Locality'                => true,
+        'Landmark'                => false,
+        'City'                    => true,
+        'State'                   => true,
+        'Pincode'                 => true,
+        'Width'                   => true,
+        'Height'                  => true,
+        'Unit'                    => true,
+        'Illumination'            => true,
+        'Latitude'                => true,
+        'Longitude'               => true,
+        'Minimum Duration (Days)' => true,
+        'DCPM / Price'            => true,
+        'Availability'            => true,
+        'Discount Type'           => false,
+        'Discount Value'          => false,
+        'Monthly Sale Price'      => false,
+        'Designing Charge'        => false,
+        'Printing Charge'         => false,
+        'Mounting Charge'         => false,
+        'Description'             => false,
+    ];
+
+    $doohColumns = [
+        'Media ID'                => true,
+        'Hoarding Type'           => true,
+        'Media Type'              => true,
+        'Full Address'            => true,
+        'Locality'                => true,
+        'Landmark'                => false,
+        'City'                    => true,
+        'State'                   => true,
+        'Pincode'                 => true,
+        'Width'                   => true,
+        'Height'                  => true,
+        'Unit'                    => true,
+        'Illumination'            => true,
+        'Latitude'                => true,
+        'Longitude'               => true,
+        'Ad Duration (Sec)'       => true,
+        'Price Per Spot (₹)'      => true,
+        'Spots Per Day'           => true,
+        'Daily Play Hours'        => true,
+        'Minimum Duration (Days)' => true,
+        'DCPM / Price'            => true,
+        'Availability'            => true,
+        'Discount Type'           => false,
+        'Discount Value'          => false,
+        'Monthly Sale Price'      => false,
+        'Designing Charge'        => false,
+        'Printing Charge'         => false,
+        'Mounting Charge'         => false,
+        'Description'             => false,
+    ];
+
+    $columns  = $normalizedMediaType === 'dooh' ? $doohColumns : $oohColumns;
+    $filename = 'import_sample_' . $normalizedMediaType . '.xlsx';
+
+    $sampleData = [
+        'Media ID'                => strtoupper($normalizedMediaType) . '001',
+        'Hoarding Type'           => strtoupper($normalizedMediaType),
+        'Media Type'              => 'Billboard',
+        'Full Address'            => 'Connaught Place, New Delhi',
+        'Locality'                => 'Connaught Place',
+        'Landmark'                => 'Near Central Park',
+        'City'                    => 'Delhi',
+        'State'                   => 'Delhi',
+        'Pincode'                 => '110001',
+        'Width'                   => '20',
+        'Height'                  => '10',
+        'Unit'                    => 'ft',
+        'Illumination'            => 'Front Lit',
+        'Latitude'                => '28.6315',
+        'Longitude'               => '77.2167',
+        'Ad Duration (Sec)'       => '10',
+        'Price Per Spot (₹)'      => '250',
+        'Spots Per Day'           => '120',
+        'Daily Play Hours'        => '18 Hrs',
+        'Minimum Duration (Days)' => '30',
+        'DCPM / Price'            => '120000',
+        'Availability'            => 'Available',
+        'Discount Type'           => 'fixed',
+        'Discount Value'          => '5000',
+        'Monthly Sale Price'      => '45000',
+        'Designing Charge'        => '1500',
+        'Printing Charge'         => '3000',
+        'Mounting Charge'         => '2000',
+        'Description'             => 'Prime location inventory sample',
+    ];
+
+    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+
+    // ── Instructions sheet ──────────────────────────────────────────
+    $legend = $spreadsheet->getActiveSheet();
+    $legend->setTitle('Instructions');
+
+    $legend->mergeCells('A1:B1');
+    $legend->setCellValue('A1', 'Import Sample Template — ' . strtoupper($normalizedMediaType));
+    $legend->getStyle('A1')->applyFromArray([
+        'font'      => ['bold' => true, 'size' => 13, 'color' => ['rgb' => 'FFFFFF'], 'name' => 'Arial'],
+        'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => '1F4E79']],
+        'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
+    ]);
+    $legend->getRowDimension(1)->setRowHeight(30);
+
+    $legend->setCellValue('A2', 'Colour');
+    $legend->setCellValue('B2', 'Meaning');
+    $legend->getStyle('A2:B2')->applyFromArray([
+        'font'      => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF'], 'name' => 'Arial'],
+        'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => '2E75B6']],
+        'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
+    ]);
+    $legend->getRowDimension(2)->setRowHeight(20);
+
+    $legendRows = [
+        3 => ['🔴 Red header',  'Required field — must be filled in every row',   'FFE2E2'],
+        4 => ['⚪ Grey header', 'Optional field — leave blank if not applicable',  'F2F2F2'],
+        5 => ['🟢 Green row',   'Sample data row — replace with your actual data', 'E2EFDA'],
+    ];
+    foreach ($legendRows as $row => [$label, $meaning, $bg]) {
+        $legend->setCellValue("A{$row}", $label);
+        $legend->setCellValue("B{$row}", $meaning);
+        foreach (['A', 'B'] as $col) {
+            $legend->getStyle("{$col}{$row}")->applyFromArray([
+                'font'      => ['name' => 'Arial', 'size' => 10],
+                'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => $bg]],
+                'alignment' => ['horizontal' => 'left', 'vertical' => 'center', 'wrapText' => true],
+            ]);
+        }
+        $legend->getRowDimension($row)->setRowHeight(22);
+    }
+
+    $legend->mergeCells('A7:B7');
+    $legend->setCellValue('A7', '⚠  Do NOT change column header names. Max file size: 20 MB.');
+    $legend->getStyle('A7')->applyFromArray([
+        'font'      => ['italic' => true, 'size' => 9, 'color' => ['rgb' => '7F6000'], 'name' => 'Arial'],
+        'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => 'FFF2CC']],
+        'alignment' => ['horizontal' => 'left', 'vertical' => 'center', 'wrapText' => true],
+    ]);
+    $legend->getRowDimension(7)->setRowHeight(28);
+    $legend->getColumnDimension('A')->setWidth(30);
+    $legend->getColumnDimension('B')->setWidth(55);
+
+    // ── Import Data sheet ───────────────────────────────────────────
+    $data     = $spreadsheet->createSheet();
+    $data->setTitle('Import Data');
+    $colIndex = 1;
+    $totalCols = count($columns);
+
+    foreach ($columns as $colName => $required) {
+        $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+
+        $data->setCellValue("{$colLetter}1", $colName . ($required ? ' *' : ''));
+        $data->getStyle("{$colLetter}1")->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF'], 'name' => 'Arial'],
+            'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => $required ? 'C00000' : '595959']],
+            'alignment' => ['horizontal' => 'center', 'vertical' => 'center', 'wrapText' => true],
+            'borders'   => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'D9D9D9']]],
+        ]);
+
+        $data->setCellValue("{$colLetter}2", $sampleData[$colName] ?? '');
+        $data->getStyle("{$colLetter}2")->applyFromArray([
+            'font'      => ['size' => 10, 'color' => ['rgb' => '375623'], 'name' => 'Arial'],
+            'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => 'E2EFDA']],
+            'alignment' => ['horizontal' => 'left', 'vertical' => 'center'],
+            'borders'   => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'D9D9D9']]],
+        ]);
+
+        $data->getColumnDimension($colLetter)->setWidth(max(mb_strlen($colName) + 4, 18));
+        $colIndex++;
+    }
+
+    $data->getRowDimension(1)->setRowHeight(36);
+    $data->getRowDimension(2)->setRowHeight(22);
+    $data->freezePane('A2');
+
+    $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($totalCols);
+    $data->mergeCells("A4:{$lastCol}4");
+    $data->setCellValue('A4', '🔴 Red columns marked with * are REQUIRED.  ⚪ Grey columns are optional.  🟢 Green row is sample data — replace with your actual data. Do NOT modify the header row.');
+    $data->getStyle('A4')->applyFromArray([
+        'font'      => ['italic' => true, 'size' => 9, 'color' => ['rgb' => '7F6000'], 'name' => 'Arial'],
+        'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => 'FFF2CC']],
+        'alignment' => ['horizontal' => 'left', 'vertical' => 'center', 'wrapText' => true],
+    ]);
+    $data->getRowDimension(4)->setRowHeight(30);
+
+    $spreadsheet->setActiveSheetIndex(1);
+
+    // ── Write to a real temp file, then send as download ───────────
+    $tempPath = tempnam(sys_get_temp_dir(), 'oohapp_sample_') . '.xlsx';
+
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+    $writer->save($tempPath);
+
+    return response()->download($tempPath, $filename, [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ])->deleteFileAfterSend(true);  // auto-cleans the temp file
+}
     /**
      * Store path for imports
      */

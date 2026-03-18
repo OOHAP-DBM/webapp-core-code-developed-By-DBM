@@ -42,7 +42,7 @@ Route::middleware(['auth:sanctum'])
 // Sanctum token based
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::post('/guest/merge', [
-        \App\Http\Controllers\Web\Customer\GuestMergeController::class, 
+        \App\Http\Controllers\Api\GuestMergeController::class, 
         'merge'
     ]);
 });
@@ -99,7 +99,9 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         Route::delete('/email',             [EmailSettingController::class, 'deleteEmail']);
     });
 
-    
+    Route::middleware(['auth:sanctum'])->prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/{invoice}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('download');
+    });
     // Thread Communication System (PROMPT 28)
     require base_path('routes/api_v1/threads.php');
     
@@ -140,5 +142,7 @@ Route::middleware(['auth:sanctum', 'throttle:authenticated'])->prefix('account')
         Route::post('/delete/verify-otp', [AccountController::class, 'verifyDeleteOtp']);
         Route::delete('/delete', [AccountController::class, 'deleteAccount']);
 });
+// API route for invoice download
+
 
 

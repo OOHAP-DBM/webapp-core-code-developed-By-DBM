@@ -120,7 +120,19 @@ class HoardingController extends Controller
         if (Auth::check() && Auth::user()->hasRole('customer')) {
             $isInCart = $this->cartService->exists($hoarding->id);
         }
-        return view('hoardings.show', compact('hoarding', 'isInCart'));
+
+        // Inject dynamic meta description
+        $metaDescription = app(\App\Services\SEOService::class)->generateMetaDescription([
+            'type' => 'hoarding',
+            'city' => $hoarding->city,
+            'title' => $hoarding->title,
+            'locality' => $hoarding->location_name,
+            'width' => $hoarding->width,
+            'height' => $hoarding->height,
+            'price' => $hoarding->monthly_price ?? $hoarding->price_per_slot,
+        ]);
+
+        return view('hoardings.show', compact('hoarding', 'isInCart', 'metaDescription'));
     }
 
     /**
