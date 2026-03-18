@@ -62,35 +62,6 @@
     </div>
 </div>
 
-<div class="bg-white rounded-xl shadow mb-6 {{ $isApprovedBatch ? 'hidden' : '' }}">
-    <div class="p-4 border-b border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-900">Create / Edit Row</h2>
-    </div>
-    <div class="p-4">
-        <form id="rowForm" class="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <input type="hidden" id="rowId">
-            <input id="rowCode" class="w-full min-h-[44px] border rounded-lg p-2" placeholder="Code" required>
-            <input id="rowCity" class="w-full min-h-[44px] border rounded-lg p-2" placeholder="City">
-            <input id="rowWidth" type="number" step="0.01" min="0" class="w-full min-h-[44px] border rounded-lg p-2" placeholder="Width">
-            <input id="rowHeight" type="number" step="0.01" min="0" class="w-full min-h-[44px] border rounded-lg p-2" placeholder="Height">
-            <input id="rowImageFile" type="file" accept="image/*" class="w-full min-h-[44px] border rounded-lg p-2" />
-            <select id="rowStatus" class="w-full min-h-[44px] border rounded-lg p-2">
-                <option value="valid">valid</option>
-                <option value="invalid">invalid</option>
-            </select>
-            <input id="rowErrorMessage" class="w-full min-h-[44px] border rounded-lg p-2" placeholder="Error Message (optional)">
-            <div class="md:col-span-4 flex flex-col sm:flex-row sm:items-center gap-3">
-                <img id="rowImagePreview" src="" alt="Selected row image" class="h-16 w-24 object-cover rounded border hidden" />
-                <span id="rowImagePreviewText" class="text-sm text-gray-500">No image selected</span>
-            </div>
-            <div class="md:col-span-4 flex flex-col sm:flex-row gap-2">
-                <button type="submit" class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer touch-manipulation">Save Hoarding</button>
-                <button type="button" id="resetRowForm" class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer touch-manipulation">Reset</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <div class="bg-white rounded-xl shadow overflow-hidden">
     <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 class="text-lg font-semibold text-gray-900">Hoarding </h2>
@@ -138,7 +109,10 @@
             <button id="rowsNextBtn" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation">Next</button>
         </div>
     </div>
+@include('import::components.editRow')
+
 </div>
+
 
 @php
     $imageUrlTemplate = $isAdmin
@@ -604,32 +578,92 @@ async function approveInventory() {
     }
 }
 
-function editRow(rowId) {
-    if (currentBatchStatus === 'approved') {
-        notify('Approved batch is read-only', 'error');
-        return;
-    }
+function openEditModal() {
+    document.getElementById('editRowModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
 
-    const row = currentRowsById[rowId];
-    if (!row) return;
+function closeEditModal() {
+    document.getElementById('editRowModal').classList.add('hidden');
+    document.body.style.overflow = '';
+    resetRowForm();
+}
 
-    document.getElementById('rowId').value = row.id;
-    document.getElementById('rowCode').value = row.code || '';
-    document.getElementById('rowCity').value = row.city || '';
-    document.getElementById('rowWidth').value = row.width ?? '';
-    document.getElementById('rowHeight').value = row.height ?? '';
-    document.getElementById('rowImageFile').value = '';
-    document.getElementById('rowStatus').value = row.status || 'valid';
-    document.getElementById('rowErrorMessage').value = row.error_message || '';
 
-    if (row.image_name) {
-        const preview = document.getElementById('rowImagePreview');
-        preview.src = imageUrl(row.image_name);
-        preview.classList.remove('hidden');
-        document.getElementById('rowImagePreviewText').textContent = `Current image: ${row.image_name}`;
+
+
+
+function buildFieldHtml(fieldDef, value) {
+    const val       = escapeHtml(value ?? '');
+    const base      = 'w-full min-h-[44px] border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm';
+    const reqMark   = fieldDef.required ? '<span class="text-red-500 ml-0.5">*</span>' : '';
+    const label     = `<label class="block text-sm font-medium text-gray-700 mb-1">${fieldDef.label}${reqMark}</label>`;
+    const spanFull  = (fieldDef.fullWidth || fieldDef.type === 'textarea') ? 'sm:col-span-2' : '';
+
+    let input = '';
+    if (fieldDef.type === 'select') {
+        const opts = fieldDef.options.map(o =>
+            `<option value="${o}" ${String(value) === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`
+        ).join('');
+        input = `<select id="rowField_${fieldDef.key}" data-field="${fieldDef.key}" class="${base}">${opts}</select>`;
+    } else if (fieldDef.type === 'textarea') {
+        input = `<textarea id="rowField_${fieldDef.key}" data-field="${fieldDef.key}" rows="2"
+                    placeholder="${fieldDef.placeholder || ''}"
+                    class="${base} resize-none">${val}</textarea>`;
     } else {
-        clearImagePreview();
+        const extra = fieldDef.type === 'number' ? 'step="any" min="0"' : '';
+        const req   = fieldDef.required ? 'required' : '';
+        input = `<input id="rowField_${fieldDef.key}" data-field="${fieldDef.key}"
+                    type="${fieldDef.type}" value="${val}"
+                    placeholder="${fieldDef.placeholder || ''}"
+                    ${extra} ${req} class="${base}" />`;
     }
+
+    return `<div class="${spanFull}">${label}${input}</div>`;
+}
+
+// function editRow(rowId) {
+//     if (currentBatchStatus === 'approved') {
+//         notify('Approved batch is read-only', 'error');
+//         return;
+//     }
+
+//     const row = currentRowsById[rowId];
+//     if (!row) return;
+
+//     document.getElementById('rowId').value = row.id;
+
+//     const grid = document.getElementById('dynamicFieldsGrid');
+//     grid.innerHTML = '';
+
+//     ROW_FIELD_DEFINITIONS.forEach(fieldDef => {
+//         const value = row[fieldDef.key];
+//         // Skip fields where value is null/undefined AND it's not a core field
+//         const isCoreField = ['code', 'status', 'city', 'width', 'height'].includes(fieldDef.key);
+//         if (!isCoreField && (value === null || value === undefined || value === '')) {
+//             return; // skip — no data for this field on this row
+//         }
+//         grid.insertAdjacentHTML('beforeend', buildFieldHtml(fieldDef, value));
+//     });
+
+//     // Image
+//     document.getElementById('rowImageFile').value = '';
+//     if (row.image_name) {
+//         const preview = document.getElementById('rowImagePreview');
+//         preview.src = imageUrl(row.image_name);
+//         preview.classList.remove('hidden');
+//         document.getElementById('rowImagePreviewText').textContent = `Current: ${row.image_name}`;
+//     } else {
+//         clearImagePreview();
+//     }
+
+//     openEditModal();
+// }
+
+function resetRowForm() {
+    document.getElementById('rowForm').reset();
+    document.getElementById('rowId').value = '';
+    clearImagePreview();
 }
 
 async function submitRow(event) {
@@ -637,25 +671,19 @@ async function submitRow(event) {
 
     if (currentBatchStatus === 'approved') {
         if (window.Swal) {
-            await Swal.fire({
-                icon: 'info',
-                title: 'Read-only Batch',
-                text: 'Approved batch rows cannot be edited.',
-            });
+            await Swal.fire({ icon: 'info', title: 'Read-only Batch', text: 'Approved batch rows cannot be edited.' });
         }
         return;
     }
 
-    const rowId = document.getElementById('rowId').value;
+    const rowId    = document.getElementById('rowId').value;
     const imageFile = document.getElementById('rowImageFile').files[0] || null;
+    const formData  = new FormData();
 
-    const formData = new FormData();
-    formData.append('code', document.getElementById('rowCode').value);
-    formData.append('city', document.getElementById('rowCity').value || '');
-    formData.append('width', document.getElementById('rowWidth').value || '');
-    formData.append('height', document.getElementById('rowHeight').value || '');
-    formData.append('status', document.getElementById('rowStatus').value);
-    formData.append('error_message', document.getElementById('rowErrorMessage').value || '');
+    // Collect all dynamically rendered fields
+    document.querySelectorAll('#dynamicFieldsGrid [data-field]').forEach(el => {
+        formData.append(el.dataset.field, el.value ?? '');
+    });
 
     if (imageFile) {
         formData.append('image', imageFile);
@@ -665,54 +693,34 @@ async function submitRow(event) {
     try {
         if (rowId) {
             formData.append('_method', 'PUT');
-            await api(`${API_BASE}/${BATCH_ID}/rows/${rowId}`, {
-                method: 'POST',
-                body: formData,
-            });
+            await api(`${API_BASE}/${BATCH_ID}/rows/${rowId}`, { method: 'POST', body: formData });
             if (window.Swal) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: 'Row updated successfully',
-                    timer: 1800,
-                    showConfirmButton: false,
-                });
+                await Swal.fire({ icon: 'success', title: 'Saved', text: 'Row updated successfully', timer: 1600, showConfirmButton: false });
             } else {
                 notify('Row updated');
             }
         } else {
-            await api(`${API_BASE}/${BATCH_ID}/rows`, {
-                method: 'POST',
-                body: formData,
-            });
+            await api(`${API_BASE}/${BATCH_ID}/rows`, { method: 'POST', body: formData });
             if (window.Swal) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: 'Row created successfully',
-                    timer: 1800,
-                    showConfirmButton: false,
-                });
+                await Swal.fire({ icon: 'success', title: 'Created', text: 'Row created successfully', timer: 1600, showConfirmButton: false });
             } else {
                 notify('Row created');
             }
         }
-
-        resetRowForm();
+        closeEditModal();
         loadRows();
     } catch (error) {
         if (window.Swal) {
-            await Swal.fire({
-                icon: 'error',
-                title: 'Save Failed',
-                text: error.message || 'Failed to save row',
-            });
+            await Swal.fire({ icon: 'error', title: 'Save Failed', text: error.message || 'Failed to save row' });
         } else {
             notify(error.message, 'error');
         }
     }
 }
 
+document.getElementById('editRowModal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('editRowModal')) closeEditModal();
+});
 async function deleteRow(rowId) {
     if (currentBatchStatus === 'approved') {
         if (window.Swal) {
@@ -826,7 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     document.getElementById('rowForm').addEventListener('submit', submitRow);
-    document.getElementById('resetRowForm').addEventListener('click', resetRowForm);
+    // document.getElementById('resetRowForm').addEventListener('click', resetRowForm);
     document.getElementById('rowImageFile').addEventListener('change', handleImagePreviewChange);
     document.getElementById('approveInventoryBtn')?.addEventListener('click', approveInventory);
     document.getElementById('rowsSelectAll')?.addEventListener('change', (event) => {
@@ -834,5 +842,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('bulkDeleteBtn')?.addEventListener('click', deleteSelectedRows);
 });
+
+
+
+
 </script>
 @endsection
