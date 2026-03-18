@@ -187,7 +187,7 @@
             <a
                 href="{{ route('customer.pos.booking') }}"
                 class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg
-                {{ request()->routeIs('customer.pos.booking') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50' }}"
+                {{ request()->routeIs('customer.pos.booking') || request()->routeIs('customer.pos.booking.show') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50' }}"
             >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="3" y="3" width="18" height="18" rx="2" fill="currentColor" opacity="0.1"/>

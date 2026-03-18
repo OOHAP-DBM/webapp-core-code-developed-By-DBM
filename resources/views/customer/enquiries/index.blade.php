@@ -20,7 +20,7 @@
             openFilter: false,
             dateFilter: '{{ request('date_filter', 'all') }}'
         }"
-        class="px-6 py-6 bg-white">
+        class="px-6 py-6 bg-white shadow">
 
     {{-- FILTER BAR --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
