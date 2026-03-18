@@ -905,10 +905,10 @@ function _buildCard(h) {
     const selCls     = isSel ? 'is-selected' : '';
     const checkBadge = isSel  ? `<span class="absolute top-1 left-1 bg-green-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded leading-tight z-10">✓</span>` : '';
     const doohBadge  = isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded z-10">DOOH</span>` : '';
-    const dateSnip   = isSel && selH
+    const dateSnip   = isSel && selH && selH.startDate && selH.endDate
         ? (() => { const r = friendlyRange(selH.startDate, selH.endDate);
                    return `<p class="text-[9px] font-semibold text-emerald-700 leading-tight mt-0.5 truncate">${r.full} <span class="text-emerald-500 font-bold">(${r.badge})</span></p>`; })()
-        : '';
+        : (isSel ? `<p class="text-[9px] font-semibold text-orange-500 leading-tight mt-0.5">Tap to select dates</p>` : '');
 
     if (currentViewMode === 'list') {
         return `
@@ -990,19 +990,24 @@ function handleHoardingSearch() {
    TOGGLE HOARDING
 ================================================================ */
 function toggleHoarding(id) {
+    let shouldOpenDatePicker = false;
+
     if (selectedHoardings.has(id)) {
         selectedHoardings.delete(id);
         delete availabilityIssues[id];
     } else {
         const h = hoardings.find(i => i.id === id);
         if (!h) return;
-        // Default: today → +29 days (= exactly 1 month × 30 days)
-        const today = toLocalYMD(new Date());
-        const end30 = new Date(); end30.setDate(end30.getDate() + 29);
-        selectedHoardings.set(id, { ...h, startDate: today, endDate: toLocalYMD(end30) });
+        // Do not auto-fill dates; prompt date selection in calendar.
+        selectedHoardings.set(id, { ...h, startDate: null, endDate: null });
+        shouldOpenDatePicker = true;
     }
     updateSummary();
     _syncUnselectBtn();
+
+    if (shouldOpenDatePicker) {
+        setTimeout(() => openDatePickerForHoarding(id), 120);
+    }
 }
 
 /* ================================================================
@@ -1027,19 +1032,26 @@ function updateSummary() {
 
     selectedHoardings.forEach((h, id) => {
         const isDooh      = h.type?.toUpperCase() === 'DOOH';
-        const totalPrice  = calcPrice(h.price_per_month, h.startDate, h.endDate);
+        const hasDates    = Boolean(h.startDate && h.endDate);
+        const totalPrice  = hasDates ? calcPrice(h.price_per_month, h.startDate, h.endDate) : null;
         const issue       = availabilityIssues[id];
         const conflictCls = issue ? 'availability-conflict' : '';
         const conflictBadge = issue
             ? `<span class="block mt-1 text-[9px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded w-fit">${issue.label}</span>` : '';
         const loc   = h.display_location || h.location_address || h.city || '';
-        const rng   = friendlyRange(h.startDate, h.endDate);
+        const rng   = hasDates ? friendlyRange(h.startDate, h.endDate) : null;
 
         // Duration cell — click to open calendar
-        const durCell = `
+        const durCell = hasDates
+            ? `
             <button class="dur-btn" onclick="openDatePickerForHoarding(${h.id})">
                 <span class="block">${rng.full}</span>
                 <span class="dur-sub">${rng.badge} · tap to change</span>
+            </button>`
+            : `
+            <button class="dur-btn" onclick="openDatePickerForHoarding(${h.id})">
+                <span class="block text-orange-600 font-semibold">Select dates</span>
+                <span class="dur-sub">Tap to open calendar</span>
             </button>`;
 
         const rmBtn = `
@@ -1064,7 +1076,7 @@ function updateSummary() {
                     <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full">${h.total_slots_per_day??300}</span>
                 </td>
                 <td class="px-4 py-3">${durCell}</td>
-                <td class="px-3 py-3 text-xs font-bold text-green-700 whitespace-nowrap">${formatINR(totalPrice)}</td>
+                <td class="px-3 py-3 text-xs font-bold text-green-700 whitespace-nowrap">${totalPrice !== null ? formatINR(totalPrice) : '—'}</td>
                 <td class="px-3 py-3 text-right">${rmBtn}</td>
             </tr>`;
         } else {
@@ -1078,7 +1090,7 @@ function updateSummary() {
                 </td>
                 <td class="px-3 py-3 text-xs text-gray-500 hidden sm:table-cell">${formatINR(h.price_per_month)}</td>
                 <td class="px-4 py-3">${durCell}</td>
-                <td class="px-3 py-3 text-xs font-bold text-green-700 whitespace-nowrap">${formatINR(totalPrice)}</td>
+                <td class="px-3 py-3 text-xs font-bold text-green-700 whitespace-nowrap">${totalPrice !== null ? formatINR(totalPrice) : '—'}</td>
                 <td class="px-3 py-3 text-right">${rmBtn}</td>
             </tr>`;
         }
@@ -1101,6 +1113,12 @@ async function checkAllAvailability() {
     let allClear = true;
 
     await Promise.all(Array.from(selectedHoardings.entries()).map(async ([id, h]) => {
+        if (!h.startDate || !h.endDate) {
+            allClear = false;
+            availabilityIssues[id] = { title:h.title, label:'Dates not selected', conflicts:[] };
+            return;
+        }
+
         try {
             const dates = enumerateDates(h.startDate, h.endDate);
             const res   = await fetch(`/api/v1/hoardings/${id}/availability/check-dates`, {
@@ -1190,7 +1208,7 @@ async function openDatePickerForHoarding(id) {
     const h = selectedHoardings.get(id);
     if (!h) { showToast('Please select the hoarding first.', 'warning'); return; }
 
-    dpCurrentStart = h.startDate;
+    dpCurrentStart = h.startDate || null;
     const titleEl = document.getElementById('datePickerTitle');
     const fullTitle = (h.title || 'Select Booking Dates').toString();
     if (titleEl) {
@@ -1202,7 +1220,11 @@ async function openDatePickerForHoarding(id) {
     document.getElementById('datePickerModal').classList.remove('hidden');
     document.getElementById('date-picker-inline').innerHTML =
         '<div class="text-center py-8 text-sm text-gray-400 animate-pulse">Loading calendar…</div>';
-    _updateDpBar(h.startDate, h.endDate, h.price_per_month);
+    _updateDpBar(h.startDate || null, h.endDate || null, h.price_per_month);
+
+    const defaultDate = h.startDate
+        ? (h.endDate ? [h.startDate, h.endDate] : [h.startDate])
+        : [];
 
     const today     = toLocalYMD(new Date());
     const farFuture = new Date(); farFuture.setDate(farFuture.getDate() + 730);
@@ -1232,7 +1254,7 @@ async function openDatePickerForHoarding(id) {
             appendTo:    document.getElementById('date-picker-inline'),
             minDate:     today,
             disable:     disabledDates,
-            defaultDate: [h.startDate, h.endDate],
+            defaultDate,
             showMonths:  window.innerWidth < 668 ? 1 : 2,
 
             onDayCreate(dObj, dStr, fp, dayElem) {
@@ -1338,6 +1360,15 @@ async function confirmDateSelection() {
 async function handleSubmit() {
     if (!selectedCustomer)             { showToast('Please select a customer.', 'warning');           return; }
     if (selectedHoardings.size === 0)  { showToast('Select at least one hoarding.', 'warning');        return; }
+
+    const firstMissingDates = Array.from(selectedHoardings.entries())
+        .find(([, h]) => !h.startDate || !h.endDate);
+    if (firstMissingDates) {
+        const [missingId, missingH] = firstMissingDates;
+        showToast(`Please select booking dates for: ${missingH.title}`, 'warning');
+        setTimeout(() => openDatePickerForHoarding(missingId), 150);
+        return;
+    }
 
     const btn  = document.getElementById('submit-btn');
     const orig = btn.innerHTML;

@@ -25,7 +25,7 @@ class POSReminderService
             ? $booking->scheduledReminders->where('status', POSBookingReminder::STATUS_PENDING)->count()
             : $booking->scheduledReminders()->pending()->count();
 
-        return max(0, self::MAX_REMINDERS - (int) $booking->reminder_count - $pendingCount);
+        return max(0, self::MAX_REMINDERS - $pendingCount);
     }
 
     public function serializeScheduledReminders(POSBooking $booking): array
@@ -88,7 +88,7 @@ class POSReminderService
             }
         }
 
-        $maxPendingAllowed = max(0, self::MAX_REMINDERS - (int) $booking->reminder_count);
+        $maxPendingAllowed = self::MAX_REMINDERS;
         if ($normalizedReminders->count() > $maxPendingAllowed) {
             throw ValidationException::withMessages([
                 'scheduled_reminders' => "Only {$maxPendingAllowed} reminder slot(s) are available for this booking.",
@@ -153,19 +153,11 @@ class POSReminderService
             ];
         }
 
-        if ((int) $booking->reminder_count >= self::MAX_REMINDERS) {
-            return [
-                'success' => false,
-                'status' => 422,
-                'message' => 'Maximum reminders already sent (3 limit)',
-            ];
-        }
-
         if ($scheduledReminder === null && $this->getRemainingReminderSlots($booking) <= 0) {
             return [
                 'success' => false,
                 'status' => 422,
-                'message' => 'Maximum reminders already scheduled or sent (3 limit)',
+                'message' => 'Maximum pending reminders already scheduled (3 limit)',
             ];
         }
 
@@ -378,15 +370,6 @@ class POSReminderService
                 $reminder->update([
                     'status' => POSBookingReminder::STATUS_CANCELLED,
                     'error_message' => $bookingError,
-                ]);
-
-                return false;
-            }
-
-            if ((int) $booking->reminder_count >= self::MAX_REMINDERS) {
-                $reminder->update([
-                    'status' => POSBookingReminder::STATUS_CANCELLED,
-                    'error_message' => 'Maximum reminders already sent (3 limit)',
                 ]);
 
                 return false;

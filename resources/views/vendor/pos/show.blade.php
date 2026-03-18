@@ -160,7 +160,7 @@
 <div id="release-modal"
      class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full mx-4 shadow-xl animate-fadeIn">
-        <h3 class="text-lg sm:text-xl font-semibold text-red-600 mb-2">⚠️ Release Booking</h3>
+        <h3 class="text-lg sm:text-xl font-semibold text-red-600 mb-2">⚠️ Cancel Booking</h3>
         <p class="text-sm text-gray-600 mb-3">
             This will cancel the booking permanently.
         </p>
@@ -176,8 +176,36 @@
             </button>
             <button onclick="confirmRelease()"
                     class="w-full sm:w-auto px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 flex items-center justify-center gap-2">
-                <span id="release-btn-text">Release</span>
+                <span id="release-btn-text">Cancel Booking</span>
                 <span id="release-spinner"
+                      class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- SEPARATE CANCEL BOOKING MODAL -->
+<div id="cancel-booking-modal"
+     class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full mx-4 shadow-xl animate-fadeIn">
+        <h3 class="text-lg sm:text-xl font-semibold text-red-600 mb-2">⚠️ Cancel Booking</h3>
+        <p class="text-sm text-gray-600 mb-3">
+            This will cancel the booking permanently.
+        </p>
+
+        <textarea id="cancel-booking-reason" rows="3"
+                  class="w-full rounded-lg border border-gray-300 p-2 mb-4"
+                  placeholder="Reason (optional)"></textarea>
+
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-2">
+            <button onclick="closeCancelBookingModal()"
+                    class="w-full sm:w-auto px-4 py-2 rounded-lg border hover:bg-gray-100">
+                Keep Booking
+            </button>
+            <button id="cancel-booking-confirm-btn" onclick="confirmCancelBooking()"
+                    class="w-full sm:w-auto px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 flex items-center justify-center gap-2">
+                <span id="cancel-booking-btn-text">Cancel Booking</span>
+                <span id="cancel-booking-spinner"
                       class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
             </button>
         </div>
@@ -369,8 +397,11 @@ async function loadBookingDetails() {
             '₹' + parseFloat(b.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
 
         document.getElementById('ui-booking-status').textContent = getPosBookingStatusLabel(b.status);
+        const bookingStatusColor = b.status === 'cancelled'
+            ? 'bg-slate-600 text-white'
+            : getPosBookingStatusColor(b.status);
         document.getElementById('ui-booking-status').className =
-            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + getPosBookingStatusColor(b.status);
+            'inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ' + bookingStatusColor;
 
         document.getElementById('ui-payment-status').textContent = getPosPaymentStatusLabel(b.payment_status);
         document.getElementById('ui-payment-status').className =
@@ -502,7 +533,7 @@ async function loadBookingDetails() {
                         <div><strong>Booking Date:</strong> ${new Date(b.created_at).toLocaleString()} </div>
                         <div><strong>Email:</strong> ${b.customer_email || '-'} </div>
                     </div>
-                    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 pt-2 border-t border-gray-200">
+                    <div id="booking-action-buttons" class="flex flex-col sm:flex-row sm:flex-wrap gap-2 pt-2 border-t border-gray-200">
                         ${renderActionButtons(b)}
                     </div>
                 </div>
@@ -524,8 +555,8 @@ async function loadBookingDetails() {
  * Render action buttons based on backend state rules
  * BACKEND RULES:
  * - Mark paid: Only if payment_status in [unpaid, partial] AND status != cancelled
- * - Release: Only if payment_status = unpaid AND status in [draft, confirmed]
- * - Send reminder: Only if reminder_count < 3
+ * - Cancel booking: Vendor can cancel at any time
+ * - Send reminder: Only if pending reminders < 3
  */
 function renderActionButtons(booking) {
     let html = '';
@@ -553,50 +584,24 @@ function renderActionButtons(booking) {
                 ✗ Booking Cancelled
             </button>`;
     }
+    
 
-    // Release button
-    // BACKEND RULE: payment_status = unpaid AND status in [draft, confirmed]
-    if (booking.payment_status === 'unpaid' && ['draft', 'confirmed'].includes(booking.status)) {
+
+    // Cancel booking button: show only if booking is not cancelled.
+    if (booking.status !== 'cancelled') {
         html += `
-            <button onclick="openReleaseModal()"
+            <button onclick="openCancelBookingModal()"
                 class="w-full sm:w-auto px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm font-medium text-center">
                 Cancel Booking
-            </button>`;
-    } 
-    else if (booking.status === 'active') {
-        html += `
-            <button disabled 
-                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
-                title="Cannot release - booking already started">
-                🚫 Cannot Cancel  (Active)
-            </button>`;
-    } else if (booking.status === 'completed') {
-        html += `
-            <button disabled 
-                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
-                title="Booking completed">
-                ✓ Completed
-            </button>`;
-    } else if (booking.status === 'cancelled') {
-        html += `
-            <button disabled 
-                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
-                title="Booking cancelled">
-                ✗ Cancelled
-            </button>`;
-    } else if (booking.payment_status !== 'unpaid') {
-        html += `
-            <button disabled 
-                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
-                title="Can only cancel booking if payment is unpaid">
-                🚫 Cannot Cancel
             </button>`;
     }
 
     // Send Reminder button
-    // RULE: Only if reminder_count < 3, payment not paid, and booking not cancelled
-    const reminderCount = Number(booking.reminder_count ?? 0);
-    if (booking.status !== 'cancelled' && booking.payment_status !== 'paid' && reminderCount < 3) {
+    // RULE: Only if pending reminders < 3, payment not paid, and booking not cancelled
+    const pendingReminderCount = Array.isArray(booking.scheduled_reminders)
+        ? booking.scheduled_reminders.filter(reminder => String(reminder?.status || 'pending').toLowerCase() === 'pending').length
+        : 0;
+    if (booking.status !== 'cancelled' && booking.payment_status !== 'paid' && pendingReminderCount < 3) {
         html += `
             <button onclick="sendReminder()"
                 class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium text-center">
@@ -611,11 +616,11 @@ function renderActionButtons(booking) {
                 ✓ Payment Completed
             </button>`;
     } 
-    else if (reminderCount >= 3) {
+    else if (pendingReminderCount >= 3) {
         html += `
             <button disabled 
                 class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
-                title="Maximum 3 reminders sent">
+                title="Maximum 3 pending reminders allowed">
                 Send Reminder
             </button>`;
     }
@@ -854,6 +859,101 @@ function closeReleaseModal() {
     document.getElementById('release-modal').classList.add('hidden');
 }
 
+function openCancelBookingModal() {
+    const modal = document.getElementById('cancel-booking-modal');
+    const reasonInput = document.getElementById('cancel-booking-reason');
+    if (!modal || !reasonInput) return;
+
+    modal.classList.remove('hidden');
+    reasonInput.value = '';
+}
+
+function closeCancelBookingModal() {
+    const modal = document.getElementById('cancel-booking-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function wireSeparateCancelBookingButton() {
+    const actionWrap = document.getElementById('booking-action-buttons');
+    if (!actionWrap) return;
+
+    const buttons = Array.from(actionWrap.querySelectorAll('button'));
+    const enabledCancelBtn = buttons.find(btn => {
+        const label = (btn.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+        return label === 'cancel booking' && !btn.disabled;
+    });
+
+    if (enabledCancelBtn) {
+        enabledCancelBtn.onclick = openCancelBookingModal;
+        enabledCancelBtn.removeAttribute('onclick');
+        return;
+    }
+
+    if (document.getElementById('separate-cancel-booking-btn')) {
+        return;
+    }
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.id = 'separate-cancel-booking-btn';
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'w-full sm:w-auto px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm font-medium text-center';
+    cancelBtn.textContent = 'Cancel Booking';
+    cancelBtn.onclick = openCancelBookingModal;
+
+    const backLink = actionWrap.querySelector('a');
+    if (backLink) {
+        actionWrap.insertBefore(cancelBtn, backLink);
+    } else {
+        actionWrap.appendChild(cancelBtn);
+    }
+}
+
+async function confirmCancelBooking() {
+    const reasonInput = document.getElementById('cancel-booking-reason');
+    const reason = (reasonInput?.value || '').trim() || 'Cancelled by vendor';
+    const confirmBtn = document.getElementById('cancel-booking-confirm-btn');
+
+    document.getElementById('cancel-booking-btn-text').classList.add('hidden');
+    document.getElementById('cancel-booking-spinner').classList.remove('hidden');
+    if (confirmBtn) confirmBtn.disabled = true;
+
+    try {
+        const response = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ reason })
+        });
+
+        if (response.ok) {
+            showActionMessage('✅ Booking cancelled successfully!', 'success');
+            closeCancelBookingModal();
+            setTimeout(() => loadBookingDetails(), 1500);
+        } else if (response.status === 400 || response.status === 422) {
+            const error = await response.json();
+            showActionMessage(error.message || 'Cannot cancel booking', 'error');
+        } else if (response.status === 404) {
+            showActionMessage('Booking not found', 'error');
+        } else {
+            const error = await response.json();
+            showActionMessage(error.message || 'Error cancelling booking', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showActionMessage('Network error. Please try again.', 'error');
+    } finally {
+        document.getElementById('cancel-booking-btn-text').classList.remove('hidden');
+        document.getElementById('cancel-booking-spinner').classList.add('hidden');
+        if (confirmBtn) confirmBtn.disabled = false;
+    }
+}
+
 /**
  * Confirm and submit mark as paid
  */
@@ -953,7 +1053,7 @@ async function confirmMarkPaid() {
  * Confirm and submit release booking
  */
 async function confirmRelease() {
-    const reason = document.getElementById('release-reason').value;
+    const reason = (document.getElementById('release-reason').value || '').trim() || 'Cancelled by vendor';
 
     // Show loading
     document.getElementById('release-btn-text').classList.add('hidden');
@@ -976,7 +1076,7 @@ async function confirmRelease() {
         });
 
         if (response.ok) {
-            showActionMessage('✅ Booking released successfully!', 'success');
+            showActionMessage('✅ Booking cancelled successfully!', 'success');
             closeReleaseModal();
             setTimeout(() => loadBookingDetails(), 1500);
         } else if (response.status === 400) {
@@ -1346,7 +1446,7 @@ function getSentReminderDraftCount() {
 }
 
 function getReminderAvailableSlots() {
-    const usedSlots = getSentReminderDraftCount() + getPendingReminderDrafts().length;
+    const usedSlots = getPendingReminderDrafts().length;
 
     return Math.max(0, 3 - usedSlots);
 }
@@ -1754,6 +1854,7 @@ function getPaymentStatusColor(status) {
 document.addEventListener('click', function(event) {
     const markPaidModal = document.getElementById('mark-paid-modal');
     const releaseModal = document.getElementById('release-modal');
+    const cancelBookingModal = document.getElementById('cancel-booking-modal');
     const reminderModal = document.getElementById('send-reminder-modal');
     const reminderSuccessModal = document.getElementById('reminder-success-modal');
 
@@ -1762,6 +1863,9 @@ document.addEventListener('click', function(event) {
     }
     if (event.target === releaseModal) {
         closeReleaseModal();
+    }
+    if (event.target === cancelBookingModal) {
+        closeCancelBookingModal();
     }
     if (event.target === reminderModal) {
         closeReminderModal();
