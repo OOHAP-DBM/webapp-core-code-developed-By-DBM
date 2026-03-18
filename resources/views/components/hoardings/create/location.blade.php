@@ -257,7 +257,7 @@ async function reverseGeocode(lat, lng) {
         const result = await res.json();
 
         if (result.success) {
-            fillFields(result.data.address);
+            fillFields(result.data.address, true, result.data);
         }
 
     } catch (e) {
@@ -265,13 +265,20 @@ async function reverseGeocode(lat, lng) {
     }
 }
 
-function fillFields(ad) {
-    if (!inputs.locality.value.trim()) {
+function fillFields(ad, forceUpdate = false, rawData = null) {
+    if (forceUpdate || !inputs.locality.value.trim()) {
         inputs.locality.value =
             ad.suburb ||
             ad.neighbourhood ||
+            ad.residential ||
+            ad.hamlet ||
+            ad.quarter ||
+            ad.city_district ||
+            ad.municipality ||
             ad.village ||
             ad.road ||
+            rawData?.name ||
+            rawData?.display_name?.split(',')?.[0]?.trim() ||
             "";
     }
         inputs.city.value =
@@ -286,7 +293,7 @@ function fillFields(ad) {
     const currentPincode = inputs.pincode.value.trim();
     const hasUserEnteredValidPincode = /^\d{6}$/.test(currentPincode);
 
-    if (ad.postcode && !hasUserEnteredValidPincode) {
+    if (ad.postcode && (forceUpdate || !hasUserEnteredValidPincode)) {
         inputs.pincode.value = ad.postcode;
     }
 }
