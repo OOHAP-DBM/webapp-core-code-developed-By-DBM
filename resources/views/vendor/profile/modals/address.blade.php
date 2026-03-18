@@ -6,24 +6,25 @@
     @csrf
     @method('PUT')
 
-    {{-- IMPORTANT --}}
     <input type="hidden" name="section" value="address">
 
-    {{-- Title --}}
     <h2 class="text-lg font-semibold text-gray-900">
         Edit Address
     </h2>
 
-    {{-- Fields --}}
     <div class="space-y-4 text-sm">
 
         {{-- Street Address --}}
         <div>
-            <label class="block text-gray-600 mb-1">Street Address</label>
+            <label class="block text-gray-600 mb-1">
+                Street Address <span class="text-red-500">*</span>
+            </label>
             <input
                 type="text"
                 name="registered_address"
                 value="{{ $vendor->registered_address }}"
+                required
+                placeholder="Enter your street address"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500"
             >
         </div>
@@ -33,55 +34,55 @@
             <label class="block text-gray-600 mb-1">Pincode</label>
             <input
                 type="text"
+                id="vendor-pincode"
                 name="pincode"
                 value="{{ $vendor->pincode }}"
+                maxlength="6"
+                placeholder="Enter 6-digit pincode"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500"
             >
+            <p id="vendor-pincode-error" class="text-red-500 text-xs mt-1 hidden"></p>
         </div>
 
         {{-- City --}}
         <div>
             <label class="block text-gray-600 mb-1">City</label>
-            <select
+            <input
+                type="text"
+                id="vendor-city"
                 name="city"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:ring-green-500"
+                value="{{ $vendor->city }}"
+                placeholder="Auto-filled from pincode"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500"
             >
-                <option selected>{{ $vendor->city }}</option>
-                <option>Lucknow</option>
-                <option>Delhi</option>
-                <option>Mumbai</option>
-                <option>Bangalore</option>
-            </select>
         </div>
 
         {{-- State --}}
         <div>
             <label class="block text-gray-600 mb-1">State</label>
-            <select
+            <input
+                type="text"
+                id="vendor-state"
                 name="state"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:ring-green-500"
+                value="{{ $vendor->state }}"
+                placeholder="Auto-filled from pincode"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500"
             >
-                <option selected>{{ $vendor->state }}</option>
-                <option>Uttar Pradesh</option>
-                <option>Delhi</option>
-                <option>Maharashtra</option>
-                <option>Karnataka</option>
-            </select>
         </div>
 
         {{-- Country --}}
         <div>
             <label class="block text-gray-600 mb-1">Country</label>
-            <select
+            <input
+                type="text"
+                id="vendor-country"
                 name="country"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:ring-green-500"
+                value="{{ $vendor->country ?? 'India' }}"
+                placeholder="Auto-filled from pincode"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500"
             >
-                <option selected>{{ $user->country ?? 'Select Country' }}</option>
-                <option value="India">India</option>
-                <option value="USA">USA</option>
-                <option value="UK">UK</option>
-            </select>
         </div>
+
     </div>
 
     {{-- Footer --}}
