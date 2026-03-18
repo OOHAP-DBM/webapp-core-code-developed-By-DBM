@@ -1020,6 +1020,8 @@ class POSBookingController extends Controller
             'reason' => 'required|string|max:500',
         ]);
 
+        $booking = null;
+
         try {
             $context = $this->resolveAdminBookingScopeContext($request);
             $bookingQuery = POSBooking::query();
