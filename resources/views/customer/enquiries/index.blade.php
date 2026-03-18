@@ -34,7 +34,7 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
-            <form method="GET" action="{{ route('customer.enquiries.index') }}" id="customer-enquiries-search-form" class="relative flex-1 md:w-72">
+            <form method="GET" action="{{ route('customer.enquiries.index') }}" id="customer-enquiries-search-form" class="relative flex-1 md:w-72 lg:w-[320px]">
                 <input
                     type="text"
                     name="search"

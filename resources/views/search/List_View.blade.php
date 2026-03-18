@@ -204,7 +204,7 @@
                                 </span>
 
                                 <span class="text-lg text-black font-bold">
-                                        /Month
+                                    {{ request('duration') === 'weekly' ? '/ Week' : '/ Month' }}
                                 </span>
                             </div>
 

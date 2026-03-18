@@ -191,11 +191,40 @@ class DashboardController extends Controller
             ->values()
             ->toArray();
 
+        // Monthly earnings and bookings (last 12 months)
+        $months = collect(range(0, 11))->map(function ($i) {
+            return now()->subMonths(11 - $i)->format('Y-m');
+        });
+
+        $monthlyEarnings = [];
+        $monthlyBookings = [];
+        foreach ($months as $month) {
+            $start = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+            $end = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
+            $earnings = POSBooking::where('vendor_id', $userId)
+                ->whereIn('payment_status', ['paid', 'partial_paid'])
+                ->whereBetween('created_at', [$start, $end])
+                ->sum('total_amount');
+            $bookings = POSBooking::where('vendor_id', $userId)
+                ->where('status', 'confirmed')
+                ->whereBetween('created_at', [$start, $end])
+                ->count();
+            $monthlyEarnings[] = (float) $earnings;
+            $monthlyBookings[] = (int) $bookings;
+        }
+
+        $monthLabels = $months->map(function($m) {
+            return Carbon::createFromFormat('Y-m', $m)->format('M');
+        })->toArray();
+
         return view('vendor.dashboard', compact(
             'stats',
             'topHoardings',
             'topCustomers',
-            'transactions'
+            'transactions',
+            'monthlyEarnings',
+            'monthlyBookings',
+            'monthLabels'
         ));
     }
 

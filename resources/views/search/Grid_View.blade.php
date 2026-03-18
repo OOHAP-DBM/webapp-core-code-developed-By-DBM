@@ -121,7 +121,9 @@
                                     $displayPrice = $item->price ?? $item->monthly_price ?? $item->base_monthly_price ?? 0;
                                 @endphp
                                 <span class="text-lg font-bold price-display" data-base-price="{{ $displayPrice }}">₹{{ number_format($displayPrice) }}</span>
-                                <span class="text-sm text-black">/Month</span>
+                                <span class="text-sm text-black">
+                                    {{ request('duration') === 'weekly' ? '/ Week' : '/ Month' }}
+                                </span>
                             </div>
 
                             @if(
@@ -224,7 +226,7 @@
             We couldn't find any hoardings matching your search. Try a different city or adjust your filters.
         </p>
         <a href="{{ route('search') }}"
-           class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+           class="inline-flex items-center gap-2 px-5 py-2.5 btn-color text-white text-sm font-medium rounded transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>

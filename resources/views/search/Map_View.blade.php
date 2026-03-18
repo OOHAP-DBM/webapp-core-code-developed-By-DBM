@@ -175,8 +175,8 @@
                                             ₹{{ number_format($displayPrice) }}
                                         </span>
 
-                                        <span class="text-sm text-gray-500">                                
-                                                /Month                                        
+                                        <span class="text-sm text-gray-500">
+                                            {{ request('duration') === 'weekly' ? '/ Week' : '/ Month' }}
                                         </span>
                                     </div>
 
