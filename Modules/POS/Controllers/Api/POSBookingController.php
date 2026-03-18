@@ -840,7 +840,6 @@ class POSBookingController extends Controller
                 'price_per_month',
                 'price_per_sqft'
             ])->paginate(20);
-
             return response()->json([
                 'success' => true,
                 'data' => $hoardings,
