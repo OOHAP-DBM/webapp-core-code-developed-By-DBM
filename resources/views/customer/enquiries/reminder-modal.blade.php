@@ -41,7 +41,7 @@
             <div class="text-center text-sm text-gray-700 mb-5">
                 Enquiry ID:
                 <span class="text-[#00995c] font-semibold">{{ $enquiry->formatted_id }}</span>
-                &nbsp;|&nbsp; #of Hoardings:
+                &nbsp;|&nbsp; No. of Hoardings:
                 <span class="text-[#00995c] font-semibold">{{ $enquiry->items->count() }}</span>
             </div>
 
@@ -94,7 +94,7 @@
                 <div class="px-4 py-3 border-b border-gray-200">
                     <p class="font-semibold text-gray-800 text-sm">Selected Hoardings (OOH & Digital)</p>
                 </div>
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto" style="max-height: 260px; overflow-y: auto;">
                     <table class="w-full text-xs">
                         <thead class="bg-white border-b border-gray-200">
                             <tr>
@@ -165,17 +165,16 @@
         </div>
 
         {{-- FOOTER --}}
-        <div class="flex-shrink-0 px-3 sm:px-8 pb-6">
-            <div class="flex items-center gap-2 mb-3">
-                <input type="checkbox" id="confirmReminderCheck"
-                    class="w-4 h-4 accent-gray-500 cursor-pointer">
-                <label for="confirmReminderCheck" class="text-xs text-gray-600 cursor-pointer">
-                    Would you like to Send this Reminder to the Vendor Now?
-                </label>
-            </div>
-
-            <form action="" method="POST">
+        <div class="flex-shrink-0 px-3 sm:px-8 pb-6 border-t border-gray-200">
+            <form action="{{ route('customer.enquiries.send-reminder', $enquiry->id) }}" method="POST">
                 @csrf
+                <div class="flex items-center gap-2 my-3">
+                    <input type="checkbox" id="confirmReminderCheck"
+                        class="w-4 h-4 accent-gray-500 cursor-pointer" required>
+                    <label for="confirmReminderCheck" class="text-xs text-gray-600 cursor-pointer">
+                        Would you like to Send this Reminder to the Vendor Now?
+                    </label>
+                </div>
                 <button type="submit"
                     class="w-full py-3 bg-[#4b5563] hover:bg-[#374151] text-white text-sm font-semibold transition-colors cursor-pointer">
                     Send Reminder

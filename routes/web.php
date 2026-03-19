@@ -661,6 +661,8 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
         Route::post('/check-availability', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'checkAvailability'])->name('check-availability');
         Route::post('/playback-preview', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'playbackPreview'])->name('playback-preview');
     });
+    // Send Reminder to Vendor
+        Route::post('/enquiries/{enquiry}/send-reminder', [\App\Http\Controllers\Web\Customer\ReminderController::class, 'send'])->name('enquiries.send-reminder');
 });
 
 // ============================================
