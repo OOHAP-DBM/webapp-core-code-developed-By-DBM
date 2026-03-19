@@ -92,7 +92,6 @@ class VendorPublicController extends Controller
 
             return $hoarding;
         });
-
         $cartIds = auth()->check()
             ? $cartService->getCartHoardingIds()
             : [];
