@@ -279,8 +279,8 @@
                 </div>
             </div>
 
-            <button id="save-reminder-draft-btn" onclick="saveReminderDraft()"
-                    class="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed disabled:opacity-100">
+                <button id="save-reminder-draft-btn" onclick="saveReminderDraft()"
+                    class="hidden w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed disabled:opacity-100">
                 <span id="save-reminder-draft-text">Save Reminder</span>
             </button>
 
@@ -293,10 +293,14 @@
                     <p class="text-base font-semibold text-gray-900">Scheduled Reminder</p>
                     <button id="reminder-add-more-btn" onclick="startNewReminderDraft()"
                             class="text-sm font-medium text-green-500 hover:text-green-600">
-                        Add more
+                        {{-- Add more --}}
                     </button>
                 </div>
                 <div id="reminder-list" class="space-y-3"></div>
+                <button id="reminder-view-more-sent-btn" type="button" onclick="showAllSentReminders()"
+                        class="hidden text-sm font-medium text-blue-600 hover:text-blue-700">
+                    View More Sent
+                </button>
             </div>
 
             <p class="text-xs text-gray-500">Note: Reminder will automatically send to the customer as scheduled.</p>
@@ -363,7 +367,33 @@
         </div>
     </div>
 </div>
-
+<!-- DELETE REMINDER CONFIRMATION MODAL -->
+<div id="delete-reminder-confirm-modal"
+     class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[100] px-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl animate-fadeIn">
+        <div class="flex items-start gap-3 mb-5">
+            <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8" />
+                </svg>
+            </div>
+            <div>
+                <h4 class="text-base font-semibold text-gray-900">Delete reminder?</h4>
+                <p id="delete-reminder-confirm-label" class="text-sm text-gray-500 mt-1"></p>
+            </div>
+        </div>
+        <div class="flex items-center justify-end gap-2">
+            <button type="button" onclick="closeDeleteReminderConfirmModal()"
+                    class="px-4 py-2 rounded-xl border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Keep
+            </button>
+            <button type="button" id="delete-reminder-confirm-btn" onclick="executeDeleteReminderDraft()"
+                    class="px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-100">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
 <style>
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(.96); }
@@ -389,6 +419,10 @@ let currentBooking = null;
 document.addEventListener('DOMContentLoaded', () => {
     loadBookingDetails();
     setInterval(loadBookingDetails, 60000);
+    const deleteReminderConfirmModal = document.getElementById('delete-reminder-confirm-modal');
+if (event.target === deleteReminderConfirmModal) {
+    closeDeleteReminderConfirmModal();
+}
 });
 
 async function loadBookingDetails() {
@@ -602,7 +636,7 @@ function renderActionButtons(booking) {
     if (['unpaid', 'partial'].includes(booking.payment_status) && booking.status !== 'cancelled') {
         html += `
             <button onclick="openMarkPaidModal()"
-                class="w-full sm:w-auto px-4 py-2 rounded-lg btn-color text-sm font-medium text-center">
+                class="w-full sm:w-auto px-4 py-2 rounded-lg btn-color text-sm font-medium text-center cursor-pointer">
                 Mark as Paid
             </button>`;
     } else if (booking.payment_status === 'paid') {
@@ -627,7 +661,7 @@ function renderActionButtons(booking) {
     if (booking.status !== 'cancelled') {
         html += `
             <button onclick="openCancelBookingModal()"
-                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm font-medium text-center">
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm font-medium text-center cursor-pointer">
                 Cancel Booking
             </button>`;
     }
@@ -637,7 +671,7 @@ function renderActionButtons(booking) {
     if (booking.status !== 'cancelled' && isActiveCreditNoteBooking) {
         html += `
             <button onclick="cancelDebitNote()"
-                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 text-sm font-medium text-center">
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 text-sm font-medium text-center cursor-pointer">
                 Cancel Debit Note
             </button>`;
     }
@@ -655,7 +689,7 @@ function renderActionButtons(booking) {
     if (canSendReminder) {
         html += `
             <button onclick="sendReminder()"
-                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium text-center">
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium text-center cursor-pointer">
                  Send Reminder
             </button>`;
     } 
@@ -1166,6 +1200,8 @@ let _reminderDrafts = [];
 let _reminderBasePendingSignature = '';
 let _reminderHasLocalDraftChanges = false;
 let _reminderInlineMessageTimeout = null;
+let _showAllSentReminders = false;
+let _suppressReminderAutoSave = false;
 
 function sendReminder() {
     openReminderModal();
@@ -1242,6 +1278,7 @@ function closeCancelDebitNoteModal() {
 
 function openReminderModal() {
     hydrateReminderDraftsFromBooking();
+    _showAllSentReminders = false;
     resetReminderComposer();
     clearReminderModalMessage();
     renderReminderDrafts();
@@ -1562,6 +1599,7 @@ function selectReminderTime(time24) {
 
     updateSelectedTimeDisplay();
     updateReminderActionButtons();
+    autoSaveReminderDraftIfReady();
 }
 
 function toggleCustomTimeInput() {
@@ -1603,6 +1641,19 @@ function applyCustomTime(time24) {
     _reminderTime = time24 || null;
     updateSelectedTimeDisplay();
     updateReminderActionButtons();
+    autoSaveReminderDraftIfReady();
+}
+
+function autoSaveReminderDraftIfReady() {
+    if (_suppressReminderAutoSave) {
+        return;
+    }
+
+    if (!buildReminderDateFromSelection()) {
+        return;
+    }
+
+    saveReminderDraft();
 }
 
 function updateSelectedTimeDisplay() {
@@ -1825,17 +1876,48 @@ function renderReminderDrafts() {
     const section = document.getElementById('reminder-list-section');
     const list = document.getElementById('reminder-list');
     const addMoreButton = document.getElementById('reminder-add-more-btn');
+    const viewMoreSentButton = document.getElementById('reminder-view-more-sent-btn');
 
     if (_reminderDrafts.length === 0) {
         section.classList.add('hidden');
         list.innerHTML = '';
+        if (viewMoreSentButton) {
+            viewMoreSentButton.classList.add('hidden');
+        }
         syncReminderDraftLocalState();
         updateReminderActionButtons();
         return;
     }
 
     section.classList.remove('hidden');
-    list.innerHTML = _reminderDrafts.map((reminder, index) => renderReminderDraftItem(reminder, index)).join('');
+
+    const sentReminders = _reminderDrafts.filter(reminder => reminder.status === 'sent');
+    let sentVisibleCount = 0;
+
+    const visibleReminders = _reminderDrafts.filter(reminder => {
+        if (reminder.status !== 'sent') {
+            return true;
+        }
+
+        if (_showAllSentReminders) {
+            sentVisibleCount += 1;
+            return true;
+        }
+
+        if (sentVisibleCount < 3) {
+            sentVisibleCount += 1;
+            return true;
+        }
+
+        return false;
+    });
+
+    list.innerHTML = visibleReminders.map((reminder, index) => renderReminderDraftItem(reminder, index)).join('');
+
+    if (viewMoreSentButton) {
+        const shouldShowViewMore = sentReminders.length > 3 && !_showAllSentReminders;
+        viewMoreSentButton.classList.toggle('hidden', !shouldShowViewMore);
+    }
 
     const canAddMore = getReminderAvailableSlots() > 0;
     addMoreButton.disabled = !canAddMore;
@@ -1847,6 +1929,11 @@ function renderReminderDrafts() {
 
     syncReminderDraftLocalState();
     updateReminderActionButtons();
+}
+
+function showAllSentReminders() {
+    _showAllSentReminders = true;
+    renderReminderDrafts();
 }
 
 function renderReminderDraftItem(reminder, index) {
@@ -1934,12 +2021,15 @@ function editReminderDraft(reminderKey) {
         return;
     }
 
+    _suppressReminderAutoSave = true;
+
     resetReminderComposer();
     _editingReminderKey = reminderKey;
     document.getElementById('save-reminder-draft-text').textContent = 'Update Reminder';
 
     const scheduledDate = parseReminderDateTime(reminder.scheduled_at);
     if (!(scheduledDate instanceof Date) || Number.isNaN(scheduledDate.getTime())) {
+        _suppressReminderAutoSave = false;
         showReminderModalMessage('Unable to edit this reminder because its date/time is invalid.', 'error');
         return;
     }
@@ -1967,8 +2057,34 @@ function editReminderDraft(reminderKey) {
         applyCustomTime(timeValue);
     }
 
+    _suppressReminderAutoSave = false;
+
     updateReminderActionButtons();
 }
+
+// function deleteReminderDraft(reminderKey) {
+//     const reminder = _reminderDrafts.find(item => item.key === reminderKey);
+//     if (!reminder) {
+//         return;
+//     }
+
+//     const reminderDate = parseReminderDateTime(reminder.scheduled_at);
+//     const label = reminderDate && !Number.isNaN(reminderDate.getTime())
+//         ? `${getReminderDateLabel(reminderDate)} ${reminderDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}`
+//         : 'this reminder';
+
+//     if (!window.confirm(`Are you sure you want to delete ${label}?`)) {
+//         return;
+//     }
+
+//     _reminderDrafts = _reminderDrafts.filter(reminder => reminder.key !== reminderKey);
+//     if (_editingReminderKey === reminderKey) {
+//         resetReminderComposer();
+//     }
+//     renderReminderDrafts();
+// }
+// Replace the existing deleteReminderDraft function:
+let _pendingDeleteReminderKey = null;
 
 function deleteReminderDraft(reminderKey) {
     const reminder = _reminderDrafts.find(item => item.key === reminderKey);
@@ -1981,9 +2097,22 @@ function deleteReminderDraft(reminderKey) {
         ? `${getReminderDateLabel(reminderDate)} ${reminderDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}`
         : 'this reminder';
 
-    if (!window.confirm(`Are you sure you want to delete ${label}?`)) {
-        return;
-    }
+    _pendingDeleteReminderKey = reminderKey;
+    document.getElementById('delete-reminder-confirm-label').textContent =
+        `${label} will be removed from your scheduled reminders.`;
+    document.getElementById('delete-reminder-confirm-modal').classList.remove('hidden');
+}
+
+function closeDeleteReminderConfirmModal() {
+    _pendingDeleteReminderKey = null;
+    document.getElementById('delete-reminder-confirm-modal').classList.add('hidden');
+}
+
+function executeDeleteReminderDraft() {
+    const reminderKey = _pendingDeleteReminderKey;
+    closeDeleteReminderConfirmModal();
+
+    if (!reminderKey) return;
 
     _reminderDrafts = _reminderDrafts.filter(reminder => reminder.key !== reminderKey);
     if (_editingReminderKey === reminderKey) {
@@ -2095,7 +2224,6 @@ document.addEventListener('click', function(event) {
     const markPaidModal = document.getElementById('mark-paid-modal');
     const releaseModal = document.getElementById('release-modal');
     const cancelBookingModal = document.getElementById('cancel-booking-modal');
-    const reminderModal = document.getElementById('send-reminder-modal');
     const reminderSuccessModal = document.getElementById('reminder-success-modal');
 
     if (event.target === markPaidModal) {
@@ -2106,9 +2234,6 @@ document.addEventListener('click', function(event) {
     }
     if (event.target === cancelBookingModal) {
         closeCancelBookingModal();
-    }
-    if (event.target === reminderModal) {
-        closeReminderModal();
     }
     const cancelDebitNoteModal = document.getElementById('cancel-debit-note-modal');
     if (event.target === cancelDebitNoteModal) {
