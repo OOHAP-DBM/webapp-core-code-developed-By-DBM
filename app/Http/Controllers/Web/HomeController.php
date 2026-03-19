@@ -53,27 +53,36 @@ class HomeController extends Controller
             ->latest('created_at')
             ->get();
 
-        $bestHoardings = $bestHoardings->map(function ($hoarding) {
 
+        // Add availability status and next available date using HoardingAvailabilityService
+        $availabilityService = app(\Modules\Hoardings\Services\HoardingAvailabilityService::class);
+        $today = now()->toDateString();
+
+        $bestHoardings = $bestHoardings->map(function ($hoarding) use ($availabilityService, $today) {
             if ($hoarding->hoarding_type === 'dooh') {
-
                 $hoarding->price_type = 'dooh';
-
-                $hoarding->base_price_for_enquiry =
-                    (float) (optional($hoarding->doohScreen)->price_per_slot ?? 0);
-
+                $hoarding->base_price_for_enquiry = (float) (optional($hoarding->doohScreen)->price_per_slot ?? 0);
             } else {
-
                 $hoarding->price_type = 'ooh';
-
-                $hoarding->base_price_for_enquiry =
-                    (float) ($hoarding->monthly_price ?? 0);
-
+                $hoarding->base_price_for_enquiry = (float) ($hoarding->monthly_price ?? 0);
                 $hoarding->monthly_price_display = $hoarding->monthly_price;
                 $hoarding->base_monthly_price_display = $hoarding->base_monthly_price;
             }
             $hoarding->grace_period_days = (int) ($hoarding->grace_period_days ?? 0);
-            
+
+            // Get today's availability status
+            $calendar = $availabilityService->getAvailabilityCalendar($hoarding->id, $today, $today);
+            $todayStatus = $calendar['calendar'][0]['status'] ?? 'unknown';
+            $hoarding->today_availability_status = $todayStatus;
+
+            // If not available today, get next available date
+            if ($todayStatus !== 'available') {
+                $next = $availabilityService->getNextAvailableDates($hoarding->id, 1, $today);
+                $hoarding->next_available_date = $next['dates'][0]['date'] ?? null;
+            } else {
+                $hoarding->next_available_date = null;
+            }
+
             return $hoarding;
         });
 

@@ -53,7 +53,7 @@
                                     required 
                                     maxlength="10"
                                     pattern="[6-9][0-9]{9}"
-                                    placeholder="10-digit mobile number" 
+                                    placeholder="10-digit mobile no." 
                                     class="w-full pl-14 pr-4 py-1 border-2 border-gray-200 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                                 <div id="phoneStatusIndicator" class="absolute right-3 top-1/2 -translate-y-1/2 hidden">
                                     <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -84,29 +84,29 @@
                             Hoarding Type <span class="text-red-500">*</span>
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label class="relative flex items-center px-4 py-1 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all group">
+                            <label class="relative flex items-center px-4 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all group h-9">
                                 <input type="checkbox" name="hoarding_type[]" value="DOOH" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                     </svg>
                                 </div>
-                                <div class="ml-3 flex-1">
-                                    <span class="block font-semibold text-gray-800 text-sm">Digital (DOOH)</span>
-                                    <span class="block text-xs text-gray-500">LED/LCD Displays</span>
+                                <div class="ml-3 flex-1 flex flex-col justify-center">
+                                    <span class="font-semibold text-gray-800 text-xs leading-tight">Digital (DOOH)</span>
+                                    <span class="text-xs text-gray-500 leading-tight">LED/LCD Displays</span>
                                 </div>
                             </label>
 
-                            <label class="relative flex items-center px-4 py-1 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all group">
+                            <label class="relative flex items-center px-4 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all group h-9">
                                 <input type="checkbox" name="hoarding_type[]" value="OOH" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                     </svg>
                                 </div>
-                                <div class="ml-3 flex-1">
-                                    <span class="block font-semibold text-gray-800 text-sm">Static (OOH)</span>
-                                    <span class="block text-xs text-gray-500">Traditional Hoardings</span>
+                                <div class="ml-3 flex-1 flex flex-col justify-center">
+                                    <span class="font-semibold text-gray-800 text-xs leading-tight">Static (OOH)</span>
+                                    <span class="text-xs text-gray-500 leading-tight">Traditional Hoardings</span>
                                 </div>
                             </label>
                         </div>
@@ -168,7 +168,7 @@
                             How Should We Reach You?
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <label class="relative flex items-center p-1 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all">
+                            <label class="relative flex items-center p-1 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all h-9">
                                 <input type="checkbox" name="preferred_modes[]" value="Call" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
@@ -178,7 +178,7 @@
                                 <span class="ml-2 text-sm font-medium text-gray-700">Phone Call</span>
                             </label>
 
-                            <label class="relative flex items-center p-3 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all">
+                            <label class="relative flex items-center p-3 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all h-9">
                                 <input type="checkbox" name="preferred_modes[]" value="WhatsApp" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
@@ -188,7 +188,7 @@
                                 <span class="ml-2 text-sm font-medium text-gray-700">WhatsApp</span>
                             </label>
 
-                            <label class="relative flex items-center p-3 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all">
+                            <label class="relative flex items-center p-3 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all h-9">
                                 <input type="checkbox" name="preferred_modes[]" value="Email" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
@@ -206,11 +206,11 @@
                             Security Check <span class="text-red-500">*</span>
                         </label>
                         <div class="flex items-center gap-3">
-                            <div class="flex-1 bg-gray-50 border-2 border-gray-200 rounded px-4 py-1 flex items-center justify-between">
+                            <div class="flex-1 bg-gray-50 border-2 border-gray-200 rounded flex items-center justify-between h-9 px-4">
                                 <span id="captchaText" class="font-bold text-lg text-gray-700"></span>
                                 <button type="button" 
                                         onclick="regenerateCaptcha()" 
-                                        class="text-[#009A5C] hover:text-[#007a4a] transition-colors">
+                                        class="text-[#009A5C] hover:text-[#007a4a] transition-colors h-9 w-8 flex items-center justify-center rounded">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                     </svg>
@@ -220,7 +220,7 @@
                                    name="captcha" 
                                    required 
                                    placeholder="Answer"
-                                   class="w-24 sm:w-32 px-4 py-1 border-2 border-gray-200 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-center text-sm sm:text-base">
+                                   class="w-24 sm:w-32 px-4 h-9 border-2 border-gray-200 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-center text-sm sm:text-base">
                         </div>
                     </div>
 

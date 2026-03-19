@@ -99,7 +99,7 @@
             <!-- STATS -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <!-- TOTAL HOARDINGS -->
-                <div class="bg-[#F3F4F6] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
+                <a href="{{ route('customer.enquiries.index') }}" target="_blank" class="bg-[#F3F4F6] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs hover:shadow-lg transition cursor-pointer" title="View all enquiries">
                     <div class="w-10 h-10 rounded-full bg-[#E5E7EB] flex items-center justify-center flex-shrink-0">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z" fill="#374151"/></svg>
                     </div>
@@ -107,7 +107,7 @@
                         <p class="text-sm font-medium text-gray-700 leading-tight">Total Enquiry</p>
                         <p class="text-xl font-semibold text-gray-900 leading-snug mt-1">{{ $stats['total_enquiries'] ?? 0 }}</p>
                     </div>
-                </div>
+                </a>
                 <!-- CITIES -->
                 <!-- <div class="bg-[#DCFCE7] rounded-xl p-4 flex items-start gap-3 w-full max-w-xs">
                     <div class="w-10 h-10 rounded-full bg-[#86EFAC] flex items-center justify-center flex-shrink-0">
@@ -144,33 +144,59 @@
             </div>
             <!-- BOOKED STATISTICS -->
             <div class="bg-white rounded-xl p-5 shadow mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-semibold">Booked Statistics</h3>
-                    <!-- <span class="text-xs text-gray-500">9–15 Sep, 2024</span> -->
+
+                {{-- Header Row: Title + Tabs + Navigator --}}
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                    <h3 class="font-semibold text-gray-900">Booked Statistics</h3>
+
+                    <div class="flex flex-wrap items-center gap-3">
+
+                        {{-- TODAY / THIS WEEK / THIS MONTH Tabs --}}
+                        @php $chartFilter = request('chart_filter', 'this_month'); @endphp
+
+                        <div class="flex items-center gap-1 bg-gray-100 rounded-full p-1">
+                            @foreach(['today' => 'Today', 'this_week' => 'This Week', 'this_month' => 'This Month'] as $val => $label)
+                                <a href="{{ request()->fullUrlWithQuery(['chart_filter' => $val, 'chart_offset' => 0]) }}"
+                                class="px-3 py-1 text-xs font-semibold rounded-full transition
+                                    {{ $chartFilter === $val
+                                        ? 'bg-white text-gray-900 shadow'
+                                        : 'text-gray-500 hover:text-gray-700' }}">
+                                    {{ $label }}
+                                </a>
+                            @endforeach
+                        </div>
+
+                        {{-- Date Range Navigator --}}
+                        <div class="flex items-center gap-1">
+                            <a href="{{ request()->fullUrlWithQuery(['chart_offset' => ($chartOffset ?? 0) - 1]) }}"
+                            class="w-7 h-7 flex items-center justify-center rounded-full border border-green-300 bg-green-50 hover:bg-green-100 text-green-700 font-bold text-sm transition">
+                                ‹
+                            </a>
+                            <span class="text-xs font-semibold text-green-700 border border-green-300 bg-green-50 px-3 py-1 rounded-full whitespace-nowrap">
+                                {{ $chartRangeLabel ?? now()->format('M Y') }}
+                            </span>
+                            <a href="{{ request()->fullUrlWithQuery(['chart_offset' => ($chartOffset ?? 0) + 1]) }}"
+                            class="w-7 h-7 flex items-center justify-center rounded-full border border-green-300 bg-green-50 hover:bg-green-100 text-green-700 font-bold text-sm transition">
+                                ›
+                            </a>
+                        </div>
+
+                    </div>
                 </div>
 
+                {{-- Chart or Empty State --}}
                 @if($hasBookingStats ?? false)
-                    {{-- Chart --}}
                     <canvas id="bookingChart" height="90"></canvas>
                 @else
-                    {{-- Empty State --}}
                     <div class="flex flex-col items-center justify-center py-12 text-center">
-                        <!-- SVG -->
                         <svg width="64" height="64" viewBox="0 0 24 24" fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="mb-3 text-gray-400">
+                            xmlns="http://www.w3.org/2000/svg" class="mb-3 text-gray-400">
                             <path d="M3 3v18h18" stroke="currentColor" stroke-width="1.5"/>
                             <path d="M7 15v-4M11 15v-7M15 15v-2"
-                                stroke="currentColor" stroke-width="1.5"
-                                stroke-linecap="round"/>
+                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                         </svg>
-
-                        <p class="text-sm font-medium text-gray-600">
-                            No booking data available
-                        </p>
-                        <p class="text-xs text-gray-400 mt-1">
-                            Your booking statistics will appear here
-                        </p>
+                        <p class="text-sm font-medium text-gray-600">No booking data available</p>
+                        <p class="text-xs text-gray-400 mt-1">Your booking statistics will appear here</p>
                     </div>
                 @endif
             </div>
@@ -470,18 +496,74 @@
     </div>
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Booking Chart - Line Style Modern
+    @if($hasBookingStats ?? false)
+        var ctx = document.getElementById('bookingChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: @json($bookingStats['labels']),
+                datasets: [{
+                    label: 'Hoardings',
+                    data: @json($bookingStats['data']),
+                    borderColor: '#e11d48', // rose-600
+                    backgroundColor: 'rgba(225,29,72,0.08)',
+                    pointBackgroundColor: '#e11d48',
+                    pointBorderColor: '#fff',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    tension: 0.4, // smooth curve
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                return 'Hoardings: ' + context.parsed.y;
+                            }
+                        },
+                        backgroundColor: '#111827',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#e11d48',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#334155', font: { weight: 'bold' } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { color: '#64748b', stepSize: 1 }
+                    }
+                }
+            }
+        });
+    @endif
+
+    // Debounced search
     const form = document.getElementById('dashboard-enquiries-search-form');
     const input = document.getElementById('dashboard-enquiries-search-input');
-
     if (!form || !input) {
         return;
     }
-
     let debounceTimer;
     const ignoredKeys = ['Shift', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Escape', 'Tab'];
-
     const submitSearch = function () {
         if (typeof form.requestSubmit === 'function') {
             form.requestSubmit();
@@ -489,22 +571,18 @@ document.addEventListener('DOMContentLoaded', function () {
             form.submit();
         }
     };
-
     input.addEventListener('keyup', function (event) {
         if (ignoredKeys.includes(event.key)) {
             return;
         }
-
         if (debounceTimer) {
             clearTimeout(debounceTimer);
         }
-
         if (event.key === 'Enter') {
             event.preventDefault();
             submitSearch();
             return;
         }
-
         debounceTimer = setTimeout(submitSearch, 450);
     });
 });
