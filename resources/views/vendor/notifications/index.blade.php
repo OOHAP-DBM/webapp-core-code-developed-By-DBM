@@ -19,17 +19,18 @@
 
         <div class="bg-white rounded-lg shadow overflow-hidden">
             @forelse($notifications as $notification)
-                <div class="px-4 py-3 border-b border-gray-100 {{ $notification->read_at ? 'bg-white' : 'bg-blue-50' }}">
+                <div class="px-4 py-3 border-b border-gray-100 {{ $notification->read_at ? 'bg-white' : 'bg-blue-50' }} hover:bg-blue-100 cursor-pointer"
+                     onclick="window.location='{{ route('notifications.open', $notification->id) }}'">
                     <div class="flex items-start gap-3">
-                        <div class="flex-1 min-w-0">
+                        <a href="{{ route('notifications.open', $notification->id) }}" class="flex-1 min-w-0 block">
                             <p class="text-sm font-medium text-gray-900">{{ $notification->data['title'] ?? 'Notification' }}</p>
                             <p class="text-sm text-gray-600 mt-1">{{ $notification->data['message'] ?? '' }}</p>
                             <p class="text-xs text-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
-                        </div>
+                        </a>
                         @if(!$notification->read_at)
-                            <form action="{{ route('vendor.notifications.read', $notification->id) }}" method="POST">
+                            <form action="{{ route('vendor.notifications.read', $notification->id) }}" method="POST" onclick="event.stopPropagation();" onsubmit="event.stopPropagation();">
                                 @csrf
-                                <button type="submit" class="text-xs text-blue-600 hover:text-blue-800">Mark as read</button>
+                                <button type="submit" class="text-xs text-blue-600 hover:text-blue-800" onclick="event.stopPropagation();">Mark as read</button>
                             </form>
                         @endif
                     </div>

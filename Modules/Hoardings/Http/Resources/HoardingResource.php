@@ -5,7 +5,8 @@ namespace Modules\Hoardings\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Helpers\HoardingHelper;
-
+use Carbon\Carbon;
+use Modules\Hoardings\Services\HoardingAvailabilityService;
 
 class HoardingResource extends JsonResource
 {
@@ -135,7 +136,13 @@ class HoardingResource extends JsonResource
             ];
         }
 
-
+        // Availability summary for the next 30 days
+        $availabilityService = app(HoardingAvailabilityService::class);
+        $availability = $availabilityService->getAvailabilitySummary(
+            $this->id,
+            Carbon::today(),
+            Carbon::today()->addDays(30)
+        );
         // Get latest 3 reviews with user info
         $latestReviews = $this->ratings()->latest('id')->take(3)->get()->map(function($rating) {
             return [
@@ -192,12 +199,13 @@ class HoardingResource extends JsonResource
             'is_featured' => (bool) $this->is_featured,
             'nagar_nigam_approved' => $this->nagar_nigam_approved,
             'permit_valid_till' => $this->permit_valid_till,
+            'is_recommended' => (bool) $this->is_recommended,
             'is_active' => $this->isActive(),
             'media' => $media,
             'packages' => $packages,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
-
+            'availability' => $availability,
             // Reviews summary
             'average_rating' => $this->averageRating(),
             'reviews_count' => $this->reviewsCount(),

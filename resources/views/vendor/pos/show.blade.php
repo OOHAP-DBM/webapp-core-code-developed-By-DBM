@@ -308,6 +308,7 @@
     </div>
 </div>
 
+@include('vendor.pos.components.cancel-debit-note-modal')
 <div id="reminder-success-modal"
      class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[60] px-4">
     <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl animate-fadeIn text-center">
@@ -351,6 +352,7 @@ const bookingId = @json($bookingId);
 const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
 window.POS_BASE_PATH = POS_BASE_PATH;
 const API_URL = `${POS_BASE_PATH}/api`;
+const New_API_URL = '/api/v1';
 let currentBooking = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -560,6 +562,9 @@ async function loadBookingDetails() {
  */
 function renderActionButtons(booking) {
     let html = '';
+    const isActiveCreditNoteBooking = booking.payment_mode === 'credit_note'
+        && booking.payment_status === 'credit'
+        && booking.credit_note_status !== 'cancelled';
 
     // Mark as Paid button
     // BACKEND RULE: payment_status in [unpaid, partial] AND status != cancelled
@@ -596,12 +601,27 @@ function renderActionButtons(booking) {
             </button>`;
     }
 
+    // Cancel Debit/Credit Note button
+    // RULE: Show only when payment mode is credit_note, booking is on credit, and booking is not cancelled
+    if (booking.status !== 'cancelled' && isActiveCreditNoteBooking) {
+        html += `
+            <button onclick="cancelDebitNote()"
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 text-sm font-medium text-center">
+                Cancel Debit Note
+            </button>`;
+    }
+
     // Send Reminder button
-    // RULE: Only if pending reminders < 3, payment not paid, and booking not cancelled
+    // RULE: Only if pending reminders < 3 and booking satisfies backend reminder rules
     const pendingReminderCount = Array.isArray(booking.scheduled_reminders)
         ? booking.scheduled_reminders.filter(reminder => String(reminder?.status || 'pending').toLowerCase() === 'pending').length
         : 0;
-    if (booking.status !== 'cancelled' && booking.payment_status !== 'paid' && pendingReminderCount < 3) {
+    const canSendReminder = booking.status !== 'cancelled' && pendingReminderCount < 3 && (
+        ['unpaid', 'partial'].includes(String(booking.payment_status || '').toLowerCase())
+        || isActiveCreditNoteBooking
+    );
+
+    if (canSendReminder) {
         html += `
             <button onclick="sendReminder()"
                 class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium text-center">
@@ -621,6 +641,14 @@ function renderActionButtons(booking) {
             <button disabled 
                 class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
                 title="Maximum 3 pending reminders allowed">
+                Send Reminder
+            </button>`;
+    }
+    else if (String(booking.payment_mode || '').toLowerCase() === 'credit_note' && String(booking.credit_note_status || '').toLowerCase() === 'cancelled') {
+        html += `
+            <button disabled
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed text-center"
+                title="Cannot send reminder after debit note is cancelled">
                 Send Reminder
             </button>`;
     }
@@ -1109,6 +1137,75 @@ let _reminderBasePendingSignature = '';
 function sendReminder() {
     openReminderModal();
 }
+
+function cancelDebitNote() {
+    if (!currentBooking) {
+        showActionMessage('Booking details are not loaded yet.', 'error');
+        return;
+    }
+    openCancelDebitNoteModal();
+}
+
+function openCancelDebitNoteModal() {
+    const modal = document.getElementById('cancel-debit-note-modal');
+    const reasonInput = document.getElementById('cancel-debit-note-reason');
+    if (!modal) return;
+
+    if (reasonInput) reasonInput.value = '';
+    modal.classList.remove('hidden');
+    setTimeout(() => reasonInput?.focus(), 100);
+}
+
+async function confirmCancelDebitNote() {
+    const reasonInput = document.getElementById('cancel-debit-note-reason');
+    const confirmBtn = document.getElementById('cancel-debit-note-confirm-btn');
+    const btnText = document.getElementById('cancel-debit-note-btn-text');
+    const spinner = document.getElementById('cancel-debit-note-spinner');
+
+    const trimmedReason = (reasonInput?.value || '').trim() || 'Cancelled by vendor';
+
+    // Show loading
+    if (btnText) btnText.classList.add('hidden');
+    if (spinner) spinner.classList.remove('hidden');
+    if (confirmBtn) confirmBtn.disabled = true;
+
+    try {
+        const response = await fetch(`${API_URL}/bookings/${bookingId}/cancel-credit-note`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ reason: trimmedReason })
+        });
+
+        if (response.ok) {
+            closeCancelDebitNoteModal();
+            showActionMessage('✅ Debit note cancelled successfully!', 'success');
+            await loadBookingDetails();
+            return;
+        }
+
+        const error = await response.json();
+        showActionMessage(error.message || 'Failed to cancel debit note', 'error');
+    } catch (error) {
+        console.error('cancelDebitNote error:', error);
+        showActionMessage('Network error. Please try again.', 'error');
+    } finally {
+        if (btnText) btnText.classList.remove('hidden');
+        if (spinner) spinner.classList.add('hidden');
+        if (confirmBtn) confirmBtn.disabled = false;
+    }
+}
+
+function closeCancelDebitNoteModal() {
+    const modal = document.getElementById('cancel-debit-note-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+
 
 function openReminderModal() {
     hydrateReminderDraftsFromBooking();
@@ -1869,6 +1966,10 @@ document.addEventListener('click', function(event) {
     }
     if (event.target === reminderModal) {
         closeReminderModal();
+    }
+    const cancelDebitNoteModal = document.getElementById('cancel-debit-note-modal');
+    if (event.target === cancelDebitNoteModal) {
+        closeCancelDebitNoteModal();
     }
     if (event.target === reminderSuccessModal) {
         closeReminderSuccessModal();

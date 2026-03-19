@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use App\Mail\PosBookingCancelledMail;
-use App\Notifications\PosBookingCancelledNotification;
+use Modules\POS\Notifications\PosCreditNoteCancelledNotification;
 use App\Notifications\PosBookingCreatedNotification;
 use App\Notifications\PosBookingConfirmedNotification;
 use mail;
@@ -852,18 +852,103 @@ class POSBookingService
     public function cancelCreditNote(POSBooking $booking, string $reason): POSBooking
     {
         return DB::transaction(function () use ($booking, $reason) {
+            if ($booking->isCancelled()) {
+                throw new \Exception('Cannot cancel debit note because booking is already cancelled');
+            }
+
             if (!$booking->isCreditNote()) {
                 throw new \Exception('This booking is not a credit note');
             }
+            if ($booking->payment_status !== POSBooking::PAYMENT_STATUS_CREDIT) {
+                throw new \Exception('Can only cancel debit note when booking is on credit');
+            }
 
+            if ($booking->credit_note_status === POSBooking::CREDIT_NOTE_STATUS_CANCELLED) {
+                throw new \Exception('Debit note is already cancelled');
+            }
             $booking->update([
                 'credit_note_status' => POSBooking::CREDIT_NOTE_STATUS_CANCELLED,
-                'payment_status'     => POSBooking::PAYMENT_STATUS_UNPAID,
+                // 'payment_status'     => POSBooking::PAYMENT_STATUS_UNPAID,
                 'cancellation_reason' => $reason,
             ]);
 
+            DB::afterCommit(function () use ($booking, $reason) {
+                $this->dispatchCreditNoteCancelledNotifications($booking, $reason);
+            });
+
             return $booking->fresh();
         });
+    }
+
+    /**
+     * Notify customer, vendor, and admin when a credit note is cancelled (debit note cancel).
+     * Booking is not cancelled, only the credit note is.
+     */
+    private function dispatchCreditNoteCancelledNotifications(POSBooking $booking, string $reason): void
+    {
+        try {
+            $notification = new PosCreditNoteCancelledNotification($booking, $reason);
+
+            $customer = $booking->customer;
+            $vendor   = $booking->vendor;
+            $admins   = \App\Models\User::whereHas('roles', function ($q) {
+                $q->whereIn('name', ['admin', 'super_admin']);
+            })->get();
+
+            // Customer — notification handles database, broadcast, AND mail
+            if ($customer && method_exists($customer, 'notify')) {
+                try {
+                    $customer->notify($notification);
+                } catch (\Throwable $e) {
+                    Log::warning('Credit note cancel: customer notification failed', [
+                        'booking_id'  => $booking->id,
+                        'customer_id' => $customer->id,
+                        'error'       => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // Vendor
+            if ($vendor && method_exists($vendor, 'notify')) {
+                try {
+                    $vendor->notify($notification);
+                } catch (\Throwable $e) {
+                    Log::warning('Credit note cancel: vendor notification failed', [
+                        'booking_id' => $booking->id,
+                        'vendor_id'  => $vendor->id,
+                        'error'      => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // Admins
+            foreach ($admins as $admin) {
+                if (!method_exists($admin, 'notify')) {
+                    continue;
+                }
+                try {
+                    $admin->notify($notification);
+                } catch (\Throwable $e) {
+                    Log::warning('Credit note cancel: admin notification failed', [
+                        'booking_id' => $booking->id,
+                        'admin_id'   => $admin->id,
+                        'error'      => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            Log::info('Credit note cancelled notifications dispatched', [
+                'booking_id'         => $booking->id,
+                'credit_note_number' => $booking->credit_note_number,
+                'reason'             => $reason,
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::warning('Credit note cancel: notification dispatch failed', [
+                'booking_id' => $booking->id,
+                'error'      => $e->getMessage(),
+            ]);
+        }
     }
 
     /* =========================================================

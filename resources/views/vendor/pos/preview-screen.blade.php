@@ -177,7 +177,12 @@
 
                 {{-- ── NEW: Credit Note Details Panel ── --}}
                 <div id="credit-note-details-panel" class="hidden space-y-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
-                    <div class="flex items-center gap-2 mb-2">
+
+                    <div>
+                        <h4 class="text-xs font-bold text-emerald-700 uppercase tracking-wider">Credit Note Booking</h4>
+                        <p class="text-[10px] text-emerald-600 mt-0.5">Booking will be confirmed immediately </p>
+                    </div>
+                    <!-- <div class="flex items-center gap-2 mb-2">
                         <div class="w-7 h-7 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
                             <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
                         </div>
@@ -207,7 +212,7 @@
                     <div class="flex items-start gap-2 bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-2">
                         <svg class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <p class="text-[11px] text-emerald-700 font-medium">Booking status will be set to <span class="font-black">Confirmed</span> automatically. A credit note number will be generated.</p>
-                    </div>
+                    </div> -->
                 </div>
 
                 {{-- Booking Hold Timer — hidden for credit_note --}}
@@ -287,9 +292,9 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-y-1 text-xs mt-2">
-                    <span class="text-gray-500">Credit Note #</span><span id="modal-credit-note-number" class="font-bold text-emerald-700 font-mono"></span>
-                    <span class="text-gray-500">Due Date</span><span id="modal-credit-note-due-date" class="font-bold text-gray-800"></span>
-                    <span class="text-gray-500">Status</span><span class="font-bold text-emerald-700">✓ Confirmed</span>
+                    <!-- <span class="text-gray-500">Credit Note #</span><span id="modal-credit-note-number" class="font-bold text-emerald-700 font-mono"></span>
+                    <span class="text-gray-500">Due Date</span><span id="modal-credit-note-due-date" class="font-bold text-gray-800"></span> -->
+                    <span class="text-gray-500">Booking Status</span><span class="font-bold text-emerald-700">✓ Confirmed</span>
                 </div>
             </div>
 
@@ -412,7 +417,7 @@ function getPosPricingBreakdown() {
     const taxableAmount = Math.max(0, (globalBaseAmount || 0) - discountVal);
     const tax = taxableAmount * (gstRate / 100);
     const grandTotal = taxableAmount + tax;
-    return { discountVal, tax, grandTotal };
+        return { discountVal, tax, grandTotal };
 }
 
 function calculateFinalTotals() {
@@ -724,10 +729,10 @@ function showBookingConfirmedModal(booking) {
     if (isCreditNote) {
         // Show credit note confirmed block — no timer needed
         document.getElementById('credit-note-confirmed-block').classList.remove('hidden');
-        document.getElementById('modal-credit-note-number').innerText  = booking.credit_note_number || '---';
-        document.getElementById('modal-credit-note-due-date').innerText = booking.credit_note_due_date
-            ? new Date(booking.credit_note_due_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-            : '---';
+        // document.getElementById('modal-credit-note-number').innerText  = booking.credit_note_number || '---';
+        // document.getElementById('modal-credit-note-due-date').innerText = booking.credit_note_due_date
+        //     ? new Date(booking.credit_note_due_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+        //     : '---';
     } else if (booking.hold_expiry_at && selectedHoldMinutes > 0) {
         document.getElementById('payment-timer-block').classList.remove('hidden');
         startCountdown(booking.hold_expiry_at);
