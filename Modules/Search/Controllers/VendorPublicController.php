@@ -36,8 +36,15 @@ class VendorPublicController extends Controller
         $sort = request('sort');
 
         if ($sort === 'recommended') {
-            $query->where('hoardings.is_recommended', true)
-                // ->orderByDesc('hoardings.is_featured')
+            $query->where(function ($q) {
+                $q->where('hoardings.is_recommended', true)
+                    ->orWhere('hoardings.view_count', '>=', 50)
+                    ->orWhere('hoardings.expected_eyeball', '>=', 5000);
+            })
+                ->orderByDesc('hoardings.is_recommended')
+                ->orderByDesc('hoardings.is_featured')
+                ->orderByDesc('hoardings.view_count')
+                ->orderByDesc('hoardings.expected_eyeball')
                 ->orderByDesc('hoardings.created_at');
         } elseif ($sort === 'low_high') {
             $query->orderByRaw("
