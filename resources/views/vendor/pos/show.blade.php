@@ -217,15 +217,15 @@
      class="hidden fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50">
     <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md sm:mx-4 shadow-xl animate-fadeIn overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-            <button onclick="closeReminderModal()"
+            <div class="w-9 h-9" aria-hidden="true"></div>
+            <h3 class="text-lg font-semibold text-gray-900">Send Reminder</h3>
+            <button type="button" onclick="dismissReminderModal()"
                     class="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50"
                     aria-label="Close reminder modal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
-            <h3 class="text-lg font-semibold text-gray-900">Send Reminder</h3>
-            <div class="w-9"></div>
         </div>
 
         <div class="px-5 py-5 space-y-5 max-h-[72vh] overflow-y-auto">
@@ -284,6 +284,10 @@
                 <span id="save-reminder-draft-text">Save Reminder</span>
             </button>
 
+            <div id="reminder-inline-message"
+                 class="hidden rounded-lg border p-3 text-sm"
+                 aria-live="polite"></div>
+
             <div id="reminder-list-section" class="hidden border-t border-gray-200 pt-4 space-y-3">
                 <div class="flex items-center justify-between gap-3">
                     <p class="text-base font-semibold text-gray-900">Scheduled Reminder</p>
@@ -330,6 +334,33 @@
                 class="w-full mt-5 py-3 rounded-xl bg-green-500 text-white font-semibold text-sm hover:bg-green-600">
             Add more reminder
         </button>
+    </div>
+</div>
+
+<div id="reminder-close-confirm-modal"
+     class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[70] px-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl animate-fadeIn">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z" />
+                </svg>
+            </div>
+            <div>
+                <h4 class="text-lg font-semibold text-gray-900">Close reminder popup?</h4>
+                <p class="text-sm text-gray-500 mt-1">Are you sure you want to close this popup? Reminder data saved here but not scheduled yet will be discarded.</p>
+            </div>
+        </div>
+        <div class="mt-5 flex items-center justify-end gap-3">
+            <button type="button" onclick="closeReminderDismissConfirmModal()"
+                    class="px-4 py-2 rounded-xl border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Cancel
+            </button>
+            <button type="button" onclick="confirmDismissReminderModal()"
+                    class="px-4 py-2 rounded-xl bg-red-500 text-sm font-semibold text-white hover:bg-red-600">
+                Yes, Close
+            </button>
+        </div>
     </div>
 </div>
 
@@ -1133,6 +1164,8 @@ let _reminderTime = null;
 let _editingReminderKey = null;
 let _reminderDrafts = [];
 let _reminderBasePendingSignature = '';
+let _reminderHasLocalDraftChanges = false;
+let _reminderInlineMessageTimeout = null;
 
 function sendReminder() {
     openReminderModal();
@@ -1210,12 +1243,57 @@ function closeCancelDebitNoteModal() {
 function openReminderModal() {
     hydrateReminderDraftsFromBooking();
     resetReminderComposer();
+    clearReminderModalMessage();
     renderReminderDrafts();
     document.getElementById('send-reminder-modal').classList.remove('hidden');
 }
 
-function closeReminderModal() {
+function closeReminderModal(discardUnsavedDrafts = false) {
+    clearReminderModalMessage();
+    closeReminderDismissConfirmModal();
+
+    if (discardUnsavedDrafts) {
+        hydrateReminderDraftsFromBooking(true);
+    }
+
+    resetReminderComposer();
     document.getElementById('send-reminder-modal').classList.add('hidden');
+}
+
+function dismissReminderModal() {
+    if (shouldConfirmReminderDismiss()) {
+        openReminderDismissConfirmModal();
+        return;
+    }
+
+    closeReminderModal(true);
+}
+
+function openReminderDismissConfirmModal() {
+    document.getElementById('reminder-close-confirm-modal').classList.remove('hidden');
+}
+
+function closeReminderDismissConfirmModal() {
+    document.getElementById('reminder-close-confirm-modal').classList.add('hidden');
+}
+
+function confirmDismissReminderModal() {
+    closeReminderModal(true);
+}
+
+function hasReminderComposerState() {
+    const customDateValue = document.getElementById('reminder-custom-date')?.value || '';
+    const customTimeValue = document.getElementById('reminder-custom-time')?.value || '';
+
+    return _editingReminderKey !== null
+        || _reminderDay !== null
+        || _reminderTime !== null
+        || customDateValue !== ''
+        || customTimeValue !== '';
+}
+
+function shouldConfirmReminderDismiss() {
+    return _reminderHasLocalDraftChanges || hasReminderComposerState();
 }
 
 function closeReminderSuccessModal() {
@@ -1227,7 +1305,11 @@ function openReminderModalFromSuccess() {
     openReminderModal();
 }
 
-function hydrateReminderDraftsFromBooking() {
+function hydrateReminderDraftsFromBooking(forceRefresh = false) {
+    if (_reminderHasLocalDraftChanges && !forceRefresh) {
+        return;
+    }
+
     const bookingReminders = Array.isArray(currentBooking?.scheduled_reminders) ? currentBooking.scheduled_reminders : [];
 
     _reminderDrafts = bookingReminders.map((reminder, index) => ({
@@ -1241,6 +1323,54 @@ function hydrateReminderDraftsFromBooking() {
     _reminderBasePendingSignature = getPendingReminderSignature(
         _reminderDrafts.filter(reminder => reminder.status === 'pending')
     );
+    _reminderHasLocalDraftChanges = false;
+}
+
+function clearReminderModalMessage() {
+    const msgDiv = document.getElementById('reminder-inline-message');
+
+    if (!msgDiv) {
+        return;
+    }
+
+    if (_reminderInlineMessageTimeout) {
+        clearTimeout(_reminderInlineMessageTimeout);
+        _reminderInlineMessageTimeout = null;
+    }
+
+    msgDiv.className = 'hidden rounded-lg border p-3 text-sm';
+    msgDiv.textContent = '';
+}
+
+function showReminderModalMessage(message, type) {
+    const msgDiv = document.getElementById('reminder-inline-message');
+
+    if (!msgDiv) {
+        showActionMessage(message, type);
+        return;
+    }
+
+    if (_reminderInlineMessageTimeout) {
+        clearTimeout(_reminderInlineMessageTimeout);
+        _reminderInlineMessageTimeout = null;
+    }
+
+    msgDiv.className = `rounded-lg border p-3 text-sm ${
+        type === 'error'
+            ? 'border-red-200 bg-red-50 text-red-700'
+            : 'border-green-200 bg-green-50 text-green-700'
+    }`;
+    msgDiv.textContent = message;
+
+    if (type === 'success') {
+        _reminderInlineMessageTimeout = setTimeout(() => {
+            clearReminderModalMessage();
+        }, 5000);
+    }
+}
+
+function syncReminderDraftLocalState() {
+    _reminderHasLocalDraftChanges = getPendingReminderSignature() !== _reminderBasePendingSignature;
 }
 
 function parseReminderDateTime(value) {
@@ -1298,7 +1428,7 @@ function resetReminderComposer() {
 
 function startNewReminderDraft() {
     if (getReminderAvailableSlots() <= 0) {
-        showActionMessage('You can schedule only 3 reminders for this booking.', 'error');
+        showReminderModalMessage('You can schedule only 3 reminders for this booking.', 'error');
         return;
     }
 
@@ -1627,12 +1757,12 @@ function sortReminderDrafts() {
 function saveReminderDraft() {
     const scheduledDate = buildReminderDateFromSelection();
     if (!scheduledDate) {
-        showActionMessage('Please choose both date and time before saving.', 'error');
+        showReminderModalMessage('Please choose both date and time before saving.', 'error');
         return;
     }
 
     if (scheduledDate.getTime() < Date.now() - 60000) {
-        showActionMessage('Reminder time must be now or in the future.', 'error');
+        showReminderModalMessage('Reminder time must be now or in the future.', 'error');
         return;
     }
 
@@ -1652,7 +1782,7 @@ function saveReminderDraft() {
     });
 
     if (hasDuplicate) {
-        showActionMessage('This reminder time is already in the list. Choose a different time.', 'error');
+        showReminderModalMessage('This reminder time is already in the list. Choose a different time.', 'error');
         return;
     }
 
@@ -1668,10 +1798,10 @@ function saveReminderDraft() {
             };
         });
 
-        showActionMessage('Reminder updated in list. Click Schedule Reminder to save changes.', 'success');
+        showReminderModalMessage('Reminder updated in list. Click Schedule Reminder to save changes.', 'success');
     } else {
         if (getReminderAvailableSlots() <= 0) {
-            showActionMessage('You can schedule only 3 reminders for this booking.', 'error');
+            showReminderModalMessage('You can schedule only 3 reminders for this booking.', 'error');
             return;
         }
 
@@ -1682,6 +1812,8 @@ function saveReminderDraft() {
             status: 'pending',
             sent_at: null,
         });
+
+        clearReminderModalMessage();
     }
 
     sortReminderDrafts();
@@ -1697,6 +1829,7 @@ function renderReminderDrafts() {
     if (_reminderDrafts.length === 0) {
         section.classList.add('hidden');
         list.innerHTML = '';
+        syncReminderDraftLocalState();
         updateReminderActionButtons();
         return;
     }
@@ -1712,6 +1845,7 @@ function renderReminderDrafts() {
     addMoreButton.classList.toggle('cursor-not-allowed', !canAddMore);
     addMoreButton.classList.toggle('pointer-events-none', !canAddMore);
 
+    syncReminderDraftLocalState();
     updateReminderActionButtons();
 }
 
@@ -1742,18 +1876,26 @@ function renderReminderDraftItem(reminder, index) {
             </div>`;
     }
 
-    const sentLabel = reminder.status === 'sent'
-        ? '<span class="text-xs italic text-blue-500">(Sent)</span>'
-        : '';
+    let statusLabel;
+    if (reminder.status === 'sent') {
+        statusLabel = '<span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">Sent</span>';
+    } else if (reminder.id === null) {
+        // locally saved draft — not yet pushed to server via Schedule Reminder
+        statusLabel = '<span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">Saved</span>';
+    } else {
+        // server-side pending — Schedule Reminder was clicked, waiting to be delivered
+        statusLabel = '<span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">Scheduled</span>';
+    }
 
     return `
         <div class="border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
             <div class="flex items-start justify-between gap-3">
-                <div class="text-sm text-gray-800 leading-6">
-                    <span class="font-medium mr-2">${index + 1}.</span>${dateLabel}
-                    <span class="text-gray-400 mx-1">|</span>
+                <div class="flex flex-wrap items-center gap-2 text-sm text-gray-800 leading-6">
+                    <span class="font-medium">${index + 1}.</span>
+                    <span>${dateLabel}</span>
+                    <span class="text-gray-400">|</span>
                     <span class="text-orange-500">${timeLabel}</span>
-                    ${sentLabel}
+                    ${statusLabel}
                 </div>
                 ${actions}
             </div>
@@ -1798,7 +1940,7 @@ function editReminderDraft(reminderKey) {
 
     const scheduledDate = parseReminderDateTime(reminder.scheduled_at);
     if (!(scheduledDate instanceof Date) || Number.isNaN(scheduledDate.getTime())) {
-        showActionMessage('Unable to edit this reminder because its date/time is invalid.', 'error');
+        showReminderModalMessage('Unable to edit this reminder because its date/time is invalid.', 'error');
         return;
     }
     const today = new Date();
@@ -1852,12 +1994,12 @@ function deleteReminderDraft(reminderKey) {
 
 async function confirmSendReminder() {
     if (_editingReminderKey !== null) {
-        showActionMessage('Please save the edited reminder before scheduling.', 'error');
+        showReminderModalMessage('Please save the edited reminder before scheduling.', 'error');
         return;
     }
 
     if (buildReminderDateFromSelection()) {
-        showActionMessage('Please save the current reminder before scheduling.', 'error');
+        showReminderModalMessage('Please save the current reminder before scheduling.', 'error');
         return;
     }
 
@@ -1870,7 +2012,7 @@ async function confirmSendReminder() {
     });
 
     if (pendingReminders.length === 0) {
-        showActionMessage('Add at least one reminder before scheduling.', 'error');
+        showReminderModalMessage('Add at least one reminder before scheduling.', 'error');
         return;
     }
 
@@ -1898,6 +2040,7 @@ async function confirmSendReminder() {
                 currentBooking.scheduled_reminders = result?.data?.scheduled_reminders || [];
                 currentBooking.remaining_reminder_slots = Number(result?.data?.remaining_reminder_slots ?? 0);
             }
+            hydrateReminderDraftsFromBooking(true);
             closeReminderModal();
             const slotsLeft = getReminderAvailableSlots();
             const successAddMoreBtn = document.getElementById('success-add-more-btn');
@@ -1908,15 +2051,15 @@ async function confirmSendReminder() {
             await loadBookingDetails();
         } else if (response.status === 400 || response.status === 422 || response.status === 429) {
             const error = await response.json();
-            showActionMessage(error.message || 'Cannot schedule reminder', 'error');
+            showReminderModalMessage(error.message || 'Cannot schedule reminder', 'error');
             await loadBookingDetails();
         } else {
             const error = await response.json();
-            showActionMessage(error.message || 'Error scheduling reminder', 'error');
+            showReminderModalMessage(error.message || 'Error scheduling reminder', 'error');
         }
     } catch (err) {
         console.error('scheduleReminder error:', err);
-        showActionMessage('Network error. Please try again.', 'error');
+        showReminderModalMessage('Network error. Please try again.', 'error');
     } finally {
         document.getElementById('reminder-btn-text').classList.remove('hidden');
         document.getElementById('reminder-spinner').classList.add('hidden');

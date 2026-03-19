@@ -145,11 +145,13 @@
 
                             <!-- <p class="text-xs text-gray-500 mt-2">Taxes excluded</p> -->
 
-                            <p class="text-xs text-blue-500 mb-1">
-                                @if($item->available_from && \Carbon\Carbon::parse($item->available_from)->isFuture())
-                                    Hoarding Available from {{ \Carbon\Carbon::parse($item->available_from)->format('F d, Y') }}
+                            <p class="text-xs text-gray-500 mb-1 mt-1">
+                                @if($item->today_availability_status === 'available')
+                                    Available from {{ \Carbon\Carbon::now()->format('F d, Y') }}
+                                @elseif(!empty($item->next_available_date))
+                                    Available from {{ \Carbon\Carbon::parse($item->next_available_date)->format('F d, Y') }}
                                 @else
-                                    Available
+                                    Not Available
                                 @endif
                             </p>
 

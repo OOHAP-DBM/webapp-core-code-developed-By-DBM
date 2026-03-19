@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Modules\Cart\Services\CartService;
+use Modules\Hoardings\Services\HoardingAvailabilityService;
 
 class SearchController extends Controller
 {
@@ -277,6 +278,18 @@ class SearchController extends Controller
                 ? ($oohImages[$item->id] ?? collect())
                 : ($doohImages[$item->id] ?? collect());
 
+            // Add availability status and next available date
+            $availabilityService = app(\Modules\Hoardings\Services\HoardingAvailabilityService::class);
+            $today = now()->toDateString();
+            $calendar = $availabilityService->getAvailabilityCalendar($item->id, $today, $today);
+            $todayStatus = $calendar['calendar'][0]['status'] ?? 'unknown';
+            $item->today_availability_status = $todayStatus;
+            if ($todayStatus !== 'available') {
+                $next = $availabilityService->getNextAvailableDates($item->id, 1, $today);
+                $item->next_available_date = $next['dates'][0]['date'] ?? null;
+            } else {
+                $item->next_available_date = null;
+            }
             return $item;
         });
 

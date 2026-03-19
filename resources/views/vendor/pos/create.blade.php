@@ -1257,6 +1257,70 @@ async function openDatePickerForHoarding(id) {
             defaultDate,
             showMonths:  window.innerWidth < 668 ? 1 : 2,
 
+            onReady(selectedDates, dateStr, fp) {
+                // If the user already picked a start date/range and clicks another available date,
+                // reset to a fresh start whenever the old path crosses unavailable dates.
+                fp.calendarContainer.addEventListener('mousedown', (event) => {
+                    const target = event.target;
+                    if (!(target instanceof Element)) return;
+
+                    const dayElem = target.closest('.flatpickr-day');
+                    if (!dayElem || !dayElem.dateObj) return;
+
+                    // flatpickr-disabled = the date itself is booked/blocked → never allow
+                    if (dayElem.classList.contains('flatpickr-disabled')) {
+                        return;
+                    }
+                    // notAllowed means the path from the current start crosses blocked dates.
+                    // We fall through for notAllowed dates so we can reset to a fresh start.
+
+                    const selectedCount = fp.selectedDates.length;
+                    if (selectedCount === 0) {
+                        return;
+                    }
+
+                    const clickedISO = toLocalYMD(dayElem.dateObj);
+                    const currentStartISO = fp.selectedDates[0] ? toLocalYMD(fp.selectedDates[0]) : null;
+                    const currentEndISO = fp.selectedDates[1] ? toLocalYMD(fp.selectedDates[1]) : null;
+
+                    if (!currentStartISO || clickedISO === currentStartISO || clickedISO === currentEndISO) {
+                        return;
+                    }
+
+                    // Always reset when a full range is already selected, or when flatpickr
+                    // has marked this date as notAllowed (blocked path from current start),
+                    // or when the path check confirms blocked dates exist in between.
+                    let shouldResetToFreshStart = selectedCount >= 2 ||
+                        dayElem.classList.contains('notAllowed');
+
+                    if (!shouldResetToFreshStart && selectedCount === 1) {
+                        const fromISO = clickedISO < currentStartISO ? clickedISO : currentStartISO;
+                        const toISO = clickedISO < currentStartISO ? currentStartISO : clickedISO;
+
+                        shouldResetToFreshStart = enumerateDates(fromISO, toISO).some((dateISO) => {
+                            if (dateISO === clickedISO) {
+                                return false;
+                            }
+                            const status = currentHeatmapMap[dateISO];
+                            return status && status !== 'available';
+                        });
+                    }
+
+                    if (!shouldResetToFreshStart) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    if (typeof event.stopImmediatePropagation === 'function') {
+                        event.stopImmediatePropagation();
+                    }
+                    event.stopPropagation();
+
+                    fp.clear(false);
+                    fp.setDate([clickedISO], true);
+                }, true);
+            },
+
             onDayCreate(dObj, dStr, fp, dayElem) {
                 const date   = toLocalYMD(dayElem.dateObj);
                 const status = currentHeatmapMap[date];
