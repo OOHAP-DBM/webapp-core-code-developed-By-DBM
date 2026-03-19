@@ -72,6 +72,8 @@ class InventoryImportStaging extends Model
         'error_message',
     ];
 
+
+    protected $guarded = ['id'];
     /**
      * The attributes that should be cast.
      *
