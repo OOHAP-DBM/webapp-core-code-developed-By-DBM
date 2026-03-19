@@ -5,6 +5,7 @@ namespace Modules\Search\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Hoarding;
 use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 use Modules\Cart\Services\CartService;
 use Modules\Hoardings\Services\HoardingAvailabilityService;
 
@@ -35,10 +36,16 @@ class VendorPublicController extends Controller
             ]);
 
         $sort = request('sort');
+        $hasIsRecommendedColumn = Schema::hasColumn('hoardings', 'is_recommended');
 
         if ($sort === 'recommended') {
-            $query->where('hoardings.is_recommended', true)
-                ->orderByDesc('hoardings.is_featured')
+            if ($hasIsRecommendedColumn) {
+                $query->where('hoardings.is_recommended', true);
+            } else {
+                $query->where('hoardings.is_featured', true);
+            }
+
+            $query->orderByDesc('hoardings.is_featured')
                 ->orderByDesc('hoardings.created_at');
         } elseif ($sort === 'low_high') {
             $query->orderByRaw("
