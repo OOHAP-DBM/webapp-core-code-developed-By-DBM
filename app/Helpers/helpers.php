@@ -289,3 +289,60 @@ function getGstRate()
         return 0;
     }
 }
+
+
+
+
+// For POS
+
+if (!function_exists('resolveUserRole')) {
+    function resolveUserRole($notifiable): string
+    {
+        if (method_exists($notifiable, 'hasRole')) {
+            if ($notifiable->hasRole(['admin', 'super_admin'])) return 'admin';
+            if ($notifiable->hasRole('vendor'))                  return 'vendor';
+            if ($notifiable->hasRole('customer'))                return 'customer';
+        }
+
+        if (method_exists($notifiable, 'roles')) {
+            $roleNames = $notifiable->roles->pluck('name')->toArray();
+            if (array_intersect(['admin', 'super_admin'], $roleNames)) return 'admin';
+            if (in_array('vendor', $roleNames))                        return 'vendor';
+            if (in_array('customer', $roleNames))                      return 'customer';
+        }
+
+        return 'unknown';
+    }
+}
+
+if (!function_exists('resolveBookingActionUrl')) {
+    function resolveBookingActionUrl($notifiable, int $bookingId): ?string
+    {
+        $role = resolveUserRole($notifiable);
+
+        try {
+            return match ($role) {
+                'admin', 'super_admin' => route('admin.pos.bookings.show', ['id' => $bookingId]),
+                'vendor'               => route('vendor.pos.show',         ['id' => $bookingId]),
+                'customer'             => route('customer.bookings.show',  ['id' => $bookingId]),
+                default                => null,
+            };
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+}
+
+if (!function_exists('resolveBookingActionText')) {
+    function resolveBookingActionText($notifiable): string
+    {
+        $role = resolveUserRole($notifiable);
+
+        return match ($role) {
+            'admin', 'super_admin' => 'View Booking (Admin)',
+            'vendor'               => 'View Booking',
+            'customer'             => 'View My Booking',
+            default                => 'View Booking',
+        };
+    }
+}

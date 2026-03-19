@@ -676,6 +676,7 @@ Route::prefix('/vendor/pos/api/')
         Route::post('/bookings/{bookingId}/release', [POSBookingController::class, 'releaseBooking']);
         Route::post('/bookings/{bookingId}/cancel', [POSBookingController::class, 'cancel']);
         Route::post('/bookings/{bookingId}/send-reminder', [POSBookingController::class, 'sendReminder']);
+        Route::post('/bookings/{id}/cancel-credit-note', [POSBookingController::class, 'cancelCreditNote']);
         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
     });

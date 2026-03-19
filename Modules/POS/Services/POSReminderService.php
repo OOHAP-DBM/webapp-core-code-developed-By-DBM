@@ -394,10 +394,10 @@ class POSReminderService
     private function getBookingReminderError(POSBooking $booking): ?string
     {
         if (
-            !in_array($booking->payment_status, [POSBooking::PAYMENT_STATUS_UNPAID, POSBooking::PAYMENT_STATUS_PARTIAL], true)
-            || $booking->status === POSBooking::STATUS_CANCELLED
+            !in_array($booking->payment_status, [POSBooking::PAYMENT_STATUS_UNPAID, POSBooking::PAYMENT_STATUS_PARTIAL, POSBooking::PAYMENT_STATUS_CREDIT], true)
+            || $booking->status === POSBooking::STATUS_CANCELLED  || ($booking->payment_mode === POSBooking::PAYMENT_MODE_CREDIT_NOTE && $booking->credit_note_status !== POSBooking::CREDIT_NOTE_STATUS_ACTIVE)
         ) {
-            return 'Can only send reminders for unpaid or partial paid bookings that are not cancelled';
+            return 'Can only send reminders for unpaid, partial paid, or credit bookings that are not cancelled';
         }
 
         return null;
