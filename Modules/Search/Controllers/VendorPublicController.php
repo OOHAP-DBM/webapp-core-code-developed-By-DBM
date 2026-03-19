@@ -40,12 +40,12 @@ class VendorPublicController extends Controller
 
         if ($sort === 'recommended') {
             if ($hasIsRecommendedColumn) {
-                $query->where('hoardings.is_recommended', true);
-            } else {
-                $query->where('hoardings.is_featured', true);
+                $query->orderByDesc('hoardings.is_recommended');
             }
 
             $query->orderByDesc('hoardings.is_featured')
+                ->orderByDesc('hoardings.view_count')
+                ->orderByDesc('hoardings.expected_eyeball')
                 ->orderByDesc('hoardings.created_at');
         } elseif ($sort === 'low_high') {
             $query->orderByRaw("
