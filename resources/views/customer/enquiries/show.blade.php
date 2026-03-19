@@ -206,10 +206,14 @@
 
             {{-- RIGHT --}}
             <div>
-                <!-- <a href=""
-                class="inline-flex items-center bg-[#656c73] text-white px-5 py-1.5">
+                <!-- Reminder Modal Trigger Button -->
+                <a href="#" onclick="openReminderModal(); return false;"
+                    class="inline-flex items-center bg-[#656c73] text-white px-5 py-1.5">
                     Send Reminder
-                </a> -->
+                </a>
+
+                <!-- Reminder Modal -->
+                @include('customer.enquiries.reminder-modal')
             </div>
 
         </div>
@@ -222,7 +226,7 @@
             </h3>
             <button
                 @click="openBottom = !openBottom"
-                class="self-start sm:self-auto flex items-center cursor-pointer gap-1 text-xs bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
+                class="self-start sm:self-auto flex items-center cursor-pointer gap-1 text-xs bg-gray-200 px-3 py-1 mb-3 rounded hover:bg-gray-300"
             >
                 <span x-text="openBottom ? 'Collapse' : 'Expand'"></span>
                 <svg
@@ -446,3 +450,11 @@
 </div>
 
 @endsection
+<script>
+    function openReminderModal() {
+        document.getElementById('reminderModal').classList.remove('hidden');
+    }
+    function closeReminderModal() {
+        document.getElementById('reminderModal').classList.add('hidden');
+    }
+</script>
