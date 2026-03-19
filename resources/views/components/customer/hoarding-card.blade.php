@@ -139,13 +139,17 @@
 
         @php use Carbon\Carbon; @endphp
 
-        <p class="text-xs text-blue-500 mb-1">
-            @if($hoarding->available_from && Carbon::parse($hoarding->available_from)->isFuture())
-                Hoarding Available from {{ Carbon::parse($hoarding->available_from)->format('F d, Y') }}
-            @else
-                Available
-            @endif
-        </p>
+        @if($hoarding->today_availability_status === 'available')
+            <p class="text-xs text-gray-500 font-semibold mb-1">
+                Available from {{ \Carbon\Carbon::now()->format('F d, Y') }}
+            </p>
+        @elseif(!empty($hoarding->next_available_date))
+            <p class="text-xs text-gray-500 font-semibold mb-1">
+                Available from {{ \Carbon\Carbon::parse($hoarding->next_available_date)->format('F d, Y') }}
+            </p>
+        @else
+            <p class="text-xs text-gray-500 font-semibold mb-1">Not Available</p>
+        @endif
 
         @php
             $packageCount = 0;
