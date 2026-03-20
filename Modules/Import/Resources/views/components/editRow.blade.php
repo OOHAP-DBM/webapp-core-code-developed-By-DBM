@@ -1,7 +1,7 @@
 <!-- Edit Row Modal -->
 <div id="editRowModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black bg-opacity-50">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div class="p-5 border-b border-gray-200 flex items-center justify-between">
+        <div class="py-2 px-5 border-b border-gray-200 flex items-center justify-between">
             <div>
                 <h3 class="text-lg font-bold text-gray-900">Edit Hoarding Data</h3>
                 <p class="text-sm text-gray-500 mt-0.5">Update the details for this hoarding record</p>
@@ -50,16 +50,16 @@
 
     const ROW_FIELD_DEFINITIONS = [
     // Core
-    { key: 'code',                   label: 'Media Code',              type: 'text',     placeholder: 'e.g. OOH001',            required: true  },
+    { key: 'code',                   label: 'Media Code',              type: 'text',     placeholder: 'e.g. OOH001',            required: false  },
     { key: 'status',                 label: 'Status',                  type: 'select',   options: ['valid', 'invalid'],          required: true  },
 
     // Address
-    { key: 'city',                   label: 'City',                    type: 'text',     placeholder: 'e.g. Delhi',             required: false },
-    { key: 'state',                  label: 'State',                   type: 'text',     placeholder: 'e.g. Delhi',             required: false },
-    { key: 'locality',               label: 'Locality',                type: 'text',     placeholder: 'e.g. Connaught Place',   required: false },
+    { key: 'city',                   label: 'City',                    type: 'text',     placeholder: 'e.g. Delhi',             required: true },
+    { key: 'state',                  label: 'State',                   type: 'text',     placeholder: 'e.g. Delhi',             required: true },
+    { key: 'locality',               label: 'Locality',                type: 'text',     placeholder: 'e.g. Connaught Place',   required: true },
     { key: 'landmark',               label: 'Landmark',                type: 'text',     placeholder: 'e.g. Near Central Park', required: false },
     { key: 'address',                label: 'Full Address',            type: 'text',     placeholder: 'Full address',           required: false, fullWidth: true },
-    { key: 'pincode',                label: 'Pincode',                 type: 'text',     placeholder: 'e.g. 110001',            required: false },
+    { key: 'pincode',                label: 'Pincode',                 type: 'text',     placeholder: 'e.g. 110001',            required: true },
 
     // Classification
     { key: 'category',               label: 'Media Type / Category',   type: 'text',     placeholder: 'e.g. Billboard',         required: false },
@@ -67,16 +67,16 @@
     { key: 'screen_type',            label: 'Screen Type',             type: 'text',     placeholder: 'e.g. LED',               required: false },
 
     // Dimensions
-    { key: 'width',                  label: 'Width',                   type: 'number',   placeholder: 'e.g. 20',                required: false },
-    { key: 'height',                 label: 'Height',                  type: 'number',   placeholder: 'e.g. 10',                required: false },
+    { key: 'width',                  label: 'Width',                   type: 'number',   placeholder: 'e.g. 20',                required: true },
+    { key: 'height',                 label: 'Height',                  type: 'number',   placeholder: 'e.g. 10',                required: true },
     { key: 'measurement_unit',       label: 'Unit',                    type: 'text',     placeholder: 'e.g. ft',                required: false },
 
     // Geo
-    { key: 'latitude',               label: 'Latitude',                type: 'number',   placeholder: 'e.g. 28.6315',           required: false },
-    { key: 'longitude',              label: 'Longitude',               type: 'number',   placeholder: 'e.g. 77.2167',           required: false },
+    { key: 'latitude',               label: 'Latitude',                type: 'number',   placeholder: 'e.g. 28.6315',           required: true },
+    { key: 'longitude',              label: 'Longitude',               type: 'number',   placeholder: 'e.g. 77.2167',           required: true },
 
     // Pricing
-    { key: 'base_monthly_price',     label: 'DCPM / Base Price',       type: 'number',   placeholder: 'e.g. 120000',            required: false },
+    { key: 'base_monthly_price',     label: 'DCPM / Base Price',       type: 'number',   placeholder: 'e.g. 120000',            required: true },
     { key: 'monthly_price',          label: 'Monthly Sale Price',      type: 'number',   placeholder: 'e.g. 45000',             required: false },
     { key: 'weekly_price_1',         label: 'Weekly Price 1',          type: 'number',   placeholder: 'e.g. 12000',             required: false },
     { key: 'weekly_price_2',         label: 'Weekly Price 2',          type: 'number',   placeholder: 'e.g. 11000',             required: false },
@@ -84,11 +84,11 @@
     { key: 'price_per_slot',         label: 'Price Per Spot (₹)',      type: 'number',   placeholder: 'e.g. 250',               required: false },
 
     // DOOH timing
-    { key: 'slot_duration_seconds',  label: 'Ad Duration (Sec)',       type: 'number',   placeholder: 'e.g. 10',                required: false },
-    { key: 'screen_run_time',        label: 'Screen Run Time',         type: 'text',     placeholder: 'e.g. 06:00–23:00',       required: false },
-    { key: 'total_slots_per_day',    label: 'Spots Per Day',           type: 'number',   placeholder: 'e.g. 120',               required: false },
-    { key: 'min_slots_per_day',      label: 'Min Slots Per Day',       type: 'number',   placeholder: 'e.g. 10',                required: false },
-    { key: 'daily_play_hours',       label: 'Daily Play Hours',        type: 'text',     placeholder: 'e.g. 18 Hrs',            required: false },
+    { key: 'slot_duration_seconds',  label: 'Ad Duration (Sec)',       type: 'number',   placeholder: 'e.g. 10',                required: true },
+    { key: 'screen_run_time',        label: 'Screen Run Time',         type: 'text',     placeholder: 'e.g. 06:00–23:00',       required: true },
+    { key: 'total_slots_per_day',    label: 'Spots Per Day',           type: 'number',   placeholder: 'e.g. 120',               required: true },
+    { key: 'min_slots_per_day',      label: 'Min Slots Per Day',       type: 'number',   placeholder: 'e.g. 10',                required: true },
+    { key: 'daily_play_hours',       label: 'Daily Play Hours',        type: 'text',     placeholder: 'e.g. 18 Hrs',            required: true },
 
     // Booking
     { key: 'min_booking_duration',   label: 'Minimum Duration (Days)', type: 'number',   placeholder: 'e.g. 30',                required: false },
