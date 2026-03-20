@@ -746,10 +746,10 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             // Route::get('/stats', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'stats'])->name('stats');
         });
         // Offers
-        Route::get('/offers', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'index'])->name('offers.index');
-        Route::get('/offers/create', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'create'])->name('offers.create');
-        Route::post('/offers', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'store'])->name('offers.store');
-        Route::get('/offers/{id}', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'show'])->name('offers.show');
+        Route::get('/offers', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'index'])->name('offers.index');
+        Route::get('/offers/create', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'create'])->name('offers.create');
+        Route::post('/offers', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'store'])->name('offers.store');
+        Route::get('/offers/{id}', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'show'])->name('offers.show');
 
         // Quotations
         Route::get('/quotations', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'index'])->name('quotations.index');

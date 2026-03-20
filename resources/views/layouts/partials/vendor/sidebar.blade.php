@@ -390,6 +390,40 @@
                 </div>
             </div>
 
+            {{-- Offer Create Sidebar --}}
+            <div
+                x-data="{ open: {{ request()->routeIs('vendor.offers.*') ? 'true' : 'false' }} }"
+                class="space-y-1"
+            >
+                <button
+                    type="button"
+                    @click="open = !open"
+                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg
+                    {{ request()->routeIs('vendor.offers.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
+                >
+                    <div class="flex items-center gap-3">
+                        <span class="sidebar-icon flex items-center justify-center min-w-[24px]">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <rect x="4" y="4" width="16" height="16" rx="2"
+                                    stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                        <span class="sb-nav-text">Offer Create</span>
+                    </div>
+                    <svg class="sb-nav-arrow w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div x-show="open" x-collapse x-cloak class="space-y-1 pl-3 mt-1">
+                    <a href="{{ route('vendor.offers.create') }}"
+                        class="block px-6 py-1 text-sm rounded-md transition
+                        {{ request()->routeIs('vendor.offers.create') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
+                        - Create Offer
+                    </a>
+                </div>
+            </div>
+
             {{-- Commission --}}
             <a href="{{ route('vendor.commission.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('vendor.commission.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}">
                 <span class="sidebar-icon flex items-center justify-center min-w-[24px]">
