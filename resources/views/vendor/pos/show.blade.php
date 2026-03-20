@@ -222,7 +222,7 @@
             <button type="button" onclick="dismissReminderModal()"
                     class="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50"
                     aria-label="Close reminder modal">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
@@ -263,13 +263,13 @@
 
                 <div id="reminder-time-section" class="hidden">
                     <p class="text-sm font-medium text-gray-700 mb-2">At What Time?</p>
-                    <div class="flex flex-wrap gap-2">
-                        <div id="time-btn-group" class="contents"></div>
-                        <button id="custom-time-toggle-btn" onclick="toggleCustomTimeInput()"
-                                class="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium cursor-pointer">
-                            Custom Time
-                        </button>
-                    </div>
+                <div id="time-btn-group-wrapper" class="flex flex-wrap items-center gap-2">
+                    <div id="time-btn-group" class="flex flex-wrap gap-2"></div>
+                    <button id="custom-time-toggle-btn" onclick="toggleCustomTimeInput()"
+                            class="shrink-0 px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium cursor-pointer">
+                        Custom Time
+                    </button>
+                </div>
                     <div id="custom-time-wrapper" class="hidden mt-3">
                         <input type="time" id="reminder-custom-time"
                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
@@ -1548,10 +1548,10 @@ function renderPresetTimes(isToday) {
 
     wrap.innerHTML = times.map(t => {
         const label = formatTime24ToLabel(t);
-        return `<button id="time-${t.replace(':', '')}" onclick="selectReminderTime('${t}')"
-                class="time-btn px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium">
-            ${label}
-        </button>`;
+       return `<button id="time-${t.replace(':', '')}" onclick="selectReminderTime('${t}')"
+        class="time-btn px-2 py-2 rounded-lg border border-gray-300 text-sm font-medium cursor-pointer hover:bg-gray-100">
+    ${label}
+</button>`;
     }).join('');
 
     // Re-highlight if selected time still valid
@@ -1968,14 +1968,14 @@ function renderReminderDraftItem(reminder, index) {
     if (reminder.status === 'pending') {
         actions = `
             <div class="flex items-center gap-2">
-                <button type="button" onclick="editReminderDraft('${reminder.key}')" class="text-gray-400 hover:text-gray-700" aria-label="Edit reminder">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <button type="button" onclick="editReminderDraft('${reminder.key}')" class="text-gray-400 hover:text-gray-700" aria-label="Edit reminder cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
                 </button>
                 <button type="button" onclick="deleteReminderDraft('${reminder.key}')" class="text-red-400 hover:text-red-600" aria-label="Delete reminder">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8" />
                     </svg>
                 </button>
