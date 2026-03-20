@@ -196,7 +196,7 @@
 
                 <!-- Pagination -->
                 <div class="p-3">
-                    {{ $campaigns->appends(request()->query())->links() }}
+                    {{ $campaigns->appends(request()->query())->links('pagination.vendor-compact') }}
                 </div>
             @else
                 <div class="text-center py-5">

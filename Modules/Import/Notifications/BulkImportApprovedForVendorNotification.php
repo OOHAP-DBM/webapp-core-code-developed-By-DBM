@@ -44,13 +44,13 @@ class BulkImportApprovedForVendorNotification extends Notification implements Sh
      */
       public function toMail($notifiable)
     {
-        $subject = 'Your Bulk Import Batch has been Approved!';
+        $subject = 'Your Bulk Import Inventory has been Approved!';
         $batchUrl = route('vendor.import.enhanced.batch.show', $this->batch->id);
 
         $mail = (new MailMessage)
             ->subject($subject)
             ->greeting("Hello {$notifiable->name},")
-            ->line('Your Bulk Import batch has been successfully approved.')
+            ->line('Your Bulk Import inventory has been successfully approved.')
             ->line("**Hoardings Created:** {$this->createdCount}")
             ->line("**Failed Records:** {$this->failedCount}");
             // Add individual hoarding links if we have them
@@ -86,7 +86,7 @@ class BulkImportApprovedForVendorNotification extends Notification implements Sh
         return [
             'type' => 'bulk_import_approved_vendor',
             'title' => 'Bulk Import Approved',
-            'message' => "Your bulk import batch has been approved. {$this->createdCount} hoardings created, {$this->failedCount} failed.",
+            'message' => "Your bulk import inventory has been approved. {$this->createdCount} hoardings created, {$this->failedCount} failed.",
             'batch_id' => $this->batch->id,
             'created_count' => $this->createdCount,
             'failed_count' => $this->failedCount,

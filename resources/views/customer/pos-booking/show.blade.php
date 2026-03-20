@@ -356,7 +356,12 @@
                                                 </div>
                                                 <div>
                                                     <p class="font-medium text-gray-900 truncate max-w-[120px] md:max-w-[160px]">
-                                                        {{ $bh->hoarding->title ?? '-' }}
+                                                        @php
+                                                            $hoardingParam = $bh->hoarding->slug ?? $bh->hoarding->id;
+                                                        @endphp
+                                                        <a href="{{ route('hoardings.show', $hoardingParam) }}" target="_blank" class="hover:underline">
+                                                            {{ $bh->hoarding->title ?? '-' }}
+                                                        </a>
                                                     </p>
                                                     <p class="text-gray-500 flex items-center gap-0.5">
                                                         <svg class="w-2.5 h-2.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">

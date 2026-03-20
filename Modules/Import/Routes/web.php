@@ -30,4 +30,9 @@ Route::middleware(['permission:import.manage'])->group(function () {
     Route::get('/sample-template/{mediaType}', [ImportController::class, 'downloadSampleTemplate'])
         ->where('mediaType', 'ooh|dooh')
         ->name('sample-template');
+
+    Route::get('import/{batch}/download', [ImportController::class, 'downloadBatchFile'])
+        ->name('import.download.file');
+
+    
 });

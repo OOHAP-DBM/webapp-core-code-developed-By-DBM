@@ -5,7 +5,7 @@ $reviews = $hoarding->ratings()->with(['user', 'vendorReply'])->latest()->pagina
 
 <div class="bg-white rounded-lg shadow-sm p-4">
 
-    <h3 class="text-base font-semibold text-gray-900 mb-4">Customer Reviews</h3>
+    <h3 class="text-base font-semibold text-gray-900 mb-4">Users Reviews</h3>
 
     {{-- Search --}}
     <div class="relative mb-4">
@@ -50,7 +50,7 @@ $reviews = $hoarding->ratings()->with(['user', 'vendorReply'])->latest()->pagina
                     </th>
                     <th class="px-3 py-3 text-left font-semibold text-gray-700 text-xs">S.N</th>
                     <th class="px-3 py-3 text-left font-semibold text-gray-700 text-xs">RATING</th>
-                    <th class="px-3 py-3 text-left font-semibold text-gray-700 text-xs">CUSTOMER</th>
+                    <th class="px-3 py-3 text-left font-semibold text-gray-700 text-xs">USER NAME</th>
                     <th class="px-3 py-3 text-left font-semibold text-gray-700 text-xs">COMMENT</th>
                     <th class="px-3 py-3 text-left font-semibold text-gray-700 text-xs">REPLY</th>
                     <th class="px-3 py-3 text-right font-semibold text-gray-700 text-xs">ACTION</th>

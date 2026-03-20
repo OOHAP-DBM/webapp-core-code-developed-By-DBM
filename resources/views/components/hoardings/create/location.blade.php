@@ -257,7 +257,7 @@ async function reverseGeocode(lat, lng) {
         const result = await res.json();
 
         if (result.success) {
-            fillFields(result.data.address);
+            fillFields(result.data.address, true, result.data);
         }
 
     } catch (e) {
@@ -265,13 +265,20 @@ async function reverseGeocode(lat, lng) {
     }
 }
 
-function fillFields(ad) {
-    if (!inputs.locality.value.trim()) {
+function fillFields(ad, forceUpdate = false, rawData = null) {
+    if (forceUpdate || !inputs.locality.value.trim()) {
         inputs.locality.value =
             ad.suburb ||
             ad.neighbourhood ||
+            ad.residential ||
+            ad.hamlet ||
+            ad.quarter ||
+            ad.city_district ||
+            ad.municipality ||
             ad.village ||
             ad.road ||
+            rawData?.name ||
+            rawData?.display_name?.split(',')?.[0]?.trim() ||
             "";
     }
         inputs.city.value =
@@ -286,7 +293,7 @@ function fillFields(ad) {
     const currentPincode = inputs.pincode.value.trim();
     const hasUserEnteredValidPincode = /^\d{6}$/.test(currentPincode);
 
-    if (ad.postcode && !hasUserEnteredValidPincode) {
+    if (ad.postcode && (forceUpdate || !hasUserEnteredValidPincode)) {
         inputs.pincode.value = ad.postcode;
     }
 }
@@ -337,11 +344,36 @@ window.addEventListener('load', initMap);
 
 
 
+// async function lookupPincode(pin) {
+
+//     try {
+
+//         const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+//         const data = await res.json();
+
+//         if (data[0].Status !== "Success") {
+//             showError("Invalid Pincode");
+//             return;
+//         }
+
+//         const post = data[0].PostOffice[0];
+
+//         // Fill fields
+//             inputs.locality.value = post.Name || "";
+//             inputs.city.value = post.District || "";
+//             inputs.state.value = post.State || "";
+//         // Now zoom map using full address
+//            syncAddressToMap();
+
+//     } catch (e) {
+//         showError("Pincode lookup failed");
+//     }
+
+// }
+
 async function lookupPincode(pin) {
-
     try {
-
-        const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+        const res  = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
         const data = await res.json();
 
         if (data[0].Status !== "Success") {
@@ -351,16 +383,123 @@ async function lookupPincode(pin) {
 
         const post = data[0].PostOffice[0];
 
-        // Fill fields
-            inputs.locality.value = post.Name || "";
-            inputs.city.value = post.District || "";
-            inputs.state.value = post.State || "";
-        // Now zoom map using full address
-           syncAddressToMap();
+        inputs.locality.value = post.Name     || "";
+        inputs.city.value     = post.District || "";
+        inputs.state.value    = post.State    || "";
+
+        // ✅ Try pincode directly on Nominatim with postalcode param
+        await syncByPincode(pin, post);
 
     } catch (e) {
         showError("Pincode lookup failed");
     }
+}
 
+async function syncByPincode(pin, post) {
+    const city  = post?.District || inputs.city.value.trim();
+    const state = post?.State    || inputs.state.value.trim();
+
+    inputs.error.classList.add('hidden');
+
+    // ✅ These query strategies work best for Indian pincodes on Nominatim
+    const strategies = [
+        // Strategy 1: direct postalcode param — most accurate for India
+        `/api/geocode?postalcode=${encodeURIComponent(pin)}&countrycodes=in`,
+
+        // Strategy 2: pincode + city
+        `/api/geocode?q=${encodeURIComponent(`${pin}, ${city}, India`)}`,
+
+        // Strategy 3: city + state + pincode
+        `/api/geocode?q=${encodeURIComponent(`${city}, ${state}, ${pin}, India`)}`,
+
+        // Strategy 4: city only as fallback
+        `/api/geocode?q=${encodeURIComponent(`${city}, ${state}, India`)}`,
+    ];
+
+    for (let url of strategies) {
+        try {
+            const res    = await fetch(url);
+            const result = await res.json();
+
+            if (!result.success || !result.data?.length) continue;
+
+            // ✅ Find best match — prefer result whose postcode matches
+            const matched = result.data.find(r =>
+                (r.address?.postcode || '').replace(/\s+/g, '') === pin
+            ) || result.data[0];
+
+            const lat = parseFloat(matched.lat);
+            const lng = parseFloat(matched.lon);
+
+            if (isNaN(lat) || isNaN(lng)) continue;
+
+            marker.setLatLng([lat, lng]);
+            map.setView([lat, lng], 15);
+
+            inputs.lat.value = lat.toFixed(6);
+            inputs.lng.value = lng.toFixed(6);
+
+            fillFields(matched.address);
+            return; // ✅ stop on first success
+
+        } catch (e) {
+            continue;
+        }
+    }
+
+    showError("Location not found. Try entering address manually.");
+}
+
+async function syncAddressToMap() {
+    const pincode  = inputs.pincode.value.trim();
+    const locality = inputs.locality.value.trim();
+    const city     = inputs.city.value.trim();
+    const state    = inputs.state.value.trim();
+
+    if (!locality && !city && !pincode) return;
+
+    // ✅ If valid pincode exists use pincode strategy
+    if (/^\d{6}$/.test(pincode)) {
+        await syncByPincode(pincode, { District: city, State: state });
+        return;
+    }
+
+    // ✅ Without pincode — locality+city works better than city first
+    const queries = [
+        `${locality}, ${city}, ${state}, India`,
+        `${locality}, ${city}, India`,
+        `${city}, ${state}, India`,
+    ].filter(q => q.replace(/,\s*/g, '').trim() !== 'India');
+
+    inputs.error.classList.add('hidden');
+
+    for (let query of queries) {
+        try {
+            const res    = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+            const result = await res.json();
+
+            if (!result.success || !result.data?.length) continue;
+
+            const r   = result.data[0];
+            const lat = parseFloat(r.lat);
+            const lng = parseFloat(r.lon);
+
+            if (isNaN(lat) || isNaN(lng)) continue;
+
+            marker.setLatLng([lat, lng]);
+            map.setView([lat, lng], 15);
+
+            inputs.lat.value = lat.toFixed(6);
+            inputs.lng.value = lng.toFixed(6);
+
+            fillFields(r.address);
+            return;
+
+        } catch (e) {
+            continue;
+        }
+    }
+
+    showError("Location not found.");
 }
 </script>

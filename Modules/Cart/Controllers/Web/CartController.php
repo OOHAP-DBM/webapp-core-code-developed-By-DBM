@@ -12,14 +12,54 @@ class CartController extends Controller
     /* =====================================================
      | CART PAGE
      ===================================================== */
-    public function index(CartService $cartService)
-    {
-        // dd($cartService->getCartForUI());
+    public function index(Request $request, CartService $cartService)
+{
+    // Guest user ke liye
+    if (!auth()->check()) {
+        $ids = $request->query('ids');
+
+        if ($ids) {
+            $idsArray = explode(',', $ids);
+            $hoardings = \App\Models\Hoarding::whereIn('id', $idsArray)->get();
+            // Map to cart row structure for buildCartItem
+            $items = $hoardings->map(function($h) use ($cartService) {
+                $item = (object) [
+                    'hoarding_id'   => $h->id,
+                    'title'         => $h->title,
+                    'slug'          => $h->slug,
+                    'city'          => $h->city,
+                    'state'         => $h->state,
+                    'locality'      => $h->locality,
+                    'category'      => $h->category,
+                    'hoarding_type' => $h->hoarding_type,
+                    'monthly_price' => $h->monthly_price,
+                    'base_monthly_price' => $h->base_monthly_price,
+                    'grace_period_days'  => $h->grace_period_days,
+                    'package_id'    => null,
+                ];
+                return $cartService->buildCartItem($item);
+            });
+
+            return view('cart.index', [
+                'items'   => $items,
+                'summary' => [
+                    'count' => $items->count(),
+                ],
+            ]);
+        }
+
         return view('cart.index', [
-            'items'   => $cartService->getCartForUI(),
-            'summary' => $cartService->getCartSummary(),
+            'items'   => collect(),
+            'summary' => ['count' => 0],
         ]);
     }
+
+    // Logged in user
+    return view('cart.index', [
+        'items'   => $cartService->getCartForUI(),
+        'summary' => $cartService->getCartSummary(),
+    ]);
+}
 
     /* =====================================================
      | ADD TO CART

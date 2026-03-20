@@ -25,20 +25,28 @@ Route::middleware(['throttle:webhooks'])->group(function () {
 
 
 
+// Allow guest access to GET wishlist
+Route::get('v1/wishlist', [ShortlistController::class, 'index']);
+
+// All other wishlist actions require auth
 Route::middleware(['auth:sanctum'])
     ->prefix('v1/wishlist')
     ->group(function () {
-
-        Route::get('/', [ShortlistController::class, 'index']);          // Get wishlist
         Route::post('/{hoardingId}', [ShortlistController::class, 'store']); // Add
         Route::delete('/{hoardingId}', [ShortlistController::class, 'destroy']); // Remove
         Route::delete('/', [ShortlistController::class, 'clear']);       // Clear all
-
         Route::post('/toggle/{hoardingId}', [ShortlistController::class, 'toggle']);
         Route::get('/check/{hoardingId}', [ShortlistController::class, 'check']);
         Route::get('/count', [ShortlistController::class, 'count']);
+    });
+// Guest merge — login/register ke baad Flutter call karega
+// Sanctum token based
+Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
+    Route::post('/guest/merge', [
+        \App\Http\Controllers\Api\GuestMergeController::class, 
+        'merge'
+    ]);
 });
-
 
 Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     
@@ -92,7 +100,9 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         Route::delete('/email',             [EmailSettingController::class, 'deleteEmail']);
     });
 
-    
+    Route::middleware(['auth:sanctum'])->prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/{invoice}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('download');
+    });
     // Thread Communication System (PROMPT 28)
     require base_path('routes/api_v1/threads.php');
     
@@ -133,5 +143,7 @@ Route::middleware(['auth:sanctum', 'throttle:authenticated'])->prefix('account')
         Route::post('/delete/verify-otp', [AccountController::class, 'verifyDeleteOtp']);
         Route::delete('/delete', [AccountController::class, 'deleteAccount']);
 });
+// API route for invoice download
+
 
 

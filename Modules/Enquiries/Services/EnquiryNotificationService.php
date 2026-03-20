@@ -3,36 +3,40 @@
 namespace Modules\Enquiries\Services;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Mail;
+use App\Services\NotificationEmailService;
 
 class EnquiryNotificationService
 {
+    public function __construct(
+        protected NotificationEmailService $notificationEmailService
+    ) {}
+
     public function notifyAll($enquiry, array $vendorGroups): void
     {
         // 1. NOTIFY CUSTOMER (EMAIL + IN-APP NOTIFICATION)
         $customer = $enquiry->customer;
         if ($customer) {
             $allItems = $enquiry->items()->get();
-            // Send Email only if enabled
-            if ($customer->notification_email) {
-                try {
-                    Mail::to($customer->email)->send(
-                        new \Modules\Mail\CustomerEnquiryConfirmationMail($enquiry, $customer)
-                    );
-                    \Log::info('Customer enquiry confirmation email sent', [
-                        'customer_id' => $customer->id,
-                        'enquiry_id' => $enquiry->id
-                    ]);
-                } catch (\Exception $e) {
-                    \Log::error('Failed to send customer enquiry confirmation email', [
-                        'customer_id' => $customer->id,
-                        'enquiry_id' => $enquiry->id,
-                        'error' => $e->getMessage()
-                    ]);
-                }
+
+            // Send Email only if enabled (service khud check karti hai)
+            try {
+                $this->notificationEmailService->send(
+                    $customer,
+                    new \Modules\Mail\CustomerEnquiryConfirmationMail($enquiry, $customer)
+                );
+                \Log::info('Customer enquiry confirmation email sent', [
+                    'customer_id' => $customer->id,
+                    'enquiry_id'  => $enquiry->id
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send customer enquiry confirmation email', [
+                    'customer_id' => $customer->id,
+                    'enquiry_id'  => $enquiry->id,
+                    'error'       => $e->getMessage()
+                ]);
             }
 
-            // Send push/in-app notification only if enabled
+            // Push/in-app notification
             if ($customer->notification_push) {
                 $customer->notify(
                     new \Modules\Enquiries\Notifications\CustomerEnquiryNotification(
@@ -41,6 +45,7 @@ class EnquiryNotificationService
                     )
                 );
             }
+
             send(
                 $customer,
                 'Enquiry Submitted Successfully',
@@ -56,11 +61,26 @@ class EnquiryNotificationService
         foreach ($vendorGroups as $vendorId => $items) {
             $vendor = User::find($vendorId);
             if ($vendor) {
-                // Send Email only if enabled
-                if ($vendor->notification_email) {
-                    $vendor->notifyVendorEmails(new \Modules\Mail\VendorEnquiryNotificationMail($enquiry, $vendor, collect($items)));
+
+                // Send Email only if enabled (service khud check karti hai)
+                try {
+                    $this->notificationEmailService->send(
+                        $vendor,
+                        new \Modules\Mail\VendorEnquiryNotificationMail($enquiry, $vendor, collect($items))
+                    );
+                    \Log::info('Vendor enquiry notification email sent', [
+                        'vendor_id'  => $vendor->id,
+                        'enquiry_id' => $enquiry->id
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send vendor enquiry notification email', [
+                        'vendor_id'  => $vendor->id,
+                        'enquiry_id' => $enquiry->id,
+                        'error'      => $e->getMessage()
+                    ]);
                 }
-                // Send push/in-app notification only if enabled
+
+                // Push/in-app notification
                 if ($vendor->notification_push) {
                     $vendor->notify(
                         new \Modules\Enquiries\Notifications\VendorEnquiryNotification(
@@ -69,12 +89,13 @@ class EnquiryNotificationService
                         )
                     );
                 }
+
                 send(
                     $vendor,
                     'New Enquiry Received',
                     'You have received a new enquiry. Please check the app for details.',
                     [
-                        'type' => 'vendor_enquiry',
+                        'type'       => 'vendor_enquiry',
                         'enquiry_id' => $enquiry->id
                     ]
                 );

@@ -1,4 +1,4 @@
-<div id="listView" class="bg-gray-100 ">
+<div id="listView" class="bg-white ">
     <div class="max-w-[1460px] mx-auto px-6 py-6">
 
         @if($results->total() > 0)
@@ -35,7 +35,7 @@
                         }
                     }
                 @endphp
-            <div class="bg-[#f0f0f0] rounded-xl p-5 mb-5 flex flex-col cursor-pointer"
+            <div class="bg-white border border-gray-200 rounded-lg p-5 mb-5 flex flex-col cursor-pointer"
                 onclick="if(event.target.closest('button, a') === null)
                         @php
                             $hoardingParam = $item->slug ?? $item->title;
@@ -61,9 +61,19 @@
                                 </div>
 
                                 <!-- RECOMMENDED TAG -->
+                                @php
+                                    if (($item->is_recommended ?? 0) == 1) {
+                                        $isRecommended = true;
+                                    } else {
+                                        $isRecommended = ($item->view_count ?? 0) >= 50 ||
+                                                        ($item->expected_eyeball ?? 0) >= 5000;
+                                    }
+                                @endphp
+                                @if($isRecommended)
                                 <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded z-10">
                                     RECOMMENDED
                                 </span>
+                                @endif
 
                                 <!-- SAVE (BOOKMARK) ICON -->
                                  @php
@@ -88,24 +98,13 @@
                                     class="absolute top-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center shortlist-btn
                                         {{ $isWishlisted ? 'bg-[#daf2e7] is-wishlisted' : 'bg-[#9e9e9b]' }}
                                         {{ $isOwnerVendor ? 'opacity-50' : '' }}"
-
                                     data-id="{{ $item->id }}"
                                     data-auth="{{ auth()->check() ? '1' : '0' }}"
-                                    data-role="{{ auth()->check() ? auth()->user()->role : '' }}"
-
-                                    {{-- 🔥 THIS IS THE KEY --}}
+                                    data-role="{{ auth()->check() ? auth()->user()->active_role : '' }}"
                                     onmouseenter="this.style.cursor='{{ $isOwnerVendor ? 'not-allowed' : 'pointer' }}'"
                                     onmouseleave="this.style.cursor='default'"
-
-                                    @if($isOwnerVendor)
-                                        disabled
-                                        onclick="event.stopPropagation(); return false;"
-                                    @else
-                                        onclick="event.stopPropagation(); toggleShortlist(this);"
-                                    @endif
+                                    onclick="event.preventDefault(); event.stopPropagation(); toggleShortlist(this);"
                                 >
-
-
                                     <svg
                                         class="wishlist-icon"
                                         width="20"
@@ -205,7 +204,7 @@
                                 </span>
 
                                 <span class="text-lg text-black font-bold">
-                                        /Month
+                                    {{ request('duration') === 'weekly' ? '/ Week' : '/ Month' }}
                                 </span>
                             </div>
 
@@ -233,14 +232,17 @@
                                 Taxes excluded
                             </p> -->
 
-                            <p class="text-xs text-blue-500 mb-1">
-                                @if($item->available_from && \Carbon\Carbon::parse($item->available_from)->isFuture())
-                                    Hoarding Available from
-                                    {{ \Carbon\Carbon::parse($item->available_from)->format('F d, Y') }}
-                                @else
-                                    Available
-                                @endif
-                            </p>
+                            @if($item->today_availability_status === 'available')
+                                <p class="text-xs text-gray-500 font-semibold mb-1 mt-1">
+                                    Available from {{ \Carbon\Carbon::now()->format('F d, Y') }}
+                                </p>
+                            @elseif(!empty($item->next_available_date))
+                                <p class="text-xs text-gray-500 font-semibold mb-1 mt-1">
+                                    Available from {{ \Carbon\Carbon::parse($item->next_available_date)->format('F d, Y') }}
+                                </p>
+                            @else
+                                <p class="text-xs text-gray-500 font-semibold mb-1 mt-1">Not Available</p>
+                            @endif
 
                             {{-- GAZEFLOW --}}
                             @if($item->expected_eyeball)
@@ -258,9 +260,12 @@
                                 <!-- Short List + Enquire -->
                                 <div class="flex flex-col">
                                     <button
+                                        id="cart-btn-{{ $item->id }}"
                                         class="cart-btn border border-[#c7c7c7] px-4 py-1.5 rounded text-sm whitespace-nowrap min-w-[96px] cursor-pointer"
+                                        data-id="{{ $item->id }}"
                                         data-in-cart="{{ in_array($item->id, $cartHoardingIds) ? '1' : '0' }}"
-                                        onclick="toggleCart(this, {{ $item->id }})"
+                                        data-auth="{{ auth()->check() ? '1' : '0' }}"
+                                        onclick="event.preventDefault(); event.stopPropagation(); toggleCart(this, {{ $item->id }})"
                                     >
                                     </button>
 
@@ -311,7 +316,7 @@
 
             @if($results->total() > $results->perPage())
                 <div class="mt-6 flex w-full justify-end">
-                    {{ $results->links() }}
+                    {{ $results->links('pagination.vendor-compact') }}
                 </div>
             @endif
         @else

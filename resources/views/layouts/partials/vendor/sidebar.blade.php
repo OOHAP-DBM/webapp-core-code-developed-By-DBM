@@ -40,8 +40,8 @@
         </a>
     </div>
 
-    <div class="bg-white px-6 py-5 sidebar-hide-when-collapsed">
-        <div class="py-2 rounded-lg {{ request()->routeIs('vendor.profile.*') ? 'bg-[#00995c] text-white' : '' }}">
+    <div class="bg-white px-3 py-5 sidebar-hide-when-collapsed">
+        <div class="py-2 px-2 rounded-lg {{ request()->routeIs('vendor.profile.*') ? 'bg-[#00995c] text-white' : '' }}">
             <a href="{{ route('vendor.profile.edit') }}" class="flex items-center space-x-3">
 
                 <div
@@ -151,8 +151,8 @@
                 }
             </script>
 
-            {{-- My Order Dropdown --}}
-            <div
+            {{-- My Order --}}
+             <div
                 x-data="{ open: {{ request()->routeIs('customer.enquiries.*') ? 'true' : 'false' }} }"
                 class="space-y-1"
             >

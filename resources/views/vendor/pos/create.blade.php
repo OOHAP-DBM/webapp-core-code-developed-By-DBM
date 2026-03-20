@@ -3,69 +3,91 @@
 @section('title', 'Create Booking')
 @section('content')
 <div class="sm:py-2 bg-gray-50">
+
+    {{-- ══════════════════════════════════════════════════════════════
+         SELECTION SCREEN
+    ══════════════════════════════════════════════════════════════ --}}
     <div id="selection-screen" class="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6">
-        
+
+        {{-- ── LEFT: Booking builder ── --}}
         <div class="order-2 sm:order-1 sm:col-span-3 lg:col-span-8">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div class="px-3 sm:px-4 lg:px-6 py-4 border-b border-gray-100 items-center gap-2 bg-white">
+
+                {{-- Header --}}
+                <div class="px-3 sm:px-4 lg:px-6 py-4 border-b border-gray-100 bg-white">
                     <h2 class="text-xl font-bold text-gray-800">Create New POS Booking</h2>
                     <p class="text-xs text-gray-400">Select a customer and choose hoardings to create a booking.</p>
-                    <!-- <span id="booking-date" class="text-xs text-gray-400 font-medium"></span> -->
                 </div>
 
                 <div class="p-3 sm:p-4 lg:p-6">
+
+                    {{-- ── Customer Select ── --}}
                     <div class="mb-8">
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider ">Select Customer</label>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Select Customer</label>
                         <p class="block text-xs text-gray-400 tracking-wider mb-2">Search an existing customer or add a new customer to proceed with booking.</p>
-                        
+
                         <div id="search-container" class="flex flex-col sm:flex-row gap-2">
                             <div class="relative flex-1 border border-gray-300">
-                                <input type="text" id="customer-search" autocomplete="off" 
-                                    placeholder="Search customer by name, email, or mobile number" 
+                                <input type="text" id="customer-search" autocomplete="off"
+                                    placeholder="Search customer by name, email, or mobile number"
                                     class="w-full border-gray-300 focus:ring-green-500 text-sm py-2.5 px-2 min-h-[44px]">
-                                <div id="customer-suggestions" class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
+                                <div id="customer-suggestions"
+                                    class="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
                             </div>
-                            <button type="button" id="new-customer-btn" onclick="openCustomerModal()" class="w-full sm:w-auto min-h-[44px] bg-green-600 text-white px-4 hover:bg-green-700 transition flex items-center justify-center">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            <button type="button" id="new-customer-btn" onclick="openCustomerModal()"
+                                class="w-full sm:w-auto min-h-[44px] bg-green-600 text-white px-4 hover:bg-green-700 transition flex items-center justify-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
                                 <span class="ml-1 text-sm font-semibold">Add New Customer</span>
                             </button>
                         </div>
 
-                        <div id="customer-selected-card" class="hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
+                        <div id="customer-selected-card"
+                            class="hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-[#2D5A43] rounded-full flex items-center justify-center text-white font-bold text-sm" id="cust-initials">--</div>
+                                <div class="w-10 h-10 bg-[#2D5A43] rounded-full flex items-center justify-center text-white font-bold text-sm"
+                                    id="cust-initials">--</div>
                                 <div>
                                     <h4 id="cust-name" class="font-bold text-gray-800 text-sm leading-tight">Customer Name</h4>
                                     <p id="cust-details" class="text-xs text-gray-500 mt-0.5">Contact Details</p>
                                 </div>
                             </div>
-                            <button id="change-customer-btn" onclick="clearSelectedCustomer()" class="w-full sm:w-auto text-xs font-bold text-red-500 hover:text-red-700 px-3 py-2 border border-red-200 rounded-md bg-white">Change</button>
+                            <button id="change-customer-btn" onclick="clearSelectedCustomer()"
+                                class="w-full sm:w-auto text-xs font-bold text-red-500 hover:text-red-700 px-3 py-2 border border-red-200 rounded-md bg-white">
+                                Change
+                            </button>
                         </div>
                     </div>
 
-                    {{-- Availability Issues Alert --}}
+                    {{-- ── Availability Alert ── --}}
                     <div id="availability-alert" class="hidden mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
                         <div class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                             </svg>
                             <div class="flex-1">
                                 <h4 class="text-sm font-bold text-red-700 mb-2">Availability Conflicts Found</h4>
                                 <div id="availability-alert-body" class="text-xs text-red-600 space-y-1"></div>
                             </div>
-                            <button onclick="document.getElementById('availability-alert').classList.add('hidden')" class="text-red-400 hover:text-red-600">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <button onclick="document.getElementById('availability-alert').classList.add('hidden')"
+                                class="text-red-400 hover:text-red-600 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
                             </button>
                         </div>
                     </div>
 
+                    {{-- ── OOH Table ── --}}
                     <div class="space-y-6">
                         <div class="selection-group">
-                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center mb-1">
                                 <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> OOH (Static)
                             </h4>
                             <p class="text-xs text-gray-400 mb-2 px-3.5">Select traditional billboard hoardings for long-term display.</p>
-                            <div class="overflow-x-auto border border-gray-100">
+                            <div class="overflow-x-auto border border-gray-100 rounded">
                                 <table class="min-w-[700px] w-full divide-y divide-gray-200 text-left text-xs sm:text-sm">
                                     <thead class="bg-gray-50 text-gray-500">
                                         <tr>
@@ -77,41 +99,47 @@
                                         </tr>
                                     </thead>
                                     <tbody id="ooh-selected-list" class="divide-y divide-gray-50 bg-white">
-                                        <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No static hoardings selected</td></tr>
+                                        <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic text-xs">No static hoardings selected</td></tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
+                        {{-- ── DOOH Table ── --}}
                         <div class="selection-group">
-                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center mb-1">
                                 <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span> Digital Hoardings (DOOH)
                             </h4>
                             <p class="text-xs text-gray-400 mb-2 px-3.5">Select digital screens and configure slot bookings.</p>
-                            <div class="overflow-x-auto border border-gray-100">
+                            <div class="overflow-x-auto border border-gray-100 rounded">
                                 <table class="min-w-[700px] w-full divide-y divide-gray-200 text-left text-xs sm:text-sm">
                                     <thead class="bg-gray-50 text-gray-500">
                                         <tr>
                                             <th class="px-3 sm:px-4 py-3 font-semibold">Screen Location</th>
                                             <th class="px-3 sm:px-4 py-3 font-semibold hidden sm:table-cell">Slot Price</th>
-                                            <th class="px-3 sm:px-4 py-3 font-semibold text-center hidden sm:table-cell">Slots Per Day</th>
+                                            <th class="px-3 sm:px-4 py-3 font-semibold text-center hidden sm:table-cell">Slots/Day</th>
                                             <th class="px-4 py-3 font-semibold text-center">Booking Duration</th>
                                             <th class="px-3 sm:px-4 py-3 font-semibold">Total Cost</th>
                                             <th class="px-3 sm:px-4 py-3 font-semibold text-right">Remove</th>
                                         </tr>
                                     </thead>
                                     <tbody id="dooh-selected-list" class="divide-y divide-gray-50 bg-white">
-                                        <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic">No digital slots selected</td></tr>
+                                        <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic text-xs">No digital slots selected</td></tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
 
+                    {{-- ── Bottom Actions ── --}}
                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-12 pt-6 border-t border-gray-100">
-                        <button type="button" onclick="location.reload()" class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#7A9C89] border border-gray-200 font-bold text-white transition cursor-pointer">Cancel Booking</button>
-                        <button id="submit-btn" class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#2E5B42] text-white font-bold shadow-lg shadow-green-900/20 hover:bg-opacity-90 active:scale-[0.98] transition cursor-pointer">
-                            Preview Booking & Confirm (<span id="btn-count">0</span>)
+                        <button type="button" onclick="location.reload()"
+                            class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#7A9C89] border border-gray-200 font-bold text-white transition cursor-pointer rounded">
+                            Cancel Booking
+                        </button>
+                        <button id="submit-btn"
+                            class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#2E5B42] text-white font-bold shadow-lg shadow-green-900/20 hover:bg-opacity-90 active:scale-[0.98] transition cursor-pointer rounded">
+                            Preview Booking &amp; Confirm (<span id="btn-count">0</span>)
                         </button>
                     </div>
                 </div>
@@ -122,315 +150,627 @@
              RIGHT PANEL — Available Hoardings
         ══════════════════════════════════════════ --}}
         <div class="order-1 sm:order-2 sm:col-span-2 lg:col-span-4">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 lg:col-span-2 lg:sticky">
-                <div class="px-3 sm:px-4 lg:px-5 pt-4 sm:pt-5 gap-3 flex">
-                    <h3 class="font-bold text-gray-800">Select Hoardings for Booking</h3>
-                    <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-bold" id="available-count">0</span>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200" style="position: sticky; top: 1.5rem;">
+
+                <div class="px-3 sm:px-4 lg:px-5 pt-4 sm:pt-5 flex items-center gap-3">
+                    <h3 class="font-bold text-gray-800 text-sm">Select Hoardings for Booking</h3>
+                    <span class="bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full text-xs font-bold" id="available-count">0</span>
                 </div>
                 <p class="px-3 sm:px-4 lg:px-5 text-xs text-gray-400 mt-0.5">Browse and select hoardings to add them to the booking.</p>
 
-                <div class="p-3 sm:p-4 lg:p-5 ">
-                    {{-- Search + Filter row --}}
+                <div class="p-3 sm:p-4 lg:p-5">
+
+                    {{-- Search + Filter --}}
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
                         <div class="relative flex-1">
-                            <input type="text" id="hoarding-search" placeholder="Search hoardings by location, size, or name" 
-                                class="w-full pl-10 border border-gray-300 text-sm focus:ring-green-500 min-h-[44px]" style="height:40px;">
-                            <span class="absolute left-3 top-0 bottom-0 my-auto text-gray-400 flex items-center" style="pointer-events:none; height:18px;">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-3.5-3.5"/></svg>
+                            <input type="text" id="hoarding-search"
+                                placeholder="Search by name, location or size…"
+                                class="w-full pl-9 border border-gray-300 text-xs focus:ring-green-500 rounded"
+                                style="height:38px; padding-top:0; padding-bottom:0;">
+                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" style="pointer-events:none;">
+                                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="8"/><path d="M21 21l-3.5-3.5"/>
+                                </svg>
                             </span>
                         </div>
-                        <button type="button" class="w-full sm:w-auto min-h-[44px] border border-gray-300 bg-white px-5 py-2 text-gray-700 text-sm font-medium hover:bg-gray-100 transition" style="height:40px;" onclick="openFilterModal()">Advanced Filters</button>
+                        <button type="button"
+                            class="w-full sm:w-auto border border-gray-300 bg-white px-3 py-1.5 text-gray-700 text-xs font-medium hover:bg-gray-100 transition rounded"
+                            style="height:38px;" onclick="openFilterModal()">
+                            Advance Filters
+                        </button>
                         @include('vendor.pos.filter_modal')
                     </div>
 
-                    {{-- ── Grid/List Toggle + Unselect — ALWAYS VISIBLE ── --}}
-                    <div class="flex items-center justify-end gap-2 mb-2">
-                        <button
-                            id="unselect-all-btn"
-                            onclick="unselectAllHoardings()"
-                            class="hidden text-[11px] font-bold text-gray-700 border border-gray-300 bg-white hover:bg-gray-100 px-3 py-1 transition whitespace-nowrap"
-                        >
-                            Unselect
+                    {{-- Grid/List toggle + Unselect all --}}
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <button id="unselect-all-btn" onclick="unselectAllHoardings()"
+                            class="hidden text-[10px] font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded transition whitespace-nowrap">
+                            ✕ Clear All
                         </button>
-                        <div class="flex border border-gray-300">
-                            <button onclick="setViewMode('grid')" id="view-grid-btn" class="px-2 py-1 bg-gray-800 text-white" title="Grid View">
-                                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M1 2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H2a1 1 0 01-1-1V2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1V2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V2zM1 7a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H2a1 1 0 01-1-1V7zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1V7zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V7zM1 12a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H2a1 1 0 01-1-1v-2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1v-2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2z"/></svg>
+                        <div class="ml-auto flex border border-gray-200 rounded overflow-hidden">
+                            <button onclick="setViewMode('grid')" id="view-grid-btn"
+                                class="px-2 py-1.5 bg-gray-800 text-white" title="Grid View">
+                                <svg width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M1 2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H2a1 1 0 01-1-1V2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1V2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V2zM1 7a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H2a1 1 0 01-1-1V7zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1V7zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V7zM1 12a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H2a1 1 0 01-1-1v-2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1v-2zm5 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2z"/>
+                                </svg>
                             </button>
-                            <button onclick="setViewMode('list')" id="view-list-btn" class="px-2 py-1 bg-white text-gray-600 hover:bg-gray-100" title="List View">
-                                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5z"/></svg>
+                            <button onclick="setViewMode('list')" id="view-list-btn"
+                                class="px-2 py-1.5 bg-white text-gray-600 hover:bg-gray-100" title="List View">
+                                <svg width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M2.5 12a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5z"/>
+                                </svg>
                             </button>
                         </div>
                     </div>
 
-                    {{-- ── Active Filter Tags — only when filters applied ── --}}
-                    <div id="active-filter-tags" class="hidden mb-3">
+                    {{-- Active Filter Tags --}}
+                    <div id="active-filter-tags" class="hidden mb-2">
                         <div class="flex flex-wrap items-center gap-1.5">
-                            <span class="text-[10px] text-gray-500 font-semibold mr-1">Results showing for:</span>
-                            <div id="filter-tags-list" class="flex flex-wrap gap-1.5 flex-1"></div>
-                            <button onclick="clearAllFilters()" class="text-[10px] text-red-500 font-semibold hover:underline whitespace-nowrap ml-1">Clear all</button>
+                            <span class="text-[10px] text-gray-400 font-semibold">Filters:</span>
+                            <div id="filter-tags-list" class="flex flex-wrap gap-1 flex-1"></div>
+                            <button onclick="clearAllFilters()"
+                                class="text-[10px] text-red-500 font-semibold hover:underline whitespace-nowrap">
+                                Clear all
+                            </button>
                         </div>
                     </div>
 
-                    {{-- Hoardings Grid --}}
-                    <div id="hoardings-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-h-[calc(100vh-250px)] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar"></div>
+                    {{-- Hoardings Grid / List --}}
+                    <div id="hoardings-grid"
+                        class="grid grid-cols-1 sm:grid-cols-4 gap-2 max-h-[calc(100vh-300px)] overflow-y-auto pr-1 custom-scrollbar">
+                    </div>
+
+                    {{-- Pagination --}}
+                    <div id="hoardings-pagination" class="flex justify-center items-center gap-1.5 mt-3 flex-wrap"></div>
                 </div>
             </div>
         </div>
-    </div>
+    </div>{{-- /selection-screen --}}
 
+    {{-- ══════════════════════════════════════════════════════════════
+         PREVIEW SCREEN
+    ══════════════════════════════════════════════════════════════ --}}
     <div id="preview-screen" class="hidden animate-fade-in">
         @include('vendor.pos.preview-screen')
     </div>
+
 </div>
 
 @include('vendor.pos.customer-modal')
 
-<!-- Date picker modal -->
-<div id="datePickerModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-    <div class="bg-black/50 absolute inset-0" onclick="closeDatePickerModal()"></div>
-    <div class="relative bg-white rounded-lg p-3 sm:p-4 w-[95vw] sm:w-full sm:max-w-[700px] z-50 flex flex-col min-h-[360px] sm:min-h-[420px]">
-        <div class="flex justify-between items-center mb-4 gap-2">
-            <h3 id="datePickerTitle" class="font-bold text-gray-800">Select Dates</h3>
-            <button class="text-gray-500" onclick="closeDatePickerModal()">✕</button>
+{{-- ══════════════════════════════════════════════════════════════
+     DATE PICKER MODAL
+══════════════════════════════════════════════════════════════ --}}
+<div id="datePickerModal" class="fixed inset-0 flex items-center justify-center z-[60] hidden">
+    <div class="bg-black/60 backdrop-blur-sm absolute inset-0" onclick="closeDatePickerModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-5 w-[94vw] sm:w-full sm:max-w-[760px] z-10 flex flex-col max-h-[92vh] overflow-y-auto lg:max-h-none lg:overflow-y-visible">
+
+        {{-- Header --}}
+        <div class="flex justify-between items-start mb-3 gap-3">
+            <div class="min-w-0">
+                <h3 id="datePickerTitle" class="font-black text-gray-800 text-base truncate">Select Booking Dates</h3>
+                <p class="text-[11px] text-gray-400 mt-0.5">Duration auto-rounds up to nearest 30-day multiple. Minimum 30 days.</p>
+            </div>
+            <button onclick="closeDatePickerModal()"
+                class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
+
+        {{-- Duration / cost summary bar --}}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-3">
+            <div>
+                <p class="text-[9px] text-emerald-600 font-bold uppercase tracking-wider mb-0.5">Period</p>
+                <p id="dp-range-label" class="text-[11px] font-black text-emerald-900 leading-tight">— Pick a date</p>
+            </div>
+            <div class="sm:text-center">
+                <p class="text-[9px] text-emerald-600 font-bold uppercase tracking-wider mb-0.5">Duration</p>
+                <p id="dp-months-label" class="text-[11px] font-black text-emerald-900">—</p>
+            </div>
+            <div class="sm:text-right">
+                <p class="text-[9px] text-emerald-600 font-bold uppercase tracking-wider mb-0.5">Est. Cost</p>
+                <p id="dp-cost-label" class="text-[11px] font-black text-emerald-900">—</p>
+            </div>
+        </div>
+
+        {{-- Legend --}}
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 mb-3">
+            <span class="flex items-center gap-1.5 text-[10px] font-semibold text-gray-500">
+                <span class="w-3 h-3 rounded-sm bg-green-100 border border-green-300"></span>Available
+            </span>
+            <span class="flex items-center gap-1.5 text-[10px] font-semibold text-gray-500">
+                <span class="w-3 h-3 rounded-sm bg-red-100 border border-red-300"></span>Booked
+            </span>
+            <span class="flex items-center gap-1.5 text-[10px] font-semibold text-gray-500">
+                <span class="w-3 h-3 rounded-sm bg-gray-200 border border-gray-300"></span>Blocked
+            </span>
+            <span class="flex items-center gap-1.5 text-[10px] font-semibold text-gray-500">
+                <span class="w-3 h-3 rounded-sm bg-amber-100 border border-amber-300"></span>On Hold
+            </span>
+            <span class="flex items-center gap-1.5 text-[10px] font-semibold text-gray-500">
+                <span class="w-3 h-3 rounded-sm bg-orange-100 border border-orange-300"></span>Partial
+            </span>
+        </div>
+
+        {{-- Flatpickr mount --}}
         <input id="date-picker-input" type="text" class="hidden">
-        <div id="date-picker-inline" class="mx-auto w-full overflow-x-auto"></div>
-        <div class="mt-4 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
-            <button class="w-full sm:w-auto min-h-[44px] px-4 py-2 border rounded" onclick="closeDatePickerModal()">Cancel</button>
-            <button class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-[#2D5A43] text-white rounded" onclick="confirmDateSelection()">Confirm</button>
+        <div id="date-picker-inline" class="w-full overflow-x-auto calander-picker-styling"></div>
+
+        {{-- Quick-select chips --}}
+        <div class="flex flex-wrap items-center gap-2 mt-3">
+            <span class="text-[10px] text-gray-400 font-semibold">Quick:</span>
+            <button onclick="quickSelectMonths(1)"  data-months="1"  class="dp-quick-chip px-3 py-1 text-[11px] font-bold border border-gray-300 rounded-full hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 transition">1 Month</button>
+            <button onclick="quickSelectMonths(2)"  data-months="2"  class="dp-quick-chip px-3 py-1 text-[11px] font-bold border border-gray-300 rounded-full hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 transition">2 Months</button>
+            <button onclick="quickSelectMonths(3)"  data-months="3"  class="dp-quick-chip px-3 py-1 text-[11px] font-bold border border-gray-300 rounded-full hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 transition">3 Months</button>
+            <button onclick="quickSelectMonths(6)"  data-months="6"  class="dp-quick-chip px-3 py-1 text-[11px] font-bold border border-gray-300 rounded-full hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 transition">6 Months</button>
+            <button onclick="quickSelectMonths(12)" data-months="12" class="dp-quick-chip px-3 py-1 text-[11px] font-bold border border-gray-300 rounded-full hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 transition">12 Months</button>
+        </div>
+
+        {{-- Action buttons --}}
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 mt-4 pt-4 border-t border-gray-100">
+            <button onclick="closeDatePickerModal()"
+                class="w-full sm:w-auto min-h-[44px] px-5 py-2 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition">
+                Cancel
+            </button>
+            <button onclick="confirmDateSelection()"
+                class="w-full sm:w-auto min-h-[44px] px-7 py-2 bg-[#2D5A43] text-white rounded-xl text-sm font-bold hover:bg-opacity-90 transition">
+                ✓ Confirm Dates
+            </button>
         </div>
     </div>
 </div>
 
+{{-- ══════════════════════════════════════════════════════════════
+     CSS
+══════════════════════════════════════════════════════════════ --}}
 <style>
-    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
-    .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+/* --- base --- */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+.animate-fade-in { animation: fadeIn .35s ease-out forwards; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
 
-    .flatpickr-day.booked  { background: #ef4444 !important; color: #fff !important; border-color: #ef4444 !important; }
-    .flatpickr-day.blocked { background: #6b7280 !important; color: #fff !important; border-color: #6b7280 !important; }
-    .flatpickr-day.hold    { background: #f59e0b !important; color: #fff !important; border-color: #f59e0b !important; }
-    .flatpickr-day.partial { background: #f97316 !important; color: #fff !important; border-color: #f97316 !important; }
+/* --- layout split --- */
+@media (min-width:1024px) {
+    #selection-screen:not(.hidden) { display:flex; flex-direction:row; gap:1.5rem; }
+    #selection-screen > div:first-child { width:56% !important; min-width:0; }
+    #selection-screen > div:last-child  { width:44% !important; min-width:0; }
+}
+@media (max-width:1023.98px) {
+    #selection-screen:not(.hidden) { display:grid; grid-template-columns:1fr; }
+    #selection-screen > div:first-child,
+    #selection-screen > div:last-child { width:100% !important; }
+}
 
-    .availability-conflict td { background-color: #fff5f5 !important; }
-    .availability-conflict td:first-child { border-left: 3px solid #ef4444; }
+/* --- hoarding cards --- */
+.hoarding-card { transition: border-color .15s, box-shadow .15s; cursor: pointer; }
+.hoarding-card:hover:not(.is-selected) { border-color:#6ee7b7; background:#f9fafb; }
+.hoarding-card.is-selected { border-color:#16a34a !important; box-shadow:0 0 0 2px #bbf7d055; background:#f0fdf4 !important; }
 
-    /* List view styles */
-    #hoardings-grid.list-view { grid-template-columns: 1fr !important; }
-    #hoardings-grid.list-view .hoarding-card { display: flex; flex-direction: row; align-items: center; }
-    #hoardings-grid.list-view .hoarding-card img { width: 64px; height: 64px; flex-shrink: 0; }
-    #hoardings-grid.list-view .hoarding-card .card-body { flex: 1; }
+/* --- list-view --- */
+#hoardings-grid.list-view { grid-template-columns:1fr !important; }
+#hoardings-grid.list-view .hoarding-card { display:flex !important; flex-direction:row !important; align-items:center; }
+#hoardings-grid.list-view .hoarding-card .hc-img { width:60px; height:54px; flex-shrink:0; }
+#hoardings-grid.list-view .hoarding-card .hc-body { flex:1; }
 
-    /* POS panel split: 55% left, 45% right on large screens */
-    @media (min-width: 1024px) {
-        #selection-screen:not(.hidden) {
-            display: flex;
-            flex-direction: row;
-            gap: 1.5rem;
-        }
-        #selection-screen > div:first-child {
-            width: 55% !important;
-            min-width: 0;
-        }
-        #selection-screen > div:last-child {
-            width: 45% !important;
-            min-width: 0;
-        }
+/* --- table conflict row --- */
+.availability-conflict td { background:#fff5f5 !important; }
+.availability-conflict td:first-child { border-left:3px solid #ef4444; }
+
+/* --- flatpickr day colours (light palette) --- */
+.flatpickr-day.avail-day       { background:#dcfce7!important; border-color:#86efac!important; color:#14532d!important; }
+.flatpickr-day.avail-day.flatpickr-disabled {
+    background:#f3f4f6!important;
+    border-color:#e5e7eb!important;
+    color:#9ca3af!important;
+    cursor:not-allowed!important;
+}
+.flatpickr-day.day-booked,
+.flatpickr-day.day-partial     { background:#fee2e2!important; color:#991b1b!important; border-color:#fca5a5!important; cursor:not-allowed!important; text-decoration:line-through; pointer-events:none; }
+.flatpickr-day.day-blocked     { background:#f3f4f6!important; color:#9ca3af!important; border-color:#e5e7eb!important; cursor:not-allowed!important; pointer-events:none; }
+.flatpickr-day.day-hold        { background:#fef9c3!important; color:#78350f!important; border-color:#fde047!important; cursor:not-allowed!important; pointer-events:none; }
+/* selected / range */
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange        { background:#2D5A43!important; border-color:#2D5A43!important; color:#fff!important; }
+.flatpickr-day.inRange         { background:#e5e7eb!important; border-color:#d1d5db!important; color:#1f2937!important; box-shadow:none!important; }
+.flatpickr-day.today:not(.selected):not(.startRange):not(.endRange) { border-bottom:2px solid #2D5A43!important; font-weight:700; }
+
+/* --- quick-chip active state --- */
+.dp-quick-chip.chip-active { border-color:#059669; color:#059669; background:#ecfdf5; }
+
+/* --- duration cell in table --- */
+.dur-btn { font-size:11px; font-weight:700; color:#2D5A43; text-align:left; line-height:1.5; }
+.dur-btn:hover { color:#1d4ed8; }
+.dur-btn .dur-sub { font-size:9px; color:#059669; font-weight:600; }
+
+@media (min-width:768px) {
+    #datePickerModal {
+        padding: 1.5rem;
     }
-    @media (max-width: 1023.98px) {
-        #selection-screen:not(.hidden) {
-            display: grid;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-        }
-        #selection-screen > div:first-child,
-        #selection-screen > div:last-child {
-            width: 100% !important;
-        }
+
+    #datePickerModal > .relative {
+        max-height: none !important;
+        overflow-y: visible !important;
     }
+
+    #date-picker-inline {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+    }
+}
+
+#date-picker-inline .flatpickr-calendar.inline {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+#date-picker-inline .flatpickr-months,
+#date-picker-inline .flatpickr-innerContainer,
+#date-picker-inline .flatpickr-rContainer,
+#date-picker-inline .flatpickr-weekdays,
+#date-picker-inline .flatpickr-days {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+@media (min-width:640px) {
+    #date-picker-inline .flatpickr-weekdaycontainer,
+    #date-picker-inline .dayContainer {
+        width: 50% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        flex: 1 1 50%;
+    }
+}
+
+@media (max-width:639.98px) {
+    #date-picker-inline .flatpickr-weekdaycontainer,
+    #date-picker-inline .dayContainer {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+}
+/* ── Date picker modal responsive fixes ── */
+#date-picker-inline .flatpickr-calendar.inline {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    box-shadow: none !important;
+}
+
+#date-picker-inline .flatpickr-months,
+#date-picker-inline .flatpickr-innerContainer,
+#date-picker-inline .flatpickr-rContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+#date-picker-inline .flatpickr-days {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Mobile: single month, full width */
+@media (max-width: 767px) {
+    #datePickerModal > .relative {
+        max-height: 92vh !important;
+        overflow-y: auto !important;
+    }
+
+    #date-picker-inline {
+        overflow-x: hidden !important;
+    }
+
+    #date-picker-inline .flatpickr-weekdaycontainer,
+    #date-picker-inline .dayContainer {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Desktop: two months side by side */
+@media (min-width: 768px) {
+    #datePickerModal > .relative {
+        max-height: none !important;
+        overflow-y: visible !important;
+    }
+
+    #date-picker-inline {
+        overflow-x: visible !important;
+    }
+
+    #date-picker-inline .flatpickr-weekdaycontainer,
+    #date-picker-inline .dayContainer {
+        width: 50% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        flex: 1 1 50%;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+
+div#date-picker-inline.calander-picker-styling .flatpickr-days {
+    flex-wrap: wrap;
+}
+.flatpickr-weekdays .flatpickr-weekdaycontainer:last-child {
+    display: none;
+}
+
+}
+
 </style>
 
+{{-- ══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════════ --}}
 <script>
-/* --- CONFIG & STATE --- */
+/* ================================================================
+   CONFIG
+================================================================ */
 window.POS_GST_RATE = Number(@json((float) ($posGstRate ?? 18)));
 
 function showToast(message, type = 'info') {
     if (window.Swal) {
-        Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, icon: type, title: message });
-    } else { alert(message); }
+        Swal.fire({ toast:true, position:'top-end', showConfirmButton:false, timer:3500, icon:type, title:message });
+    } else {
+        alert(message);
+    }
 }
 
 const API_URL = '/vendor/pos/api';
-let hoardings        = [];
-let selectedHoardings = new Map();
-let selectedCustomer  = null;
-let currentPage  = 1;
-let totalPages   = 1;
-let perPage      = 10;
-let currentViewMode   = 'grid';
-let activeFilters     = {};
-let availabilityIssues = {};
 
-const formatINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
+/* ================================================================
+   STATE
+================================================================ */
+let hoardings           = [];
+let selectedHoardings   = new Map();   // id → enriched hoarding obj
+let selectedCustomer    = null;
+let currentPage         = 1;
+let totalPages          = 1;
+let perPage             = 10;
+let currentViewMode     = 'grid';
+let activeFilters       = {};
+let availabilityIssues  = {};          // id → { title, label, conflicts[] }
 
-function getTieredMonths(startDate, endDate) {
-    if (!startDate || !endDate) return 0;
-    const start = new Date(startDate), end = new Date(endDate);
-    const diffDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1;
-    return Math.ceil(diffDays / 30);
+// date-picker
+let currentFlatpickr         = null;
+let currentHeatmapMap        = {};     // date-string → status
+let currentEditingHoardingId = null;
+let dpCurrentStart           = null;   // ISO string of anchor start date
+
+/* ================================================================
+   FORMATTERS / PURE HELPERS
+================================================================ */
+const formatINR = v =>
+    new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR', maximumFractionDigits:0 }).format(v);
+
+function toLocalYMD(date) {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-function getTieredDurationLabel(s, e) {
-    const m = getTieredMonths(s, e);
-    return m <= 0 ? '0 Months' : m === 1 ? '1 Month' : `${m} Months`;
-}
-function calculateTieredPrice(ppm, s, e) { return ppm * getTieredMonths(s, e); }
+window.toYMD = toLocalYMD;
 
-const fetchJSON = async (url, options = {}) => {
+/**
+ * Number of 30-day months that span [startISO, endISO], ceiling, minimum 1.
+ */
+function getDurationMonths(startISO, endISO) {
+    if (!startISO || !endISO) return 1;
+    const diffDays = Math.ceil((new Date(endISO) - new Date(startISO)) / 86400000) + 1;
+    return Math.max(1, Math.ceil(diffDays / 30));
+}
+
+/**
+ * Snap rawEndISO up to the nearest 30-day boundary from startISO.
+ * Returns { endISO, months }.
+ */
+function snapToMonths(startISO, rawEndISO) {
+    const months  = getDurationMonths(startISO, rawEndISO);
+    const snapped = new Date(startISO);
+    snapped.setDate(snapped.getDate() + months * 30 - 1);
+    return { endISO: toLocalYMD(snapped), months };
+}
+
+/** End date for exactly N months from startISO (N × 30 − 1 days). */
+function endForMonths(startISO, n) {
+    const d = new Date(startISO);
+    d.setDate(d.getDate() + n * 30 - 1);
+    return toLocalYMD(d);
+}
+
+/** Price = price_per_month × months. */
+function calcPrice(ppm, startISO, endISO) {
+    return ppm * getDurationMonths(startISO, endISO);
+}
+
+/**
+ * Human-friendly range. Returns { s, e, m, lbl, full, badge }.
+ * e.g. full = "25 Mar 2026 – 24 Apr 2026", badge = "1 Month"
+ */
+function friendlyRange(startISO, endISO) {
+    const opts = { day:'2-digit', month:'short', year:'numeric' };
+    const s    = new Date(startISO).toLocaleDateString('en-IN', opts);
+    const e    = new Date(endISO).toLocaleDateString('en-IN', opts);
+    const m    = getDurationMonths(startISO, endISO);
+    const lbl  = m === 1 ? '1 Month' : `${m} Months`;
+    return { s, e, m, lbl, full: `${s} – ${e}`, badge: lbl };
+}
+
+function enumerateDates(startISO, endISO) {
+    const dates = [];
+    const cur   = new Date(startISO);
+    const last  = new Date(endISO);
+    while (cur <= last) {
+        dates.push(toLocalYMD(cur));
+        cur.setDate(cur.getDate() + 1);
+    }
+    return dates;
+}
+window.enumerateDatesBetween = enumerateDates;
+
+function safe(val, fallback = '---') {
+    return (val !== undefined && val !== null && val !== '') ? val : fallback;
+}
+
+function debounce(fn, t) {
+    let timer;
+    return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), t); };
+}
+
+/* ================================================================
+   FETCH HELPER
+================================================================ */
+const fetchJSON = async (url, opts = {}) => {
     const res = await fetch(url, {
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' },
-        ...options
+        headers: {
+            'Accept':           'application/json',
+            'Content-Type':     'application/json',
+            'X-CSRF-TOKEN':     '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        ...opts,
     });
-    return await res.json();
+    return res.json();
 };
 
-/* --- INIT --- */
+/* ================================================================
+   INIT
+================================================================ */
 document.addEventListener('DOMContentLoaded', async () => {
     await loadHoardings();
 
-    const urlParams  = new URLSearchParams(window.location.search);
-    const customerId = urlParams.get('customer_id');
-
+    // Auto-select customer from URL ?customer_id=
+    const params     = new URLSearchParams(window.location.search);
+    const customerId = params.get('customer_id');
     if (customerId) {
-        const newBtn = document.getElementById('new-customer-btn');
-        if (newBtn) newBtn.style.display = 'none';
+        document.getElementById('new-customer-btn').style.display = 'none';
         try {
             let found = null;
-            let res = await fetchJSON(`${API_URL}/customers/${customerId}`);
-            if (res && (res.data || res.customer)) {
-                found = res.data || res.customer;
+            const r1  = await fetchJSON(`${API_URL}/customers/${customerId}`);
+            found = r1.data || r1.customer || null;
+
+            if (!found?.id) {
+                const r2   = await fetchJSON(`${API_URL}/customers?search=${customerId}`);
+                const list = r2.data?.data || r2.data || [];
+                found      = list.find(c => String(c.id) === String(customerId)) || null;
             }
-            if (!found || !found.id) {
-                res  = await fetchJSON(`${API_URL}/customers?search=${customerId}`);
-                const list = res.data?.data || res.data || [];
-                found  = list.find(c => String(c.id) === String(customerId));
-                if (!found) {
-                    const allRes  = await fetchJSON(`${API_URL}/customers`);
-                    const allList = allRes.data?.data || allRes.data || [];
-                    found = allList.find(c => String(c.id) === String(customerId));
-                }
-            }
-            if (found && found.id) {
+            if (found?.id) {
                 selectCustomer(found);
-                const searchInput = document.getElementById('customer-search');
-                if (searchInput) searchInput.value = found.name;
-                const changeBtn = document.getElementById('change-customer-btn');
-                if (changeBtn) changeBtn.style.display = 'none';
+                const si = document.getElementById('customer-search');
+                if (si) si.value = found.name;
+                const cb = document.getElementById('change-customer-btn');
+                if (cb) cb.style.display = 'none';
             } else {
-                document.getElementById('search-container')?.classList.add('hidden');
-                document.getElementById('customer-selected-card')?.classList.remove('hidden');
-                if (document.getElementById('cust-name'))    document.getElementById('cust-name').innerText    = 'Customer not found';
-                if (document.getElementById('cust-details')) document.getElementById('cust-details').innerText = `ID: ${customerId}`;
-                if (document.getElementById('cust-initials'))document.getElementById('cust-initials').innerText = '?';
+                _showCustomerError(customerId);
             }
-        } catch (e) { 
+        } catch (e) {
             console.error(e);
-            document.getElementById('search-container')?.classList.add('hidden');
-            document.getElementById('customer-selected-card')?.classList.remove('hidden');
-            if (document.getElementById('cust-name'))    document.getElementById('cust-name').innerText    = 'Customer not found';
-            if (document.getElementById('cust-details')) document.getElementById('cust-details').innerText = `ID: ${customerId}`;
-            if (document.getElementById('cust-initials'))document.getElementById('cust-initials').innerText = '?';
+            _showCustomerError(customerId);
         }
     }
 
-    document.getElementById('customer-search').addEventListener('input', debounce(handleCustomerSearch, 300));
-    document.getElementById('hoarding-search').addEventListener('input', debounce(filterInventory, 200));
+    document.getElementById('customer-search')
+        .addEventListener('input', debounce(handleCustomerSearch, 300));
+    document.getElementById('hoarding-search')
+        .addEventListener('input', debounce(handleHoardingSearch, 220));
+    document.getElementById('submit-btn')
+        .addEventListener('click', handleSubmit);
 });
 
-/* --- VIEW MODE --- */
+function _showCustomerError(id) {
+    document.getElementById('search-container')?.classList.add('hidden');
+    document.getElementById('customer-selected-card')?.classList.remove('hidden');
+    const s = (eid, v) => { const el = document.getElementById(eid); if (el) el.innerText = v; };
+    s('cust-name',    'Customer not found');
+    s('cust-details', `ID: ${id}`);
+    s('cust-initials','?');
+}
+
+/* ================================================================
+   VIEW MODE
+================================================================ */
 function setViewMode(mode) {
     currentViewMode = mode;
     const grid = document.getElementById('hoardings-grid');
-    const btnGrid = document.getElementById('view-grid-btn');
-    const btnList = document.getElementById('view-list-btn');
+    const btnG = document.getElementById('view-grid-btn');
+    const btnL = document.getElementById('view-list-btn');
+
     if (mode === 'grid') {
-        grid.classList.remove('list-view');
-        grid.classList.remove('grid-cols-2');
-        grid.classList.add('grid-cols-1', 'sm:grid-cols-2');
-        btnGrid.classList.add('bg-gray-800', 'text-white');
-        btnGrid.classList.remove('bg-white', 'text-gray-600');
-        btnList.classList.remove('bg-gray-800', 'text-white');
-        btnList.classList.add('bg-white', 'text-gray-600');
+        grid.classList.remove('list-view', 'grid-cols-2');
+        grid.classList.add('grid-cols-1', 'sm:grid-cols-4');
+        btnG.className = btnG.className.replace('bg-white text-gray-600','').trim() + ' bg-gray-800 text-white';
+        btnL.className = btnL.className.replace('bg-gray-800 text-white','').trim() + ' bg-white text-gray-600';
     } else {
         grid.classList.add('list-view');
-        grid.classList.remove('grid-cols-1', 'sm:grid-cols-2', 'grid-cols-2');
-        btnList.classList.add('bg-gray-800', 'text-white');
-        btnList.classList.remove('bg-white', 'text-gray-600');
-        btnGrid.classList.remove('bg-gray-800', 'text-white');
-        btnGrid.classList.add('bg-white', 'text-gray-600');
+        grid.classList.remove('grid-cols-1', 'sm:grid-cols-4', 'grid-cols-2');
+        btnL.className = btnL.className.replace('bg-white text-gray-600','').trim() + ' bg-gray-800 text-white';
+        btnG.className = btnG.className.replace('bg-gray-800 text-white','').trim() + ' bg-white text-gray-600';
     }
     renderHoardings(hoardings);
 }
 
-/* --- ACTIVE FILTER TAGS --- */
-const filterLabelMap = {
-    type:              v => v && v !== '' && v !== 'ALL' ? v.toUpperCase() : null,
-    category:          v => v ? v.split(',').map(c => c.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ') : null,
-    availability:      v => v ? v.split(',').map(a => a === 'available' ? 'Available Hoardings' : 'Booked Hoardings').join(', ') : null,
-    surroundings:      v => v ? v.split(',').map(s => s.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ') : null,
-    hoarding_size_min: v => null,
-    hoarding_size_max: v => null,
+/* ================================================================
+   FILTER TAGS
+================================================================ */
+const _filterLabelMap = {
+    type:         v => (v && v !== 'ALL') ? v.toUpperCase() : null,
+    category:     v => v ? v.split(',').map(c => c.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())).join(', ') : null,
+    availability: v => v ? v.split(',').map(a => a==='available'?'Available':'Booked').join(', ') : null,
+    surroundings: v => v ? v.split(',').map(s => s.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())).join(', ') : null,
 };
 
 function renderFilterTags(params) {
-    const tagsContainer = document.getElementById('active-filter-tags');
-    const tagsList      = document.getElementById('filter-tags-list');
-    tagsList.innerHTML  = '';
-
-    let hasAny = false;
+    const wrap = document.getElementById('active-filter-tags');
+    const list = document.getElementById('filter-tags-list');
+    list.innerHTML = '';
     const tags = [];
 
-    Object.entries(params).forEach(([key, val]) => {
-        if (!val || val === '' || val === 'ALL' || key === 'page' || key === 'per_page') return;
-        if (key === 'screen_size_min' || key === 'screen_size_max') return;
-        if (key === 'hoarding_size_min' || key === 'hoarding_size_max') return;
-
-        const labelFn = filterLabelMap[key];
-        const label   = labelFn ? labelFn(val) : val;
-        if (label) tags.push({ key, label });
+    const skip = new Set(['page','per_page','search','hoarding_size_min','hoarding_size_max','screen_size_min','screen_size_max']);
+    Object.entries(params).forEach(([k, v]) => {
+        if (!v || v === '' || v === 'ALL' || skip.has(k)) return;
+        const fn    = _filterLabelMap[k];
+        const label = fn ? fn(v) : v;
+        if (label) tags.push({ key:k, label });
     });
 
-    const sMin = params.screen_size_min, sMax = params.screen_size_max;
-    if ((sMin && sMin !== '0') || (sMax && sMax !== '1000')) {
-        tags.push({ key: 'screen_size', label: `${sMin ?? 0}Sq.ft - ${sMax ?? 1000}Sq.ft` });
-    }
+    // range tags
+    const sMin = params.screen_size_min,  sMax = params.screen_size_max;
+    if ((sMin && sMin!=='0') || (sMax && sMax!=='1000'))
+        tags.push({ key:'screen_size', label:`Screen: ${sMin??0}–${sMax??1000} sq.ft` });
     const hMin = params.hoarding_size_min, hMax = params.hoarding_size_max;
-    if ((hMin && hMin !== '0') || (hMax && hMax !== '1000')) {
-        tags.push({ key: 'hoarding_size', label: `Hoarding: ${hMin ?? 0} - ${hMax ?? 1000}Sq.ft` });
-    }
-
-    if (params.price_min || params.price_max) {
-        tags.push({ key: 'price', label: `₹${params.price_min ?? 0} - ₹${params.price_max ?? '∞'}` });
-    }
-
-    if (params.city) tags.push({ key: 'city', label: params.city });
+    if ((hMin && hMin!=='0') || (hMax && hMax!=='1000'))
+        tags.push({ key:'hoarding_size', label:`Hoarding: ${hMin??0}–${hMax??1000} sq.ft` });
+    if (params.price_min || params.price_max)
+        tags.push({ key:'price', label:`₹${params.price_min??0}–₹${params.price_max??'∞'}` });
+    if (params.city) tags.push({ key:'city', label:params.city });
 
     tags.forEach(({ key, label }) => {
-        hasAny = true;
         const tag = document.createElement('span');
-        tag.className = 'inline-flex items-center gap-1 bg-gray-100 border border-gray-300 text-gray-700 text-[10px] font-medium px-2 py-0.5';
-        tag.innerHTML = `${label} <button onclick="removeFilterTag('${key}')" class="text-gray-400 hover:text-red-500 font-bold leading-none ml-0.5">✕</button>`;
-        tagsList.appendChild(tag);
+        tag.className = 'inline-flex items-center gap-1 bg-gray-100 border border-gray-200 text-gray-600 text-[10px] font-medium px-2 py-0.5 rounded';
+        tag.innerHTML = `${label} <button onclick="removeFilterTag('${key}')" class="text-gray-400 hover:text-red-500 font-bold leading-none">✕</button>`;
+        list.appendChild(tag);
     });
 
-    tagsContainer.classList.toggle('hidden', !hasAny);
-    updateUnselectBtn();
+    wrap.classList.toggle('hidden', tags.length === 0);
+    _syncUnselectBtn();
 }
 
 function removeFilterTag(key) {
-    if (key === 'screen_size')        { delete activeFilters.screen_size_min; delete activeFilters.screen_size_max; }
-    else if (key === 'hoarding_size') { delete activeFilters.hoarding_size_min; delete activeFilters.hoarding_size_max; }
-    else if (key === 'price')         { delete activeFilters.price_min; delete activeFilters.price_max; }
-    else                              { delete activeFilters[key]; }
+    const pairs = {
+        screen_size:   ['screen_size_min','screen_size_max'],
+        hoarding_size: ['hoarding_size_min','hoarding_size_max'],
+        price:         ['price_min','price_max'],
+    };
+    if (pairs[key]) pairs[key].forEach(k => delete activeFilters[k]);
+    else delete activeFilters[key];
     currentPage = 1;
     loadHoardings(activeFilters);
 }
@@ -442,30 +782,23 @@ function clearAllFilters() {
     if (typeof resetFilters === 'function') resetFilters(false);
 }
 
-function updateUnselectBtn() {
+function _syncUnselectBtn() {
     const btn = document.getElementById('unselect-all-btn');
-    if (!btn) return;
-    if (selectedHoardings.size > 0) {
-        btn.classList.remove('hidden');
-    } else {
-        btn.classList.add('hidden');
-    }
+    if (btn) btn.classList.toggle('hidden', selectedHoardings.size === 0);
 }
 
 function unselectAllHoardings() {
     selectedHoardings.clear();
     availabilityIssues = {};
     updateSummary();
-    updateUnselectBtn();
+    _syncUnselectBtn();
 }
 
-/* --- CUSTOMER LOGIC --- */
+/* ================================================================
+   CUSTOMER
+================================================================ */
 function openCustomerModal()  { document.getElementById('customerModal').classList.remove('hidden'); }
 function closeCustomerModal() { document.getElementById('customerModal').classList.add('hidden'); }
-function clearAddressFields() {
-    const city = document.getElementById('city'), state = document.getElementById('state');
-    if (city) city.value = ''; if (state) state.value = '';
-}
 
 async function handleCustomerSearch(e) {
     const q   = e.target.value.trim();
@@ -474,58 +807,56 @@ async function handleCustomerSearch(e) {
     try {
         const res  = await fetchJSON(`${API_URL}/customers?search=${encodeURIComponent(q)}`);
         const list = res.data?.data || res.data || [];
-        box.innerHTML = list.map(c => `
-            <div class="px-4 py-3 hover:bg-green-50 cursor-pointer border-b" onclick='selectCustomer(${JSON.stringify(c).replace(/'/g, "&apos;")})'>
-                <div class="text-sm font-bold text-gray-800">${c.name}</div>
-                <div class="text-[10px] text-gray-500">${c.phone}</div>
-            </div>`).join('') || '<div class="p-4 text-xs text-gray-400">No results</div>';
+        box.innerHTML = list.length
+            ? list.map(c => `
+                <div class="px-4 py-3 hover:bg-green-50 cursor-pointer border-b last:border-0"
+                    onclick='selectCustomer(${JSON.stringify(c).replace(/'/g,"&apos;")})'>
+                    <div class="text-sm font-bold text-gray-800">${c.name}</div>
+                    <div class="text-[10px] text-gray-500">${[c.phone,c.email].filter(Boolean).join(' · ')}</div>
+                </div>`).join('')
+            : '<div class="p-4 text-xs text-gray-400 text-center">No customers found</div>';
         box.classList.remove('hidden');
-    } catch (e) { console.error(e); }
-}
-
-function toLocalYMD(date) {
-    const d = new Date(date);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    } catch(e) { console.error(e); }
 }
 
 function selectCustomer(c) {
-    if (!c || !c.name) { console.warn('Invalid customer', c); return; }
+    if (!c?.name) { console.warn('Invalid customer', c); return; }
     selectedCustomer = c;
     document.getElementById('search-container')?.classList.add('hidden');
     document.getElementById('customer-selected-card')?.classList.remove('hidden');
     document.getElementById('customer-suggestions')?.classList.add('hidden');
-    if (document.getElementById('cust-name'))    document.getElementById('cust-name').innerText    = c.name;
-    if (document.getElementById('cust-details')) document.getElementById('cust-details').innerText = `${c.email || ''} | ${c.phone || ''}`;
-    if (document.getElementById('cust-initials'))document.getElementById('cust-initials').innerText = c.name.slice(0,2).toUpperCase();
+    const s = (eid,v) => { const el = document.getElementById(eid); if(el) el.innerText = v; };
+    s('cust-name',     c.name);
+    s('cust-details',  [c.email,c.phone].filter(Boolean).join(' · '));
+    s('cust-initials', c.name.slice(0,2).toUpperCase());
 }
 
 function clearSelectedCustomer() {
     selectedCustomer = null;
     document.getElementById('search-container').classList.remove('hidden');
     document.getElementById('customer-selected-card').classList.add('hidden');
+    const si = document.getElementById('customer-search');
+    if (si) { si.value=''; si.focus(); }
 }
 
-/* --- INVENTORY LOGIC --- */
+/* ================================================================
+   LOAD HOARDINGS
+================================================================ */
 async function loadHoardings(filters = {}) {
-    activeFilters    = { ...filters };
-    filters.page     = currentPage;
-    filters.per_page = perPage;
-    const query = new URLSearchParams(filters).toString();
-    const url   = `${API_URL}/hoardings${query ? '?' + query : ''}`;
-    const res   = await fetchJSON(url);
+    activeFilters = { ...filters };
+    const p       = { ...filters, page:currentPage, per_page:perPage };
+    const query   = new URLSearchParams(p).toString();
+    const res     = await fetchJSON(`${API_URL}/hoardings${query ? '?'+query : ''}`);
 
     if ('last_page' in res) {
-        hoardings   = res.data || [];
-        totalPages  = res.last_page  || 1;
-        currentPage = res.current_page || 1;
-    } else if (res.data && typeof res.data === 'object' && 'data' in res.data && 'last_page' in res.data) {
-        hoardings  = res.data.data;
+        hoardings   = res.data          || [];
+        totalPages  = res.last_page     || 1;
+        currentPage = res.current_page  || 1;
+    } else if (res.data && 'last_page' in res.data) {
+        hoardings  = res.data.data   || [];
         totalPages = res.data.last_page || 1;
-    } else if (Array.isArray(res.data)) {
-        hoardings  = res.data;
-        totalPages = 1;
     } else {
-        hoardings  = res.data?.data || res.data || [];
+        hoardings  = Array.isArray(res.data) ? res.data : (res.data?.data || []);
         totalPages = 1;
     }
 
@@ -535,442 +866,682 @@ async function loadHoardings(filters = {}) {
 }
 window.loadHoardings = loadHoardings;
 
+/* ================================================================
+   RENDER HOARDINGS  (selected pinned to top)
+================================================================ */
 function renderHoardings(list) {
     const grid = document.getElementById('hoardings-grid');
-    if (list.length === 0) {
+
+    if (!list?.length) {
         grid.innerHTML = `
-            <div class="col-span-1 sm:col-span-2 flex flex-col items-center justify-center py-12 text-center">
-                <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 3.5a7.5 7.5 0 0013.15 13.15z"/>
+            <div class="col-span-2 flex flex-col items-center justify-center py-14 text-center">
+                <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M20 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 3.5a7.5 7.5 0 0013.15 13.15z"/>
                 </svg>
-                <h4 class="text-sm font-bold text-gray-600 mb-1">No Data Found</h4>
-                <p class="text-xs text-gray-400">Try adjusting your search or filter criteria</p>
+                <p class="text-sm font-bold text-gray-500 mb-1">No hoardings found</p>
+                <p class="text-xs text-gray-400">Try adjusting your filters</p>
             </div>`;
         document.getElementById('available-count').innerText = 0;
         return;
     }
 
-    grid.innerHTML = list.map(h => {
-        const isSelected = selectedHoardings.has(h.id);
-        const isDooh     = h.type?.toUpperCase() === 'DOOH';
+    // Pin selected to front
+    const sorted = [
+        ...list.filter(h => selectedHoardings.has(h.id)),
+        ...list.filter(h => !selectedHoardings.has(h.id)),
+    ];
 
-        if (currentViewMode === 'list') {
-            return `
-                <div class="hoarding-card flex items-center gap-3 bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} p-2 cursor-pointer" onclick="toggleHoarding(${h.id})">
-                    <img src="${h.image_url || '/placeholder.png'}" class="w-16 h-16 object-cover object-center flex-shrink-0">
-                    <div class="card-body flex-1 min-w-0">
-                        <h4 class="text-[11px] font-bold text-gray-800 truncate" title="${h.title}">${h.title}</h4>
-                        <span class="text-[10px] font-bold text-gray-600">${formatINR(h.price_per_month)}/M</span>
-                        ${isDooh ? `<span class="block text-[9px] text-purple-600 font-medium">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
-                    </div>
-                    ${isDooh ? `<span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded self-start">DOOH</span>` : ''}
-                    ${isSelected ? `
-                        <button onclick="event.stopPropagation(); toggleHoarding(${h.id})"
-                            class="text-[10px] font-bold text-red-500 border border-red-300 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition self-center whitespace-nowrap">
-                            Unselect
-                        </button>` : ''}
-                </div>`;
-        }
-
-        // Grid view — FIXED (backslash wali broken line hatayi, sahi wali lagayi)
-        return `
-            <div class="hoarding-card relative bg-white border ${isSelected ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-200'} overflow-hidden cursor-pointer" onclick="toggleHoarding(${h.id})">
-                <img src="${h.image_url || '/placeholder.png'}" class="w-full h-20 object-cover object-center">
-                ${isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DOOH</span>` : ''}
-                <div class="p-2">
-                    <h4 class="text-[10px] font-bold text-gray-800 truncate" title="${h.title}">${h.title}</h4>
-                    <span class="text-[10px] font-bold">${formatINR(h.price_per_month)}/M</span>
-                    ${isDooh ? `<span class="block text-[9px] text-purple-600 font-medium">${h.total_slots_per_day ?? 300} slots/day</span>` : ''}
-                </div>
-            </div>`;
-    }).join('');
-
+    grid.innerHTML = sorted.map(h => _buildCard(h)).join('');
     document.getElementById('available-count').innerText = list.length;
 }
 
-function renderPagination() {
-    let container = document.getElementById('hoardings-pagination');
-    if (!container) {
-        const parent = document.querySelector('#hoardings-grid')?.parentElement;
-        if (!parent) return;
-        container = document.createElement('div');
-        container.id = 'hoardings-pagination';
-        container.className = 'flex justify-center items-center gap-2 mt-4';
-        parent.appendChild(container);
-    }
-    if (totalPages <= 1) { container.innerHTML = ''; return; }
+function _buildCard(h) {
+    const isSel  = selectedHoardings.has(h.id);
+    const isDooh = h.type?.toUpperCase() === 'DOOH';
+    const selH   = isSel ? selectedHoardings.get(h.id) : null;
+    const loc    = h.display_location || h.location_address || h.city || '';
 
-    let html = `<button class="px-2 py-1 border rounded text-xs ${currentPage===1?'bg-gray-200 text-gray-400 cursor-not-allowed':'bg-white'}" onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>Prev</button>`;
-    let start = Math.max(1, currentPage-2), end = Math.min(totalPages, start+4);
-    if (end-start < 4) start = Math.max(1, end-4);
-    for (let i = start; i <= end; i++) {
-        html += `<button class="px-2 py-1 border rounded text-xs ${i===currentPage?'bg-green-600 text-white':'bg-white'}" onclick="changePage(${i})">${i}</button>`;
+    const selCls     = isSel ? 'is-selected' : '';
+    const checkBadge = isSel  ? `<span class="absolute top-1 left-1 bg-green-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded leading-tight z-10">✓</span>` : '';
+    const doohBadge  = isDooh ? `<span class="absolute top-1 right-1 bg-purple-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded z-10">DOOH</span>` : '';
+    const dateSnip   = isSel && selH && selH.startDate && selH.endDate
+        ? (() => { const r = friendlyRange(selH.startDate, selH.endDate);
+                   return `<p class="text-[9px] font-semibold text-emerald-700 leading-tight mt-0.5 truncate">${r.full} <span class="text-emerald-500 font-bold">(${r.badge})</span></p>`; })()
+        : (isSel ? `<p class="text-[9px] font-semibold text-orange-500 leading-tight mt-0.5">Tap to select dates</p>` : '');
+
+    if (currentViewMode === 'list') {
+        return `
+        <div class="hoarding-card ${selCls} border rounded-lg overflow-hidden bg-white" onclick="toggleHoarding(${h.id})">
+            <div class="flex items-center gap-2 p-2">
+                <div class="relative flex-shrink-0">
+                    <img src="${h.image_url||'/placeholder.png'}" class="hc-img w-[60px] h-[54px] object-cover rounded">
+                    ${checkBadge}
+                    ${isDooh ? `<span class="absolute bottom-0 right-0 bg-purple-600 text-white text-[8px] font-bold px-1 rounded">DOOH</span>` : ''}
+                </div>
+                <div class="hc-body flex-1 min-w-0 py-0.5">
+                    <p class="text-[11px] font-bold text-gray-800 truncate">${h.title}</p>
+                    ${loc ? `<p class="text-[9px] text-gray-400 truncate">${loc}</p>` : ''}
+                    <p class="text-[10px] font-bold text-gray-700 mt-0.5">${formatINR(h.price_per_month)}<span class="font-normal text-gray-400">/mo</span></p>
+                    ${isDooh ? `<p class="text-[9px] text-purple-600">${h.total_slots_per_day??300} slots/day</p>` : ''}
+                    ${dateSnip}
+                </div>
+                ${isSel ? `
+                <button onclick="event.stopPropagation(); toggleHoarding(${h.id})"
+                    class="flex-shrink-0 text-[10px] font-bold text-red-500 border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition whitespace-nowrap">
+                    Remove
+                </button>` : ''}
+            </div>
+        </div>`;
     }
-    html += `<button class="px-2 py-1 border rounded text-xs ${currentPage===totalPages?'bg-gray-200 text-gray-400 cursor-not-allowed':'bg-white'}" onclick="changePage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next</button>`;
-    container.innerHTML = html;
+
+    // grid card
+    return `
+    <div class="hoarding-card ${selCls} border border-gray-200   overflow-hidden bg-white" onclick="toggleHoarding(${h.id})">
+        <div class="relative">
+            <img src="${h.image_url||'/placeholder.png'}" class="w-full object-cover" style="height:72px;">
+            ${checkBadge}${doohBadge}
+        </div>
+        <div class="p-2">
+            <p class="text-[10px] font-bold text-gray-800 truncate leading-tight" title="${h.title}">${h.title}</p>
+            ${loc ? `<p class="text-[9px] text-gray-400 truncate">${loc}</p>` : ''}
+            <p class="text-[10px] font-bold text-gray-700 mt-0.5">${formatINR(h.price_per_month)}<span class="font-normal text-gray-400">/mo</span></p>
+            ${isDooh ? `<p class="text-[9px] text-purple-600">${h.total_slots_per_day??300} slots/day</p>` : ''}
+            ${dateSnip}
+        </div>
+    </div>`;
+}
+
+/* ================================================================
+   PAGINATION
+================================================================ */
+function renderPagination() {
+    const el = document.getElementById('hoardings-pagination');
+    if (!el) return;
+    if (totalPages <= 1) { el.innerHTML=''; return; }
+
+    const mkBtn = (lbl, page, disabled, active) =>
+        `<button onclick="changePage(${page})" ${disabled?'disabled':''}
+            class="px-2.5 py-1 border rounded text-xs font-medium transition
+                ${active ? 'bg-green-600 text-white border-green-600' :
+                  disabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50'}">${lbl}</button>`;
+
+    let html = mkBtn('‹ Prev', currentPage-1, currentPage===1, false);
+    const start = Math.max(1, currentPage-2), end = Math.min(totalPages, start+4);
+    for (let i = start; i <= end; i++) html += mkBtn(i, i, false, i===currentPage);
+    html += mkBtn('Next ›', currentPage+1, currentPage===totalPages, false);
+    el.innerHTML = html;
 }
 
 function changePage(page) {
     if (page < 1 || page > totalPages || page === currentPage) return;
     currentPage = page;
     loadHoardings({ ...activeFilters });
+    document.getElementById('hoardings-grid')?.scrollTo({ top:0, behavior:'smooth' });
 }
 
-function filterInventory() {
-    const q = document.getElementById('hoarding-search').value.toLowerCase();
+function handleHoardingSearch() {
+    const q = document.getElementById('hoarding-search').value.trim();
     currentPage = 1;
-    loadHoardings(q ? { ...activeFilters, search: q } : { ...activeFilters });
+    loadHoardings(q ? { ...activeFilters, search:q } : { ...activeFilters });
 }
 
+/* ================================================================
+   TOGGLE HOARDING
+================================================================ */
 function toggleHoarding(id) {
+    let shouldOpenDatePicker = false;
+
     if (selectedHoardings.has(id)) {
         selectedHoardings.delete(id);
         delete availabilityIssues[id];
     } else {
-        const h    = hoardings.find(i => i.id === id);
-        const today = toLocalYMD(new Date());
-        let end    = new Date(); end.setDate(end.getDate() + 29);
-        selectedHoardings.set(id, { ...h, startDate: today, endDate: toLocalYMD(end) });
+        const h = hoardings.find(i => i.id === id);
+        if (!h) return;
+        // Do not auto-fill dates; prompt date selection in calendar.
+        selectedHoardings.set(id, { ...h, startDate: null, endDate: null });
+        shouldOpenDatePicker = true;
     }
     updateSummary();
-    updateUnselectBtn();
+    _syncUnselectBtn();
+
+    if (shouldOpenDatePicker) {
+        setTimeout(() => openDatePickerForHoarding(id), 120);
+    }
 }
 
+/* ================================================================
+   SUMMARY TABLES (left panel)
+================================================================ */
 function updateSummary() {
     renderHoardings(hoardings);
-    updateUnselectBtn();
+    _syncUnselectBtn();
 
-    const oohTbody  = document.getElementById('ooh-selected-list');
-    const doohTbody = document.getElementById('dooh-selected-list');
-    oohTbody.innerHTML = ''; doohTbody.innerHTML = '';
+    const oohBody  = document.getElementById('ooh-selected-list');
+    const doohBody = document.getElementById('dooh-selected-list');
 
     if (selectedHoardings.size === 0) {
-        oohTbody.innerHTML  = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No static hoardings selected</td></tr>`;
-        doohTbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic">No digital slots selected</td></tr>`;
-    } else {
-        let hasOoh = false, hasDooh = false;
-
-        selectedHoardings.forEach((h, id) => {
-            const totalPrice    = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
-            const issue         = availabilityIssues[id];
-            const conflictClass = issue ? 'availability-conflict' : '';
-            const conflictBadge = issue ? `<span class="inline-block mt-1 text-[9px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">${issue.label}</span>` : '';
-            const isDooh        = h.type?.toUpperCase() === 'DOOH';
-
-            if (isDooh) {
-                hasDooh = true;
-                const slotsPerDay = h.total_slots_per_day ?? 300;
-                doohTbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 border-b border-gray-200 ${conflictClass}">
-                        <td class="px-4 py-3">
-                            <div class="text-xs font-bold text-gray-800">${h.title}</div>
-                            <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
-                            ${conflictBadge}
-                        </td>
-                        <td class="px-3 sm:px-4 py-3 text-xs text-gray-500 hidden sm:table-cell">${formatINR(h.price_per_month)}</td>
-                        <td class="px-3 sm:px-4 py-3 text-center hidden sm:table-cell">
-                            <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[11px] font-bold px-2 py-1 rounded-full">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
-                                ${slotsPerDay}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 align-middle">
-                            <div class="flex flex-col items-center justify-center">
-                                <div class="flex items-center justify-center whitespace-nowrap">
-                                    <button onclick="openDatePickerForHoarding(${h.id})" class="px-2 py-1 rounded bg-white text-[11px] font-semibold text-gray-700 hover:text-blue-600 transition leading-none">
-                                        ${toLocalYMD(h.startDate)} - ${toLocalYMD(h.endDate)}
-                                    </button>
-                                    <button onclick="openDatePickerForHoarding(${h.id})" class="flex items-center justify-center w-6 h-6 rounded-full text-blue-500 hover:text-blue-700 transition" title="Edit Dates">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"/></svg>
-                                    </button>
-                                </div>
-                                <div class="text-[11px] text-gray-400 mt-1 text-center leading-none">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
-                            </div>
-                        </td>
-                        <td class="px-3 sm:px-4 py-3 font-bold text-xs text-green-700">${formatINR(totalPrice)}</td>
-                        <td class="px-3 sm:px-4 py-3 text-right">
-                            <button onclick="toggleHoarding(${h.id})" class="text-red-500 cursor-pointer">
-                                <svg class="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            </button>
-                        </td>
-                    </tr>`;
-            } else {
-                hasOoh = true;
-                oohTbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 border-b border-gray-200 ${conflictClass}">
-                        <td class="px-4 py-3">
-                            <div class="text-xs font-bold text-gray-800">${h.title}</div>
-                            <div class="text-[9px] text-gray-400 truncate w-32">${h.location_address || ''}</div>
-                            ${conflictBadge}
-                        </td>
-                        <td class="px-3 sm:px-4 py-3 text-xs text-gray-500 hidden sm:table-cell">${formatINR(h.price_per_month)}</td>
-                        <td class="px-4 py-3 align-middle">
-                            <div class="flex flex-col items-center justify-center">
-                                <div class="flex items-center justify-center whitespace-nowrap">
-                                    <button onclick="openDatePickerForHoarding(${h.id})" class="px-2 py-1 rounded bg-white text-[11px] font-semibold text-gray-700 hover:text-blue-600 transition leading-none">
-                                        ${toLocalYMD(h.startDate)} - ${toLocalYMD(h.endDate)}
-                                    </button>
-                                    <button onclick="openDatePickerForHoarding(${h.id})" class="flex items-center justify-center w-6 h-6 rounded-full text-blue-500 hover:text-blue-700 transition" title="Edit Dates">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"/></svg>
-                                    </button>
-                                </div>
-                                <div class="text-[11px] text-gray-400 mt-1 text-center leading-none">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
-                            </div>
-                        </td>
-                        <td class="px-3 sm:px-4 py-3 font-bold text-xs text-green-700">${formatINR(totalPrice)}</td>
-                        <td class="px-3 sm:px-4 py-3 text-right">
-                            <button onclick="toggleHoarding(${h.id})" class="text-red-500 cursor-pointer">
-                                <svg class="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            </button>
-                        </td>
-                    </tr>`;
-            }
-        });
-
-        if (!hasOoh)  oohTbody.innerHTML  = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No static hoardings selected</td></tr>`;
-        if (!hasDooh) doohTbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic">No digital slots selected</td></tr>`;
+        oohBody.innerHTML  = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic text-xs">No static hoardings selected</td></tr>`;
+        doohBody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic text-xs">No digital slots selected</td></tr>`;
+        document.getElementById('btn-count').innerText = 0;
+        return;
     }
+
+    let hasOoh = false, hasDooh = false;
+    oohBody.innerHTML = ''; doohBody.innerHTML = '';
+
+    selectedHoardings.forEach((h, id) => {
+        const isDooh      = h.type?.toUpperCase() === 'DOOH';
+        const hasDates    = Boolean(h.startDate && h.endDate);
+        const totalPrice  = hasDates ? calcPrice(h.price_per_month, h.startDate, h.endDate) : null;
+        const issue       = availabilityIssues[id];
+        const conflictCls = issue ? 'availability-conflict' : '';
+        const conflictBadge = issue
+            ? `<span class="block mt-1 text-[9px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded w-fit">${issue.label}</span>` : '';
+        const loc   = h.display_location || h.location_address || h.city || '';
+        const rng   = hasDates ? friendlyRange(h.startDate, h.endDate) : null;
+
+        // Duration cell — click to open calendar
+        const durCell = hasDates
+            ? `
+            <button class="dur-btn" onclick="openDatePickerForHoarding(${h.id})">
+                <span class="block">${rng.full}</span>
+                <span class="dur-sub">${rng.badge} · tap to change</span>
+            </button>`
+            : `
+            <button class="dur-btn" onclick="openDatePickerForHoarding(${h.id})">
+                <span class="block text-orange-600 font-semibold">Select dates</span>
+                <span class="dur-sub">Tap to open calendar</span>
+            </button>`;
+
+        const rmBtn = `
+            <button onclick="toggleHoarding(${h.id})" class="text-red-400 hover:text-red-600 transition ml-auto block" title="Remove">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </button>`;
+
+        if (isDooh) {
+            hasDooh = true;
+            doohBody.innerHTML += `
+            <tr class="hover:bg-gray-50 border-b border-gray-100 ${conflictCls}">
+                <td class="px-4 py-3">
+                    <p class="text-xs font-bold text-gray-800">${h.title}</p>
+                    ${loc ? `<p class="text-[9px] text-gray-400 truncate max-w-[150px]">${loc}</p>` : ''}
+                    ${conflictBadge}
+                </td>
+                <td class="px-3 py-3 text-xs text-gray-500 hidden sm:table-cell">${formatINR(h.price_per_month)}</td>
+                <td class="px-3 py-3 text-center hidden sm:table-cell">
+                    <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full">${h.total_slots_per_day??300}</span>
+                </td>
+                <td class="px-4 py-3">${durCell}</td>
+                <td class="px-3 py-3 text-xs font-bold text-green-700 whitespace-nowrap">${totalPrice !== null ? formatINR(totalPrice) : '—'}</td>
+                <td class="px-3 py-3 text-right">${rmBtn}</td>
+            </tr>`;
+        } else {
+            hasOoh = true;
+            oohBody.innerHTML += `
+            <tr class="hover:bg-gray-50 border-b border-gray-100 ${conflictCls}">
+                <td class="px-4 py-3">
+                    <p class="text-xs font-bold text-gray-800">${h.title}</p>
+                    ${loc ? `<p class="text-[9px] text-gray-400 truncate max-w-[150px]">${loc}</p>` : ''}
+                    ${conflictBadge}
+                </td>
+                <td class="px-3 py-3 text-xs text-gray-500 hidden sm:table-cell">${formatINR(h.price_per_month)}</td>
+                <td class="px-4 py-3">${durCell}</td>
+                <td class="px-3 py-3 text-xs font-bold text-green-700 whitespace-nowrap">${totalPrice !== null ? formatINR(totalPrice) : '—'}</td>
+                <td class="px-3 py-3 text-right">${rmBtn}</td>
+            </tr>`;
+        }
+    });
+
+    if (!hasOoh)  oohBody.innerHTML  = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic text-xs">No static hoardings selected</td></tr>`;
+    if (!hasDooh) doohBody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic text-xs">No digital slots selected</td></tr>`;
     document.getElementById('btn-count').innerText = selectedHoardings.size;
 }
 
-function updateDate(id, field, value) {
-    let h = selectedHoardings.get(id);
-    if (h) {
-        h[field] = value;
-        if (field === 'startDate' && h.endDate < value) h.endDate = value;
-        selectedHoardings.set(id, h);
-        updateSummary();
-    }
-}
-
-/* --- Availability --- */
-function statusLabel(status) {
-    const map = { booked: 'Already Booked', blocked: 'Blocked/Maintenance', hold: 'On Hold', partial: 'Partially Unavailable' };
-    return map[status] || status;
+/* ================================================================
+   AVAILABILITY CHECK
+================================================================ */
+function _statusLabel(s) {
+    return { booked:'Already Booked', blocked:'Blocked/Maintenance', hold:'On Hold', partial:'Partially Unavailable' }[s] || s;
 }
 
 async function checkAllAvailability() {
     availabilityIssues = {};
     let allClear = true;
-    const checks = Array.from(selectedHoardings.entries()).map(async ([id, h]) => {
-        const allDates = enumerateDatesBetween(h.startDate, h.endDate);
+
+    await Promise.all(Array.from(selectedHoardings.entries()).map(async ([id, h]) => {
+        if (!h.startDate || !h.endDate) {
+            allClear = false;
+            availabilityIssues[id] = { title:h.title, label:'Dates not selected', conflicts:[] };
+            return;
+        }
+
         try {
-            const res = await fetch(`/api/v1/hoardings/${id}/availability/check-dates`, {
-                method: 'POST', credentials: 'same-origin',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                body: JSON.stringify({ dates: allDates })
+            const dates = enumerateDates(h.startDate, h.endDate);
+            const res   = await fetch(`/api/v1/hoardings/${id}/availability/check-dates`, {
+                method: 'POST', credentials:'same-origin',
+                headers: { 'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}' },
+                body: JSON.stringify({ dates }),
             });
             if (!res.ok) return;
-            const result    = await res.json();
-            const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
-            if (conflicts.length > 0) {
+            const data      = await res.json();
+            const conflicts = (data.data?.results || []).filter(r => r.status !== 'available');
+            if (conflicts.length) {
                 allClear = false;
                 const statuses = [...new Set(conflicts.map(c => c.status))];
-                availabilityIssues[id] = { title: h.title, label: statuses.map(statusLabel).join(', '), conflicts };
+                availabilityIssues[id] = { title:h.title, label:statuses.map(_statusLabel).join(', '), conflicts };
             }
-        } catch (e) { console.error('Availability check error', id, e); }
-    });
-    await Promise.all(checks);
+        } catch(e) { console.error('Avail check', id, e); }
+    }));
+
     return allClear;
 }
+window.finalCheckAvailability = async () => checkAllAvailability();
 
 function showAvailabilityAlert(issues) {
     const alert = document.getElementById('availability-alert');
     const body  = document.getElementById('availability-alert-body');
-    const entries = Object.values(issues);
-    if (entries.length === 0) { alert.classList.add('hidden'); return; }
-    body.innerHTML = entries.map(i => `
-        <div class="flex items-start gap-2 py-1">
-            <span class="font-bold text-red-700">${i.title}:</span>
-            <span>${i.label} — please adjust the booking dates.</span>
+    const rows  = Object.entries(issues);
+    if (!rows.length) { alert.classList.add('hidden'); return; }
+
+    body.innerHTML = rows.map(([id, i]) => `
+        <div class="flex items-start gap-2 py-0.5">
+            <span class="font-bold text-red-700 flex-shrink-0">${i.title}:</span>
+            <span class="flex-1">${i.label} —
+                <button onclick="openDatePickerForHoarding(${id})"
+                    class="underline font-bold text-red-700 hover:text-red-900 transition">Fix Dates →</button>
+            </span>
         </div>`).join('');
     alert.classList.remove('hidden');
-    alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    alert.scrollIntoView({ behavior:'smooth', block:'center' });
 }
 
-/* --- Calendar --- */
-let currentFlatpickr = null, currentHeatmapMap = {}, currentEditingHoardingId = null;
-function toYMD(d) { return toLocalYMD(d); }
+/* ================================================================
+   DATE PICKER MODAL
+================================================================ */
 
-function enumerateDatesBetween(start, end) {
-    const dates = []; let cur = new Date(start); const last = new Date(end);
-    while (cur <= last) { dates.push(toYMD(cur)); cur.setDate(cur.getDate()+1); }
-    return dates;
+/** Refresh the summary bar inside the calendar modal. */
+function _updateDpBar(startISO, endISO, ppm) {
+    const rangeEl  = document.getElementById('dp-range-label');
+    const monthsEl = document.getElementById('dp-months-label');
+    const costEl   = document.getElementById('dp-cost-label');
+
+    if (!startISO) {
+        if (rangeEl)  rangeEl.innerText  = '— Pick a date';
+        if (monthsEl) monthsEl.innerText = '—';
+        if (costEl)   costEl.innerText   = '—';
+        _setActiveChip(null);
+        return;
+    }
+
+    const r = friendlyRange(startISO, endISO || startISO);
+    if (rangeEl)  rangeEl.innerHTML = `${r.s}&nbsp;–&nbsp;${endISO ? r.e : '…'}`;
+    if (monthsEl) monthsEl.innerText = endISO ? r.badge : '—';
+    if (costEl)   costEl.innerText   = (endISO && ppm) ? formatINR(calcPrice(ppm, startISO, endISO)) : '—';
+    _setActiveChip(endISO ? r.m : null);
+}
+
+function _setActiveChip(months) {
+    document.querySelectorAll('.dp-quick-chip').forEach(btn => {
+        btn.classList.toggle('chip-active', months !== null && parseInt(btn.dataset.months) === months);
+    });
+}
+
+/** Quick-select: set calendar to N months from current start (or today). */
+function quickSelectMonths(n) {
+    if (!currentFlatpickr) return;
+    const start = dpCurrentStart || toLocalYMD(new Date());
+    const end   = endForMonths(start, n);
+    currentFlatpickr.setDate([start, end], false); // false = don't re-trigger onChange
+    dpCurrentStart = start;
+    const h = selectedHoardings.get(currentEditingHoardingId);
+    _updateDpBar(start, end, h?.price_per_month);
 }
 
 async function openDatePickerForHoarding(id) {
-    if (typeof flatpickr === 'undefined') { showToast('Calendar library not loaded.'); return; }
+    if (typeof flatpickr === 'undefined') { showToast('Calendar library not loaded.', 'error'); return; }
+
     currentEditingHoardingId = id;
     const h = selectedHoardings.get(id);
-    if (!h) { showToast('Please select the hoarding first'); return; }
-    document.getElementById('datePickerTitle').innerText = h.title;
-    document.getElementById('datePickerModal').classList.remove('hidden');
+    if (!h) { showToast('Please select the hoarding first.', 'warning'); return; }
 
-    const startStr = toLocalYMD(new Date());
-    const future   = new Date(); future.setDate(future.getDate() + 365);
+    dpCurrentStart = h.startDate || null;
+    const titleEl = document.getElementById('datePickerTitle');
+    const fullTitle = (h.title || 'Select Booking Dates').toString();
+    if (titleEl) {
+        titleEl.innerText = fullTitle.length > 40
+            ? `${fullTitle.slice(0, 40).trimEnd()}...`
+            : fullTitle;
+        titleEl.title = fullTitle;
+    }
+    document.getElementById('datePickerModal').classList.remove('hidden');
+    document.getElementById('date-picker-inline').innerHTML =
+        '<div class="text-center py-8 text-sm text-gray-400 animate-pulse">Loading calendar…</div>';
+    _updateDpBar(h.startDate || null, h.endDate || null, h.price_per_month);
+
+    const defaultDate = h.startDate
+        ? (h.endDate ? [h.startDate, h.endDate] : [h.startDate])
+        : [];
+
+    const today     = toLocalYMD(new Date());
+    const farFuture = new Date(); farFuture.setDate(farFuture.getDate() + 730);
+
     try {
-        const res = await fetch(`/api/v1/hoardings/${id}/availability/heatmap?start_date=${startStr}&end_date=${toLocalYMD(future)}`, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
-        if (!res.ok) { showToast(`Could not load availability (HTTP ${res.status}).`); return; }
+        const res = await fetch(
+            `/api/v1/hoardings/${id}/availability/heatmap?start_date=${today}&end_date=${toLocalYMD(farFuture)}`,
+            { credentials:'same-origin', headers:{ 'Accept':'application/json' } }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const payload = await res.json();
         const heatmap = payload.data?.heatmap || [];
-        const disabledDates = heatmap.filter(d => d.status !== 'available').map(d => d.date);
+
         currentHeatmapMap = {};
-        heatmap.forEach(d => currentHeatmapMap[d.date] = d.status);
-        if (currentFlatpickr) currentFlatpickr.destroy();
+        const disabledDates = [];
+        heatmap.forEach(d => {
+            currentHeatmapMap[d.date] = d.status;
+            if (d.status && d.status !== 'available') disabledDates.push(d.date);
+        });
+
+        document.getElementById('date-picker-inline').innerHTML = '';
+        if (currentFlatpickr) { currentFlatpickr.destroy(); currentFlatpickr = null; }
+
         currentFlatpickr = flatpickr('#date-picker-input', {
-            mode: 'range', inline: true, appendTo: document.getElementById('date-picker-inline'),
-            minDate: startStr, disable: disabledDates, defaultDate: [h.startDate, h.endDate], showMonths: window.innerWidth < 640 ? 1 : 2,
+            mode:        'range',
+            inline:      true,
+            appendTo:    document.getElementById('date-picker-inline'),
+            minDate:     today,
+            disable:     disabledDates,
+            defaultDate,
+            showMonths:  window.innerWidth < 668 ? 1 : 2,
+
+            onReady(selectedDates, dateStr, fp) {
+                // If the user already picked a start date/range and clicks another available date,
+                // reset to a fresh start whenever the old path crosses unavailable dates.
+                fp.calendarContainer.addEventListener('mousedown', (event) => {
+                    const target = event.target;
+                    if (!(target instanceof Element)) return;
+
+                    const dayElem = target.closest('.flatpickr-day');
+                    if (!dayElem || !dayElem.dateObj) return;
+
+                    // flatpickr-disabled = the date itself is booked/blocked → never allow
+                    if (dayElem.classList.contains('flatpickr-disabled')) {
+                        return;
+                    }
+                    // notAllowed means the path from the current start crosses blocked dates.
+                    // We fall through for notAllowed dates so we can reset to a fresh start.
+
+                    const selectedCount = fp.selectedDates.length;
+                    if (selectedCount === 0) {
+                        return;
+                    }
+
+                    const clickedISO = toLocalYMD(dayElem.dateObj);
+                    const currentStartISO = fp.selectedDates[0] ? toLocalYMD(fp.selectedDates[0]) : null;
+                    const currentEndISO = fp.selectedDates[1] ? toLocalYMD(fp.selectedDates[1]) : null;
+
+                    if (!currentStartISO || clickedISO === currentStartISO || clickedISO === currentEndISO) {
+                        return;
+                    }
+
+                    // Always reset when a full range is already selected, or when flatpickr
+                    // has marked this date as notAllowed (blocked path from current start),
+                    // or when the path check confirms blocked dates exist in between.
+                    let shouldResetToFreshStart = selectedCount >= 2 ||
+                        dayElem.classList.contains('notAllowed');
+
+                    if (!shouldResetToFreshStart && selectedCount === 1) {
+                        const fromISO = clickedISO < currentStartISO ? clickedISO : currentStartISO;
+                        const toISO = clickedISO < currentStartISO ? currentStartISO : clickedISO;
+
+                        shouldResetToFreshStart = enumerateDates(fromISO, toISO).some((dateISO) => {
+                            if (dateISO === clickedISO) {
+                                return false;
+                            }
+                            const status = currentHeatmapMap[dateISO];
+                            return status && status !== 'available';
+                        });
+                    }
+
+                    if (!shouldResetToFreshStart) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    if (typeof event.stopImmediatePropagation === 'function') {
+                        event.stopImmediatePropagation();
+                    }
+                    event.stopPropagation();
+
+                    fp.clear(false);
+                    fp.setDate([clickedISO], true);
+                }, true);
+            },
+
             onDayCreate(dObj, dStr, fp, dayElem) {
                 const date   = toLocalYMD(dayElem.dateObj);
                 const status = currentHeatmapMap[date];
-                if (status && status !== 'available') { dayElem.classList.add(status); dayElem.title = status.charAt(0).toUpperCase()+status.slice(1); }
-            }
+                if (!status || status === 'available') {
+                    dayElem.classList.add('avail-day');
+                    dayElem.title = 'Available';
+                } else if (status === 'booked')  { dayElem.classList.add('day-booked');  dayElem.title = 'Booked';   }
+                  else if (status === 'blocked') { dayElem.classList.add('day-blocked'); dayElem.title = 'Blocked';  }
+                  else if (status === 'hold')    { dayElem.classList.add('day-hold');    dayElem.title = 'On Hold';  }
+                  else if (status === 'partial') { dayElem.classList.add('day-partial'); dayElem.title = 'Partial';  }
+            },
+
+            onChange(selectedDates) {
+                if (!selectedDates.length) return;
+                const start = toLocalYMD(selectedDates[0]);
+                dpCurrentStart = start;
+
+                if (selectedDates.length === 1) {
+                    // first click: show provisional 1-month label
+                    _updateDpBar(start, null, h.price_per_month);
+                    return;
+                }
+
+                // Both dates picked — snap end to 30-day multiple
+                const rawEnd = toLocalYMD(selectedDates[1]);
+                const { endISO } = snapToMonths(start, rawEnd === start ? endForMonths(start, 1) : rawEnd);
+                _updateDpBar(start, endISO, h.price_per_month);
+
+                // Silently correct flatpickr if snapped value differs
+                if (endISO !== rawEnd) {
+                    setTimeout(() => currentFlatpickr?.setDate([start, endISO], false), 0);
+                }
+            },
         });
-    } catch (e) { console.error(e); showToast('Could not load availability. Please try again.'); }
+
+    } catch(e) {
+        console.error(e);
+        showToast('Could not load availability data. Please try again.', 'error');
+        closeDatePickerModal();
+    }
 }
 
-function closeDatePickerModal() { document.getElementById('datePickerModal').classList.add('hidden'); }
+function closeDatePickerModal() {
+    document.getElementById('datePickerModal').classList.add('hidden');
+    if (currentFlatpickr) { currentFlatpickr.destroy(); currentFlatpickr = null; }
+    document.getElementById('date-picker-inline').innerHTML = '';
+    currentEditingHoardingId = null;
+    dpCurrentStart           = null;
+}
 
 async function confirmDateSelection() {
-    if (!currentFlatpickr || !currentEditingHoardingId) return closeDatePickerModal();
+    if (!currentFlatpickr || !currentEditingHoardingId) { closeDatePickerModal(); return; }
+
     const dates = currentFlatpickr.selectedDates;
-    if (!dates || dates.length === 0) { showToast('Please select a start and end date'); return; }
-    const start = toYMD(dates[0]), end = toYMD(dates.length === 1 ? dates[0] : dates[1]);
-    const allDates = enumerateDatesBetween(start, end);
+    if (!dates?.length) { showToast('Please select a start date first.', 'warning'); return; }
+
+    const startISO = toLocalYMD(dates[0]);
+    const rawEnd   = dates.length >= 2 ? toLocalYMD(dates[1]) : startISO;
+    const { endISO } = snapToMonths(startISO, rawEnd === startISO ? endForMonths(startISO, 1) : rawEnd);
+
+    // Verify no blocked dates in snapped range
+    const allDates = enumerateDates(startISO, endISO);
     try {
         const res = await fetch(`/api/v1/hoardings/${currentEditingHoardingId}/availability/check-dates`, {
-            method: 'POST', credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            body: JSON.stringify({ dates: allDates })
+            method: 'POST', credentials:'same-origin',
+            headers: { 'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}' },
+            body: JSON.stringify({ dates: allDates }),
         });
-        if (!res.ok) { showToast('Could not verify availability.'); openDatePickerForHoarding(currentEditingHoardingId); return; }
-        const result    = await res.json();
-        const conflicts = (result.data?.results || []).filter(r => r.status !== 'available');
-        if (conflicts.length > 0) { showToast('Selected range includes unavailable dates.', 'warning'); openDatePickerForHoarding(currentEditingHoardingId); return; }
-        let h = selectedHoardings.get(currentEditingHoardingId);
+        if (!res.ok) { showToast('Could not verify availability.', 'error'); return; }
+        const data      = await res.json();
+        const conflicts = (data.data?.results || []).filter(r => r.status !== 'available');
+
+        if (conflicts.length) {
+            showToast('Selected range includes unavailable dates. Please choose a different period.', 'warning');
+            return; // keep modal open
+        }
+
+        // Commit dates
+        const h = selectedHoardings.get(currentEditingHoardingId);
         if (h) {
-            h.startDate = start; h.endDate = end;
+            h.startDate = startISO;
+            h.endDate   = endISO;
             selectedHoardings.set(currentEditingHoardingId, h);
             delete availabilityIssues[currentEditingHoardingId];
             updateSummary();
         }
+
         closeDatePickerModal();
-    } catch (e) { console.error(e); showToast('Error checking availability.'); }
+        const rng = friendlyRange(startISO, endISO);
+        showToast(`Dates confirmed: ${rng.full} (${rng.badge})`, 'success');
+
+    } catch(e) {
+        console.error(e);
+        showToast('Error checking availability. Please try again.', 'error');
+    }
 }
 
-window.enumerateDatesBetween = enumerateDatesBetween;
-window.toYMD = toYMD;
-window.finalCheckAvailability = async function() { return await checkAllAvailability(); };
+/* ================================================================
+   SUBMIT → PREVIEW
+================================================================ */
+async function handleSubmit() {
+    if (!selectedCustomer)             { showToast('Please select a customer.', 'warning');           return; }
+    if (selectedHoardings.size === 0)  { showToast('Select at least one hoarding.', 'warning');        return; }
 
-/* --- SUBMIT --- */
-document.getElementById('submit-btn').addEventListener('click', async () => {
-    if (!selectedCustomer)            { showToast('Select a customer.', 'warning'); return; }
-    if (selectedHoardings.size === 0) { showToast('Select at least one hoarding.', 'warning'); return; }
+    const firstMissingDates = Array.from(selectedHoardings.entries())
+        .find(([, h]) => !h.startDate || !h.endDate);
+    if (firstMissingDates) {
+        const [missingId, missingH] = firstMissingDates;
+        showToast(`Please select booking dates for: ${missingH.title}`, 'warning');
+        setTimeout(() => openDatePickerForHoarding(missingId), 150);
+        return;
+    }
 
-    const btn = document.getElementById('submit-btn');
-    const originalText = btn.innerHTML;
+    const btn  = document.getElementById('submit-btn');
+    const orig = btn.innerHTML;
     btn.disabled  = true;
-    btn.innerHTML = `<svg class="w-4 h-4 inline animate-spin mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg> Checking Availability...`;
+    btn.innerHTML = `<svg class="w-4 h-4 inline animate-spin mr-2" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+    </svg>Checking Availability…`;
 
     const allClear = await checkAllAvailability();
     btn.disabled   = false;
-    btn.innerHTML  = originalText;
-
+    btn.innerHTML  = orig;
     if (!allClear) {
         updateSummary();
         showAvailabilityAlert(availabilityIssues);
-        showToast('Some hoardings have availability conflicts. Please review and adjust dates.', 'error');
+        showToast('Availability conflicts found. Please review and fix dates.', 'error');
+        // Auto-open calendar for the first conflict
+        const firstId = Object.keys(availabilityIssues)[0];
+        if (firstId) setTimeout(() => openDatePickerForHoarding(parseInt(firstId)), 500);
         return;
     }
+
     document.getElementById('availability-alert').classList.add('hidden');
     populatePreview();
     document.getElementById('selection-screen').classList.add('hidden');
     document.getElementById('preview-screen').classList.remove('hidden');
-});
+    window.scrollTo({ top:0, behavior:'smooth' });
+}
 
 function backToSelection() {
     document.getElementById('preview-screen').classList.add('hidden');
     document.getElementById('selection-screen').classList.remove('hidden');
 }
 
-function debounce(fn, t) { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), t); }; }
-
-/* --- PREVIEW --- */
+/* ================================================================
+   PREVIEW POPULATE
+================================================================ */
 let globalBaseAmount = 0;
-function safe(val, fallback = '---') {
-    return (val !== undefined && val !== null && val !== '') ? val : fallback;
-}
 
 function populatePreview() {
     if (!selectedCustomer) return;
-    const oohTbody  = document.getElementById('preview-ooh-list');
-    const doohTbody = document.getElementById('preview-dooh-list');
-    if (!oohTbody || !doohTbody) { console.error('Preview DOM elements missing!'); return; }
 
-    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = safe(val); };
-    setEl('preview-cust-name',    selectedCustomer.name);
-    setEl('preview-cust-phone',   selectedCustomer.phone);
-    setEl('preview-cust-email',   selectedCustomer.email);
-    setEl('preview-cust-gstin',   selectedCustomer.gstin);
-    setEl('preview-cust-status',  selectedCustomer.status);
-    setEl('preview-cust-role',    selectedCustomer.role);
-    setEl('preview-cust-address',
-        [selectedCustomer.billing_address, selectedCustomer.billing_city, selectedCustomer.billing_state, selectedCustomer.billing_pincode]
+    const oohBody  = document.getElementById('preview-ooh-list');
+    const doohBody = document.getElementById('preview-dooh-list');
+    if (!oohBody || !doohBody) { console.error('Preview DOM missing!'); return; }
+
+    const s = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = safe(val); };
+    s('preview-cust-name',    selectedCustomer.name);
+    s('preview-cust-phone',   selectedCustomer.phone);
+    s('preview-cust-email',   selectedCustomer.email);
+    s('preview-cust-gstin',   selectedCustomer.gstin);
+    s('preview-cust-status',  selectedCustomer.status);
+    s('preview-cust-role',    selectedCustomer.role);
+    s('preview-cust-address',
+        [selectedCustomer.billing_address, selectedCustomer.billing_city,
+         selectedCustomer.billing_state,   selectedCustomer.billing_pincode]
             .filter(Boolean).join(', ') || '---');
-    setEl('preview-cust-country', selectedCustomer.country);
-    setEl('preview-cust-created', selectedCustomer.created_at);
-    setEl('preview-cust-updated', selectedCustomer.updated_at);
-    setEl('preview-total-count',  selectedHoardings.size);
+    s('preview-cust-country',  selectedCustomer.country);
+    s('preview-total-count',   selectedHoardings.size);
 
-    oohTbody.innerHTML = ''; doohTbody.innerHTML = '';
-    globalBaseAmount   = 0;
+    oohBody.innerHTML = ''; doohBody.innerHTML = '';
+    globalBaseAmount  = 0;
+    let sn = 1;
 
-    const allRows = [];
-    selectedHoardings.forEach((h) => {
-        const itemTotal = calculateTieredPrice(h.price_per_month, h.startDate, h.endDate);
+    selectedHoardings.forEach(h => {
+        const itemTotal  = calcPrice(h.price_per_month, h.startDate, h.endDate);
         globalBaseAmount += itemTotal;
-        allRows.push({ h, itemTotal });
-    });
 
-    let snCounter = 1;
-    allRows.forEach(({ h, itemTotal }) => {
-        const isDooh    = h.type?.toUpperCase() === 'DOOH';
-        const slotsCell = isDooh ? `<div class="text-[10px] text-purple-600 font-medium mt-0.5">${h.total_slots_per_day ?? 300} slots/day</div>` : '';
-        const typeBadge = isDooh
-            ? `<span class="inline-block text-[9px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">DOOH</span>`
-            : `<span class="inline-block text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">OOH</span>`;
+        const isDooh     = h.type?.toUpperCase() === 'DOOH';
+        const loc        = h.display_location || h.location_address || h.city || '---';
+        const rng        = friendlyRange(h.startDate, h.endDate);
+        const typeBadge  = isDooh
+            ? `<span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">DOOH</span>`
+            : `<span class="text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">OOH</span>`;
+        const slotsSnip  = isDooh
+            ? `<p class="text-[9px] text-purple-600 mt-0.5">${h.total_slots_per_day??300} slots/day</p>` : '';
 
         const row = `
-            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                <td class="px-4 py-2 text-xs text-gray-400 font-semibold w-8">${snCounter++}</td>
-                <td class="px-4 py-2">
-                    <div class="flex items-center gap-2">
-                        <img src="${h.image_url || '/placeholder.png'}" class="w-8 h-8 rounded object-cover border border-gray-100 flex-shrink-0">
-                        <div>
-                            <p class="font-bold text-gray-800 text-xs leading-tight">${safe(h.title)}</p>
-                            <p class="text-[9px] text-gray-400">${safe(h.location_address, '')}</p>
-                            ${slotsCell}
-                        </div>
+        <tr class="border-b border-gray-100 hover:bg-gray-50">
+            <td class="px-4 py-2 text-xs text-gray-400 font-semibold w-8">${sn++}</td>
+            <td class="px-4 py-2">
+                <div class="flex items-center gap-2">
+                    <img src="${h.image_url||'/placeholder.png'}" class="w-9 h-9 rounded object-cover border border-gray-100 flex-shrink-0">
+                    <div>
+                        <p class="font-bold text-gray-800 text-xs leading-tight">${safe(h.title)}</p>
+                        ${slotsSnip}
                     </div>
-                </td>
-                <td class="px-4 py-2 text-xs text-gray-500">${safe(h.location_address, safe(h.city, '---'))}</td>
-                <td class="px-4 py-2">${typeBadge}</td>
-                <td class="px-4 py-2 text-xs text-gray-600">
-                    ${h.startDate} – ${h.endDate}
-                    <div class="text-[10px] text-gray-400">${getTieredDurationLabel(h.startDate, h.endDate)}</div>
-                </td>
-                <td class="px-4 py-2 text-right font-bold text-gray-800 text-xs">${formatINR(itemTotal)}</td>
-            </tr>`;
-        oohTbody.innerHTML += row;
+                </div>
+            </td>
+            <td class="px-4 py-2 text-xs text-gray-500">${loc}</td>
+            <td class="px-4 py-2">${typeBadge}</td>
+            <td class="px-4 py-2">
+                <p class="text-xs font-semibold text-gray-700">${rng.full}</p>
+                <p class="text-[10px] text-emerald-600 font-bold">${rng.badge}</p>
+            </td>
+            <td class="px-4 py-2 text-right font-bold text-gray-800 text-xs">${formatINR(itemTotal)}</td>
+        </tr>`;
+        oohBody.innerHTML += row;
     });
-    doohTbody.innerHTML = '';
+    doohBody.innerHTML = '';
 
-    const sideSubTotal = document.getElementById('side-sub-total');
-    if (sideSubTotal) sideSubTotal.innerText = formatINR(globalBaseAmount);
-    calculateFinalTotals();
+    const sub = document.getElementById('side-sub-total');
+    if (sub) sub.innerText = formatINR(globalBaseAmount);
+    if (typeof calculateFinalTotals === 'function') calculateFinalTotals();
 }
 </script>
+
 <script>
+    /* Filter modal — separate block to prevent variable hoisting collisions */
     function openFilterModal()  { document.getElementById('filterModal').classList.remove('hidden'); }
     function closeFilterModal() { document.getElementById('filterModal').classList.add('hidden'); }
 </script>

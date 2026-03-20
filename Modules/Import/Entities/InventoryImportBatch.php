@@ -30,6 +30,8 @@ class InventoryImportBatch extends Model
         'total_rows',
         'valid_rows',
         'invalid_rows',
+        'file_path',
+        'ppt_path',
     ];
 
     /**

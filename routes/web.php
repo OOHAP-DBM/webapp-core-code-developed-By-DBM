@@ -253,7 +253,7 @@ Route::middleware(['auth'])->group(function () {
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/select-package', [CartController::class, 'selectPackage'])->name('cart.selectPackage');
-Route::get('/cart', [\Modules\Cart\Controllers\Web\CartController::class, 'index'])->middleware('auth')->name('cart.index');
+Route::get('/cart', [\Modules\Cart\Controllers\Web\CartController::class, 'index'])->name('cart.index');
 Route::get('/hoardings', [\App\Http\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
 Route::get('/hoardings/map', [\App\Http\Controllers\Web\HoardingController::class, 'map'])->name('hoardings.map');
 Route::get('/api/hoardings/{id}/packages', [\App\Http\Controllers\Web\HoardingController::class, 'getPackages'])->name('hoardings.api.packages');
@@ -290,11 +290,11 @@ Route::get('/legal-disclaimer', [PageController::class, 'disclaimer'])->name('di
 Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/refund-cancellation-policy', [PageController::class, 'refund'])->name('refund');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/shortlist', [ShortlistController::class, 'index'])->name('shortlist');
-    Route::post('/shortlist/toggle/{hoarding}', [ShortlistController::class, 'toggle'])->name('shortlist.toggle');
-    Route::post('/ratings/store', [RatingController::class, 'store'])->name('ratings.store');
-});
+
+Route::get('/shortlist', [ShortlistController::class, 'index'])->name('shortlist');
+Route::post('/shortlist/toggle/{hoarding}', [ShortlistController::class, 'toggle'])->name('shortlist.toggle');
+Route::post('/ratings/store', [RatingController::class, 'store'])->name('ratings.store');
+Route::post('/guest/merge', [\App\Http\Controllers\Web\Customer\GuestMergeController::class, 'merge'])->middleware('auth')->name('guest.merge');
 
 
 // ============================================
@@ -674,7 +674,9 @@ Route::prefix('/vendor/pos/api/')
         Route::get('/bookings/{bookingId}', [POSBookingController::class, 'show']);
         Route::post('/bookings/{bookingId}/mark-paid', [POSBookingController::class, 'markAsPaid']);
         Route::post('/bookings/{bookingId}/release', [POSBookingController::class, 'releaseBooking']);
+        Route::post('/bookings/{bookingId}/cancel', [POSBookingController::class, 'cancel']);
         Route::post('/bookings/{bookingId}/send-reminder', [POSBookingController::class, 'sendReminder']);
+        Route::post('/bookings/{id}/cancel-credit-note', [POSBookingController::class, 'cancelCreditNote']);
         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
     });

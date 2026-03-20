@@ -514,6 +514,8 @@ class HoardingController extends Controller
             'hoarding_type' => strtoupper((string) ($hoarding->hoarding_type ?? '')),
             'category' => $hoarding->category,
             'city' => $hoarding->city,
+            'packages' => $hoarding->packages,
+            'image_url' => $hoarding->heroImage(),
             'rating' => (float) ($hoarding->average_rating ?? $hoarding->rating ?? 0),
             'pricing' => $pricing,
             'availability' => $availability,

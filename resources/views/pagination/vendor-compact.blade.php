@@ -4,11 +4,11 @@
         $lastPage = $paginator->lastPage();
         $pages = [];
 
-        if ($lastPage <= 7) {
+        if ($lastPage <= 5) {
             $pages = range(1, $lastPage);
-        } elseif ($currentPage <= 4) {
+        } elseif ($currentPage <= 5) {
             $pages = array_merge(range(1, 5), [$lastPage]);
-        } elseif ($currentPage >= $lastPage - 3) {
+        } elseif ($currentPage >= $lastPage - 4) {
             $pages = array_merge([1], range($lastPage - 4, $lastPage));
         } else {
             $pages = [1, $currentPage - 1, $currentPage, $currentPage + 1, $lastPage];

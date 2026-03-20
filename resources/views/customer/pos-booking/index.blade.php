@@ -13,8 +13,8 @@
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
         <div>
-            <h1 class="text-xl sm:text-2xl font-bold">My Bookings ({{ $stats['total_bookings'] ?? 0 }})</h1>
-            <p class="text-gray-500 text-xs sm:text-sm">View and manage booked hoardings</p>
+            <h1 class="md:text-xl font-semibold text-gray-900">My Bookings ({{ $stats['total_bookings'] ?? 0 }})</h1>
+            <p class="text-sm text-gray-500 mt-1">View and manage booked hoardings</p>
         </div>
 
         <div class="flex flex-row gap-2 items-center w-full sm:w-auto">
@@ -53,7 +53,7 @@
     </div>
 
     {{-- Table --}}
-    <div class="overflow-x-auto bg-white rounded-lg shadow border border-gray-200">
+    <div class="overflow-x-auto bg-white shadow border border-gray-200">
         <table class="min-w-full text-xs sm:text-sm">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -145,8 +145,8 @@
 
                     <td class="px-3 py-2 text-center">
                         <a href="{{ route('customer.pos.booking.show', $booking->id) }}"
-                            class="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 text-xs font-semibold">
-                            View
+                            class="px-3 py-1 bg-gray-900 hover:bg-gray-800 text-white text-xs  font-semibold inline-block whitespace-nowrap transition-colors">
+                            View Details
                         </a>
                     </td>
                 </tr>
@@ -163,19 +163,18 @@
                 @endforelse
             </tbody>
         </table>
-
-        {{-- Pagination --}}
-        <div class="flex flex-col sm:flex-row items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
-            <div class="text-xs text-gray-500 mb-2 sm:mb-0">
+    </div>
+     {{-- Pagination --}}
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600">
+            <div class="font-medium">
                 Showing
                 {{ $bookings->firstItem() ?? 0 }} - {{ $bookings->lastItem() ?? 0 }}
                 of {{ $bookings->total() }} bookings
             </div>
             <div>
-                {{ $bookings->links('vendor.pagination.tailwind') }}
+                {{ $bookings->links('pagination.vendor-compact') }}
             </div>
         </div>
-    </div>
 
     {{-- ════════════════════════════════════════════
          FILTER MODAL  (same design as your enquiry modal)

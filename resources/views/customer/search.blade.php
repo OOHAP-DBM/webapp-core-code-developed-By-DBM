@@ -550,7 +550,7 @@
                 <!-- Pagination -->
                 @if(isset($hoardings) && $hoardings->hasPages())
                 <div class="mt-4">
-                    {{ $hoardings->links() }}
+                    {{ $hoardings->links('pagination.vendor-compact') }}
                 </div>
                 @endif
             </div>
@@ -799,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <!-- Pagination -->
                 @if(isset($hoardings) && $hoardings->hasPages())
                 <div class="mt-4">
-                    {{ $hoardings->links() }}
+                    {{ $hoardings->links('pagination.vendor-compact') }}
                 </div>
                 @endif
             </div>

@@ -459,7 +459,7 @@
                 } elseif ($key === 'bookings') {
                     $cardRoute = route('vendor.pos.list');
                 } elseif ($key === 'orders') {
-                    $cardRoute = route('vendor.enquiries.index');
+                    $cardRoute = route('vendor.pos.list', ['status' => 'confirmed']);
                 } elseif ($key === 'pos') {
                     $cardRoute = route('vendor.pos.list');
                 }
@@ -519,14 +519,7 @@
             <h4 class="text-sm font-semibold text-gray-800">
                 Recent Hoardings
             </h4>
-            <div class="text-xs text-gray-500 flex items-center gap-1">
-                <span class="text-black font-semibold">SORT BY:</span>
-                <select id="hoardings_period_filter" class="border rounded px-2 py-1 text-xs">
-                    <option value="1m" @selected(request('hoardings_period', '1m') === '1m')>1 Month</option>
-                    <option value="6m" @selected(request('hoardings_period') === '6m')>6 Month</option>
-                    <option value="1y" @selected(request('hoardings_period') === '1y')>1 Year</option>
-                </select>
-            </div>
+            
         </div>
 
         <div class="overflow-x-auto">
@@ -741,14 +734,6 @@
             <h4 class="text-sm font-semibold text-gray-800">
                 Top 5 Customers
             </h4>
-            <div class="text-xs text-gray-500 flex items-center gap-1">
-                SORT BY:
-               <select id="customers_period_filter" class="border rounded px-2 py-1 text-xs">
-                    <option value="1m" @selected(request('customers_period', '1m') === '1m')>1 Month</option>
-                    <option value="6m" @selected(request('customers_period') === '6m')>6 Month</option>
-                    <option value="1y" @selected(request('customers_period') === '1y')>1 Year</option>
-                </select>
-            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -1003,15 +988,6 @@
                     Total {{ count($transactions) }} Transactions done in this week
                 </p>
             </div>
-
-            <div class="text-xs text-gray-500 flex items-center gap-1">
-                SORT BY: 
-               <select id="transactions_period_filter" class="border rounded px-2 py-1 text-xs">
-                    <option value="1m" @selected(request('transactions_period', '1m') === '1m')>1 Month</option>
-                    <option value="6m" @selected(request('transactions_period') === '6m')>6 Month</option>
-                    <option value="1y" @selected(request('transactions_period') === '1y')>1 Year</option>
-                </select>
-            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -1110,14 +1086,19 @@
 @endif
 @endsection
 @push('scripts')
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
+        const earningLabels = @json($monthLabels ?? []);
+        const earningData = @json($monthlyEarnings ?? []);
+        const bookingData = @json($monthlyBookings ?? []);
+
         new Chart(document.getElementById('earningChart'),{
             type:'line',
             data:{
-                labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                labels: earningLabels,
                 datasets:[{
-                    data:[0,0,0,0,0,0,0,0,0,0,0,0],
+                    data: earningData,
                     borderColor:'#2563eb',
                     tension:.4,
                     fill:false
@@ -1129,9 +1110,9 @@
         new Chart(document.getElementById('bookingChart'),{
             type:'line',
             data:{
-                labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                labels: earningLabels,
                 datasets:[{
-                    data:[0,0,0,0,0,0,0,0,0,0,0,0],
+                    data: bookingData,
                     borderColor:'#ec4899',
                     tension:.4,
                     fill:false

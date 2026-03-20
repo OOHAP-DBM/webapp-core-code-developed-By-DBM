@@ -232,7 +232,7 @@
         </div>
         @if($bookings->hasPages())
         <div class="card-footer bg-white">
-            {{ $bookings->links() }}
+            {{ $bookings->links('pagination.vendor-compact') }}
         </div>
         @endif
     </div>

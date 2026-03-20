@@ -1285,7 +1285,7 @@ class VendorPosController extends Controller
                 'payment_notes'                         => 'nullable|string|max:500',
                 'notes'                                 => 'nullable|string|max:1000',
                 'hold_minutes'                          => 'nullable|integer|min:0',
-                'payment_details_type'                  => 'nullable|string|in:bank_transfer,online',
+                'payment_details_type'                  => 'nullable|string|in:bank_transfer,online,credit_note',
                 'is_milestone'   => 'nullable|boolean',
                 'milestone_data' => 'required_if:is_milestone,true|array|min:1',
                 'milestone_data.*.title'       => 'required_if:is_milestone,true|string|max:100',
@@ -1293,6 +1293,7 @@ class VendorPosController extends Controller
                 'milestone_data.*.amount'      => 'required_if:is_milestone,true|numeric|min:0.01',
                 'milestone_data.*.due_date'    => 'nullable|date',
                 'milestone_data.*.vendor_notes' => 'nullable|string|max:500',
+                'po_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240'
             ]);
 
             // ── Resolve hoarding IDs ─────────────────────────────────────
@@ -1831,6 +1832,22 @@ class VendorPosController extends Controller
                         ->orWhere('customer_phone', 'like', "%{$search}%")
                         ->orWhere('customer_email', 'like', "%{$search}%");
                 });
+            }
+
+            if ($request->filled('period')) {
+                $period = strtolower(trim((string) $request->get('period')));
+                $from = match ($period) {
+                    'today'              => now()->startOfDay(),
+                    'week', 'this_week'  => now()->startOfWeek(),
+                    'month', 'this_month' => now()->startOfMonth(),
+                    '1m'                 => now()->subMonth()->startOfDay(),
+                    '6m'                 => now()->subMonths(6)->startOfDay(),
+                    '1y', 'year'         => now()->subYear()->startOfDay(),
+                    default              => null,
+                };
+                if ($from) {
+                    $query->where('created_at', '>=', $from);
+                }
             }
 
             $bookings = $query->paginate($perPage);

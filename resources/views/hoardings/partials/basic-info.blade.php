@@ -17,9 +17,9 @@
     </div> --}}
 
     {{-- TITLE --}}
-    <h2 class="text-lg font-semibold text-gray-900">
+    <h1 class="text-lg font-semibold text-gray-900">
         {{ $hoarding->title ?? '—' }}
-    </h2>
+    </h1>
 
     {{-- LOCATION --}}
     <p class="text-sm text-gray-500 flex items-center gap-1">
@@ -83,4 +83,4 @@
 
 </div>
 
-<hr class="my-6 border-gray-300">
+<hr class="my-6 border-gray-200">

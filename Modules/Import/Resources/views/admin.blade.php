@@ -217,7 +217,14 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<!-- Axios should be imported via npm and bundled in app.js -->
+<script>
+// API Configuration
+const API_BASE = '/api/import';
+const UPLOAD_ENDPOINT = `${API_BASE}/upload`;
+const BATCHES_ENDPOINT = `${API_BASE}`;
+const APPROVE_ENDPOINT = `${API_BASE}/approve`;
+const DETAILS_ENDPOINT = `${API_BASE}`;
 <script>
 // API Configuration
 const API_BASE = '/api/import';
@@ -229,27 +236,16 @@ const DETAILS_ENDPOINT = `${API_BASE}`;
 // Axios Configuration with CSRF Token
 document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-    axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
-    axios.defaults.headers.common['Accept'] = 'application/json';
-    
+    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+    window.axios.defaults.headers.common['Accept'] = 'application/json';
     // Setup file inputs and drag-drop
     setupFileInputs();
-    
     // Load initial data
     loadBatches();
-    
     // Auto-refresh every 30 seconds
     setInterval(loadBatches, 30000);
 });
-
-// Toast Notification
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `px-4 py-3 rounded-lg text-white font-medium shadow-lg transition-all ${
-        type === 'success' ? 'bg-green-500' : 
-        type === 'error' ? 'bg-red-500' : 
-        'bg-blue-500'
+// ...existing JS code...
     }`;
     toast.innerText = message;
     

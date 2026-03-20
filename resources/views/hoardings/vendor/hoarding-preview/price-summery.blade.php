@@ -19,7 +19,7 @@
         <div class="grid grid-cols-3 gap-4 items-center">
             <div class="flex items-center gap-1 text-gray-600">
                 <span>Taxes</span>
-                <span class="inline-flex items-center justify-center w-3.5 h-3.5 text-[10px] rounded-full bg-gray-200 text-gray-600">?</span>
+                <span class="inline-flex items-center justify-center w-3.5 h-3.5 text-[10px] rounded-full bg-gray-200 text-gray-600 cursor-pointer" title="18% GST will be added as per government rules">?</span>
             </div>
             <span class="col-span-2 text-gray-900">
                 @php

@@ -5,74 +5,69 @@
     
     <!-- Modal Container -->
     <div class="relative h-full flex items-center justify-center p-4 sm:p-6">
-        <div class="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
+        <div class="bg-white rounded-lg sm:rounded-xl shadow-2xl w-full max-w-lg max-h-[95vh] overflow-hidden flex flex-col">
             
             <!-- Header - Sticky -->
-            <div class="bg-gradient-to-r from-[#009A5C] to-[#00b36b] px-4 sm:px-6 py-4 sm:py-5 text-white flex justify-between items-start sticky top-0 z-10 shadow-lg">
+            <div class="bg-gradient-to-r from-[#009A5C] to-[#00b36b] px-4 sm:px-5 py-3 sm:py-4 text-white flex justify-between items-start sticky top-0 z-10 shadow-lg">
                 <div class="flex-1">
-                    <h3 class="text-lg sm:text-xl font-bold mb-1">Get Your Hoarding Quote</h3>
-                    <p class="text-xs sm:text-sm opacity-90">Fill in your details and we'll connect you with the best options</p>
+                    <h3 class="text-base sm:text-lg font-bold mb-1">Get Your Hoarding Quote</h3>
+                    <p class="text-xs opacity-90">Fill in your details and we'll connect you with the best options</p>
                 </div>
                 <button onclick="closeDirectEnquiryModal()" 
-                        class="ml-3 text-white/80 hover:text-white hover:rotate-90 transition-all duration-300 text-2xl leading-none mt-1">
+                        class="ml-3 text-white/80 hover:text-white hover:rotate-90 transition-all duration-300 text-2xl leading-none mt-1 cursor-pointer">
                     &times;
                 </button>
             </div>
 
             <!-- Form - Scrollable -->
             <div class="flex-1 overflow-y-auto">
-                <form id="directEnquiryForm" action="{{ route('direct.enquiry.submit') }}" method="POST" class="p-4 sm:p-6 lg:p-8 space-y-5">
+                <form id="directEnquiryForm" action="{{ route('direct.enquiry.submit') }}" method="POST" class="p-4 sm:p-5 space-y-4">
                     @csrf
 
-                    <!-- Full Name -->
-                    <div class="form-group">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
-                            Your Full Name <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" 
-                               name="name" 
-                               id="nameInput"
-                               required 
-                               minlength="3"
-                               placeholder="e.g. Rajesh Kumar"
-                               class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
-                    </div>
-
-                    <!-- Phone with Auto-OTP -->
-                    <div class="form-group">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
-                            Mobile Number <span class="text-red-500">*</span>
-                        </label>
-                        <div class="relative">
-                            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">
-                                +91
-                            </div>
-                            <input type="tel" 
-                                   id="phoneInput" 
-                                   name="phone" 
-                                   required 
-                                   maxlength="10"
-                                   pattern="[6-9][0-9]{9}"
-                                   placeholder="10-digit mobile number" 
-                                   class="w-full pl-14 pr-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
-                            
-                            <!-- Verification Status Indicator -->
-                            <div id="phoneStatusIndicator" class="absolute right-3 top-1/2 -translate-y-1/2 hidden">
-                                <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
+                   <div class="form-group grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {{-- Full Name --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+                                Your Full Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                name="name" 
+                                id="nameInput"
+                                required 
+                                minlength="3"
+                                placeholder="e.g. Rajesh Kumar"
+                                class="w-full px-4 py-1 border-2 border-gray-200 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                         </div>
-                        <input type="hidden" id="phoneVerified" name="phone_verified" value="0">
-                        <!-- <p class="text-xs text-gray-500 mt-2">
-                            <span class="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse mr-1"></span>
-                            OTP will be sent automatically when you proceed
-                        </p> -->
+                        {{-- Phone with Auto-OTP --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+                                Mobile Number <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">
+                                    +91
+                                </div>
+                                <input type="tel" 
+                                    id="phoneInput" 
+                                    name="phone" 
+                                    required 
+                                    maxlength="10"
+                                    pattern="[6-9][0-9]{9}"
+                                    placeholder="10-digit mobile no." 
+                                    class="w-full pl-14 pr-4 py-1 border-2 border-gray-200 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                                <div id="phoneStatusIndicator" class="absolute right-3 top-1/2 -translate-y-1/2 hidden">
+                                    <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <input type="hidden" id="phoneVerified" name="phone_verified" value="0">
+                        </div>
                     </div>
 
                     <!-- Email (No Verification Required) -->
                     <div class="form-group">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
                             Email Address <span class="text-red-500">*</span>
                         </label>
                         <input type="email" 
@@ -80,38 +75,38 @@
                                name="email" 
                                required 
                                placeholder="your.email@example.com" 
-                               class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                               class="w-full px-4 py-1 border-2 border-gray-200 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                     </div>
 
                     <!-- Hoarding Type -->
                     <div class="form-group">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
                             Hoarding Type <span class="text-red-500">*</span>
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label class="relative flex items-center px-4  border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#009A5C] transition-all group">
+                            <label class="relative flex items-center px-4 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all group h-9">
                                 <input type="checkbox" name="hoarding_type[]" value="DOOH" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                     </svg>
                                 </div>
-                                <div class="ml-3 flex-1">
-                                    <span class="block font-semibold text-gray-800 text-sm">Digital (DOOH)</span>
-                                    <span class="block text-xs text-gray-500">LED/LCD Displays</span>
+                                <div class="ml-3 flex-1 flex flex-col justify-center">
+                                    <span class="font-semibold text-gray-800 text-xs leading-tight">Digital (DOOH)</span>
+                                    <span class="text-xs text-gray-500 leading-tight">LED/LCD Displays</span>
                                 </div>
                             </label>
 
-                            <label class="relative flex items-center px-4 py-2 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#009A5C] transition-all group">
+                            <label class="relative flex items-center px-4 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all group h-9">
                                 <input type="checkbox" name="hoarding_type[]" value="OOH" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                     </svg>
                                 </div>
-                                <div class="ml-3 flex-1">
-                                    <span class="block font-semibold text-gray-800 text-sm">Static (OOH)</span>
-                                    <span class="block text-xs text-gray-500">Traditional Hoardings</span>
+                                <div class="ml-3 flex-1 flex flex-col justify-center">
+                                    <span class="font-semibold text-gray-800 text-xs leading-tight">Static (OOH)</span>
+                                    <span class="text-xs text-gray-500 leading-tight">Traditional Hoardings</span>
                                 </div>
                             </label>
                         </div>
@@ -119,7 +114,7 @@
 
                     <!-- City -->
                     <div class="form-group">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
                           Campaign  City <span class="text-red-500">*</span>
                         </label>
                         <input type="text" 
@@ -127,13 +122,13 @@
                                id="cityInput"
                                required
                                placeholder="e.g. Lucknow, Mumbai, Delhi"
-                               class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                               class="w-full px-4 py-1 border-2 border-gray-200 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                         <!-- <p class="text-xs text-gray-500 mt-2">Don't worry about spelling - we'll find the right match!</p> -->
                     </div>
 
                     <!-- Preferred Locations -->
                     <div class="form-group">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
                             Preferred Locations in City
                         </label>
                         <div id="locationWrapper" class="space-y-3">
@@ -141,7 +136,7 @@
                                 <input type="text" 
                                        name="preferred_locations[]" 
                                        placeholder="e.g. Hazratganj, Gomti Nagar"
-                                       class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+                                       class="w-full px-4 py-1 border-2 border-gray-200 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
                             </div>
                         </div>
                         <button type="button" 
@@ -156,24 +151,24 @@
 
                     <!-- Requirements/Remarks -->
                     <div class="form-group">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
                             Your Requirements <span class="text-red-500">*</span>
                         </label>
                         <textarea name="remarks" 
-                                  rows="3" 
+                                  rows="2" 
                                   required
                                   minlength="5"
                                   placeholder="Tell us about your campaign: duration, budget, target audience, creative preferences, etc."
-                                  class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all resize-none text-sm sm:text-base"></textarea>
+                                  class="w-full px-4 py-1 border-2 border-gray-200 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all resize-none text-sm sm:text-base"></textarea>
                     </div>
 
                     <!-- Preferred Communication -->
                     <div class="form-group">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
                             How Should We Reach You?
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <label class="relative flex items-center p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#009A5C] transition-all">
+                            <label class="relative flex items-center p-1 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all h-9">
                                 <input type="checkbox" name="preferred_modes[]" value="Call" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
@@ -183,7 +178,7 @@
                                 <span class="ml-2 text-sm font-medium text-gray-700">Phone Call</span>
                             </label>
 
-                            <label class="relative flex items-center p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#009A5C] transition-all">
+                            <label class="relative flex items-center p-3 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all h-9">
                                 <input type="checkbox" name="preferred_modes[]" value="WhatsApp" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
@@ -193,7 +188,7 @@
                                 <span class="ml-2 text-sm font-medium text-gray-700">WhatsApp</span>
                             </label>
 
-                            <label class="relative flex items-center p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#009A5C] transition-all">
+                            <label class="relative flex items-center p-3 border-2 border-gray-200 rounded cursor-pointer hover:border-[#009A5C] transition-all h-9">
                                 <input type="checkbox" name="preferred_modes[]" value="Email" class="peer sr-only">
                                 <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-[#009A5C] peer-checked:border-[#009A5C] flex items-center justify-center transition-all">
                                     <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
@@ -207,15 +202,15 @@
 
                     <!-- Captcha -->
                     <div class="form-group">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
                             Security Check <span class="text-red-500">*</span>
                         </label>
                         <div class="flex items-center gap-3">
-                            <div class="flex-1 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-2 flex items-center justify-between">
+                            <div class="flex-1 bg-gray-50 border-2 border-gray-200 rounded flex items-center justify-between h-9 px-4">
                                 <span id="captchaText" class="font-bold text-lg text-gray-700"></span>
                                 <button type="button" 
                                         onclick="regenerateCaptcha()" 
-                                        class="text-[#009A5C] hover:text-[#007a4a] transition-colors">
+                                        class="text-[#009A5C] hover:text-[#007a4a] transition-colors h-9 w-8 flex items-center justify-center rounded">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                     </svg>
@@ -225,7 +220,7 @@
                                    name="captcha" 
                                    required 
                                    placeholder="Answer"
-                                   class="w-24 sm:w-32 px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-center text-sm sm:text-base">
+                                   class="w-24 sm:w-32 px-4 h-9 border-2 border-gray-200 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-center text-sm sm:text-base">
                         </div>
                     </div>
 
@@ -233,11 +228,11 @@
                     <button type="submit" 
                             id="submitBtn" 
                             disabled
-                            class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm sm:text-base">
+                            class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-2 rounded shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm sm:text-base">
                         <span id="submitBtnText">Submit Enquiry</span>
                     </button>
 
-                    <p class="text-xs text-center text-gray-500 mt-4">
+                    <p class="text-xs text-center text-gray-500 mt-1">
                         By submitting, you agree to receive quotes from verified vendors
                     </p>
                 </form>
@@ -250,7 +245,7 @@
 <div id="otpModal" class="fixed inset-0 z-[60] hidden">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeOtpModal()"></div>
     <div class="relative h-full flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8 text-center">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md p-6 sm:p-8 text-center">
             <!-- Icon -->
             <div class="w-16 h-16 bg-[#009A5C]/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-[#009A5C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,7 +265,7 @@
                    autocomplete="one-time-code"
                    maxlength="4" 
                    placeholder="• • • •"
-                   class="w-full px-4 py-4 text-center text-2xl font-bold tracking-[1em] border-2 border-gray-300 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all mb-4">
+                   class="w-full px-4 py-4 text-center text-2xl font-bold tracking-[1em] border-2 border-gray-300 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all mb-4">
 
             <!-- Resend OTP -->
             <div class="mb-6">
@@ -290,12 +285,12 @@
             <div class="flex gap-3">
                 <button type="button" 
                         onclick="closeOtpModal()" 
-                        class="flex-1 bg-gray-200 text-gray-700 font-semibold py-2 rounded-xl hover:bg-gray-300 transition-colors">
+                        class="flex-1 bg-gray-200 text-gray-700 font-semibold py-2 rounded hover:bg-gray-300 transition-colors">
                     Cancel
                 </button>
                 <button type="button" 
                         id="verifyOtpBtn" 
-                        class="flex-1 bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-semibold py-2 rounded-xl hover:shadow-lg transition-all">
+                        class="flex-1 bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-semibold py-2 rounded hover:shadow-lg transition-all">
                     Verify
                 </button>
             </div>
@@ -309,7 +304,7 @@
 <div id="successModal" class="fixed inset-0 z-[70] hidden">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
     <div class="relative h-full flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md p-8 text-center">
             <!-- Success Icon -->
             <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg class="w-10 h-10 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -324,7 +319,7 @@
             </p>
 
             <button onclick="closeSuccessModal()" 
-                    class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-2 rounded-xl hover:shadow-lg transition-all">
+                    class="w-full bg-gradient-to-r from-[#009A5C] to-[#00b36b] text-white font-bold py-2 rounded hover:shadow-lg transition-all">
                 Got It!
             </button>
         </div>
@@ -598,7 +593,7 @@ function addAnotherLocation() {
         <input type="text" 
                name="preferred_locations[]" 
                placeholder="e.g. Aminabad, Alambagh"
-               class="flex-1 px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
+               class="flex-1 px-4 py-1 border-2 border-gray-200 rounded outline-none focus:border-[#009A5C] focus:ring-2 focus:ring-[#009A5C]/20 transition-all text-sm sm:text-base">
         <button type="button" 
                 onclick="removeLocation(this)" 
                 class="text-red-500 hover:text-red-700 p-2 transition-colors">

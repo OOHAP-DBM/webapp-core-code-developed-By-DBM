@@ -81,9 +81,13 @@ Route::middleware(['auth:sanctum', 'role:vendor|admin|superadmin'])
     Route::get('customers/{id}', [POSCustomerController::class, 'show']);
 });
 
+
+
+
 Route::middleware('auth:sanctum')
     ->prefix('customer/')
     ->group(function () {
         Route::get('/', [CustomerBookingController::class, 'index']);
         Route::get('{bookingId}', [CustomerBookingController::class, 'show']);
 });
+

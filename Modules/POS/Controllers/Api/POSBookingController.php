@@ -20,12 +20,12 @@ use Illuminate\Validation\ValidationException;
 use App\Models\User;
 
 
- /**
-  * @OA\Tag(
-  *     name="POS",
-  *     description="POS booking and payment management APIs"
-  * )
-  */
+/**
+ * @OA\Tag(
+ *     name="POS",
+ *     description="POS booking and payment management APIs"
+ * )
+ */
 class POSBookingController extends Controller
 {
     protected POSBookingService $posBookingService;
@@ -158,7 +158,7 @@ class POSBookingController extends Controller
         ];
     }
 
-     /**
+    /**
      * @OA\Get(
      *     path="/pos/vendor/bookings",
      *     operationId="posListBookings",
@@ -229,7 +229,7 @@ class POSBookingController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\Get(
      *     path="/pos/vendor/dashboard",
      *     operationId="posDashboard",
@@ -437,7 +437,7 @@ class POSBookingController extends Controller
         }
     }
 
-   /**
+    /**
      * @OA\Post(
      *     path="/pos/vendor/bookings",
      *     operationId="posCreateBooking",
@@ -685,20 +685,23 @@ class POSBookingController extends Controller
         }
     }
 
-   /**
+    /**
      * @OA\Post(
      *     path="/pos/vendor/bookings/{id}/cancel-credit-note",
      *     operationId="posCancelCreditNote",
      *     tags={"POS Bookings"},
-     *     summary="Cancel credit note",
+     *      summary="Cancel debit note (credit-note payment)",
+     *     description="Cancels debit note for a booking only when booking is not cancelled, payment mode is credit_note, payment status is credit, and debit note is still active.",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(required={"reason"}, @OA\Property(property="reason", type="string"))
      *     ),
-     *     @OA\Response(response=200, description="Credit note cancelled"),
-     *     @OA\Response(response=500, description="Failed to cancel")
+     *     @OA\Response(response=200, description="Debit note cancelled successfully"),
+     *     @OA\Response(response=422, description="Invalid state: booking cancelled, not credit note, not on credit, or debit note already cancelled"),
+     *     @OA\Response(response=404, description="Booking not found"),
+     *     @OA\Response(response=500, description="Failed to cancel debit note")
      * )
      */
     public function cancelCreditNote(Request $request, int $id): JsonResponse
@@ -709,7 +712,34 @@ class POSBookingController extends Controller
 
         try {
             $booking = POSBooking::forVendor(Auth::id())->findOrFail($id);
+            
+            if ($booking->isCancelled()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot cancel debit note because booking is already cancelled',
+                ], 422);
+            }
 
+            if (!$booking->isCreditNote()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This booking is not a credit note',
+                ], 422);
+            }
+
+            if ($booking->payment_status !== POSBooking::PAYMENT_STATUS_CREDIT) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Can only cancel debit note when booking is on credit',
+                ], 422);
+            }
+
+            if ($booking->credit_note_status === POSBooking::CREDIT_NOTE_STATUS_CANCELLED) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debit note is already cancelled',
+                ], 422);
+            }
             $updatedBooking = $this->posBookingService->cancelCreditNote(
                 $booking,
                 $validated['reason']
@@ -729,7 +759,7 @@ class POSBookingController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\Post(
      *     path="/pos/vendor/bookings/{id}/cancel",
      *     operationId="posCancelBooking",
@@ -781,7 +811,7 @@ class POSBookingController extends Controller
         }
     }
 
-   /**
+    /**
      * @OA\Get(
      *     path="/pos/vendor/search-hoardings",
      *     operationId="posSearchHoardings",
@@ -840,7 +870,6 @@ class POSBookingController extends Controller
                 'price_per_month',
                 'price_per_sqft'
             ])->paginate(20);
-
             return response()->json([
                 'success' => true,
                 'data' => $hoardings,
@@ -854,7 +883,7 @@ class POSBookingController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\Post(
      *     path="/pos/vendor/calculate-price",
      *     operationId="posCalculatePrice",
@@ -925,6 +954,8 @@ class POSBookingController extends Controller
                 'amount' => 'required|numeric|min:0.01',
                 'payment_date' => 'nullable|date|before_or_equal:today',
                 'notes' => 'nullable|string|max:500',
+                'milestone_ids' => 'nullable|array',
+                'milestone_ids.*' => 'integer|distinct',
             ]);
 
             // Validate current state
@@ -967,8 +998,9 @@ class POSBookingController extends Controller
             $updated = $this->posBookingService->markPaymentReceived(
                 $booking,
                 $validated['amount'],
-                $validated['payment_date'] ?? today(),
-                $validated['notes'] ?? null
+                isset($validated['payment_date']) ? Carbon::parse((string) $validated['payment_date']) : today(),
+                $validated['notes'] ?? null,
+                $validated['milestone_ids'] ?? []
             );
 
             // Send WhatsApp notification for payment received
@@ -1017,6 +1049,8 @@ class POSBookingController extends Controller
         $validated = $request->validate([
             'reason' => 'required|string|max:500',
         ]);
+
+        $booking = null;
 
         try {
             $context = $this->resolveAdminBookingScopeContext($request);

@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', $hoarding->title)
+@section('meta_description', $metaDescription)
 
 @section('content')
 @include('components.customer.navbar')

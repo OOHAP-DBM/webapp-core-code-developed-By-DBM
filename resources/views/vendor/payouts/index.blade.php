@@ -179,7 +179,7 @@
 
                 @if(isset($payouts) && $payouts->hasPages())
                     <div class="pt-4">
-                        {{ $payouts->links() }}
+                        {{ $payouts->links('pagination.vendor-compact') }}
                     </div>
                 @endif
             </div>

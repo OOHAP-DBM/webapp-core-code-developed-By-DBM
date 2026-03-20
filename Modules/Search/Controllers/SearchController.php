@@ -4,9 +4,11 @@ namespace Modules\Search\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Modules\Cart\Services\CartService;
+use Modules\Hoardings\Services\HoardingAvailabilityService;
 
 class SearchController extends Controller
 {
@@ -16,16 +18,16 @@ class SearchController extends Controller
         $query = DB::table('hoardings')
             ->join('vendor_profiles', function ($join) {
                 $join->on('vendor_profiles.user_id', '=', 'hoardings.vendor_id')
-                     ->where('vendor_profiles.onboarding_status', 'approved')
-                     ->whereNull('vendor_profiles.deleted_at');
+                    ->where('vendor_profiles.onboarding_status', 'approved')
+                    ->whereNull('vendor_profiles.deleted_at');
             })
             ->leftJoin('ooh_hoardings', function ($join) {
                 $join->on('ooh_hoardings.hoarding_id', '=', 'hoardings.id')
-                     ->whereNull('ooh_hoardings.deleted_at');
+                    ->whereNull('ooh_hoardings.deleted_at');
             })
             ->leftJoin('dooh_screens', function ($join) {
                 $join->on('dooh_screens.hoarding_id', '=', 'hoardings.id')
-                     ->whereNull('dooh_screens.deleted_at');
+                    ->whereNull('dooh_screens.deleted_at');
             })
             ->leftJoin(
                 DB::raw('(
@@ -52,6 +54,8 @@ class SearchController extends Controller
                 'hoardings.hoarding_type',
                 'hoardings.available_from',
                 'hoardings.is_featured',
+                'hoardings.is_recommended',
+                'hoardings.view_count',
                 'hoardings.expected_eyeball',
                 'hoardings.latitude as lat',
                 'hoardings.longitude as lng',
@@ -142,7 +146,7 @@ class SearchController extends Controller
             $loc = strtolower($request->location);
             $query->where(function ($q) use ($loc) {
                 $q->whereRaw('LOWER(hoardings.city) LIKE ?', ["%{$loc}%"])
-                  ->orWhereRaw('LOWER(hoardings.address) LIKE ?', ["%{$loc}%"]);
+                    ->orWhereRaw('LOWER(hoardings.address) LIKE ?', ["%{$loc}%"]);
             });
         }
         if ($request->filled('type')) {
@@ -210,15 +214,20 @@ class SearchController extends Controller
             $query->where(function ($q) use ($from, $to) {
                 $q->where(function ($qq) use ($to) {
                     $qq->whereNull('hoardings.available_from')
-                    ->orWhere('hoardings.available_from', '<=', $to);
+                        ->orWhere('hoardings.available_from', '<=', $to);
                 });
                 $q->where(function ($qq) use ($from) {
                     $qq->whereNull('hoardings.available_to')
-                    ->orWhere('hoardings.available_to', '>=', $from);
+                        ->orWhere('hoardings.available_to', '>=', $from);
                 });
             });
         }
         switch ($request->sort) {
+            case 'rating':
+                $query->orderByDesc('avg_rating')
+                    ->orderByDesc('reviews_count')
+                    ->orderByDesc('hoardings.created_at');
+                break;
             case 'price_asc':
                 $query->orderBy('price', 'asc');
                 break;
@@ -226,10 +235,25 @@ class SearchController extends Controller
                 $query->orderBy('price', 'desc');
                 break;
             case 'recommended':
-                $query->orderByDesc('hoardings.is_featured');
+                $query->where(function ($q) {
+                    $q->where('hoardings.is_recommended', true)
+                        ->orWhere('hoardings.view_count', '>=', 50)
+                        ->orWhere('hoardings.expected_eyeball', '>=', 5000);
+                })
+                    ->orderByDesc('hoardings.is_recommended')
+                    ->orderByDesc('hoardings.is_featured')
+                    ->orderByDesc('hoardings.view_count')
+                    ->orderByDesc('hoardings.expected_eyeball')
+                    ->orderByDesc('hoardings.created_at');
                 break;
             default:
-                $query->orderByDesc('hoardings.created_at');
+                if ($request->filled('rating')) {
+                    $query->orderByDesc('avg_rating')
+                        ->orderByDesc('reviews_count')
+                        ->orderByDesc('hoardings.created_at');
+                } else {
+                    $query->orderByDesc('hoardings.created_at');
+                }
         }
         $results = $query->paginate(8)->withQueryString();
         $hoardingIds = $results->pluck('id')->toArray();
@@ -254,19 +278,31 @@ class SearchController extends Controller
                 ? ($oohImages[$item->id] ?? collect())
                 : ($doohImages[$item->id] ?? collect());
 
+            // Add availability status and next available date
+            $availabilityService = app(\Modules\Hoardings\Services\HoardingAvailabilityService::class);
+            $today = now()->toDateString();
+            $calendar = $availabilityService->getAvailabilityCalendar($item->id, $today, $today);
+            $todayStatus = $calendar['calendar'][0]['status'] ?? 'unknown';
+            $item->today_availability_status = $todayStatus;
+            if ($todayStatus !== 'available') {
+                $next = $availabilityService->getNextAvailableDates($item->id, 1, $today);
+                $item->next_available_date = $next['dates'][0]['date'] ?? null;
+            } else {
+                $item->next_available_date = null;
+            }
             return $item;
         });
 
-        $cartHoardingIds = auth()->check()
-        ? $cartService->getCartHoardingIds()
-        : [];
+        $cartHoardingIds = Auth::check()
+            ? $cartService->getCartHoardingIds()
+            : [];
         return view('search.index', [
             'results' => $results,
             'cartHoardingIds' => $cartHoardingIds,
         ]);
     }
 
-        /**
+    /**
      * SEO-friendly search handler. Accepts city and area as route parameters.
      * Allows SEO developer to change URL structure via config.
      */

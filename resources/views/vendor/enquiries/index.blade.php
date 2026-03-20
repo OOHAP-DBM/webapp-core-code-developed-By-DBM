@@ -3,7 +3,7 @@
     $layout = ($user && $user->hasRole('admin')) ? 'layouts.admin' : 'layouts.vendor';
 @endphp
 @extends($layout)
-@section('title', 'Enquiries')
+@section('title', 'All Enquiries')
 @section('content')
 <div x-data="{ openFilter: false, dateFilter: '{{ request('date_filter', 'all') }}',
     init() {
@@ -23,13 +23,13 @@
                 <p class="text-sm text-gray-700 mt-1">Check all your sent offers to customers, track and manage them here.</p>
             </div>
             <div class="flex items-center gap-2 w-full lg:w-auto">
-                <form method="GET" action="{{ route('vendor.enquiries.index') }}" class="relative flex-1 lg:w-80">
+                <form method="GET" action="{{ route('vendor.enquiries.index') }}" class="relative flex-1 sm:w-80 lg:w-96">
                     <input
                         type="text"
                         name="search"
                         value="{{ request('search') }}"
                         placeholder="Search enquiry by enquiry ID..."
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 pr-9 text-sm focus:ring-1 focus:ring-primary focus:outline-none"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 pr-9 text-sm focus:ring-1 focus:ring-primary focus:outline-none sm:w-80 lg:w-96"
                     >
                     <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -176,7 +176,7 @@
                     Showing {{ $enquiries->firstItem() ?? 0 }} - {{ $enquiries->lastItem() ?? 0 }} of {{ $enquiries->total() }}
                 </div>
                 <div>
-                    {{ $enquiries->links() }}
+                    {{ $enquiries->links('pagination.vendor-compact') }}
                 </div>
             </div>
         </div>
