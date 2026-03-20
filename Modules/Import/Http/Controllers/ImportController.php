@@ -18,6 +18,7 @@ use Modules\Import\Entities\InventoryImportBatch;
 use Modules\Import\Entities\InventoryImportStaging;
 use Modules\Import\Jobs\ProcessInventoryImportJob;
 use Exception;
+use Illuminate\Support\Facades\Schema;
 
 class ImportController extends Controller
 {
@@ -529,6 +530,11 @@ class ImportController extends Controller
             \Log::info('Dispatched import processing job', [
                 'batch_id' => $batch->id,
             ]);
+            // After storing files, update the batch with the excel path
+            $batch->update([
+                'file_path' => $excelPath,
+                'ppt_path'  => $pptPath,
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -637,6 +643,41 @@ class ImportController extends Controller
         }
     }
 
+
+    /**
+     * Toggle row status only.
+     */
+    public function updateBatchRowStatus(Request $request, InventoryImportBatch $batch, InventoryImportStaging $row): JsonResponse
+    {
+        try {
+            $this->authorize('update', $batch);
+
+            if ($batch->status === 'approved') {
+                return response()->json(['success' => false, 'message' => 'Cannot modify rows for an approved batch'], 422);
+            }
+
+            if ((int) $row->batch_id !== (int) $batch->id) {
+                return response()->json(['success' => false, 'message' => 'Row does not belong to this batch'], 422);
+            }
+
+            $validated = $request->validate([
+                'status' => ['required', Rule::in(['valid', 'invalid'])],
+            ]);
+
+            $row->update(['status' => $validated['status']]);
+
+            $this->refreshBatchCounts($batch);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status updated successfully',
+                'data'    => ['id' => $row->id, 'status' => $row->status],
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
     /**
      * Store uploaded file
      *
@@ -722,6 +763,8 @@ class ImportController extends Controller
                     'total_rows',
                     'valid_rows',
                     'invalid_rows',
+                    'file_path',
+                    'ppt_path',
                     'created_at',
                 ]);
             
@@ -758,6 +801,12 @@ class ImportController extends Controller
                     'invalid_rows' => $batch->invalid_rows,
                     'error_rate' => $batch->getErrorRatePercentage(),
                     'created_at' => $batch->created_at,
+                    'file_url' => !empty($batch->file_path)
+                        ? url('/api/import/' . $batch->id . '/download?type=excel')
+                        : null,
+                    'ppt_url'  => !empty($batch->ppt_path)
+                        ? url('/api/import/' . $batch->id . '/download?type=ppt')
+                        : null,
                 ]),
                 'pagination' => [
                     'total' => $imports->total(),
@@ -770,10 +819,12 @@ class ImportController extends Controller
                 'summary' => $summary,
             ]);
         } catch (Exception $e) {
-            return response()->json([
+             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch imports',
-                'error' => $e->getMessage(),
+                'message' => $e->getMessage(),       // ← this will show in browser
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -976,6 +1027,43 @@ class ImportController extends Controller
     }
 
     /**
+     * Download the original uploaded file for a batch.
+     *
+     * @param Request $request
+     * @param InventoryImportBatch $batch
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse|JsonResponse
+     */
+    public function downloadBatchFile(Request $request, InventoryImportBatch $batch): \Symfony\Component\HttpFoundation\StreamedResponse|JsonResponse
+    {
+        try {
+            $this->authorize('view', $batch);
+
+            $type = $request->input('type', 'excel');
+            $filePath = match ($type) {
+                'ppt'   => $batch->ppt_path,
+                default => $batch->file_path,
+            };
+
+            if (!$filePath || !Storage::disk(self::IMPORT_DISK)->exists($filePath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            $filename = basename($filePath);
+
+            return Storage::disk(self::IMPORT_DISK)->download($filePath, $filename);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to download file',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+    /**
      * List rows of a batch.
      *
      * @param Request $request
@@ -998,7 +1086,7 @@ class ImportController extends Controller
     {
         return [
             // Core
-            'code'                    => ['required', 'string', 'max:255'],
+            'code'                    => ['nullable', 'string', 'max:255'],
             'city'                    => ['nullable', 'string', 'max:255'],
 
             // Address

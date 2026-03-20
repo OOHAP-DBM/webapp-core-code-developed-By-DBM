@@ -3,115 +3,115 @@
 @section('page_title', 'Inventory Details')
 
 @section('content')
-<div class="mb-6 flex items-center justify-between gap-3 flex-wrap">
-    <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Imported Inventory #{{ $batch->id }}</h1>
-        <p class="text-gray-600 mt-1">View rows, images, and manage each hoarding record</p>
+<div class="p-4 sm:p-6 lg:p-8">
+        <div class="mb-6 flex items-center justify-between gap-3 flex-wrap">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Inventory Details</h1>
+            <p class="text-gray-600 text-sm mt-1">View rows, images, and manage each hoarding record</p>
+        </div>
+        <a href="{{ $isAdmin ? route('admin.import.enhanced') : route('vendor.import.enhanced') }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+            Back to Import List
+        </a>
     </div>
-    <a href="{{ $isAdmin ? route('admin.import.enhanced') : route('vendor.import.enhanced') }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
-        Back to Import List
-    </a>
-</div>
 
-<div id="toastContainer" class="fixed top-4 left-3 right-3 sm:left-auto sm:right-4 z-50 space-y-2"></div>
+    <div id="toastContainer" class="fixed top-4 left-3 right-3 sm:left-auto sm:right-4 z-50 space-y-2"></div>
 
-@php
-    $isApprovedBatch = $batch->status === 'approved';
-    $autoApprove = \App\Models\Setting::get('auto_hoarding_approval', false);
-@endphp
+    @php
+        $isApprovedBatch = $batch->status === 'approved';
+        $autoApprove = \App\Models\Setting::get('auto_hoarding_approval', false);
+    @endphp
 
-<div id="rowEditorSection" class="bg-white rounded-xl shadow mb-6 {{ $isApprovedBatch ? 'hidden' : '' }}">
-    <div class="p-4 border-b border-gray-200 flex items-center justify-between gap-3 flex-wrap">
-        <h2 class="text-lg font-semibold text-gray-900">Upload Summary</h2>
-        @if(!$isAdmin)
-            <button 
-                id="approveInventoryBtn"
-                data-auto-approve="{{ $autoApprove ? '1' : '0' }}"
-                class="w-full sm:w-auto min-h-[44px] px-4 py-2 rounded-lg text-white disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed touch-manipulation {{ $isApprovedBatch ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }}"
-                {{ !in_array($batch->status, ['processed', 'completed']) || $isApprovedBatch ? 'disabled' : '' }}
-            >
-                {{ $isApprovedBatch 
-                    ? 'Approved' 
-                    : ($autoApprove ? 'Publish' : 'Send For Approval') 
-                }}
-            </button>
-        @endif
-    </div>
-    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-        <div><span class="text-gray-500">Inventory</span><p class="font-semibold">#{{ $batch->id }}</p></div>
-        <div><span class="text-gray-500">Type</span><p class="font-semibold">{{ strtoupper($batch->media_type) }}</p></div>
-        <div><span class="text-gray-500">Status</span><p class="font-semibold" id="batchStatusText">{{ $batch->status }}</p></div>
-        <div><span class="text-gray-500">Valid Rows</span><p class="font-semibold" id="validCount">{{ $batch->valid_rows }}</p></div>
-        <div><span class="text-gray-500">Invalid Rows</span><p class="font-semibold" id="invalidCount">{{ $batch->invalid_rows }}</p></div>
-    </div>
-</div>
-
-<div class="bg-white rounded-xl shadow mb-6">
-    <div class="p-4 border-b border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-900">Search & Filters</h2>
-    </div>
-    <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
-        <input id="searchInput" type="text" placeholder="Search by city " class="w-full min-h-[44px] border rounded-lg p-2" />
-        <select id="statusFilter" class="w-full min-h-[44px] border rounded-lg p-2">
-            <option value="">All statuses</option>
-            <option value="valid">valid</option>
-            <option value="invalid">invalid</option>
-        </select>
-        <button id="applyFilter" class="w-full min-h-[44px] px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer touch-manipulation">Apply</button>
-        <button id="resetFilter" class="w-full min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer touch-manipulation">Reset</button>
-    </div>
-</div>
-
-<div class="bg-white rounded-xl shadow overflow-hidden">
-    <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 class="text-lg font-semibold text-gray-900">Hoarding </h2>
-        <div class="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-3">
-            <button id="bulkDeleteBtn" class="w-full sm:w-auto min-h-[44px] px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation" disabled>
-                Delete Selected (0)
-            </button>
-            <p id="paginationInfo" class="text-sm text-gray-500"></p>
+    <div id="rowEditorSection" class="bg-white rounded-xl shadow mb-6 {{ $isApprovedBatch ? 'hidden' : '' }}">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between gap-3 flex-wrap">
+            <h2 class="text-lg font-semibold text-gray-900">Upload Summary</h2>
+            @if(!$isAdmin)
+                <button 
+                    id="approveInventoryBtn"
+                    data-auto-approve="{{ $autoApprove ? '1' : '0' }}"
+                    class="w-full sm:w-auto min-h-[44px] px-4 py-2 rounded-lg text-white disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed touch-manipulation {{ $isApprovedBatch ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }}"
+                    {{ !in_array($batch->status, ['processed', 'completed']) || $isApprovedBatch ? 'disabled' : '' }}
+                >
+                    {{ $isApprovedBatch 
+                        ? 'Approved' 
+                        : ($autoApprove ? 'Publish' : 'Send For Approval') 
+                    }}
+                </button>
+            @endif
+        </div>
+        <div class="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+            <div><span class="text-gray-500 ">Inventory ID</span><p class="font-semibold  mx-[1.2em]">#{{ $batch->id }}</p></div>
+            <div><span class="text-gray-500">Type</span><p class="font-semibold">{{ strtoupper($batch->media_type) }}</p></div>
+            <div><span class="text-gray-500">Status</span><p class="font-semibold" id="batchStatusText">{{ $batch->status }}</p></div>
+            <div><span class="text-gray-500">Valid Rows</span><p class="font-semibold mx-[1.2em]" id="validCount">{{ $batch->valid_rows }}</p></div>
+            <div><span class="text-gray-500">Invalid Rows</span><p class="font-semibold mx-[1.2em]" id="invalidCount">{{ $batch->invalid_rows }}</p></div>
         </div>
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full min-w-[1040px]">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-3 py-2 text-left text-sm">
-                        <input id="rowsSelectAll" type="checkbox" class="h-4 w-4 rounded border-gray-300 cursor-pointer"  />
-                    </th>
-                    <th class="px-3 py-2 text-left text-sm">ID</th>
-                    <th class="px-3 py-2 text-left text-sm">Image</th>
-                    <th class="px-3 py-2 text-left text-sm">Code</th>
-                    <th class="px-3 py-2 text-left text-sm">City</th>
-                    <th class="px-3 py-2 text-left text-sm">Width</th>
-                    <th class="px-3 py-2 text-left text-sm">Height</th>
-                    <th class="px-3 py-2 text-left text-sm">Status</th>
-                    <th class="px-3 py-2 text-left text-sm">Error</th>
-                    <th class="px-3 py-2 text-left text-sm">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="rowsBody" class="divide-y divide-gray-200"></tbody>
-        </table>
-    </div>
-    <div class="p-4 border-t border-gray-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-        <div class="flex items-center justify-between sm:justify-start gap-2">
-            <label for="rowsPerPage" class="text-sm text-gray-600">Rows per page</label>
-            <select id="rowsPerPage" class="min-h-[44px] border rounded-lg p-1.5 text-sm cursor-pointer">
-                <option value="10">10</option>
-                <option value="15" selected>15</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
+
+    <div class="bg-white rounded-xl shadow mb-6">
+        <div class="p-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">Search & Filters</h2>
+        </div>
+        <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+            <input id="searchInput" type="text" placeholder="Search by city " class="w-full min-h-[44px] border rounded-lg p-2" />
+            <select id="statusFilter" class="w-full min-h-[44px] border rounded-lg p-2">
+                <option value="">All statuses</option>
+                <option value="valid">valid</option>
+                <option value="invalid">invalid</option>
             </select>
-        </div>
-        <div class="w-full lg:w-auto flex items-center justify-between lg:justify-start gap-2">
-            <button id="rowsPrevBtn" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation">Previous</button>
-            <span id="rowsPageLabel" class="text-sm text-gray-600">Page 1 / 1</span>
-            <button id="rowsNextBtn" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation">Next</button>
+            <button id="applyFilter" class="w-full min-h-[44px] px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer touch-manipulation">Apply</button>
+            <button id="resetFilter" class="w-full min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer touch-manipulation">Reset</button>
         </div>
     </div>
-@include('import::components.editRow')
+
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+        <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+           
+            <div class="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-3">
+                
+                <p id="paginationInfo" class="text-sm text-gray-500"></p>
+            </div>
+        </div>
+        <div class="overflow-x-auto mx-3">
+            <table class="w-full min-w-[1040px]">
+                <thead class="bg-gray-50">
+                    <tr>
+                        
+                        <th class="px-3 py-2 text-left text-sm">S.N.</th>
+                        <th class="px-3 py-2 text-left text-sm">Image</th>
+                        <th class="px-3 py-2 text-left text-sm">Code</th>
+                        <th class="px-3 py-2 text-left text-sm">City</th>
+                        <th class="px-3 py-2 text-left text-sm">Width</th>
+                        <th class="px-3 py-2 text-left text-sm">Height</th>
+                        <th class="px-3 py-2 text-left text-sm">Monthly Rental Price</th> 
+                        <th class="px-3 py-2 text-left text-sm">Status</th>
+                        <th class="px-3 py-2 text-left text-sm">Error</th>
+                    </tr>
+                </thead>
+                <tbody id="rowsBody" class="divide-y divide-gray-200"></tbody>
+            </table>
+        </div>
+        <div class="p-4 border-t border-gray-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div class="flex items-center justify-between sm:justify-start gap-2">
+                <label for="rowsPerPage" class="text-sm text-gray-600">Rows per page</label>
+                <select id="rowsPerPage" class="min-h-[44px] border rounded-lg p-1.5 text-sm cursor-pointer">
+                    <option value="10">10</option>
+                    <option value="15" selected>15</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+            <div class="w-full lg:w-auto flex items-center justify-between lg:justify-start gap-2">
+                <button id="rowsPrevBtn" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation">Previous</button>
+                <span id="rowsPageLabel" class="text-sm text-gray-600">Page 1 / 1</span>
+                <button id="rowsNextBtn" class="min-h-[44px] px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation">Next</button>
+            </div>
+        </div>
+    @include('import::components.editRow')
+
+    </div>
 
 </div>
+
 
 
 @php
@@ -369,30 +369,76 @@ async function loadRows(page = rowsQueryState.page) {
             return;
         }
 
-        body.innerHTML = rows.map(row => {
+        body.innerHTML = rows.map((row, index) => {
+            
+            const isNoImageError = (row.error_message || '').toLowerCase().includes('no image found');
             const imageCell = row.image_name
                 ? `<img src="${imageUrl(row.image_name)}" alt="${escapeHtml(row.image_name)}" class="h-12 w-16 object-cover rounded border">`
-                : '<span class="text-gray-400">-</span>';
+                : (isNoImageError
+                ? `<div class="h-12 w-16 flex items-center justify-center rounded border border-red-400 bg-white px-1">
+                    <span class="text-[10px] leading-tight text-red-500 text-center font-medium">No Image Found</span>
+                </div>`
+                : '<span class="text-gray-400">-</span>');
+
+            const errorCell = isNoImageError
+                ? ''
+                : escapeHtml(row.error_message || '');
+
+           const status = (row.status || '').toLowerCase();
+            const serialNumber = ((rowsPaginationState.current_page - 1) * rowsPaginationState.per_page) + (index + 1);
+            // Status badge — same pill style as screenshot
+           // Status badge — EXACT match to your screenshot
+            let statusBadge = '';
+            if (status === 'valid') {
+                statusBadge = `
+                    <span class="inline-flex items-center justify-center px-6 py-1 rounded-full bg-[#D9F2E6] text-[#009A5C] font-medium text-sm min-w-[80px]">
+                        Valid
+                    </span>`;
+            } else if (status === 'invalid') {
+                statusBadge = `
+                    <span class="inline-flex items-center justify-center px-6 py-1 rounded-full bg-[#FFC8C8] text-[#E75858] font-medium text-sm min-w-[80px]">
+                        Invalid
+                    </span>`;
+            } else {
+                statusBadge = `<span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-200 text-gray-700 text-sm">${escapeHtml(row.status)}</span>`;
+            }
+
+            // Toggle action button logic
+            let toggleBtn = '';
+            if (currentBatchStatus !== 'approved') {
+                if (status === 'valid') {
+                    toggleBtn = `
+                        <button onclick="toggleRowStatus(${row.id}, 'invalid')"
+                            class="min-w-[120px] px-4 py-2 rounded-lg bg-[#E75858] text-white font-medium text-xs bg-red-500 transition cursor-pointer border-none">
+                            Mark as invalid
+                        </button>`;
+                } else if (status === 'invalid') {
+                    toggleBtn = `
+                        <button onclick="toggleRowStatus(${row.id}, 'valid')"
+                            class="min-w-[120px] px-4 py-2 rounded-lg bg-[#2DBF6A] text-white font-medium text-xs bg-green-500 transition cursor-pointer border-none">
+                            Mark as Valid
+                        </button>`;
+                }
+            }
 
             return `
                 <tr>
-                    <td class="px-3 py-2 text-sm">
-                        ${currentBatchStatus === 'approved'
-                            ? '<span class="text-gray-300">-</span>'
-                            : `<input type="checkbox" class="h-4 w-4 rounded border-gray-300 row-select-checkbox" onchange="toggleRowSelection(${row.id}, this.checked)" ${selectedRowIds.has(row.id) ? 'checked' : ''} />`}
-                    </td>
-                    <td class="px-3 py-2 text-sm">${row.id}</td>
-                    <td class="px-3 py-2 text-sm">${imageCell}</td>
+                   
+                    <td class="px-3 py-2 text-sm">${serialNumber}</td>
+                    <td class="px-3 py-2 text-sm h-10">${imageCell}</td>
                     <td class="px-3 py-2 text-sm">${escapeHtml(row.code)}</td>
                     <td class="px-3 py-2 text-sm">${escapeHtml(row.city || '')}</td>
                     <td class="px-3 py-2 text-sm">${row.width ?? ''}</td>
                     <td class="px-3 py-2 text-sm">${row.height ?? ''}</td>
-                    <td class="px-3 py-2 text-sm">${escapeHtml(row.status)}</td>
-                    <td class="px-3 py-2 text-sm text-red-600">${escapeHtml(row.error_message || '')}</td>
-                    <td class="px-3 py-2 text-sm space-x-2">
+                    <td class="px-3 py-2 text-sm">${row.base_monthly_price ?? ''}</td>
+                    <td class="px-3 py-2 text-sm">${statusBadge}</td>   
+                    <td class="px-3 py-2 text-sm text-red-600">${errorCell}</td>
+                    <td class="px-3 py-2 text-sm">
                         ${currentBatchStatus === 'approved'
-                            ? '<span class="text-gray-400 cursor-not-allowed">Disabled</span>'
-                            : `<button onclick="editRow(${row.id})" class="text-indigo-600 hover:underline">Edit</button><button onclick="deleteRow(${row.id})" class="text-red-600 hover:underline cursor-pointer">Delete</button>`}
+                            ? '<span class="text-gray-400 cursor-not-allowed text-sm">Disabled</span>'
+                            : `<div class="flex items-center gap-2">
+                                    ${toggleBtn}
+                            </div>`}
                     </td>
                 </tr>
             `;
@@ -590,7 +636,53 @@ function closeEditModal() {
 }
 
 
+async function toggleRowStatus(rowId, newStatus) {
+    if (currentBatchStatus === 'approved') return;
 
+    const row = currentRowsById[rowId];
+    if (!row) {
+        notify('Row not found', 'error');
+        return;
+    }
+
+    try {
+        await api(`${API_BASE}/${BATCH_ID}/rows/${rowId}/status`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: newStatus }),
+        });
+
+        // Update local cache only — no full reload needed
+        currentRowsById[rowId] = { ...row, status: newStatus };
+
+        // Re-render only the affected row in the DOM
+        const allRows = Object.values(currentRowsById);
+        const rowIndex = allRows.findIndex(r => r.id === rowId);
+        if (rowIndex !== -1) {
+            allRows[rowIndex] = { ...row, status: newStatus };
+        }
+
+        // Update valid/invalid counts in summary
+        const validCount   = Object.values(currentRowsById).filter(r => r.status === 'valid').length;
+        const invalidCount = Object.values(currentRowsById).filter(r => r.status === 'invalid').length;
+
+        // Update summary counts (these reflect current page only — full counts come from API)
+        // Reload just to refresh counts accurately
+        loadRows(rowsQueryState.page);
+
+        notify(`Marked as ${newStatus}`);
+
+    } catch (error) {
+        if (window.Swal) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Update Failed',
+                text: error.message || 'Failed to update status',
+            });
+        } else {
+            notify(error.message, 'error');
+        }
+    }
+}
 
 
 function buildFieldHtml(fieldDef, value) {
