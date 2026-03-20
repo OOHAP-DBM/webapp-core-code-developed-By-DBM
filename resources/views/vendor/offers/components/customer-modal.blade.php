@@ -1,0 +1,250 @@
+{{-- resources/views/vendor/offers/components/customer-modal.blade.php --}}
+
+<div id="customerModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-black/20 backdrop-blur-sm" onclick="closeCustomerModal()"></div>
+    
+    <div class="flex min-h-full items-center justify-center p-3 sm:p-4">
+        <div class="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-lg bg-white shadow-xl animate-fade-in">
+            
+            <button onclick="closeCustomerModal()" class="cursor-pointer absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-black">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+
+            <div class="px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-4">
+                <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 leading-tight">Create Customer Profile</h2>
+                <p class="text-gray-500 mt-1">Add new customer details to proceed with offer creation.</p>
+            </div>
+
+            <form id="new-customer-form" class="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
+                <div id="customer-error-summary" class="hidden mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-700 text-sm"></div>
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-5">
+                    
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" name="name" placeholder="Enter full name" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="name"></div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Business Name</label>
+                        <input type="text" name="business_name" placeholder="Enter business name" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="business_name"></div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">GSTIN<span class="text-red-500">*</span></label>
+                        <input type="text" name="gstin" placeholder="Enter GSTIN" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="gstin"></div>
+                    </div>
+
+                    <div class="space-y-2 relative">
+                        <label class="block text-sm font-medium text-gray-700">Email<span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <input type="email" name="email" placeholder="Enter email address" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                            <div class="text-xs text-red-600 mt-1" data-error-for="email"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Mobile Number<span class="text-red-500">*</span></label>
+                        <div class="flex items-center border border-gray-300 rounded-md overflow-hidden focus-within:border-gray-400">
+                            <div class="flex items-center gap-1 px-3 bg-white border-r border-gray-200">
+                                <img src="https://flagcdn.com/w20/in.png" srcset="https://flagcdn.com/w40/in.png 2x" width="20" alt="India">
+                                <span class="text-sm font-medium text-gray-700">+91</span>
+                                <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                            <input type="tel" name="phone" placeholder="Enter mobile number" class="w-full px-4 py-3 border-none focus:ring-0 placeholder-gray-400 text-sm">
+                            <div class="text-xs text-red-600 mt-1" data-error-for="phone"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Pincode<span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <input type="text" id="pincode" name="pincode" placeholder="Enter pincode" maxlength="6" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                            <div class="text-xs text-red-600 mt-1" data-error-for="pincode"></div>
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 group cursor-pointer">
+                                <div class="w-5 h-5 border border-gray-300 rounded-full flex items-center justify-center text-[10px] text-gray-400 font-serif">i</div>
+                                <div class="hidden group-hover:flex items-center absolute right-7 top-1/2 -translate-y-1/2">
+                                    <div class="bg-gray-100 text-gray-700 text-xs px-3 py-2 rounded shadow-sm whitespace-nowrap">
+                                        <strong>Note:</strong> When enter pin code, it will automatically fetch city, state, country.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">City</label>
+                        <input type="text" id="city" name="city" placeholder="City" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="city"></div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">State</label>
+                        <input type="text" id="state" name="state" placeholder="State" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="state"></div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Country</label>
+                        <input type="text" id="country" name="country" value="India" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400">
+                        <div class="text-xs text-red-600 mt-1" data-error-for="country"></div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">Create Password</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="space-y-2 relative">
+                            <label class="block text-sm font-medium text-gray-700">Password</label>
+                            <div class="relative">
+                                <input type="password" name="password" id="password-input" placeholder="Enter password" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                                <button type="button" tabindex="-1" onclick="togglePassword('password-input', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5C7.305 4.5 3.135 7.305 1.5 12c1.635 4.695 5.805 7.5 10.5 7.5s8.865-2.805 10.5-7.5C20.865 7.305 16.695 4.5 12 4.5z" />
+                                        <circle cx="12" cy="12" r="3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="text-xs text-red-600 mt-1" data-error-for="password"></div>
+                        </div>
+                        <div class="space-y-2 relative">
+                            <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                            <div class="relative">
+                                <input type="password" name="password_confirmation" id="confirm-password-input" placeholder="Confirm password" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
+                                <button type="button" tabindex="-1" onclick="togglePassword('confirm-password-input', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5C7.305 4.5 3.135 7.305 1.5 12c1.635 4.695 5.805 7.5 10.5 7.5s8.865-2.805 10.5-7.5C20.865 7.305 16.695 4.5 12 4.5z" />
+                                        <circle cx="12" cy="12" r="3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="text-xs text-red-600 mt-1" data-error-for="password_confirmation"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-10 flex justify-end">
+                    <button type="submit" class=" cursor-pointer w-full sm:w-auto min-h-[44px] bg-[#345745] hover:bg-[#2a4537] text-white px-8 sm:px-12 py-3 rounded-sm font-medium transition-all shadow-sm">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Pincode auto-fill
+document.getElementById('pincode')?.addEventListener('input', async function () {
+    const pincode = this.value;
+    const cityInput  = document.getElementById('city');
+    const stateInput = document.getElementById('state');
+    if (pincode.length === 6) {
+        try {
+            cityInput.placeholder  = 'Fetching...';
+            stateInput.placeholder = 'Fetching...';
+            const res  = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+            const data = await res.json();
+            if (data[0].Status === 'Success') {
+                const d = data[0].PostOffice[0];
+                cityInput.value  = d.District;
+                stateInput.value = d.State;
+            } else {
+                cityInput.placeholder  = 'City';
+                stateInput.placeholder = 'State';
+            }
+        } catch (e) { console.error(e); }
+    } else {
+        cityInput.value  = '';
+        stateInput.value = '';
+    }
+});
+
+// Modal open/close
+function openCustomerModal()  { document.getElementById('customerModal')?.classList.remove('hidden'); }
+function closeCustomerModal() { document.getElementById('customerModal')?.classList.add('hidden'); }
+
+// Form submit — ✅ plain fetch, no fetchJSON dependency
+document.getElementById('new-customer-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form      = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const origText  = submitBtn.innerText;
+
+    // Clear errors
+    document.getElementById('customer-error-summary').classList.add('hidden');
+    document.getElementById('customer-error-summary').innerText = '';
+    form.querySelectorAll('[data-error-for]').forEach(el => { el.innerText = ''; });
+
+    submitBtn.disabled  = true;
+    submitBtn.innerText = 'Creating...';
+
+    try {
+        const formData = new FormData(form);
+        const payload  = Object.fromEntries(formData);
+
+        const response = await fetch('{{ route("vendor.pos.customers.store") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type':     'application/json',
+                'Accept':           'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN':     document.querySelector('meta[name="csrf-token"]')?.content
+                                    ?? document.querySelector('input[name="_token"]')?.value ?? '',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const res = await response.json();
+        const customerObj = res?.data ?? res;
+        const isSuccess   = res?.success === true && customerObj?.id;
+
+        if (!isSuccess) {
+            // Show field-level errors if present
+            if (res?.errors) {
+                for (const [field, messages] of Object.entries(res.errors)) {
+                    const el = form.querySelector(`[data-error-for="${field}"]`);
+                    if (el) el.innerText = messages.join(' ');
+                }
+            }
+            const summaryDiv = document.getElementById('customer-error-summary');
+            summaryDiv.innerText = res?.message || 'Failed to create customer. Please try again.';
+            summaryDiv.classList.remove('hidden');
+            return;
+        }
+
+        // ✅ Auto-select the newly created customer in offer form
+        selectOfferCustomer(customerObj);
+        closeCustomerModal();
+        form.reset();
+
+        if (window.Swal) {
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success',
+                title: 'Customer created successfully!',
+                showConfirmButton: false, timer: 2500, timerProgressBar: true });
+        }
+
+    } catch (err) {
+        console.error(err);
+        const summaryDiv = document.getElementById('customer-error-summary');
+        summaryDiv.innerText = 'Something went wrong. Please try again.';
+        summaryDiv.classList.remove('hidden');
+    } finally {
+        submitBtn.disabled  = false;
+        submitBtn.innerText = origText;
+    }
+});
+
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon  = btn.querySelector('svg');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.94 17.94A10.05 10.05 0 0112 19c-5 0-9-4-9-7a9.97 9.97 0 012.122-5.657m1.415-1.415A9.97 9.97 0 0112 5c5 0 9 4 9 7a9.97 9.97 0 01-1.421 4.243m-1.415 1.415A10.05 10.05 0 0112 19z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />';
+    } else {
+        input.type = 'password';
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5C7.305 4.5 3.135 7.305 1.5 12c1.635 4.695 5.805 7.5 10.5 7.5s8.865-2.805 10.5-7.5C20.865 7.305 16.695 4.5 12 4.5z" /><circle cx="12" cy="12" r="3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />';
+    }
+}
+</script>

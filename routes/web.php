@@ -748,6 +748,8 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         // Offers
         Route::get('/offers', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'index'])->name('offers.index');
         Route::get('/offers/create', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'create'])->name('offers.create');
+        Route::get('/offers/customer-suggestions', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'customerSuggestions'])->name('offers.customer-suggestions');
+        Route::post('/offers/create-customer', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'createCustomer'])->name('offers.create-customer');
         Route::post('/offers', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'store'])->name('offers.store');
         Route::get('/offers/{id}', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'show'])->name('offers.show');
 
