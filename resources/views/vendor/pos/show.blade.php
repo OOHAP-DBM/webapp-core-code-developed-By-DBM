@@ -272,7 +272,7 @@
                     </div>
                     <div id="custom-time-wrapper" class="hidden mt-3">
                         <input type="time" id="reminder-custom-time"
-                               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
                                onchange="applyCustomTime(this.value)">
                     </div>
                     <p id="selected-time-display" class="hidden mt-2 text-sm font-semibold text-orange-500"></p>
@@ -1347,25 +1347,15 @@ function hydrateReminderDraftsFromBooking(forceRefresh = false) {
         return;
     }
 
-
-    const now = new Date();
     const bookingReminders = Array.isArray(currentBooking?.scheduled_reminders) ? currentBooking.scheduled_reminders : [];
 
-    _reminderDrafts = bookingReminders
-        .filter(reminder => {
-            // Always show sent reminders
-            if (reminder.status === 'sent') return true;
-            // Only show scheduled/pending reminders if their scheduled_at is in the future
-            const scheduledAt = reminder.scheduled_at ? new Date(reminder.scheduled_at) : null;
-            return reminder.status !== 'sent' && scheduledAt && scheduledAt.getTime() >= now.getTime() - 60000; // 1 min grace
-        })
-        .map((reminder, index) => ({
-            key: reminder.id ? `saved-${reminder.id}` : `draft-${Date.now()}-${index}`,
-            id: reminder.id ?? null,
-            scheduled_at: reminder.scheduled_at,
-            status: reminder.status || 'pending',
-            sent_at: reminder.sent_at || null,
-        }));
+    _reminderDrafts = bookingReminders.map((reminder, index) => ({
+        key: reminder.id ? `saved-${reminder.id}` : `draft-${Date.now()}-${index}`,
+        id: reminder.id ?? null,
+        scheduled_at: reminder.scheduled_at,
+        status: reminder.status || 'pending',
+        sent_at: reminder.sent_at || null,
+    }));
 
     _reminderBasePendingSignature = getPendingReminderSignature(
         _reminderDrafts.filter(reminder => reminder.status === 'pending')
@@ -1754,11 +1744,30 @@ function updateReminderActionButtons() {
     saveButton.disabled = !canSave;
     scheduleButton.disabled = !hasPending || hasUnsavedComposerState || !hasPendingChanges;
 
-    document.querySelectorAll('.day-btn, .time-btn').forEach(btn => {
-        btn.disabled = !canCompose;
-        btn.classList.toggle('opacity-50', !canCompose);
-        btn.classList.toggle('cursor-not-allowed', !canCompose);
-    });
+    // document.querySelectorAll('.day-btn, .time-btn').forEach(btn => {
+    //     btn.disabled = !canCompose;
+    //     btn.classList.toggle('opacity-50', !canCompose);
+    //     btn.classList.toggle('cursor-not-allowed', !canCompose);
+    // });
+
+    document.querySelectorAll('.day-btn').forEach(btn => {
+    btn.disabled = !canCompose;
+    btn.classList.toggle('opacity-50', !canCompose);
+    btn.classList.toggle('cursor-not-allowed', !canCompose);
+    if (!canCompose) {
+        btn.setAttribute('title', 'Maximum 3 reminders already scheduled');
+        btn.setAttribute('data-tooltip', 'Maximum 3 reminders already scheduled');
+    } else {
+        btn.removeAttribute('title');
+        btn.removeAttribute('data-tooltip');
+    }
+});
+
+document.querySelectorAll('.time-btn').forEach(btn => {
+    btn.disabled = !canCompose;
+    btn.classList.toggle('opacity-50', !canCompose);
+    btn.classList.toggle('cursor-not-allowed', !canCompose);
+});
 
     const customTimeToggleBtn = document.getElementById('custom-time-toggle-btn');
     const customDateInput = document.getElementById('reminder-custom-date');
