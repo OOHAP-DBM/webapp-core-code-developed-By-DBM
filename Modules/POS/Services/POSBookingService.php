@@ -77,6 +77,7 @@ class POSBookingService
                     }
                 }
             }
+            
 
             // ── Lock & fetch hoardings ───────────────────────────────────
             $hoardings = \App\Models\Hoarding::whereIn('id', $hoardingIds)

@@ -50,20 +50,20 @@
 
                 {{-- Payment Mode --}}
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Payment Mode</label>
+                    <label class="block text-[11px] font-semibold uppercase mb-2">Payment Mode</label>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <button type="button" onclick="selectPaymentMode('cash')"
-                            class="payment-mode-btn active-mode flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="cash">
+                            class="payment-mode-btn active-mode flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-semibold transition" data-mode="cash">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12a2 2 0 100-4 2 2 0 000 4z"/><path d="M6 12h.01M18 12h.01"/></svg>
                             Cash
                         </button>
                         <button type="button" onclick="selectPaymentMode('bank_transfer')"
-                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="bank_transfer">
+                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-semibold transition" data-mode="bank_transfer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             Bank Transfer
                         </button>
                         <button type="button" onclick="selectPaymentMode('online')"
-                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="online">
+                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-semibold transition" data-mode="online">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                             UPI / Online
                         </button>
@@ -223,11 +223,12 @@
 
                 {{-- Discount --}}
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Discount (₹)</label>
+                    <label class="block text-[11px] font-semibold uppercase mb-1">Discount (₹)</label>
                     <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0"
                         class="w-full p-2 border border-gray-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-green-300 focus:border-green-400 outline-none">
                 </div>
                 @include('vendor.pos.components.milestone-payment')
+                @include('vendor.pos.components.upload-po')
 
                 {{-- Totals --}}
                 <div class="pt-4 border-t border-dashed space-y-3">

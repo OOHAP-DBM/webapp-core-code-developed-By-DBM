@@ -1293,6 +1293,7 @@ class VendorPosController extends Controller
                 'milestone_data.*.amount'      => 'required_if:is_milestone,true|numeric|min:0.01',
                 'milestone_data.*.due_date'    => 'nullable|date',
                 'milestone_data.*.vendor_notes' => 'nullable|string|max:500',
+                'po_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240'
             ]);
 
             // ── Resolve hoarding IDs ─────────────────────────────────────
