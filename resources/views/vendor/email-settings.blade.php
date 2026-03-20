@@ -3,7 +3,7 @@
 @section('title', 'Email Settings')
 
 @section('content')
-<div class="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="w-full  mx-auto px-4 sm:px-6 lg:px-8">
 
     {{-- Email Management Card --}}
     <div class="bg-white rounded-xl shadow p-4 sm:p-6 mt-6 sm:mt-8">
