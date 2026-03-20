@@ -48,15 +48,6 @@
             <div class="bg-white rounded-md shadow-xl border border-gray-200 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-6 space-y-5">
                 <h3 class="font-bold text-gray-800 text-lg">POS Checkout</h3>
 
-                {{-- Discount --}}
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Discount (₹)</label>
-                    <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0"
-                        class="w-full p-2 border border-gray-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-green-300 focus:border-green-400 outline-none">
-                </div>
-
-                @include('vendor.pos.components.milestone-payment')
-
                 {{-- Payment Mode --}}
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Payment Mode</label>
@@ -216,7 +207,7 @@
                 </div>
 
                 {{-- Booking Hold Timer — hidden for credit_note --}}
-                <div id="booking-hold-section" class="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                <div id="booking-hold-section" class="bg-amber-50 border border-amber-100 rounded-xl px-4 py-2">
                     <h4 class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Booking Hold Duration</h4>
                     <p class="text-[11px] text-gray-500 mb-3">Booking will be released if payment is not received within this time.</p>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -229,6 +220,14 @@
                     </div>
                     <p id="hold-time-label" class="text-[11px] text-amber-600 font-semibold mt-2 text-center">Hold for 30 minutes</p>
                 </div>
+
+                {{-- Discount --}}
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Discount (₹)</label>
+                    <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0"
+                        class="w-full p-2 border border-gray-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-green-300 focus:border-green-400 outline-none">
+                </div>
+                @include('vendor.pos.components.milestone-payment')
 
                 {{-- Totals --}}
                 <div class="pt-4 border-t border-dashed space-y-3">
@@ -437,17 +436,14 @@ window.calculateFinalTotals = calculateFinalTotals;
 function selectPaymentMode(mode) {
     selectedPaymentMode = mode;
 
-    // Toggle active state on buttons
     document.querySelectorAll('.payment-mode-btn').forEach(btn => {
         btn.classList.toggle('active-mode', btn.dataset.mode === mode);
     });
 
-    // Show/hide panels
     document.getElementById('bank-details-panel').classList.toggle('hidden', mode !== 'bank_transfer');
     document.getElementById('upi-details-panel').classList.toggle('hidden', mode !== 'online');
     document.getElementById('credit-note-details-panel').classList.toggle('hidden', mode !== 'credit_note');
 
-    // ── Hide hold timer for credit note — it auto-confirms ──
     const holdSection = document.getElementById('booking-hold-section');
     if (mode === 'credit_note') {
         holdSection.classList.add('hidden');
@@ -455,11 +451,23 @@ function selectPaymentMode(mode) {
         holdSection.classList.remove('hidden');
     }
 
-    // Load saved details as needed
+    // ── Hide milestone card for credit_note — milestones don't apply ──
+    const msCard = document.getElementById('ms-card');
+    if (msCard) {
+        if (mode === 'credit_note') {
+            msCard.classList.add('hidden');
+            // Also disable milestone module so it doesn't block submission
+            if (typeof window.MilestoneModule !== 'undefined' && window.MilestoneModule.isEnabled()) {
+                window.MilestoneModule.toggle(); // turns it off
+            }
+        } else {
+            msCard.classList.remove('hidden');
+        }
+    }
+
     if (mode === 'bank_transfer') loadSavedBankDetails();
     if (mode === 'online')        loadSavedUpiDetails();
 }
-
 /* ── Hold time selection ── */
 function selectHoldTime(mins) {
     selectedHoldMinutes = mins;
@@ -787,6 +795,9 @@ function updatePreviewScreen() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    var btn = document.getElementById('create-booking-btn');
+    if (!btn) return;
+
     selectPaymentMode('cash');
     selectHoldTime(30);
     updatePreviewScreen();
@@ -941,4 +952,120 @@ document.addEventListener('DOMContentLoaded', () => {
         origShowBookingConfirmedModal(booking);
     };
 });
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   CASH LIMIT GUARD
+════════════════════════════════════════════════════════════════════════ */
+(function () {
+    var _cashLimit = null;
+    var _limitLoaded = false;
+
+    async function fetchCashLimit() {
+        try {
+            const res = await fetch(
+                `${window.POS_BASE_PATH || '/vendor/pos'}/api/settings?key=pos_cash_limit`,
+                { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' }
+            );
+            if (!res.ok) return;
+            const data = await res.json();
+            const val = data?.data?.pos_cash_limit ?? data?.pos_cash_limit ?? null;
+            _cashLimit = val !== null ? parseFloat(val) : null;
+        } catch (e) {
+            console.warn('[CashLimit] Could not fetch cash limit:', e);
+        } finally {
+            _limitLoaded = true;
+        }
+    }
+
+    function getCurrentTotal() {
+        if (typeof window.getPosPricingBreakdown === 'function') {
+            return window.getPosPricingBreakdown().grandTotal || 0;
+        }
+        return 0;
+    }
+
+    function applyCashLimit() {
+        if (!_limitLoaded) return;
+        var btn = document.querySelector('.payment-mode-btn[data-mode="cash"]');
+        if (!btn) return;
+
+        if (_cashLimit === null || _cashLimit <= 0) {
+            enableCashBtn(btn);
+            return;
+        }
+
+        var total = getCurrentTotal();
+        if (total > _cashLimit) {
+            disableCashBtn(btn, total);
+        } else {
+            enableCashBtn(btn);
+        }
+    }
+
+    function disableCashBtn(btn, total) {
+        btn.disabled = true;
+        btn.classList.remove('active-mode');
+        btn.style.opacity       = '0.45';
+        btn.style.cursor        = 'not-allowed';
+        btn.style.pointerEvents = 'auto';
+        btn.setAttribute('title',
+            'Cash limit: ₹' + _cashLimit.toLocaleString('en-IN', { minimumFractionDigits: 2 }) +
+            '. Your total ₹' + total.toLocaleString('en-IN', { minimumFractionDigits: 2 }) +
+            ' exceeds it. Please choose another payment method.'
+        );
+
+        var tip = document.getElementById('cash-limit-tooltip');
+        if (!tip) {
+            tip = document.createElement('p');
+            tip.id        = 'cash-limit-tooltip';
+            tip.className = 'text-[10px] text-red-600 font-semibold mt-1 col-span-full';
+            btn.parentNode.appendChild(tip);
+        }
+        tip.textContent = '⚠ Cash limit ₹' +
+            _cashLimit.toLocaleString('en-IN', { minimumFractionDigits: 2 }) +
+            ' exceeded — select another method.';
+        tip.style.display = 'block';
+
+        if (typeof selectedPaymentMode !== 'undefined' && selectedPaymentMode === 'cash') {
+            if (typeof selectPaymentMode === 'function') {
+                selectPaymentMode('bank_transfer');
+            }
+        }
+    }
+
+    function enableCashBtn(btn) {
+        btn.disabled        = false;
+        btn.style.opacity       = '';
+        btn.style.cursor        = '';
+        btn.style.pointerEvents = '';
+        btn.removeAttribute('title');
+        var tip = document.getElementById('cash-limit-tooltip');
+        if (tip) tip.style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Fetch on load then apply
+        fetchCashLimit().then(function () { applyCashLimit(); });
+
+        // Hook after MilestoneModule sets up its hook (100ms delay)
+        setTimeout(function () {
+            var orig = window.calculateFinalTotals;
+            if (typeof orig === 'function') {
+                window.calculateFinalTotals = function () {
+                    orig.apply(this, arguments);
+                    setTimeout(applyCashLimit, 0);
+                };
+            }
+
+            var discountInput = document.getElementById('pos-discount');
+            if (discountInput) {
+                discountInput.addEventListener('input', function () {
+                    setTimeout(applyCashLimit, 50);
+                });
+            }
+        }, 100);
+    });
+}());
 </script>
