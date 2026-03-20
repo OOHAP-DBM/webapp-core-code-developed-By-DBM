@@ -17,7 +17,8 @@ use App\Mail\PosBookingCancelledMail;
 use Modules\POS\Notifications\PosCreditNoteCancelledNotification;
 use App\Notifications\PosBookingCreatedNotification;
 use App\Notifications\PosBookingConfirmedNotification;
-use mail;
+use App\Notifications\PosBookingCancelledNotification;
+use Illuminate\Support\Facades\Mail;
 use App\Services\Whatsapp\TwilioWhatsappService;
 
 class POSBookingService
@@ -317,19 +318,16 @@ class POSBookingService
             // Customer
             if (!empty($booking->customer_id)) {
                 $customer = \App\Models\User::find($booking->customer_id);
-
                 if ($customer?->notification_email && filter_var($customer->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                    \Mail::to($customer->email)->queue(
+                    Mail::to($customer->email)->queue(
                         new \App\Mail\PosBookingCreatedMail($booking, $customer, 'customer')
                     );
                 }
-
                 if ($customer?->notification_push) {
                     $pushTitle   = $isCreditNote ? 'Credit Note Booking Confirmed' : 'Booking Created Successfully';
                     $pushMessage = $isCreditNote
                         ? "Your credit note booking #{$booking->invoice_number} for ₹" . number_format($booking->total_amount, 2) . " has been confirmed. Credit note: {$booking->credit_note_number}"
                         : "Your POS booking #{$booking->invoice_number} for ₹" . number_format($booking->total_amount, 2) . " has been created";
-
                     send($customer, $pushTitle, $pushMessage, [
                         'type'              => $isCreditNote ? 'pos_credit_note_booking_created' : 'pos_booking_created',
                         'booking_id'        => $booking->id,
@@ -343,26 +341,36 @@ class POSBookingService
 
             // Vendor
             $vendor = \App\Models\User::find($booking->vendor_id);
-            if ($vendor?->notification_email) {
-                foreach (array_unique(array_filter($vendor->notification_emails ?? [])) as $email) {
-                    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        \Mail::to($email)->queue(
-                            new \App\Mail\PosBookingCreatedMail($booking, $vendor, 'vendor')
-                        );
-                    }
-                }
+            if ($vendor?->notification_email && filter_var($vendor->email ?? '', FILTER_VALIDATE_EMAIL)) {
+                Mail::to($vendor->email)->queue(
+                    new \App\Mail\PosBookingCreatedMail($booking, $vendor, 'vendor')
+                );
+            }
+            if ($vendor?->notification_push) {
+                $pushTitle   = $isCreditNote ? 'Credit Note Booking Confirmed' : 'Booking Created Successfully';
+                $pushMessage = $isCreditNote
+                    ? "Your credit note booking #{$booking->invoice_number} for ₹" . number_format($booking->total_amount, 2) . " has been confirmed. Credit note: {$booking->credit_note_number}"
+                    : "Your POS booking #{$booking->invoice_number} for ₹" . number_format($booking->total_amount, 2) . " has been created";
+                send($vendor, $pushTitle, $pushMessage, [
+                    'type'              => $isCreditNote ? 'pos_credit_note_booking_created' : 'pos_booking_created',
+                    'booking_id'        => $booking->id,
+                    'invoice_number'    => $booking->invoice_number,
+                    'total_amount'      => $booking->total_amount,
+                    'source'            => 'pos_system',
+                    'credit_note_number' => $booking->credit_note_number ?? null,
+                ]);
             }
 
             // Admins
-            \App\Models\User::whereHas('roles', function ($q) {
-                $q->whereIn('name', ['admin', 'super_admin']);
-            })->get()->each(function ($admin) use ($booking) {
+            $admins = \App\Models\User::where('active_role', 'admin')->get();
+            foreach ($admins as $admin) {
                 if ($admin->notification_email && filter_var($admin->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                    \Mail::to($admin->email)->queue(
+                    Mail::to($admin->email)->queue(
                         new \App\Mail\PosBookingCreatedMail($booking, $admin, 'admin')
                     );
                 }
-            });
+                // No push/in-app for admin
+            }
         } catch (\Throwable $e) {
             Log::warning('POS email/push notification failed', [
                 'booking_id' => $booking->id,
@@ -373,208 +381,230 @@ class POSBookingService
 
     private function dispatchBookingCancelledNotifications(int $bookingId, ?string $reason = null): void
     {
+        $booking = POSBooking::query()
+            ->with(['customer', 'vendor', 'bookingHoardings.hoarding'])
+            ->find($bookingId);
+
+        if (!$booking) {
+            return;
+        }
+
+        // ✅ Define these at the top — they were missing before
+        $normalizedReason = trim((string) ($reason ?? ''));
+
+        $hoardingTitles = $booking->bookingHoardings
+            ->map(fn($bh) => $bh->hoarding?->title ?? 'Hoarding')
+            ->filter()
+            ->values()
+            ->toArray();
+
+        // Fallback if no bookingHoardings relation
+        if (empty($hoardingTitles) && !empty($booking->hoarding?->title)) {
+            $hoardingTitles[] = trim((string) $booking->hoarding->title);
+        }
+
+        $hoardingPreview = 'N/A';
+        if (!empty($hoardingTitles)) {
+            $preview = array_slice($hoardingTitles, 0, 2);
+            $remaining = count($hoardingTitles) - count($preview);
+            $hoardingPreview = implode(', ', $preview);
+            if ($remaining > 0) {
+                $hoardingPreview .= ' +' . $remaining . ' more';
+            }
+        }
+
+        $customer = $booking->customer;
+        $vendor   = $booking->vendor;
+        $admins   = \App\Models\User::where('active_role', 'admin')->get();
+
+        // ── Email to customer/vendor/admin ────────────────────────
         try {
-            $booking = POSBooking::query()
-                ->with(['customer', 'vendor', 'bookingHoardings.hoarding'])
-                ->find($bookingId);
-
-            if (!$booking) {
-                return;
+            if ($customer && $customer->notification_email && filter_var($customer->email ?? '', FILTER_VALIDATE_EMAIL)) {
+                Mail::to($customer->email)->queue(
+                    new \App\Mail\PosBookingCancelledMail($booking, $customer, ['recipient' => 'customer'])
+                );
             }
-
-            $normalizedReason = trim((string) ($reason ?? $booking->cancellation_reason ?? ''));
-            $hoardingTitles = $booking->bookingHoardings
-                ->map(function ($bookingHoarding) {
-                    return trim((string) ($bookingHoarding->hoarding->title ?? ''));
-                })
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
-
-            if (empty($hoardingTitles) && !empty($booking->hoarding?->title)) {
-                $hoardingTitles[] = trim((string) $booking->hoarding->title);
+            if ($vendor && $vendor->notification_email && filter_var($vendor->email ?? '', FILTER_VALIDATE_EMAIL)) {
+                Mail::to($vendor->email)->queue(
+                    new \App\Mail\PosBookingCancelledMail($booking, $vendor, ['recipient' => 'vendor'])
+                );
             }
-
-            $hoardingPreview = 'N/A';
-            if (!empty($hoardingTitles)) {
-                $preview = array_slice($hoardingTitles, 0, 2);
-                $remaining = count($hoardingTitles) - count($preview);
-                $hoardingPreview = implode(', ', $preview);
-                if ($remaining > 0) {
-                    $hoardingPreview .= ' +' . $remaining . ' more';
-                }
-            }
-
-            $customer = $booking->customer;
-            $vendor = $booking->vendor;
-
-            $inAppNotification = new PosBookingCancelledNotification(
-                $booking,
-                $hoardingTitles,
-                $normalizedReason !== '' ? $normalizedReason : null
-            );
-
-            if ($customer && method_exists($customer, 'notify')) {
-                try {
-                    $customer->notify($inAppNotification);
-                } catch (\Throwable $e) {
-                    Log::warning('POS customer cancellation in-app notification failed', [
-                        'booking_id' => $booking->id,
-                        'customer_id' => $customer->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
-
-            if ($vendor && method_exists($vendor, 'notify')) {
-                try {
-                    $vendor->notify($inAppNotification);
-                } catch (\Throwable $e) {
-                    Log::warning('POS vendor cancellation in-app notification failed', [
-                        'booking_id' => $booking->id,
-                        'vendor_id' => $vendor->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
-
-            try {
-                if ($customer) {
-                    $customerPushMessage = 'Your POS booking #' . ($booking->invoice_number ?? $booking->id)
-                        . ' has been cancelled for hoarding: ' . $hoardingPreview;
-                    if ($normalizedReason !== '') {
-                        $customerPushMessage .= '. Reason: ' . Str::limit($normalizedReason, 140);
-                    }
-
-                    send($customer, 'POS Booking Cancelled', $customerPushMessage, [
-                        'type' => 'pos_booking_cancelled',
-                        'booking_id' => $booking->id,
-                        'invoice_number' => $booking->invoice_number,
-                        'status' => $booking->status,
-                        'hoarding_title' => $hoardingPreview,
-                        'cancellation_reason' => $normalizedReason !== '' ? $normalizedReason : null,
-                        'recipient' => 'customer',
-                        'source' => 'pos_system',
-                    ]);
-                }
-
-                if ($vendor) {
-                    $vendorPushMessage = 'POS booking #' . ($booking->invoice_number ?? $booking->id)
-                        . ' has been cancelled. Hoarding: ' . $hoardingPreview;
-                    if ($normalizedReason !== '') {
-                        $vendorPushMessage .= '. Reason: ' . Str::limit($normalizedReason, 140);
-                    }
-
-                    send($vendor, 'POS Booking Cancelled', $vendorPushMessage, [
-                        'type' => 'pos_booking_cancelled',
-                        'booking_id' => $booking->id,
-                        'invoice_number' => $booking->invoice_number,
-                        'status' => $booking->status,
-                        'hoarding_title' => $hoardingPreview,
-                        'cancellation_reason' => $normalizedReason !== '' ? $normalizedReason : null,
-                        'recipient' => 'vendor',
-                        'source' => 'pos_system',
-                    ]);
-                }
-            } catch (\Throwable $e) {
-                Log::warning('POS cancellation push notification failed', [
-                    'booking_id' => $booking->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-
-            $bookingCustomerEmail = trim((string) ($booking->customer_email ?? ''));
-            $customerProfileEmail = trim((string) ($customer->email ?? ''));
-
-            $emailRecipient = null;
-            if (!empty($bookingCustomerEmail) && filter_var($bookingCustomerEmail, FILTER_VALIDATE_EMAIL)) {
-                $emailRecipient = $bookingCustomerEmail;
-            } elseif (!empty($customerProfileEmail) && filter_var($customerProfileEmail, FILTER_VALIDATE_EMAIL)) {
-                $emailRecipient = $customerProfileEmail;
-            }
-
-            if (!empty($emailRecipient)) {
-                try {
-                    \Mail::to($emailRecipient)->queue(
-                        new PosBookingCancelledMail(
-                            $booking,
-                            $customer,
-                            $hoardingTitles,
-                            $normalizedReason !== '' ? $normalizedReason : null
-                        )
+            foreach ($admins as $admin) {
+                if ($admin->notification_email && filter_var($admin->email ?? '', FILTER_VALIDATE_EMAIL)) {
+                    Mail::to($admin->email)->queue(
+                        new \App\Mail\PosBookingCancelledMail($booking, $admin, ['recipient' => 'admin'])
                     );
-                } catch (\Throwable $e) {
-                    Log::warning('POS cancellation email failed', [
-                        'booking_id' => $booking->id,
-                        'email' => $emailRecipient,
-                        'error' => $e->getMessage(),
-                    ]);
                 }
-            } else {
-                Log::warning('POS cancellation email skipped - no valid customer email', [
-                    'booking_id' => $booking->id,
-                    'booking_customer_email' => $booking->customer_email,
-                    'customer_id' => $booking->customer_id,
-                    'customer_profile_email' => $customer?->email,
+            }
+        } catch (\Throwable $e) {
+            Log::warning('POS cancellation email (role-based) failed', [
+                'booking_id' => $booking->id,
+                'error'      => $e->getMessage(),
+            ]);
+        }
+
+        // ── In-app notification ───────────────────────────────────
+        $inAppNotification = new PosBookingCancelledNotification(
+            $booking,
+            $hoardingTitles,
+            $normalizedReason !== '' ? $normalizedReason : null
+        );
+
+        if ($customer && method_exists($customer, 'notify')) {
+            try {
+                $customer->notify($inAppNotification);
+            } catch (\Throwable $e) {
+                Log::warning('POS customer cancellation in-app notification failed', [
+                    'booking_id'  => $booking->id,
+                    'customer_id' => $customer->id,
+                    'error'       => $e->getMessage(),
                 ]);
             }
+        }
 
-            // ── WhatsApp to customer ──────────────────────────────────
+        if ($vendor && method_exists($vendor, 'notify')) {
             try {
-                $phone = $booking->customer_phone
-                    ?? ($booking->customer_id
-                        ? optional(\App\Models\User::find($booking->customer_id))->phone
-                        : null);
-
-                if ($phone && $phone !== 'N/A') {
-                    $normalizedPhone = preg_replace('/\D+/', '', $phone);
-
-                    if (!empty($normalizedPhone) && strlen($normalizedPhone) >= 10) {
-                        if (!str_starts_with($normalizedPhone, '91')) {
-                            $normalizedPhone = '91' . ltrim($normalizedPhone, '0');
-                        }
-                        $normalizedPhone = '+' . $normalizedPhone;
-
-                        $vendorName = $booking->vendor?->name ?? 'Vendor';
-                        $message = "❌ *POS Booking Cancelled*\n\n"
-                            . "Hello *{$booking->customer_name}*,\n\n"
-                            . "Your POS booking has been cancelled by *{$vendorName}*.\n\n"
-                            . "📋 *Booking Details:*\n"
-                            . "Invoice: #{$booking->invoice_number}\n"
-                            . "Status: ❌ *CANCELLED*\n\n"
-                            . "🏛️ *Hoardings:*\n" . implode("\n", array_map(fn($t) => "• {$t}", $hoardingTitles ?: ['N/A'])) . "\n\n"
-                            . ($normalizedReason !== '' ? "📝 *Reason:* {$normalizedReason}\n\n" : '')
-                            . "If you have any questions, please contact us.";
-
-                        $whatsapp = app(TwilioWhatsappService::class);
-                        $sent = $whatsapp->send($normalizedPhone, $message);
-
-                        Log::info('POS cancellation WhatsApp dispatched', [
-                            'booking_id' => $booking->id,
-                            'phone'      => $normalizedPhone,
-                            'sent'       => $sent,
-                        ]);
-                    } else {
-                        Log::warning('POS cancellation WhatsApp skipped - invalid phone', [
-                            'booking_id' => $booking->id,
-                            'phone'      => $phone,
-                        ]);
-                    }
-                }
+                $vendor->notify($inAppNotification);
             } catch (\Throwable $e) {
-                Log::warning('POS cancellation WhatsApp notification failed', [
+                Log::warning('POS vendor cancellation in-app notification failed', [
                     'booking_id' => $booking->id,
+                    'vendor_id'  => $vendor->id,
                     'error'      => $e->getMessage(),
                 ]);
             }
+        }
+
+        // ── Push notifications ────────────────────────────────────
+        try {
+            if ($customer) {
+                $customerPushMessage = 'Your POS booking #' . ($booking->invoice_number ?? $booking->id)
+                    . ' has been cancelled for hoarding: ' . $hoardingPreview;
+                if ($normalizedReason !== '') {
+                    $customerPushMessage .= '. Reason: ' . Str::limit($normalizedReason, 140);
+                }
+                send($customer, 'POS Booking Cancelled', $customerPushMessage, [
+                    'type'                => 'pos_booking_cancelled',
+                    'booking_id'          => $booking->id,
+                    'invoice_number'      => $booking->invoice_number,
+                    'status'              => $booking->status,
+                    'hoarding_title'      => $hoardingPreview,
+                    'cancellation_reason' => $normalizedReason !== '' ? $normalizedReason : null,
+                    'recipient'           => 'customer',
+                    'source'              => 'pos_system',
+                ]);
+            }
+
+            if ($vendor) {
+                $vendorPushMessage = 'POS booking #' . ($booking->invoice_number ?? $booking->id)
+                    . ' has been cancelled. Hoarding: ' . $hoardingPreview;
+                if ($normalizedReason !== '') {
+                    $vendorPushMessage .= '. Reason: ' . Str::limit($normalizedReason, 140);
+                }
+                send($vendor, 'POS Booking Cancelled', $vendorPushMessage, [
+                    'type'                => 'pos_booking_cancelled',
+                    'booking_id'          => $booking->id,
+                    'invoice_number'      => $booking->invoice_number,
+                    'status'              => $booking->status,
+                    'hoarding_title'      => $hoardingPreview,
+                    'cancellation_reason' => $normalizedReason !== '' ? $normalizedReason : null,
+                    'recipient'           => 'vendor',
+                    'source'              => 'pos_system',
+                ]);
+            }
         } catch (\Throwable $e) {
-            Log::warning('POS cancellation notification dispatch failed', [
-                'booking_id' => $bookingId,
-                'error' => $e->getMessage(),
+            Log::warning('POS cancellation push notification failed', [
+                'booking_id' => $booking->id,
+                'error'      => $e->getMessage(),
+            ]);
+        }
+
+        // ── Direct customer email (booking_customer_email fallback) ──
+        $bookingCustomerEmail = trim((string) ($booking->customer_email ?? ''));
+        $customerProfileEmail = trim((string) ($customer?->email ?? ''));
+
+        $emailRecipient = null;
+        if (!empty($bookingCustomerEmail) && filter_var($bookingCustomerEmail, FILTER_VALIDATE_EMAIL)) {
+            $emailRecipient = $bookingCustomerEmail;
+        } elseif (!empty($customerProfileEmail) && filter_var($customerProfileEmail, FILTER_VALIDATE_EMAIL)) {
+            $emailRecipient = $customerProfileEmail;
+        }
+
+        if (!empty($emailRecipient)) {
+            try {
+                \Mail::to($emailRecipient)->queue(
+                    new PosBookingCancelledMail(
+                        $booking,
+                        $customer,
+                        $hoardingTitles,
+                        $normalizedReason !== '' ? $normalizedReason : null
+                    )
+                );
+            } catch (\Throwable $e) {
+                Log::warning('POS cancellation direct email failed', [
+                    'booking_id' => $booking->id,
+                    'email'      => $emailRecipient,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
+        } else {
+            Log::warning('POS cancellation email skipped - no valid customer email', [
+                'booking_id'             => $booking->id,
+                'booking_customer_email' => $booking->customer_email,
+                'customer_id'            => $booking->customer_id,
+                'customer_profile_email' => $customer?->email,
+            ]);
+        }
+
+        // ── WhatsApp ──────────────────────────────────────────────
+        try {
+            $phone = $booking->customer_phone
+                ?? ($booking->customer_id
+                    ? optional(\App\Models\User::find($booking->customer_id))->phone
+                    : null);
+
+            if ($phone && $phone !== 'N/A') {
+                $normalizedPhone = preg_replace('/\D+/', '', $phone);
+
+                if (!empty($normalizedPhone) && strlen($normalizedPhone) >= 10) {
+                    if (!str_starts_with($normalizedPhone, '91')) {
+                        $normalizedPhone = '91' . ltrim($normalizedPhone, '0');
+                    }
+                    $normalizedPhone = '+' . $normalizedPhone;
+
+                    $vendorName = $booking->vendor?->name ?? 'Vendor';
+                    $message = "❌ *POS Booking Cancelled*\n\n"
+                        . "Hello *{$booking->customer_name}*,\n\n"
+                        . "Your POS booking has been cancelled by *{$vendorName}*.\n\n"
+                        . "📋 *Booking Details:*\n"
+                        . "Invoice: #{$booking->invoice_number}\n"
+                        . "Status: ❌ *CANCELLED*\n\n"
+                        . "🏛️ *Hoardings:*\n" . implode("\n", array_map(fn($t) => "• {$t}", $hoardingTitles ?: ['N/A'])) . "\n\n"
+                        . ($normalizedReason !== '' ? "📝 *Reason:* {$normalizedReason}\n\n" : '')
+                        . "If you have any questions, please contact us.";
+
+                    $whatsapp = app(TwilioWhatsappService::class);
+                    $sent = $whatsapp->send($normalizedPhone, $message);
+
+                    Log::info('POS cancellation WhatsApp dispatched', [
+                        'booking_id' => $booking->id,
+                        'phone'      => $normalizedPhone,
+                        'sent'       => $sent,
+                    ]);
+                } else {
+                    Log::warning('POS cancellation WhatsApp skipped - invalid phone', [
+                        'booking_id' => $booking->id,
+                        'phone'      => $phone,
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('POS cancellation WhatsApp notification failed', [
+                'booking_id' => $booking->id,
+                'error'      => $e->getMessage(),
             ]);
         }
     }
+    // function ends here
 
     /* =========================================================
      *  MARK PAYMENT RECEIVED
@@ -942,7 +972,6 @@ class POSBookingService
                 'credit_note_number' => $booking->credit_note_number,
                 'reason'             => $reason,
             ]);
-
         } catch (\Throwable $e) {
             Log::warning('Credit note cancel: notification dispatch failed', [
                 'booking_id' => $booking->id,
