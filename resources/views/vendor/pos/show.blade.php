@@ -1347,15 +1347,25 @@ function hydrateReminderDraftsFromBooking(forceRefresh = false) {
         return;
     }
 
+
+    const now = new Date();
     const bookingReminders = Array.isArray(currentBooking?.scheduled_reminders) ? currentBooking.scheduled_reminders : [];
 
-    _reminderDrafts = bookingReminders.map((reminder, index) => ({
-        key: reminder.id ? `saved-${reminder.id}` : `draft-${Date.now()}-${index}`,
-        id: reminder.id ?? null,
-        scheduled_at: reminder.scheduled_at,
-        status: reminder.status || 'pending',
-        sent_at: reminder.sent_at || null,
-    }));
+    _reminderDrafts = bookingReminders
+        .filter(reminder => {
+            // Always show sent reminders
+            if (reminder.status === 'sent') return true;
+            // Only show scheduled/pending reminders if their scheduled_at is in the future
+            const scheduledAt = reminder.scheduled_at ? new Date(reminder.scheduled_at) : null;
+            return reminder.status !== 'sent' && scheduledAt && scheduledAt.getTime() >= now.getTime() - 60000; // 1 min grace
+        })
+        .map((reminder, index) => ({
+            key: reminder.id ? `saved-${reminder.id}` : `draft-${Date.now()}-${index}`,
+            id: reminder.id ?? null,
+            scheduled_at: reminder.scheduled_at,
+            status: reminder.status || 'pending',
+            sent_at: reminder.sent_at || null,
+        }));
 
     _reminderBasePendingSignature = getPendingReminderSignature(
         _reminderDrafts.filter(reminder => reminder.status === 'pending')
