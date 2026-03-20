@@ -5,7 +5,7 @@
 @section('content')
 <div class="mb-6 flex items-center justify-between gap-3 flex-wrap">
     <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Import Batch #{{ $batch->id }}</h1>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Imported Inventory #{{ $batch->id }}</h1>
         <p class="text-gray-600 mt-1">View rows, images, and manage each hoarding record</p>
     </div>
     <a href="{{ $isAdmin ? route('admin.import.enhanced') : route('vendor.import.enhanced') }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
@@ -22,7 +22,7 @@
 
 <div id="rowEditorSection" class="bg-white rounded-xl shadow mb-6 {{ $isApprovedBatch ? 'hidden' : '' }}">
     <div class="p-4 border-b border-gray-200 flex items-center justify-between gap-3 flex-wrap">
-        <h2 class="text-lg font-semibold text-gray-900">UploadSummary</h2>
+        <h2 class="text-lg font-semibold text-gray-900">Upload Summary</h2>
         @if(!$isAdmin)
             <button 
                 id="approveInventoryBtn"

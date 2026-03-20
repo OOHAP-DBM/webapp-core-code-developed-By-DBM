@@ -513,11 +513,14 @@ window.MilestoneModule = (function () {
     /* ── Grand total from parent page ────────────────────────────────── */
     function getTotal() {
         if (typeof window.getPosPricingBreakdown === 'function') {
-            return Math.round((window.getPosPricingBreakdown().grandTotal || 0) * 100) / 100;
+            // Round to whole number — no decimals in milestone display
+            return Math.round(window.getPosPricingBreakdown().grandTotal || 0);
         }
-        var el = $('side-grand-total');
-        if (el) return parseFloat(el.innerText.replace(/[^\d.]/g,'')) || 0;
-        return (typeof globalBaseAmount !== 'undefined') ? (globalBaseAmount || 0) : 0;
+        var base     = (typeof globalBaseAmount !== 'undefined') ? (globalBaseAmount || 0) : 0;
+        var discount = parseFloat(document.getElementById('pos-discount')?.value || 0);
+        var gstRate  = typeof window.POS_GST_RATE === 'number' ? window.POS_GST_RATE : 18;
+        var taxable  = Math.max(0, base - Math.min(Math.max(0, discount), base));
+        return Math.round(taxable + taxable * (gstRate / 100));
     }
 
     function rows() {
@@ -576,6 +579,14 @@ window.MilestoneModule = (function () {
         $('ms-toggle-btn').classList.toggle('ms-on', _enabled);
         $('ms-toggle-btn').setAttribute('aria-checked', String(_enabled));
         $('ms-builder').classList.toggle('hidden', !_enabled);
+
+        // When disabling, clear all rows so validate() returns valid
+        if (!_enabled) {
+            document.getElementById('ms-rows-container').innerHTML = '';
+            _seq = 0;
+            updateVisibility();
+            recalculate();
+        }
     }
 
     /* ── Amount type ─────────────────────────────────────────────────── */
@@ -645,7 +656,7 @@ window.MilestoneModule = (function () {
     }
 
     /* ── Recalculate allocation bar ──────────────────────────────────── */
-    function recalculate() {
+   function recalculate() {
         var total = getTotal();
         var sum   = 0;
 
@@ -654,12 +665,17 @@ window.MilestoneModule = (function () {
             sum += val;
             var comp = row.querySelector('.ms-computed');
             if (comp) {
-                if (_type==='percentage' && val>0 && total>0) {
-                    comp.textContent = '= ₹' + Math.round(total*val/100).toLocaleString('en-IN');
+                if (_type === 'percentage' && val > 0 && total > 0) {
+                    var computed = Math.round(total * val / 100);
+                    comp.textContent = '= ₹' + computed.toLocaleString('en-IN');
                     comp.classList.remove('hidden');
-                } else { comp.classList.add('hidden'); }
+                } else {
+                    comp.classList.add('hidden');
+                }
             }
         });
+
+        sum = Math.round(sum * 100) / 100;
 
         var bar  = $('ms-alloc-bar');
         var disp = $('ms-alloc-display');
@@ -667,29 +683,28 @@ window.MilestoneModule = (function () {
         if (!bar) return;
 
         var pct, barCls, msgTxt, msgCls;
-        if (_type==='percentage') {
-            pct  = Math.min(sum,100);
-            disp.textContent = sum.toFixed(1)+'%';
-            if (sum>100)                   { barCls='ms-over'; msgCls='text-red-600';   msgTxt='⚠ Over by '+(sum-100).toFixed(1)+'%'; }
-            else if (Math.abs(sum-100)<0.01){ barCls='ms-ok';   msgCls='text-green-700'; msgTxt='✓ Exactly 100% — ready'; }
-            else                           { barCls='ms-part'; msgCls='text-amber-700'; msgTxt=(100-sum).toFixed(1)+'% remaining'; }
+        if (_type === 'percentage') {
+            pct  = Math.min(sum, 100);
+            disp.textContent = sum.toFixed(0) + '%';
+            if (sum > 100)                       { barCls = 'ms-over'; msgCls = 'text-red-600';   msgTxt = '⚠ Over by ' + (sum - 100).toFixed(0) + '%'; }
+            else if (Math.abs(sum - 100) < 0.01) { barCls = 'ms-ok';   msgCls = 'text-green-700'; msgTxt = '✓ Exactly 100% — ready'; }
+            else                                 { barCls = 'ms-part'; msgCls = 'text-amber-700'; msgTxt = (100 - sum).toFixed(0) + '% remaining'; }
         } else {
-            pct  = total>0 ? Math.min((sum/total)*100,100) : 0;
-            disp.textContent = '₹'+sum.toLocaleString('en-IN');
-            var diff = total-sum;
-            if (sum>total+0.01)            { barCls='ms-over'; msgCls='text-red-600';   msgTxt='⚠ Over by ₹'+Math.abs(diff).toLocaleString('en-IN'); }
-            else if (Math.abs(diff)<0.01)  { barCls='ms-ok';   msgCls='text-green-700'; msgTxt='✓ Total matches — ready'; }
-            else                           { barCls='ms-part'; msgCls='text-amber-700'; msgTxt='₹'+diff.toLocaleString('en-IN')+' remaining'; }
+            pct  = total > 0 ? Math.min((sum / total) * 100, 100) : 0;
+            disp.textContent = '₹' + sum.toLocaleString('en-IN');
+            var diff = Math.round((total - sum) * 100) / 100;
+            if (sum > total + 0.01)           { barCls = 'ms-over'; msgCls = 'text-red-600';   msgTxt = '⚠ Over by ₹' + Math.abs(diff).toLocaleString('en-IN'); }
+            else if (Math.abs(diff) < 0.01)   { barCls = 'ms-ok';   msgCls = 'text-green-700'; msgTxt = '✓ Total matches — ready'; }
+            else                              { barCls = 'ms-part'; msgCls = 'text-amber-700'; msgTxt = '₹' + diff.toLocaleString('en-IN') + ' remaining'; }
         }
 
-        bar.style.width = pct+'%';
-        bar.className   = 'h-full rounded-r transition-all duration-300 '+barCls;
+        bar.style.width = pct + '%';
+        bar.className   = 'h-full rounded-r transition-all duration-300 ' + barCls;
         msg.textContent = msgTxt;
-        msg.className   = 'px-3 py-1 text-[10px] font-semibold '+msgCls;
+        msg.className   = 'px-3 py-1 text-[10px] font-semibold ' + msgCls;
         msg.classList.remove('hidden');
         updateDueDateMins();
     }
-
     /* ── Format ISO date → "12 Jan 2025" ────────────────────────────── */
     function fmtDate(iso) {
         if (!iso) return iso;
@@ -699,54 +714,55 @@ window.MilestoneModule = (function () {
     }
 
     /* ── Validate and build payload ──────────────────────────────────── */
-    function validate() {
-        if (!_enabled) return { enabled:false, valid:true, milestones:[] };
+   function validate() {
+        if (!_enabled) return { enabled: false, valid: true, milestones: [] };
+
+        var list = rows();
+
+        // Milestone was enabled but all rows removed — treat as disabled
+        if (list.length === 0) {
+            return { enabled: true, valid: true, milestones: [] };
+            // Return valid with empty milestones — backend will treat as non-milestone booking
+        }
 
         var total    = getTotal();
-        var list     = rows();
         var result   = [];
         var sumPct   = 0;
         var sumFixed = 0;
 
-        if (list.length === 0) {
-            return { enabled:true, valid:false,
-                     title:'No Milestones Added',
-                     error:'Please add at least one milestone before submitting the booking.' };
-        }
-
         for (var i = 0; i < list.length; i++) {
             var row    = list[i];
-            var desc   = (row.querySelector('.ms-desc').value||'').trim();
+            var desc   = (row.querySelector('.ms-desc').value || '').trim();
             var amount = parseFloat(row.querySelector('.ms-amount').value);
             var due    = row.querySelector('.ms-due-date').value;
-            var n      = i+1;
+            var n      = i + 1;
 
             if (!due) {
-                return { enabled:true, valid:false,
-                         title:'Missing Due Date',
-                         error:'Milestone '+n+' needs a due date. Please pick a date to continue.' };
+                return { enabled: true, valid: false,
+                        title: 'Missing Due Date',
+                        error: 'Milestone ' + n + ' needs a due date. Please pick a date to continue.' };
             }
 
             if (i > 0) {
-                var prevDue = list[i-1].querySelector('.ms-due-date').value;
+                var prevDue = list[i - 1].querySelector('.ms-due-date').value;
                 if (prevDue && due < prevDue) {
-                    return { enabled:true, valid:false,
-                             title:'Date Order Invalid',
-                             error:'Milestone '+n+' ('+fmtDate(due)+') cannot be earlier than Milestone '+i+' ('+fmtDate(prevDue)+'). Due dates must go forward in time.' };
+                    return { enabled: true, valid: false,
+                            title: 'Date Order Invalid',
+                            error: 'Milestone ' + n + ' (' + fmtDate(due) + ') cannot be earlier than Milestone ' + i + ' (' + fmtDate(prevDue) + '). Due dates must go forward in time.' };
                 }
             }
 
             if (!amount || amount <= 0) {
-                return { enabled:true, valid:false,
-                         title:'Missing Amount',
-                         error:'Milestone '+n+' has no amount set. Please enter a value greater than zero.' };
+                return { enabled: true, valid: false,
+                        title: 'Missing Amount',
+                        error: 'Milestone ' + n + ' has no amount set. Please enter a value greater than zero.' };
             }
 
-            if (_type==='percentage') sumPct  += amount;
-            else                       sumFixed += amount;
+            if (_type === 'percentage') sumPct  += amount;
+            else                        sumFixed += amount;
 
             result.push({
-                title:        desc || ('Milestone '+n),
+                title:        desc || ('Milestone ' + n),
                 description:  desc || null,
                 amount_type:  _type,
                 amount:       amount,
@@ -755,19 +771,19 @@ window.MilestoneModule = (function () {
             });
         }
 
-        if (_type==='percentage' && Math.abs(sumPct-100) > 0.01) {
-            return { enabled:true, valid:false,
-                     title:'Percentages Don\'t Add Up',
-                     error:'All milestone percentages must total exactly 100%. Your current total is '+sumPct.toFixed(1)+'%. Please adjust the values.' };
+        if (_type === 'percentage' && Math.abs(sumPct - 100) > 0.01) {
+            return { enabled: true, valid: false,
+                    title: 'Percentages Don\'t Add Up',
+                    error: 'All milestone percentages must total exactly 100%. Your current total is ' + sumPct.toFixed(1) + '%. Please adjust the values.' };
         }
 
-        if (_type==='fixed' && Math.abs(sumFixed-total) > 0.01) {
-            return { enabled:true, valid:false,
-                     title:'Amount Mismatch',
-                     error:'Milestone amounts must sum to the booking total of ₹'+total.toLocaleString('en-IN',{minimumFractionDigits:2})+'. Your current total is ₹'+sumFixed.toLocaleString('en-IN',{minimumFractionDigits:2})+'.' };
+        if (_type === 'fixed' && Math.abs(sumFixed - total) > 0.01) {
+            return { enabled: true, valid: false,
+                    title: 'Amount Mismatch',
+                    error: 'Milestone amounts must sum to the booking total of ₹' + total.toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '. Your current total is ₹' + sumFixed.toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '.' };
         }
 
-        return { enabled:true, valid:true, milestones:result };
+        return { enabled: true, valid: true, milestones: result };
     }
 
     /* ── Hook: Finalize Booking button ───────────────────────────────── */
