@@ -176,7 +176,7 @@
                         <button type="button"
                             class="w-full sm:w-auto border border-gray-300 bg-white px-3 py-1.5 text-gray-700 text-xs font-medium hover:bg-gray-100 transition rounded"
                             style="height:38px;" onclick="openFilterModal()">
-                            ⚙ Filters
+                            Advance Filters
                         </button>
                         @include('vendor.pos.filter_modal')
                     </div>
@@ -217,7 +217,7 @@
 
                     {{-- Hoardings Grid / List --}}
                     <div id="hoardings-grid"
-                        class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[calc(100vh-300px)] overflow-y-auto pr-1 custom-scrollbar">
+                        class="grid grid-cols-1 sm:grid-cols-4 gap-2 max-h-[calc(100vh-300px)] overflow-y-auto pr-1 custom-scrollbar">
                     </div>
 
                     {{-- Pagination --}}
@@ -705,12 +705,12 @@ function setViewMode(mode) {
 
     if (mode === 'grid') {
         grid.classList.remove('list-view', 'grid-cols-2');
-        grid.classList.add('grid-cols-1', 'sm:grid-cols-2');
+        grid.classList.add('grid-cols-1', 'sm:grid-cols-4');
         btnG.className = btnG.className.replace('bg-white text-gray-600','').trim() + ' bg-gray-800 text-white';
         btnL.className = btnL.className.replace('bg-gray-800 text-white','').trim() + ' bg-white text-gray-600';
     } else {
         grid.classList.add('list-view');
-        grid.classList.remove('grid-cols-1', 'sm:grid-cols-2', 'grid-cols-2');
+        grid.classList.remove('grid-cols-1', 'sm:grid-cols-4', 'grid-cols-2');
         btnL.className = btnL.className.replace('bg-white text-gray-600','').trim() + ' bg-gray-800 text-white';
         btnG.className = btnG.className.replace('bg-gray-800 text-white','').trim() + ' bg-white text-gray-600';
     }
@@ -937,7 +937,7 @@ function _buildCard(h) {
 
     // grid card
     return `
-    <div class="hoarding-card ${selCls} border rounded-lg overflow-hidden bg-white" onclick="toggleHoarding(${h.id})">
+    <div class="hoarding-card ${selCls} border border-gray-200   overflow-hidden bg-white" onclick="toggleHoarding(${h.id})">
         <div class="relative">
             <img src="${h.image_url||'/placeholder.png'}" class="w-full object-cover" style="height:72px;">
             ${checkBadge}${doohBadge}
