@@ -144,6 +144,16 @@ class POSReminderService
 
     public function sendImmediateReminder(POSBooking $booking, ?POSBookingReminder $scheduledReminder = null, ?int $actorId = null): array
     {
+        // Log entry to confirm this function is called and queue worker is running
+        \Log::info('[REMINDER] sendImmediateReminder called', [
+            'booking_id' => $booking->id,
+            'scheduled_reminder_id' => $scheduledReminder ? $scheduledReminder->id : null,
+            'actor_id' => $actorId,
+            'queue_connection' => config('queue.default'),
+            'queue_worker_pid' => getmypid(),
+            'env' => app()->environment(),
+            'timestamp' => now()->toDateTimeString(),
+        ]);
         $bookingError = $this->getBookingReminderError($booking);
         if ($bookingError !== null) {
             return [
