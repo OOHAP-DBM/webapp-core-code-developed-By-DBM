@@ -272,7 +272,7 @@
                     </div>
                     <div id="custom-time-wrapper" class="hidden mt-3">
                         <input type="time" id="reminder-custom-time"
-                               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
                                onchange="applyCustomTime(this.value)">
                     </div>
                     <p id="selected-time-display" class="hidden mt-2 text-sm font-semibold text-orange-500"></p>
@@ -1744,11 +1744,30 @@ function updateReminderActionButtons() {
     saveButton.disabled = !canSave;
     scheduleButton.disabled = !hasPending || hasUnsavedComposerState || !hasPendingChanges;
 
-    document.querySelectorAll('.day-btn, .time-btn').forEach(btn => {
-        btn.disabled = !canCompose;
-        btn.classList.toggle('opacity-50', !canCompose);
-        btn.classList.toggle('cursor-not-allowed', !canCompose);
-    });
+    // document.querySelectorAll('.day-btn, .time-btn').forEach(btn => {
+    //     btn.disabled = !canCompose;
+    //     btn.classList.toggle('opacity-50', !canCompose);
+    //     btn.classList.toggle('cursor-not-allowed', !canCompose);
+    // });
+
+    document.querySelectorAll('.day-btn').forEach(btn => {
+    btn.disabled = !canCompose;
+    btn.classList.toggle('opacity-50', !canCompose);
+    btn.classList.toggle('cursor-not-allowed', !canCompose);
+    if (!canCompose) {
+        btn.setAttribute('title', 'Maximum 3 reminders already scheduled');
+        btn.setAttribute('data-tooltip', 'Maximum 3 reminders already scheduled');
+    } else {
+        btn.removeAttribute('title');
+        btn.removeAttribute('data-tooltip');
+    }
+});
+
+document.querySelectorAll('.time-btn').forEach(btn => {
+    btn.disabled = !canCompose;
+    btn.classList.toggle('opacity-50', !canCompose);
+    btn.classList.toggle('cursor-not-allowed', !canCompose);
+});
 
     const customTimeToggleBtn = document.getElementById('custom-time-toggle-btn');
     const customDateInput = document.getElementById('reminder-custom-date');
