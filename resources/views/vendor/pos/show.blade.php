@@ -239,15 +239,15 @@
                     <p class="text-sm font-medium text-gray-700 mb-2">When?</p>
                     <div class="flex flex-wrap gap-2">
                         <button id="day-today" onclick="selectReminderDay('today')"
-                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium">
+                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium cursor-pointer">
                             Today
                         </button>
                         <button id="day-tomorrow" onclick="selectReminderDay('tomorrow')"
-                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium">
+                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium cursor-pointer">
                             Tomorrow
                         </button>
                         <button id="day-custom" onclick="selectReminderDay('custom')"
-                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium flex items-center gap-2">
+                                class="day-btn px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium flex items-center gap-2 cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
                             </svg>
@@ -256,7 +256,7 @@
                     </div>
                     <div id="custom-date-wrapper" class="hidden mt-3">
                         <input type="date" id="reminder-custom-date"
-                               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
                                onchange="handleCustomReminderDateChange(this.value)">
                     </div>
                 </div>
@@ -266,7 +266,7 @@
                     <div class="flex flex-wrap gap-2">
                         <div id="time-btn-group" class="contents"></div>
                         <button id="custom-time-toggle-btn" onclick="toggleCustomTimeInput()"
-                                class="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium">
+                                class="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium cursor-pointer">
                             Custom Time
                         </button>
                     </div>
@@ -306,7 +306,7 @@
             <p class="text-xs text-gray-500">Note: Reminder will automatically send to the customer as scheduled.</p>
 
             <button id="send-reminder-btn" onclick="confirmSendReminder()"
-                    class="w-full py-3 rounded-xl bg-green-500 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-green-600 disabled:bg-green-300 disabled:cursor-not-allowed"
+                    class="w-full py-3 rounded-xl bg-green-500 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-green-600 disabled:bg-green-300 disabled:cursor-not-allowed cursor-pointer"
                     disabled>
                 <span id="reminder-btn-text">Schedule Reminder</span>
                 <span id="reminder-spinner"
