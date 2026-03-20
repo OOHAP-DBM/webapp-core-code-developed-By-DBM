@@ -25,7 +25,13 @@ class HoardingStatusNotification extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['database', 'mail'];
+        $channels = ['database'];
+
+    // ✅ Global check + additional emails service handle karegi
+        if ($notifiable->notification_email) {
+            $channels[] = 'mail';
+        }
+        return $channels;
     }
 
     public function toMail($notifiable)

@@ -7,15 +7,13 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
-use Modules\Hoardings\Mail\VendorHoardingBulkStatusMail;
-use Illuminate\Support\Str; 
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Str;
 
 class HoardingBulkStatusNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public $hoardings;  // Collection
+    public $hoardings;
     public $action;
     public $adminName;
 
@@ -28,32 +26,25 @@ class HoardingBulkStatusNotification extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        // ✅ Sirf database - mail NotificationEmailService se jayegi
+        return ['database'];
     }
 
-    public function toMail($notifiable)
-    {
-        return new VendorHoardingBulkStatusMail(
-            $notifiable,
-            $this->hoardings,
-            $this->action,
-            $this->adminName
-        );
-    }
+    // ✅ toMail() hataya - service handle karegi
 
     public function toArray($notifiable): array
     {
-        $count      = $this->hoardings->count();
-        $action     = ucfirst($this->action);
-        $ids        = $this->hoardings->pluck('id')->toArray();
-        $baseUrl    = config('app.url');
+        $count   = $this->hoardings->count();
+        $action  = ucfirst($this->action);
+        $ids     = $this->hoardings->pluck('id')->toArray();
+        $baseUrl = config('app.url');
 
         return [
-            'message'     => "{$count} " . Str::plural('hoarding', $count) . " {$action} by {$this->adminName}",
+            'message'      => "{$count} " . Str::plural('hoarding', $count) . " {$action} by {$this->adminName}",
             'hoarding_ids' => $ids,
-            'action'      => $this->action,
-            'action_url'  => rtrim($baseUrl, '/') . route('vendor.hoardings.myHoardings', [], false),
-            'count'       => $count,
+            'action'       => $this->action,
+            'action_url'   => rtrim($baseUrl, '/') . route('vendor.hoardings.myHoardings', [], false),
+            'count'        => $count,
         ];
     }
 }
