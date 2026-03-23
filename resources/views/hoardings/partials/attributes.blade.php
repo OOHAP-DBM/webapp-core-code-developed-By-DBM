@@ -1,19 +1,3 @@
-<div class="max-w-7xl mx-auto px-4 py-6 border-t border-gray-200">
-
-    <h3 class="text-base font-semibold mb-4">Hoarding Attributes</h3>
-
-    {{-- Visible From --}}
-    <!-- <div class="mb-5">
-        <p class="text-sm font-medium mb-2">Visible from</p>
-        <div class="flex flex-wrap gap-2">
-            @foreach(($hoarding->visible_from ?? []) as $item)
-                <span class="px-3 py-1 text-sm border border-gray-300 rounded text-gray-700 bg-white">
-                    {{ $item }}
-                </span>
-            @endforeach
-        </div>
-    </div> -->
-
 @php
     $locatedAt = $hoarding->located_at;
     if (is_string($locatedAt)) {
@@ -25,7 +9,8 @@
 @endphp
 
 @if($hasLocatedAt || $hasVisibility || $hasVisibilityDetails)
-<div class="max-w-7xl mx-auto px-4 py-6 border-t border-gray-200">
+<div class="max-w-7xl mx-auto px-4 pt-6  border-t border-gray-200">
+
     <h3 class="text-base font-semibold mb-4">Hoarding Attributes</h3>
 
     {{-- Located At --}}
@@ -41,13 +26,11 @@
 
     {{-- Hoarding Visibility --}}
     @if($hasVisibility || $hasVisibilityDetails)
-    <div class="mb-5">
+    <div class="">
         <p class="text-sm font-medium mb-2">Hoarding Visibility</p>
-
         <p class="text-sm text-gray-700 mb-2">
             {{ ucfirst(str_replace('_', ' ', $hoarding->hoarding_visibility ?? '—')) }}
         </p>
-
         @if($hasVisibilityDetails)
             <div class="flex flex-wrap gap-2">
                 @foreach($hoarding->visibility_details as $detail)
@@ -59,10 +42,6 @@
         @endif
     </div>
     @endif
-</div>
 
-{{-- <hr class="my-6 border-gray-200"> --}}
+</div>
 @endif
-
-
-</div>
