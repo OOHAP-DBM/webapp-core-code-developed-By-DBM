@@ -21,14 +21,14 @@
         sort($pages);
     @endphp
 
-    <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}" class="overflow-x-auto">
-        <div class="inline-flex items-center gap-3 whitespace-nowrap text-sm font-medium select-none">
+    <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}" class="w-full flex justify-end">
+        <div class="inline-flex items-center gap-1 sm:gap-3 whitespace-nowrap text-sm font-medium select-none flex-wrap justify-end">
             @if ($paginator->onFirstPage())
                 <span
                     aria-hidden="true"
-                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed"
+                    class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed"
                 >
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </span>
@@ -37,9 +37,9 @@
                     href="{{ $paginator->previousPageUrl() }}"
                     rel="prev"
                     aria-label="{{ __('Previous page') }}"
-                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                    class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
                 >
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </a>
@@ -49,16 +49,16 @@
 
             @foreach ($pages as $page)
                 @if (!is_null($previousPage) && $page - $previousPage > 1)
-                    <span class="text-gray-400">...</span>
+                    <span class="text-gray-400 text-xs sm:text-sm">...</span>
                 @endif
 
                 @if ($page === $currentPage)
-                    <span aria-current="page" class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md bg-[#00A86B] text-white">{{ $page }}</span>
+                    <span aria-current="page" class="h-6 min-w-[28px] sm:min-w-[36px] px-1.5 sm:px-2 text-xs sm:text-sm inline-flex items-center justify-center rounded-md bg-[#00A86B] text-white">{{ $page }}</span>
                 @else
                     <a
                         href="{{ $paginator->url($page) }}"
                         aria-label="{{ __('Go to page :page', ['page' => $page]) }}"
-                        class="h-6 min-w-[36px] px-2 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                        class="h-6 min-w-[28px] sm:min-w-[36px] px-1.5 sm:px-2 text-xs sm:text-sm inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
                     >
                         {{ $page }}
                     </a>
@@ -72,18 +72,18 @@
                     href="{{ $paginator->nextPageUrl() }}"
                     rel="next"
                     aria-label="{{ __('Next page') }}"
-                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
+                    class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-md text-gray-700 hover:text-gray-900"
                 >
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </a>
             @else
                 <span
                     aria-hidden="true"
-                    class="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed"
+                    class="h-8 w-8 sm:h-9 sm:w-9 inline-flex items-center justify-center rounded-md text-gray-400 cursor-not-allowed"
                 >
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </span>

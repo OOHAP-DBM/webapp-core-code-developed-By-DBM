@@ -150,7 +150,7 @@
              RIGHT PANEL — Available Hoardings
         ══════════════════════════════════════════ --}}
         <div class="order-1 sm:order-2 sm:col-span-2 lg:col-span-4">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200" style="position: sticky; top: 1.5rem;">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200" style="position: sticky;">
 
                 <div class="px-3 sm:px-4 lg:px-5 pt-4 sm:pt-5 flex items-center gap-3">
                     <h3 class="font-bold text-gray-800 text-sm">Select Hoardings for Booking</h3>

@@ -151,7 +151,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     {{-- ================= TOP FILTER BAR ================= --}}
-    <div class="bg-white border-b border-[#d0d4db] sticky top-[140px] md:top-[64px] z-40">
+    <div class="bg-white border-b border-gray-200 sticky top-[140px] md:top-[64px] z-40">
         <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between text-sm text-gray-700">
             {{-- LEFT CONTROLS --}}
             <div class="flex items-center gap-6">
