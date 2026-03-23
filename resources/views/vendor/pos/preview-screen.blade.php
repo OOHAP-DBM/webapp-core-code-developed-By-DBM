@@ -25,7 +25,7 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto sm:overflow-visible">
                 <table class="w-full min-w-[760px] text-left">
                     <thead class="bg-gray-50 text-[10px] uppercase text-gray-400 font-bold">
                         <tr>
@@ -252,8 +252,10 @@
 </div>
 
 {{-- Booking Confirmed Modal with Timer --}}
-<div id="booking-confirmed-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+<div id="booking-confirmed-modal" class="fixed inset-0 z-50 hidden 
+            items-end sm:items-center 
+            justify-center p-4">
+    <div id="modal-content" class=" modal-content absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl w-[94vw] sm:w-full max-w-md mx-3 sm:mx-4 overflow-hidden max-h-[92vh] overflow-y-auto">
         <div class="bg-[#2D5A43] px-6 py-5 text-white">
             <div class="flex items-center gap-3 mb-1">
@@ -268,9 +270,11 @@
         <div class="p-6 space-y-4">
 
             {{-- Timer (hidden for credit note) --}}
-            <div id="payment-timer-block" class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+            <div id="payment-timer-block" 
+                   class="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4 text-center">
                 <p class="text-[11px] text-amber-600 font-bold uppercase tracking-wider mb-1">Payment Due In</p>
-                <div id="countdown-display" class="text-3xl font-black text-amber-700 tracking-widest font-mono">--:--:--</div>
+                <div id="countdown-display" 
+                      class="text-2xl sm:text-3xl md:text-4xl font-black text-amber-700 tracking-wider sm:tracking-widest font-mono break-all">--:--:--</div>
                 <div class="mt-2 h-2 bg-amber-100 rounded-full overflow-hidden">
                     <div id="countdown-bar" class="h-full bg-amber-500 rounded-full transition-all duration-1000" style="width:100%"></div>
                 </div>
@@ -714,7 +718,9 @@ function startCountdown(expiresAt) {
 }
 
 function closeConfirmedModal() {
-    document.getElementById('booking-confirmed-modal').classList.add('hidden');
+    const modal = document.getElementById('booking-confirmed-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex'); // 🔥 VERY IMPORTANT
     if (countdownInterval) clearInterval(countdownInterval);
 }
 
@@ -767,6 +773,7 @@ function showBookingConfirmedModal(booking) {
     }
 
     modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
 
 /* ── Preview screen population ── */
