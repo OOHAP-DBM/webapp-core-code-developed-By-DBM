@@ -498,4 +498,21 @@ class HoardingAvailabilityService
                 return $rec;
             });
     }
+    public function filterAvailableIds(array $hoardingIds, string $from, string $to): array
+    {
+        $available = [];
+
+        foreach ($hoardingIds as $id) {
+            $calendar = $this->getAvailabilityCalendar($id, $from, $to, false);
+
+            $allAvailable = collect($calendar['calendar'])
+                ->every(fn($day) => $day['status'] === 'available');
+
+            if ($allAvailable) {
+                $available[] = $id;
+            }
+        }
+
+        return $available;
+    }
 }
