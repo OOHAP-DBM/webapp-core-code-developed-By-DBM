@@ -127,6 +127,7 @@ class ImportApprovalService
             // Send notifications if approval was successful
             if ($wasApproved) {
                 // Notify all admins ONCE for the batch
+                $autoApproval = \App\Models\Setting::get('auto_hoarding_approval', false);
                 $admins = \App\Models\User::whereIn('active_role', ['admin', 'superadmin'])->get();
                 foreach ($admins as $admin) {
                     $admin->notify(
@@ -146,7 +147,9 @@ class ImportApprovalService
                             $batch,
                             $createdCount,
                             $failedCount,
-                            $createdHoardingIds 
+                            $createdHoardingIds,
+                            $autoApproval // ✅ ADD THIS
+
                         )
                     );
                 }

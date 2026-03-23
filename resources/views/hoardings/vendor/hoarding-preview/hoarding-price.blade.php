@@ -7,7 +7,7 @@
     <!-- ================= MONTHLY ================= -->
     <div class="mb-6">
         <h4 class="text-sm font-semibold text-emerald-600 mb-3">
-            Rental Offering
+           Monthly Rental Offering
         </h4>
 
         <div class="grid grid-cols-3 gap-4 text-sm mb-4">
@@ -65,19 +65,19 @@
     <!-- ================= WEEKLY ================= -->
     <div class="mb-6 pt-4 border-t border-gray-300">
         <h4 class="text-sm font-semibold text-emerald-600 mb-3">
-            Rental Offering
+            Weekly Rental Offering
         </h4>
 
         <div class="grid grid-cols-3 gap-4 text-sm mb-4">
             <span class="text-gray-500">Base Weekly Price</span>
             <span class="col-span-2 font-medium text-gray-900">
-                ₹ {{ number_format($hoarding->base_weekly_price ?? ($hoarding->doohScreen->base_weekly_price ?? 0)) }}
+                {{ formatWeeklyPrice($hoarding) }}
             </span>
 
-            <span class="text-gray-500">Offering Discount on Base Weekly Price</span>
+            <!-- <span class="text-gray-500">Offering Discount on Base Weekly Price</span>
             <span class="col-span-2 font-medium text-gray-900">
-                Offered Weekly Price ₹ {{ number_format($hoarding->weekly_price ?? ($hoarding->doohScreen->weekly_price ?? 0)) }}
-            </span>
+                Offered Weekly Price ₹ {{ number_format($hoarding->weekly_price_1 ?? ($hoarding->doohScreen->weekly_price ?? 0)) }}
+            </span> -->
         </div>
 
         <h5 class="text-sm font-semibold text-emerald-600 mb-2">

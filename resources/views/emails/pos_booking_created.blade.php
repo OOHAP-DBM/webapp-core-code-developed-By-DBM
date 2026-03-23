@@ -22,6 +22,7 @@
         $recipientType = $recipientType ?? 'customer';
         $isVendorRecipient = $recipientType === 'vendor';
         $isAdminRecipient = $recipientType === 'admin';
+        $paymentMode = $booking->payment_mode ?? null;
     @endphp
     <h2 style="margin:0; color:#16a34a; font-weight:600;">
         @if($isVendorRecipient)
@@ -182,18 +183,21 @@
     </td>
 </tr>
 
-<tr>
-    <td style="padding:10px; font-size:13px;"><strong>Pay Before</strong></td>
-    <td style="padding:10px; font-size:13px;">
-        @if(!empty($booking->hold_expiry_at))
-            {{ \Carbon\Carbon::parse($booking->hold_expiry_at)->format('d M Y, h:i A') }}
-        @elseif(!empty($booking->hold_minutes))
-            Within {{ (int) $booking->hold_minutes }} minute(s) from booking time
-        @else
-            As per platform payment timeline
-        @endif
-    </td>
-</tr>
+
+@if($paymentMode !== 'credit_note')
+    <tr>
+        <td style="padding:10px; font-size:13px;"><strong>Pay Before</strong></td>
+        <td style="padding:10px; font-size:13px;">
+            @if(!empty($booking->hold_expiry_at))
+                {{ \Carbon\Carbon::parse($booking->hold_expiry_at)->format('d M Y, h:i A') }}
+            @elseif(!empty($booking->hold_minutes))
+                Within {{ (int) $booking->hold_minutes }} minute(s) from booking time
+            @else
+                As per platform payment timeline
+            @endif
+        </td>
+    </tr>
+@endif
 </table>
 </td>
 </tr>
@@ -274,13 +278,16 @@
 <!-- NEXT STEPS -->
 <tr>
 <td style="padding:10px 40px; font-size:14px; color:#444; line-height:22px;">
-    @if(!$isAdminRecipient)
-        <p style="margin:0 0 10px 0; padding:10px 12px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:6px;">
-            <strong>Important:</strong>
-            If payment is not completed within the payment time,
-            this booking will be cancelled automatically.
-        </p>
+    @if($paymentMode !== 'credit_note')
+        @if(!$isAdminRecipient)
+            <p style="margin:0 0 10px 0; padding:10px 12px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:6px;">
+                <strong>Important:</strong>
+                If payment is not completed within the payment time,
+                this booking will be cancelled automatically.
+            </p>
+        @endif
     @endif
+
 
     <p><strong>What happens next?</strong></p>
     @if($isVendorRecipient)

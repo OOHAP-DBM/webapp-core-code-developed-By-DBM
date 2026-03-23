@@ -183,8 +183,18 @@
             const data = await response.json();
             if (!data?.success || !Array.isArray(data.data)) return;
 
+            const validStatuses = ['unpaid', 'partial'];
+
             const pendingTimers = data.data
-                .filter((booking) => ['unpaid', 'partial'].includes(booking.payment_status) && booking.hold_expiry_at)
+                .filter((booking) => {
+                    // ❌ REMOVE cancelled / failed / completed bookings
+                    if (['cancelled', 'expired', 'failed', 'paid'].includes(booking.status)) {
+                        removeTimer(booking.id); // 🔥 IMPORTANT
+                        return false;
+                    }
+
+                    return validStatuses.includes(booking.payment_status) && booking.hold_expiry_at;
+                })
                 .map((booking) => ({
                     id: booking.id,
                     invoice_number: booking.invoice_number ?? booking.id,

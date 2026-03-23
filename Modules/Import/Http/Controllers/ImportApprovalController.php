@@ -64,7 +64,7 @@ class ImportApprovalController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $result['message'] ?? 'Import approved and hoardings created successfully',
+                'message' => $result['message'] ?? 'Import approved and hoardings created successfully. Now your hoarding is live on OOHAPP.',
                 'data' => [
                     'batch_id' => $batch->id,
                     'created_count' => $result['created_count'],

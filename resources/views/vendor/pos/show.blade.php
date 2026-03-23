@@ -8,18 +8,21 @@
     <div class="bg-white rounded-xl shadow">
 
         {{-- Header --}}
-        <div class="px-4 sm:px-6 py-4 bg-primary text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+       <div class="px-4 sm:px-6 py-4 bg-primary text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    
             <h4 class="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
-                 POS Booking Details
+                POS Booking Details
             </h4>
+
             <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
-               class="w-full sm:w-auto text-center text-sm bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg">
+            class="hidden lg:inline-block text-sm bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg">
                 ← Back
             </a>
+
         </div>
 
         {{-- Body --}}
-        <div class="p-4 sm:p-6 space-y-6">
+        <div class="py-2 md:py-4 px-4 sm:p-6 space-y-6">
 
             <!-- Booking Summary -->
             <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -1003,50 +1006,94 @@ function wireSeparateCancelBookingButton() {
     }
 }
 
-async function confirmCancelBooking() {
-    const reasonInput = document.getElementById('cancel-booking-reason');
-    const reason = (reasonInput?.value || '').trim() || 'Cancelled by vendor';
-    const confirmBtn = document.getElementById('cancel-booking-confirm-btn');
+// async function confirmCancelBooking() {
+//     const reasonInput = document.getElementById('cancel-booking-reason');
+//     const reason = (reasonInput?.value || '').trim() || 'Cancelled by vendor';
+//     const confirmBtn = document.getElementById('cancel-booking-confirm-btn');
 
-    document.getElementById('cancel-booking-btn-text').classList.add('hidden');
-    document.getElementById('cancel-booking-spinner').classList.remove('hidden');
-    if (confirmBtn) confirmBtn.disabled = true;
+//     document.getElementById('cancel-booking-btn-text').classList.add('hidden');
+//     document.getElementById('cancel-booking-spinner').classList.remove('hidden');
+//     if (confirmBtn) confirmBtn.disabled = true;
+
+//     try {
+//         const response = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
+//             method: 'POST',
+//             headers: {
+//                 'Accept': 'application/json',
+//                 'Content-Type': 'application/json',
+//                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
+//             },
+//             credentials: 'same-origin',
+//             body: JSON.stringify({ reason })
+//         });
+
+//         if (response.ok) {
+//             showActionMessage('✅ Booking cancelled successfully!', 'success');
+//             closeCancelBookingModal();
+//             setTimeout(() => loadBookingDetails(), 1500);
+//         } else if (response.status === 400 || response.status === 422) {
+//             const error = await response.json();
+//             showActionMessage(error.message || 'Cannot cancel booking', 'error');
+//         } else if (response.status === 404) {
+//             showActionMessage('Booking not found', 'error');
+//         } else {
+//             const error = await response.json();
+//             showActionMessage(error.message || 'Error cancelling booking', 'error');
+//         }
+//     } catch (error) {
+//         console.error('Error:', error);
+//         showActionMessage('Network error. Please try again.', 'error');
+//     } finally {
+//         document.getElementById('cancel-booking-btn-text').classList.remove('hidden');
+//         document.getElementById('cancel-booking-spinner').classList.add('hidden');
+//         if (confirmBtn) confirmBtn.disabled = false;
+//     }
+// }
+
+
+async function confirmCancelBooking() {
+    const reason = document.getElementById('cancel-booking-reason').value;
+
+    const btn = document.getElementById('cancel-booking-confirm-btn');
+    const spinner = document.getElementById('cancel-booking-spinner');
+    const text = document.getElementById('cancel-booking-btn-text');
+
+    btn.disabled = true;
+    spinner.classList.remove('hidden');
+    text.textContent = 'Cancelling...';
 
     try {
-        const response = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
+       const response = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
             method: 'POST',
             headers: {
-                'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            credentials: 'same-origin',
             body: JSON.stringify({ reason })
         });
 
-        if (response.ok) {
-            showActionMessage('✅ Booking cancelled successfully!', 'success');
+        const data = await response.json();
+
+        if (data.success) {
+
+            // 🔥🔥 THIS IS THE MAIN FIX
+            window.removePosTimerBooking(bookingId);
+
             closeCancelBookingModal();
-            setTimeout(() => loadBookingDetails(), 1500);
-        } else if (response.status === 400 || response.status === 422) {
-            const error = await response.json();
-            showActionMessage(error.message || 'Cannot cancel booking', 'error');
-        } else if (response.status === 404) {
-            showActionMessage('Booking not found', 'error');
+            loadBookingDetails(); // refresh UI
+
         } else {
-            const error = await response.json();
-            showActionMessage(error.message || 'Error cancelling booking', 'error');
+            alert(data.message || 'Cancel failed');
         }
-    } catch (error) {
-        console.error('Error:', error);
-        showActionMessage('Network error. Please try again.', 'error');
+
+    } catch (e) {
+        alert('Something went wrong');
     } finally {
-        document.getElementById('cancel-booking-btn-text').classList.remove('hidden');
-        document.getElementById('cancel-booking-spinner').classList.add('hidden');
-        if (confirmBtn) confirmBtn.disabled = false;
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        text.textContent = 'Cancel Booking';
     }
 }
-
 /**
  * Confirm and submit mark as paid
  */

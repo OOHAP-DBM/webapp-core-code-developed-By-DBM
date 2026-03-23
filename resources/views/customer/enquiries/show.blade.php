@@ -222,7 +222,7 @@
             </h3>
             <button
                 @click="openBottom = !openBottom"
-                class="self-start sm:self-auto flex items-center cursor-pointer gap-1 text-xs bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
+                class="self-start sm:self-auto flex items-center cursor-pointer gap-1 mb-3 text-xs bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
             >
                 <span x-text="openBottom ? 'Collapse' : 'Expand'"></span>
                 <svg

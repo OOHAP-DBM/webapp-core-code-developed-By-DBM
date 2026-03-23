@@ -621,9 +621,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return;
     }
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 /* ===== DOOH FIELD AUTO SYNC (NO CONFLICT, NO DELAY) ===== */
 (function () {

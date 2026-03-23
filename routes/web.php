@@ -1362,6 +1362,6 @@ Route::get('/twilio-test', function () {
 
 
 // To download invoice PDFs for authenticated users 
-Route::middleware(['auth'])->prefix('invoices')->name('invoices.')->group(function () {
+Route::middleware(['auth', 'role:customer|admin|vendor'])->prefix('invoices')->name('invoices.')->group(function () {
     Route::get('/{invoice}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('download');
 });

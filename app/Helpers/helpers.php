@@ -346,3 +346,16 @@ if (!function_exists('resolveBookingActionText')) {
         };
     }
 }
+
+if (!function_exists('formatWeeklyPrice')) {
+
+    function formatWeeklyPrice($hoarding): string
+    {
+        $price = $hoarding->weekly_price_1 
+            ?? ($hoarding->doohScreen->base_weekly_price ?? 0);
+
+        return $price > 0 
+            ? '₹ ' . number_format($price) 
+            : 'Not Provided';
+    }
+}

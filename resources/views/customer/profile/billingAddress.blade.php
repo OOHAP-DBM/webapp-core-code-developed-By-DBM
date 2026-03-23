@@ -212,7 +212,7 @@
                     <button
                         type="submit"
                         class="px-24 py-2.5 rounded-md text-sm font-semibold
-                            bg-gray-200 text-gray-800 cursor-pointer hover:bg-gray-300"
+                            btn-color text-gray-800 cursor-pointer"
                     >
                         Save
                     </button>

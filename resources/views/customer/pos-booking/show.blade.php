@@ -127,7 +127,8 @@
                         <div>Balance: <strong class="text-red-600">₹{{ number_format($booking->total_amount - $booking->paid_amount, 2) }}</strong></div>
                         <div>Payment Status: <strong>{{ ucfirst($booking->payment_status) }}</strong></div>
                         <div>Payment Method: <strong>{{ ucfirst(str_replace('_', ' ', $booking->payment_mode)) }}</strong></div>
-                        <a href="{{ route('invoices.download', $booking->id) }}" target="_blank">
+
+                    <a href="{{ url("invoices/{$booking->id}/download") }}" target="_blank" rel="noopener noreferrer">
                             <div class="flex items-center gap-2 flex-wrap mt-1">
                                 <span>Invoice Number:</span>
                                 <strong class="flex items-center gap-1 cursor-pointer">
