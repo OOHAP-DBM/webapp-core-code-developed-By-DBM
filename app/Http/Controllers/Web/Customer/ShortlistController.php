@@ -26,6 +26,10 @@ class ShortlistController extends Controller
     {
         $cartIds = app(CartService::class)->getCartHoardingIds();
 
+        // Availability service
+        $availabilityService = app(\Modules\Hoardings\Services\HoardingAvailabilityService::class);
+        $today = now()->toDateString();
+
         if (auth()->check()) {
             // ─── Logged in user ───────────────────────────────────
             $wishlistCount = auth()->user()->wishlist()->count();
@@ -38,6 +42,23 @@ class ShortlistController extends Controller
                 ->with('hoarding')
                 ->latest()
                 ->paginate(12);
+
+            // Add availability info to each hoarding
+            $wishlist->getCollection()->transform(function ($item) use ($availabilityService, $today) {
+                $hoarding = $item->hoarding;
+                if ($hoarding) {
+                    $calendar = $availabilityService->getAvailabilityCalendar($hoarding->id, $today, $today);
+                    $todayStatus = $calendar['calendar'][0]['status'] ?? 'unknown';
+                    $hoarding->today_availability_status = $todayStatus;
+                    if ($todayStatus !== 'available') {
+                        $next = $availabilityService->getNextAvailableDates($hoarding->id, 1, $today);
+                        $hoarding->next_available_date = $next['dates'][0]['date'] ?? null;
+                    } else {
+                        $hoarding->next_available_date = null;
+                    }
+                }
+                return $item;
+            });
 
         } else {
             $ids           = array_filter(array_map('intval', explode(',', $request->query('ids', ''))));
@@ -53,7 +74,17 @@ class ShortlistController extends Controller
 
                 // Blade $item->hoarding expect karta hai
                 // Isliye fake wrapper objects banao
-                $allItems = $query->get()->map(function ($hoarding) {
+                $allItems = $query->get()->map(function ($hoarding) use ($availabilityService, $today) {
+                    // Add availability info
+                    $calendar = $availabilityService->getAvailabilityCalendar($hoarding->id, $today, $today);
+                    $todayStatus = $calendar['calendar'][0]['status'] ?? 'unknown';
+                    $hoarding->today_availability_status = $todayStatus;
+                    if ($todayStatus !== 'available') {
+                        $next = $availabilityService->getNextAvailableDates($hoarding->id, 1, $today);
+                        $hoarding->next_available_date = $next['dates'][0]['date'] ?? null;
+                    } else {
+                        $hoarding->next_available_date = null;
+                    }
                     return (object) ['hoarding' => $hoarding];
                 });
 
