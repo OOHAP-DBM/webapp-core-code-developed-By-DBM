@@ -318,7 +318,7 @@ function openWishlist(event) {
         if (saved.length === 0) {
             Swal.fire({
                 toast: true, position: 'top-end', icon: 'info',
-                title: 'Wishlist empty hai', showConfirmButton: false, timer: 1800
+                title: 'Wishlist is empty', showConfirmButton: false, timer: 1800
             });
             return;
         }
@@ -339,7 +339,7 @@ function openCart(event) {
         if (saved.length === 0) {
             Swal.fire({
                 toast: true, position: 'top-end', icon: 'info',
-                title: 'Cart empty hai', showConfirmButton: false, timer: 1800
+                title: 'Cart is empty', showConfirmButton: false, timer: 1800
             });
             return;
         }

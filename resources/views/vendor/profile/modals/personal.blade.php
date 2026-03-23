@@ -95,6 +95,32 @@
                 const file = input.files[0];
                 const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
                 if (!allowedTypes.includes(file.type)) return;
+
+                // Size validation (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    if (window.Swal) {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: 'Image size must be less than 2 MB',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                        });
+                    } else {
+                        alert('Image size must be less than 2 MB');
+                    }
+                    input.value = '';
+                    // Optionally reset preview and filename
+                    const wrapper = document.getElementById('avatarWrapper');
+                    const placeholder = document.getElementById('avatarPlaceholder');
+                    if (wrapper) wrapper.style.display = 'none';
+                    if (placeholder) placeholder.style.display = 'flex';
+                    if (typeof Alpine !== 'undefined') Alpine.store('fileName', '');
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const wrapper     = document.getElementById('avatarWrapper');

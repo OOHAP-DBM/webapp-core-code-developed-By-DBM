@@ -684,11 +684,14 @@
         const mediaType = mediaTypeElement.value;
 
         // WITH THIS:
-        if (window.Swal) {
+       if (window.Swal) {
             const result = await Swal.fire({
                 html: `
                     <div style="text-align:center; padding: 0 4px;">
-                        <button onclick="document.querySelector('.swal2-cancel').click()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;line-height:1;">&#x2715;</button>
+                        <div style="position:absolute;top:0;left:0;right:0;background:#f3f4f6;border-radius:12px 12px 0 0;padding:12px 16px;display:flex;justify-content:flex-end;">
+                            <button onclick="document.querySelector('.swal2-cancel').click()" style="background:none;border:none;font-size:20px;color:#374151;cursor:pointer;line-height:1;padding:0;">&#x2715;</button>
+                        </div>
+                        <div style="height:48px;"></div>
                         <h2 style="font-size:1.25rem;font-weight:700;color:#111827;margin-bottom:8px;">Inventory Files verification Required</h2>
                         <p style="font-size:0.875rem;color:#6b7280;margin-bottom:18px;line-height:1.5;">You are about to upload inventory files<br>for the selected hoarding type</p>
                         <p style="font-size:0.875rem;color:#b45309;font-weight:500;margin-bottom:18px;line-height:1.6;">Please ensure that the Excel &amp; Powerpoint file correspond to the same hoarding type selected above</p>
