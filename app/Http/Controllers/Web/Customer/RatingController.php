@@ -12,43 +12,37 @@ class RatingController extends Controller
 
     public function store(Request $request)
     {
-
         $request->validate([
             'hoarding_id' => 'required|exists:hoardings,id',
-            'rating' => 'required|integer|min:1|max:5',
-            'review' => 'nullable|string|max:4000'
+            'rating'      => 'required|integer|min:1|max:5',
+            'review'      => 'nullable|string|max:4000'
         ]);
 
-        $userId = Auth::id();
+        $userId     = Auth::id();
         $hoardingId = $request->hoarding_id;
 
-        $rating = Rating::where('user_id',$userId)
-                        ->where('hoarding_id',$hoardingId)
-                        ->first();
-
-        if($rating){
-            $rating->update([
-                'rating' => $request->rating,
-                'review' => $request->review
-            ]);
-        }else{
-            Rating::create([
-                'user_id' => $userId,
-                'hoarding_id' => $hoardingId,
-                'rating' => $request->rating,
-                'review' => $request->review
-            ]);
-        }
+        // Hamesha naya record create hoga, purana kabhi update nahi hoga
+        Rating::create([
+            'user_id'    => $userId,
+            'hoarding_id'=> $hoardingId,
+            'rating'     => $request->rating,
+            'review'     => $request->review
+        ]);
 
         // Notify vendor
         $hoarding = \App\Models\Hoarding::find($hoardingId);
         if ($hoarding && $hoarding->vendor) {
-            $vendor = $hoarding->vendor;
+            $vendor   = $hoarding->vendor;
             $customer = Auth::user();
-            $vendor->notify(new \App\Notifications\VendorHoardingRatedNotification($hoarding, $request->rating, $request->review, $customer));
+            $vendor->notify(new \App\Notifications\VendorHoardingRatedNotification(
+                $hoarding,
+                $request->rating,
+                $request->review,
+                $customer
+            ));
         }
 
-        return back()->with('success','Thanks For Rating.');
+        return back()->with('success', 'Thanks For Rating.');
     }
 
 }
