@@ -682,7 +682,8 @@ class VendorPosController extends Controller
                 $startDate = $request->get('start_date');
                 $endDate   = $request->get('end_date');
 
-                $query->whereDoesntHave('bookings', function ($q) use ($startDate, $endDate) {
+                $query->where('base_monthly_price', '>', 0)
+                ->whereDoesntHave('bookings', function ($q) use ($startDate, $endDate) {
                     $q->where(function ($inner) use ($startDate, $endDate) {
                         $inner->whereBetween('start_date', [$startDate, $endDate])
                             ->orWhereBetween('end_date', [$startDate, $endDate])
