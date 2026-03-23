@@ -9,9 +9,12 @@
             <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Inventory Details</h1>
             <p class="text-gray-600 text-sm mt-1">View rows, images, and manage each hoarding record</p>
         </div>
-        <a href="{{ $isAdmin ? route('admin.import.enhanced') : route('vendor.import.enhanced') }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+         <a href="{{ $isAdmin ? route('admin.import.enhanced') : route('vendor.import.enhanced') }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
             Back to Import List
         </a>
+        <!-- <a href="{{ $isAdmin ? route('admin.import.enhanced') : route('vendor.import.enhanced') }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+            Back to Import List
+        </a> -->
     </div>
 
     <div id="toastContainer" class="fixed top-4 left-3 right-3 sm:left-auto sm:right-4 z-50 space-y-2"></div>
@@ -85,6 +88,7 @@
                         <th class="px-3 py-2 text-left text-sm">Monthly Rental Price</th> 
                         <th class="px-3 py-2 text-left text-sm">Status</th>
                         <th class="px-3 py-2 text-left text-sm">Error</th>
+                        <th class="px-3 py-2 text-left text-sm">Action</th>
                     </tr>
                 </thead>
                 <tbody id="rowsBody" class="divide-y divide-gray-200"></tbody>

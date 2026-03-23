@@ -1,8 +1,18 @@
+@php
+    $createdCount = $createdCount ?? 0;
+    $failedCount = $failedCount ?? 0;
+    $greeting = $greeting ?? '';
+    $batchUrl = $batchUrl ?? null;
+    $batchId = $batchId ?? null;
+    $hoardings = $hoardings ?? collect();
+     $isLive = $isLive ?? false; // 
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Hoarding Status - OOHAPP</title>
+    <title>Bulk Import Status - OOHAPP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, Helvetica, sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8; padding:40px 0;">
@@ -15,8 +25,12 @@
 <!-- TITLE -->
 <tr>
     <td align="center" style="padding:20px 40px 0 40px;">
-        <h2 style="margin:0; color:#16a34a; font-weight:600;">
-            🏢 Hoarding Status Update
+       <h2 style="margin:0; color:#16a34a; font-weight:600;">
+            @if($isLive)
+                🚀 Your Hoardings Are Live!
+            @else
+                  Your Hoardings Are Created & Waiting for Admin Approval
+            @endif
         </h2>
         <p style="margin-top:8px; color:#666; font-size:14px;">
             {{ $greeting }}
@@ -24,21 +38,33 @@
     </td>
 </tr>
 
-<!-- STATUS BOX -->
+<!-- SUCCESS BOX -->
 <tr>
 <td style="padding:20px 40px 0 40px;">
-    @php
-        $isNegative = in_array(strtolower($action), ['deactivate', 'deactivated', 'suspend', 'suspended', 'rejected', 'reject']);
-        $statusBg     = $isNegative ? '#fef2f2' : '#ecfdf5';
-        $statusBorder = $isNegative ? '#dc2626' : '#16a34a';
-        $statusColor  = $isNegative ? '#991b1b' : '#065f46';
-    @endphp
-    <div style="background:{{ $statusBg }}; border-left:4px solid {{ $statusBorder }}; padding:15px; font-size:14px; color:{{ $statusColor }};">
-        <strong>{{ $count }} {{ Str::plural('hoarding', $count) }}</strong>
-        have been <strong>{{ ucfirst($action) }}</strong> by {{ $adminName }}.
+    @if($isLive)
+    <div style="background:#ecfdf5; border-left:4px solid #16a34a; padding:15px; font-size:14px; color:#065f46;">
+        <strong> Your {{ $createdCount }} {{ Str::plural('hoarding', $createdCount) }}</strong> are now <strong>LIVE on the platform</strong>.<br>
+        You can start receiving bookings immediately.
+    </div>
+    @else
+        <div style="background:#eff6ff; border-left:4px solid #2563eb; padding:15px; font-size:14px; color:#1e3a8a;">
+            <strong>{{ $createdCount }} {{ Str::plural('hoarding', $createdCount) }}</strong> successfully created and awaiting final activation by our team. <br>
+            They will go live after final activation.
+        </div>
+    @endif
+</td>
+</tr>
+
+<!-- ERROR BOX (if any) -->
+@if($failedCount > 0)
+<tr>
+<td style="padding:20px 40px 0 40px;">
+    <div style="background:#fef2f2; border-left:4px solid #dc2626; padding:15px; font-size:14px; color:#991b1b;">
+        <strong>{{ $failedCount }} record{{ $failedCount > 1 ? 's' : '' }}</strong> failed to import. Please review the inventory for details.
     </div>
 </td>
 </tr>
+@endif
 
 <!-- SUMMARY ROW -->
 <tr>
@@ -46,28 +72,29 @@
     <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
             <td style="font-size:15px; color:#222; padding-bottom:8px;">
-                <strong>Total Hoardings:</strong> {{ $count }}
+                <strong>Inventory ID:</strong> {{ $batchId }}
             </td>
         </tr>
         <tr>
             <td style="font-size:15px; color:#222; padding-bottom:8px;">
-                <strong>Status:</strong> {{ ucfirst($action) }}
+                <strong>Created Hoardings:</strong> {{ $createdCount }}
             </td>
         </tr>
         <tr>
             <td style="font-size:15px; color:#222; padding-bottom:8px;">
-                <strong>{{ ucfirst($action) }} By:</strong> {{ $adminName }}
+                <strong>Failed Records:</strong> {{ $failedCount }}
             </td>
         </tr>
     </table>
 </td>
 </tr>
 
-<!-- HOARDINGS TABLE -->
+<!-- HOARDINGS TABLE (limit 10) -->
+@if($createdCount > 0 && $hoardings->count())
 <tr>
 <td style="padding:20px 40px 0 40px;">
     <p style="margin:0 0 10px 0; font-size:15px; font-weight:600; color:#333;">
-        Affected Hoardings:
+        Created Hoardings (showing up to 10):
     </p>
     <table width="100%" cellpadding="0" cellspacing="0"
            style="border-collapse:collapse; font-size:13px;">
@@ -88,7 +115,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($hoardings as $hoarding)
+            @foreach($hoardings->take(10) as $hoarding)
             <tr style="background: {{ $loop->even ? '#f9fafb' : '#ffffff' }};">
                 <td style="padding:10px 12px; border:1px solid #e5e7eb; color:#555;">
                     {{ $loop->iteration }}
@@ -108,13 +135,14 @@
     </table>
 </td>
 </tr>
+@endif
 
 <!-- ACTION BUTTON -->
 <tr>
 <td align="center" style="padding:30px 40px 40px 40px;">
-    <a href="{{ route('vendor.hoardings.myHoardings') }}"
+    <a href="{{ route('vendor.hoardings.myHoardings')  }}"
        style="display:inline-block; background:#16a34a; color:#fff; font-weight:600; padding:12px 32px; border-radius:6px; text-decoration:none; font-size:16px;">
-        View My Hoardings
+            View All Hoardings
     </a>
 </td>
 </tr>
