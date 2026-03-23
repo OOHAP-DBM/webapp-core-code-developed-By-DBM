@@ -55,7 +55,7 @@
             <h2 class="text-lg font-semibold text-gray-900">Search & Filters</h2>
         </div>
         <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
-            <input id="searchInput" type="text" placeholder="Search by city " class="w-full min-h-[44px] border rounded-lg p-2" />
+            <input id="searchInput" type="text" placeholder="Search by code or city " class="w-full min-h-[44px] border rounded-lg p-2" />
             <select id="statusFilter" class="w-full min-h-[44px] border rounded-lg p-2">
                 <option value="">All statuses</option>
                 <option value="valid">valid</option>
