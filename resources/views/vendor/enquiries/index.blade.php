@@ -29,18 +29,18 @@
                         name="search"
                         value="{{ request('search') }}"
                         placeholder="Search enquiry by enquiry ID..."
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 pr-9 text-sm focus:ring-1 focus:ring-primary focus:outline-none sm:w-80 lg:w-96"
+                        class="w-full border border-gray-300  px-3 py-2 pr-9 text-sm focus:ring-1 focus:ring-primary focus:outline-none sm:w-80 lg:w-96"
                     >
                     <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </span>
-                </form>
+                </form> 
                 <button
                     type="button"
                     @click="openFilter = true"
-                    class="border border-gray-300 bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap"
+                    class="border border-gray-300 bg-white text-gray-800 px-4 py-2  text-sm font-medium hover:bg-gray-50 transition whitespace-nowrap"
                 >
                     Filter
                 </button>
@@ -183,7 +183,7 @@
     </div>
 
     {{-- FILTER MODAL --}}
-    <div x-show="openFilter === true" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div x-show="openFilter === true" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
         <div @click.away="openFilter = false" class="bg-white w-full max-w-2xl rounded shadow-lg relative">
             <div class="flex items-center justify-between h-10 bg-green-100 px-4 rounded-t">
                 <span></span>
