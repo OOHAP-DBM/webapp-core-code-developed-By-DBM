@@ -236,7 +236,7 @@
         </div> -->
     </div>
 </footer>
-<div class="text-center text-gray-500 py-1" style="background-color:#e8e8e8;" id="copyright">© {{ date('Y') }} www.oohapp.io. All rights reserved.</div>
+<div class="text-center text-gray-500 py-1" style="background-color:#e8e8e8;" id="copyright">© {{ date('Y') }} www.oohapp.io All rights reserved.</div>
    
 <!-- Bottom Bar
 <div class="pt-8 border-t border-gray-800">
