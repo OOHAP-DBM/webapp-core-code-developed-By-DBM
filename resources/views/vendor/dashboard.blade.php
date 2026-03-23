@@ -1027,7 +1027,7 @@
                             {{ $t['type'] }}
                         </td>
 
-                        <td class="px-6 py-4">{{ $t['date'] }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $t['date'] }}</td>
 
                         <td class="px-6 py-4 text-blue-600 font-semibold">
                             ₹{{ number_format($t['amount']) }}
