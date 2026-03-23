@@ -649,6 +649,30 @@ async function toggleRowStatus(rowId, newStatus) {
         return;
     }
 
+    // Prevent marking as valid if base_monthly_price or image_name is missing
+    if (newStatus === 'valid') {
+        let missingFields = [];
+        if (!row.base_monthly_price || isNaN(Number(row.base_monthly_price))) {
+            missingFields.push('Monthly Rental Price');
+        }
+        if (!row.image_name) {
+            missingFields.push('Image');
+        }
+        if (missingFields.length > 0) {
+            const msg = `Cannot mark as valid. Missing: ${missingFields.join(', ')}`;
+            if (window.Swal) {
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: msg,
+                });
+            } else {
+                notify(msg, 'error');
+            }
+            return;
+        }
+    }
+
     try {
         await api(`${API_BASE}/${BATCH_ID}/rows/${rowId}/status`, {
             method: 'PATCH',
