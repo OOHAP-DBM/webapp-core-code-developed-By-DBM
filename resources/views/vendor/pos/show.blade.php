@@ -8,18 +8,21 @@
     <div class="bg-white rounded-xl shadow">
 
         {{-- Header --}}
-        <div class="px-4 sm:px-6 py-4 bg-primary text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+       <div class="px-4 sm:px-6 py-4 bg-primary text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    
             <h4 class="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
-                 POS Booking Details
+                POS Booking Details
             </h4>
+
             <a href="{{ route(($posRoutePrefix ?? 'vendor.pos') . '.dashboard') }}"
-               class="w-full sm:w-auto text-center text-sm bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg">
+            class="hidden lg:inline-block text-sm bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg">
                 ← Back
             </a>
+
         </div>
 
         {{-- Body --}}
-        <div class="p-4 sm:p-6 space-y-6">
+        <div class="py-2 md:py-4 px-4 sm:p-6 space-y-6">
 
             <!-- Booking Summary -->
             <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
