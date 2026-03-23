@@ -1073,6 +1073,33 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(applyCashLimit, 50);
                 });
             }
+
+            // --- Milestone Hold Duration Logic ---
+            if (window.MilestoneModule && typeof window.MilestoneModule.isEnabled === 'function') {
+                // Watch for milestone enable/row add
+                const msCard = document.getElementById('ms-card');
+                if (msCard) {
+                    const observer = new MutationObserver(function() {
+                        if (window.MilestoneModule.isEnabled() && window.MilestoneModule.rows().length > 0) {
+                            // Auto-select 'No Limit' hold time
+                            selectHoldTime(0);
+                            // Show popup if not already shown
+                            if (!window.__milestoneHoldPopupShown) {
+                                window.__milestoneHoldPopupShown = true;
+                                if (window.MsAlert && typeof window.MsAlert.info === 'function') {
+                                    window.MsAlert.info(
+                                        'Milestone bookings are confirmed immediately. There is no payment hold timer. If payment is not received by the due date of any milestone, the booking can be cancelled by the admin. You can always add or edit milestones before finalizing.',
+                                        'Milestone Booking: No Hold Timer'
+                                    );
+                                } else {
+                                    alert('Milestone bookings are confirmed immediately. There is no payment hold timer. If payment is not received by the due date of any milestone, the booking can be cancelled by the admin. You can always add or edit milestones before finalizing.');
+                                }
+                            }
+                        }
+                    });
+                    observer.observe(msCard, { attributes: true, childList: true, subtree: true });
+                }
+            }
         }, 100);
     });
 }());

@@ -1006,50 +1006,94 @@ function wireSeparateCancelBookingButton() {
     }
 }
 
-async function confirmCancelBooking() {
-    const reasonInput = document.getElementById('cancel-booking-reason');
-    const reason = (reasonInput?.value || '').trim() || 'Cancelled by vendor';
-    const confirmBtn = document.getElementById('cancel-booking-confirm-btn');
+// async function confirmCancelBooking() {
+//     const reasonInput = document.getElementById('cancel-booking-reason');
+//     const reason = (reasonInput?.value || '').trim() || 'Cancelled by vendor';
+//     const confirmBtn = document.getElementById('cancel-booking-confirm-btn');
 
-    document.getElementById('cancel-booking-btn-text').classList.add('hidden');
-    document.getElementById('cancel-booking-spinner').classList.remove('hidden');
-    if (confirmBtn) confirmBtn.disabled = true;
+//     document.getElementById('cancel-booking-btn-text').classList.add('hidden');
+//     document.getElementById('cancel-booking-spinner').classList.remove('hidden');
+//     if (confirmBtn) confirmBtn.disabled = true;
+
+//     try {
+//         const response = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
+//             method: 'POST',
+//             headers: {
+//                 'Accept': 'application/json',
+//                 'Content-Type': 'application/json',
+//                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
+//             },
+//             credentials: 'same-origin',
+//             body: JSON.stringify({ reason })
+//         });
+
+//         if (response.ok) {
+//             showActionMessage('✅ Booking cancelled successfully!', 'success');
+//             closeCancelBookingModal();
+//             setTimeout(() => loadBookingDetails(), 1500);
+//         } else if (response.status === 400 || response.status === 422) {
+//             const error = await response.json();
+//             showActionMessage(error.message || 'Cannot cancel booking', 'error');
+//         } else if (response.status === 404) {
+//             showActionMessage('Booking not found', 'error');
+//         } else {
+//             const error = await response.json();
+//             showActionMessage(error.message || 'Error cancelling booking', 'error');
+//         }
+//     } catch (error) {
+//         console.error('Error:', error);
+//         showActionMessage('Network error. Please try again.', 'error');
+//     } finally {
+//         document.getElementById('cancel-booking-btn-text').classList.remove('hidden');
+//         document.getElementById('cancel-booking-spinner').classList.add('hidden');
+//         if (confirmBtn) confirmBtn.disabled = false;
+//     }
+// }
+
+
+async function confirmCancelBooking() {
+    const reason = document.getElementById('cancel-booking-reason').value;
+
+    const btn = document.getElementById('cancel-booking-confirm-btn');
+    const spinner = document.getElementById('cancel-booking-spinner');
+    const text = document.getElementById('cancel-booking-btn-text');
+
+    btn.disabled = true;
+    spinner.classList.remove('hidden');
+    text.textContent = 'Cancelling...';
 
     try {
-        const response = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
+       const response = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
             method: 'POST',
             headers: {
-                'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            credentials: 'same-origin',
             body: JSON.stringify({ reason })
         });
 
-        if (response.ok) {
-            showActionMessage('✅ Booking cancelled successfully!', 'success');
+        const data = await response.json();
+
+        if (data.success) {
+
+            // 🔥🔥 THIS IS THE MAIN FIX
+            window.removePosTimerBooking(bookingId);
+
             closeCancelBookingModal();
-            setTimeout(() => loadBookingDetails(), 1500);
-        } else if (response.status === 400 || response.status === 422) {
-            const error = await response.json();
-            showActionMessage(error.message || 'Cannot cancel booking', 'error');
-        } else if (response.status === 404) {
-            showActionMessage('Booking not found', 'error');
+            loadBookingDetails(); // refresh UI
+
         } else {
-            const error = await response.json();
-            showActionMessage(error.message || 'Error cancelling booking', 'error');
+            alert(data.message || 'Cancel failed');
         }
-    } catch (error) {
-        console.error('Error:', error);
-        showActionMessage('Network error. Please try again.', 'error');
+
+    } catch (e) {
+        alert('Something went wrong');
     } finally {
-        document.getElementById('cancel-booking-btn-text').classList.remove('hidden');
-        document.getElementById('cancel-booking-spinner').classList.add('hidden');
-        if (confirmBtn) confirmBtn.disabled = false;
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        text.textContent = 'Cancel Booking';
     }
 }
-
 /**
  * Confirm and submit mark as paid
  */
