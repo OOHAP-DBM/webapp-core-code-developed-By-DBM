@@ -4,9 +4,8 @@
 
 @section('content')
 <div class="p-6">
-    <div class="max-w-4xl mx-auto">
-        <div class="flex items-center justify-between mb-6">
-            <h1 class="text-2xl font-bold text-gray-900">Notifications</h1>
+        <div class="mx-5  my-3 md:mx-0 flex items-center justify-between ">
+            <h2 class="text-md md:text-xl font-bold text-gray-900">
             @if($notifications->where('read_at', null)->count() > 0)
                 <form action="{{ route('admin.notifications.read-all') }}" method="POST">
                     @csrf

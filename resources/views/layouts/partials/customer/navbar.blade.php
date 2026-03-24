@@ -1,16 +1,27 @@
 {{-- Customer Navbar --}}
-<header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-2 sm:px-4 md:px-6">
+<header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-2 sm:px-4">
 
     {{-- SEARCH BAR (Desktop & Tablet only) --}}
     <p></p>
     @include('components.customer.home-search')
 
     {{-- RIGHT SIDE ACTIONS --}}
-    <div class="flex items-center space-x-3 sm:space-x-4 md:space-x-5 mr-1 sm:mr-2 md:mr-4 lg:mr-10 xl:mr-12">
+    {{-- Changed space-x to gap for better compatibility with 'order' utilities --}}
+    {{-- Removed heavy right margins that were pushing icons off-screen on mobile --}}
+    <div class="flex items-center gap-2 sm:gap-3 md:gap-5 pr-2 md:mr-4 lg:mr-10 xl:mr-12">
 
-           {{-- Notification Dropdown (Visible on all screens, responsive) --}}
-           <div x-data="{ open: false, unreadCount: {{ auth()->user()->unreadNotifications->count() ?? 0 }} }"
-               class="relative block">
+        {{-- Mobile Hamburger Button --}}
+        <button id="mobile-menu-btn"
+            type="button"
+            class="block md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md order-first md:order-none">
+            <svg class="w-6 h-7" fill="none" stroke="currentColor" viewBox="0 0 19 19">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+
+        {{-- Notification Dropdown --}}
+        <div x-data="{ open: false, unreadCount: {{ auth()->user()->unreadNotifications->count() ?? 0 }} }"
+             class="relative block order-last md:order-none">
 
             <button @click="open = !open"
                     type="button"
@@ -26,18 +37,18 @@
                 </template>
             </button>
 
-              <div x-show="open"
-                  @click.away="open = false"
-                  x-transition
-                  :class="{
+            <div x-show="open"
+                 @click.away="open = false"
+                 x-transition
+                 :class="{
                     'absolute right-0 mt-2 w-80': window.innerWidth >= 768,
                     'fixed left-1/2 top-20 w-11/12 max-w-sm -translate-x-1/2 z-50': window.innerWidth < 768
-                  }"
-                  class="bg-white rounded-lg shadow-xl border border-gray-200 z-50"
-                  style="display: none;">
+                 }"
+                 class="bg-white rounded-lg shadow-xl border border-gray-200 z-50"
+                 style="display: none;">
 
                 <div class="px-4 py-3 border-b border-gray-200">
-                    <h3 class="text-sm font-semibold text-gray-900">Notificationsdddd</h3>
+                    <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
                 </div>
 
                 <div class="max-h-96 overflow-y-auto">
@@ -47,8 +58,6 @@
                                   {{ $notification->read_at ? 'bg-white' : 'bg-blue-50/70' }} hover:bg-gray-50">
 
                             <div class="flex gap-3 items-start">
-
-                                {{-- Icon --}}
                                 <div class="mt-1">
                                     <div class="w-9 h-9 rounded-full flex items-center justify-center
                                                 {{ $notification->read_at ? 'bg-gray-100 text-gray-500' : 'bg-blue-100 text-blue-600' }}">
@@ -60,7 +69,6 @@
                                     </div>
                                 </div>
 
-                                {{-- Text --}}
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-semibold {{ $notification->read_at ? 'text-gray-800' : 'text-blue-900' }}">
                                         {{ $notification->data['title'] ?? 'New Notification' }}
@@ -78,13 +86,11 @@
                                     </div>
                                 </div>
 
-                                {{-- Unread dot --}}
                                 @if(!$notification->read_at)
                                     <div class="mt-2">
                                         <span class="w-2.5 h-2.5 rounded-full bg-blue-500 block animate-pulse"></span>
                                     </div>
                                 @endif
-
                             </div>
                         </a>
                     @empty
@@ -103,21 +109,20 @@
             </div>
         </div>
 
-        {{-- Mobile Search --}}
+        {{-- Mobile Search (Hidden on medium screens) --}}
         <form action="{{ route('search') }}"
               method="GET"
-              class="flex md:hidden items-center max-w-[60%] px-2 gap-1">
+              class="flex md:hidden items-center max-w-[50%] px-1 gap-1">
             <input
                 type="text"
                 name="location"
-                placeholder="Search by city..."
-                class="flex-1 px-2 py-2 text-sm border border-gray-300 rounded-md focus:outline-none"
+                placeholder="Search..."
+                class="flex-1 w-full px-2 py-2 text-sm border border-gray-300 rounded-md focus:outline-none"
             >
-            <button type="submit" class="rounded-md text-gray-600"></button>
         </form>
 
         {{-- User Icon --}}
-        <div class="relative text-gray-400 ml-4 md:ml-0" id="user">
+        <div class="relative text-gray-400" id="user">
             <button type="button" class="flex items-center focus:outline-none cursor-pointer">
                 <svg width="20" height="19" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" clip-rule="evenodd"
@@ -149,15 +154,6 @@
                 </span>
             @endif
         </a>
-
-        {{-- Mobile Hamburger Button --}}
-        <button id="mobile-menu-btn"
-            type="button"
-            class="block md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md ml-1">
-            <svg class="w-6 h-7" fill="none" stroke="currentColor" viewBox="0 0 19 19">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
-        </button>
 
     </div>
 </header>
