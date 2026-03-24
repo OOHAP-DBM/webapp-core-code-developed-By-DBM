@@ -665,7 +665,6 @@ class ImportController extends Controller
             ]);
 
             $row->update(['status' => $validated['status']]);
-
             $this->refreshBatchCounts($batch);
 
             return response()->json([

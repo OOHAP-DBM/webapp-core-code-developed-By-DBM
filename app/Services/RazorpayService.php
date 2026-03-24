@@ -9,15 +9,35 @@ use Exception;
 
 class RazorpayService
 {
+    // protected string $keyId;
+    // protected string $keySecret;
+    // protected string $baseUrl;
     protected string $keyId;
     protected string $keySecret;
     protected string $baseUrl;
+    protected ?\App\Models\PaymentGatewaySetting $settings = null;
 
+    // public function __construct()
+    // {
+    //     $this->keyId = config('services.razorpay.key_id');
+    //     $this->keySecret = config('services.razorpay.key_secret');
+    //     $this->baseUrl = config('services.razorpay.base_url', 'https://api.razorpay.com/v1');
+    // }
     public function __construct()
     {
-        $this->keyId = config('services.razorpay.key_id');
-        $this->keySecret = config('services.razorpay.key_secret');
-        $this->baseUrl = config('services.razorpay.base_url', 'https://api.razorpay.com/v1');
+        $settings = \App\Models\PaymentGatewaySetting::getRazorpay();
+
+        // ✅ Fall back to config if DB not set up yet
+        $this->keyId     = $settings?->key_id
+            ?: config('services.razorpay.key_id', '');
+
+        $this->keySecret = $settings?->key_secret
+            ?: config('services.razorpay.key_secret', '');
+
+        $this->baseUrl   = config('services.razorpay.base_url', 'https://api.razorpay.com/v1');
+
+        // ✅ Store settings reference for extra checks
+        $this->settings  = $settings;
     }
 
     /**
@@ -74,7 +94,6 @@ class RazorpayService
             // Handle error response
             $errorMessage = $responseData['error']['description'] ?? 'Unknown error occurred';
             throw new Exception("Razorpay order creation failed: {$errorMessage}");
-
         } catch (Exception $e) {
             // Log the exception
             $this->logResponse('create_order', $payload, [
@@ -125,7 +144,6 @@ class RazorpayService
 
             $errorMessage = $responseData['error']['description'] ?? 'Unknown error occurred';
             throw new Exception("Razorpay payment capture failed: {$errorMessage}");
-
         } catch (Exception $e) {
             $this->logResponse('capture_payment', $payload, [
                 'error' => $e->getMessage()
@@ -229,13 +247,12 @@ class RazorpayService
                     'refund_id' => $responseData['id'] ?? null,
                     'amount' => $amount,
                 ]);
-                
+
                 return $responseData;
             }
 
             $errorMessage = $responseData['error']['description'] ?? 'Unknown error occurred';
             throw new Exception("Razorpay refund failed: {$errorMessage}");
-
         } catch (Exception $e) {
             $this->logResponse('create_refund', $payload, [
                 'error' => $e->getMessage()
@@ -354,7 +371,6 @@ class RazorpayService
             ]);
 
             return $responseData;
-
         } catch (Exception $e) {
             Log::error('Razorpay sub-account creation failed', [
                 'error' => $e->getMessage(),
@@ -386,7 +402,6 @@ class RazorpayService
             }
 
             return $responseData;
-
         } catch (Exception $e) {
             Log::error('Razorpay sub-account fetch failed', [
                 'account_id' => $accountId,
@@ -395,5 +410,24 @@ class RazorpayService
             throw $e;
         }
     }
-}
+    public function isConfigured(): bool
+    {
+        if ($this->settings) {
+            return $this->settings->isConfigured();
+        }
 
+        // ✅ Fallback — check if config values exist
+        return !empty($this->keyId) && !empty($this->keySecret);
+    }
+
+    public function getKeyId(): string
+    {
+        return $this->keyId;
+    }
+
+    public function isLiveMode(): bool
+    {
+        return $this->settings?->isLive()
+            ?? str_starts_with($this->keyId, 'rzp_live_');
+    }
+}

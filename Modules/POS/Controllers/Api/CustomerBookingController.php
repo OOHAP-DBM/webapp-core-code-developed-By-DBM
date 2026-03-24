@@ -379,6 +379,7 @@ class CustomerBookingController extends Controller
                     'bookingHoardings.hoarding.hoardingMedia',
                     'bookingHoardings.hoarding.doohScreen.media',
                     'hoardings',
+                    'milestones', // <-- eager load milestones
                 ])
                 ->firstOrFail();
 
@@ -392,7 +393,10 @@ class CustomerBookingController extends Controller
                 'email'        => $vendor?->email,
                 'phone'        => $vendor?->phone,
                 'company_name' => $vendorProfile?->company_name ?? $vendor?->name,
-                'address'      => $vendorProfile?->address ?? null,
+                'address'      => $vendorProfile?->registered_address ?? null,
+                'city'         => $vendorProfile?->city ?? null,
+                'state'        => $vendorProfile?->state ?? null,
+                'pincode'      => $vendorProfile?->pincode ?? null,
                 'logo_url'     => $vendorProfile?->logo_url ?? null,
             ];
 
@@ -433,6 +437,24 @@ class CustomerBookingController extends Controller
                     'hoarding_tax'         => (float) ($bh->hoarding_tax ?? 0),
                     'hoarding_total'       => (float) ($bh->hoarding_total ?? 0),
                     'pivot_status'         => $bh->status,
+                ];
+            })->values();
+
+            // ── Milestones (full list) ─────────────────────────────────---
+            $milestones = $booking->milestones->map(function ($milestone) {
+                return [
+                    'id' => $milestone->id,
+                    'title' => $milestone->title,
+                    'description' => $milestone->description,
+                    'sequence_no' => $milestone->sequence_no,
+                    'amount_type' => $milestone->amount_type,
+                    'amount' => (float) $milestone->amount,
+                    'calculated_amount' => (float) $milestone->calculated_amount,
+                    'status' => $milestone->status,
+                    'due_date' => $milestone->due_date,
+                    'paid_at' => $milestone->paid_at,
+                    'invoice_number' => $milestone->invoice_number,
+                    'payment_transaction_id' => $milestone->payment_transaction_id,
                 ];
             })->values();
 
@@ -502,12 +524,14 @@ class CustomerBookingController extends Controller
                     // Invoice
                     'has_invoice'      => !empty($booking->invoice_path),
                     'invoice_url'      => $invoiceUrl,
-                    // Milestone
+                    // Milestone summary
                     'is_milestone'             => (bool) $booking->is_milestone,
                     'milestone_total'          => (int) ($booking->milestone_total ?? 0),
                     'milestone_paid'           => (int) ($booking->milestone_paid ?? 0),
                     'milestone_amount_paid'    => (float) ($booking->milestone_amount_paid ?? 0),
                     'milestone_amount_remaining' => (float) ($booking->milestone_amount_remaining ?? 0),
+                    // Milestone details
+                    'milestones'               => $milestones,
                 ],
             ]);
 

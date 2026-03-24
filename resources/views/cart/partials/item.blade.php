@@ -22,11 +22,23 @@
 
             {{-- IMAGE --}}
             <div class="w-20 h-20 sm:w-28 sm:h-24 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
-                <img
-                    src="{{ $item->image_url ?? 'https://via.placeholder.com/300x200' }}"
-                    alt="{{ $item->title }}"
-                    class="w-full h-full object-cover"
-                >
+                @php
+                    $mediaItem = null;
+                    if (isset($item->media) && $item->media instanceof \Illuminate\Support\Collection && $item->media->count()) {
+                        $mediaItem = $item->media->first();
+                    } elseif (isset($item->media) && is_object($item->media) && method_exists($item->media, 'isVideo')) {
+                        $mediaItem = $item->media;
+                    }
+                @endphp
+                @if($mediaItem)
+                    <x-media-preview :media="$mediaItem" :alt="$item->title ?? 'Hoarding'" />
+                @else
+                    <img
+                        src="{{ $item->image_url ?? 'https://via.placeholder.com/300x200' }}"
+                        alt="{{ $item->title }}"
+                        class="w-full h-full object-cover"
+                    >
+                @endif
             </div>
 
             {{-- CONTENT --}}
@@ -112,7 +124,7 @@
                            data-default-price="{{ $finalPrice }}"
                            class="text-sm font-semibold text-gray-900">
                             ₹{{ number_format($finalPrice) }}
-                            <span class="text-xs text-gray-400 font-normal">/ Mo</span>
+                            <span class="text-sm text-gray-400 font-bold">/ Month</span>
                         </p>
                     </div>
 

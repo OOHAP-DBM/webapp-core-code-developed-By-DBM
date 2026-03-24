@@ -13,6 +13,8 @@ use App\Http\Controllers\Web\Customer\ShortlistController;
 use App\Http\Controllers\Web\Customer\RatingController;
 use Modules\Auth\Http\Controllers\MobileForgotPasswordController;
 use App\Http\Controllers\GeocodeController;
+use App\Http\Controllers\Admin\RazorpaySettingsController;
+
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -1324,6 +1326,15 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
     Route::get('/direct-enquiries', [DirectEnquiryController::class, 'index'])->name('direct-enquiries.index');
     Route::get('/enquiries', [\Modules\Enquiries\Controllers\Web\AdminEnquiryController::class, 'index'])->name('enquiries.index');
     Route::get('/enquiries/{id}', [\Modules\Enquiries\Controllers\Web\AdminEnquiryController::class, 'show'])->name('enquiries.show');
+    Route::put('/profile/personal', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updatePersonal'])->name('profile.personal.update');
+    Route::put('/profile/business', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updateBusiness'])->name('profile.business.update');
+    Route::put('/profile/bank', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updateBank'])->name('profile.bank.update');
+    Route::put('/profile/address', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updateAddress'])->name('profile.address.update');
+    Route::put('/profile/password', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    Route::get('/pan/view', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'viewPan'])->name('profile.pan.view');
+    Route::put('/profile/avatar', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+    Route::get('/profile/avatar/view', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'viewAvatar'])->name('profile.avatar.view');
+    Route::get('/profile/avatar/remove', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
 });
 
 // ============================================
@@ -1354,6 +1365,11 @@ Route::get('/coming-soon', function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin.settings.')->group(function () {
     Route::get('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'edit'])->name('hoarding_auto_approval.edit');
     Route::post('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'update'])->name('hoarding_auto_approval.update');
+    //================== razorpay configuration=============
+    Route::get('/razorpay',         [RazorpaySettingsController::class, 'index'])->name('razorpay');
+    Route::post('/razorpay',        [RazorpaySettingsController::class, 'update'])->name('razorpay.update');
+    Route::post('/razorpay/test',   [RazorpaySettingsController::class, 'testCredentials'])->name('razorpay.test');
+    Route::post('/razorpay/toggle', [RazorpaySettingsController::class, 'toggleActive'])->name('razorpay.toggle');
 });
 Route::get('/twilio-test', function () {
     $service = app(\App\Services\Whatsapp\TwilioWhatsappService::class);
