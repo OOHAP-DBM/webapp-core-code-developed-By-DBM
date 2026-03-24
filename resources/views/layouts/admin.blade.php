@@ -33,24 +33,6 @@
     @stack('styles')
 </head>
 <body class="antialiased bg-gray-50 font-inter" x-data="{ sidebarOpen: false }">
-
-        <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const sidebar = document.querySelector('.admin-sidebar');
-            const openBtn = document.getElementById('admin-mobile-menu-btn');
-            const closeBtn = document.getElementById('admin-mobile-btn-close');
-            if (openBtn && sidebar) {
-                openBtn.addEventListener('click', function () {
-                    sidebar.classList.remove('hidden');
-                });
-            }
-            if (closeBtn && sidebar) {
-                closeBtn.addEventListener('click', function () {
-                    sidebar.classList.add('hidden');
-                });
-            }
-        });
-        </script>
     
     <div x-show="sidebarOpen" 
          @click="sidebarOpen = false" 

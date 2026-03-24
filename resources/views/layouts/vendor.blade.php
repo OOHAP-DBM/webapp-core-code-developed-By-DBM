@@ -248,32 +248,17 @@
 <body class="antialiased bg-gray-50">
 
     <script>
-    // Instantly hide sidebar on mobile before DOMContentLoaded, and apply persisted state on desktop
-    (function() {
-        try {
-            var sb = null;
-            function ready(fn) {
-                if (document.readyState !== 'loading') fn();
-                else document.addEventListener('DOMContentLoaded', fn);
-            }
-            ready(function() { sb = document.getElementById('vendor-sidebar'); });
-            if (window.innerWidth <= 1023) {
-                ready(function() { if (sb) sb.classList.add('hidden'); });
-            } else {
-                // Desktop: apply persisted state before paint
-                var state = null;
-                try { state = localStorage.getItem('sidebar'); } catch(e){}
-                if (state !== 'open' && state !== 'closed') state = 'closed';
-                ready(function() {
-                    if (sb) {
-                        sb.classList.remove('sidebar-expanded', 'sidebar-collapsed');
-                        sb.classList.add(state === 'open' ? 'sidebar-expanded' : 'sidebar-collapsed');
-                    }
-                });
-            }
-        } catch(e) {}
-    })();
-    </script>
+        (function() {
+            try {
+                if (window.innerWidth <= 1023) {
+                    var style = document.createElement('style');
+                    style.id = 'sidebar-init-hide';
+                    style.textContent = '#vendor-sidebar { display: none !important; }';
+                    document.head.appendChild(style);
+                }
+            } catch(e) {}
+        })();
+        </script>
     <div id="sidebar-overlay" onclick="closeSidebarMobile()"></div>
 
     <div id="app" class="flex h-screen overflow-hidden">
@@ -326,24 +311,16 @@
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     <script>
-        // Sidebar state persistence (open/closed) using localStorage
-        function setSidebarState(state) {
-            try {
-                localStorage.setItem('sidebar', state);
-            } catch (e) {}
-        }
-        function getSidebarState() {
-            try {
-                return localStorage.getItem('sidebar');
-            } catch (e) { return null; }
-        }
-
-        function applySidebarState(state) {
+        /* -------------------------------------------------------
+           Sidebar — Desktop toggle (collapse / expand)
+           ------------------------------------------------------- */
+        function toggleSidebar() {
             const sidebar     = document.getElementById('vendor-sidebar');
             const mainContent = document.getElementById('main-content-area');
             const arrowIcon   = document.getElementById('sidebar-arrow-icon');
-            if (!sidebar || !mainContent || !arrowIcon) return;
-            if (state === 'open') {
+            const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
+
+            if (isCollapsed) {
                 sidebar.classList.remove('sidebar-collapsed');
                 sidebar.classList.add('sidebar-expanded');
                 mainContent.classList.remove('sidebar-collapsed-content');
@@ -355,20 +332,6 @@
                 mainContent.classList.add('sidebar-collapsed-content');
                 mainContent.classList.remove('sidebar-expanded-content');
                 arrowIcon.style.transform = 'rotate(180deg)';
-            }
-        }
-
-        function toggleSidebar() {
-            const sidebar     = document.getElementById('vendor-sidebar');
-            const mainContent = document.getElementById('main-content-area');
-            const arrowIcon   = document.getElementById('sidebar-arrow-icon');
-            const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
-            if (isCollapsed) {
-                applySidebarState('open');
-                setSidebarState('open');
-            } else {
-                applySidebarState('closed');
-                setSidebarState('closed');
             }
         }
 
@@ -387,6 +350,10 @@
            DOMContentLoaded — initial state + open/close buttons
            ------------------------------------------------------- */
         document.addEventListener('DOMContentLoaded', function () {
+            // Remove the CSS hide rule, JS takes over from here
+            var initStyle = document.getElementById('sidebar-init-hide');
+            if (initStyle) initStyle.remove();
+
             const sidebar     = document.getElementById('vendor-sidebar');
             const mainContent = document.getElementById('main-content-area');
             const arrowIcon   = document.getElementById('sidebar-arrow-icon');
@@ -394,28 +361,24 @@
             const closeBtn    = document.getElementById('vendor-mobile-btn-close');
             const overlay     = document.getElementById('sidebar-overlay');
 
-            // --- PERSISTED SIDEBAR STATE (desktop) ---
-            if (window.innerWidth > 1023) {
-                let state = getSidebarState();
-                if (state !== 'open' && state !== 'closed') state = 'closed'; // default
-                applySidebarState(state);
-            } else {
+            // Initial state: open on desktop, hidden on mobile
+            if (window.innerWidth <= 1023) {
                 sidebar.classList.add('hidden');
+            } else {
                 sidebar.classList.remove('sidebar-collapsed');
                 sidebar.classList.add('sidebar-expanded');
+                mainContent.classList.remove('sidebar-collapsed-content');
+                mainContent.classList.add('sidebar-expanded-content');
+                arrowIcon.style.transform = 'rotate(0deg)';
             }
 
             // Mobile open button
             if (openBtn) {
                 openBtn.addEventListener('click', function () {
+                    sidebar.classList.remove('hidden');
                     if (window.innerWidth <= 1023) {
-                        sidebar.classList.remove('hidden');
-                        sidebar.classList.remove('sidebar-collapsed');
-                        sidebar.classList.add('sidebar-expanded');
                         overlay.classList.add('active');
                         document.body.classList.add('sidebar-open');
-                        // Force reflow to ensure sidebar is visible
-                        void sidebar.offsetWidth;
                     }
                 });
             }
@@ -423,14 +386,13 @@
             // Mobile close button
             if (closeBtn) {
                 closeBtn.addEventListener('click', function () {
+                    sidebar.classList.add('hidden');
                     if (window.innerWidth <= 1023) {
-                        sidebar.classList.add('hidden');
                         overlay.classList.remove('active');
                         document.body.classList.remove('sidebar-open');
                     }
                 });
             }
-        });
         });
 
         /* -------------------------------------------------------
