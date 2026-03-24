@@ -90,6 +90,7 @@
                 <button
                     id="cart-btn-{{ $hoarding->id }}"
                     data-in-cart="{{ $isInCart ? '1' : '0' }}"
+                    data-auth="{{ auth()->check() ? '1' : '0' }}"
                     onclick="event.preventDefault(); toggleCart(this, {{ $hoarding->id }})"
                     class="cart-btn cart-btn--white flex-1 py-2 px-3 text-sm font-semibold rounded w-full
                         {{ $isInCart ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
