@@ -231,7 +231,7 @@
                                spellcheck="false"
                         >
                         <small class="text-muted">
-                            Please your valid email
+                            Enter your registered email
                         </small>
                     </div>
                     <div class="mb-2 text-start d-none" id="passwordBox">
@@ -258,6 +258,17 @@
                             disabled>
                         Continue
                     </button>
+
+                    
+                    <!-- Remember Me Checkbox -->
+                    <div class="mt-4 text-start">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="remember" id="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="remember">
+                                Remember Me
+                            </label>
+                        </div>
+                    </div>
                 </form>
 
                 <div class="divider">

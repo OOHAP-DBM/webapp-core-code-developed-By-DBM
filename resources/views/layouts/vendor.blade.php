@@ -248,12 +248,28 @@
 <body class="antialiased bg-gray-50">
 
     <script>
-    // Instantly hide sidebar on mobile before DOMContentLoaded
+    // Instantly hide sidebar on mobile before DOMContentLoaded, and apply persisted state on desktop
     (function() {
         try {
+            var sb = null;
+            function ready(fn) {
+                if (document.readyState !== 'loading') fn();
+                else document.addEventListener('DOMContentLoaded', fn);
+            }
+            ready(function() { sb = document.getElementById('vendor-sidebar'); });
             if (window.innerWidth <= 1023) {
-                var sb = document.getElementById('vendor-sidebar');
-                if (sb) sb.classList.add('hidden');
+                ready(function() { if (sb) sb.classList.add('hidden'); });
+            } else {
+                // Desktop: apply persisted state before paint
+                var state = null;
+                try { state = localStorage.getItem('sidebar'); } catch(e){}
+                if (state !== 'open' && state !== 'closed') state = 'closed';
+                ready(function() {
+                    if (sb) {
+                        sb.classList.remove('sidebar-expanded', 'sidebar-collapsed');
+                        sb.classList.add(state === 'open' ? 'sidebar-expanded' : 'sidebar-collapsed');
+                    }
+                });
             }
         } catch(e) {}
     })();
@@ -310,16 +326,24 @@
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     <script>
-        /* -------------------------------------------------------
-           Sidebar — Desktop toggle (collapse / expand)
-           ------------------------------------------------------- */
-        function toggleSidebar() {
+        // Sidebar state persistence (open/closed) using localStorage
+        function setSidebarState(state) {
+            try {
+                localStorage.setItem('sidebar', state);
+            } catch (e) {}
+        }
+        function getSidebarState() {
+            try {
+                return localStorage.getItem('sidebar');
+            } catch (e) { return null; }
+        }
+
+        function applySidebarState(state) {
             const sidebar     = document.getElementById('vendor-sidebar');
             const mainContent = document.getElementById('main-content-area');
             const arrowIcon   = document.getElementById('sidebar-arrow-icon');
-            const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
-
-            if (isCollapsed) {
+            if (!sidebar || !mainContent || !arrowIcon) return;
+            if (state === 'open') {
                 sidebar.classList.remove('sidebar-collapsed');
                 sidebar.classList.add('sidebar-expanded');
                 mainContent.classList.remove('sidebar-collapsed-content');
@@ -331,6 +355,20 @@
                 mainContent.classList.add('sidebar-collapsed-content');
                 mainContent.classList.remove('sidebar-expanded-content');
                 arrowIcon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar     = document.getElementById('vendor-sidebar');
+            const mainContent = document.getElementById('main-content-area');
+            const arrowIcon   = document.getElementById('sidebar-arrow-icon');
+            const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
+            if (isCollapsed) {
+                applySidebarState('open');
+                setSidebarState('open');
+            } else {
+                applySidebarState('closed');
+                setSidebarState('closed');
             }
         }
 
@@ -356,24 +394,28 @@
             const closeBtn    = document.getElementById('vendor-mobile-btn-close');
             const overlay     = document.getElementById('sidebar-overlay');
 
-            // Initial state: open on desktop, hidden on mobile
-            if (window.innerWidth <= 1023) {
-                sidebar.classList.add('hidden');
+            // --- PERSISTED SIDEBAR STATE (desktop) ---
+            if (window.innerWidth > 1023) {
+                let state = getSidebarState();
+                if (state !== 'open' && state !== 'closed') state = 'closed'; // default
+                applySidebarState(state);
             } else {
+                sidebar.classList.add('hidden');
                 sidebar.classList.remove('sidebar-collapsed');
                 sidebar.classList.add('sidebar-expanded');
-                mainContent.classList.remove('sidebar-collapsed-content');
-                mainContent.classList.add('sidebar-expanded-content');
-                arrowIcon.style.transform = 'rotate(0deg)';
             }
 
             // Mobile open button
             if (openBtn) {
                 openBtn.addEventListener('click', function () {
-                    sidebar.classList.remove('hidden');
                     if (window.innerWidth <= 1023) {
+                        sidebar.classList.remove('hidden');
+                        sidebar.classList.remove('sidebar-collapsed');
+                        sidebar.classList.add('sidebar-expanded');
                         overlay.classList.add('active');
                         document.body.classList.add('sidebar-open');
+                        // Force reflow to ensure sidebar is visible
+                        void sidebar.offsetWidth;
                     }
                 });
             }
@@ -381,13 +423,14 @@
             // Mobile close button
             if (closeBtn) {
                 closeBtn.addEventListener('click', function () {
-                    sidebar.classList.add('hidden');
                     if (window.innerWidth <= 1023) {
+                        sidebar.classList.add('hidden');
                         overlay.classList.remove('active');
                         document.body.classList.remove('sidebar-open');
                     }
                 });
             }
+        });
         });
 
         /* -------------------------------------------------------
