@@ -184,17 +184,17 @@
 
        
 
-                        <p class="text-xs text-blue-500 mb-1">
-                            @if(
-                                $hoarding->available_from &&
-                                \Carbon\Carbon::parse($hoarding->available_from)->isFuture()
-                            )
-                                Hoarding Available from
-                                {{ \Carbon\Carbon::parse($hoarding->available_from)->format('F d, Y') }}
-                            @else
-                                Hoarding Available Now
-                            @endif
-                        </p>
+                        @if($hoarding->today_availability_status === 'available')
+                            <p class="text-xs text-gray-500 font-semibold mb-1">
+                                Available from {{ \Carbon\Carbon::now()->format('F d, Y') }}
+                            </p>
+                        @elseif(!empty($hoarding->next_available_date))
+                            <p class="text-xs text-gray-500 font-semibold mb-1">
+                                Available from {{ \Carbon\Carbon::parse($hoarding->next_available_date)->format('F d, Y') }}
+                            </p>
+                        @else
+                            <p class="text-xs text-gray-500 font-semibold mb-1">Not Available</p>
+                        @endif
                             @php
                                 $packageCount = 0;
                                 if(($hoarding->price_type ?? $hoarding->hoarding_type) === 'ooh') {
@@ -219,12 +219,13 @@
                                     $isInCart = in_array($hoarding->id, $cartIds ?? []);
                                 @endphp
                                  <button
-                                    id="cart-btn-{{ $hoarding->id }}"
-                                    data-in-cart="{{ $isInCart ? '1' : '0' }}"
-                                    onclick="event.stopPropagation(); event.preventDefault(); toggleCart(this, {{ $hoarding->id }})"
-                                    class="cursor-pointer cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded"
-                                >
-                                </button>
+                                        id="cart-btn-{{ $hoarding->id }}"
+                                        data-id="{{ $hoarding->id }}"
+                                        data-in-cart="{{ $isInCart ? '1' : '0' }}"
+                                        data-auth="{{ auth()->check() ? '1' : '0' }}"
+                                        onclick="event.preventDefault(); event.stopPropagation(); toggleCart(this, {{ $hoarding->id }})"
+                                        class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded cursor-pointer"
+                                    ></button>
 
                                 <!-- <button
                                     class="flex-1 py-2 btn-color text-white text-sm rounded enquiry-btn"

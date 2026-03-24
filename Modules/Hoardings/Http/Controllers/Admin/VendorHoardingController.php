@@ -14,10 +14,15 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Notifications\HoardingApproved;
 use App\Events\HoardingStatusChanged;
-
+use App\Services\NotificationEmailService;
 
 class VendorHoardingController extends Controller
 {
+    protected NotificationEmailService $notificationEmailService;
+    public function __construct(NotificationEmailService $notificationEmailService)
+    {
+        $this->notificationEmailService = $notificationEmailService;
+    }
     // public function index(Request $request): View
     // {
     //     /* -------------------- OOH -------------------- */
@@ -822,17 +827,50 @@ class VendorHoardingController extends Controller
             $hoarding->status = 'suspended';
             $hoarding->save();
 
-            // Fire event for notification (single suspend)
+            // Fire event (primary email + database - same as before)
             event(new HoardingStatusChanged(collect([$hoarding]), 'suspended', auth()->user()));
 
-            // Send database notification to vendor
+            // Database notification (same as before)
             if ($hoarding->vendor) {
                 $hoarding->vendor->notify(
-                    new \App\Notifications\HoardingRejectedNotification($hoarding, 'Your hoarding has been suspended by admin')
+                    new \App\Notifications\HoardingRejectedNotification(
+                        $hoarding,
+                        'Your hoarding has been suspended by admin'
+                    )
                 );
+
+                // ✅ Additional emails pe bhi bhejo - service se
+                $vendorProfile    = $hoarding->vendor->vendorProfile;
+                $additionalEmails = $vendorProfile->additional_emails ?? [];
+                $emailPreferences = $vendorProfile->email_preferences ?? [];
+
+                foreach ($additionalEmails as $additionalEmail) {
+                    $pref = $emailPreferences[$additionalEmail] ?? null;
+                    if (
+                        $pref &&
+                        ($pref['verified'] ?? false) === true &&
+                        ($pref['notifications'] ?? false) === true
+                    ) {
+                        try {
+                            Mail::to($additionalEmail)->send(
+                                new \Modules\Hoardings\Mail\VendorHoardingBulkStatusMail(
+                                    $hoarding->vendor,
+                                    collect([$hoarding]),
+                                    'suspended',
+                                    auth()->user()?->name ?? 'Admin'
+                                )
+                            );
+                        } catch (\Throwable $e) {
+                            Log::error("Suspend additional email failed", [
+                                'email' => $additionalEmail,
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    }
+                }
             }
 
-            // 📱 Send push notification to vendor on hoarding suspension
+            // Push notification (same as before)
             if ($hoarding->vendor && $hoarding->vendor->fcm_token) {
                 try {
                     $sent = send(
@@ -866,6 +904,7 @@ class VendorHoardingController extends Controller
                 'success' => true,
                 'message' => 'Hoarding suspended successfully'
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -913,60 +952,79 @@ class VendorHoardingController extends Controller
      * Accepts a collection of hoardings (already grouped or not – grouping happens here).
      */
     private function notifyVendorsGrouped(
-        \Illuminate\Support\Collection $hoardings,
-        string $action,
-        ?string $fcmTitle = null,
-        ?string $fcmBodyTemplate = null,  // use {count} as placeholder
-        ?string $fcmType = null
-    ): void {
-        $adminName = auth()->user()?->name ?? 'Admin';
-
-        // Group all affected hoardings by vendor_id
-        $grouped = $hoardings->filter(fn($h) => $h->vendor !== null)
-                            ->groupBy(fn($h) => $h->vendor->id);
-
-        foreach ($grouped as $vendorId => $vendorHoardings) {
-            $vendor = $vendorHoardings->first()->vendor;
-
-            // 1️⃣ Database + Email notification (one per vendor)
-            $vendor->notify(
-                new \Modules\Hoardings\Notifications\HoardingBulkStatusNotification(
+    \Illuminate\Support\Collection $hoardings,
+    string $action,
+    ?string $fcmTitle = null,
+    ?string $fcmBodyTemplate = null,
+    ?string $fcmType = null
+): void {
+    $adminName = auth()->user()?->name ?? 'Admin';
+ 
+    $grouped = $hoardings->filter(fn($h) => $h->vendor !== null)
+                        ->groupBy(fn($h) => $h->vendor->id);
+ 
+    foreach ($grouped as $vendorId => $vendorHoardings) {
+        $vendor = $vendorHoardings->first()->vendor;
+ 
+        // 1️⃣ Database notification (same as before)
+        $vendor->notify(
+            new \Modules\Hoardings\Notifications\HoardingBulkStatusNotification(
+                $vendorHoardings,
+                $action,
+                $adminName
+            )
+        );
+ 
+        // 2️⃣ ✅ Email - NotificationEmailService se
+        // Global check + primary email + additional valid emails
+        // Same blade: emails.vendor_hoarding_bulk_status
+        try {
+            $this->notificationEmailService->send(
+                $vendor,
+                new \Modules\Hoardings\Mail\VendorHoardingBulkStatusMail(
+                    $vendor,
                     $vendorHoardings,
                     $action,
                     $adminName
                 )
             );
-
-            // 2️⃣ Push notification (one per vendor, summarised)
-            if ($vendor->fcm_token && $fcmTitle && $fcmType) {
-                try {
-                    $count = $vendorHoardings->count();
-                    $body  = $fcmBodyTemplate
-                        ? str_replace('{count}', $count, $fcmBodyTemplate)
-                        : "{$count} " . Str::plural('hoarding', $count) . " have been {$action}.";
-
-                    $sent = send(
-                        $vendor->fcm_token,
-                        $fcmTitle,
-                        $body,
-                        [
-                            'type'         => $fcmType,
-                            'hoarding_ids' => $vendorHoardings->pluck('id')->toArray(),
-                            'count'        => $count,
-                            'action'       => $action,
-                        ]
-                    );
-
-                    if (!$sent) {
-                        Log::warning("Bulk FCM failed for vendor {$vendor->id}", ['action' => $action]);
-                    }
-                } catch (\Throwable $e) {
-                    Log::error("Bulk FCM exception for vendor {$vendor->id}", [
-                        'error'  => $e->getMessage(),
-                        'action' => $action,
-                    ]);
+        } catch (\Throwable $e) {
+            Log::error("Bulk hoarding email failed for vendor {$vendor->id}", [
+                'action' => $action,
+                'error'  => $e->getMessage()
+            ]);
+        }
+ 
+        // 3️⃣ Push notification (same as before)
+        if ($vendor->fcm_token && $fcmTitle && $fcmType) {
+            try {
+                $count = $vendorHoardings->count();
+                $body  = $fcmBodyTemplate
+                    ? str_replace('{count}', $count, $fcmBodyTemplate)
+                    : "{$count} " . Str::plural('hoarding', $count) . " have been {$action}.";
+ 
+                $sent = send(
+                    $vendor->fcm_token,
+                    $fcmTitle,
+                    $body,
+                    [
+                        'type'         => $fcmType,
+                        'hoarding_ids' => $vendorHoardings->pluck('id')->toArray(),
+                        'count'        => $count,
+                        'action'       => $action,
+                    ]
+                );
+ 
+                if (!$sent) {
+                    Log::warning("Bulk FCM failed for vendor {$vendor->id}", ['action' => $action]);
                 }
+            } catch (\Throwable $e) {
+                Log::error("Bulk FCM exception for vendor {$vendor->id}", [
+                    'error'  => $e->getMessage(),
+                    'action' => $action,
+                ]);
             }
         }
     }
+}
 }

@@ -104,6 +104,7 @@ class POSBooking extends Model
         'milestone_amount_paid'      => 'decimal:2',
         'milestone_amount_remaining' => 'decimal:2',
         'all_milestones_paid_at'     => 'datetime',
+        'po_file_path',
     ];
 
     // Status constants

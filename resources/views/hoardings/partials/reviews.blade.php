@@ -274,29 +274,30 @@
                 Let us know what we can do better to improve your experience.
             </p>
 
-            <form method="POST" action="{{ route('ratings.store') }}">
+            <form method="POST" action="{{ route('ratings.store') }}" id="ratingForm">
                 @csrf
                 <input type="hidden" name="hoarding_id" value="{{ $hoarding->id }}">
                 <input type="hidden" name="rating" id="ratingValue">
                 <input type="hidden" name="review" id="reviewHidden">
-
                 <div class="border border-gray-300 rounded">
                     <textarea id="reviewText"
-                              maxlength="250"
-                              rows="3"
-                              class="w-full p-2 text-sm outline-none resize-none rounded-t md:p-3 md:rows-5"
-                              placeholder="Write here..."></textarea>
+                            maxlength="250"
+                            rows="3"
+                            class="w-full p-2 text-sm outline-none resize-none rounded-t md:p-3 md:rows-5"
+                            placeholder="Write here..."></textarea>
 
                     <div class="text-xs text-gray-400 text-right px-3 pb-2">
                         <span id="charCount">0</span>/250
                     </div>
                 </div>
-
-                <button type="submit"
-                        class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded mt-4 text-base font-medium cursor-pointer">
-                    Submit
+                <button type="submit" id="ratingSubmitBtn"
+                        class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded mt-4 text-base font-medium cursor-pointer flex items-center justify-center gap-2">
+                    <svg id="ratingLoader" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                    <span id="ratingBtnText">Submit</span>
                 </button>
-
             </form>
         </div>
     </div>
@@ -380,6 +381,11 @@ document.querySelectorAll('.star').forEach((star, idx, stars) => {
             }
         });
     });
+});
+document.getElementById('ratingForm').addEventListener('submit', function() {
+    document.getElementById('ratingSubmitBtn').disabled = true;
+    document.getElementById('ratingLoader').classList.remove('hidden');
+    document.getElementById('ratingBtnText').textContent = 'Submitting...';
 });
 
 </script>

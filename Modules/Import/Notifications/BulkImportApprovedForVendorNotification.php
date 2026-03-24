@@ -18,17 +18,20 @@ class BulkImportApprovedForVendorNotification extends Notification implements Sh
     protected int $createdCount;
     protected int $failedCount;
     protected array $createdHoardingIds;
+    protected bool $autoApproval;
 
     public function __construct(
         InventoryImportBatch $batch,
         int $createdCount,
         int $failedCount,
-        array $createdHoardingIds = []  // ADD THIS
+        array $createdHoardingIds = [],  // ADD THIS
+        bool $autoApproval = false 
     ) {
         $this->batch = $batch;
         $this->createdCount = $createdCount;
         $this->failedCount = $failedCount;
         $this->createdHoardingIds = $createdHoardingIds; // ADD THIS
+         $this->autoApproval = $autoApproval; // ✅ ADD
     }
 
     /**
@@ -40,42 +43,38 @@ class BulkImportApprovedForVendorNotification extends Notification implements Sh
     }
 
     /**
-     * Email content for the vendor.
+     * Email content for the vendor using a custom Blade view.
      */
-      public function toMail($notifiable)
+    public function toMail($notifiable)
     {
-        $subject = 'Your Bulk Import Inventory has been Approved!';
+        $statusType = $this->autoApproval ? 'live' : 'approved';
+
+        $subject = $this->autoApproval
+            ? 'Your Hoardings are Now Live!'
+            : 'Your Bulk Import Hoardings Has Been Created Successfully';
         $batchUrl = route('vendor.import.enhanced.batch.show', $this->batch->id);
 
-        $mail = (new MailMessage)
+        // Fetch hoarding details for richer links (id, title, hoarding_type)
+      $hoardings = Hoarding::whereIn('id', $this->createdHoardingIds ?? [])
+        ->select('id', 'title', 'hoarding_type', 'name')
+        ->latest()
+        ->take(10)
+        ->get();
+
+        return (new MailMessage)
             ->subject($subject)
-            ->greeting("Hello {$notifiable->name},")
-            ->line('Your Bulk Import inventory has been successfully approved.')
-            ->line("**Hoardings Created:** {$this->createdCount}")
-            ->line("**Failed Records:** {$this->failedCount}");
-            // Add individual hoarding links if we have them
-        if (!empty($this->createdHoardingIds)) {
-            $mail->line('---');
-            $mail->line('**Your Created Hoardings:**');
-
-            // Fetch hoarding details for richer links (title/code)
-            $hoardings = Hoarding::whereIn('id', $this->createdHoardingIds)
-                ->select('id', 'title')
-                ->get();
-
-            foreach ($hoardings as $hoarding) {
-                $hoardingUrl = route('vendor.myHoardings.show', $hoarding->id);
-                $label = $hoarding->title ? "#{$hoarding->id} — {$hoarding->title}" : "Hoarding #{$hoarding->id}";
-                $mail->line("[{$label}]({$hoardingUrl})");
-            }
-
-            $mail->line('---');
-        }
-
-        $mail->action('View Your Import Batch', $batchUrl)
-             ->line('Thank you for using our platform!');
-
-        return $mail;
+            ->view(
+                'emails.vendor_bulk_import_status',
+                [
+                    'greeting'     => 'Hello ' . ($notifiable->name ?? ''),
+                    'createdCount' => $this->createdCount,
+                    'failedCount'  => $this->failedCount,
+                    'batchId'      => $this->batch->id,
+                    'batchUrl'     => $batchUrl,
+                    'hoardings'    => $hoardings,
+                    'isLive'       => $this->autoApproval, 
+                ]
+            );
     }
 
     /**
@@ -85,7 +84,7 @@ class BulkImportApprovedForVendorNotification extends Notification implements Sh
     {
         return [
             'type' => 'bulk_import_approved_vendor',
-            'title' => 'Bulk Import Approved',
+            'title' => 'Bulk Import Created Successfully',
             'message' => "Your bulk import inventory has been approved. {$this->createdCount} hoardings created, {$this->failedCount} failed.",
             'batch_id' => $this->batch->id,
             'created_count' => $this->createdCount,

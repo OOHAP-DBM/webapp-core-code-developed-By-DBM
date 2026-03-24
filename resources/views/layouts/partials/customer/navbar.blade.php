@@ -1,16 +1,16 @@
 {{-- Customer Navbar --}}
-<header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6">
+<header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-2 sm:px-4 md:px-6">
 
     {{-- SEARCH BAR (Desktop & Tablet only) --}}
     <p></p>
     @include('components.customer.home-search')
 
     {{-- RIGHT SIDE ACTIONS --}}
-    <div class="flex items-center space-x-5 mr-4 md:mr-8 lg:mr-10 xl:mr-12">
+    <div class="flex items-center space-x-3 sm:space-x-4 md:space-x-5 mr-1 sm:mr-2 md:mr-4 lg:mr-10 xl:mr-12">
 
-        {{-- Notification Dropdown (Desktop only) --}}
-        <div x-data="{ open: false, unreadCount: {{ auth()->user()->unreadNotifications->count() ?? 0 }} }"
-             class="relative hidden md:block">
+           {{-- Notification Dropdown (Visible on all screens, responsive) --}}
+           <div x-data="{ open: false, unreadCount: {{ auth()->user()->unreadNotifications->count() ?? 0 }} }"
+               class="relative block">
 
             <button @click="open = !open"
                     type="button"
@@ -26,11 +26,15 @@
                 </template>
             </button>
 
-            <div x-show="open"
-                 @click.away="open = false"
-                 x-transition
-                 class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50"
-                 style="display: none;">
+              <div x-show="open"
+                  @click.away="open = false"
+                  x-transition
+                  :class="{
+                    'absolute right-0 mt-2 w-80': window.innerWidth >= 768,
+                    'fixed left-1/2 top-20 w-11/12 max-w-sm -translate-x-1/2 z-50': window.innerWidth < 768
+                  }"
+                  class="bg-white rounded-lg shadow-xl border border-gray-200 z-50"
+                  style="display: none;">
 
                 <div class="px-4 py-3 border-b border-gray-200">
                     <h3 class="text-sm font-semibold text-gray-900">Notificationsdddd</h3>
@@ -148,8 +152,8 @@
 
         {{-- Mobile Hamburger Button --}}
         <button id="mobile-menu-btn"
-                type="button"
-                class="block md:hidden p-2 -mt-2 text-gray-600 hover:bg-gray-100 rounded-md">
+            type="button"
+            class="block md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md ml-1">
             <svg class="w-6 h-7" fill="none" stroke="currentColor" viewBox="0 0 19 19">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>

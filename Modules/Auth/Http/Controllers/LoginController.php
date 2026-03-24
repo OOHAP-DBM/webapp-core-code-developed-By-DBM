@@ -200,13 +200,25 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         $loggedOutAt = now();
+
+        // Clear remember_token for the user if logged in
+        if (Auth::check()) {
+            $user = Auth::user();
+            $user->setRememberToken(null);
+            $user->save();
+        }
+
         Auth::logout();
 
+        // Invalidate session and regenerate CSRF token
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')
+        // Remove remember_me cookie
+        $cookieName = Auth::getRecallerName();
+        $response = redirect()->route('login')
             ->with('success', 'You have been logged out successfully at ' . $loggedOutAt->format('d/m/Y H:i:s'))
             ->with('logout_time', $loggedOutAt->toISOString());
+        return $response->withoutCookie($cookieName);
     }
 }

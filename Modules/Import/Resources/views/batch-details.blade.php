@@ -9,9 +9,12 @@
             <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Inventory Details</h1>
             <p class="text-gray-600 text-sm mt-1">View rows, images, and manage each hoarding record</p>
         </div>
-        <a href="{{ $isAdmin ? route('admin.import.enhanced') : route('vendor.import.enhanced') }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+         <a href="{{ $isAdmin ? route('admin.import.enhanced') : route('vendor.import.enhanced') }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
             Back to Import List
         </a>
+        <!-- <a href="{{ $isAdmin ? route('admin.import.enhanced') : route('vendor.import.enhanced') }}" class="w-full sm:w-auto text-center min-h-[44px] px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+            Back to Import List
+        </a> -->
     </div>
 
     <div id="toastContainer" class="fixed top-4 left-3 right-3 sm:left-auto sm:right-4 z-50 space-y-2"></div>
@@ -52,7 +55,7 @@
             <h2 class="text-lg font-semibold text-gray-900">Search & Filters</h2>
         </div>
         <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
-            <input id="searchInput" type="text" placeholder="Search by city " class="w-full min-h-[44px] border rounded-lg p-2" />
+            <input id="searchInput" type="text" placeholder="Search by code or city " class="w-full min-h-[44px] border rounded-lg p-2" />
             <select id="statusFilter" class="w-full min-h-[44px] border rounded-lg p-2">
                 <option value="">All statuses</option>
                 <option value="valid">valid</option>
@@ -85,6 +88,7 @@
                         <th class="px-3 py-2 text-left text-sm">Monthly Rental Price</th> 
                         <th class="px-3 py-2 text-left text-sm">Status</th>
                         <th class="px-3 py-2 text-left text-sm">Error</th>
+                        <th class="px-3 py-2 text-left text-sm">Action</th>
                     </tr>
                 </thead>
                 <tbody id="rowsBody" class="divide-y divide-gray-200"></tbody>
@@ -643,6 +647,30 @@ async function toggleRowStatus(rowId, newStatus) {
     if (!row) {
         notify('Row not found', 'error');
         return;
+    }
+
+    // Prevent marking as valid if base_monthly_price or image_name is missing
+    if (newStatus === 'valid') {
+        let missingFields = [];
+        if (!row.base_monthly_price || isNaN(Number(row.base_monthly_price))) {
+            missingFields.push('Monthly Rental Price');
+        }
+        if (!row.image_name) {
+            missingFields.push('Image');
+        }
+        if (missingFields.length > 0) {
+            const msg = `Cannot mark as valid. Missing: ${missingFields.join(', ')}`;
+            if (window.Swal) {
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: msg,
+                });
+            } else {
+                notify(msg, 'error');
+            }
+            return;
+        }
     }
 
     try {

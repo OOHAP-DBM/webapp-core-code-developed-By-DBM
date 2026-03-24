@@ -32,14 +32,14 @@ class BulkImportApprovedNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable)
     {
-        $subject = 'Bulk Import Approved Successfully';
+        $subject = 'Bulk Import Created Successfully';
 
         $actionUrl = route('admin.import.enhanced.batch.show', $this->batch->id);
 
         return (new \Illuminate\Notifications\Messages\MailMessage)
             ->subject($subject)
             ->greeting('Hello!')
-            ->line('A Bulk Import batch has been approved.')
+            ->line('A Bulk Import batch has been created.')
             ->line("Successfully Created: {$this->createdCount} hoardings")
             ->line("Failed Records: {$this->failedCount}")
             ->action('View Bulk Import Batch', $actionUrl)
@@ -50,7 +50,7 @@ class BulkImportApprovedNotification extends Notification implements ShouldQueue
     {
         return [
             'type'          => 'bulk_import_approved',
-            'title'         => 'Bulk Import Approved',
+            'title'         => 'Bulk Import Created',
             'message'       => "{$this->createdCount} hoardings created successfully via Bulk Import.",
             'batch_id'      => $this->batch->id,
             'created_count' => $this->createdCount,

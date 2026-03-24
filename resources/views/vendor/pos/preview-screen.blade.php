@@ -25,7 +25,7 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto sm:overflow-visible">
                 <table class="w-full min-w-[760px] text-left">
                     <thead class="bg-gray-50 text-[10px] uppercase text-gray-400 font-bold">
                         <tr>
@@ -50,20 +50,20 @@
 
                 {{-- Payment Mode --}}
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Payment Mode</label>
+                    <label class="block text-[11px] font-semibold uppercase mb-2">Payment Mode</label>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <button type="button" onclick="selectPaymentMode('cash')"
-                            class="payment-mode-btn active-mode flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="cash">
+                            class="payment-mode-btn active-mode flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-semibold transition" data-mode="cash">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12a2 2 0 100-4 2 2 0 000 4z"/><path d="M6 12h.01M18 12h.01"/></svg>
                             Cash
                         </button>
                         <button type="button" onclick="selectPaymentMode('bank_transfer')"
-                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="bank_transfer">
+                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-semibold transition" data-mode="bank_transfer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             Bank Transfer
                         </button>
                         <button type="button" onclick="selectPaymentMode('online')"
-                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="online">
+                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-semibold transition" data-mode="online">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                             UPI / Online
                         </button>
@@ -223,11 +223,12 @@
 
                 {{-- Discount --}}
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Discount (₹)</label>
+                    <label class="block text-[11px] font-semibold uppercase mb-1">Discount (₹)</label>
                     <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0"
                         class="w-full p-2 border border-gray-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-green-300 focus:border-green-400 outline-none">
                 </div>
                 @include('vendor.pos.components.milestone-payment')
+                @include('vendor.pos.components.upload-po')
 
                 {{-- Totals --}}
                 <div class="pt-4 border-t border-dashed space-y-3">
@@ -251,8 +252,10 @@
 </div>
 
 {{-- Booking Confirmed Modal with Timer --}}
-<div id="booking-confirmed-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+<div id="booking-confirmed-modal" class="fixed inset-0 z-50 hidden 
+            items-end sm:items-center 
+            justify-center p-4">
+    <div id="modal-content" class=" modal-content absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl w-[94vw] sm:w-full max-w-md mx-3 sm:mx-4 overflow-hidden max-h-[92vh] overflow-y-auto">
         <div class="bg-[#2D5A43] px-6 py-5 text-white">
             <div class="flex items-center gap-3 mb-1">
@@ -267,9 +270,11 @@
         <div class="p-6 space-y-4">
 
             {{-- Timer (hidden for credit note) --}}
-            <div id="payment-timer-block" class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+            <div id="payment-timer-block" 
+                   class="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4 text-center">
                 <p class="text-[11px] text-amber-600 font-bold uppercase tracking-wider mb-1">Payment Due In</p>
-                <div id="countdown-display" class="text-3xl font-black text-amber-700 tracking-widest font-mono">--:--:--</div>
+                <div id="countdown-display" 
+                      class="text-2xl sm:text-3xl md:text-4xl font-black text-amber-700 tracking-wider sm:tracking-widest font-mono break-all">--:--:--</div>
                 <div class="mt-2 h-2 bg-amber-100 rounded-full overflow-hidden">
                     <div id="countdown-bar" class="h-full bg-amber-500 rounded-full transition-all duration-1000" style="width:100%"></div>
                 </div>
@@ -713,7 +718,9 @@ function startCountdown(expiresAt) {
 }
 
 function closeConfirmedModal() {
-    document.getElementById('booking-confirmed-modal').classList.add('hidden');
+    const modal = document.getElementById('booking-confirmed-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex'); // 🔥 VERY IMPORTANT
     if (countdownInterval) clearInterval(countdownInterval);
 }
 
@@ -766,6 +773,7 @@ function showBookingConfirmedModal(booking) {
     }
 
     modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
 
 /* ── Preview screen population ── */
@@ -1064,6 +1072,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 discountInput.addEventListener('input', function () {
                     setTimeout(applyCashLimit, 50);
                 });
+            }
+
+            // --- Milestone Hold Duration Logic ---
+            if (window.MilestoneModule && typeof window.MilestoneModule.isEnabled === 'function') {
+                // Watch for milestone enable/row add
+                const msCard = document.getElementById('ms-card');
+                if (msCard) {
+                    const observer = new MutationObserver(function() {
+                        if (window.MilestoneModule.isEnabled() && window.MilestoneModule.rows().length > 0) {
+                            // Auto-select 'No Limit' hold time
+                            selectHoldTime(0);
+                            // Show popup if not already shown
+                            if (!window.__milestoneHoldPopupShown) {
+                                window.__milestoneHoldPopupShown = true;
+                                if (window.MsAlert && typeof window.MsAlert.info === 'function') {
+                                    window.MsAlert.info(
+                                        'Milestone bookings are confirmed immediately. There is no payment hold timer. If payment is not received by the due date of any milestone, the booking can be cancelled by the admin. You can always add or edit milestones before finalizing.',
+                                        'Milestone Booking: No Hold Timer'
+                                    );
+                                } else {
+                                    alert('Milestone bookings are confirmed immediately. There is no payment hold timer. If payment is not received by the due date of any milestone, the booking can be cancelled by the admin. You can always add or edit milestones before finalizing.');
+                                }
+                            }
+                        }
+                    });
+                    observer.observe(msCard, { attributes: true, childList: true, subtree: true });
+                }
             }
         }, 100);
     });

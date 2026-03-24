@@ -574,11 +574,33 @@ window.MilestoneModule = (function () {
     }
 
     /* ── Toggle ──────────────────────────────────────────────────────── */
+    function maybeTriggerNoLimitHold() {
+        if (typeof window.selectHoldTime === 'function') {
+            window.selectHoldTime(0);
+        }
+        if (!window.__milestoneHoldPopupShown) {
+            window.__milestoneHoldPopupShown = true;
+            if (window.MsAlert && typeof window.MsAlert.info === 'function') {
+                window.MsAlert.info(
+                    'Milestone bookings are confirmed immediately. There is no payment hold timer. If payment is not received by the due date of any milestone, the booking can be cancelled by the admin. You can always add or edit milestones before finalizing.',
+                    'Milestone Booking: No Hold Timer'
+                );
+            } else {
+                alert('Milestone bookings are confirmed immediately. There is no payment hold timer. If payment is not received by the due date of any milestone, the booking can be cancelled by the admin. You can always add or edit milestones before finalizing.');
+            }
+        }
+    }
+
     function toggle() {
         _enabled = !_enabled;
         $('ms-toggle-btn').classList.toggle('ms-on', _enabled);
         $('ms-toggle-btn').setAttribute('aria-checked', String(_enabled));
         $('ms-builder').classList.toggle('hidden', !_enabled);
+
+        // When enabling, trigger No Limit hold logic if at least one row exists
+        if (_enabled && rows().length > 0) {
+            maybeTriggerNoLimitHold();
+        }
 
         // When disabling, clear all rows so validate() returns valid
         if (!_enabled) {
@@ -619,6 +641,10 @@ window.MilestoneModule = (function () {
         updateDueDateMins();
         updateVisibility();
         recalculate();
+        // If enabled and at least one row, trigger No Limit hold logic
+        if (_enabled && rows().length > 0) {
+            maybeTriggerNoLimitHold();
+        }
     }
 
     /* ── Remove row ──────────────────────────────────────────────────── */

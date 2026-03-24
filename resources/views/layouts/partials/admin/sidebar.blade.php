@@ -21,8 +21,8 @@
             />
         </a>
     </div>
-    <div class="bg-white px-6 pt-5 pb-2">
-        <a href="{{ route('admin.profile.edit') }}" class="flex items-center space-x-3 group {{ request()->routeIs('admin.profile.edit') ? 'bg-[#00995c] text-white' : '' }} rounded-lg p-2 transition-colors duration-200">
+    <div class="bg-white px-3 pt-5 pb-2">
+        <a href="{{ route('admin.profile.edit') }}" class="flex items-center space-x-2 group {{ request()->routeIs('admin.profile.edit') ? 'bg-[#00995c] text-white' : '' }} rounded-lg p-2 transition-colors duration-200">
             <div
                 style="width: 56px; height: 56px; min-width: 56px; border-radius: 9999px; border: 2px solid {{ request()->routeIs('admin.profile.edit') ? '#ffffff' : '#d1d5db' }}; overflow: hidden; background: #ffffff; display: flex; align-items: center; justify-content: center;"
                 @if(auth()->user()->avatar)

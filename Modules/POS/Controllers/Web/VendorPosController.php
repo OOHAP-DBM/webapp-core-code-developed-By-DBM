@@ -682,7 +682,8 @@ class VendorPosController extends Controller
                 $startDate = $request->get('start_date');
                 $endDate   = $request->get('end_date');
 
-                $query->whereDoesntHave('bookings', function ($q) use ($startDate, $endDate) {
+                $query->where('base_monthly_price', '>', 0)
+                ->whereDoesntHave('bookings', function ($q) use ($startDate, $endDate) {
                     $q->where(function ($inner) use ($startDate, $endDate) {
                         $inner->whereBetween('start_date', [$startDate, $endDate])
                             ->orWhereBetween('end_date', [$startDate, $endDate])
@@ -1293,6 +1294,7 @@ class VendorPosController extends Controller
                 'milestone_data.*.amount'      => 'required_if:is_milestone,true|numeric|min:0.01',
                 'milestone_data.*.due_date'    => 'nullable|date',
                 'milestone_data.*.vendor_notes' => 'nullable|string|max:500',
+                'po_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240'
             ]);
 
             // ── Resolve hoarding IDs ─────────────────────────────────────

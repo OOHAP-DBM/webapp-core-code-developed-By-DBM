@@ -21,7 +21,9 @@
             <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#1D1D1D]">Welcome back, {{ Auth::user()->name }}</h2>
             <p class="text-lg text-gray-500 font-medium">POS Overview</p>
         </div>
-        <button class="w-full sm:w-auto bg-[#1D1D1D] text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded shadow-sm text-sm font-medium">POS</button>
+        <button class="hidden lg:inline-block bg-[#1D1D1D] text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded shadow-sm text-sm font-medium">
+            POS
+        </button>
     </div>
 
     <!-- Stats Cards -->
@@ -102,7 +104,7 @@
     <!-- Recent Bookings -->
     <div class="bg-white shadow-sm border border-gray-200">
         <div class="px-4 sm:px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h5 class="text-lg font-semibold">Recent POS Bookings</h5>
+            <h5 class="text-sm md:text-lg font-semibold">Recent POS Bookings</h5>
             <div class="text-xs text-gray-500 flex items-center gap-1">
                 <span class="text-black font-semibold">SORT BY:</span>
                 <select id="bookings_period_filter" class="border rounded px-2 py-1 text-xs">
@@ -144,11 +146,11 @@
     </div>
 
     <!-- Pending Payments Widget -->
-    <div id="pending-payments-widget" class="bg-white shadow-sm border border-gray-200 hidden">
+    <!-- <div id="pending-payments-widget" class="bg-white shadow-sm border border-gray-200 hidden">
         <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-yellow-50">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h5 class="text-lg font-semibold text-yellow-800">Pending Payment Alerts</h5>
+                    <h5 class="text-md md:text-lg font-semibold text-yellow-800">Pending Payment Alerts</h5>
                     <p class="text-sm text-yellow-700">Bookings with pending payment that need attention</p>
                 </div>
                 <div class="w-full sm:w-72">
@@ -182,7 +184,53 @@
         </div>
 
         <div id="pending-payments-pagination" class="overflow-x-auto"></div>
+    </div> -->
+    <!-- Pending Payments Widget -->
+<div id="pending-payments-widget" class="bg-white shadow-sm border border-gray-200 hidden">
+
+    {{-- Header --}}
+    <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-yellow-50">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h5 class="text-base sm:text-lg font-semibold text-yellow-800">Pending Payment Alerts</h5>
+                <p class="text-xs sm:text-sm text-yellow-700">Bookings with pending payment that need attention</p>
+            </div>
+            <div class="w-full sm:w-72 lg:w-80">
+                <input
+                    id="pending-payments-search"
+                    type="text"
+                    placeholder="Search Invoice ID, Customer, Phone…"
+                    class="w-full px-3 py-2 text-sm border border-yellow-300 rounded-md
+                           focus:outline-none focus:ring-2 focus:ring-yellow-300 bg-white"
+                >
+            </div>
+        </div>
     </div>
+
+    {{-- Table (sm+) / Card list (xs) --}}
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+
+            {{-- thead: hidden on mobile, visible from sm --}}
+            <thead class="hidden sm:table-header-group bg-gray-100 text-gray-600">
+                <tr>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Invoice ID</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Customer Name</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Booking Status</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Total Amount</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Amount Paid</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Outstanding Balance</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Days Pending</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody id="pending-payments-body"></tbody>
+        </table>
+    </div>
+
+    <div id="pending-payments-pagination" class="overflow-x-auto"></div>
+</div>
 
 </div>
 
@@ -1039,79 +1087,115 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ─── Render Pending Payment Rows ──────────────────────────────────────────
 
-    function renderPendingPaymentsRows(rows) {
-        const widget = document.getElementById('pending-payments-widget');
-        const tbody  = document.getElementById('pending-payments-body');
-        if (!widget || !tbody) return;
+   function renderPendingPaymentsRows(rows) {
+    const widget = document.getElementById('pending-payments-widget');
+    const tbody  = document.getElementById('pending-payments-body');
+    if (!widget || !tbody) return;
 
-        if (!rows.length) {
-            if (pendingPaymentsState.search.trim() === '') {
-                widget.classList.add('hidden');
-            } else {
-                widget.classList.remove('hidden');
-            }
-            tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No pending payments found</td></tr>`;
-            renderPendingPaymentsPagination();
-            return;
+    if (!rows.length) {
+        if (pendingPaymentsState.search.trim() === '') {
+            widget.classList.add('hidden');
+        } else {
+            widget.classList.remove('hidden');
         }
-
-        widget.classList.remove('hidden');
-        tbody.innerHTML = '';
-
-        rows.forEach(b => {
-            const createdDate   = new Date(b.created_at);
-            const now           = new Date();
-            const daysPending   = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
-            const totalAmount   = parseFloat(b.total_amount || 0);
-            const paidAmount    = parseFloat(b.paid_amount  || 0);
-            const balanceAmount = Math.max(0, totalAmount - paidAmount);
-
-            const daysText = `${daysPending} day${daysPending !== 1 ? 's' : ''} pending`;
-            const rowClass = daysPending > 7
-                ? 'bg-red-100 border-l-4 border-red-600'
-                : (daysPending > 3 ? 'bg-red-50' : 'bg-yellow-50');
-
-            tbody.innerHTML += `
-                <tr class="hidden sm:table-row ${rowClass}">
-                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-medium">${b.invoice_number || 'N/A'}</td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3">${b.customer_name}</td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3">
-                        <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">${bookingStatusLabel(b.status || 'N/A')}</span>
-                    </td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold">₹${totalAmount.toLocaleString()}</td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-green-700">₹${paidAmount.toLocaleString()}</td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-red-700">₹${balanceAmount.toLocaleString()}</td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-red-600">${daysText}</td>
-                    <td class="px-2 py-2 sm:px-4 sm:py-3">
-                        <a href="${POS_BASE_PATH}/bookings/${b.id}" class="text-blue-600 hover:underline text-sm font-medium">
-                            Review & Mark as Paid
-                        </a>
-                    </td>
-                </tr>
-                <tr class="sm:hidden border-b border-gray-100">
-                    <td colspan="8" class="px-3 py-3">
-                        <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 space-y-1.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <p class="text-xs font-semibold text-gray-900">${b.invoice_number || 'N/A'}</p>
-                                <span class="px-2 py-0.5 text-[10px] rounded-full ${statusBadge(b.status)}">${bookingStatusLabel(b.status || 'N/A')}</span>
-                            </div>
-                            <p class="text-xs text-gray-700">${b.customer_name}</p>
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="font-semibold">Total: ₹${totalAmount.toLocaleString()}</span>
-                                <span class="font-semibold text-red-600">${daysText}</span>
-                            </div>
-                            <div class="flex items-center justify-between text-xs text-gray-700">
-                                <span>Paid: ₹${paidAmount.toLocaleString()}</span>
-                                <span>Balance: ₹${balanceAmount.toLocaleString()}</span>
-                            </div>
-                            <a href="${POS_BASE_PATH}/bookings/${b.id}" class="inline-flex text-xs text-blue-600 hover:underline font-medium">View & Mark Paid</a>
-                        </div>
-                    </td>
-                </tr>`;
-        });
-
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="px-4 py-8 text-center text-gray-400 text-sm">
+                    No pending payments found
+                </td>
+            </tr>`;
         renderPendingPaymentsPagination();
+        return;
     }
+
+    widget.classList.remove('hidden');
+    tbody.innerHTML = '';
+
+    rows.forEach(b => {
+        const createdDate   = new Date(b.created_at);
+        const now           = new Date();
+        const daysPending   = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+        const totalAmount   = parseFloat(b.total_amount || 0);
+        const paidAmount    = parseFloat(b.paid_amount  || 0);
+        const balanceAmount = Math.max(0, totalAmount - paidAmount);
+        const daysText      = `${daysPending} day${daysPending !== 1 ? 's' : ''} pending`;
+
+        // Row highlight class
+        const rowClass = daysPending > 7
+            ? 'bg-red-100 border-l-4 border-red-500'
+            : (daysPending > 3 ? 'bg-red-50' : 'bg-yellow-50');
+
+        tbody.innerHTML += `
+            {{-- ── Desktop row (sm+) ── --}}
+            <tr class="hidden sm:table-row border-b border-gray-100 ${rowClass}">
+                <td class="px-4 py-3 font-medium whitespace-nowrap">${b.invoice_number || 'N/A'}</td>
+                <td class="px-4 py-3 whitespace-nowrap">${b.customer_name}</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs rounded-full ${statusBadge(b.status)}">
+                        ${bookingStatusLabel(b.status || 'N/A')}
+                    </span>
+                </td>
+                <td class="px-4 py-3 font-semibold whitespace-nowrap">₹${totalAmount.toLocaleString()}</td>
+                <td class="px-4 py-3 font-semibold text-green-700 whitespace-nowrap">₹${paidAmount.toLocaleString()}</td>
+                <td class="px-4 py-3 font-semibold text-red-700 whitespace-nowrap">₹${balanceAmount.toLocaleString()}</td>
+                <td class="px-4 py-3 font-semibold text-red-600 whitespace-nowrap">${daysText}</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <a href="${POS_BASE_PATH}/bookings/${b.id}"
+                       class="text-blue-600 hover:underline text-sm font-medium">
+                        Review &amp; Mark as Paid
+                    </a>
+                </td>
+            </tr>
+
+            {{-- ── Mobile card (xs only) ── --}}
+            <tr class="sm:hidden">
+                <td colspan="8" class="px-3 py-2">
+                    <div class="rounded-lg border ${daysPending > 7 ? 'border-red-300 bg-red-50' : (daysPending > 3 ? 'border-red-200 bg-red-50' : 'border-yellow-200 bg-yellow-50')} p-3 space-y-2">
+
+                        {{-- Top row: invoice + status badge --}}
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="text-sm font-semibold text-gray-900 leading-tight">
+                                ${b.invoice_number || 'N/A'}
+                            </p>
+                            <span class="shrink-0 px-2 py-0.5 text-[10px] rounded-full ${statusBadge(b.status)}">
+                                ${bookingStatusLabel(b.status || 'N/A')}
+                            </span>
+                        </div>
+
+                        {{-- Customer name --}}
+                        <p class="text-xs text-gray-700">${b.customer_name}</p>
+
+                        {{-- Amount row --}}
+                        <div class="grid grid-cols-3 gap-1 text-xs">
+                            <div>
+                                <p class="text-gray-500">Total</p>
+                                <p class="font-semibold text-gray-800">₹${totalAmount.toLocaleString()}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Paid</p>
+                                <p class="font-semibold text-green-700">₹${paidAmount.toLocaleString()}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Balance</p>
+                                <p class="font-semibold text-red-700">₹${balanceAmount.toLocaleString()}</p>
+                            </div>
+                        </div>
+
+                        {{-- Footer: days pending + action --}}
+                        <div class="flex items-center justify-between pt-1 border-t border-yellow-100">
+                            <span class="text-xs font-semibold text-red-600">${daysText}</span>
+                            <a href="${POS_BASE_PATH}/bookings/${b.id}"
+                               class="text-xs text-blue-600 hover:underline font-medium">
+                                Review &amp; Mark as Paid →
+                            </a>
+                        </div>
+                    </div>
+                </td>
+            </tr>`;
+    });
+
+    renderPendingPaymentsPagination();
+}
 
     // ─── Load Pending Payments ─────────────────────────────────────────────────
 

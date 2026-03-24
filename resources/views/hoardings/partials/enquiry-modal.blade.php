@@ -560,28 +560,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var errorMsg = '';
 
+
     if (!name) errorMsg += 'Full Name is required.\n';
-    if (!email) errorMsg += 'Email is required.\n';
-    if (!mobile) errorMsg += 'Mobile is required.\n';
+    // At least one of email or mobile is required
+    if (!email && !mobile) {
+        errorMsg += 'Either Email or Mobile is required.\n';
+    }
     if (!startDate) errorMsg += 'Start Date is required.\n';
 
     var isDoohHoarding = hoardingType.toLowerCase() === 'dooh';
 
-    if (isDoohHoarding) {
+    // if (isDoohHoarding) {
+    //     // Video Duration and Slots Count are now optional, so no required validation here
+    //     var videoDurationInt = parseInt(videoDuration);
+    //     if (videoDuration && ![15,30].includes(videoDurationInt)) {
+    //         errorMsg += 'Video Duration must be 15 or 30 seconds.\n';
+    //     }
 
-        if (!videoDuration) errorMsg += 'Video Duration is required.\n';
-        if (!slotsCount) errorMsg += 'Slots Count is required.\n';
-
-        var videoDurationInt = parseInt(videoDuration);
-        if (videoDuration && ![15,30].includes(videoDurationInt)) {
-            errorMsg += 'Video Duration must be 15 or 30 seconds.\n';
-        }
-
-        var slotsCountInt = parseInt(slotsCount);
-        if (slotsCount && slotsCountInt < 1) {
-            errorMsg += 'Slots Count must be at least 1.\n';
-        }
-    }
+    //     var slotsCountInt = parseInt(slotsCount);
+    //     if (slotsCount && slotsCountInt < 1) {
+    //         errorMsg += 'Slots Count must be at least 1.\n';
+    //     }
+    // }
 
     if (!packageSelect || packageSelect.value === 'base' || !packageSelect.value) {
 
@@ -604,11 +604,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (errorMsg) {
         e.preventDefault();
-        alert(errorMsg);
-        return false;
+        if (window.Swal) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: errorMsg.replace(/\n/g, '<br>'),
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                customClass: { popup: 'swal2-toast' },
+                html: true
+            });
+        } else {
+            alert(errorMsg);
+        }
+        return;
     }
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 /* ===== DOOH FIELD AUTO SYNC (NO CONFLICT, NO DELAY) ===== */
 (function () {
