@@ -46,7 +46,6 @@ class ProfileController extends Controller
             $profile?->company_name,
             $profile?->business_type,
             $profile?->gstin,
-            $profile?->pan_number,
             $profile?->pan_document,
             $profile?->bank_name,
             $profile?->account_holder_name,
