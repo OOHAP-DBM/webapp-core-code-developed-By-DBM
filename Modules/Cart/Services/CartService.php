@@ -231,41 +231,14 @@ class CartService
     }
     public function buildCartItem($item)
     {
-        $item->image_url = asset('assets/images/placeholder.jpg');
-
-        // ---------- OOH IMAGE ----------
-        if ($item->hoarding_type === 'ooh') {
-
-            $media = DB::table('hoarding_media')
-                ->where('hoarding_id', $item->hoarding_id)
-                ->orderByDesc('is_primary')
-                ->orderBy('sort_order')
-                ->first();
-
-            if ($media && !empty($media->file_path)) {
-                $item->image_url = asset('storage/' . ltrim($media->file_path, '/'));
-            }
-        }
-
-        // ---------- DOOH IMAGE ----------
-        if ($item->hoarding_type === 'dooh') {
-
-            $screen = DB::table('dooh_screens')
-                ->where('hoarding_id', $item->hoarding_id)
-                ->whereNull('deleted_at')
-                ->first();
-
-            if ($screen) {
-                $media = DB::table('dooh_screen_media')
-                    ->where('dooh_screen_id', $screen->id)
-                    ->orderBy('sort_order')
-                    ->first();
-
-                if ($media && !empty($media->file_path)) {
-                    $item->image_url = asset('storage/' . ltrim($media->file_path, '/'));
-                }
-            }
-        }
+        // Fetch full Hoarding model for media relations
+        $hoardingModel = \App\Models\Hoarding::find($item->hoarding_id);
+        $item->media = $hoardingModel ? ($hoardingModel->hoarding_type === 'ooh'
+            ? $hoardingModel->hoardingMedia
+            : ($hoardingModel->hoarding_type === 'dooh' && $hoardingModel->doohScreen ? $hoardingModel->doohScreen->media : collect())) : collect();
+        $item->image_url = $hoardingModel && $hoardingModel->primaryMediaItem() && isset($hoardingModel->primaryMediaItem()->file_path)
+            ? asset('storage/' . ltrim($hoardingModel->primaryMediaItem()->file_path, '/'))
+            : asset('assets/images/placeholder.jpg');
         /* =====================================================
         SIZE
         ===================================================== */
