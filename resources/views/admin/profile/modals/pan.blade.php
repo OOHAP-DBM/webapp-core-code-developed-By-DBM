@@ -1,7 +1,7 @@
 <div id="panModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
     <div class="absolute inset-0 bg-black/40 modal-overlay" onclick="closeModal('panModal')"></div>
-    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
 
+    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
         <div class="flex items-center justify-between mb-6">
             <h3 class="text-base font-semibold text-gray-900">PAN Document</h3>
             <button type="button" onclick="closeModal('panModal')" class="text-gray-400 hover:text-gray-600 cursor-pointer">
@@ -11,27 +11,34 @@
             </button>
         </div>
 
-        <div class="flex items-center justify-center min-h-[160px] bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
-            @if(!empty($profile?->pan_document))
-                @php
-                    $ext = strtolower(pathinfo($profile->pan_document, PATHINFO_EXTENSION));
-                    $panUrl = route('admin.profile.pan.view');
-                @endphp
+        <div class="flex flex-col items-center justify-center space-y-4 p-2">
+            <div class="bg-white rounded-none shadow p-3 w-full flex justify-center min-h-[160px]">
+                @if(!empty($profile?->pan_document))
+                    @php
+                        $ext = strtolower(pathinfo($profile->pan_document, PATHINFO_EXTENSION));
+                        $panUrl = route('admin.profile.pan.view');
+                    @endphp
 
-                @if($ext === 'pdf')
-                    <a href="{{ $panUrl }}" target="_blank"
-                        class="text-blue-600 text-sm font-medium hover:underline cursor-pointer">
-                        View PDF Document
-                    </a>
+                    @if($ext === 'pdf')
+                        <a href="{{ $panUrl }}" target="_blank"
+                            class="text-blue-600 text-sm font-medium hover:underline cursor-pointer self-center">
+                            View PDF Document
+                        </a>
+                    @else
+                        <img
+                            src="{{ $panUrl }}"
+                            alt="PAN Card"
+                            class="max-w-full p-4 max-h-48 rounded-md object-contain"
+                        />
+                    @endif
                 @else
-                    <img src="{{ $panUrl }}"
-                        alt="PAN Document"
-                        class="w-full h-48 object-cover rounded-lg">
+                    <p class="text-sm text-gray-500 italic self-center">
+                        PAN card has not been uploaded yet.
+                    </p>
                 @endif
-            @else
-                <p class="text-sm text-gray-400">No PAN document uploaded.</p>
-            @endif
-</div>
+            </div>
+        </div>
+
         <div class="flex gap-3 mt-6">
             <button type="button" onclick="closeModal('panModal')"
                 class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer">
@@ -45,6 +52,5 @@
                 </a>
             @endif
         </div>
-
     </div>
 </div>
