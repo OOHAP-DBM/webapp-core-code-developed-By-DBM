@@ -114,6 +114,40 @@
         {{-- ── Bottom Actions ── --}}
         @include('vendor.offers.components.offer-buttons')
     </div>
+    <div id="bookingDateModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/40" onclick="closeBookingDateModal()"></div>
+        <div class="relative bg-white rounded-xl shadow-xl w-fit max-w-[95vw] mx-4 p-4 sm:p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold text-gray-800">Select Booking Duration</h3>
+                <button type="button" onclick="closeBookingDateModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <input type="text" id="bookingDateModalPicker" class="hidden">
+
+            <div id="bookingDateModalCalendar" class="mb-4"></div>
+
+            <div id="bookingDateModalValue" class="text-xs text-gray-500 mb-4 text-center">
+                No date range selected
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button"
+                    onclick="closeBookingDateModal()"
+                    class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button type="button"
+                    onclick="applyBookingDateModal()"
+                    class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700">
+                    Apply
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
 const OFFER_SUGGESTIONS_URL = "{{ route('vendor.offers.customer-suggestions') }}";
@@ -228,7 +262,15 @@ function offerUpdateSummary() {
                 <td class="px-3 py-3 text-center hidden sm:table-cell">
                     <span class="bg-purple-50 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full">${h.total_slots_per_day ?? 300}</span>
                 </td>
-                <td class="px-4 py-3 text-xs text-gray-400">—</td>
+                <td class="px-4 py-3 text-xs text-gray-400">
+                    <input type="text"
+                        class="booking-duration-input w-full border border-gray-300 rounded px-2 py-1 text-xs focus:ring-green-500 cursor-pointer bg-white"
+                        id="booking-duration-dooh-${id}"
+                        readonly
+                        placeholder="Select date range"
+                        onclick="openBookingDateModal('booking-duration-dooh-${id}', '${id}')"
+                        style="background:#fff;min-width:120px;" />
+                </td>
                 <td class="px-3 py-3 text-xs font-bold text-green-700">₹${price.toLocaleString('en-IN')}</td>
                 <td class="px-3 py-3 text-right">${rmBtn}</td>
             </tr>`;
@@ -241,7 +283,15 @@ function offerUpdateSummary() {
                     ${loc ? `<p class="text-[9px] text-gray-400 truncate max-w-[150px]">${loc}</p>` : ''}
                 </td>
                 <td class="px-3 py-3 text-xs text-gray-500 hidden sm:table-cell">₹${price.toLocaleString('en-IN')}</td>
-                <td class="px-4 py-3 text-xs text-gray-400">—</td>
+                <td class="px-4 py-3 text-xs text-gray-400">
+                    <input type="text"
+                        class="booking-duration-input w-full border border-gray-300 rounded px-2 py-1 text-xs focus:ring-green-500 cursor-pointer bg-white"
+                        id="booking-duration-ooh-${id}"
+                        readonly
+                        placeholder="Select date range"
+                        onclick="openBookingDateModal('booking-duration-ooh-${id}', '${id}')"
+                        style="background:#fff;min-width:120px;" />
+                </td>
                 <td class="px-3 py-3 text-xs font-bold text-green-700">₹${price.toLocaleString('en-IN')}</td>
                 <td class="px-3 py-3 text-right">${rmBtn}</td>
             </tr>`;
@@ -251,5 +301,109 @@ function offerUpdateSummary() {
     if (!hasOoh)  oohBody.innerHTML  = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic text-xs">No static hoardings selected</td></tr>`;
     if (!hasDooh) doohBody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 italic text-xs">No digital slots selected</td></tr>`;
     if (btnCount) btnCount.innerText = offerSelectedHoardings.size;
+    hydrateSavedBookingRanges();
 }
+</script>
+<script>
+    let bookingDateModalFp = null;
+    let activeBookingInputId = null;
+    let activeBookingHoardingId = null;
+    let activeBookingSelection = null;
+
+    function openBookingDateModal(inputId, hoardingId) {
+        activeBookingInputId = inputId;
+        activeBookingHoardingId = hoardingId;
+        activeBookingSelection = null;
+
+        const modal = document.getElementById('bookingDateModal');
+        const picker = document.getElementById('bookingDateModalPicker');
+        const valueBox = document.getElementById('bookingDateModalValue');
+
+        let key = 'offer_booking_range_' + hoardingId;
+        let saved = localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : null;
+
+        modal.classList.remove('hidden');
+        valueBox.textContent = saved && saved.start && saved.end
+            ? `${formatDisplayDate(saved.start)} to ${formatDisplayDate(saved.end)}`
+            : 'No date range selected';
+
+        if (bookingDateModalFp) {
+            bookingDateModalFp.destroy();
+            bookingDateModalFp = null;
+        }
+
+        bookingDateModalFp = flatpickr(picker, {
+            inline: true,
+            appendTo: document.getElementById('bookingDateModalCalendar'),
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            minDate: 'today',
+            showMonths: window.innerWidth < 640 ? 1 : 2,
+            monthSelectorType: 'static',
+            defaultDate: saved ? [saved.start, saved.end] : null,
+            onChange: function(selectedDates) {
+                if (selectedDates.length === 2) {
+                    activeBookingSelection = {
+                        start: flatpickr.formatDate(selectedDates[0], 'Y-m-d'),
+                        end: flatpickr.formatDate(selectedDates[1], 'Y-m-d')
+                    };
+                    valueBox.textContent =
+                        `${formatDisplayDate(activeBookingSelection.start)} to ${formatDisplayDate(activeBookingSelection.end)}`;
+                }
+            }
+        });
+    }
+
+    function closeBookingDateModal() {
+        document.getElementById('bookingDateModal').classList.add('hidden');
+        document.getElementById('bookingDateModalCalendar').innerHTML = '';
+        activeBookingInputId = null;
+        activeBookingHoardingId = null;
+        activeBookingSelection = null;
+
+        if (bookingDateModalFp) {
+            bookingDateModalFp.destroy();
+            bookingDateModalFp = null;
+        }
+    }
+
+    function applyBookingDateModal() {
+        if (!activeBookingInputId || !activeBookingHoardingId || !activeBookingSelection) {
+            closeBookingDateModal();
+            return;
+        }
+
+        const input = document.getElementById(activeBookingInputId);
+        const key = 'offer_booking_range_' + activeBookingHoardingId;
+
+        localStorage.setItem(key, JSON.stringify(activeBookingSelection));
+
+        if (input) {
+            input.value =
+                `${formatDisplayDate(activeBookingSelection.start)} - ${formatDisplayDate(activeBookingSelection.end)}`;
+        }
+
+        closeBookingDateModal();
+    }
+
+    function formatDisplayDate(dateStr) {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+
+    function hydrateSavedBookingRanges() {
+        document.querySelectorAll('.booking-duration-input').forEach(input => {
+            const hoardingId = input.id.replace('booking-duration-ooh-', '').replace('booking-duration-dooh-', '');
+            const key = 'offer_booking_range_' + hoardingId;
+            const saved = localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : null;
+
+            if (saved && saved.start && saved.end) {
+                input.value = `${formatDisplayDate(saved.start)} - ${formatDisplayDate(saved.end)}`;
+            }
+        });
+    }
 </script>
