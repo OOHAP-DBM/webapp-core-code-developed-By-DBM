@@ -13,6 +13,8 @@ use App\Http\Controllers\Web\Customer\ShortlistController;
 use App\Http\Controllers\Web\Customer\RatingController;
 use Modules\Auth\Http\Controllers\MobileForgotPasswordController;
 use App\Http\Controllers\GeocodeController;
+use App\Http\Controllers\Admin\RazorpaySettingsController;
+
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -1363,6 +1365,11 @@ Route::get('/coming-soon', function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin.settings.')->group(function () {
     Route::get('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'edit'])->name('hoarding_auto_approval.edit');
     Route::post('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'update'])->name('hoarding_auto_approval.update');
+    //================== razorpay configuration=============
+    Route::get('/razorpay',         [RazorpaySettingsController::class, 'index'])->name('razorpay');
+    Route::post('/razorpay',        [RazorpaySettingsController::class, 'update'])->name('razorpay.update');
+    Route::post('/razorpay/test',   [RazorpaySettingsController::class, 'testCredentials'])->name('razorpay.test');
+    Route::post('/razorpay/toggle', [RazorpaySettingsController::class, 'toggleActive'])->name('razorpay.toggle');
 });
 Route::get('/twilio-test', function () {
     $service = app(\App\Services\Whatsapp\TwilioWhatsappService::class);

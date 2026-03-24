@@ -48,7 +48,7 @@ class HoardingAvailabilityService
 
         foreach ($period as $date) {
             $dateKey = $date->format('Y-m-d');
-            
+
             $dayData = [
                 'date' => $dateKey,
                 'day_of_week' => $date->dayName,
@@ -98,7 +98,7 @@ class HoardingAvailabilityService
         $endDate
     ): array {
         $calendar = $this->getAvailabilityCalendar($hoardingId, $startDate, $endDate, false);
-        
+
         return $calendar['summary'];
     }
 
@@ -142,7 +142,7 @@ class HoardingAvailabilityService
         foreach ($dates as $date) {
             $dateKey = Carbon::parse($date)->format('Y-m-d');
             $dayData = collect($calendar['calendar'])->firstWhere('date', $dateKey);
-            
+
             if ($dayData) {
                 $results[] = $dayData;
             }
@@ -414,7 +414,7 @@ class HoardingAvailabilityService
             ])
             ->where(function ($q) use ($start, $end) {
                 $q->where('start_date', '<=', $end->format('Y-m-d'))
-                  ->where('end_date', '>=', $start->format('Y-m-d'));
+                    ->where('end_date', '>=', $start->format('Y-m-d'));
             })
             ->with('customer:id,name,email')
             ->get();
@@ -435,7 +435,7 @@ class HoardingAvailabilityService
             ->where('hold_expiry_at', '>', now())
             ->where(function ($q) use ($start, $end) {
                 $q->where('start_date', '<=', $end->format('Y-m-d'))
-                  ->where('end_date', '>=', $start->format('Y-m-d'));
+                    ->where('end_date', '>=', $start->format('Y-m-d'));
             })
             ->with('customer:id,name,email')
             ->get();
@@ -484,11 +484,11 @@ class HoardingAvailabilityService
                 $q->whereHas('posBooking', function ($q2) use ($parentBookingStatuses) {
                     $q2->whereIn('status', $parentBookingStatuses);
                 })
-                ->orWhereIn('status', $hoardingStatusesToConsider);
+                    ->orWhereIn('status', $hoardingStatusesToConsider);
             })
             ->where(function ($q) use ($start, $end) {
                 $q->where('start_date', '<=', $end->format('Y-m-d'))
-                  ->where('end_date', '>=', $start->format('Y-m-d'));
+                    ->where('end_date', '>=', $start->format('Y-m-d'));
             })
             ->with('posBooking:id,status')
             ->get()
