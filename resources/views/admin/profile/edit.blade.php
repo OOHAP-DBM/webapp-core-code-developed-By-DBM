@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="w-full mx-auto p-6 space-y-6">
+<div class="w-full mx-auto space-y-6">
 
     {{-- ── BOX 1: Name + Profile Status + Stats + Upload Profile Image ── --}}
     <div class="bg-white shadow-sm rounded-lg p-6">
 
         {{-- Name + Profile Status --}}
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <div class="text-xl font-bold text-gray-900">{{ $user->name }}</div>
+            <div class="text-xl font-bold text-gray-900">{{ $user->name ?? '' }}</div>
             <div class="mt-4 md:mt-0 min-w-[220px]">
                 <div class="flex items-center justify-between mb-1">
                     <span class="text-sm text-gray-600">Profile Status</span>
@@ -49,7 +49,7 @@
                         Browse
                     </span>
                     <span id="fileNameDisplay" class="px-4 py-2.5 text-sm text-gray-400 flex-1 truncate">
-                        {{ !empty($user->avatar) ? basename($user->avatar) : 'Choose file' }}
+                        {{ !empty($user->avatar ?? null) ? basename($user->avatar) : 'Choose file' }}
                     </span>
                     <input
                         type="file"
@@ -60,7 +60,7 @@
                         onchange="uploadAvatar(this)">
                 </label>
 
-             @if(!empty($user->avatar))
+             @if(!empty($user->avatar ?? null))
                     <div class="flex items-center gap-3 my-3">
                         <div class="w-20 h-20 rounded-full overflow-hidden border border-gray-200">
                             <img
@@ -93,11 +93,11 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Full Name</label>
-                <input type="text" value="{{ $user->name }}" class="form-input block w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-50" disabled>
+                <input type="text" value="{{ $user->name ?? '' }}" class="form-input block w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-50" disabled>
             </div>
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Email Address</label>
-                <input type="email" value="{{ $user->email }}" class="form-input block w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-50" disabled>
+                <input type="email" value="{{ $user->email ?? '' }}" class="form-input block w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-50" disabled>
             </div>
         </div>
         <div class="flex justify-end mt-4">
@@ -134,7 +134,7 @@
                 <label class="block text-sm text-gray-600 mb-1">Upload PAN</label>
                 <div class="relative">
                     <input type="text" 
-                        value="{{ $profile->pan_document ? basename($profile->pan_document) : '' }}" 
+                        value="{{ !empty($profile->pan_document ?? null) ? basename($profile->pan_document) : '' }}" 
                         placeholder="No file uploaded" 
                         class="form-input block w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-50 pr-9" 
                         disabled>
