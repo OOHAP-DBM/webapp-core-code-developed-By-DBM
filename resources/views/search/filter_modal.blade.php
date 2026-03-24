@@ -145,14 +145,15 @@
 </style>
 <form method="GET" action="{{ route('search.seo', ['city' => request('location', 'india'), 'area' => request('area')]) }}" id="filterForm">
     <input type="hidden" name="sort" value="{{ request('sort', '') }}">
-    <div id="filterModal" class="fixed inset-0 z-[9999] hidden p-4 sm:p-6 md:p-8 lg:p-0">
+    <div id="filterModal" class="fixed inset-0 z-[9999] hidden flex items-end sm:items-center justify-center p-4">
+
 
         <!-- Overlay -->
         <div class="absolute inset-0 bg-black/40" onclick="closeFilterModal()"></div>
 
         <!-- Modal -->
-        <div class="relative bg-white w-full max-w-4xl mx-auto mt-8 rounded-xl shadow-xl overflow-hidden">
-
+        <div class="relative bg-white w-full max-w-4xl mx-auto rounded-xl shadow-xl overflow-hidden flex flex-col"
+            style="max-height: calc(100vh - 2rem);">
             {{-- HEADER --}}
             <div class="relative flex items-center px-6 py-4 shadow">
                 <h2 class="text-lg font-semibold absolute left-1/2 -translate-x-1/2">
@@ -170,7 +171,7 @@
 
 
             {{-- BODY --}}
-            <div class="p-6 max-h-[75vh] overflow-y-auto space-y-8">
+            <div class="p-6 overflow-y-auto space-y-8 flex-1 min-h-0">
 
                 {{-- TYPES OF HOARDING --}}
                 <section>
