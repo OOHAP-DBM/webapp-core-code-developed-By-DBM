@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="w-full mx-auto p-6 space-y-6">
+<div class="w-full mx-auto space-y-6">
 
     {{-- ── BOX 1: Name + Profile Status + Stats + Upload Profile Image ── --}}
     <div class="bg-white shadow-sm rounded-lg p-6">
