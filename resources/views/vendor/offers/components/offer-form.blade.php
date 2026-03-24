@@ -3,13 +3,7 @@
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
 
     {{-- Header --}}
-    <div class="px-3 sm:px-4 lg:px-6 py-4 border-b border-gray-100 bg-white flex justify-between items-center">
-        <div>
-            <h2 class="text-xl font-bold text-gray-800">Create Offer</h2>
-            <p class="text-xs text-gray-400">Select a customer and choose hoardings to create an offer.</p>
-        </div>
-        <span id="offer-date" class="text-xs text-gray-400 font-medium hidden sm:block"></span>
-    </div>
+    @include('vendor.offers.components.offer-header')
 
     <div class="p-3 sm:p-4 lg:p-6">
 
@@ -118,20 +112,9 @@
         </div>
 
         {{-- ── Bottom Actions ── --}}
-        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-12 pt-6 border-t border-gray-100">
-            <button type="button" onclick="location.reload()"
-                class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#7A9C89] border border-gray-200 font-bold text-white transition cursor-pointer rounded">
-                Cancel
-            </button>
-            <button id="offer-submit-btn"
-                class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#2E5B42] text-white font-bold shadow-lg shadow-green-900/20 hover:bg-opacity-90 active:scale-[0.98] transition cursor-pointer rounded">
-                Preview & Create Offer (<span id="offer-btn-count">0</span>)
-            </button>
-        </div>
-
+        @include('vendor.offers.components.offer-buttons')
     </div>
 </div>
-
 <script>
 const OFFER_SUGGESTIONS_URL = "{{ route('vendor.offers.customer-suggestions') }}";
 

@@ -1,6 +1,6 @@
 {{-- resources/views/vendor/offers/components/offer-inventory.blade.php --}}
 
-<div class="bg-white rounded-lg shadow-sm border border-gray-200" style="position: sticky; top: 1.5rem;">
+<div class="bg-white rounded-lg shadow-sm border border-gray-200" style="position: sticky;">
 
     {{-- Header --}}
     <div class="px-4 lg:px-5 pt-4 lg:pt-5 flex items-center gap-3">
