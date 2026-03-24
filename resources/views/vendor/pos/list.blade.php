@@ -322,18 +322,18 @@ function renderPosPagination(pagination) {
     const endRecord = total > 0 ? Math.min(current * perPage, total) : 0;
 
     const pages = [];
-    if (last <= 5) {
+    if (last <= 3) {
         for (let i = 1; i <= last; i++) {
             pages.push(i);
         }
-    } else if (current <= 5) {
-        for (let i = 1; i <= 5; i++) {
+    } else if (current <= 3) {
+        for (let i = 1; i <= 3; i++) {
             pages.push(i);
         }
         pages.push(last);
-    } else if (current >= last - 4) {
+    } else if (current >= last - 2) {
         pages.push(1);
-        for (let i = last - 4; i <= last; i++) {
+        for (let i = last - 2; i <= last; i++) {
             pages.push(i);
         }
     } else {
