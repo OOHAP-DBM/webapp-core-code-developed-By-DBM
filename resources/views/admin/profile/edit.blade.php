@@ -60,13 +60,22 @@
                         onchange="uploadAvatar(this)">
                 </label>
 
-                @if(!empty($user->avatar))
-                    <button
-                        type="button"
-                        onclick="removeAvatar()"
-                        class="mt-3 px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded hover:bg-red-50 cursor-pointer">
-                        Remove
-                    </button>
+             @if(!empty($user->avatar))
+                    <div class="flex items-center gap-3 my-3">
+                        <div class="w-20 h-20 rounded-full overflow-hidden border border-gray-200">
+                            <img
+                                src="{{ route('admin.profile.avatar.view') }}?t={{ time() }}"
+                                alt="Profile Image"
+                                class="w-full h-full object-cover">
+                        </div>
+
+                        <button
+                            type="button"
+                            onclick="removeAvatar()"
+                            class="px-4 py-2 text-sm font-medium text-red-600 rounded hover:bg-red-50 cursor-pointer">
+                            Remove
+                        </button>
+                    </div>
                 @endif
             </form>
         </div>
