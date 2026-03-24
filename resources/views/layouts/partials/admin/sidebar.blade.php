@@ -23,38 +23,27 @@
     </div>
     <div class="bg-white px-3 pt-5 pb-2">
         <a href="{{ route('admin.profile.edit') }}" class="flex items-center space-x-2 group {{ request()->routeIs('admin.profile.edit') ? 'bg-[#00995c] text-white' : '' }} rounded-lg p-2 transition-colors duration-200">
-            <div
-                style="width: 56px; height: 56px; min-width: 56px; border-radius: 9999px; border: 2px solid {{ request()->routeIs('admin.profile.edit') ? '#ffffff' : '#d1d5db' }}; overflow: hidden; background: #ffffff; display: flex; align-items: center; justify-content: center;"
+            <div style="width: 56px; height: 56px; min-width: 56px; border-radius: 9999px; border: 2px solid {{ request()->routeIs('admin.profile.edit') ? '#ffffff' : '#d1d5db' }}; overflow: hidden; background: #ffffff; display: flex; align-items: center; justify-content: center;">
                 @if(auth()->user()->avatar)
                     <img
-                        src="{{ str_starts_with(auth()->user()->avatar, 'http') ? auth()->user()->avatar : asset('storage/' . ltrim(auth()->user()->avatar, '/')) }}"
+                        src="{{ route('admin.profile.avatar.view') }}?t={{ time() }}"
                         alt="Profile Image"
-                        style="width:100%; height:100%; object-fit:contain; display:block;"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+                        style="width:100%; height:100%; object-fit:cover; border-radius:9999px; display:block;"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                     >
-                    <svg
-                        style="display:none; width:36px; height:36px;"
-                        fill="none"
-                        stroke="#9ca3af"
-                        viewBox="0 0 24 24"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
+                    <div style="display:none; width:100%; height:100%; align-items:center; justify-content:center;">
+                        <svg style="width:36px; height:36px;" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
                 @else
-                    <svg
-                        style="width:36px; height:36px;"
-                        fill="none"
-                        stroke="#9ca3af"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                    </svg>
+                    <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                        <svg style="width:36px; height:36px;" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
                 @endif
             </div>
             <div>
