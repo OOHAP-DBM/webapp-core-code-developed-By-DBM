@@ -45,6 +45,29 @@
     transition: background 0.2s ease, color 0.2s ease;
 }
 
+/* Responsive Breadcrumbs */
+.breadcrumb-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+.breadcrumb-scroll ol {
+    min-width: max-content;
+    display: flex;
+    gap: 0.25rem;
+}
+.breadcrumb-scroll li {
+    min-width: 0;
+}
+@media (max-width: 640px) {
+    .breadcrumb-scroll a,
+    .breadcrumb-scroll li {
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
 /* =================================
    Sidebar Hover (NON-ACTIVE ONLY)
 ================================= */
