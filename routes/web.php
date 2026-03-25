@@ -1326,6 +1326,17 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
     Route::get('/direct-enquiries', [DirectEnquiryController::class, 'index'])->name('direct-enquiries.index');
     Route::get('/enquiries', [\Modules\Enquiries\Controllers\Web\AdminEnquiryController::class, 'index'])->name('enquiries.index');
     Route::get('/enquiries/{id}', [\Modules\Enquiries\Controllers\Web\AdminEnquiryController::class, 'show'])->name('enquiries.show');
+    Route::prefix('mail-configurations')->name('mail.configuration.')->group(function () {
+        Route::get('/',                          [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'index'])->name('index');
+        Route::get('/create',                    [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'create'])->name('create');
+        Route::post('/',                         [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'store'])->name('store');
+        Route::get('/{emailTemplate}',           [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'show'])->name('show');
+        Route::get('/{emailTemplate}/edit',      [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'edit'])->name('edit');
+        Route::put('/{emailTemplate}',           [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'update'])->name('update');
+        Route::delete('/{emailTemplate}',        [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'destroy'])->name('destroy');
+        Route::patch('/{emailTemplate}/toggle',  [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'toggleStatus'])->name('toggle');
+        Route::get('/{emailTemplate}/preview',   [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'preview'])->name('preview');
+    });
 });
 
 // ============================================

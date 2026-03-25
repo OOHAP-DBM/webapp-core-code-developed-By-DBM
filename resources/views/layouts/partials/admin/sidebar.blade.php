@@ -597,6 +597,10 @@
                        class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.settings.index') && request()->query('group') === 'sms' ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
                         - SMS Gateway Configuration
                     </a>
+                    <a href="{{ route('admin.mail.configuration.index') }}"
+                       class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.mail.configuration.index') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
+                        - Mail Template Configuration
+                    </a>
                 </div>
             </div>
         </div>

@@ -114,34 +114,34 @@
         {{-- ── Bottom Actions ── --}}
         @include('vendor.offers.components.offer-buttons')
     </div>
-    <div id="bookingDateModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/40" onclick="closeBookingDateModal()"></div>
+    <div id="hoardingDateModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/40" onclick="closeHoardingDateModal()"></div>
         <div class="relative bg-white rounded-xl shadow-xl w-fit max-w-[95vw] mx-4 p-4 sm:p-5">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-sm font-bold text-gray-800">Select Booking Duration</h3>
-                <button type="button" onclick="closeBookingDateModal()" class="text-gray-400 hover:text-gray-600">
+                <h3 class="text-sm font-bold text-gray-800">Select Hoarding Duration</h3>
+                <button type="button" onclick="closeHoardingDateModal()" class="text-gray-400 hover:text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
 
-            <input type="text" id="bookingDateModalPicker" class="hidden">
+            <input type="text" id="hoardingDateModalPicker" class="hidden">
 
-            <div id="bookingDateModalCalendar" class="mb-4"></div>
+            <div id="hoardingDateModalCalendar" class="mb-4"></div>
 
-            <div id="bookingDateModalValue" class="text-xs text-gray-500 mb-4 text-center">
+            <div id="hoardingDateModalValue" class="text-xs text-gray-500 mb-4 text-center">
                 No date range selected
             </div>
 
             <div class="flex gap-3">
                 <button type="button"
-                    onclick="closeBookingDateModal()"
+                    onclick="closeHoardingDateModal()"
                     class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
                     Cancel
                 </button>
                 <button type="button"
-                    onclick="applyBookingDateModal()"
+                    onclick="applyHoardingDateModal()"
                     class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700">
                     Apply
                 </button>
@@ -315,32 +315,37 @@ function offerUpdateSummary() {
         activeBookingHoardingId = hoardingId;
         activeBookingSelection = null;
 
-        const modal = document.getElementById('bookingDateModal');
-        const picker = document.getElementById('bookingDateModalPicker');
-        const valueBox = document.getElementById('bookingDateModalValue');
-
-        let key = 'offer_booking_range_' + hoardingId;
-        let saved = localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : null;
+        const modal = document.getElementById('hoardingDateModal');
+        const picker = document.getElementById('hoardingDateModalPicker');
+        const valueBox = document.getElementById('hoardingDateModalValue');
 
         modal.classList.remove('hidden');
-        valueBox.textContent = saved && saved.start && saved.end
-            ? `${formatDisplayDate(saved.start)} to ${formatDisplayDate(saved.end)}`
-            : 'No date range selected';
+        valueBox.textContent = 'No date range selected';
 
         if (bookingDateModalFp) {
             bookingDateModalFp.destroy();
             bookingDateModalFp = null;
         }
 
+        // Default to today as start and end
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+
         bookingDateModalFp = flatpickr(picker, {
             inline: true,
-            appendTo: document.getElementById('bookingDateModalCalendar'),
+            appendTo: document.getElementById('hoardingDateModalCalendar'),
             mode: 'range',
             dateFormat: 'Y-m-d',
             minDate: 'today',
             showMonths: window.innerWidth < 640 ? 1 : 2,
             monthSelectorType: 'static',
-            defaultDate: saved ? [saved.start, saved.end] : null,
+            defaultDate: [todayStr, todayStr],
+            disable: [
+                function(date) {
+                    // Disable all dates before today
+                    return date < new Date(todayStr);
+                }
+            ],
             onChange: function(selectedDates) {
                 if (selectedDates.length === 2) {
                     activeBookingSelection = {
@@ -354,9 +359,9 @@ function offerUpdateSummary() {
         });
     }
 
-    function closeBookingDateModal() {
-        document.getElementById('bookingDateModal').classList.add('hidden');
-        document.getElementById('bookingDateModalCalendar').innerHTML = '';
+    function closeHoardingDateModal() {
+        document.getElementById('hoardingDateModal').classList.add('hidden');
+        document.getElementById('hoardingDateModalCalendar').innerHTML = '';
         activeBookingInputId = null;
         activeBookingHoardingId = null;
         activeBookingSelection = null;
@@ -367,23 +372,19 @@ function offerUpdateSummary() {
         }
     }
 
-    function applyBookingDateModal() {
+    function applyHoardingDateModal() {
         if (!activeBookingInputId || !activeBookingHoardingId || !activeBookingSelection) {
-            closeBookingDateModal();
+            closeHoardingDateModal();
             return;
         }
 
         const input = document.getElementById(activeBookingInputId);
-        const key = 'offer_booking_range_' + activeBookingHoardingId;
-
-        localStorage.setItem(key, JSON.stringify(activeBookingSelection));
-
         if (input) {
             input.value =
                 `${formatDisplayDate(activeBookingSelection.start)} - ${formatDisplayDate(activeBookingSelection.end)}`;
         }
 
-        closeBookingDateModal();
+        closeHoardingDateModal();
     }
 
     function formatDisplayDate(dateStr) {
@@ -396,14 +397,12 @@ function offerUpdateSummary() {
     }
 
     function hydrateSavedBookingRanges() {
+        // Set all booking-duration-inputs to today by default
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        const todayDisplay = formatDisplayDate(todayStr);
         document.querySelectorAll('.booking-duration-input').forEach(input => {
-            const hoardingId = input.id.replace('booking-duration-ooh-', '').replace('booking-duration-dooh-', '');
-            const key = 'offer_booking_range_' + hoardingId;
-            const saved = localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : null;
-
-            if (saved && saved.start && saved.end) {
-                input.value = `${formatDisplayDate(saved.start)} - ${formatDisplayDate(saved.end)}`;
-            }
+            input.value = `${todayDisplay} - ${todayDisplay}`;
         });
     }
 </script>

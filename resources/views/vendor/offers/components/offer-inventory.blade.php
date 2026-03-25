@@ -34,7 +34,7 @@
             </button>
         </div>
 
-        @include('vendor.pos.filter_modal')
+        @include('vendor.offers.components.filter_modal')
         <div class="flex items-center justify-between gap-2 mb-3">
             <button id="offer-unselect-btn" onclick="offerUnselectAll()"
                 class="hidden cursor-pointer text-[10px] font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded transition">
@@ -99,7 +99,23 @@
                 data-price="{{ $priceValue }}"
                 data-type="{{ $h->hoarding_type ?? $h->type ?? 'OOH' }}"
                 data-loc="{{ addslashes($loc) }}"
+                data-category="{{ is_array($h->category) ? implode(',', $h->category) : ($h->category ?? '') }}"
+                data-located_at="{{ is_array($h->located_at) ? implode(',', $h->located_at) : ($h->located_at ?? '') }}"
                 data-slots="{{ $h->total_slots_per_day ?? 300 }}"
+                @php
+                    // OOH hoarding size
+                    $hoardingSize = null;
+                    if (isset($h->hoardingDetails) && $h->hoardingDetails) {
+                        $hoardingSize = ($h->hoardingDetails->width ?? 0) * ($h->hoardingDetails->height ?? 0);
+                    }
+                    // DOOH screen size
+                    $screenSize = null;
+                    if ($isDooh && isset($h->doohScreen) && $h->doohScreen) {
+                        $screenSize = ($h->doohScreen->width ?? 0) * ($h->doohScreen->height ?? 0);
+                    }
+                @endphp
+                data-hoarding-size="{{ $hoardingSize ?? '' }}"
+                data-screen-size="{{ $screenSize ?? '' }}"
                 onclick="offerToggleCard(this)">
 
                 {{-- Media --}}
@@ -241,4 +257,59 @@ function setOfferView(mode) {
 }
     function openFilterModal()  { document.getElementById('filterModal').classList.remove('hidden'); }
     function closeFilterModal() { document.getElementById('filterModal').classList.add('hidden'); }
+
+    // Collect filter values and apply to cards
+    function applyFilters() {
+        // Get filter values
+        const type = document.querySelector('input[name="filter_type"]:checked')?.value || 'all';
+        const resolutions = Array.from(document.querySelectorAll('input[name="filter_resolution"]:checked')).map(i => i.value);
+        const categories = Array.from(document.querySelectorAll('input[name="filter_category"]:checked')).map(i => i.value);
+        const locatedAts = Array.from(document.querySelectorAll('input[name="Located_at"]:checked')).map(i => i.value);
+        const screenMin = parseInt(document.getElementById('screen-size-min').value) || 0;
+        const screenMax = parseInt(document.getElementById('screen-size-max').value) || 1000;
+        const hoardingMin = parseInt(document.getElementById('hoarding-size-min').value) || 0;
+        const hoardingMax = parseInt(document.getElementById('hoarding-size-max').value) || 1000;
+
+        // Filter cards
+        let visible = 0;
+        document.querySelectorAll('.offer-card').forEach(el => {
+            const cardType = (el.dataset.type || '').toLowerCase();
+            const cardCategory = (el.dataset.category || '').toLowerCase().split(',');
+            const cardLocatedAt = (el.dataset.located_at || '').toLowerCase().split(',');
+            const hoardingSize = parseFloat(el.dataset.hoardingSize) || 0;
+            const screenSize = parseFloat(el.dataset.screenSize) || 0;
+            let match = true;
+            if (type !== 'all' && cardType !== type) match = false;
+            if (categories.length && !categories.some(cat => cardCategory.includes(cat.toLowerCase()))) match = false;
+            if (locatedAts.length && !locatedAts.some(loc => cardLocatedAt.includes(loc.toLowerCase()))) match = false;
+            // Size filter: OOH uses hoarding size, DOOH uses screen size
+            if (cardType === 'dooh') {
+                if (screenSize < screenMin || screenSize > screenMax) match = false;
+            } else {
+                if (hoardingSize < hoardingMin || hoardingSize > hoardingMax) match = false;
+            }
+            el.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        document.getElementById('offer-available-count').innerText = visible;
+        closeFilterModal();
+    }
+
+    // Reset all filters to default
+    function resetFilters() {
+        // Reset radio
+        document.querySelector('input[name="filter_type"][value="all"]').checked = true;
+        // Reset checkboxes
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        // Reset number inputs
+        document.getElementById('screen-size-min').value = 0;
+        document.getElementById('screen-size-max').value = 1000;
+        document.getElementById('hoarding-size-min').value = 0;
+        document.getElementById('hoarding-size-max').value = 1000;
+        // Show all cards
+        document.querySelectorAll('.offer-card').forEach(el => { el.style.display = ''; });
+        document.getElementById('offer-available-count').innerText = document.querySelectorAll('.offer-card').length;
+        window.location.reload();
+        closeFilterModal();
+    }
 </script>
