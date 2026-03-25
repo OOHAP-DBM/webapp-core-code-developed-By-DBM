@@ -151,7 +151,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-8m0 0l-3 3m3-3l3 3" />
                                 </svg>
                                 <span class="text-xs text-gray-500 text-center px-2">Select your file or drag &amp; drop</span>
-                                <span class="text-[11px] text-gray-400 mt-0.5">Max 20 MB .pptx</span>
+                                <span class="text-[11px] text-gray-400 mt-0.5">Max 40 MB .pptx</span>
                                 <span class="mt-3 px-4 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg group-hover:bg-green-700 transition-colors">Browse</span>
                             </label>
                         </div>
@@ -187,7 +187,7 @@
             <p class="text-sm font-semibold text-blue-900 mb-2">Upload Guidance</p>
             <ul class="text-xs text-blue-800 space-y-1 mb-4">
                 <li>✓ Excel file up to 20MB</li>
-                <li>✓ PowerPoint file up to 50MB</li>
+                <li>✓ PowerPoint file up to 40MB</li>
                 <li>✓ Use sample template columns exactly for smooth import</li>
                 <li>✓ For DOOH, include additional pricing fields</li>
             </ul>
@@ -229,7 +229,7 @@
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Invalid</th>
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Date</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Actions</th>
+                        <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="batchesTableBody" class="divide-y divide-gray-200">
@@ -678,6 +678,11 @@
         if (!mediaTypeElement) {
             if (window.Swal) { Swal.fire({ icon:'error', title:'Hoarding Type Required', text:'Please select a Hoarding Type before uploading.', confirmButtonText:'OK', confirmButtonColor:'#d33' }); }
             else showToast('Please select a Hoarding Type before uploading.', 'error');
+            return;
+        }
+
+        if (pptFile && pptFile.size > 40 * 1024 * 1024) {
+            showError('PowerPoint file size must be 40MB or less.');
             return;
         }
 

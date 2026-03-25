@@ -339,9 +339,17 @@ async function loadRows(page = rowsQueryState.page) {
     try {
         const result = await api(`${API_BASE}/${BATCH_ID}?${query.toString()}`);
         const payload = result.data || {};
-        const rows = payload.rows || [];
+        let rows = payload.rows || [];
         const pagination = payload.pagination || {};
         const batch = payload.batch || {};
+
+        // Sort rows by code ascending (string compare)
+        rows = rows.slice().sort((a, b) => {
+            if (a.code && b.code) {
+                return String(a.code).localeCompare(String(b.code), undefined, {numeric: true, sensitivity: 'base'});
+            }
+            return 0;
+        });
 
         rowsPaginationState = {
             total: pagination.total || 0,
@@ -374,7 +382,6 @@ async function loadRows(page = rowsQueryState.page) {
         }
 
         body.innerHTML = rows.map((row, index) => {
-            
             const isNoImageError = (row.error_message || '').toLowerCase().includes('no image found');
             const imageCell = row.image_name
                 ? `<img src="${imageUrl(row.image_name)}" alt="${escapeHtml(row.image_name)}" class="h-12 w-16 object-cover rounded border">`
@@ -388,10 +395,8 @@ async function loadRows(page = rowsQueryState.page) {
                 ? ''
                 : escapeHtml(row.error_message || '');
 
-           const status = (row.status || '').toLowerCase();
+            const status = (row.status || '').toLowerCase();
             const serialNumber = ((rowsPaginationState.current_page - 1) * rowsPaginationState.per_page) + (index + 1);
-            // Status badge — same pill style as screenshot
-           // Status badge — EXACT match to your screenshot
             let statusBadge = '';
             if (status === 'valid') {
                 statusBadge = `
@@ -425,9 +430,14 @@ async function loadRows(page = rowsQueryState.page) {
                 }
             }
 
+            // Edit button (always visible if not approved)
+            let editBtn = '';
+            if (currentBatchStatus !== 'approved') {
+                editBtn = `<button onclick="editRow(${row.id})" class="px-3 py-2 rounded-lg bg-blue-500 text-white font-medium text-xs hover:bg-blue-600 transition cursor-pointer border-none">Edit</button>`;
+            }
+
             return `
                 <tr>
-                   
                     <td class="px-3 py-2 text-sm">${serialNumber}</td>
                     <td class="px-3 py-2 text-sm h-10">${imageCell}</td>
                     <td class="px-3 py-2 text-sm">${escapeHtml(row.code)}</td>
@@ -435,13 +445,14 @@ async function loadRows(page = rowsQueryState.page) {
                     <td class="px-3 py-2 text-sm">${row.width ?? ''}</td>
                     <td class="px-3 py-2 text-sm">${row.height ?? ''}</td>
                     <td class="px-3 py-2 text-sm">${row.base_monthly_price ?? ''}</td>
-                    <td class="px-3 py-2 text-sm">${statusBadge}</td>   
+                    <td class="px-3 py-2 text-sm">${statusBadge}</td>
                     <td class="px-3 py-2 text-sm text-red-600">${errorCell}</td>
                     <td class="px-3 py-2 text-sm">
                         ${currentBatchStatus === 'approved'
                             ? '<span class="text-gray-400 cursor-not-allowed text-sm">Disabled</span>'
                             : `<div class="flex items-center gap-2">
                                     ${toggleBtn}
+                                    ${editBtn}
                             </div>`}
                     </td>
                 </tr>
@@ -742,43 +753,43 @@ function buildFieldHtml(fieldDef, value) {
     return `<div class="${spanFull}">${label}${input}</div>`;
 }
 
-// function editRow(rowId) {
-//     if (currentBatchStatus === 'approved') {
-//         notify('Approved batch is read-only', 'error');
-//         return;
-//     }
+function editRow(rowId) {
+    if (currentBatchStatus === 'approved') {
+        notify('Approved batch is read-only', 'error');
+        return;
+    }
 
-//     const row = currentRowsById[rowId];
-//     if (!row) return;
+    const row = currentRowsById[rowId];
+    if (!row) return;
 
-//     document.getElementById('rowId').value = row.id;
+    document.getElementById('rowId').value = row.id;
 
-//     const grid = document.getElementById('dynamicFieldsGrid');
-//     grid.innerHTML = '';
+    const grid = document.getElementById('dynamicFieldsGrid');
+    grid.innerHTML = '';
 
-//     ROW_FIELD_DEFINITIONS.forEach(fieldDef => {
-//         const value = row[fieldDef.key];
-//         // Skip fields where value is null/undefined AND it's not a core field
-//         const isCoreField = ['code', 'status', 'city', 'width', 'height'].includes(fieldDef.key);
-//         if (!isCoreField && (value === null || value === undefined || value === '')) {
-//             return; // skip — no data for this field on this row
-//         }
-//         grid.insertAdjacentHTML('beforeend', buildFieldHtml(fieldDef, value));
-//     });
+    ROW_FIELD_DEFINITIONS.forEach(fieldDef => {
+        const value = row[fieldDef.key];
+        // Skip fields where value is null/undefined AND it's not a core field
+        const isCoreField = ['code', 'status', 'city', 'width', 'height'].includes(fieldDef.key);
+        if (!isCoreField && (value === null || value === undefined || value === '')) {
+            return; // skip — no data for this field on this row
+        }
+        grid.insertAdjacentHTML('beforeend', buildFieldHtml(fieldDef, value));
+    });
 
-//     // Image
-//     document.getElementById('rowImageFile').value = '';
-//     if (row.image_name) {
-//         const preview = document.getElementById('rowImagePreview');
-//         preview.src = imageUrl(row.image_name);
-//         preview.classList.remove('hidden');
-//         document.getElementById('rowImagePreviewText').textContent = `Current: ${row.image_name}`;
-//     } else {
-//         clearImagePreview();
-//     }
+    // Image
+    document.getElementById('rowImageFile').value = '';
+    if (row.image_name) {
+        const preview = document.getElementById('rowImagePreview');
+        preview.src = imageUrl(row.image_name);
+        preview.classList.remove('hidden');
+        document.getElementById('rowImagePreviewText').textContent = `Current: ${row.image_name}`;
+    } else {
+        clearImagePreview();
+    }
 
-//     openEditModal();
-// }
+    openEditModal();
+}
 
 function resetRowForm() {
     document.getElementById('rowForm').reset();
