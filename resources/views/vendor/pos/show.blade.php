@@ -414,6 +414,7 @@
 
 const bookingId = @json($bookingId);
 const POS_BASE_PATH = @json($posBasePath ?? '/vendor/pos');
+const HOARDING_SHOW_URL = "{{ url('hoardings') }}/__SLUG__";
 window.POS_BASE_PATH = POS_BASE_PATH;
 const API_URL = `${POS_BASE_PATH}/api`;
 const New_API_URL = '/api/v1';
@@ -540,7 +541,11 @@ async function loadBookingDetails() {
                                     <img src="${h.image_url}" alt="Hoarding" class="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover border my-1" />
                                     <div>
                                         <div class="font-semibold ">
-                                            <a href="${h.url || '#'}" target="_blank">${h.title}</a>
+                                            <a href="${(h.slug || h.id) ? HOARDING_SHOW_URL.replace('__SLUG__', h.slug || h.id) : '#'}"
+                                                    target="_blank"
+                                                    class="hover:underline">
+                                                        ${h.title}
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
