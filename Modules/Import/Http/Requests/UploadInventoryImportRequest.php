@@ -46,7 +46,7 @@ class UploadInventoryImportRequest extends FormRequest
                 'required',
                 'file',
                 'mimes:ppt,pptx',
-                'max:51200', // 50MB in KB
+                'max:40960', // 40MB in KB
             ],
             'media_type' => [
                 'required',
@@ -72,7 +72,7 @@ class UploadInventoryImportRequest extends FormRequest
             'ppt.required' => 'PowerPoint file is required',
             'ppt.file' => 'PowerPoint must be a valid file',
             'ppt.mimes' => 'PowerPoint file must be in PPT or PPTX format',
-            'ppt.max' => 'PowerPoint file must not exceed 50MB',
+             'ppt.max' => 'PowerPoint file must not exceed 40MB', 
             'media_type.required' => 'Media type is required',
             'media_type.string' => 'Media type must be a string',
             'media_type.in' => 'Media type must be either OOH or DOOH',
