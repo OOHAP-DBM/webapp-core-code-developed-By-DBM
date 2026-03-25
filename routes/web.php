@@ -1337,6 +1337,14 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
         Route::patch('/{emailTemplate}/toggle',  [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'toggleStatus'])->name('toggle');
         Route::get('/{emailTemplate}/preview',   [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'preview'])->name('preview');
     });
+    Route::prefix('admin/mail-layouts')->name('mail.layouts.')->middleware(['auth', 'role:admin|superadmin'])->group(function () {
+        Route::get('/', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'index'])->name('index');
+        Route::get('/create', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'create'])->name('create');
+        Route::post('/', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'store'])->name('store');
+        Route::get('/{layout}/edit', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'edit'])->name('edit');
+        Route::put('/{layout}', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'update'])->name('update');
+        Route::delete('/{layout}', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'destroy'])->name('destroy');
+    });
 });
 
 // ============================================

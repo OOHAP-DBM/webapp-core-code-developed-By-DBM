@@ -11,14 +11,6 @@
             + New Template
         </a>
     </div>
-
-    {{-- Success / Error Message --}}
-    @if(session('success'))
-        <div class="bg-green-100 text-green-800 px-4 py-3 rounded mb-4">
-            {{ session('success') }}
-        </div>
-    @endif
-
     {{-- Templates Table --}}
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200">

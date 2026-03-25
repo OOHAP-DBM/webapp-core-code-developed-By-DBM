@@ -103,7 +103,7 @@
                         class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 text-sm">
                     Update Template
                 </button>
-                <a href="{{ route('mail.configuration.index') }}"
+                <a href="{{ route('admin.mail.configuration.index') }}"
                    class="bg-gray-100 text-gray-700 px-6 py-2 rounded hover:bg-gray-200 text-sm">
                     Cancel
                 </a>
