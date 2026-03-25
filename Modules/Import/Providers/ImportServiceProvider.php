@@ -72,7 +72,9 @@ class ImportServiceProvider extends ServiceProvider
             $sourcePath => $viewPath
         ], 'views');
 
+        // Register both 'import' and 'Import' namespaces for compatibility
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), 'import');
+        $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), 'Import');
     }
 
     /**

@@ -35,15 +35,11 @@ class ImportController extends Controller
     {
         $user = auth()->user();
         
-        // Build query based on user role
+        // Always filter by vendor_id so both admin and vendor see only their own uploads
         $batchesQuery = InventoryImportBatch::query()
+            ->where('vendor_id', $user->id)
             ->latest('created_at');
-        
-        // Filter by vendor_id if user is not admin
-        if (!$user->hasRole('admin')) {
-            $batchesQuery->where('vendor_id', $user->id);
-        }
-        
+
         $batches = $batchesQuery->paginate(15);
 
         $viewName = $user->hasRole('admin') ? 'import::admin' : 'import::index';
@@ -63,11 +59,10 @@ class ImportController extends Controller
     {
         $user = auth()->user();
 
-        $batchesQuery = InventoryImportBatch::query()->latest('created_at');
-
-        if (!$user->hasRole('admin')) {
-            $batchesQuery->where('vendor_id', $user->id);
-        }
+        // Always filter by vendor_id so both admin and vendor see only their own uploads
+        $batchesQuery = InventoryImportBatch::query()
+            ->where('vendor_id', $user->id)
+            ->latest('created_at');
 
         $batches = $batchesQuery->paginate(15);
 
@@ -722,103 +717,91 @@ class ImportController extends Controller
         try {
             $user = auth()->user();
             $validated = $request->validate([
-                'status' => ['nullable', 'string', 'max:50'],
-                'search' => ['nullable', 'string', 'max:100'],
-                'per_page' => ['nullable', 'integer', 'min:5', 'max:100'],
-                'page' => ['nullable', 'integer', 'min:1'],
-            ]);
-
-            $summaryQuery = InventoryImportBatch::query();
-            if (!$user->hasRole('admin')) {
-                $summaryQuery->byVendor($user->id);
-            }
-
-            $summaryRows = $summaryQuery
-                ->selectRaw('status, COUNT(*) as total')
-                ->groupBy('status')
-                ->get();
-
-            $summary = [
-                'total' => (int) $summaryRows->sum('total'),
-                'processing' => 0,
-                'completed' => 0,
-                'failed' => 0,
-            ];
-
-            foreach ($summaryRows as $summaryRow) {
-                $statusKey = strtolower((string) $summaryRow->status);
-                if (array_key_exists($statusKey, $summary)) {
-                    $summary[$statusKey] = (int) $summaryRow->total;
-                }
-            }
-            
-            // Admins see all batches, vendors see only their own
-            $importsQuery = InventoryImportBatch::query()
-                ->select([
-                    'id',
-                    'vendor_id',
-                    'status',
-                    'media_type',
-                    'total_rows',
-                    'valid_rows',
-                    'invalid_rows',
-                    'file_path',
-                    'ppt_path',
-                    'created_at',
+                    'status' => ['nullable', 'string', 'max:50'],
+                    'search' => ['nullable', 'string', 'max:100'],
+                    'per_page' => ['nullable', 'integer', 'min:5', 'max:100'],
+                    'page' => ['nullable', 'integer', 'min:1'],
                 ]);
-            
-            if (!$user->hasRole('admin')) {
-                $importsQuery->byVendor($user->id);
-            }
 
-            if (!empty($validated['status'])) {
-                $importsQuery->where('status', strtolower((string) $validated['status']));
-            }
+                // Always filter by vendor_id so both admin and vendor see only their own uploads
+                $summaryQuery = InventoryImportBatch::query()->byVendor($user->id);
+                $summaryRows = $summaryQuery
+                    ->selectRaw('status, COUNT(*) as total')
+                    ->groupBy('status')
+                    ->get();
 
-            if (!empty($validated['search'])) {
-                $search = trim((string) $validated['search']);
-                $importsQuery->where(function ($query) use ($search) {
-                    $query->where('media_type', 'like', "%{$search}%")
-                        ->orWhere('status', 'like', "%{$search}%")
-                        ->orWhere('id', 'like', "%{$search}%");
-                });
-            }
+                $summary = [
+                    'total' => (int) $summaryRows->sum('total'),
+                    'processing' => 0,
+                    'completed' => 0,
+                    'failed' => 0,
+                ];
 
-            $perPage = (int) ($validated['per_page'] ?? 15);
-            
-            $imports = $importsQuery->orderByDesc('created_at')
-                ->paginate($perPage);
+                foreach ($summaryRows as $summaryRow) {
+                    $statusKey = strtolower((string) $summaryRow->status);
+                    if (array_key_exists($statusKey, $summary)) {
+                        $summary[$statusKey] = (int) $summaryRow->total;
+                    }
+                }
 
-            return response()->json([
-                'success' => true,
-                'data' => collect($imports->items())->map(fn ($batch) => [
-                    'batch_id' => $batch->id,
-                    'status' => $batch->status,
-                    'media_type' => $batch->media_type,
-                    'total_rows' => $batch->total_rows,
-                    'valid_rows' => $batch->valid_rows,
-                    'invalid_rows' => $batch->invalid_rows,
-                    'error_rate' => $batch->getErrorRatePercentage(),
-                    'created_at' => $batch->created_at,
-                    'file_url' => !empty($batch->file_path)
-                        ? url('/api/import/' . $batch->id . '/download?type=excel')
-                        : null,
-                    'ppt_url'  => !empty($batch->ppt_path)
-                        ? url('/api/import/' . $batch->id . '/download?type=ppt')
-                        : null,
-                ]),
-                'pagination' => [
-                    'total' => $imports->total(),
-                    'per_page' => $imports->perPage(),
-                    'current_page' => $imports->currentPage(),
-                    'last_page' => $imports->lastPage(),
-                    'from' => $imports->firstItem(),
-                    'to' => $imports->lastItem(),
-                ],
-                'summary' => $summary,
-            ]);
+                $importsQuery = InventoryImportBatch::query()
+                    ->select([
+                        'id',
+                        'vendor_id',
+                        'status',
+                        'media_type',
+                        'total_rows',
+                        'valid_rows',
+                        'invalid_rows',
+                        'file_path',
+                        'ppt_path',
+                        'created_at',
+                    ])
+                    ->byVendor($user->id);
+
+                if (!empty($validated['status'])) {
+                    $importsQuery->where('status', strtolower((string) $validated['status']));
+                }
+
+                if (!empty($validated['search'])) {
+                    $search = trim((string) $validated['search']);
+                    $importsQuery->where(function ($query) use ($search) {
+                        $query->where('media_type', 'like', "%{$search}%")
+                            ->orWhere('status', 'like', "%{$search}%")
+                            ->orWhere('id', 'like', "%{$search}%");
+                    });
+                }
+
+                $perPage = (int) ($validated['per_page'] ?? 15);
+
+                $imports = $importsQuery->orderByDesc('created_at')
+                    ->paginate($perPage);
+
+                return response()->json([
+                    'success' => true,
+                    'data' => collect($imports->items())->map(fn ($batch) => [
+                        'batch_id' => $batch->id,
+                        'status' => $batch->status,
+                        'media_type' => $batch->media_type,
+                        'total_rows' => $batch->total_rows,
+                        'valid_rows' => $batch->valid_rows,
+                        'invalid_rows' => $batch->invalid_rows,
+                        'file_path' => $batch->file_path,
+                        'ppt_path' => $batch->ppt_path,
+                        'created_at' => $batch->created_at,
+                    ]),
+                    'pagination' => [
+                        'total' => $imports->total(),
+                        'per_page' => $imports->perPage(),
+                        'current_page' => $imports->currentPage(),
+                        'last_page' => $imports->lastPage(),
+                        'from' => $imports->firstItem(),
+                        'to' => $imports->lastItem(),
+                    ],
+                    'summary' => $summary,
+                ]);
         } catch (Exception $e) {
-             return response()->json([
+            return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),       // ← this will show in browser
                 'file'    => $e->getFile(),

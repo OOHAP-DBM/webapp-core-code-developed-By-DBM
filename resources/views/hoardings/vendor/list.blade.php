@@ -187,7 +187,11 @@
                             $canEdit   = $isDraft || $isPending;
                         @endphp
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-3 sm:px-4 py-2 sm:py-3"><input type="checkbox" class="row-checkbox rounded-sm border-gray-300"></td>
+                            <td class="px-3 sm:px-4 py-2 sm:py-3"><input 
+                                type="checkbox" 
+                                class="row-checkbox" 
+                                value="{{ $hoarding['id'] }}"
+                            ></td>
                             <td class="px-3 sm:px-4 py-2 sm:py-3 text-gray-500 font-medium whitespace-nowrap">{{ sprintf('%02d', $index + 1) }}</td>
                             <td class="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 whitespace-nowrap">
                                 <a href="{{ route('vendor.myHoardings.show', $hoarding['id']) }}"

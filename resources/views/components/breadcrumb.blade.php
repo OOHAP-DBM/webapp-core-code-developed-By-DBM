@@ -3,7 +3,7 @@
 ])
 
 @if(!empty($items))
-<nav class="mt-1" aria-label="Breadcrumb">
+<nav class="mt-1 hidden md:block" aria-label="Breadcrumb">
     <ol class="flex items-center space-x-1 text-sm text-gray-500">
 
         @foreach($items as $item)
