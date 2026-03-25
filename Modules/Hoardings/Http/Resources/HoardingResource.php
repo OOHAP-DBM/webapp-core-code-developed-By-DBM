@@ -46,7 +46,8 @@ class HoardingResource extends JsonResource
                 return [
                     'id' => $pkg->id,
                     'name' => $pkg->package_name,
-                    'duration_months' => $pkg->duration_months,
+                    'duration_months' => $pkg->minimum_booking_duration,
+                    'duration_unit' => $pkg->duration_unit,
                     'price' => (float) $pkg->price,
                     'discount_percent' => (float) ($pkg->discount_percent ?? 0),
                 ];
@@ -56,7 +57,8 @@ class HoardingResource extends JsonResource
                 return [
                     'id' => $pkg->id,
                     'name' => $pkg->package_name,
-                    'duration_months' => $pkg->duration_months,
+                    'duration_months' => $pkg->minimum_booking_duration,
+                    'duration_unit' => $pkg->duration_unit,
                     'price' => (float) $pkg->price,
                     'discount_percent' => (float) ($pkg->discount_percent ?? 0),
                 ];

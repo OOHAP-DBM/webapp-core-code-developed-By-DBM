@@ -258,7 +258,7 @@
     </div>
 
     <!-- Approve Modal (unchanged) -->
-    <div id="approveModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden flex items-center justify-center p-4">
+    <div id="approveModal" class="fixed inset-0  bg-opacity-50 z-40 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
             <div class="p-6 border-b border-gray-200">
                 <h3 class="text-lg font-bold text-gray-900">Confirm Approval</h3>
@@ -278,7 +278,7 @@
     </div>
 
     <!-- Error Details Modal (unchanged) -->
-    <div id="errorModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden flex items-center justify-center p-4">
+    <div id="errorModal" class="fixed inset-0  bg-opacity-50 z-40 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full flex flex-col max-h-screen">
             <div class="p-6 border-b border-gray-200">
                 <div class="flex items-center justify-between">
