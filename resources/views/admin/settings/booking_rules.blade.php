@@ -168,7 +168,7 @@
                                         <input 
                                             type="number" 
                                             class="form-control @error('booking_max_duration_months') is-invalid @enderror" 
-                                            id="booking_max_duration_months" 
+                                            id="booking_max_" 
                                             name="booking_max_duration_months" 
                                             value="{{ old('booking_max_duration_months', $bookingRules['booking_max_duration_months'] ?? 12) }}"
                                             min="1"

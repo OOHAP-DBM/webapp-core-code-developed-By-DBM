@@ -10,7 +10,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2>DOOH Slot Booking</h2>
-                    <nav aria-label="breadcrumb">
+                    <nav aria-label="breadcrumb" class="hidden md:block">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
                             <li class="breadcrumb-item"><a href="{{ route('admin.hoardings.index') }}">Hoardings</a></li>

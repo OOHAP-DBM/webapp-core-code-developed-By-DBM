@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use Modules\Enquiries\Models\Enquiry;
+use Modules\POS\Models\POSBooking;
 
 class CustomerHomeController extends Controller
 {
@@ -31,6 +32,13 @@ class CustomerHomeController extends Controller
             'cities'           => \App\Models\Hoarding::distinct('city')->count('city'),
             'active_vendors'   => \App\Models\User::role('vendor')->where('status', 'active')->count(),
             'bookings'         => \App\Models\Booking::where('status', 'completed')->count(),
+            'pos_bookings'     => [
+                'total'      => POSBooking::count(),
+                'completed'  => POSBooking::where('status', POSBooking::STATUS_COMPLETED)->count(),
+                'active'     => POSBooking::where('status', POSBooking::STATUS_ACTIVE)->count(),
+                'confirmed'  => POSBooking::where('status', POSBooking::STATUS_CONFIRMED)->count(),
+                'cancelled'  => POSBooking::where('status', POSBooking::STATUS_CANCELLED)->count(),
+            ],
             'total_enquiries'  => (auth()->check() && auth()->user()->hasRole('customer'))
                 ? Enquiry::where('customer_id', auth()->id())->count()
                 : 0,

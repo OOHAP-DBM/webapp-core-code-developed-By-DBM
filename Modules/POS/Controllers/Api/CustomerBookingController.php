@@ -451,7 +451,9 @@ class CustomerBookingController extends Controller
                     'amount' => (float) $milestone->amount,
                     'calculated_amount' => (float) $milestone->calculated_amount,
                     'status' => $milestone->status,
-                    'due_date' => $milestone->due_date,
+                    'due_date' => $milestone->due_date
+                        ? \Carbon\Carbon::parse($milestone->due_date)->toDateString()
+                        : null,
                     'paid_at' => $milestone->paid_at,
                     'invoice_number' => $milestone->invoice_number,
                     'payment_transaction_id' => $milestone->payment_transaction_id,

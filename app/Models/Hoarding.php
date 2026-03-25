@@ -351,7 +351,7 @@ class Hoarding extends Model implements HasMedia
         return $this->enable_weekly_booking && $this->weekly_price !== null;
     }
 
-    public function getMediaAttribute()
+    public function getMediaAttributes()
     {
         if ($this->hoarding_type === self::TYPE_OOH) {
             return $this->hoardingMedia;
