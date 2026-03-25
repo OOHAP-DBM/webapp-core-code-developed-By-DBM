@@ -39,31 +39,31 @@ class HoardingResource extends JsonResource
             });
         }
 
-        // Get packages based on hoarding type
-        $packages = [];
-        if ($this->hoarding_type === 'ooh' && $this->ooh && $this->ooh->packages) {
-            $packages = $this->ooh->packages->map(function ($pkg) {
-                return [
-                    'id' => $pkg->id,
-                    'name' => $pkg->package_name,
-                    'duration_months' => $pkg->minimum_booking_duration,
-                    'duration_unit' => $pkg->duration_unit,
-                    'price' => (float) $pkg->price,
-                    'discount_percent' => (float) ($pkg->discount_percent ?? 0),
-                ];
-            });
-        } elseif ($this->hoarding_type === 'dooh' && $this->doohScreen && $this->doohScreen->packages) {
-            $packages = $this->doohScreen->packages->map(function ($pkg) {
-                return [
-                    'id' => $pkg->id,
-                    'name' => $pkg->package_name,
-                    'duration_months' => $pkg->minimum_booking_duration,
-                    'duration_unit' => $pkg->duration_unit,
-                    'price' => (float) $pkg->price,
-                    'discount_percent' => (float) ($pkg->discount_percent ?? 0),
-                ];
-            });
-        }
+        // // Get packages based on hoarding type
+        // $packages = [];
+        // if ($this->hoarding_type === 'ooh' && $this->ooh && $this->ooh->packages) {
+        //     $packages = $this->ooh->packages->map(function ($pkg) {
+        //         return [
+        //             'id' => $pkg->id,
+        //             'name' => $pkg->package_name,
+        //             'duration_months' => $pkg->min_booking_duration,
+        //             'duration_unit' => $pkg->duration_unit,
+        //             'price' => (float) $pkg->price,
+        //             'discount_percent' => (float) ($pkg->discount_percent ?? 0),
+        //         ];
+        //     });
+        // } elseif ($this->hoarding_type === 'dooh' && $this->doohScreen && $this->doohScreen->packages) {
+        //     $packages = $this->doohScreen->packages->map(function ($pkg) {
+        //         return [
+        //             'id' => $pkg->id,
+        //             'name' => $pkg->package_name,
+        //             'duration_months' => $pkg->min_booking_duration,
+        //             'duration_unit' => $pkg->duration_unit,
+        //             'price' => (float) $pkg->price,
+        //             'discount_percent' => (float) ($pkg->discount_percent ?? 0),
+        //         ];
+        //     });
+        // }
         $basePrice = 0;
         $sellPrice = 0;
 
@@ -204,7 +204,7 @@ class HoardingResource extends JsonResource
             'is_recommended' => (bool) $this->is_recommended,
             'is_active' => $this->isActive(),
             'media' => $media,
-            'packages' => $packages,
+            'packages' =>  $this->packages,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
             'availability' => $availability,
