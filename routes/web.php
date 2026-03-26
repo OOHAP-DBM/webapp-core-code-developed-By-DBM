@@ -782,7 +782,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         Route::get('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'show'])->name('myHoardings.show');
         Route::put('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])
             ->name('hoardings.update'); // Automatically routes to correct type
-
+        Route::delete('/hoardings/bulk-delete', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'bulkDestroy'])->name('hoardings.bulkDelete');
         Route::delete('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'destroy'])
             ->name('hoardings.destroy');
 

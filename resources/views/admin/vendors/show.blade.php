@@ -25,10 +25,14 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <span class="text-sm text-gray-500">Profile Status</span>
-            <div class="w-32 bg-gray-200 rounded-full h-2">
-                <div class="bg-green-500 h-2 rounded-full w-full"></div>
-            </div>
+                <span class="text-sm text-gray-500">Profile Status</span>
+                <div class="w-32 bg-gray-200 rounded-full h-2">
+                <div class="h-2 rounded-full transition-all duration-500
+                    {{ $profileCompletion == 100 ? 'bg-green-500' : ($profileCompletion >= 50 ? 'bg-yellow-400' : 'bg-red-400') }}"
+                    style="width: {{ $profileCompletion }}%">
+                </div>
+        </div>
+        <span class="text-xs font-semibold text-gray-600">{{ $profileCompletion }}%</span>
 
             @if($vendorProfile?->onboarding_status === 'pending_approval')
                 <form id="approveVendorForm" method="POST" action="{{ route('admin.vendors.approve', $vendorProfile->id) }}">
