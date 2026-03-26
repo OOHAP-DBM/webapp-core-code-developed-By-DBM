@@ -55,7 +55,8 @@ Route::get('/brand/oohapp-logo', function () {
         'ETag' => '"' . md5_file($path) . '"',
     ]);
 })->name('brand.oohapp-logo');
-
+// AJAX route for homepage hoardings pagination/filtering
+Route::get('/ajax/hoardings', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('ajax.hoardings');
 
 // Admin Login Routes (do NOT affect /login)
 Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest')->group(function () {
@@ -782,7 +783,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         Route::get('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'show'])->name('myHoardings.show');
         Route::put('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])
             ->name('hoardings.update'); // Automatically routes to correct type
-
+        Route::delete('/hoardings/bulk-delete', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'bulkDestroy'])->name('hoardings.bulkDelete');
         Route::delete('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'destroy'])
             ->name('hoardings.destroy');
 

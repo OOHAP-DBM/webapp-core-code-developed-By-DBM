@@ -43,7 +43,7 @@
 
     <!-- RIGHT : ACTIONS (NEVER SHRINK) -->
     <div class="flex items-center space-x-4 flex-shrink-0">
-        <button class="cursor-pointer">Help</button>
+        {{-- <button class="cursor-pointer">Help</button> --}}
         
         {{-- Notification Dropdown --}}
         <div x-data="{ open: false, unreadCount: {{ auth()->user()->unreadNotifications->count() ?? 0 }} }" class="relative">
@@ -64,10 +64,10 @@
                   x-transition
                   :class="{
                     'absolute right-0 mt-2 w-80': window.innerWidth >= 1024,
-                    'fixed left-1/2 top-24 w-11/12 max-w-sm -translate-x-1/2 z-50': window.innerWidth < 1024
+                    'fixed left-1/2 top-24 w-11/12 max-w-sm -translate-x-1/2': window.innerWidth < 1024
                   }"
-                  class="bg-white rounded-lg shadow-xl border border-gray-200 z-50"
-                  style="display: none;">
+                  class="bg-white rounded-lg shadow-xl border border-gray-200"
+                  style="display: none;z-index: 999999 !important;">
                 <div class="px-4 py-3 border-b border-gray-200">
                     <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
                 </div>
@@ -172,11 +172,11 @@
                 <!-- <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg> -->
-                <svg class="w-5 h-5 text-gray-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20" id="vendorUserDropdownBtn">
+                {{-- <svg class="w-5 h-5 text-gray-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20" id="vendorUserDropdownBtn">
                     <circle cx="10" cy="4" r="1.5"></circle>
                     <circle cx="10" cy="10" r="1.5"></circle>
                     <circle cx="10" cy="16" r="1.5"></circle>
-                </svg>
+                </svg> --}}
             </button>
       <div
             id="vendorUserDropdown"

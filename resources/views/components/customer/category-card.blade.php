@@ -2,16 +2,19 @@
    class="block">
     <div class="relative rounded-lg overflow-hidden group cursor-pointer h-48 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl">
         <!-- Background Image -->
-        <img 
-            src="{{ $city['image'] }}" 
-            alt="{{ $city['name'] }}"
-            class="w-full h-full object-cover"
-            width="640"
-            height="384"
-            loading="lazy"
-            decoding="async"
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-        >
+        <picture>
+            <source srcset="{{ Str::replaceLast('.jpg', '.webp', $city['image']) }}" type="image/webp">
+            <img 
+                src="{{ $city['image'] }}" 
+                alt="{{ $city['name'] }}"
+                class="w-full h-full object-cover"
+                width="400"
+                height="300"
+                loading="lazy"
+                decoding="async"
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            >
+        </picture>
         
         <!-- Overlay Gradient -->
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/90 transition-all duration-300"></div>

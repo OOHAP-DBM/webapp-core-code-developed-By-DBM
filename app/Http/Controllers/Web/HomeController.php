@@ -13,7 +13,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Modules\Cart\Services\CartService;
 use App\Models\Testimonial;
-
+use Illuminate\Support\Facades\Cache;
 
 
 class HomeController extends Controller
@@ -23,68 +23,80 @@ class HomeController extends Controller
      *
      * @return View
      */
-    public function index(CartService $cartService): View
+    public function index(Request $request, CartService $cartService)
     {
-        // Get platform statistics
-        $stats = [
-            'total_hoardings' => Hoarding::where('status', 'active')->count(),
-            'total_vendors' => User::whereHas('roles', function($q) {
-                $q->where('name', 'vendor');
-            })->count(),
-            'total_bookings' => 0, // Will be calculated from bookings module
-        ];
+        // Filters (add more as needed)
+        $page = $request->get('page', 1);
+        $bestHoardings = Cache::remember('homepage_best_hoardings_' . $page, 600, function () use ($page) {
+            return Hoarding::select(['id', 'title', 'slug', 'address', 'city', 'monthly_price', 'base_monthly_price', 'hoarding_type', 'vendor_id', 'created_at'])
+                ->where('status', 'active')
+                ->with([
+                    'vendor:id,name,company_name',
+                    'hoardingMedia:id,hoarding_id,file_path',
+                    'doohScreen:id,hoarding_id,price_per_slot',
+                    'doohScreen.media:id,dooh_screen_id,file_path'
+                ])
+                ->orderByDesc('created_at')
+                ->paginate(8, ['*'], 'page', $page);
+        });
 
-        // Try to get booking count if Booking model exists
-        try {
-            if (class_exists('\Modules\Bookings\Models\Booking')) {
-                $stats['total_bookings'] = \Modules\Bookings\Models\Booking::whereIn('status', ['active', 'completed'])->count();
-            }
-        } catch (\Exception $e) {
-            // Ignore if table doesn't exist yet
+        // ...other homepage data...
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('components.customer.hoarding-grid', compact('bestHoardings'))->render(),
+                'pagination' => view('pagination.vendor-compact', ['paginator' => $bestHoardings])->render(),
+            ]);
         }
 
-        // Get recently added hoardings
-        $bestHoardings = Hoarding::where('status', 'active')
-            ->with([
-                'vendor',
-                'hoardingMedia',     
-                'doohScreen.media'
-            ])
-            ->latest('created_at')
-            ->get();
-
+        // Get platform statistics with caching (unchanged)
+        $stats = cache()->remember('homepage_stats', 600, function () {
+            $result = [
+                'total_hoardings' => Hoarding::where('status', 'active')->count(),
+                'total_vendors' => User::whereHas('roles', function($q) {
+                    $q->where('name', 'vendor');
+                })->count(),
+                'total_bookings' => 0,
+            ];
+            if (class_exists('\\Modules\\Bookings\\Models\\Booking')) {
+                $result['total_bookings'] = \Modules\Bookings\Models\Booking::whereIn('status', ['active', 'completed'])->count();
+            }
+            return $result;
+        });
 
         // Add availability status and next available date using HoardingAvailabilityService
         $availabilityService = app(\Modules\Hoardings\Services\HoardingAvailabilityService::class);
         $today = now()->toDateString();
 
-        $bestHoardings = $bestHoardings->map(function ($hoarding) use ($availabilityService, $today) {
-            if ($hoarding->hoarding_type === 'dooh') {
-                $hoarding->price_type = 'dooh';
-                $hoarding->base_price_for_enquiry = (float) (optional($hoarding->doohScreen)->price_per_slot ?? 0);
-            } else {
-                $hoarding->price_type = 'ooh';
-                $hoarding->base_price_for_enquiry = (float) ($hoarding->monthly_price ?? 0);
-                $hoarding->monthly_price_display = $hoarding->monthly_price;
-                $hoarding->base_monthly_price_display = $hoarding->base_monthly_price;
-            }
-            $hoarding->grace_period_days = (int) ($hoarding->grace_period_days ?? 0);
+        $bestHoardings->setCollection(
+            $bestHoardings->getCollection()->map(function ($hoarding) use ($availabilityService, $today) {
+                if ($hoarding->hoarding_type === 'dooh') {
+                    $hoarding->price_type = 'dooh';
+                    $hoarding->base_price_for_enquiry = (float) (optional($hoarding->doohScreen)->price_per_slot ?? 0);
+                } else {
+                    $hoarding->price_type = 'ooh';
+                    $hoarding->base_price_for_enquiry = (float) ($hoarding->monthly_price ?? 0);
+                    $hoarding->monthly_price_display = $hoarding->monthly_price;
+                    $hoarding->base_monthly_price_display = $hoarding->base_monthly_price;
+                }
+                $hoarding->grace_period_days = (int) ($hoarding->grace_period_days ?? 0);
 
-            // Get today's availability status
-            $calendar = $availabilityService->getAvailabilityCalendar($hoarding->id, $today, $today);
-            $todayStatus = $calendar['calendar'][0]['status'] ?? 'unknown';
-            $hoarding->today_availability_status = $todayStatus;
+                // Get today's availability status
+                $calendar = $availabilityService->getAvailabilityCalendar($hoarding->id, $today, $today);
+                $todayStatus = $calendar['calendar'][0]['status'] ?? 'unknown';
+                $hoarding->today_availability_status = $todayStatus;
 
-            // If not available today, get next available date
-            if ($todayStatus !== 'available') {
-                $next = $availabilityService->getNextAvailableDates($hoarding->id, 1, $today);
-                $hoarding->next_available_date = $next['dates'][0]['date'] ?? null;
-            } else {
-                $hoarding->next_available_date = null;
-            }
+                // If not available today, get next available date
+                if ($todayStatus !== 'available') {
+                    $next = $availabilityService->getNextAvailableDates($hoarding->id, 1, $today);
+                    $hoarding->next_available_date = $next['dates'][0]['date'] ?? null;
+                } else {
+                    $hoarding->next_available_date = null;
+                }
 
-            return $hoarding;
-        });
+                return $hoarding;
+            })
+        );
 
 
         // If no hoardings, use dummy data
@@ -112,23 +124,7 @@ class HomeController extends Controller
         // Check if user has location stored
         $userLocation = session('user_location');
         // ---------------- PAGINATION ADD (WITHOUT REMOVING ANYTHING) ----------------
-        $page = request()->get('page', 1);
-        $perPage = 8;
-
-        $bestHoardings = $bestHoardings instanceof Collection
-            ? $bestHoardings
-            : collect($bestHoardings);
-
-        $bestHoardings = new LengthAwarePaginator(
-            $bestHoardings->forPage($page, $perPage),
-            $bestHoardings->count(),
-            $perPage,
-            $page,
-            [
-                'path' => request()->url(),
-                'query' => request()->query(),
-            ]
-        );
+        // Remove manual paginator wrapping; use Eloquent paginator directly
         
         
         $cartIds = app(CartService::class)
@@ -239,7 +235,7 @@ class HomeController extends Controller
         return view('home.index', compact(
             'stats',
             'bestHoardings',
-            'topDOOHs',
+            // 'topDOOHs',
             'topCities',
             'userLocation',
             'cartIds',

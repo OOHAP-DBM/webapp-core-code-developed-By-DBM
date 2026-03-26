@@ -19,31 +19,50 @@
             </div>
 
             <!-- Hoardings Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                @forelse($bestHoardings as $hoarding)
-                    @include('components.customer.hoarding-card', ['hoarding' => $hoarding])
-                @empty
-                    <div class="col-span-full text-center py-12">
-                        <p class="text-gray-500">No hoardings available at the moment.</p>
-                    </div>
-                @endforelse
-            </div>
-
-            @if($bestHoardings->hasPages())
-                @php
-                    $compactPaginator = $bestHoardings->appends(request()->except('page'));
-                @endphp
+            <div id="hoardingGrid">
+                @include('components.customer.hoarding-grid', ['bestHoardings' => $bestHoardings])
 
                 <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="text-sm text-gray-600 font-medium">
                         Showing {{ $bestHoardings->firstItem() ?? 0 }} - {{ $bestHoardings->lastItem() ?? 0 }} of {{ $bestHoardings->total() }}
                     </div>
-
                     <div>
-                        {{ $compactPaginator->links('pagination.vendor-compact') }}
+                        {{ $bestHoardings->links('pagination.vendor-compact') }}
+
                     </div>
                 </div>
-            @endif
+            </div>
+
+            <script>
+            function loadHoardings(url) {
+                const grid = document.getElementById('hoardingGrid');
+                grid.classList.add('opacity-50');
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(res => res.json())
+                    .then(data => {
+                        grid.innerHTML = data.html + data.pagination;
+                        grid.classList.remove('opacity-50');
+                        window.scrollTo({ top: grid.offsetTop - 100, behavior: 'smooth' });
+                    });
+            }
+
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.pagination a')) {
+                    e.preventDefault();
+                    loadHoardings(e.target.closest('a').href);
+                }
+            });
+
+            document.querySelectorAll('.filter-input').forEach(function(input) {
+                input.addEventListener('change', function() {
+                    const params = new URLSearchParams();
+                    document.querySelectorAll('.filter-input').forEach(function(i) {
+                        if (i.value) params.append(i.name, i.value);
+                    });
+                    loadHoardings('/ajax/hoardings?' + params.toString());
+                });
+            });
+            </script>
 
             
          
