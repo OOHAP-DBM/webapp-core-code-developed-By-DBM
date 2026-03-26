@@ -125,14 +125,29 @@
 
     @include('hoardings.vendor.filter')
 
-    <div class="max-w-[1600px] mx-auto py-6 space-y-5">
+    <div class="w-full mx-auto py-3 space-y-5">
         {{-- <div class="flex flex-wrap gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
             @foreach(range('A', 'Z') as $char)
                 <a href="#" class="hover:text-blue-500 {{ $char == 'H' ? 'text-blue-500 underline' : '' }}">{{ $char }}</a>
             @endforeach
         </div> --}}
-
         <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+            <div id="bulk-delete-bar" class="hidden px-4 py-2 border-b border-red-50 bg-red-50/40">
+                <form id="bulk-delete-form" action="{{ route('vendor.hoardings.bulkDelete') }}" method="POST" class="flex items-center gap-2">
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="ids" id="bulk-delete-ids">
+                    <button type="button" id="bulk-delete-btn" 
+                        class="flex items-center gap-1.5 text-red-500 text-xs font-semibold cursor-pointer bg-transparent border-none p-0">
+                        Delete All Selected
+                        <span id="bulk-delete-count" class="inline-flex items-center justify-center bg-red-100 text-red-600 text-[10px] font-bold rounded-full w-4 h-4"></span>
+                        <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg" id="bulk-delete-svg">
+                        <rect x="0.5" y="0.5" width="20" height="20" rx="10" stroke="#E75858"/>
+                        <path d="M6.0102 14.6838C6.0102 15.4077 6.56582 16 7.2449 16H13.7551C14.4342 16 14.9898 15.4077 14.9898 14.6838V7.63248H6.0102V14.6838ZM16 5.65812H12.6607L12.0714 5H8.98469L8.33929 5.65812H5V6.97436H16V5.65812Z" fill="#E75858"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
             <div class="overflow-x-auto" style="max-height: 597px; overflow-y: auto;">
                 <table class="min-w-full text-xs sm:text-sm">
                     <thead>
@@ -838,5 +853,140 @@ function autoSearchHoardings(e) {
         });
         return false;
     }
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const selectAll    = document.getElementById('select-all');
+    const checkboxes   = document.querySelectorAll('.row-checkbox');
+    const bulkBar      = document.getElementById('bulk-delete-bar');
+    const bulkSvg      = document.getElementById('bulk-delete-svg');
+    const bulkIdsInput = document.getElementById('bulk-delete-ids');
+    const bulkCount    = document.getElementById('bulk-delete-count');
+
+    function getChecked() {
+        return Array.from(checkboxes).filter(cb => cb.checked);
+    }
+
+    function syncSelectAll() {
+        const checked = getChecked();
+        if (checked.length === 0) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        } else if (checked.length === checkboxes.length) {
+            selectAll.checked = true;
+            selectAll.indeterminate = false;
+        } else {
+            selectAll.checked = false;
+            selectAll.indeterminate = true;
+        }
+    }
+
+    function updateBulkBar() {
+        const checked = getChecked();
+        if (bulkBar) bulkBar.classList.toggle('hidden', checked.length === 0);
+        if (bulkCount) bulkCount.textContent = checked.length > 0 ? checked.length : '';
+    }
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            checkboxes.forEach(cb => { cb.checked = selectAll.checked; });
+            updateBulkBar();
+        });
+    }
+
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function () {
+            syncSelectAll();
+            updateBulkBar();
+        });
+    });
+
+    syncSelectAll();
+    updateBulkBar();
+
+    if (bulkSvg) {
+        bulkSvg.style.cursor = 'pointer';
+        bulkSvg.addEventListener('click', function (e) {
+            e.stopPropagation();
+
+            const checked = getChecked();
+            if (checked.length === 0) return;
+
+            Swal.fire({
+                title: 'Delete All Selected?',
+                html: '<p class="text-sm text-gray-600">Are you sure you want to delete all selected hoardings? This action cannot be undone.</p>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#9ca3af',
+                buttonsStyling: true,
+                customClass: {
+                    popup: 'swal-compact',
+                    title: 'text-base font-semibold',
+                    confirmButton: 'px-4 py-2 text-sm',
+                    cancelButton: 'px-4 py-2 text-sm'
+                }
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Deleting...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                fetch('{{ route("vendor.hoardings.bulkDelete") }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ids: checked.map(cb => cb.value).join(',')
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: data.message,
+                            timer: 1800,
+                            showConfirmButton: false,
+                            toast: true,
+                            position: 'top-end'
+                        });
+                        setTimeout(() => location.reload(), 1800);
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: data.message ?? 'Something went wrong.',
+                            toast: true,
+                            position: 'top-end',
+                            timer: 2500,
+                            showConfirmButton: false
+                        });
+                    }
+                })
+                .catch(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed!',
+                        text: 'Network error. Please try again.',
+                        toast: true,
+                        position: 'top-end',
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+                });
+            });
+        });
+    }
+});
 </script>
 @endsection
