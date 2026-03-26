@@ -214,7 +214,23 @@ html, body {
         <!-- ================= MOBILE INPUT ================= -->
         <div id="mobile-section">
            
-
+{{-- Logo — centered at top --}}
+        <div class="block md:hidden text-start mb-16">
+            <a href="{{ route('home') }}">
+    <picture>
+        <source srcset="{{ asset('assets/images/logo/logo_image-300.webp') }} 300w, {{ asset('assets/images/logo/logo_image-600.webp') }} 600w" type="image/webp">
+        <img 
+            src="{{ asset('assets/images/logo/logo_image.jpeg') }}"
+            alt="OOHApp company logo"
+            class="mx-auto w-24"
+            srcset="{{ asset('assets/images/logo/logo_image-300.jpeg') }} 300w, {{ asset('assets/images/logo/logo_image.jpeg') }} 600w"
+            sizes="(max-width: 768px) 96px, 150px"
+            width="600" height="120"
+            loading="eager" fetchpriority="high"
+        >
+    </picture>
+            </a>
+</div>
             <h3 class="mb-3 text-center mb-3">Signup</h3>
 
             <div class="mb-2">
