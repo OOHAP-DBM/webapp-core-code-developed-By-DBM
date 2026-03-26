@@ -212,6 +212,10 @@ class VendorPosController extends Controller
             ->filter()
             ->values()
             ->toArray();
+        $allUserIds = User::whereIn('id', $allUserIds)
+            ->where('active_role', 'customer')
+            ->pluck('id')
+            ->toArray();
 
         $search = trim($request->input('search', ''));
         $status = (array) $request->input('status', []);
@@ -874,26 +878,35 @@ class VendorPosController extends Controller
      */
     public function searchCustomers(Request $request): JsonResponse
     {
-
         try {
-            $search = $request->get('search', '');
+            $search   = $request->get('search', '');
+            $vendorId = $this->resolveEffectiveVendorId($request);
 
             if (strlen($search) < 2) {
                 return response()->json([
                     'success' => true,
-                    'data' => [],
+                    'data'    => [],
                     'message' => 'Search term must be at least 2 characters',
                 ]);
             }
 
+            // pos_customers table mein jo is vendor ke liye registered hain
+            $posCustomerUserIds = PosCustomer::where('vendor_id', $vendorId)
+                ->whereNotNull('user_id')
+                ->pluck('user_id')
+                ->toArray();
+
             $customers = User::query()
-                ->whereHas('roles', function ($q) {
-                    $q->where('name', 'customer');
+                ->where(function ($q) use ($posCustomerUserIds) {
+                    // active_role = 'customer' ho
+                    $q->where('active_role', 'customer')
+                    // ya pos_customers mein ho is vendor ke liye
+                    ->orWhereIn('id', $posCustomerUserIds);
                 })
                 ->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%");
+                    $q->where('name',  'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
                 })
                 ->select(['id', 'name', 'email', 'phone', 'gstin', 'address', 'billing_address', 'billing_city', 'billing_state', 'billing_pincode'])
                 ->limit(10)
@@ -901,15 +914,16 @@ class VendorPosController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $customers,
-                'count' => $customers->count(),
+                'data'    => $customers,
+                'count'   => $customers->count(),
             ]);
+
         } catch (\Exception $e) {
             Log::error('Error searching customers', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to search customers',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }

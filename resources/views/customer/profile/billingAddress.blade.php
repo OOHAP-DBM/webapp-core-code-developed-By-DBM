@@ -3,7 +3,7 @@
 @section('title', 'Billing Address')
 
 @section('content')
-<div class="w-full px-4 py-6">
+<div class="w-full">
     <div class="w-full max-w-none">
         <div class="text-sm text-gray-500 mb-4">
         <a href="{{ route('home') }}" class="text-decoration-none">Home</a>
@@ -15,7 +15,7 @@
         <span class="text-gray-800">Billing Address</span>
     </div>
     {{-- BIG CARD (FULL WIDTH) --}}
-    <div class="bg-white  rounded-xl shadow-md p-6">
+    <div class="bg-white  rounded border border-gray-200 p-6">
 
         {{-- TITLE --}}
         <h2 class="text-lg font-semibold text-gray-900 mb-6">
@@ -26,7 +26,7 @@
         <div class="flex gap-6">
 
             {{-- SMALL LEFT CARD --}}
-            <div class="w-72 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-6 relative">
+            <div class="w-72 bg-white rounded border border-gray-200 px-4 py-6 relative">
                 <h3 class="text-sm font-semibold text-gray-800 mb-3">
                     {{ auth()->user()->name ?? '-' }}
                 </h3>
@@ -63,7 +63,7 @@
         id="editModal"
         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4"
         >
-        <div class="bg-white w-full max-w-3xl rounded-xl shadow-xl p-6 relative">
+        <div class="bg-white w-full max-w-3xl rounded shadow-xl p-6 relative">
 
             {{-- HEADER --}}
             <div class="flex items-center justify-between mb-6">
@@ -91,7 +91,7 @@
                             type="text"
                             name="name"
                             value="{{ auth()->user()->name ?? '' }}"
-                            class="w-full px-3 py-2.5 border border-gray-300 rounded-md
+                            class="w-full px-3 py-2.5 border border-gray-300 rounded
                                 text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
                         >
                     </div>
@@ -132,7 +132,7 @@
                                 type="email"
                                 name="email"
                                 value="{{ auth()->user()->email ?? '' }}"
-                                class="w-full px-3 py-2.5 border border-gray-300 rounded-md
+                                class="w-full px-3 py-2.5 border border-gray-300 rounded
                                     text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
                             >
 
@@ -157,7 +157,7 @@
                             name="billing_address"
                             value="{{ auth()->user()->billing_address ?? '' }}"
                             placeholder="Enter billing address"
-                            class="w-full px-3 py-2.5 border border-gray-300 rounded-md
+                            class="w-full px-3 py-2.5 border border-gray-300 rounded
                                 text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
                         >
                     </div>
@@ -172,7 +172,7 @@
                             name="billing_pincode"
                             value="{{ auth()->user()->billing_pincode?? '' }}"
                             placeholder="Enter pincode"
-                            class="w-full px-3 py-2.5 border border-gray-300 rounded-md
+                            class="w-full px-3 py-2.5 border border-gray-300 rounded
                                 text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
                         >
                     </div>
@@ -186,7 +186,7 @@
                             type="text"
                             name="billing_city"
                             value="{{ auth()->user()->billing_city ?? '' }}"
-                            class="w-full px-3 py-2.5 border border-gray-300 rounded-md
+                            class="w-full px-3 py-2.5 border border-gray-300 rounded
                                 text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
                         >
                     </div>
@@ -200,7 +200,7 @@
                             type="text"
                             name="billing_state"
                             value="{{ auth()->user()->billing_state ?? '' }}"
-                            class="w-full px-3 py-2.5 border border-gray-300 rounded-md
+                            class="w-full px-3 py-2.5 border border-gray-300 rounded
                                 text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
                         >
                     </div>
@@ -211,7 +211,7 @@
                 <div class="flex justify-end mt-8">
                     <button
                         type="submit"
-                        class="px-24 py-2.5 rounded-md text-sm font-semibold
+                        class="px-24 py-2.5 rounded text-sm font-semibold
                             btn-color text-gray-800 cursor-pointer"
                     >
                         Save

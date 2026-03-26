@@ -156,7 +156,7 @@
              Shows FIRST on mobile (order-1), sidebar on desktop (order-2)
         ══════════════════════════════════════════ --}}
         <div class="order-1 lg:order-2 w-full lg:w-[44%] min-w-0">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 lg:sticky lg:top-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 lg:sticky">
 
                 <div class="px-4 sm:px-5 pt-4 sm:pt-5 flex items-center gap-3">
                     <h3 class="font-bold text-gray-800 text-sm">Select Hoardings for Booking</h3>
@@ -817,9 +817,10 @@ window.loadHoardings = loadHoardings;
 function renderHoardings(list) {
     const grid = document.getElementById('hoardings-grid');
 
+    // renderHoardings function mein ye replace karo
     if (!list?.length) {
         grid.innerHTML = `
-            <div class="col-span-2 flex flex-col items-center justify-center py-14 text-center">
+            <div class="col-span-full w-full flex flex-col items-center justify-center py-14 text-center">
                 <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M20 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 3.5a7.5 7.5 0 0013.15 13.15z"/>
@@ -881,7 +882,7 @@ function _buildCard(h) {
 
     // grid card
     return `
-    <div class="hoarding-card ${selCls} border border-gray-200 overflow-hidden bg-white rounded" onclick="toggleHoarding(${h.id})">
+    <div class="hoarding-card ${selCls} border rounded-lg border-gray-200 overflow-hidden bg-white rounded" onclick="toggleHoarding(${h.id})">
         <div class="relative">
             <img src="${h.image_url||'/placeholder.png'}" class="w-full object-cover" style="height:72px;">
             ${checkBadge}${doohBadge}

@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="px-2 sm:px-4 md:px-6 py-4 md:py-6 bg-white min-h-screen" x-data="{ openTop: true, openBottom: true }">
+<div class="px-2 sm:px-4 md:px-6 py-4 md:py-6 bg-white rounded border border-gray-200 min-h-screen" x-data="{ openTop: true, openBottom: true }">
 
     {{-- ===== HEADER ===== --}}
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between py-1 bg-white mb-6 gap-2 sm:gap-0">
@@ -305,7 +305,7 @@
                     </div>
 
                     {{-- Table --}}
-                    <div class="overflow-x-auto border border-gray-200 rounded shadow-sm">
+                    <div class="overflow-x-auto border border-gray-200 rounded">
                         <table class="w-full text-xs min-w-[700px]">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>

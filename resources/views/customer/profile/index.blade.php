@@ -50,7 +50,7 @@
     }
 </style>
 @section('content')
-<div class="px-6 py-6 flex justify-center">
+<div class="flex justify-center">
 
     {{-- Breadcrumb --}}
     <div class="w-full max-w-none">
@@ -64,7 +64,7 @@
         <span class="text-gray-800">Personal Information</span>
     </div>
     {{-- Card --}}
-    <div class="bg-white rounded-lg border border-gray-200 p-6 w-full">
+    <div class="bg-white rounded border border-gray-200 p-6 w-full">
 
         <h2 class="text-lg font-semibold text-gray-800 mb-1">
             Personal Information

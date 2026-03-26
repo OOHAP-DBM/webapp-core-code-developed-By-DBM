@@ -296,7 +296,7 @@ Route::get('/refund-cancellation-policy', [PageController::class, 'refund'])->na
 Route::get('/shortlist', [ShortlistController::class, 'index'])->name('shortlist');
 Route::post('/shortlist/toggle/{hoarding}', [ShortlistController::class, 'toggle'])->name('shortlist.toggle');
 Route::post('/ratings/store', [RatingController::class, 'store'])->name('ratings.store');
-Route::post('/guest/merge', [\App\Http\Controllers\Web\Customer\GuestMergeController::class, 'merge'])->middleware('auth')->name('guest.merge');
+Route::post('/guest/merge', [\App\Http\Controllers\Api\GuestMergeController::class, 'merge'])->middleware('auth')->name('guest.merge');
 
 
 // ============================================
