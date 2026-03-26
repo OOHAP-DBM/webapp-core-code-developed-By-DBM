@@ -27,18 +27,16 @@ class HomeController extends Controller
     {
         // Filters (add more as needed)
         $page = $request->get('page', 1);
-        $bestHoardings = Cache::remember('homepage_best_hoardings_' . $page, 600, function () use ($page) {
-            return Hoarding::select(['id', 'title', 'slug', 'address', 'city', 'monthly_price', 'base_monthly_price', 'hoarding_type', 'vendor_id', 'created_at'])
-                ->where('status', 'active')
-                ->with([
-                    'vendor:id,name,company_name',
-                    'hoardingMedia:id,hoarding_id,file_path',
-                    'doohScreen:id,hoarding_id,price_per_slot',
-                    'doohScreen.media:id,dooh_screen_id,file_path'
-                ])
-                ->orderByDesc('created_at')
-                ->paginate(8, ['*'], 'page', $page);
-        });
+        $bestHoardings = Hoarding::select(['id', 'title', 'slug', 'address', 'city', 'monthly_price', 'base_monthly_price', 'hoarding_type', 'vendor_id', 'created_at'])
+            ->where('status', 'active')
+            ->with([
+                'vendor:id,name,company_name',
+                'hoardingMedia:id,hoarding_id,file_path',
+                'doohScreen:id,hoarding_id,price_per_slot',
+                'doohScreen.media:id,dooh_screen_id,file_path'
+            ])
+            ->orderByDesc('created_at')
+            ->paginate(8, ['*'], 'page', $page);
 
         // ...other homepage data...
 
