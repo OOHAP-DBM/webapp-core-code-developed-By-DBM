@@ -66,10 +66,10 @@ class HomeController extends Controller
                         $q->orWhere('id', (int) $searchId);
                     }
                     $q->orWhere('customer_note', 'like', "%{$search}%")
-                      ->orWhereHas('items.hoarding', function ($hq) use ($search) {
-                          $hq->where('title', 'like', "%{$search}%")
-                             ->orWhere('address', 'like', "%{$search}%");
-                      });
+                        ->orWhereHas('items.hoarding', function ($hq) use ($search) {
+                            $hq->where('title', 'like', "%{$search}%")
+                                ->orWhere('address', 'like', "%{$search}%");
+                        });
                 });
 
                 if ($searchId !== '') {
@@ -170,7 +170,7 @@ class HomeController extends Controller
 
                 return [$labels, $data, $label];
 
-            /* ── THIS WEEK: day-wise (Mon – Sun) ──────────────────── */
+                /* ── THIS WEEK: day-wise (Mon – Sun) ──────────────────── */
             case 'this_week':
                 $weekStart = Carbon::now()->startOfWeek()->addWeeks($offset);
                 $weekEnd   = $weekStart->copy()->endOfWeek();
@@ -190,7 +190,7 @@ class HomeController extends Controller
 
                 return [$labels, $data, $label];
 
-            /* ── THIS MONTH: week-wise ─────────────────────────────── */
+                /* ── THIS MONTH: week-wise ─────────────────────────────── */
             case 'this_month':
             default:
                 $monthStart = Carbon::now()->startOfMonth()->addMonths($offset);
