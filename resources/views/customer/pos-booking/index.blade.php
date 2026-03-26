@@ -4,7 +4,7 @@
 
 @section('content')
 <div
-    class="bg-white shadow w-full px-4 sm:px-6 py-6"
+    class="bg-white border rounded border-gray-200 w-full px-4 sm:px-6 py-6"
     x-data="{
         openFilter: false,
         dateFilter: '{{ request('date_filter', 'all') }}'
@@ -53,7 +53,7 @@
     </div>
 
     {{-- Table --}}
-    <div class="overflow-x-auto bg-white shadow border border-gray-200">
+    <div class="overflow-x-auto bg-white border border-gray-200">
         <table class="min-w-full text-xs sm:text-sm">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
