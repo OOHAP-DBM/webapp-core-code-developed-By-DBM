@@ -79,7 +79,8 @@
             $isOwnerVendor = true;
         }
     @endphp
-    <div class="bg-white border border-gray-200 p-4 mt-4" style="border-radius:5px;">
+    <div class="bg-white border border-gray-200 p-4 mt-4 buttons-action-bar"
+     style="border-radius:5px;">
         @if($isOwnerVendor)
             <div class="flex justify-center mt-2">
                 <span class="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs font-semibold px-3 py-2 rounded-full">
@@ -335,7 +336,7 @@
     </div>
 
 </div>
-<div class="vendor-card border border-gray-200 p-6 bg-white shadow-sm mt-4 mb-4">
+<div class="vendor-card border border-gray-200 p-6 bg-white mt-4 mb-4">
 
     <div class="flex items-start gap-6">
 
@@ -428,5 +429,29 @@
 }
 .vendor-card{
     border-radius: 5px;
+}
+/* Mobile pe sticky */
+@media (max-width: 639px) {
+    .buttons-action-bar {
+        position: fixed !important;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        margin-top: 0;
+        border-radius: 0 !important;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    }
+}
+
+/* Desktop pe normal */
+@media (min-width: 640px) {
+    .buttons-action-bar {
+        position: static !important;
+        border: 1px solid #e5e7eb;
+        border-radius: 5px !important;
+        box-shadow: none;
+        margin-top: 1rem;
+    }
 }
 </style>
