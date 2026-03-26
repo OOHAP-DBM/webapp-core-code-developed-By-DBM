@@ -778,11 +778,11 @@ class POSBookingController extends Controller
      */
     public function cancel(Request $request, int $id): JsonResponse
     {
-        $validated = $request->validate([
-            'reason' => 'required|string|max:500',
-        ]);
-
         try {
+            $validated = $request->validate([
+                'reason' => 'required|string|max:500',
+            ]);
+
             $booking = POSBooking::forVendor(Auth::id())->findOrFail($id);
 
             if ($booking->isCancelled()) {
@@ -802,6 +802,13 @@ class POSBookingController extends Controller
                 'message' => 'Booking cancelled successfully',
                 'data' => $updatedBooking,
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->validator->errors();
+            return response()->json([
+                'success' => false,
+                'message' => $errors->first('reason') ?: 'Reason is required to cancel booking.',
+                'errors' => $errors,
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
