@@ -3,8 +3,8 @@
 @section('content')
 @include('components.customer.navbar')
 <div id="gridView" class="bg-white pt-5 md:pt-0 ">
-<div class="max-w-[1460px] mx-auto px-6 md:py-6 py-10">
-    <div class="bg-gradient-to-b from-[#D9F2E6] to-[#F4FFFB] rounded-lg overflow-hidden mb-6">
+<div class="max-w-[1460px] mx-auto px-6 md:py-6 py-5">
+    <div class="bg-gradient-to-b from-[#D9F2E6] to-[#F4FFFB] rounded-lg overflow-hidden mb-3">
         <div class="px-6 py-4 border-b border-[#b9d1c5]">
             <h2 class="text-lg font-semibold text-gray-800">
                 Vendor Details
@@ -28,8 +28,14 @@
                     <div class="flex flex-col gap-0.5">
                         <span class="font-semibold text-lg text-gray-900">{{ $vendor->name ?? 'N/A' }}</span>
                         <span class="text-sm text-amber-700 font-medium">{{ $vendor->vendorProfile->company_name ?? '' }}</span>
-                        <span class="text-sm text-gray-600">{{ $vendor->email ?? 'Not Available' }}</span>
-                        <span class="text-xs text-gray-500">{{ $vendor->vendorProfile->registered_address ?? ($vendor->city . ', ' . $vendor->state) ?? 'No address provided' }}</span>
+                        <span class="text-sm text-gray-600">{{ $vendor->email ?? '' }}</span>
+                        <span class="text-xs text-gray-500">
+                            {{
+                                $vendor->vendorProfile->registered_address 
+                                ?? (collect([$vendor->city, $vendor->state])->filter()->implode(', ') 
+                                ?: '')
+                            }}
+                        </span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-4 md:gap-6 items-center md:justify-end">
@@ -45,11 +51,11 @@
             </div>
         </div>
     </div>
-    <div class="flex items-center justify-between mb-6">
-        <h2 class="text-lg font-semibold text-gray-900">
+    <div class="flex items-center justify-between mb-3 gap-3">
+        <h2 class="text-lg font-semibold text-gray-900 whitespace-nowrap">
             All Hoardings
         </h2>
-        <div class="flex items-center gap-2 text-sm text-gray-600">
+        <div class="flex items-center gap-2 text-sm text-gray-600 flex-shrink-0">
             <span class="whitespace-nowrap">Sort by</span>
             <form method="GET">
                 @foreach(request()->except('sort','page') as $key => $value)

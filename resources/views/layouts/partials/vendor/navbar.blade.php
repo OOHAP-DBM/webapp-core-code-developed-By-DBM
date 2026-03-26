@@ -64,10 +64,10 @@
                   x-transition
                   :class="{
                     'absolute right-0 mt-2 w-80': window.innerWidth >= 1024,
-                    'fixed left-1/2 top-24 w-11/12 max-w-sm -translate-x-1/2 z-50': window.innerWidth < 1024
+                    'fixed left-1/2 top-24 w-11/12 max-w-sm -translate-x-1/2': window.innerWidth < 1024
                   }"
-                  class="bg-white rounded-lg shadow-xl border border-gray-200 z-50"
-                  style="display: none;">
+                  class="bg-white rounded-lg shadow-xl border border-gray-200"
+                  style="display: none;z-index: 999999 !important;">
                 <div class="px-4 py-3 border-b border-gray-200">
                     <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
                 </div>
