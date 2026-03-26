@@ -142,7 +142,22 @@ body {
         <!-- RIGHT FORM -->
         <div class="col-md-7 col-12 auth-right">
             <div class="login-box text-center">
-
+                  <div class="block md:hidden text-start mb-5">
+            <a href="{{ route('home') }}" >
+            <picture>
+                <source srcset="{{ asset('assets/images/logo/logo_image-300.webp') }} 300w, {{ asset('assets/images/logo/logo_image-600.webp') }} 600w" type="image/webp">
+                <img 
+                    src="{{ asset('assets/images/logo/logo_image.jpeg') }}"
+                    alt="OOHApp company logo"
+                    class="mx-auto w-24"
+                    srcset="{{ asset('assets/images/logo/logo_image-300.jpeg') }} 300w, {{ asset('assets/images/logo/logo_image.jpeg') }} 600w"
+                    sizes="(max-width: 768px) 96px, 150px"
+                    width="600" height="120"
+                    loading="eager" fetchpriority="high"
+                >
+            </picture>
+            </a>
+        </div>
                 <h3 class="fw-semibold mb-1">What you are?</h3>
                 <p class="text-muted mb-4">Select your role</p>
                 <form action="{{ route('register.store-role') }}" method="POST" id="roleForm">
@@ -175,8 +190,8 @@ body {
                     <button type="submit" id="continueBtn" hidden></button>
                 </form>
                 <!-- FOOTER -->
-                <div class="auth-footer mt-5 pt-5">
-                    <p class="mb-1 mt-5 pt-5">
+             <div class="auth-footer mt-3 mt-md-5 pt-3 pt-md-5">
+    <p class="mb-1 mt-2 mt-md-5 pt-0 pt-md-5">
                         Already Have an Account?
                         <a href="{{ route('login') }}" class="text-success fw-semibold">Login</a>
                     </p>
