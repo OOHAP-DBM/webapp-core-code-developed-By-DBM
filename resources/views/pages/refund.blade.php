@@ -4,7 +4,7 @@
 @include('components.customer.navbar', ['hideSearch' => true])
 
 <div class="bg-gray-100 py-12 px-4">
-    <div class="max-w-6xl mx-auto bg-white p-10 rounded-lg shadow">
+    <div class="max-w-6xl mx-auto bg-white p-10 rounded-lg shadow p-8">
 
         <!-- <h1 class="text-2xl font-bold mb-6 text-center">
             {{-- {{ $data?->title ?? 'Cancellation & Refund Policy' }} --}}
