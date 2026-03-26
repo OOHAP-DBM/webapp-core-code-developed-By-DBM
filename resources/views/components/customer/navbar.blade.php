@@ -29,9 +29,11 @@
             </div>
 
             <!-- Search Bar (Desktop & Tablet only) -->
-            <div class="hidden md:flex flex-1 justify-center px-6">
-                @include('components.customer.home-search')
-            </div>
+           @if(!isset($hideSearch) || !$hideSearch)
+<div class="hidden md:flex flex-1 justify-center px-6">
+    @include('components.customer.home-search')
+</div>
+@endif
 
             <!-- Right Side Icons: User, Bookmark, Cart -->
             <div class="flex items-center space-x-4 lg:space-x-5">
@@ -169,6 +171,7 @@
         </div>
 
         <!-- Mobile Search Bar -->
+        @if(!isset($hideSearch) || !$hideSearch)
         <div class="md:hidden pb-3 pt-2">
             <form action="{{ route('search') }}" method="GET" class="flex items-center w-full bg-gray-50 rounded-lg border border-gray-300">
                 <div class="flex items-center flex-1 px-3 py-2">
@@ -187,6 +190,7 @@
                 </button>
             </form>
         </div>
+        @endif
 
         <!-- Mobile Navigation Menu (Slide-in) -->
         <div id="mobile-menu"
