@@ -1,4 +1,4 @@
-<div class="max-w-7xl mx-auto px-4 py-8 border-t border-gray-300">
+<div class="max-w-7xl mx-auto px-4 border-t border-gray-300">
 
     {{-- RATING SUMMARY --}}
     @php
