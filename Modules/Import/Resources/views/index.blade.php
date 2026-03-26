@@ -541,7 +541,7 @@
         const statusText = (lockState.status || 'processing').toLowerCase();
         if      (statusText === 'failed')    message.textContent = 'Processing failed. Please re-upload after checking content.';
         else if (statusText === 'completed') message.textContent = 'Processing completed successfully.';
-        else                                 message.textContent = 'Upload is being processed. You can continue browsing other screens.';
+        else                                 message.textContent = 'System is mapping inventory. You can continue browsing other screens.';
 
         if (lockState.minimized) { expanded.classList.add('hidden');    minimized.classList.remove('hidden'); }
         else                     { expanded.classList.remove('hidden'); minimized.classList.add('hidden'); }
@@ -872,19 +872,19 @@
         try {
             const raw = localStorage.getItem('pending_upload_intent');
             if (!raw) return;
+
             const intent = JSON.parse(raw);
             if (!intent) return;
+
             const ageMinutes = (Date.now() - (intent.startedAt || 0)) / 60000;
+
             if (intent.status === 'uploading' && ageMinutes < 15) {
-                showToast(
-                    '⚠️ You left while uploading "' + intent.excelName + '". The upload was cancelled. Please re-upload your files.',
-                    'error'
-                );
+                showInterruptedPopup(intent.excelName);
             }
+
             localStorage.removeItem('pending_upload_intent');
         } catch(e) { /* ignore */ }
     }
-
     async function submitUpload(e) {
         e.preventDefault();
 
@@ -1220,6 +1220,9 @@
     async function loadBatchDetails(batchId) {
         window.location.href = `${DETAILS_BASE}/batches/${batchId}`;
     }
+
+    
+    
 </script>
 
 <style>
@@ -1227,5 +1230,70 @@
     @keyframes pulse   { 0%,100% { opacity:1; } 50% { opacity:.8; } }
     .animate-spin      { animation: spin  1s linear infinite; }
     .animate-pulse     { animation: pulse 2s cubic-bezier(.4,0,.6,1) infinite; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .animate-fadeIn {
+        animation: fadeIn 0.25s ease-out;
+    }
 </style>
+
+<script>
+    function showInterruptedPopup(fileName) {
+    const existing = document.getElementById('interruptModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'interruptModal';
+    modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm';
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md p-6 animate-fadeIn">
+
+            <!-- Icon -->
+            <div class="flex justify-center mb-4">
+                <div class="w-14 h-14 flex items-center justify-center rounded-full bg-red-100 text-red-600">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h2 class="text-lg font-bold text-gray-900 text-center">
+                Upload Cancelled
+            </h2>
+
+            <!-- Message -->
+            <p class="text-sm text-gray-600 text-center mt-2 leading-relaxed">
+                You left while uploading <strong>"${fileName || 'your file'}"</strong>.
+                <br/>The upload was cancelled.
+            </p>
+
+            <!-- Hint -->
+            <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs rounded-lg p-3 mt-4 text-center">
+                Please re-upload your files .
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-5 flex justify-center">
+                <button onclick="closeInterruptedPopup()"
+                    class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold px-6 py-2 rounded-lg transition">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+function closeInterruptedPopup() {
+    const modal = document.getElementById('interruptModal');
+    if (modal) modal.remove();
+}
+</script>
 @endsection
