@@ -39,6 +39,8 @@
               @endforeach
             @endif
           </select>
+              @error('category') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+
         </div>
       </div>
 
@@ -55,6 +57,8 @@
               <option value="sqft" {{ old('measurement_unit', $draft->measurement_unit ?? 'sqft') == 'sqft' ? 'selected' : '' }}>Sqft</option>
               <option value="sqm" {{ old('measurement_unit', $draft->measurement_unit ?? 'sqft') == 'sqm' ? 'selected' : '' }}>Sqm</option>
             </select>
+                @error('measurement_unit') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+
           </div>
 
           <!-- Width -->
@@ -63,7 +67,9 @@
             <input type="number" id="width" name="width" placeholder="eg.500" required 
               value="{{ old('width', $draft->width ?? '') }}"
               class="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#009A5C]">
+              @error('width') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
+          
 
           <!-- Height -->
           <div class="space-y-1">
@@ -71,6 +77,7 @@
             <input type="number" id="height" name="height" placeholder="eg.300" required 
               value="{{ old('height', $draft->height ?? '') }}" 
               class="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#009A5C]">
+              @error('height') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
 
           <!-- Size Preview (READ-ONLY, NO NAME) -->
@@ -82,6 +89,7 @@
             ? old('width', $draft->width ?? '') . ' x ' . old('height', $draft->height ?? '') . ' ' . old('measurement_unit', $draft->measurement_unit ?? 'sqft')
             : '' }}"
               class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 cursor-not-allowed text-gray-600">
+              @error('sizePreview') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
         </div>
       </div>
@@ -113,6 +121,7 @@
             class="w-full border border-gray-200 rounded-xl px-4 py-2.5
                   focus:border-[#009A5C] outline-none transition-all"
           />
+            @error('base_monthly_price') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           <p class="text-xs text-gray-400">
             Standard monthly hoarding price (before discount)
           </p>
@@ -140,6 +149,7 @@
             class="w-full border border-gray-200 rounded-xl px-4 py-2.5
                   focus:border-[#009A5C] outline-none transition-all"
           />
+          @error('monthly_price') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           <p class="text-xs text-gray-400">
             Discounted price (optional)
           </p>
@@ -163,7 +173,7 @@
                       @foreach($draft->hoarding->oohMedia as $media)
                           <div class="relative w-28 h-28 rounded-lg overflow-hidden border bg-gray-50">
                               @if(Str::startsWith( $media->mime_type, 'image'))
-                               <img src="{{ asset('storage/'.$media->file_path) }}" class="w-full h-full object-cover" alt="media">
+                         <img src="{{ asset('storage/'.$media->file_path) }}" class="w-full h-full object-cover" alt="media">
                               @elseif(Str::startsWith($media->mime_type, 'video'))
                                   <video src="{{ asset('storage/'.$media->file_path) }}" class="w-full h-full object-cover" controls></video>
                               @endif
@@ -199,6 +209,7 @@
                   class="hidden"
                   @if(!(isset($draft) && $draft->hoarding->oohMedia && $draft->hoarding->oohMedia->count())) required @endif
               >
+              @error('media') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
 
               <p class="text-xs text-gray-400 mt-2">
                   Supported: JPG, PNG, WEBP, MP4, WEBM • Max 10 files • 5MB each
