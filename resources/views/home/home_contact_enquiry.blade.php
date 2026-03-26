@@ -825,3 +825,15 @@ document.head.appendChild(style);
     document.addEventListener('DOMContentLoaded', scheduleModals);
 })();
 </script>
+<style>
+#directEnquiryForm input::placeholder,
+#directEnquiryForm textarea::placeholder {
+    font-size: 0.75rem;
+    color: #b0b8c1;
+}
+
+#directEnquiryForm input,
+#directEnquiryForm textarea {
+    background-color: #ffffff !important;
+}
+</style>
