@@ -30,6 +30,7 @@
                 value="{{ old('pincode', $hoarding?->pincode) }}"
                 placeholder="226010"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            @error('pincode') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
         <!-- City -->
@@ -39,6 +40,7 @@
                 value="{{ old('city', $hoarding?->city) }}"
                 placeholder="Lucknow"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            @error('city') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
         <!-- State -->
@@ -48,6 +50,8 @@
                 value="{{ old('state', $hoarding?->state) }}"
                 placeholder="Uttar Pradesh"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            @error('state') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+
         </div>
 
     </div>
@@ -62,6 +66,7 @@
                 value="{{ old('locality', $hoarding?->locality) }}"
                 placeholder="Indira Nagar"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            @error('locality') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
         <!-- Full Address -->
@@ -71,6 +76,8 @@
                 value="{{ old('address', $hoarding?->address) }}"
                 placeholder="Enter exact address or landmark"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            @error('address') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+
         </div>
 
     </div>
@@ -96,12 +103,14 @@
         <label class="text-sm font-bold">Latitude *</label>
         <input type="text" name="lat" id="lat"value="{{ old('lat', $hoarding?->lat) }}"
             class="w-full border border-gray-200 rounded-xl px-4 py-2.5">
+            @error('lat') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
     </div>
 
     <div>
         <label class="text-sm font-bold">Longitude *</label>
         <input type="text" name="lng" id="lng" value="{{ old('lng', $hoarding?->lng) }}"
             class="w-full border border-gray-200 rounded-xl px-4 py-2.5">
+            @error('lng') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
     </div>
 </div>
 

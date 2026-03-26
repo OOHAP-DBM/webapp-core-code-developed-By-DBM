@@ -6,7 +6,7 @@
 <div class="max-w-5xl mx-auto py-4 px-4">
 
     {{-- WHITE CARD --}}
-    <div class="bg-white rounded-xl shadow">
+    <div class="bg-white rounded-xl shadow p-8">
 
         <h1 class="text-3xl font-bold mb-8 text-center">
             {{ $data?->title ?? 'Privacy Policy' }}
