@@ -94,13 +94,13 @@
        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
     <div>
         <label class="text-sm font-bold">Latitude *</label>
-        <input type="text" name="lat" id="lat"
+        <input type="text" name="lat" id="lat"value="{{ old('lat', $hoarding?->lat) }}"
             class="w-full border border-gray-200 rounded-xl px-4 py-2.5">
     </div>
 
     <div>
         <label class="text-sm font-bold">Longitude *</label>
-        <input type="text" name="lng" id="lng"
+        <input type="text" name="lng" id="lng" value="{{ old('lng', $hoarding?->lng) }}"
             class="w-full border border-gray-200 rounded-xl px-4 py-2.5">
     </div>
 </div>

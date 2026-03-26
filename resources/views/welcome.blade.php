@@ -494,7 +494,7 @@
     </section>
 
     <!-- Top DOOH Section -->
-    <section class="section" id="top-dooh" style="background: white;">
+    <!-- <section class="section" id="top-dooh" style="background: white;">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">Top DOOHs</h2>
@@ -524,7 +524,7 @@
                 @endforelse
             </div>
         </div>
-    </section>
+    </section> -->
     <!-- Top Cities Section -->
     <section class="section" id="cities">
               

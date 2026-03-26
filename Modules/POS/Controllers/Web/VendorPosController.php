@@ -272,6 +272,7 @@ class VendorPosController extends Controller
                 'total_spent' => $totalSpent,
                 'last_booking_at' => $lastBookingAt,
                 'is_active' => $totalBookings > 0,
+                'profile_status' => $user->status === 'active' ? 'active' : 'inactive',
             ];
         });
 

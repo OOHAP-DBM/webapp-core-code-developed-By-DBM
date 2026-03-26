@@ -54,7 +54,7 @@
 
     {{-- ── Google Analytics (async — does NOT block render) ──────────── --}}
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ST51N3C0N6"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}

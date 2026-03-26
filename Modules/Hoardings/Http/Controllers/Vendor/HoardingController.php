@@ -737,4 +737,40 @@ class HoardingController extends Controller
 
         return view('hoardings.vendor.show', compact('hoarding'));
     }
+    public function bulkDestroy(Request $request)
+    {
+        $vendor = Auth::user();
+
+        $ids = array_filter(explode(',', $request->input('ids', '')));
+
+        if (empty($ids)) {
+            return response()->json(['success' => false, 'message' => 'No hoardings selected.'], 422);
+        }
+
+        $listings = $vendor->hoardings()->whereIn('id', $ids)->get();
+
+        if ($listings->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No hoardings found.'], 404);
+        }
+
+        foreach ($listings as $listing) {
+            // Delete primary image
+            if ($listing->primary_image) {
+                Storage::disk('public')->delete($listing->primary_image);
+            }
+
+            // Delete gallery images
+            foreach ($listing->galleryImages as $image) {
+                Storage::disk('public')->delete($image->image_path);
+            }
+
+            $listing->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'deleted_count' => $listings->count(),
+            'message' => $listings->count() . ' hoarding(s) deleted successfully.'
+        ]);
+    }
 }

@@ -1,14 +1,13 @@
-<!-- Newsletter Subscription -->
+<!-- Newsletter Subscription
 <section class="py-12 bg-gray-900" id="newsletter">
     <div class="container mx-auto px-4">
         <div class="mx-auto max-w-7xl px-6">
             <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                <!-- Left Content -->
                 <div class="text-white md:w-1/2">
                     <h2 class="text-2xl md:text-3xl mb-2">Unlock special offers just for you</h2>
                     <p class="text-gray-300 text-sm md:text-base">The finest offers are the ones that arrive in your inbox.</p>
                 </div>
-                <!-- Right - Email Form -->
+                Right - Email Form
                 <div class="md:w-1/2 w-full max-w-md">
                     <form 
                         action="{{ route('newsletter.subscribe') }}" 
@@ -43,7 +42,7 @@
             </div>
         </div>
     </div>
-</section>
+</section> -->
 <footer class="bg-gray-50 text-gray-700 pt-12 pb-6 border-t border-gray-200">
     <div class="container mx-auto px-4">
         <!-- Main Footer Content -->
