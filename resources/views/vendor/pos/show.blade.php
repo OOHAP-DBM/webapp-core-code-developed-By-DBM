@@ -160,7 +160,7 @@
 </div>
 
 <!-- RELEASE MODAL -->
-<div id="release-modal"
+<!-- <div id="release-modal"
      class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full mx-4 shadow-xl animate-fadeIn">
         <h3 class="text-lg sm:text-xl font-semibold text-red-600 mb-2">⚠️ Cancel Booking</h3>
@@ -185,7 +185,7 @@
             </button>
         </div>
     </div>
-</div>
+</div> -->
 
 <!-- SEPARATE CANCEL BOOKING MODAL -->
 <div id="cancel-booking-modal"
@@ -198,7 +198,7 @@
 
         <textarea id="cancel-booking-reason" rows="3"
                   class="w-full rounded-lg border border-gray-300 p-2 mb-4"
-                  placeholder="Reason (optional)"></textarea>
+                  placeholder="Reason (Required)" required></textarea>
 
         <div class="flex flex-col-reverse sm:flex-row justify-end gap-2">
             <button onclick="closeCancelBookingModal()"

@@ -5,7 +5,7 @@
 <div class="max-w-5xl mx-auto py-14 px-4">
 
     {{-- WHITE CARD --}}
-    <div class="bg-white rounded-xl shadow">
+    <div class="bg-white rounded-xl shadow p-8">
 
         <h1 class="text-3xl font-bold mb-8 text-center">
             {{ $sections?->first()?->section_title ?? 'Terms & Conditions' }}
