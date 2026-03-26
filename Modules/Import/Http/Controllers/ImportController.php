@@ -477,6 +477,9 @@ class ImportController extends Controller
     public function uploadInventoryImport(UploadInventoryImportRequest $request): JsonResponse
     {
         try {
+             set_time_limit(300);
+            ini_set('upload_max_filesize', '65M');
+            ini_set('post_max_size', '70M');
             // Create batch record
             $batch = InventoryImportBatch::create([
                 'vendor_id' => auth()->id(),

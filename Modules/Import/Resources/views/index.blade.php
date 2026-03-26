@@ -19,7 +19,7 @@
                 <div>
                     <p class="text-sm font-semibold text-blue-900">Please wait</p>
                     <p id="uploadTimerMessage" class="text-xs text-blue-700 mt-1">
-                        Upload is being processed. Please wait 5 minutes before starting a new upload. You can continue browsing other screens.
+                        Currently System is mapping your inventory. Please wait 5 minutes before starting a new upload. You can continue browsing other screens.
                     </p>
                 </div>
                 <div class="flex items-center gap-1">
@@ -175,6 +175,27 @@
                     </svg>
                     <span id="submitText">Upload Files</span>
                 </button>
+            </div>
+             <!-- ── Upload Progress Bar (shown during active upload) ── -->
+            <div id="uploadProgressWrap" class="hidden mt-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                            <svg class="w-4 h-4 animate-spin text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            Uploading — please don't close or leave this tab
+                        </span>
+                        <span id="uploadProgressPercent" class="text-sm font-bold text-blue-700">0%</span>
+                    </div>
+                    <div class="w-full bg-blue-100 rounded-full h-3 overflow-hidden">
+                        <div id="uploadProgressBar"
+                             class="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                             style="width: 0%">
+                        </div>
+                    </div>
+                    <p id="uploadProgressLabel" class="text-xs text-blue-600 mt-1.5">Connecting to server...</p>
+                </div>
             </div>
 
             <!-- Error Messages -->
@@ -367,11 +388,22 @@
     http.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
     http.defaults.headers.common['Accept'] = 'application/json';
 
+    // document.addEventListener('DOMContentLoaded', () => {
+    //     setupFileInputs();
+    //     setupFormSubmit();
+    //     setupUploadLockTimerUi();
+    //     restoreUploadLockState();
+    //     loadBatches();
+    //     setupHistoryPagination();
+    //     setupHistorySearch();
+    //     setInterval(() => loadBatches(historyState.page), 15000);
+    // });
     document.addEventListener('DOMContentLoaded', () => {
         setupFileInputs();
         setupFormSubmit();
         setupUploadLockTimerUi();
         restoreUploadLockState();
+        checkInterruptedUpload(); // ← ADD THIS LINE
         loadBatches();
         setupHistoryPagination();
         setupHistorySearch();
@@ -665,8 +697,197 @@
         uploadStatusPollInterval = setInterval(pollUploadStatus, 3000);
     }
 
+    // async function submitUpload(e) {
+    //     e.preventDefault();
+    //     const existingLock = getUploadLockState();
+    //     if (existingLock) { showError('Please wait until current import completes or fails.'); return; }
+
+    //     const excelFile        = document.getElementById('excelFile').files[0];
+    //     const pptFile          = document.getElementById('pptFile').files[0];
+    //     const mediaTypeElement = document.querySelector('input[name="media_type"]:checked');
+
+    //     if (!excelFile || !pptFile) { showError('Please select both Excel and PowerPoint files'); return; }
+    //     if (!mediaTypeElement) {
+    //         if (window.Swal) { Swal.fire({ icon:'error', title:'Hoarding Type Required', text:'Please select a Hoarding Type before uploading.', confirmButtonText:'OK', confirmButtonColor:'#d33' }); }
+    //         else showToast('Please select a Hoarding Type before uploading.', 'error');
+    //         return;
+    //     }
+
+    //     if (pptFile && pptFile.size > 40 * 1024 * 1024) {
+    //         showError('PowerPoint file size must be 40MB or less.');
+    //         return;
+    //     }
+
+    //     const mediaType = mediaTypeElement.value;
+
+    //     // WITH THIS:
+    //     if (window.Swal) {
+    //         const result = await Swal.fire({
+    //             html: `
+    //                 <div style="text-align:center; padding: 0 4px;">
+    //                     <div style="position:absolute;top:0;left:0;right:0;background:#f3f4f6;border-radius:12px 12px 0 0;padding:12px 16px;display:flex;justify-content:flex-end;">
+    //                         <button onclick="document.querySelector('.swal2-cancel').click()" style="background:none;border:none;font-size:20px;color:#374151;cursor:pointer;line-height:1;padding:0;">&#x2715;</button>
+    //                     </div>
+    //                     <div style="height:48px;"></div>
+    //                     <h2 style="font-size:1.25rem;font-weight:700;color:#111827;margin-bottom:8px;">Inventory Files verification Required</h2>
+    //                     <p style="font-size:0.875rem;color:#6b7280;margin-bottom:18px;line-height:1.5;">You are about to upload inventory files<br>for the selected hoarding type</p>
+    //                     <p style="font-size:0.875rem;color:#b45309;font-weight:500;margin-bottom:18px;line-height:1.6;">Please ensure that the Excel &amp; Powerpoint file correspond to the same hoarding type selected above</p>
+    //                     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 18px;margin-bottom:14px;text-align:left;">
+    //                         <p style="margin:0 0 8px 0;font-size:0.875rem;color:#374151;"><strong style="color:#111827;">OOH</strong> <span style="color:#16a34a;"> - Out of home (Billboards, Unipoles etc)</span></p>
+    //                         <p style="margin:0;font-size:0.875rem;color:#374151;"><strong style="color:#111827;">DOOH</strong> <span style="color:#16a34a;"> - Digital Out of home (LED Screens, Digital Displays etc)</span></p>
+    //                     </div>
+    //                     <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px 18px;margin-bottom:18px;text-align:center;">
+    //                         <p style="margin:0;font-size:0.875rem;color:#92400e;line-height:1.6;">The system will process and categorize the uploaded inventory based on the hoarding type you selected</p>
+    //                     </div>
+    //                     <p style="font-size:0.875rem;color:#374151;line-height:1.6;margin-bottom:0;"><strong>Please verify that the</strong> Excel file and Powerpoint file belong to the same hoarding type before proceeding</p>
+    //                 </div>
+    //             `,
+    //             showCancelButton: true,
+    //             confirmButtonText: 'Proceed',
+    //             cancelButtonText: 'Cancel',
+    //             confirmButtonColor: '#16a34a',
+    //             cancelButtonColor: 'transparent',
+    //             customClass: {
+    //                 popup: 'swal-inventory-popup',
+    //                 confirmButton: 'swal-inventory-confirm',
+    //                 cancelButton: 'swal-inventory-cancel',
+    //                 actions: 'swal-inventory-actions',
+    //                 htmlContainer: 'swal-inventory-html',
+    //             },
+    //             showCloseButton: false,
+    //             width: 'min(480px, 95vw)',
+    //             padding: '28px 20px 24px',
+    //             didOpen: () => {
+    //                 // Inject scoped styles once
+    //                 if (!document.getElementById('swal-inventory-styles')) {
+    //                     const style = document.createElement('style');
+    //                     style.id = 'swal-inventory-styles';
+    //                     style.textContent = `
+    //                         .swal-inventory-popup { border-radius: 18px !important; position: relative !important; }
+    //                         .swal-inventory-html { padding: 0 !important; margin: 0 !important; }
+    //                         .swal-inventory-actions { border-top: 1px solid #e5e7eb !important; margin-top: 20px !important; padding-top: 16px !important; width: 100% !important; display: flex !important; gap: 12px !important; justify-content: center !important; }
+    //                         .swal-inventory-confirm { border-radius: 10px !important; font-size: 0.95rem !important; font-weight: 600 !important; padding: 12px 0 !important; flex: 1 !important; max-width: 220px !important; box-shadow: none !important; }
+    //                         .swal-inventory-cancel { border-radius: 10px !important; font-size: 0.95rem !important; font-weight: 500 !important; padding: 12px 0 !important; flex: 1 !important; max-width: 160px !important; color: #374151 !important; box-shadow: none !important; border: none !important; background: transparent !important; }
+    //                         .swal-inventory-cancel:hover { background: #f3f4f6 !important; }
+    //                     `;
+    //                     document.head.appendChild(style);
+    //                 }
+    //             }
+    //         });
+    //         if (!result.isConfirmed) return;
+    //     }
+
+    //     const submitBtn  = document.getElementById('submitBtn');
+    //     const submitText = document.getElementById('submitText');
+    //     const submitIcon = document.getElementById('submitIcon');
+    //     submitBtn.disabled     = true;
+    //     submitText.textContent = 'Uploading...';
+    //     submitIcon.classList.add('animate-spin');
+    //     document.getElementById('errorMessages').classList.add('hidden');
+
+    //     try {
+    //         const formData = new FormData();
+    //         formData.append('excel',      excelFile);
+    //         formData.append('ppt',        pptFile);
+    //         formData.append('media_type', mediaType);
+
+    //         const response = await http.post(API_BASE + '/upload', formData, { headers: { 'X-CSRF-TOKEN': csrfToken } });
+    //         showToast('Upload successful!', 'success');
+
+    //         document.getElementById('uploadForm').reset();
+    //         // Reset UI state after form reset
+    //         document.getElementById('excelFileName').classList.add('hidden');
+    //         document.getElementById('pptFileName').classList.add('hidden');
+    //         document.getElementById('uploadHeadingWrap').classList.add('hidden');
+    //         document.getElementById('uploadZonesWrap').classList.add('hidden');
+    //         document.getElementById('submitWrap').classList.add('hidden');
+
+    //         const uploadedBatchId = response?.data?.batch_id || response?.data?.data?.batch_id;
+    //         if (uploadedBatchId) {
+    //             startUploadLock(uploadedBatchId);
+    //             showToast('Please wait. Processing started and upload is locked for up to 5 minutes.', 'info');
+    //         }
+    //         await loadBatches();
+    //     } catch (error) {
+    //         const errors = error.response?.data?.errors || {};
+    //         if (Object.keys(errors).length > 0) displayErrors(errors);
+    //         else showToast(error.response?.data?.message || 'Upload failed', 'error');
+    //     } finally {
+    //         submitBtn.disabled     = false;
+    //         submitText.textContent = 'Upload Files';
+    //         submitIcon.classList.remove('animate-spin');
+    //     }
+    // }
+    // ── Upload guard: warn if user tries to leave during upload ──
+    let _uploadInProgress = false;
+
+    function setUploadInProgress(active) {
+        _uploadInProgress = active;
+        if (active) {
+            window.addEventListener('beforeunload', uploadBeforeUnloadGuard);
+        } else {
+            window.removeEventListener('beforeunload', uploadBeforeUnloadGuard);
+        }
+    }
+    function uploadBeforeUnloadGuard(e) {
+        if (!_uploadInProgress) return;
+        e.preventDefault();
+        e.returnValue = 'Your file upload is in progress. If you leave now, the upload will be cancelled.';
+        return e.returnValue;
+    }
+
+    // ── Save upload intent so we can detect interrupted uploads on return ──
+    function saveUploadIntent(excelName, pptName, mediaType) {
+        localStorage.setItem('pending_upload_intent', JSON.stringify({
+            excelName,
+            pptName,
+            mediaType,
+            startedAt: Date.now(),
+            status: 'uploading'
+        }));
+    }
+
+    // ── Update the progress bar UI ──
+    function updateUploadProgress(percent, label) {
+        const bar  = document.getElementById('uploadProgressBar');
+        const pct  = document.getElementById('uploadProgressPercent');
+        const lbl  = document.getElementById('uploadProgressLabel');
+        const wrap = document.getElementById('uploadProgressWrap');
+        if (!wrap) return;
+        wrap.classList.remove('hidden');
+        if (bar) bar.style.width = percent + '%';
+        if (pct) pct.textContent = percent + '%';
+        if (lbl) lbl.textContent = label || ('Uploading... ' + percent + '%');
+    }
+
+    function hideUploadProgress() {
+        const wrap = document.getElementById('uploadProgressWrap');
+        if (wrap) wrap.classList.add('hidden');
+        const bar = document.getElementById('uploadProgressBar');
+        if (bar) bar.style.width = '0%';
+    }
+
+    // ── Check if the user left during an upload last time ──
+    function checkInterruptedUpload() {
+        try {
+            const raw = localStorage.getItem('pending_upload_intent');
+            if (!raw) return;
+            const intent = JSON.parse(raw);
+            if (!intent) return;
+            const ageMinutes = (Date.now() - (intent.startedAt || 0)) / 60000;
+            if (intent.status === 'uploading' && ageMinutes < 15) {
+                showToast(
+                    '⚠️ You left while uploading "' + intent.excelName + '". The upload was cancelled. Please re-upload your files.',
+                    'error'
+                );
+            }
+            localStorage.removeItem('pending_upload_intent');
+        } catch(e) { /* ignore */ }
+    }
+
     async function submitUpload(e) {
         e.preventDefault();
+
         const existingLock = getUploadLockState();
         if (existingLock) { showError('Please wait until current import completes or fails.'); return; }
 
@@ -681,15 +902,14 @@
             return;
         }
 
-        if (pptFile && pptFile.size > 40 * 1024 * 1024) {
+        if (pptFile && pptFile.size > 60 * 1024 * 1024) {
             showError('PowerPoint file size must be 40MB or less.');
             return;
         }
 
         const mediaType = mediaTypeElement.value;
 
-        // WITH THIS:
-       if (window.Swal) {
+        if (window.Swal) {
             const result = await Swal.fire({
                 html: `
                     <div style="text-align:center; padding: 0 4px;">
@@ -726,7 +946,6 @@
                 width: 'min(480px, 95vw)',
                 padding: '28px 20px 24px',
                 didOpen: () => {
-                    // Inject scoped styles once
                     if (!document.getElementById('swal-inventory-styles')) {
                         const style = document.createElement('style');
                         style.id = 'swal-inventory-styles';
@@ -749,38 +968,89 @@
         const submitText = document.getElementById('submitText');
         const submitIcon = document.getElementById('submitIcon');
         submitBtn.disabled     = true;
-        submitText.textContent = 'Uploading...';
         submitIcon.classList.add('animate-spin');
         document.getElementById('errorMessages').classList.add('hidden');
 
-        try {
-            const formData = new FormData();
-            formData.append('excel',      excelFile);
-            formData.append('ppt',        pptFile);
-            formData.append('media_type', mediaType);
+        // ── Save intent + activate navigation guard ──
+        saveUploadIntent(excelFile.name, pptFile.name, mediaType);
+        setUploadInProgress(true);
+        updateUploadProgress(0, 'Connecting to server...');
 
-            const response = await http.post(API_BASE + '/upload', formData, { headers: { 'X-CSRF-TOKEN': csrfToken } });
+        const formData = new FormData();
+        formData.append('excel',      excelFile);
+        formData.append('ppt',        pptFile);
+        formData.append('media_type', mediaType);
+        formData.append('_token',     csrfToken);
+
+        // ── Use XHR so we get upload progress events ──
+        try {
+            const responseData = await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                window._activeUploadXHR = xhr;
+
+                xhr.open('POST', API_BASE + '/upload', true);
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+
+                xhr.upload.addEventListener('progress', (event) => {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded / event.total) * 100);
+                        updateUploadProgress(percent, percent < 100 ? 'Uploading files... ' + percent + '%' : 'Processing on server...');
+                        submitText.textContent = 'Uploading ' + percent + '%';
+                    }
+                });
+
+                xhr.onload = function() {
+                    window._activeUploadXHR = null;
+                    let data = {};
+                    try { data = JSON.parse(xhr.responseText); } catch(e) { data = { message: xhr.responseText || 'Request failed' }; }
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(data);
+                    } else {
+                        reject({ response: { status: xhr.status, data } });
+                    }
+                };
+
+                xhr.onerror = function() {
+                    window._activeUploadXHR = null;
+                    reject({ response: { status: 0, data: { message: 'Network error. Please check your connection.' } } });
+                };
+
+                xhr.onabort = function() {
+                    window._activeUploadXHR = null;
+                    reject({ response: { status: 0, data: { message: 'Upload was cancelled.' } } });
+                };
+
+                xhr.send(formData);
+            });
+
+            // ── Success ──
+            localStorage.removeItem('pending_upload_intent');
             showToast('Upload successful!', 'success');
 
             document.getElementById('uploadForm').reset();
-            // Reset UI state after form reset
             document.getElementById('excelFileName').classList.add('hidden');
             document.getElementById('pptFileName').classList.add('hidden');
             document.getElementById('uploadHeadingWrap').classList.add('hidden');
             document.getElementById('uploadZonesWrap').classList.add('hidden');
             document.getElementById('submitWrap').classList.add('hidden');
+            hideUploadProgress();
 
-            const uploadedBatchId = response?.data?.batch_id || response?.data?.data?.batch_id;
+            const uploadedBatchId = responseData?.batch_id || responseData?.data?.batch_id;
             if (uploadedBatchId) {
                 startUploadLock(uploadedBatchId);
                 showToast('Please wait. Processing started and upload is locked for up to 5 minutes.', 'info');
             }
             await loadBatches();
+
         } catch (error) {
+            localStorage.removeItem('pending_upload_intent');
+            hideUploadProgress();
             const errors = error.response?.data?.errors || {};
             if (Object.keys(errors).length > 0) displayErrors(errors);
             else showToast(error.response?.data?.message || 'Upload failed', 'error');
         } finally {
+            setUploadInProgress(false);
             submitBtn.disabled     = false;
             submitText.textContent = 'Upload Files';
             submitIcon.classList.remove('animate-spin');
