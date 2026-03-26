@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-@include('components.customer.navbar')
+@include('components.customer.navbar', ['hideSearch' => true])
 
 <div class="bg-gray-100 py-12 px-4">
     <div class="max-w-6xl mx-auto bg-white p-10 rounded-lg shadow">
 
         <!-- <h1 class="text-2xl font-bold mb-6 text-center">
-            {{ $data?->title ?? 'Cancellation & Refund Policy' }}
+            {{-- {{ $data?->title ?? 'Cancellation & Refund Policy' }} --}}
         </h1> -->
 
         @if($data && $data->content)
