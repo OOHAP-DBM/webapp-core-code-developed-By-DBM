@@ -198,7 +198,7 @@
 
         <textarea id="cancel-booking-reason" rows="3"
                   class="w-full rounded-lg border border-gray-300 p-2 mb-4"
-                  placeholder="Reason (Required)" required></textarea>
+                  placeholder="Reason(Required)" required></textarea>
 
         <div class="flex flex-col-reverse sm:flex-row justify-end gap-2">
             <button onclick="closeCancelBookingModal()"
