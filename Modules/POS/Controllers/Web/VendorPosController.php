@@ -226,31 +226,30 @@ class VendorPosController extends Controller
         if ($search !== '') {
             $usersQuery->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%")
-                  ->orWhere('email', 'like', "%$search%")
-                  ->orWhere('phone', 'like', "%$search%")
-                  ->orWhereHas('posProfile', function($q2) use ($search) {
-                      $q2->where('business_name', 'like', "%$search%")
-                          ;
-                  });
+                    ->orWhere('email', 'like', "%$search%")
+                    ->orWhere('phone', 'like', "%$search%")
+                    ->orWhereHas('posProfile', function ($q2) use ($search) {
+                        $q2->where('business_name', 'like', "%$search%");
+                    });
             });
         }
-            if (in_array('active', $status) && in_array('inactive', $status)) {
-                // No filter, show all
-            } else if (in_array('active', $status)) {
-                $usersQuery->whereIn('id', function($query) use ($vendorId) {
-                    return $query->select('customer_id')
-                        ->from('pos_bookings')
-                        ->where('vendor_id', $vendorId)
-                        ->whereNotNull('customer_id');
-                });
-            } else if (in_array('inactive', $status)) {
-                $usersQuery->whereNotIn('id', function($query) use ($vendorId) {
-                    return $query->select('customer_id')
-                        ->from('pos_bookings')
-                        ->where('vendor_id', $vendorId)
-                        ->whereNotNull('customer_id');
-                });
-            }
+        if (in_array('active', $status) && in_array('inactive', $status)) {
+            // No filter, show all
+        } else if (in_array('active', $status)) {
+            $usersQuery->whereIn('id', function ($query) use ($vendorId) {
+                return $query->select('customer_id')
+                    ->from('pos_bookings')
+                    ->where('vendor_id', $vendorId)
+                    ->whereNotNull('customer_id');
+            });
+        } else if (in_array('inactive', $status)) {
+            $usersQuery->whereNotIn('id', function ($query) use ($vendorId) {
+                return $query->select('customer_id')
+                    ->from('pos_bookings')
+                    ->where('vendor_id', $vendorId)
+                    ->whereNotNull('customer_id');
+            });
+        }
         $users = $usersQuery->get();
 
         $customers = $users->map(function ($user) use ($vendorId) {
@@ -688,17 +687,17 @@ class VendorPosController extends Controller
                 $endDate   = $request->get('end_date');
 
                 $query->where('base_monthly_price', '>', 0)
-                ->whereDoesntHave('bookings', function ($q) use ($startDate, $endDate) {
-                    $q->where(function ($inner) use ($startDate, $endDate) {
-                        $inner->whereBetween('start_date', [$startDate, $endDate])
-                            ->orWhereBetween('end_date', [$startDate, $endDate])
-                            ->orWhere(function ($overlap) use ($startDate, $endDate) {
-                                $overlap->where('start_date', '<=', $startDate)
-                                    ->where('end_date', '>=', $endDate);
-                            });
-                    })
-                        ->whereIn('status', ['confirmed', 'payment_hold', 'active']);
-                });
+                    ->whereDoesntHave('bookings', function ($q) use ($startDate, $endDate) {
+                        $q->where(function ($inner) use ($startDate, $endDate) {
+                            $inner->whereBetween('start_date', [$startDate, $endDate])
+                                ->orWhereBetween('end_date', [$startDate, $endDate])
+                                ->orWhere(function ($overlap) use ($startDate, $endDate) {
+                                    $overlap->where('start_date', '<=', $startDate)
+                                        ->where('end_date', '>=', $endDate);
+                                });
+                        })
+                            ->whereIn('status', ['confirmed', 'payment_hold', 'active']);
+                    });
             }
 
             // ── Execute & map ──────────────────────────────────────────────
@@ -900,13 +899,13 @@ class VendorPosController extends Controller
                 ->where(function ($q) use ($posCustomerUserIds) {
                     // active_role = 'customer' ho
                     $q->where('active_role', 'customer')
-                    // ya pos_customers mein ho is vendor ke liye
-                    ->orWhereIn('id', $posCustomerUserIds);
+                        // ya pos_customers mein ho is vendor ke liye
+                        ->orWhereIn('id', $posCustomerUserIds);
                 })
                 ->where(function ($q) use ($search) {
                     $q->where('name',  'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
                 })
                 ->select(['id', 'name', 'email', 'phone', 'gstin', 'address', 'billing_address', 'billing_city', 'billing_state', 'billing_pincode'])
                 ->limit(10)
@@ -917,7 +916,6 @@ class VendorPosController extends Controller
                 'data'    => $customers,
                 'count'   => $customers->count(),
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error searching customers', ['error' => $e->getMessage()]);
             return response()->json([
@@ -1469,14 +1467,14 @@ class VendorPosController extends Controller
 
                 if (!empty($booking->customer_id)) {
                     $customer = \App\Models\User::find($booking->customer_id);
-                    if (
-                        $emailNotificationsEnabled
-                        && $customer
-                        && $customer->notification_email
-                        && filter_var($customer->email ?? '', FILTER_VALIDATE_EMAIL)
-                    ) {
-                        \Mail::to($customer->email)->queue(new \App\Mail\PosBookingCreatedMail($booking, $customer, 'customer'));
-                    }
+                    // if (
+                    //     $emailNotificationsEnabled
+                    //     && $customer
+                    //     && $customer->notification_email
+                    //     && filter_var($customer->email ?? '', FILTER_VALIDATE_EMAIL)
+                    // ) {
+                    //     \Mail::to($customer->email)->queue(new \App\Mail\PosBookingCreatedMail($booking, $customer, 'customer'));
+                    // }
 
                     // Send push notification to customer if enabled
                     if ($customer && $customer->notification_push) {
@@ -1512,28 +1510,28 @@ class VendorPosController extends Controller
                 if ($emailNotificationsEnabled) {
                     $vendor = \App\Models\User::find($booking->vendor_id);
 
-                    if ($vendor && $vendor->notification_email) {
-                        $vendorEmails = array_unique(array_filter($vendor->notification_emails ?? []));
-                        foreach ($vendorEmails as $vendorEmail) {
-                            if (!filter_var($vendorEmail, FILTER_VALIDATE_EMAIL)) {
-                                continue;
-                            }
+                    // if ($vendor && $vendor->notification_email) {
+                    //     $vendorEmails = array_unique(array_filter($vendor->notification_emails ?? []));
+                    //     foreach ($vendorEmails as $vendorEmail) {
+                    //         if (!filter_var($vendorEmail, FILTER_VALIDATE_EMAIL)) {
+                    //             continue;
+                    //         }
 
-                            \Mail::to($vendorEmail)->queue(new \App\Mail\PosBookingCreatedMail($booking, $vendor, 'vendor'));
-                        }
-                    }
+                    //         \Mail::to($vendorEmail)->queue(new \App\Mail\PosBookingCreatedMail($booking, $vendor, 'vendor'));
+                    //     }
+                    // }
 
                     $admins = \App\Models\User::whereHas('roles', function ($query) {
                         $query->whereIn('name', ['admin', 'super_admin']);
                     })->get();
 
-                    foreach ($admins as $admin) {
-                        if (!$admin->notification_email || !filter_var($admin->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                            continue;
-                        }
+                    // foreach ($admins as $admin) {
+                    //     if (!$admin->notification_email || !filter_var($admin->email ?? '', FILTER_VALIDATE_EMAIL)) {
+                    //         continue;
+                    //     }
 
-                        \Mail::to($admin->email)->queue(new \App\Mail\PosBookingCreatedMail($booking, $admin, 'admin'));
-                    }
+                    //     \Mail::to($admin->email)->queue(new \App\Mail\PosBookingCreatedMail($booking, $admin, 'admin'));
+                    // }
                 }
             } catch (\Exception $e) {
                 Log::warning('POS notification/email failed', ['booking_id' => $booking->id, 'error' => $e->getMessage()]);

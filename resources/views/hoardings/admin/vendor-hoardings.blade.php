@@ -400,6 +400,7 @@
                                         @endif
 
                                         @if($hoarding->status !== 'suspended')
+                                            {{-- Reference: Suspend button logic for Recommended --}}
                                             <button
                                                 @click="open = false"
                                                 onclick="suspendSingle({{ $hoarding->id }})"
@@ -442,17 +443,16 @@
                                             </svg>
                                             Delete
                                         </button>
-                                        @if(empty($hoarding->is_recommended) || $hoarding->is_recommended == '0')
-                                            <button
-                                                @click="open = false"
-                                                onclick="recommendedSingle({{ $hoarding->id }})"
-                                                class="w-full text-left px-4 py-2.5 hover:bg-orange-50 text-orange-600 font-medium flex items-center gap-3 transition-colors">
-                                                <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.178c.969 0 1.371 1.24.588 1.81l-3.385 2.46a1 1 0 00-.364 1.118l1.287 3.966c.3.921-.755 1.688-1.54 1.118l-3.385-2.46a1 1 0 00-1.175 0l-3.385 2.46c-.784.57-1.838-.197-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118l-3.385-2.46c-.783-.57-.38-1.81.588-1.81h4.178a1 1 0 00.95-.69l1.286-3.967z" />
-                                                </svg>
-                                                Recommended
-                                            </button>
-                                        @endif
+
+                                        <button
+                                            @click="open = false"
+                                            onclick="toggleRecommend({{ $hoarding->id }}, {{ $hoarding->is_recommended ? 'true' : 'false' }})"
+                                            class="w-full text-left px-4 py-2.5 hover:bg-orange-50 text-orange-600 font-medium flex items-center gap-3 transition-colors">
+                                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.178c.969 0 1.371 1.24.588 1.81l-3.385 2.46a1 1 0 00-.364 1.118l1.287 3.966c.3.921-.755 1.688-1.54 1.118l-3.385-2.46a1 1 0 00-1.175 0l-3.385 2.46c-.784.57-1.838-.197-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118l-3.385-2.46c-.783-.57-.38-1.81.588-1.81h4.178a1 1 0 00.95-.69l1.286-3.967z" />
+                                            </svg>
+                                            {{ $hoarding->is_recommended ? 'Unrecommend' : 'Recommended' }}
+                                        </button>
                                         
 
                                     </div>
@@ -1002,41 +1002,77 @@
             }
         });
     }
-    // Recommend single hoarding
-    function recommendedSingle(id) {
-        Swal.fire({
-            title: 'Mark as Recommended?',
-            text: 'This hoarding will be marked as recommended.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#ea580c',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Yes, recommend',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({ title: 'Recommending...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-                fetch(`/admin/vendor-hoardings/${id}/recommend`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({ icon: 'success', title: 'Recommended!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
-                    } else {
-                        Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
-                    }
-                })
-                .catch(() => {
-                    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to recommend hoarding' });
-                });
-            }
-        });
+    // Toggle recommend/unrecommend with confirmation
+    function toggleRecommend(id, isRecommended) {
+        if (isRecommended) {
+            Swal.fire({
+                title: 'Unrecommend Hoarding?',
+                text: 'This hoarding will be marked as not recommended.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea580c',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, unrecommend',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Unrecommending...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    fetch(`/admin/vendor-hoardings/${id}/unrecommend`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({ icon: 'success', title: 'Unrecommended!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to unrecommend hoarding' });
+                    });
+                }
+            });
+        } else {
+            Swal.fire({
+                title: 'Mark as Recommended?',
+                text: 'This hoarding will be marked as recommended.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ea580c',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, recommend',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Recommending...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    fetch(`/admin/vendor-hoardings/${id}/recommend`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({ icon: 'success', title: 'Recommended!', text: data.message, confirmButtonColor: '#16a34a' }).then(() => location.reload());
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to recommend hoarding' });
+                    });
+                }
+            });
+        }
     }
 </script>
 @endpush
