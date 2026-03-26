@@ -20,7 +20,7 @@
             openFilter: false,
             dateFilter: '{{ request('date_filter', 'all') }}'
         }"
-        class="px-6 py-6 bg-white shadow">
+        class="px-6 py-6 rounded bg-white border border-gray-200">
 
     {{-- FILTER BAR --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-1">
@@ -80,7 +80,7 @@
     </div>
 
     {{-- TABLE --}}
-    <div class="bg-white border border-gray-200 overflow-x-auto shadow-sm">
+    <div class="bg-white border border-gray-200 overflow-x-auto">
         <table class="w-full min-w-[920px] text-xs sm:text-sm">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>

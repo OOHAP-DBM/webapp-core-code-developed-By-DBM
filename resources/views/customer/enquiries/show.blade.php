@@ -16,7 +16,7 @@
 @section('title', 'Enquiry Details')
 
 @section('content')
-<div class="px-3 sm:px-6 py-4 sm:py-6 bg-white">
+<div class="px-3 sm:px-6 py-4 sm:py-6 bg-white rounded border border-gray-200">
 
     {{-- ===== HEADER SECTION ===== --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between py-2 sm:py-4 bg-white mb-4 sm:mb-6">
