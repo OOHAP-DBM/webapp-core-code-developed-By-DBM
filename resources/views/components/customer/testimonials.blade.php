@@ -34,19 +34,22 @@
 
                             {{-- Avatar --}}
                             <div class="absolute -top-10 left-1/2 -translate-x-1/2">
-                                <img
-                                    src="{{ optional($item->user)->avatar
-                                        ? (str_starts_with($item->user->avatar, 'http')
-                                            ? $item->user->avatar
-                                            : asset('storage/' . ltrim($item->user->avatar, '/')))
-                                        : 'https://ui-avatars.com/api/?name=' . urlencode(optional($item->user)->name ?? 'User') . '&background=0D9488&color=fff'
-                                    }}"
-                                    alt="{{ optional($item->user)->name ?? 'User' }}"
-                                    class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
-                                    width="80"
-                                    height="80"
-                                    loading="lazy"
-                                    decoding="async">
+                                <picture>
+                                    <source srcset="{{ optional($item->user)->avatar ? Str::replaceLast('.jpg', '.webp', $item->user->avatar) : '' }}" type="image/webp">
+                                    <img
+                                        src="{{ optional($item->user)->avatar
+                                            ? (str_starts_with($item->user->avatar, 'http')
+                                                ? $item->user->avatar
+                                                : asset('storage/' . ltrim($item->user->avatar, '/')))
+                                            : 'https://ui-avatars.com/api/?name=' . urlencode(optional($item->user)->name ?? 'User') . '&background=0D9488&color=fff'
+                                        }}"
+                                        alt="{{ optional($item->user)->name ?? 'User' }}"
+                                        class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+                                        width="80"
+                                        height="80"
+                                        loading="lazy"
+                                        decoding="async">
+                                </picture>
                             </div>
 
 
