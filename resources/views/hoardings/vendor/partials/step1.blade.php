@@ -78,6 +78,9 @@
             <label class="text-xs font-bold text-gray-500">Size Preview</label>
             <input type="text" id="sizePreview" readonly 
               placeholder="Auto-calculated"
+               value="{{ old('width', $draft->width ?? '') && old('height', $draft->height ?? '') 
+            ? old('width', $draft->width ?? '') . ' x ' . old('height', $draft->height ?? '') . ' ' . old('measurement_unit', $draft->measurement_unit ?? 'sqft')
+            : '' }}"
               class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 cursor-not-allowed text-gray-600">
           </div>
         </div>
@@ -160,9 +163,9 @@
                       @foreach($draft->hoarding->oohMedia as $media)
                           <div class="relative w-28 h-28 rounded-lg overflow-hidden border bg-gray-50">
                               @if(Str::startsWith( $media->mime_type, 'image'))
-                                  <img src="{{ asset('storage/'.$media->file_path) }}" ...>
+                               <img src="{{ asset('storage/'.$media->file_path) }}" class="w-full h-full object-cover" alt="media">
                               @elseif(Str::startsWith($media->mime_type, 'video'))
-                                  <video src="{{ asset('storage/'.$media->file_path) }}" ...></video>
+                                  <video src="{{ asset('storage/'.$media->file_path) }}" class="w-full h-full object-cover" controls></video>
                               @endif
 
                               <button type="button"
@@ -220,6 +223,7 @@ function updateSizePreview() {
 widthInput.addEventListener('input', updateSizePreview);
 heightInput.addEventListener('input', updateSizePreview);
 unitSelect.addEventListener('change', updateSizePreview);
+updateSizePreview();
 
 /* ── Media Upload ── */
 let deletedMediaIds    = [];
