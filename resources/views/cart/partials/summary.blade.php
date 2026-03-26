@@ -14,13 +14,13 @@
         <span>Total</span>
         <span id="summary-total">₹0</span>
     </div>
-  {{-- <div class="flex justify-center">
+  <div class="flex justify-center">
     <button
         id="enquireNowBtn"
         class="mt-3 w-full bg-black hover:bg-gray-800 text-white py-2.5 px-4 rounded-lg font-semibold transition-colors cursor-pointer">
         Book Now
     </button>
-</div> --}}
+</div>
 
     <div class="flex justify-center">
         <button

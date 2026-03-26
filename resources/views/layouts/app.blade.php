@@ -331,7 +331,6 @@
                         }
                     });
                 },
-
                 async toggle(hoardingId, btn) {
                     @auth
                         @if(!auth()->user()->hasRole('customer'))

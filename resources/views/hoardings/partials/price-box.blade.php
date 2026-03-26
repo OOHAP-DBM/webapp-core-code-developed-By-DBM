@@ -99,19 +99,45 @@
                 </button>
                 @auth
                     <div class="text-center">
-
-                         <!-- Book Now Button -->
-                        {{-- <button
-                            type="button"
-                            class="w-full bg-black hover:bg-gray-800 text-white py-2 px-3 rounded-lg font-semibold book-now-btn cursor-pointer mt-2"
-                            data-hoarding-id="{{ $hoarding->id }}"
-                            data-base-price="{{ (!empty($hoarding->monthly_price) && $hoarding->monthly_price > 0)
-                                ? $hoarding->monthly_price
-                                : ($hoarding->base_monthly_price ?? 0)
-                            }}"
-                            data-hoarding-type="{{ $hoarding->hoarding_type}}">
-                            Book Now
-                        </button> --}}
+                        <!-- Book Now Button triggers calendar modal, then submits form with selected dates -->
+                        <form id="book-now-form-{{ $hoarding->id }}" action="{{ route('payment.billing') }}" method="GET">
+                            <input type="hidden" name="hoarding_id" value="{{ $hoarding->id }}">
+                            <input type="hidden" name="package_id" id="selected_package_id_{{ $hoarding->id }}">
+                            <input type="hidden" name="price" id="selected_price_{{ $hoarding->id }}">
+                            <input type="hidden" name="start_date" id="selected_start_date_{{ $hoarding->id }}">
+                            <input type="hidden" name="end_date" id="selected_end_date_{{ $hoarding->id }}">
+                            <button
+                                type="button"
+                                class="w-full bg-black hover:bg-gray-800 text-white py-2 px-3 rounded-lg font-semibold book-now-btn cursor-pointer mt-2"
+                                data-hoarding-id="{{ $hoarding->id }}"
+                                data-base-price="{{ (!empty($hoarding->monthly_price) && $hoarding->monthly_price > 0)
+                                    ? $hoarding->monthly_price
+                                    : ($hoarding->base_monthly_price ?? 0) }}"
+                                data-hoarding-type="{{ $hoarding->hoarding_type }}">
+                                Book Now
+                            </button>
+                        </form>
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var modal = document.getElementById('bk-modal-{{ $hoarding->id }}');
+                            if (modal) {
+                                modal.addEventListener('bookingConfirmed', function(e) {
+                                    var selections = e.detail.selections;
+                                    if (selections && selections.length > 0) {
+                                        // Use first selection for start/end
+                                        var start = selections[0].start;
+                                        var end = selections[0].end;
+                                        document.getElementById('selected_start_date_{{ $hoarding->id }}').value = start;
+                                        document.getElementById('selected_end_date_{{ $hoarding->id }}').value = end;
+                                        // Optionally set package/price if you have package selection logic
+                                        // document.getElementById('selected_package_id_{{ $hoarding->id }}').value = ...;
+                                        // document.getElementById('selected_price_{{ $hoarding->id }}').value = ...;
+                                        document.getElementById('book-now-form-{{ $hoarding->id }}').submit();
+                                    }
+                                });
+                            }
+                        });
+                        </script>
 
                         <!-- Custom Calendar Modal for Booking (matches screenshot layout) -->
                         <div id="calendarModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -125,189 +151,7 @@
                             </div>
                         </div>
 
-                        <script>
-                        let bookedDates = [];
-                        let selectedRanges = [];
-
-                        function formatDate(date) {
-                            return date.toISOString().slice(0,10);
-                        }
-
-                        function renderCalendar(year, month, containerId, blocked, selected) {
-                            const container = document.getElementById(containerId);
-                            container.innerHTML = '';
-                            const firstDay = new Date(year, month, 1);
-                            const lastDay = new Date(year, month+1, 0);
-                            const monthName = firstDay.toLocaleString('default', { month: 'long' });
-                            let html = `<div class="mb-2 text-center font-bold text-lg">${monthName} ${year}</div>`;
-                            html += '<div class="grid grid-cols-7 gap-1 text-center text-gray-500 mb-1">';
-                            ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => html += `<div>${d}</div>`);
-                            html += '</div><div class="grid grid-cols-7 gap-1">';
-                            let day = 1, started = false;
-                            for(let i=0; i<42; i++) {
-                                let date = new Date(year, month, day);
-                                if(i < firstDay.getDay() || day > lastDay.getDate()) {
-                                    html += '<div></div>';
-                                } else {
-                                    const dateStr = formatDate(date);
-                                    let classes = 'py-2 rounded cursor-pointer relative ';
-                                    let label = '';
-                                    if (blocked.includes(dateStr)) {
-                                        classes += 'bg-gray-300 text-gray-500 pointer-events-none';
-                                        label = '<div class="text-xs absolute bottom-1 left-0 right-0 text-center">Blocked</div>';
-                                    } else if (selected.includes(dateStr)) {
-                                        classes += 'bg-green-200';
-                                    } else {
-                                        classes += 'hover:bg-green-100';
-                                    }
-                                    html += `<div class="${classes}" data-date="${dateStr}">${day}${label}</div>`;
-                                    day++;
-                                }
-                            }
-                            html += '</div>';
-                            container.innerHTML = html;
-                        }
-
-                        function updateSelectedRangesDisplay() {
-                            const el = document.getElementById('selectedRanges');
-                            if (selectedRanges.length === 0) {
-                                el.innerHTML = '';
-                                return;
-                            }
-                            let html = '';
-                            selectedRanges.forEach(r => {
-                                html += `<div>${r.start} - ${r.end}</div>`;
-                            });
-                            el.innerHTML = `<div>Selected Month</div>${html}`;
-                        }
-
-                        function openCalendar(hoardingId) {
-                            document.getElementById('calendarModal').classList.remove('hidden');
-                            fetch(`/api/hoardings/${hoardingId}/booked-dates`)
-                                .then(res => res.json())
-                                .then(data => {
-                                    bookedDates = Array.isArray(data.booked_dates) ? data.booked_dates : [];
-                                    selectedRanges = [];
-                                    renderBothMonths();
-                                    updateSelectedRangesDisplay();
-                                });
-                        }
-
-                        function renderBothMonths() {
-                            const now = new Date();
-                            const y = now.getFullYear(), m = now.getMonth();
-                            document.getElementById('customCalendar').innerHTML = `
-                                <div class="flex gap-8">
-                                    <div id="month1" class="flex-1"></div>
-                                    <div id="month2" class="flex-1"></div>
-                                </div>
-                            `;
-                            let selected = [];
-                            selectedRanges.forEach(r => {
-                                let d = new Date(r.start);
-                                const end = new Date(r.end);
-                                while (d <= end) {
-                                    selected.push(formatDate(d));
-                                    d.setDate(d.getDate()+1);
-                                }
-                            });
-                            renderCalendar(y, m, 'month1', bookedDates, selected);
-                            renderCalendar(y, m+1, 'month2', bookedDates, selected);
-
-                            document.querySelectorAll('#month1 [data-date], #month2 [data-date]').forEach(el => {
-                                el.onclick = function() {
-                                    const date = this.getAttribute('data-date');
-                                    if (selectedRanges.length === 0 || selectedRanges[selectedRanges.length-1].end) {
-                                        selectedRanges.push({start: date, end: null});
-                                    } else {
-                                        if (date >= selectedRanges[selectedRanges.length-1].start) {
-                                            selectedRanges[selectedRanges.length-1].end = date;
-                                        } else {
-                                            selectedRanges[selectedRanges.length-1].end = selectedRanges[selectedRanges.length-1].start;
-                                            selectedRanges[selectedRanges.length-1].start = date;
-                                        }
-                                    }
-                                    renderBothMonths();
-                                    updateSelectedRangesDisplay();
-                                }
-                            });
-                        }
-
-                        document.addEventListener('DOMContentLoaded', function() {
-                            document.querySelectorAll('.book-now-btn').forEach(btn => {
-                                btn.addEventListener('click', function() {
-                                    openCalendar(this.dataset.hoardingId);
-                                });
-                            });
-                            document.getElementById('closeCalendar').onclick = function() {
-                                document.getElementById('calendarModal').classList.add('hidden');
-                                document.getElementById('customCalendar').innerHTML = '';
-                                document.getElementById('selectedRanges').innerHTML = '';
-                            };
-                            document.getElementById('confirmCalendar').onclick = function() {
-                                // Do something with selectedRanges
-                                alert('Selected: ' + JSON.stringify(selectedRanges));
-                                document.getElementById('calendarModal').classList.add('hidden');
-                            };
-                        });
-                        </script>
-                        <style>
-                        #calendarModal .bg-gray-300 { background: #e5e7eb !important; }
-                        #calendarModal .bg-green-200 { background: #bbf7d0 !important; }
-                        #calendarModal .hover\:bg-green-100:hover { background: #dcfce7 !important; }
-                        </style>
-
-                        <!-- Calendar Modal (only one per page, shown for selected hoarding) -->
-                        <div id="calendarModal-{{ $hoarding->id }}" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                            <div class="bg-white rounded-lg p-6 w-full max-w-xl relative">
-                                <button type="button" class="absolute top-2 right-2 text-gray-500 hover:text-black close-calendar-btn">&times;</button>
-                                <div id="calendarContainer-{{ $hoarding->id }}"></div>
-                            </div>
-                        </div>
-
-                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-                        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-                        <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            var btn = document.querySelector('.book-now-btn[data-hoarding-id="{{ $hoarding->id }}"]');
-                            var modal = document.getElementById('calendarModal-{{ $hoarding->id }}');
-                            var calendarContainer = document.getElementById('calendarContainer-{{ $hoarding->id }}');
-                            var closeBtn = modal.querySelector('.close-calendar-btn');
-
-                            btn.addEventListener('click', function() {
-                                // Hide any other open modals
-                                document.querySelectorAll('[id^="calendarModal-"]').forEach(function(m) { m.classList.add('hidden'); });
-                                modal.classList.remove('hidden');
-                                // Only load calendar if not already loaded
-                                if (!calendarContainer.hasChildNodes()) {
-                                    fetch(`/api/hoardings/${btn.dataset.hoardingId}/booked-dates`)
-                                        .then(res => res.json())
-                                        .then(data => {
-                                            const booked = Array.isArray(data.booked_dates) ? data.booked_dates : [];
-                                            flatpickr(calendarContainer, {
-                                                inline: true,
-                                                mode: "multiple",
-                                                enable: [function(date) { return true; }],
-                                                onDayCreate: function(dObj, dStr, fp, dayElem) {
-                                                    const dateStr = dayElem.dateObj.toISOString().slice(0,10);
-                                                    if (booked.includes(dateStr)) {
-                                                        dayElem.classList.add('bg-red-400', 'text-white');
-                                                        dayElem.innerHTML += '<div style="font-size:10px;">Blocked</div>';
-                                                    }
-                                                }
-                                            });
-                                        })
-                                        .catch(() => {
-                                            flatpickr(calendarContainer, { inline: true });
-                                        });
-                                }
-                            });
-                            closeBtn.addEventListener('click', function() {
-                                modal.classList.add('hidden');
-                                calendarContainer.innerHTML = '';
-                            });
-                        });
-                        </script>
+                       
                         <button
                             type="button"
                             class="py-2 px-3 text-teal-600 hover:text-teal-700 font-medium text-sm font-semibold rounded enquiry-btn cursor-pointer"
@@ -417,6 +261,279 @@
     </div>
 
 </div>
+{{-- ============================================================
+     CALENDAR MODAL
+     ============================================================ --}}
+<div id="bk-modal-{{ $hoarding->id }}"
+     class="bk-modal hidden fixed inset-0 z-50 flex items-center justify-center"
+     style="background:rgba(0,0,0,.45);">
+ 
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full relative" style="max-width:760px;">
+ 
+        {{-- Close --}}
+        <button class="bk-close absolute top-3 right-4 text-2xl text-gray-400 hover:text-black leading-none">&times;</button>
+ 
+        {{-- Header --}}
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-base font-semibold text-gray-800">Select Booking Dates</h3>
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+                <span class="text-sm text-gray-600 font-medium">Weekly</span>
+                <div class="bk-toggle relative w-11 h-6">
+                    <input type="checkbox" class="bk-weekly-chk sr-only">
+                    <span class="bk-track block w-11 h-6 rounded-full bg-gray-300 transition-colors duration-200"></span>
+                    <span class="bk-thumb absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"></span>
+                </div>
+            </label>
+        </div>
+ 
+        {{-- Two-month grid --}}
+        <div class="flex gap-8">
+            <div class="flex-1" id="bk-m0-{{ $hoarding->id }}"></div>
+            <div class="flex-1" id="bk-m1-{{ $hoarding->id }}"></div>
+        </div>
+ 
+        {{-- Summary + confirm --}}
+        <div class="mt-5 flex items-end justify-between gap-4">
+            <div class="flex-1" id="bk-summary-{{ $hoarding->id }}"></div>
+            <button class="bk-confirm text-white text-sm font-semibold px-7 py-2.5 rounded-lg transition"
+                    id="bk-confirm-{{ $hoarding->id }}"
+                    style="background:#111;opacity:.4;cursor:not-allowed;"
+                    disabled>
+                Confirm
+            </button>
+        </div>
+    </div>
+</div>
+ 
+@once
+<style>
+.bk-weekly-chk:checked ~ .bk-track { background:#22c55e; }
+.bk-weekly-chk:checked ~ .bk-thumb { transform:translateX(20px); }
+ 
+.bk-month-title { font-weight:700; text-align:center; margin-bottom:10px; font-size:1rem; color:#111; }
+.bk-dow-row     { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:2px; }
+.bk-dow-cell    { text-align:center; font-size:.75rem; color:#9ca3af; font-weight:500; padding:4px 0; }
+.bk-days-grid   { display:grid; grid-template-columns:repeat(7,1fr); }
+ 
+.bk-day {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:40px; font-size:.8125rem; cursor:pointer; position:relative;
+    user-select:none; transition:background .1s; border-radius:0; color:#111;
+}
+.bk-day:hover:not(.bk-blocked):not(.bk-past):not(.bk-blank) { background:#dcfce7; border-radius:6px; z-index:1; }
+ 
+.bk-day.bk-past  { color:#d1d5db !important; cursor:default; background:transparent !important; border-radius:0 !important; }
+.bk-day.bk-blank { cursor:default; }
+ 
+.bk-day.bk-blocked {
+    background:#e5e7eb !important; color:#9ca3af !important;
+    cursor:not-allowed; border-radius:6px !important; font-size:.78rem;
+}
+.bk-blocked-lbl { font-size:9px; line-height:1; margin-top:1px; color:#9ca3af; }
+ 
+/* Monthly band */
+.bk-day.bk-sel         { background:#bbf7d0 !important; border-radius:0 !important; color:#111; }
+.bk-day.bk-sel-rs      { border-radius:8px 0 0 8px !important; }   /* row-start cap  */
+.bk-day.bk-sel-re      { border-radius:0 8px 8px 0 !important; }   /* row-end cap    */
+.bk-day.bk-sel-rs.bk-sel-re { border-radius:8px !important; }       /* single / both  */
+ 
+/* anchor (waiting for end click) */
+.bk-day.bk-anchor { background:#86efac !important; border-radius:8px !important; color:#111; }
+ 
+/* Weekly band */
+.bk-day.bk-wk     { background:#bbf7d0 !important; border-radius:0 !important; color:#111; }
+.bk-day.bk-wk-s   { border-radius:8px 0 0 8px !important; }
+.bk-day.bk-wk-e   { border-radius:0 8px 8px 0 !important; }
+.bk-day.bk-wk-s.bk-wk-e { border-radius:8px !important; }
+ 
+/* Summary */
+.bk-sum-label { font-size:.8125rem; font-weight:700; color:#111; margin-bottom:6px; }
+.bk-chips     { display:flex; flex-wrap:wrap; gap:6px; }
+.bk-chip {
+    display:inline-flex; align-items:center; gap:5px;
+    border:1px solid #86efac; border-radius:999px;
+    padding:3px 10px; font-size:.8rem; color:#374151; background:#fff;
+}
+.bk-chip-ck  { color:#22c55e; }
+.bk-chip-rm  { cursor:pointer; color:#aaa; transition:color .1s; font-size:1rem; line-height:1; }
+.bk-chip-rm:hover { color:#374151; }
+</style>
+@endonce
+ 
+<script>
+(function(){
+    const HID       = {{ $hoarding->id }};
+    const modal     = document.getElementById('bk-modal-'+HID);
+    const m0el      = document.getElementById('bk-m0-'+HID);
+    const m1el      = document.getElementById('bk-m1-'+HID);
+    const summaryEl = document.getElementById('bk-summary-'+HID);
+    const confirmEl = document.getElementById('bk-confirm-'+HID);
+ 
+    let bookedDates = [];
+    let selections  = [];
+    let isWeekly    = false;
+    let anchor      = null;
+    let viewYear, viewMonth;
+ 
+    /* utils */
+    const pad  = n => String(n).padStart(2,'0');
+    const fmt  = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    const pd   = s => new Date(s+'T00:00:00');
+    const add  = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+    const today = fmt(new Date());
+ 
+    function weekOf(ds){ const d=pd(ds),dow=d.getDay(); return {start:fmt(add(d,-dow)),end:fmt(add(d,6-dow))}; }
+    function inAny(ds){ return selections.some(r=>r.start<=ds&&ds<=r.end); }
+    function rangeOf(ds){ return selections.find(r=>r.start<=ds&&ds<=r.end); }
+ 
+    /* render one month */
+    function renderMonth(el, yr, mo){
+        const first=new Date(yr,mo,1), last=new Date(yr,mo+1,0);
+        const name=first.toLocaleString('default',{month:'long'});
+        let h=`<div class="bk-month-title">${name} ${yr}</div>`;
+        h+='<div class="bk-dow-row">';
+        ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>h+=`<div class="bk-dow-cell">${d}</div>`);
+        h+='</div><div class="bk-days-grid">';
+ 
+        const startDow=first.getDay();
+        for(let i=0;i<startDow;i++) h+='<div class="bk-day bk-blank"></div>';
+ 
+        for(let day=1;day<=last.getDate();day++){
+            const ds  = fmt(new Date(yr,mo,day));
+            const dow = (startDow+day-1)%7;
+            const isBlk = bookedDates.includes(ds);
+            const isPst = ds<today;
+            const inR   = inAny(ds);
+            const isAnc = anchor===ds;
+ 
+            let cls='bk-day';
+ 
+            if(isPst){
+                cls+=' bk-past';
+            } else if(isBlk){
+                cls+=' bk-blocked';
+            } else if(isWeekly && inR){
+                const r=rangeOf(ds);
+                const isS=ds===r.start, isE=ds===r.end;
+                cls+=' bk-wk';
+                if(isS) cls+=' bk-wk-s';
+                if(isE) cls+=' bk-wk-e';
+            } else if(!isWeekly && inR){
+                const r=rangeOf(ds);
+                const atRS = ds===r.start || dow===0 || day===1;
+                const atRE = ds===r.end   || dow===6 || day===last.getDate();
+                cls+=' bk-sel';
+                if(atRS) cls+=' bk-sel-rs';
+                if(atRE) cls+=' bk-sel-re';
+            } else if(isAnc){
+                cls+=' bk-anchor';
+            }
+ 
+            const lbl = isBlk ? '<span class="bk-blocked-lbl">Blocked</span>' : '';
+            h+=`<div class="${cls}" data-date="${ds}">${day}${lbl}</div>`;
+        }
+        h+='</div>';
+        el.innerHTML=h;
+ 
+        el.querySelectorAll('.bk-day:not(.bk-blocked):not(.bk-past):not(.bk-blank)').forEach(c=>{
+            c.addEventListener('click',()=>onDay(c.dataset.date));
+        });
+    }
+ 
+    function onDay(ds){
+        if(isWeekly){
+            const wb=weekOf(ds);
+            const idx=selections.findIndex(r=>r.start===wb.start&&r.end===wb.end);
+            if(idx>=0) selections.splice(idx,1); else selections.push(wb);
+        } else {
+            if(anchor===null){ anchor=ds; }
+            else {
+                const s=anchor<ds?anchor:ds, e=anchor<ds?ds:anchor;
+                selections.push({start:s,end:e});
+                anchor=null;
+            }
+        }
+        refresh();
+    }
+ 
+    function removeChip(i){ selections.splice(i,1); refresh(); }
+ 
+    function fmtD(ds){
+        return pd(ds).toLocaleDateString('en-US',{month:'short',day:'2-digit',year:'numeric'});
+    }
+ 
+    function refresh(){
+        const y2=viewMonth===11?viewYear+1:viewYear, m2=viewMonth===11?0:viewMonth+1;
+        renderMonth(m0el,viewYear,viewMonth);
+        renderMonth(m1el,y2,m2);
+ 
+        const label=isWeekly?'Selected Week':'Selected Month';
+ 
+        if(anchor && !isWeekly){
+            summaryEl.innerHTML=`<div class="bk-sum-label">${label}</div><div style="font-size:.8rem;color:#9ca3af;">Now click an end date…</div>`;
+            setConfirm(false); return;
+        }
+        if(!selections.length){
+            summaryEl.innerHTML=''; setConfirm(false); return;
+        }
+ 
+        let inner=`<div class="bk-sum-label">${label}</div><div class="bk-chips">`;
+        selections.forEach((r,i)=>{
+            const txt=r.start===r.end?fmtD(r.start):`${fmtD(r.start)} - ${fmtD(r.end)}`;
+            inner+=`<span class="bk-chip">${isWeekly?'<span class="bk-chip-ck">✓</span>':''} ${txt} <span class="bk-chip-rm" data-i="${i}">×</span></span>`;
+        });
+        inner+='</div>';
+        summaryEl.innerHTML=inner;
+        summaryEl.querySelectorAll('.bk-chip-rm').forEach(b=>b.addEventListener('click',()=>removeChip(+b.dataset.i)));
+        setConfirm(true);
+    }
+ 
+    function setConfirm(on){
+        confirmEl.disabled=!on;
+        confirmEl.style.opacity=on?'1':'.4';
+        confirmEl.style.cursor=on?'pointer':'not-allowed';
+        confirmEl.style.background=on?'#111':'#111';
+    }
+ 
+    function openModal(){
+        const now=new Date(); viewYear=now.getFullYear(); viewMonth=now.getMonth();
+        selections=[]; anchor=null; isWeekly=false;
+        modal.querySelector('.bk-weekly-chk').checked=false;
+        modal.classList.remove('hidden');
+        fetch(`/api/hoardings/${HID}/booked-dates`)
+            .then(r=>r.json()).then(d=>{ bookedDates=Array.isArray(d.booked_dates)?d.booked_dates:[]; })
+            .catch(()=>{ bookedDates=[]; }).finally(()=>refresh());
+    }
+ 
+    function closeModal(){
+        modal.classList.add('hidden');
+        selections=[]; anchor=null;
+        summaryEl.innerHTML=''; setConfirm(false);
+    }
+ 
+    modal.querySelector('.bk-weekly-chk').addEventListener('change',function(){
+        isWeekly=this.checked; selections=[]; anchor=null; refresh();
+    });
+ 
+    confirmEl.addEventListener('click',()=>{
+        modal.dispatchEvent(new CustomEvent('bookingConfirmed',{
+            detail:{hoardingId:HID,selections,mode:isWeekly?'weekly':'monthly'},bubbles:true
+        }));
+        console.log('Booking confirmed',{hoardingId:HID,selections,mode:isWeekly?'weekly':'monthly'});
+        closeModal();
+    });
+ 
+    modal.querySelector('.bk-close').addEventListener('click',closeModal);
+    modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
+ 
+    function attach(){
+        document.querySelectorAll(`.book-now-btn[data-hoarding-id="${HID}"]`).forEach(b=>{
+            if(!b.__bk){ b.__bk=true; b.addEventListener('click',openModal); }
+        });
+    }
+    document.readyState==='loading'?document.addEventListener('DOMContentLoaded',attach):attach();
+})();
+</script>
 <style>
 .cart-btn--white {
     color: #fff !important;

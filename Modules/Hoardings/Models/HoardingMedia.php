@@ -52,7 +52,7 @@ class HoardingMedia extends Model
             return $ext === 'webm' ? 'video/webm' : 'video/mp4';
         } elseif ($raw === 'image') {
             $ext = pathinfo($this->file_path, PATHINFO_EXTENSION);
-            return match($ext) {
+            return match ($ext) {
                 'png'  => 'image/png',
                 'webp' => 'image/webp',
                 default => 'image/jpeg',

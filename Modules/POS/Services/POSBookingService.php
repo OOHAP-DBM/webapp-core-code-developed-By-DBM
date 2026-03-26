@@ -46,6 +46,36 @@ class POSBookingService
      * ========================================================= */
     public function createBooking(array $data): POSBooking
     {
+        // ── Validate required fields ─────────────────────────────
+
+        // Auto-fill customer_name and customer_phone from logged-in user if missing
+        if (empty($data['customer_name']) || empty($data['customer_phone'])) {
+            $user = \Auth::user();
+            if (empty($data['customer_name']) && $user) {
+                $data['customer_name'] = $user->name ?? null;
+            }
+            if (empty($data['customer_phone']) && $user) {
+                $data['customer_phone'] = $user->phone ?? null;
+            }
+        }
+        // Validate required fields after fallback
+        $requiredFields = [
+            'customer_name',
+            'customer_phone',
+            'hoarding_ids',
+            'start_date',
+            'end_date',
+        ];
+        $missingFields = [];
+        foreach ($requiredFields as $field) {
+            if (empty($data[$field])) {
+                $missingFields[] = $field;
+            }
+        }
+        if (!empty($missingFields)) {
+            throw new \InvalidArgumentException('Missing required booking fields: ' . implode(', ', $missingFields));
+        }
+
         Log::info('POSBookingService.createBooking start', [
             'vendor_id'    => ($data['vendor_id'] ?? Auth::id()),
             'data_preview' => array_intersect_key($data, array_flip([
@@ -77,7 +107,7 @@ class POSBookingService
                     }
                 }
             }
-            
+
 
             // ── Lock & fetch hoardings ───────────────────────────────────
             $hoardings = \App\Models\Hoarding::whereIn('id', $hoardingIds)

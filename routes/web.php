@@ -1,5 +1,5 @@
-<?php
 
+<?php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\PageController;
@@ -14,6 +14,33 @@ use App\Http\Controllers\Web\Customer\RatingController;
 use Modules\Auth\Http\Controllers\MobileForgotPasswordController;
 use App\Http\Controllers\GeocodeController;
 use App\Http\Controllers\Admin\RazorpaySettingsController;
+use App\Http\Controllers\Web\RazorpayPaymentController;
+use App\Http\Controllers\Web\PaymentController;
+
+
+
+
+// Payment billing and payment page for hoarding booking
+Route::middleware(['auth', 'role:customer'])->group(function () {
+    Route::get('/payment/billing', [\App\Http\Controllers\Web\PaymentController::class, 'showBilling'])->name('payment.billing');
+    Route::get('/payment', [\App\Http\Controllers\Web\PaymentController::class, 'showPayment'])->name('payment.show');
+});
+Route::post('/razorpay/payment/verify', [RazorpayPaymentController::class, 'verify'])
+    ->name('razorpay.payment.verify');
+// Razorpay order creation for payment page
+Route::middleware(['auth', 'role:customer'])->group(function () {
+    Route::get('/payment/billing', [\App\Http\Controllers\Web\PaymentController::class, 'showBilling'])->name('payment.billing');
+    Route::get('/payment', [\App\Http\Controllers\Web\PaymentController::class, 'showPayment'])->name('payment.show');
+    Route::post('/payment/create-order', [\App\Http\Controllers\Web\PaymentController::class, 'createOrder'])->name('payment.createOrder');
+});
+
+// Save billing/booking route
+Route::post('/payment/billing/save', [PaymentController::class, 'saveBilling'])->name('bookings.billing.save');
+Route::post('/payment/coupon/apply', [PaymentController::class, 'applyCoupon'])->name('bookings.coupon.apply');
+Route::post('/payment/verify', [PaymentController::class, 'verifyPayment'])->name('bookings.payment.verify');
+Route::post('/bookings/coupon/remove', [BookingController::class, 'removeCoupon'])->name('bookings.coupon.remove');
+
+
 
 
 /**

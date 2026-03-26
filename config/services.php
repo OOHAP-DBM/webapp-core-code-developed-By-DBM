@@ -54,5 +54,10 @@ return [
         'disable_ssl_verify' => env('TWILIO_DISABLE_SSL_VERIFY', false), // Only for local dev
     ],
 
+    'razorpay' => [
+        'key_id' => env('RAZORPAY_KEY_ID'),
+        'key_secret' => env('RAZORPAY_KEY_SECRET'),
+    ],
+
 
 ];
