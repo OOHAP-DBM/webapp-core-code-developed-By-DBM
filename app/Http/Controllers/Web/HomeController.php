@@ -51,7 +51,7 @@ class HomeController extends Controller
         $stats = cache()->remember('homepage_stats', 600, function () {
             $result = [
                 'total_hoardings' => Hoarding::where('status', 'active')->count(),
-                'total_vendors' => User::whereHas('roles', function($q) {
+                'total_vendors' => User::whereHas('roles', function ($q) {
                     $q->where('name', 'vendor');
                 })->count(),
                 'total_bookings' => 0,
@@ -123,11 +123,11 @@ class HomeController extends Controller
         $userLocation = session('user_location');
         // ---------------- PAGINATION ADD (WITHOUT REMOVING ANYTHING) ----------------
         // Remove manual paginator wrapping; use Eloquent paginator directly
-        
-        
+
+
         $cartIds = app(CartService::class)
-        ->getCartHoardingIds();
-       $testimonialRole = 'customer';
+            ->getCartHoardingIds();
+        $testimonialRole = 'customer';
 
         if (auth()->check() && auth()->user()->active_role === 'vendor') {
             $testimonialRole = 'vendor';
@@ -225,11 +225,11 @@ class HomeController extends Controller
 
         // Filter static testimonials based on role and conditions
         $testimonials = collect($staticTestimonials)->filter(function ($item) use ($testimonialRole) {
-            return $item->role === $testimonialRole && 
-                   $item->status === 'approved' && 
-                   $item->show_on_homepage === true;
+            return $item->role === $testimonialRole &&
+                $item->status === 'approved' &&
+                $item->show_on_homepage === true;
         })->values();
-       
+
         return view('home.index', compact(
             'stats',
             'bestHoardings',
@@ -364,7 +364,7 @@ class HomeController extends Controller
             'Pune | Koregaon Park',
             'Jaipur | MI Road'
         ];
-        
+
         $images = [
             'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
             'https://images.unsplash.com/photo-1562577309-4932fdd64cd1?w=400&h=300&fit=crop',
@@ -387,8 +387,12 @@ class HomeController extends Controller
                 'weekly_price' => 3500 + ($i * 300),
                 'enable_weekly_booking' => true,
                 'image' => $images[$i],
-                'hasMedia' => function() { return true; },
-                'getFirstMediaUrl' => function() use ($images, $i) { return $images[$i]; }
+                'hasMedia' => function () {
+                    return true;
+                },
+                'getFirstMediaUrl' => function () use ($images, $i) {
+                    return $images[$i];
+                }
             ];
         }
 

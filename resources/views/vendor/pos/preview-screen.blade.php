@@ -1012,30 +1012,91 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+  function formatINRLocal(val) {
+        return '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     function disableCashBtn(btn, total) {
-        btn.disabled = true;
+        btn.disabled            = true;
         btn.classList.remove('active-mode');
         btn.style.opacity       = '0.45';
         btn.style.cursor        = 'not-allowed';
         btn.style.pointerEvents = 'auto';
-        btn.setAttribute('title',
-            'Cash limit: ₹' + _cashLimit.toLocaleString('en-IN', { minimumFractionDigits: 2 }) +
-            '. Your total ₹' + total.toLocaleString('en-IN', { minimumFractionDigits: 2 }) +
-            ' exceeds it. Please choose another payment method.'
-        );
+        btn.removeAttribute('title');
 
+        // ── Wrap button in a relative container for tooltip positioning ──
+        var wrapper = document.getElementById('cash-btn-wrapper');
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.id        = 'cash-btn-wrapper';
+            wrapper.className = 'relative';
+            btn.parentNode.insertBefore(wrapper, btn);
+            wrapper.appendChild(btn);
+        }
+
+        // ── Tooltip bubble ──
+        var tooltip = document.getElementById('cash-tooltip-bubble');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id        = 'cash-tooltip-bubble';
+            tooltip.className = [
+                'absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2',
+                'w-56 bg-gray-900 text-white text-[11px] font-medium',
+                'rounded-lg px-3 py-2 shadow-xl leading-relaxed',
+                'pointer-events-none opacity-0 transition-opacity duration-200',
+            ].join(' ');
+            // Arrow
+            tooltip.innerHTML = `
+                <div id="cash-tooltip-text"></div>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
+                     style="border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #111827;">
+                </div>`;
+            wrapper.appendChild(tooltip);
+        }
+
+        // Update tooltip text
+        document.getElementById('cash-tooltip-text').innerHTML =
+            '<span class="text-red-400 font-bold">Cash limit: ' + formatINRLocal(_cashLimit) + '</span>' +
+            '<br>Your total <span class="text-yellow-300 font-bold">' + formatINRLocal(total) + '</span> exceeds this limit.' +
+            '<br><span class="text-gray-300">Please choose another payment method.</span>';
+
+        // Show tooltip on hover
+        btn.onmouseenter = function () {
+            tooltip.style.opacity = '1';
+        };
+        btn.onmouseleave = function () {
+            tooltip.style.opacity = '0';
+        };
+
+        // ── Inline warning below the payment grid ──
         var tip = document.getElementById('cash-limit-tooltip');
         if (!tip) {
-            tip = document.createElement('p');
+            tip = document.createElement('div');
             tip.id        = 'cash-limit-tooltip';
-            tip.className = 'text-[10px] text-red-600 font-semibold mt-1 col-span-full';
-            btn.parentNode.appendChild(tip);
+            tip.className = 'col-span-full mt-1';
+            // Insert after the payment mode grid
+            var grid = btn.closest('.grid');
+            if (grid && grid.parentNode) {
+                grid.parentNode.insertBefore(tip, grid.nextSibling);
+            }
         }
-        tip.textContent = '⚠ Cash limit ₹' +
-            _cashLimit.toLocaleString('en-IN', { minimumFractionDigits: 2 }) +
-            ' exceeded — select another method.';
+        tip.innerHTML = `
+            <div class="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+                <div>
+                    <p class="text-[11px] font-bold text-red-700">Cash payment unavailable</p>
+                    <p class="text-[10px] text-red-600 mt-0.5">
+                        Admin cash limit is <strong>${formatINRLocal(_cashLimit)}</strong>.
+                        Your booking total <strong>${formatINRLocal(total)}</strong> exceeds this limit.
+                        Please select Bank Transfer, UPI, or Credit Note.
+                    </p>
+                </div>
+            </div>`;
         tip.style.display = 'block';
 
+        // ── Auto-switch away from cash if currently selected ──
         if (typeof selectedPaymentMode !== 'undefined' && selectedPaymentMode === 'cash') {
             if (typeof selectPaymentMode === 'function') {
                 selectPaymentMode('bank_transfer');
@@ -1043,6 +1104,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function enableCashBtn(btn) {
+        btn.disabled            = false;
+        btn.style.opacity       = '';
+        btn.style.cursor        = '';
+        btn.style.pointerEvents = '';
+        btn.removeAttribute('title');
+
+        // Remove hover handlers
+        btn.onmouseenter = null;
+        btn.onmouseleave = null;
+
+        // Hide tooltip bubble
+        var tooltip = document.getElementById('cash-tooltip-bubble');
+        if (tooltip) tooltip.style.opacity = '0';
+
+        // Hide inline warning
+        var tip = document.getElementById('cash-limit-tooltip');
+        if (tip) tip.style.display = 'none';
+    }
     function enableCashBtn(btn) {
         btn.disabled        = false;
         btn.style.opacity       = '';

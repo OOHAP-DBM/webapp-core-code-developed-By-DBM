@@ -682,6 +682,8 @@ Route::prefix('/vendor/pos/api/')
         Route::post('/bookings/{id}/cancel-credit-note', [POSBookingController::class, 'cancelCreditNote']);
         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
+        Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
     });
 
 Route::prefix('/admin/pos/api/')
@@ -978,6 +980,8 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
     // Route::post('/vendor-hoardings/bulk-update-slugs', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkUpdateSlugs'])->name('vendor-hoardings.bulk-update-slugs');
     // Recommend hoarding
     Route::post('/vendor-hoardings/{id}/recommend', [\Modules\Hoardings\Http\Controllers\Admin\RecommendHoardingController::class, 'recommend'])->name('vendor-hoardings.recommend');
+    // Unrecommend hoarding
+    Route::post('/vendor-hoardings/{id}/unrecommend', [\Modules\Hoardings\Http\Controllers\Admin\RecommendHoardingController::class, 'unrecommend'])->name('vendor-hoardings.unrecommend');
     // Bulk recommend hoardings
     Route::post('/vendor-hoardings/bulk-recommend', [\Modules\Hoardings\Http\Controllers\Admin\RecommendHoardingController::class, 'bulkRecommend'])->name('vendor-hoardings.bulk-recommend');
 
