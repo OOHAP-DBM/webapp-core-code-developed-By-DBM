@@ -33,7 +33,7 @@
                 </div>
 
                 <!-- Resolution (DOOH only) -->
-                <div id="dooh-section">
+                {{-- <div id="dooh-section">
                     <p class="font-semibold mb-2">Resolution</p>
                     <div class="flex flex-wrap gap-4 sm:gap-5">
                         <label class="flex items-center gap-2">
@@ -46,10 +46,10 @@
                             <input type="checkbox" name="filter_resolution" value="ultra_hd"> Ultra HD
                         </label>
                     </div>
-                </div>
+                </div> --}}
 
                 <!-- Screen Size -->
-                <div>
+                <div id="dooh-section">
                     <p class="font-semibold mb-2">Screen Size</p>
                     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                         <input id="screen-size-min" name="filter_screen_min" type="number" min="0" max="1000" value="0"
