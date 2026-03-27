@@ -1,3 +1,4 @@
+
 <?php
 
 
@@ -682,7 +683,7 @@ Route::prefix('/vendor/pos/api/')
         Route::post('/bookings/{id}/cancel-credit-note', [POSBookingController::class, 'cancelCreditNote']);
         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
-         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
+        Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
           // ── Payment Details — backward-compatible generic endpoints ───────────
         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
