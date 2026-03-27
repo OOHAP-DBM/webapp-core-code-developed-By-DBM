@@ -94,10 +94,10 @@
 
             <!-- Block Dates Modal -->
             <div id="blockDatesModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/20 hidden">
-              <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-xs">
-                <h2 class="text-lg font-bold mb-4 text-gray-800">Select Blocked Dates</h2>
-                <input type="text" id="blockDatesCalendar" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 mb-4 outline-none focus:border-[#009A5C]" placeholder="Pick dates to block...">
-                <div class="flex justify-end gap-2">
+              <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
+                <h2 class="text-lg font-bold mb-2 text-gray-800">Select Blocked Dates</h2>
+                <input type="text" id="blockDatesCalendar" hidden class="w-full border border-gray-200 rounded-xl px-4 py-2.5 mb-4 outline-none focus:border-[#009A5C]" placeholder="Pick dates to block...">
+                <div class="flex justify-end gap-2 mt-2">
                   <button type="button" id="blockDatesCancelBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold">Cancel</button>
                   <button type="button" id="blockDatesSaveBtn" class="px-4 py-2 rounded-lg bg-[#009A5C] text-white font-semibold">Save</button>
                 </div>
@@ -576,6 +576,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (typeof flatpickr !== 'undefined') {
         flatpickrInstance = flatpickr(blockCalendar, {
             mode: 'multiple',
+            inline: true,
             dateFormat: 'Y-m-d',
             minDate: new Date(),
             defaultDate: blockSelectedDates,
@@ -791,3 +792,11 @@ function removeExistingBrandLogo(id, btnEl) {
     }
 }
 </script>
+<style>
+.flatpickr-day.selected {
+    background: #ef4444 !important;
+    border-color: #ef4444 !important;
+    color: #fff !important;
+    border-radius: 9999px;
+}
+</style>
