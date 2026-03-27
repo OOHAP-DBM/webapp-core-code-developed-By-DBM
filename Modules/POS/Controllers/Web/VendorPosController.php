@@ -340,6 +340,26 @@ class VendorPosController extends Controller
             $autoApproval = $this->posBookingService->isAutoApprovalEnabled();
             $autoInvoice = $this->posBookingService->isAutoInvoiceEnabled();
 
+            // return response()->json([
+            //     'success' => true,
+            //     'data' => [
+            //         'gst_rate' => $gstRate,
+            //         'allow_cash_payment' => $allowCash,
+            //         'allow_credit_note' => $allowCreditNote,
+            //         'credit_note_days' => $creditNoteDays,
+            //         'auto_approval' => $autoApproval,
+            //         'auto_invoice' => $autoInvoice,
+            //         'payment_modes' => [
+            //             'cash' => 'Cash',
+            //             'credit_note' => 'Credit Note',
+            //             'bank_transfer' => 'Bank Transfer',
+            //             'cheque' => 'Cheque',
+            //             'online' => 'Online Payment',
+            //         ],
+            //     ],
+            // ]);
+            $cashLimit = DB::table('settings')->where('key', 'pos_cash_limit')->value('value');
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -349,6 +369,7 @@ class VendorPosController extends Controller
                     'credit_note_days' => $creditNoteDays,
                     'auto_approval' => $autoApproval,
                     'auto_invoice' => $autoInvoice,
+                    'pos_cash_limit' => $cashLimit, // <-- Add this line
                     'payment_modes' => [
                         'cash' => 'Cash',
                         'credit_note' => 'Credit Note',
