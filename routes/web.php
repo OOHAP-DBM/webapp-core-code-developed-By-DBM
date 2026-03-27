@@ -685,6 +685,16 @@ Route::prefix('/vendor/pos/api/')
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+          // ── Payment Details — backward-compatible generic endpoints ───────────
+        Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
+        Route::post('/payment-details',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+
+        // ── Payment Details — multi-bank CRUD ─────────────────────────────────
+        Route::get('/payment-details/banks',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'listBanks']);
+        Route::post('/payment-details/banks',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'storeBank']);
+        Route::put('/payment-details/banks/{id}',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'updateBank']);
+        Route::delete('/payment-details/banks/{id}',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'deleteBank']);
+        Route::post('/payment-details/banks/{id}/set-default',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'setDefaultBank']);
     });
 
 Route::prefix('/admin/pos/api/')
