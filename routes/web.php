@@ -682,6 +682,18 @@ Route::prefix('/vendor/pos/api/')
         Route::post('/bookings/{id}/cancel-credit-note', [POSBookingController::class, 'cancelCreditNote']);
         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
+        Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+          // ── Payment Details — backward-compatible generic endpoints ───────────
+        Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
+        Route::post('/payment-details',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+
+        // ── Payment Details — multi-bank CRUD ─────────────────────────────────
+        Route::get('/payment-details/banks',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'listBanks']);
+        Route::post('/payment-details/banks',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'storeBank']);
+        Route::put('/payment-details/banks/{id}',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'updateBank']);
+        Route::delete('/payment-details/banks/{id}',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'deleteBank']);
+        Route::post('/payment-details/banks/{id}/set-default',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'setDefaultBank']);
     });
 
 Route::prefix('/admin/pos/api/')
@@ -976,6 +988,12 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
     Route::post('/vendor-hoardings/bulk-approve', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkApprove'])->name('vendor-hoardings.bulk-approve');
     Route::post('/vendor-hoardings/{id}/suspend', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'suspend'])->name('vendor-hoardings.suspend');
     // Route::post('/vendor-hoardings/bulk-update-slugs', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkUpdateSlugs'])->name('vendor-hoardings.bulk-update-slugs');
+    // Recommend hoarding
+    Route::post('/vendor-hoardings/{id}/recommend', [\Modules\Hoardings\Http\Controllers\Admin\RecommendHoardingController::class, 'recommend'])->name('vendor-hoardings.recommend');
+    // Unrecommend hoarding
+    Route::post('/vendor-hoardings/{id}/unrecommend', [\Modules\Hoardings\Http\Controllers\Admin\RecommendHoardingController::class, 'unrecommend'])->name('vendor-hoardings.unrecommend');
+    // Bulk recommend hoardings
+    Route::post('/vendor-hoardings/bulk-recommend', [\Modules\Hoardings\Http\Controllers\Admin\RecommendHoardingController::class, 'bulkRecommend'])->name('vendor-hoardings.bulk-recommend');
 
     // Admin: View draft hoardings
     Route::get('hoardings/drafts', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'drafts'])->name('hoardings.drafts');

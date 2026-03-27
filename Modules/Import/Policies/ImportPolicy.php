@@ -103,8 +103,8 @@ class ImportPolicy
             return false;
         }
 
-        // Approval is vendor-owned only
-        return !$this->isAdmin($user) && $this->isOwner($user, $batch);
+        // Allow admin or vendor-owner to approve
+        return $this->isAdmin($user) || $this->isOwner($user, $batch);
     }
 }
 

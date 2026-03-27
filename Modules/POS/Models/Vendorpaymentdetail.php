@@ -1,4 +1,5 @@
 <?php
+// Modules/POS/Models/VendorPaymentDetail.php
 
 namespace Modules\POS\Models;
 
@@ -13,6 +14,8 @@ class VendorPaymentDetail extends Model
     protected $fillable = [
         'vendor_id',
         'type',           // 'bank' | 'upi'
+        'nickname',       // NEW: e.g. "HDFC Business"
+        'is_default',     // NEW: default bank for vendor
         // Bank fields
         'bank_name',
         'ifsc_code',
@@ -23,6 +26,10 @@ class VendorPaymentDetail extends Model
         'qr_image_path',
     ];
 
+    protected $casts = [
+        'is_default' => 'boolean',
+    ];
+
     protected $hidden = ['created_at', 'updated_at'];
 
     public function vendor()
@@ -30,11 +37,25 @@ class VendorPaymentDetail extends Model
         return $this->belongsTo(User::class, 'vendor_id');
     }
 
+    /**
+     * Scope: only bank type records
+     */
+    public function scopeBank($query)
+    {
+        return $query->where('type', 'bank');
+    }
+
+    /**
+     * Scope: only upi type records
+     */
+    public function scopeUpi($query)
+    {
+        return $query->where('type', 'upi');
+    }
+
     public static function normalizeQrStoragePath(?string $path): ?string
     {
-        if (!$path) {
-            return null;
-        }
+        if (!$path) return null;
 
         $normalized = str_replace('\\', '/', trim($path));
         $normalized = preg_replace('#^/?storage/app/public/?#', '', $normalized);
@@ -52,9 +73,7 @@ class VendorPaymentDetail extends Model
     public function qrImageUrl(bool $absolute = false): ?string
     {
         $normalizedPath = $this->normalizedQrImagePath();
-        if (!$normalizedPath) {
-            return null;
-        }
+        if (!$normalizedPath) return null;
 
         $qrUrl = Storage::disk('public')->url($normalizedPath);
         if (str_starts_with($qrUrl, 'http') || !$absolute) {

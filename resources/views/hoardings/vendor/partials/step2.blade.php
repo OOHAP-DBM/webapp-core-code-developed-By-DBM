@@ -174,7 +174,7 @@
             </div>
 
             <!-- Recommended -->
-            @php
+            {{-- @php
                 $isRecommended = old('is_recommended', $parentHoarding->is_recommended ?? 0);
             @endphp
             <div class="flex items-center justify-between p-4 bg-purple-50/30 rounded-2xl border border-purple-100/50">
@@ -199,7 +199,7 @@
                       <span class="ml-2 text-sm font-semibold text-gray-600 peer-checked:text-[#009A5C]">No</span>
                     </label>
                 </div>
-            </div>
+            </div> --}}
         </div>
     </div>
    

@@ -27,7 +27,6 @@
     <div id="rowEditorSection" class="bg-white rounded-xl shadow mb-6 {{ $isApprovedBatch ? 'hidden' : '' }}">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between gap-3 flex-wrap">
             <h2 class="text-lg font-semibold text-gray-900">Upload Summary</h2>
-            @if(!$isAdmin)
                 <button 
                     id="approveInventoryBtn"
                     data-auto-approve="{{ $autoApprove ? '1' : '0' }}"
@@ -39,7 +38,6 @@
                         : ($autoApprove ? 'Publish' : 'Send For Approval') 
                     }}
                 </button>
-            @endif
         </div>
         <div class="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-sm">
             <div><span class="text-gray-500 ">Inventory ID</span><p class="font-semibold  mx-[1.2em]">#{{ $batch->id }}</p></div>

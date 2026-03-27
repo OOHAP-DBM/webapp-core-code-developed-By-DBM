@@ -1021,6 +1021,10 @@ class POSBookingService
             ]);
 
             foreach ($booking->bookingHoardings as $bh) {
+                  $bh->update([
+                    'status' => 'cancelled'
+                 ]);
+
                 $hoarding = $bh->hoarding;
                 if ($hoarding && (int) $hoarding->held_by_booking_id === (int) $booking->id) {
                     $hoarding->is_on_hold = false;
