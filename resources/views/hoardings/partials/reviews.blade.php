@@ -64,11 +64,13 @@
             {{-- WRITE REVIEW --}}
             <div class="md:col-span-3 text-right">
                 @auth
-                    <a href="javascript:void(0)"
-                        onclick="openRatingModal()"
-                        class="text-blue-600 text-sm font-medium hover:underline">
-                        Write a Review
-                    </a>
+                    @if($hoarding->vendor_id != auth()->id())
+                        <a href="javascript:void(0)"
+                            onclick="openRatingModal()"
+                            class="text-blue-600 text-sm font-medium hover:underline">
+                            Write a Review
+                        </a>
+                    @endif
                 @else
                     <a href="{{ route('login') }}"
                        class="text-blue-600 text-sm font-medium hover:underline">

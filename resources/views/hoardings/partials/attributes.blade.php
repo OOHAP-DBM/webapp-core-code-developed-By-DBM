@@ -34,7 +34,7 @@
         @if($hasVisibilityDetails)
             <div class="flex flex-wrap gap-2">
                 @foreach($hoarding->visibility_details as $detail)
-                    <span class="px-3 py-1 text-xs border rounded bg-gray-200 text-gray-700">
+                    <span class="px-3 py-1 text-xs border border-gray-200 rounded  text-gray-700">
                         {{ $detail }}
                     </span>
                 @endforeach
