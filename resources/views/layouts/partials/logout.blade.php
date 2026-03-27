@@ -73,18 +73,16 @@ function handleLogout() {
     fetch('{{ route("logout") }}', {
         method: 'POST',
         headers: {
-            // Meta tag se fresh CSRF token — stale form token nahi
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         }
     })
     .then(() => {
-        window.location.href = '/login';
+        window.location.replace('/login'); // ← replace, href nahi
     })
     .catch(() => {
-        // Error aaye tab bhi login pe bhejo
-        window.location.href = '/login';
+        window.location.replace('/login'); // ← yahan bhi
     });
 }
 
