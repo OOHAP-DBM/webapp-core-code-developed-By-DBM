@@ -418,9 +418,7 @@ class AuthController extends Controller
 
         // Update last login
         $user->updateLastLogin();
-        if ($request->filled('fcm_token')) {
-            $user->update(['fcm_token' => $request->input('fcm_token')]);
-        }
+
         // Set active role to primary role if not set (PROMPT 96)
         if (!$user->active_role) {
             $user->update(['active_role' => $user->getPrimaryRole()]);
