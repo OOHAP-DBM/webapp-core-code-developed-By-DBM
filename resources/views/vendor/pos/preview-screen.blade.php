@@ -425,6 +425,18 @@ function getPosPricingBreakdown() {
         return { discountVal, tax, grandTotal };
 }
 
+// function calculateFinalTotals() {
+//     const { discountVal, tax, grandTotal } = getPosPricingBreakdown();
+//     const fmt = v => typeof formatINR === 'function' ? formatINR(v) : `₹${Math.round(v)}`;
+//     const discountInput = document.getElementById('pos-discount');
+//     if (discountInput && Number(discountInput.value) !== discountVal) {
+//         discountInput.value = discountVal;
+//     }
+//     document.getElementById('side-discount-display').innerText = `- ${fmt(discountVal)}`;
+//     document.getElementById('side-tax').innerText              = fmt(tax);
+//     document.getElementById('side-grand-total').innerText      = fmt(grandTotal);
+// }
+// window.calculateFinalTotals = calculateFinalTotals;
 function calculateFinalTotals() {
     const { discountVal, tax, grandTotal } = getPosPricingBreakdown();
     const fmt = v => typeof formatINR === 'function' ? formatINR(v) : `₹${Math.round(v)}`;
@@ -435,6 +447,9 @@ function calculateFinalTotals() {
     document.getElementById('side-discount-display').innerText = `- ${fmt(discountVal)}`;
     document.getElementById('side-tax').innerText              = fmt(tax);
     document.getElementById('side-grand-total').innerText      = fmt(grandTotal);
+
+    // Always re-apply cash limit after totals are recalculated
+    if (typeof applyCashLimit === 'function') applyCashLimit();
 }
 window.calculateFinalTotals = calculateFinalTotals;
 
@@ -979,9 +994,10 @@ document.addEventListener('DOMContentLoaded', () => {
             );
             if (!res.ok) return;
             const data = await res.json();
-            const val = data?.data?.pos_cash_limit ?? data?.pos_cash_limit ?? null;
+            console.log('[CashLimit] Full API response:', data);
+            // Try all possible locations for the value
+            const val = data?.data?.pos_cash_limit ?? data?.pos_cash_limit ?? data?.data?.value ?? null;
             _cashLimit = val !== null ? parseFloat(val) : null;
-            // Debug: log the value fetched from DB
             console.log('[CashLimit] Value from DB:', val, 'Parsed:', _cashLimit);
         } catch (e) {
             console.warn('[CashLimit] Could not fetch cash limit:', e);
@@ -1033,6 +1049,7 @@ document.addEventListener('DOMContentLoaded', () => {
             wrapper = document.createElement('div');
             wrapper.id        = 'cash-btn-wrapper';
             wrapper.className = 'relative';
+            wrapper.style.display = 'contents';
             btn.parentNode.insertBefore(wrapper, btn);
             wrapper.appendChild(btn);
         }
@@ -1043,7 +1060,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip = document.createElement('div');
             tooltip.id        = 'cash-tooltip-bubble';
             tooltip.className = [
-                'absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2',
+                'absolute z-50 mt-20',
                 'w-56 bg-gray-900 text-white text-[11px] font-medium',
                 'rounded-lg px-3 py-2 shadow-xl leading-relaxed',
                 'pointer-events-none opacity-0 transition-opacity duration-200',
@@ -1083,20 +1100,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 grid.parentNode.insertBefore(tip, grid.nextSibling);
             }
         }
-        tip.innerHTML = `
-            <div class="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                </svg>
-                <div>
-                    <p class="text-[11px] font-bold text-red-700">Cash payment unavailable</p>
-                    <p class="text-[10px] text-red-600 mt-0.5">
-                        Admin cash limit is <strong>${formatINRLocal(_cashLimit)}</strong>.
-                        Your booking total <strong>${formatINRLocal(total)}</strong> exceeds this limit.
-                        Please select Bank Transfer, UPI, or Credit Note.
-                    </p>
-                </div>
-            </div>`;
+        // tip.innerHTML = `
+        //     <div class="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        //         <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        //             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        //         </svg>
+        //         <div>
+        //             <p class="text-[11px] font-bold text-red-700">Cash payment unavailable</p>
+        //             <p class="text-[10px] text-red-600 mt-0.5">
+        //                 Admin cash limit is <strong>${formatINRLocal(_cashLimit)}</strong>.
+        //                 Your booking total <strong>${formatINRLocal(total)}</strong> exceeds this limit.
+        //                 Please select Bank Transfer, UPI, or Credit Note.
+        //             </p>
+        //         </div>
+        //     </div>`;
         tip.style.display = 'block';
 
         // ── Auto-switch away from cash if currently selected ──
@@ -1125,6 +1142,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide inline warning
         var tip = document.getElementById('cash-limit-tooltip');
         if (tip) tip.style.display = 'none';
+
+        // Auto-switch back to cash if total is now within limit and payment mode is not cash
+        if (typeof selectedPaymentMode !== 'undefined' && selectedPaymentMode !== 'cash') {
+            var total = getCurrentTotal();
+            if (_cashLimit !== null && _cashLimit > 0 && total <= _cashLimit) {
+                if (typeof selectPaymentMode === 'function') {
+                    selectPaymentMode('cash');
+                }
+            }
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -1141,12 +1168,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             }
 
-            var discountInput = document.getElementById('pos-discount');
-            if (discountInput) {
-                discountInput.addEventListener('input', function () {
-                    setTimeout(applyCashLimit, 50);
-                });
+         var discountInput = document.getElementById('pos-discount');
+    if (discountInput) {
+        discountInput.addEventListener('input', function () {
+            // First recalculate totals, then re-evaluate cash limit
+            if (typeof calculateFinalTotals === 'function') {
+                calculateFinalTotals();
             }
+            setTimeout(applyCashLimit, 0);
+        });
+    }
 
             // MutationObserver to re-apply cash limit if payment mode grid changes
             var paymentGrid = document.querySelector('.grid');

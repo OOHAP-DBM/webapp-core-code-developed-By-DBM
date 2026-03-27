@@ -340,6 +340,7 @@ class VendorPosController extends Controller
             $autoApproval = $this->posBookingService->isAutoApprovalEnabled();
             $autoInvoice = $this->posBookingService->isAutoInvoiceEnabled();
 
+            $cashLimit = DB::table('settings')->where('key', 'pos_cash_limit')->value('value');
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -349,6 +350,7 @@ class VendorPosController extends Controller
                     'credit_note_days' => $creditNoteDays,
                     'auto_approval' => $autoApproval,
                     'auto_invoice' => $autoInvoice,
+                    'pos_cash_limit' => $cashLimit, // <-- Add this line
                     'payment_modes' => [
                         'cash' => 'Cash',
                         'credit_note' => 'Credit Note',

@@ -71,7 +71,7 @@
 
         <!-- Full Address -->
         <div class="space-y-2 md:col-span-1">
-            <label class="text-sm font-bold text-gray-700">Full Address<span class="text-red-500">*</span></label>
+           <label class="text-sm font-bold text-gray-700">Full Address <span class="text-red-500">*</span></label>
             <input name="address" id="address"
                 value="{{ old('address', $hoarding?->address) }}"
                 placeholder="Enter exact address or landmark"
