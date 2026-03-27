@@ -166,7 +166,9 @@ class SearchController extends Controller
             $loc = strtolower($request->location);
             $query->where(function ($q) use ($loc) {
                 $q->whereRaw('LOWER(hoardings.city) LIKE ?', ["%{$loc}%"])
-                    ->orWhereRaw('LOWER(hoardings.address) LIKE ?', ["%{$loc}%"]);
+                    ->orWhereRaw('LOWER(hoardings.state) LIKE ?', ["%{$loc}%"])
+                    ->orWhereRaw('LOWER(hoardings.address) LIKE ?', ["%{$loc}%"])
+                    ->orWhereRaw('LOWER(hoardings.title) LIKE ?', ["%{$loc}%"]);
             });
         }
         if ($request->filled('type')) {
