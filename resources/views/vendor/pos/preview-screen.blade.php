@@ -77,7 +77,8 @@
                 </div>
 
                 {{-- Bank Details Panel --}}
-                <div id="bank-details-panel" class="hidden space-y-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
+                @include('vendor.pos.components.bank-details')
+                <!-- <div id="bank-details-panel" class="hidden space-y-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
                     <div class="flex items-center justify-between mb-1">
                         <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider">Bank Details</h4>
                         <span id="bank-saved-badge" class="hidden text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ Saved</span>
@@ -119,7 +120,7 @@
                             Save Bank Details
                         </button>
                     </div>
-                </div>
+                </div> -->
 
                 {{-- UPI Details Panel --}}
                 <div id="upi-details-panel" class="hidden space-y-3 bg-purple-50 border border-purple-100 rounded-xl p-4">
@@ -334,9 +335,9 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                <button onclick="closeConfirmedModal()" class="w-full sm:flex-1 min-h-[44px] py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">Close</button>
+                <button onclick="closeConfirmedModal()" class="w-full sm:flex-1 min-h-[44px] py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">View Booking</button>
                 <button onclick="window.location.href=`${window.POS_BASE_PATH || '/vendor/pos'}/bookings`" class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#2D5A43] text-white rounded-xl text-sm font-bold hover:bg-opacity-90">
-                    View Bookings
+                    Close
                 </button>
             </div>
         </div>
@@ -484,84 +485,84 @@ function selectHoldTime(mins) {
 }
 
 /* ── IFSC Fetch ── */
-async function fetchBankFromIFSC() {
-    const ifsc = document.getElementById('bank-ifsc').value.trim();
-    if (ifsc.length !== 11) return;
-    const el = document.getElementById('ifsc-result');
-    el.classList.remove('hidden');
-    el.innerText = 'Fetching...';
-    try {
-        const res  = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
-        if (!res.ok) throw new Error('Not found');
-        const data = await res.json();
-        el.innerText = `${data.BANK} — ${data.BRANCH}, ${data.CITY}`;
-        el.style.color = '#1d4ed8';
-        document.getElementById('bank-acc-holder').placeholder = `Account holder at ${data.BANK}`;
-    } catch (e) {
-        el.innerText = 'Invalid IFSC or not found';
-        el.style.color = '#dc2626';
-    }
-}
+// async function fetchBankFromIFSC() {
+//     const ifsc = document.getElementById('bank-ifsc').value.trim();
+//     if (ifsc.length !== 11) return;
+//     const el = document.getElementById('ifsc-result');
+//     el.classList.remove('hidden');
+//     el.innerText = 'Fetching...';
+//     try {
+//         const res  = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
+//         if (!res.ok) throw new Error('Not found');
+//         const data = await res.json();
+//         el.innerText = `${data.BANK} — ${data.BRANCH}, ${data.CITY}`;
+//         el.style.color = '#1d4ed8';
+//         document.getElementById('bank-acc-holder').placeholder = `Account holder at ${data.BANK}`;
+//     } catch (e) {
+//         el.innerText = 'Invalid IFSC or not found';
+//         el.style.color = '#dc2626';
+//     }
+// }
 
-/* ── Save bank details ── */
-async function saveBankDetails() {
-    const ifsc   = document.getElementById('bank-ifsc').value.trim();
-    const acc    = document.getElementById('bank-acc-number').value.trim();
-    const holder = document.getElementById('bank-acc-holder').value.trim();
-    const ifscEl = document.getElementById('ifsc-result');
-    const bankName = ifscEl.innerText.split('—')[0].trim() || 'Bank';
+// /* ── Save bank details ── */
+// async function saveBankDetails() {
+//     const ifsc   = document.getElementById('bank-ifsc').value.trim();
+//     const acc    = document.getElementById('bank-acc-number').value.trim();
+//     const holder = document.getElementById('bank-acc-holder').value.trim();
+//     const ifscEl = document.getElementById('ifsc-result');
+//     const bankName = ifscEl.innerText.split('—')[0].trim() || 'Bank';
 
-    if (!ifsc || !acc || !holder) { showToast('Please fill all bank fields', 'warning'); return; }
+//     if (!ifsc || !acc || !holder) { showToast('Please fill all bank fields', 'warning'); return; }
 
-    try {
-        const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
-            body: JSON.stringify({ type: 'bank', ifsc_code: ifsc, account_number: acc, account_holder: holder, bank_name: bankName })
-        });
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.message || 'Save failed');
-        savedBankDetails = result.data;
-        renderSavedBankCard(savedBankDetails);
-        showToast('Bank details saved!', 'success');
-    } catch (e) {
-        showToast(e.message, 'error');
-    }
-}
+//     try {
+//         const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+//             body: JSON.stringify({ type: 'bank', ifsc_code: ifsc, account_number: acc, account_holder: holder, bank_name: bankName })
+//         });
+//         const result = await res.json();
+//         if (!res.ok) throw new Error(result.message || 'Save failed');
+//         savedBankDetails = result.data;
+//         renderSavedBankCard(savedBankDetails);
+//         showToast('Bank details saved!', 'success');
+//     } catch (e) {
+//         showToast(e.message, 'error');
+//     }
+// }
 
-function renderSavedBankCard(d) {
-    if (!d) return;
-    document.getElementById('saved-bank-name').innerText   = d.bank_name || '---';
-    document.getElementById('saved-bank-acc').innerText    = 'A/C: ' + (d.account_number || '---');
-    document.getElementById('saved-bank-holder').innerText = 'Holder: ' + (d.account_holder || '---');
-    document.getElementById('saved-bank-ifsc').innerText   = 'IFSC: ' + (d.ifsc_code || '---');
-    document.getElementById('bank-saved-card').classList.remove('hidden');
-    document.getElementById('bank-input-form').classList.add('hidden');
-    document.getElementById('bank-saved-badge').classList.remove('hidden');
-}
+// function renderSavedBankCard(d) {
+//     if (!d) return;
+//     document.getElementById('saved-bank-name').innerText   = d.bank_name || '---';
+//     document.getElementById('saved-bank-acc').innerText    = 'A/C: ' + (d.account_number || '---');
+//     document.getElementById('saved-bank-holder').innerText = 'Holder: ' + (d.account_holder || '---');
+//     document.getElementById('saved-bank-ifsc').innerText   = 'IFSC: ' + (d.ifsc_code || '---');
+//     document.getElementById('bank-saved-card').classList.remove('hidden');
+//     document.getElementById('bank-input-form').classList.add('hidden');
+//     document.getElementById('bank-saved-badge').classList.remove('hidden');
+// }
 
-function editBankDetails() {
-    document.getElementById('bank-saved-card').classList.add('hidden');
-    document.getElementById('bank-input-form').classList.remove('hidden');
-}
+// function editBankDetails() {
+//     document.getElementById('bank-saved-card').classList.add('hidden');
+//     document.getElementById('bank-input-form').classList.remove('hidden');
+// }
 
-async function loadSavedBankDetails() {
-    try {
-        const res  = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details?type=bank`, { headers: { 'Accept': 'application/json' } });
-        const data = await res.json();
-        if (data.success && data.data) {
-            savedBankDetails = data.data;
-            document.getElementById('bank-ifsc').value       = data.data.ifsc_code || '';
-            document.getElementById('bank-acc-number').value = data.data.account_number || '';
-            document.getElementById('bank-acc-holder').value = data.data.account_holder || '';
-            if (data.data.ifsc_code) {
-                document.getElementById('ifsc-result').innerText = data.data.bank_name || '';
-                document.getElementById('ifsc-result').classList.remove('hidden');
-            }
-            renderSavedBankCard(data.data);
-        }
-    } catch (e) { /* no saved details yet */ }
-}
+// async function loadSavedBankDetails() {
+//     try {
+//         const res  = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details?type=bank`, { headers: { 'Accept': 'application/json' } });
+//         const data = await res.json();
+//         if (data.success && data.data) {
+//             savedBankDetails = data.data;
+//             document.getElementById('bank-ifsc').value       = data.data.ifsc_code || '';
+//             document.getElementById('bank-acc-number').value = data.data.account_number || '';
+//             document.getElementById('bank-acc-holder').value = data.data.account_holder || '';
+//             if (data.data.ifsc_code) {
+//                 document.getElementById('ifsc-result').innerText = data.data.bank_name || '';
+//                 document.getElementById('ifsc-result').classList.remove('hidden');
+//             }
+//             renderSavedBankCard(data.data);
+//         }
+//     } catch (e) { /* no saved details yet */ }
+// }
 
 /* ── UPI ── */
 function previewQR(event) {
