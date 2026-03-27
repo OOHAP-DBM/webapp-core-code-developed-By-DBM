@@ -980,6 +980,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             const val = data?.data?.pos_cash_limit ?? data?.pos_cash_limit ?? null;
             _cashLimit = val !== null ? parseFloat(val) : null;
+            // Debug: log the value fetched from DB
+            console.log('[CashLimit] Value from DB:', val, 'Parsed:', _cashLimit);
         } catch (e) {
             console.warn('[CashLimit] Could not fetch cash limit:', e);
         } finally {
@@ -1123,15 +1125,6 @@ document.addEventListener('DOMContentLoaded', () => {
         var tip = document.getElementById('cash-limit-tooltip');
         if (tip) tip.style.display = 'none';
     }
-    function enableCashBtn(btn) {
-        btn.disabled        = false;
-        btn.style.opacity       = '';
-        btn.style.cursor        = '';
-        btn.style.pointerEvents = '';
-        btn.removeAttribute('title');
-        var tip = document.getElementById('cash-limit-tooltip');
-        if (tip) tip.style.display = 'none';
-    }
 
     document.addEventListener('DOMContentLoaded', function () {
         // Fetch on load then apply
@@ -1152,6 +1145,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 discountInput.addEventListener('input', function () {
                     setTimeout(applyCashLimit, 50);
                 });
+            }
+
+            // MutationObserver to re-apply cash limit if payment mode grid changes
+            var paymentGrid = document.querySelector('.grid');
+            if (paymentGrid) {
+                var gridObserver = new MutationObserver(function() {
+                    applyCashLimit();
+                });
+                gridObserver.observe(paymentGrid, { childList: true, subtree: true });
             }
 
             // --- Milestone Hold Duration Logic ---
