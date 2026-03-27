@@ -26,4 +26,30 @@ class HoardingSettingsController extends Controller
         );
         return redirect()->back()->with('success', 'Auto approval setting updated!');
     }
+
+
+    // ================= POS CASH LIMIT =================
+    public function editPos()
+    {
+        $posCashLimit = Setting::get('pos_cash_limit', 0);
+
+        return view('admin.settings.pos_cash_limit', compact('posCashLimit'));
+    }
+
+    public function updatePos(Request $request)
+    {
+        $request->validate([
+            'pos_cash_limit' => 'required|numeric|min:1000|max:10000000000',
+        ]);
+
+        Setting::set(
+            'pos_cash_limit',
+            $request->pos_cash_limit,
+            Setting::TYPE_INTEGER,
+            Setting::GROUP_PAYMENT,
+            'POS maximum cash limit'
+        );
+
+        return redirect()->back()->with('success', 'POS cash limit updated!');
+    }
 }
