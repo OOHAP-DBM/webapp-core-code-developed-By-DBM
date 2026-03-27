@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('vendor_payment_details', function (Blueprint $table) {
-             $table->dropUnique('vendor_payment_details_vendor_id_type_unique_upi');
+            $table->unique(
+                ['vendor_id', 'type', 'account_number'],
+                'vendor_payment_details_vendor_type_account_unique'
+            );
             // Only one bank can be default at a time per vendor
             $table->boolean('is_default')->default(false)->after('type');
         });
@@ -24,10 +27,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('vendor_payment_details', function (Blueprint $table) {
-            $table->dropColumn([ 'is_default']);
+           $table->dropUnique('vendor_payment_details_vendor_type_account_unique');
+
+            $table->dropColumn('is_default');
+
             $table->unique(
-                ['vendor_id', 'type', 'account_number'],
-                'vendor_payment_details_vendor_type_account_unique'
+                ['vendor_id', 'type'],
+                'vendor_payment_details_vendor_id_type_unique'
             );
         });
     }
