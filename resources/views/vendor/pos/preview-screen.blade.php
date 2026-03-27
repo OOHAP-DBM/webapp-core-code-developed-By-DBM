@@ -1048,7 +1048,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip = document.createElement('div');
             tooltip.id        = 'cash-tooltip-bubble';
             tooltip.className = [
-                'absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2',
+                'absolute z-50 mt-20',
                 'w-56 bg-gray-900 text-white text-[11px] font-medium',
                 'rounded-lg px-3 py-2 shadow-xl leading-relaxed',
                 'pointer-events-none opacity-0 transition-opacity duration-200',
