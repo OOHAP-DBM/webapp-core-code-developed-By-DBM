@@ -66,8 +66,29 @@ class EmailTemplate extends Model
         }
 
         // layout ke saath wrap karo
-        $layout      = $this->layout;
-        $finalBody   = $layout->header_html . $body . $layout->footer_html;
+        $layout     = $this->layout;
+        $headerHtml = $layout->header_html;
+        $footerHtml = $layout->footer_html;
+
+        // layout-level placeholders replace karo
+        $layoutReplacements = [
+            '{{logo_url}}'      => $layout->logo_url ? asset($layout->logo_url) : '',
+            '{{primary_color}}' => $layout->primary_color ?? '#22c55e',
+        ];
+
+        $headerHtml = str_replace(
+            array_keys($layoutReplacements),
+            array_values($layoutReplacements),
+            $headerHtml
+        );
+
+        $footerHtml = str_replace(
+            array_keys($layoutReplacements),
+            array_values($layoutReplacements),
+            $footerHtml
+        );
+
+        $finalBody = $headerHtml . $body . $footerHtml;
 
         return [
             'subject' => $subject,

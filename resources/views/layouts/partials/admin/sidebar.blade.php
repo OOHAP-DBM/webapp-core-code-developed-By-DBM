@@ -595,15 +595,15 @@
                     </a>
                     <a href="{{ route('admin.settings.index', ['group' => 'sms']) }}"
                        class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.settings.index') && request()->query('group') === 'sms' ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
-                        - SMS Gateway Configuration
+                        - SMS Gateway Configue
                     </a>
                     <a href="{{ route('admin.mail.layouts.index') }}"
-                       class="block px-8 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.mail.layouts.index') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-7 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-7 border-transparent' }}">
+                       class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.mail.layouts.index') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-7 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-7 border-transparent' }}">
                         - Mail Layouts
                     </a>
                     <a href="{{ route('admin.mail.configuration.index') }}"
                        class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.mail.configuration.index') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
-                        - Mail Template Configuration
+                        - Mail Template Configue
                     </a>
                 </div>
             </div>

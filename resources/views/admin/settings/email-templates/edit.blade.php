@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
+<div class="bg-white border border-gray-200 rounded mx-auto px-4 py-6">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
@@ -10,26 +10,20 @@
            class="text-gray-600 hover:underline text-sm">← Back to List</a>
     </div>
 
-    <div class="bg-white shadow rounded-lg p-6">
+    <div class="bg-white border border-gray-200 rounded p-6">
         <form action="{{ route('admin.mail.configuration.update', $emailTemplate->id) }}" method="POST">
             @csrf
             @method('PUT')
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                {{-- Layout --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Layout <span class="text-red-500">*</span></label>
-                    <select name="layout_id"
-                            class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">-- Select Layout --</option>
-                        @foreach($layouts as $layout)
-                            <option value="{{ $layout->id }}"
-                                {{ old('layout_id', $emailTemplate->layout_id) == $layout->id ? 'selected' : '' }}>
-                                Layout #{{ $layout->id }} ({{ $layout->primary_color }})
-                            </option>
-                        @endforeach
-                    </select>
+                    <input type="text"
+                        value="Layout #{{ $emailTemplate->layout_id ?? $layouts->first()->id ?? '' }} ({{ $emailTemplate->layout->primary_color ?? $layouts->first()->primary_color ?? '' }})"
+                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+                        readonly>
+                    <input type="hidden" name="layout_id" value="{{ old('layout_id', $emailTemplate->layout_id ?? $layouts->first()->id ?? '') }}">
                     @error('layout_id')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
@@ -100,7 +94,7 @@
 
             <div class="mt-6 flex gap-3">
                 <button type="submit"
-                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 text-sm">
+                        class="btn-color text-white px-6 py-2 rounded text-sm">
                     Update Template
                 </button>
                 <a href="{{ route('admin.mail.configuration.index') }}"

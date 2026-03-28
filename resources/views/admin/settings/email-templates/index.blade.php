@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="bg-white shadow-sm rounded w-full px-4 py-6">
+<div class="bg-white border border-gray-200 rounded w-full px-4 py-6">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
@@ -12,7 +12,7 @@
         </a>
     </div>
     {{-- Templates Table --}}
-    <div class="bg-white shadow rounded-lg overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>

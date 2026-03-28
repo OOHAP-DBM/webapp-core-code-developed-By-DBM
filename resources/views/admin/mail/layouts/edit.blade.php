@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="w-full px-6 py-6">
+<div class="w-full bg-white border border-gray-200 rounded px-6 py-6">
 
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-6">
@@ -13,7 +13,7 @@
     </div>
 
     <!-- CARD -->
-    <div class="bg-white shadow rounded-xl p-6">
+    <div class="bg-white border border-gray-200 rounded p-6">
 
         <form action="{{ route('admin.mail.layouts.update', $layout->id) }}" 
               method="POST" enctype="multipart/form-data">
