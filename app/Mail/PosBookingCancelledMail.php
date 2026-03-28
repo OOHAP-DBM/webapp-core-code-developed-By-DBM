@@ -4,22 +4,15 @@ namespace App\Mail;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Modules\POS\Models\POSBooking;
 
-class PosBookingCancelledMail extends Mailable implements ShouldQueue
+class PosBookingCancelledMail extends Mailable
 {
     use Queueable, SerializesModels;
-
-    public int $timeout = 120;
-
-    public int $tries = 3;
-
-    public array $backoff = [10, 60, 180];
 
     public function __construct(
         public POSBooking $booking,
