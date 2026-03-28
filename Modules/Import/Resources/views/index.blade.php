@@ -82,7 +82,7 @@
     ══════════════════════════════════════════ -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sm:p-7 max-w-7xl">
 
-        <form id="uploadForm" class="space-y-5">
+        <form id="uploadForm" class="space-y-5" autocomplete="off">
             @csrf
 
             <!-- ── Hoarding Type ── -->
@@ -398,18 +398,25 @@
     //     setupHistorySearch();
     //     setInterval(() => loadBatches(historyState.page), 15000);
     // });
-    document.addEventListener('DOMContentLoaded', () => {
-        setupFileInputs();
-        setupFormSubmit();
-        setupUploadLockTimerUi();
-        restoreUploadLockState();
-        checkInterruptedUpload(); // ← ADD THIS LINE
-        loadBatches();
-        setupHistoryPagination();
-        setupHistorySearch();
-        setInterval(() => loadBatches(historyState.page), 15000);
-    });
+        document.addEventListener('DOMContentLoaded', () => {
+            // ── Delay ensures browser form-restore runs first, then we override it ──
+            setTimeout(() => {
+                document.querySelectorAll('input[name="media_type"]').forEach(r => r.checked = false);
+                document.getElementById('uploadHeadingWrap')?.classList.add('hidden');
+                document.getElementById('uploadZonesWrap')?.classList.add('hidden');
+                document.getElementById('submitWrap')?.classList.add('hidden');
+            }, 0);
 
+            setupFileInputs();
+            setupFormSubmit();
+            setupUploadLockTimerUi();
+            restoreUploadLockState();
+            checkInterruptedUpload();
+            loadBatches();
+            setupHistoryPagination();
+            setupHistorySearch();
+            setInterval(() => loadBatches(historyState.page), 15000);
+        });
     function setupHistoryPagination() {
         document.getElementById('historyPrevBtn')?.addEventListener('click', () => {
             if (historyPagination.current_page > 1) loadBatches(historyPagination.current_page - 1);
@@ -902,7 +909,7 @@
             return;
         }
 
-        if (pptFile && pptFile.size > 60 * 1024 * 1024) {
+        if (pptFile && pptFile.size > 40 * 1024 * 1024) {
             showError('PowerPoint file size must be 40MB or less.');
             return;
         }
@@ -962,6 +969,10 @@
                 }
             });
             if (!result.isConfirmed) return;
+            document.querySelectorAll('input[name="media_type"]').forEach(r => {
+                r.disabled = true;
+                r.closest('label')?.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+            });
         }
 
         const submitBtn  = document.getElementById('submitBtn');
@@ -1054,6 +1065,13 @@
             submitBtn.disabled     = false;
             submitText.textContent = 'Upload Files';
             submitIcon.classList.remove('animate-spin');
+             // ── Re-enable radio buttons only on failure ──
+            if (!getUploadLockState()) {
+                document.querySelectorAll('input[name="media_type"]').forEach(r => {
+                    r.disabled = false;
+                    r.closest('label')?.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                });
+            }
         }
     }
 
@@ -1282,7 +1300,7 @@
             <div class="mt-5 flex justify-center">
                 <button onclick="closeInterruptedPopup()"
                     class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold px-6 py-2 rounded-lg transition">
-                    Cancel
+                    Okay
                 </button>
             </div>
         </div>

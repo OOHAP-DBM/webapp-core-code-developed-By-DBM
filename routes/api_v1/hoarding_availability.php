@@ -9,11 +9,11 @@ use Illuminate\Support\Facades\Route;
  * 
  * Authentication: All routes require auth:sanctum
  */
-
+Route::get('/availability/calendar', [HoardingAvailabilityController::class, 'getCalendar'])
+        ->name('api.hoardings.availability.calendar');
 Route::middleware(['auth:sanctum'])->prefix('hoardings/{hoarding}')->group(function () {
     // Get availability calendar for date range
-    Route::get('/availability/calendar', [HoardingAvailabilityController::class, 'getCalendar'])
-        ->name('api.hoardings.availability.calendar');
+    
     
     // Get availability summary (counts only)
     Route::get('/availability/summary', [HoardingAvailabilityController::class, 'getSummary'])
