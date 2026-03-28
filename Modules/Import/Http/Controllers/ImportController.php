@@ -782,17 +782,27 @@ class ImportController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'data' => collect($imports->items())->map(fn ($batch) => [
-                        'batch_id' => $batch->id,
-                        'status' => $batch->status,
-                        'media_type' => $batch->media_type,
-                        'total_rows' => $batch->total_rows,
-                        'valid_rows' => $batch->valid_rows,
-                        'invalid_rows' => $batch->invalid_rows,
-                        'file_path' => $batch->file_path,
-                        'ppt_path' => $batch->ppt_path,
-                        'created_at' => $batch->created_at,
-                    ]),
+                    'data' => collect($imports->items())->map(function ($batch) {
+                        $fileUrl = $batch->file_path
+                            ? route('import.download.file', ['batch' => $batch->id]) . '?type=excel'
+                            : null;
+                        $pptUrl = $batch->ppt_path
+                            ? route('import.download.file', ['batch' => $batch->id]) . '?type=ppt'
+                            : null;
+                        return [
+                            'batch_id' => $batch->id,
+                            'status' => $batch->status,
+                            'media_type' => $batch->media_type,
+                            'total_rows' => $batch->total_rows,
+                            'valid_rows' => $batch->valid_rows,
+                            'invalid_rows' => $batch->invalid_rows,
+                            'file_path' => $batch->file_path,
+                            'ppt_path' => $batch->ppt_path,
+                            'file_url' => $fileUrl,
+                            'ppt_url' => $pptUrl,
+                            'created_at' => $batch->created_at,
+                        ];
+                    }),
                     'pagination' => [
                         'total' => $imports->total(),
                         'per_page' => $imports->perPage(),
