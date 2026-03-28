@@ -11,20 +11,10 @@ use App\Models\QuotationMilestone;
 use Modules\POS\Models\POSBooking;
 use Modules\POS\Models\VendorPaymentDetail;
 use App\Models\User;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
-class PosBookingCreatedMail extends Mailable implements ShouldQueue
+class PosBookingCreatedMail extends Mailable
 {
     use Queueable, SerializesModels;
-
-    /**
-     * Queue worker timeout safety for SMTP delays.
-     */
-    public int $timeout = 120;
-
-    public int $tries = 3;
-
-    public array $backoff = [10, 60, 180];
 
     public function __construct(
         public POSBooking $booking,
@@ -50,9 +40,12 @@ class PosBookingCreatedMail extends Mailable implements ShouldQueue
 
         $paymentQrUrl = null;
         $paymentQrAbsolutePath = null;
+
         if ($paymentDetail && !empty($paymentDetail->qr_image_path)) {
             $paymentQrUrl = $paymentDetail->qrImageUrl(true);
+
             $normalizedPath = $paymentDetail->normalizedQrImagePath();
+
             if ($normalizedPath) {
                 $paymentQrAbsolutePath = storage_path('app/public/' . $normalizedPath);
             }
