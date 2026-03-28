@@ -107,16 +107,18 @@ class VendorPaymentDetailController extends Controller
 
             $validated = $request->validate([
                 'ifsc_code'      => 'required|string|size:11',
-               'account_number' => [
-                        'required',
-                        'string',
-                        'max:30',
-                        Rule::unique('vendor_payment_details')
-                            ->where(fn($q) => $q->where('vendor_id', $vendorId))
-                    ],
+                'account_number' => [
+                    'required',
+                    'string',
+                    'max:30',
+                    Rule::unique('vendor_payment_details')
+                        ->where(fn($q) => $q->where('vendor_id', $vendorId))
+                ],
                 'account_holder' => 'required|string|max:255',
                 'bank_name'      => 'nullable|string|max:255',
                 'is_default'     => 'nullable|boolean',
+            ], [
+                'account_number.unique' => 'This account number already exists for this vendor. Please use a different account number.',
             ]);
 
             $isDefault = (bool) ($validated['is_default'] ?? false);
@@ -182,6 +184,8 @@ class VendorPaymentDetailController extends Controller
                 'account_holder' => 'required|string|max:255',
                 'bank_name'      => 'nullable|string|max:255',
                 'is_default'     => 'nullable|boolean',
+            ], [
+                'account_number.unique' => 'This account number already exists for this vendor. Please use a different account number.',
             ]);
 
             $isDefault = (bool) ($validated['is_default'] ?? $bank->is_default);
