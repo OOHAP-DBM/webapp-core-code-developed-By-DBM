@@ -56,8 +56,30 @@ class HoardingAvailabilityController extends Controller
      *     tags={"Hoarding Availability"},
      *     security={{"sanctum": {}}},
      *     @OA\Parameter(name="hoarding", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Parameter(name="start_date", in="query", required=true, @OA\Schema(type="string", format="date")),
-     *     @OA\Parameter(name="end_date", in="query", required=true, @OA\Schema(type="string", format="date")),
+     *    @OA\Parameter(
+                name="start_date",
+                in="query",
+                required=true,
+                description="Start date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-03-28",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
+     *     @OA\Parameter(
+                name="end_date",
+                in="query",
+                required=true,
+                description="End date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-04-05",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
      *     @OA\Parameter(name="include_details", in="query", required=false, @OA\Schema(type="boolean")),
      *     @OA\Response(response=200, description="Availability calendar retrieved successfully"),
      *     @OA\Response(response=422, description="Validation error")
@@ -96,8 +118,30 @@ class HoardingAvailabilityController extends Controller
      *     tags={"Hoarding Availability"},
      *     security={{"sanctum": {}}},
      *     @OA\Parameter(name="hoarding", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Parameter(name="start_date", in="query", required=true, @OA\Schema(type="string", format="date")),
-     *     @OA\Parameter(name="end_date", in="query", required=true, @OA\Schema(type="string", format="date")),
+     *    @OA\Parameter(
+                name="start_date",
+                in="query",
+                required=true,
+                description="Start date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-03-28",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
+     *    @OA\Parameter(
+                name="end_date",
+                in="query",
+                required=true,
+                description="End date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-04-05",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
      *     @OA\Response(response=200, description="Availability summary retrieved successfully"),
      *     @OA\Response(response=422, description="Validation error")
      * )
@@ -299,8 +343,30 @@ class HoardingAvailabilityController extends Controller
      *     tags={"Hoarding Availability"},
      *     security={{"sanctum": {}}},
      *     @OA\Parameter(name="hoarding", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Parameter(name="start_date", in="query", required=true, @OA\Schema(type="string", format="date")),
-     *     @OA\Parameter(name="end_date", in="query", required=true, @OA\Schema(type="string", format="date")),
+     *    @OA\Parameter(
+                name="start_date",
+                in="query",
+                required=true,
+                description="Start date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-03-28",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
+     *     @OA\Parameter(
+                name="end_date",
+                in="query",
+                required=true,
+                description="End date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-04-05",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
      *     @OA\Response(response=200, description="Heatmap data retrieved successfully"),
      *     @OA\Response(response=422, description="Validation error"),
      *     @OA\Response(response=500, description="Internal server error")

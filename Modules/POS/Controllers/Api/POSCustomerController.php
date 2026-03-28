@@ -433,6 +433,7 @@ class POSCustomerController extends Controller
                     'total_spent'     => (float) $totalSpent,
                     'last_booking_at' => $lastBookingAt,
                     'is_active'       => $totalBookings > 0,
+                    'account_status'  => $user->status ?? null,
                 ];
             });
 
