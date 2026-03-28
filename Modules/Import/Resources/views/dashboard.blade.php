@@ -36,9 +36,8 @@
                         <option value="">All statuses</option>
                         <option value="uploaded">uploaded</option>
                         <option value="processing">processing</option>
-                        <option value="processed">processed</option>
-                        <option value="completed">completed</option>
-                        <option value="approved">approved</option>
+                        <option value="completed">draft</option>
+                        <option value="approved">Completed</option>
                         <option value="failed">failed</option>
                         <option value="cancelled">cancelled</option>
                     </select>
@@ -438,8 +437,17 @@ async function loadBatches(page) {
         }
 
        body.innerHTML = rows.map((batch, index) => {
+
             const canApprove = !IS_ADMIN && batch.status === 'processed';
             const serialNo = ((batchPaginationState.current_page - 1) * batchQueryState.per_page) + index + 1;
+
+            // Map status for display
+            let displayStatus = batch.status;
+            if (batch.status === 'completed') {
+                displayStatus = 'draft';
+            } else if (batch.status === 'approved') {
+                displayStatus = 'completed';
+            }
 
             // Excel file download link
             const fileCell = batch.file_url
@@ -459,7 +467,7 @@ async function loadBatches(page) {
                 <tr>
                     <td class="px-4 py-3">${serialNo}</td>
                     <td class="px-4 py-3 uppercase">${batch.media_type}</td>
-                    <td class="px-4 py-3">${batch.status ?? '-'}</td>
+                    <td class="px-4 py-3">${displayStatus ?? '-'}</td>
                     <td class="px-4 py-3">${batch.valid_rows}/${batch.total_rows}</td>
                     <td class="px-4 py-3">${new Date(batch.created_at).toLocaleString()}</td>
                     <td class="px-4 py-3">

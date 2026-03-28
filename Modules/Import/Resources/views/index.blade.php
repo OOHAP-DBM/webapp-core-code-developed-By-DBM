@@ -58,13 +58,22 @@
             <span id="processingBatches" class="bg-orange-200 text-orange-800 text-xs font-bold px-1.5 py-0.5 rounded-full">0</span>
         </button>
 
-        <button onclick="openImportManagement('completed')"
+        <button onclick="openImportManagement('approved')"
                 class="stat-pill flex items-center gap-2 px-4 py-2 md:h-15 cursor-pointer rounded-sm text-md font-semibold transition-colors bg-green-50 border-green-200 text-green-700 hover:bg-green-100">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             Completed
-            <span id="completedBatches" class="bg-green-200 text-green-800 text-xs font-bold px-1.5 py-0.5 rounded-full">0</span>
+            <span id="approvedBatches" class="bg-green-200 text-green-800 text-xs font-bold px-1.5 py-0.5 rounded-full">0</span>
+        </button>
+
+         <button onclick="openImportManagement('completed')"
+                class="stat-pill flex items-center gap-2 px-4 py-2 md:h-15 cursor-pointer rounded-sm text-md font-semibold transition-colors bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Draft
+            <span id="completedBatches" class="bg-gray-200 text-gray-800 text-xs font-bold px-1.5 py-0.5 rounded-full">0</span>
         </button>
 
         <button onclick="openImportManagement('failed')"
@@ -1154,10 +1163,13 @@
         const processing = summary?.processing ?? batches.filter(b => b.status === 'processing').length;
         const completed  = summary?.completed  ?? batches.filter(b => b.status === 'completed').length;
         const failed     = summary?.failed     ?? batches.filter(b => b.status === 'failed').length;
+        const approved     = summary?.approved     ?? batches.filter(b => b.status === 'approved').length;
         document.getElementById('totalBatches').textContent      = total;
         document.getElementById('processingBatches').textContent = processing;
         document.getElementById('completedBatches').textContent  = completed;
         document.getElementById('failedBatches').textContent     = failed;
+        document.getElementById('approvedBatches').textContent     = approved;
+
     }
 
     function getStatusBadge(status) {
