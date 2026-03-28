@@ -57,4 +57,19 @@ class CheckMultipleDatesRequest extends FormRequest
             'dates.*.date_format' => 'All dates must be in YYYY-MM-DD format.',
         ];
     }
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($this->has('dates') && is_array($this->input('dates'))) {
+                foreach ($this->input('dates') as $idx => $date) {
+                    if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $date)) {
+                        $validator->errors()->add("dates.$idx", 'Date must be in YYYY-MM-DD format, not DD/MM/YYYY.');
+                    }
+                }
+            }
+        });
+    }
 }
