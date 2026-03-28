@@ -106,7 +106,13 @@ class VendorPaymentDetailController extends Controller
 
             $validated = $request->validate([
                 'ifsc_code'      => 'required|string|size:11',
-                'account_number' => 'required|string|max:30',
+               'account_number' => [
+                        'required',
+                        'string',
+                        'max:30',
+                        Rule::unique('vendor_payment_details')
+                            ->where(fn($q) => $q->where('vendor_id', $vendorId))
+                    ],
                 'account_holder' => 'required|string|max:255',
                 'bank_name'      => 'nullable|string|max:255',
                 'is_default'     => 'nullable|boolean',
@@ -164,7 +170,14 @@ class VendorPaymentDetailController extends Controller
 
             $validated = $request->validate([
                 'ifsc_code'      => 'required|string|size:11',
-                'account_number' => 'required|string|max:30',
+                'account_number' => [
+                    'required',
+                    'string',
+                    'max:30',
+                    Rule::unique('vendor_payment_details')
+                        ->where(fn($q) => $q->where('vendor_id', $vendorId))
+                        ->ignore($id)
+                ],
                 'account_holder' => 'required|string|max:255',
                 'bank_name'      => 'nullable|string|max:255',
                 'is_default'     => 'nullable|boolean',
