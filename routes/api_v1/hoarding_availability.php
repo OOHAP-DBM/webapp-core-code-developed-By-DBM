@@ -11,9 +11,6 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::middleware(['auth:sanctum'])->prefix('hoardings/{hoarding}')->group(function () {
-    // Combined summary and calendar endpoint
-    Route::get('/availability', [\App\Http\Controllers\Api\HoardingAvailabilityController::class, 'getSummaryAndCalendar'])
-        ->name('api.hoardings.availability.combined');
     // Get availability calendar for date range
     Route::get('/availability/calendar', [HoardingAvailabilityController::class, 'getCalendar'])
         ->name('api.hoardings.availability.calendar');

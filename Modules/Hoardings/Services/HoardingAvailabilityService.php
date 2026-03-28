@@ -515,46 +515,4 @@ class HoardingAvailabilityService
 
         return $available;
     }
-
-
-     /**
-     * Get both summary and calendar in one response
-     *
-     * GET /api/v1/hoardings/{hoarding}/availability
-     *
-     * Query Parameters:
-     * - start_date (required): YYYY-MM-DD
-     * - end_date (required): YYYY-MM-DD
-     * - include_details (optional): true/false, default false
-     *
-     * @param GetAvailabilityCalendarRequest $request
-     * @param Hoarding $hoarding
-     * @return JsonResponse
-     */
-    public function getSummaryAndCalendar(GetAvailabilityCalendarRequest $request, Hoarding $hoarding): JsonResponse
-    {
-        $calendar = $this->availabilityService->getAvailabilityCalendar(
-            $hoarding->id,
-            $request->input('start_date'),
-            $request->input('end_date'),
-            $request->boolean('include_details', false)
-        );
-        $summary = $this->availabilityService->getAvailabilitySummary(
-            $hoarding->id,
-            $request->input('start_date'),
-            $request->input('end_date')
-        );
-        return response()->json([
-            'success' => true,
-            'message' => 'Availability summary and calendar retrieved successfully',
-            'data' => [
-                'hoarding_id' => $hoarding->id,
-                'start_date' => $request->input('start_date'),
-                'end_date' => $request->input('end_date'),
-                'summary' => $summary,
-                'calendar' => $calendar['calendar'] ?? [],
-                'total_days' => $calendar['total_days'] ?? null,
-            ],
-        ]);
-    }
 }
