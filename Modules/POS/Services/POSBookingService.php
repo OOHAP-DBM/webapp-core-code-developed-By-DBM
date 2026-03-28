@@ -320,7 +320,7 @@ class POSBookingService
             if (!empty($booking->customer_id)) {
                 $customer = \App\Models\User::find($booking->customer_id);
                 if ($customer?->notification_email && filter_var($customer->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                    Mail::to($customer->email)->queue(
+                    Mail::to($customer->email)->send(
                         new \App\Mail\PosBookingCreatedMail($booking, $customer, 'customer')
                     );
                 }
@@ -343,7 +343,7 @@ class POSBookingService
             // Vendor
             $vendor = \App\Models\User::find($booking->vendor_id);
             if ($vendor?->notification_email && filter_var($vendor->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                Mail::to($vendor->email)->queue(
+                Mail::to($vendor->email)->send(
                     new \App\Mail\PosBookingCreatedMail($booking, $vendor, 'vendor')
                 );
             }
@@ -366,7 +366,7 @@ class POSBookingService
             $admins = \App\Models\User::where('active_role', 'admin')->get();
             foreach ($admins as $admin) {
                 if ($admin->notification_email && filter_var($admin->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                    Mail::to($admin->email)->queue(
+                    Mail::to($admin->email)->send(
                         new \App\Mail\PosBookingCreatedMail($booking, $admin, 'admin')
                     );
                 }
@@ -421,18 +421,18 @@ class POSBookingService
         // ── Email to customer/vendor/admin ────────────────────────
         try {
             if ($customer && $customer->notification_email && filter_var($customer->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                Mail::to($customer->email)->queue(
+                Mail::to($customer->email)->send(
                     new \App\Mail\PosBookingCancelledMail($booking, $customer, ['recipient' => 'customer'])
                 );
             }
             if ($vendor && $vendor->notification_email && filter_var($vendor->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                Mail::to($vendor->email)->queue(
+                Mail::to($vendor->email)->send(
                     new \App\Mail\PosBookingCancelledMail($booking, $vendor, ['recipient' => 'vendor'])
                 );
             }
             foreach ($admins as $admin) {
                 if ($admin->notification_email && filter_var($admin->email ?? '', FILTER_VALIDATE_EMAIL)) {
-                    Mail::to($admin->email)->queue(
+                    Mail::to($admin->email)->send(
                         new \App\Mail\PosBookingCancelledMail($booking, $admin, ['recipient' => 'admin'])
                     );
                 }
@@ -532,7 +532,7 @@ class POSBookingService
 
         if (!empty($emailRecipient)) {
             try {
-                \Mail::to($emailRecipient)->queue(
+                \Mail::to($emailRecipient)->send(
                     new PosBookingCancelledMail(
                         $booking,
                         $customer,
