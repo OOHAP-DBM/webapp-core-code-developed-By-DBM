@@ -120,6 +120,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+         if (config('app.env') === 'production') {
+                URL::forceScheme('https');
+            }
+
         Event::listen(\Illuminate\Routing\Events\RouteMatched::class, function ($event) {
             $routeName = $event->request->route()?->getName() ?? '';
 

@@ -303,7 +303,7 @@ Route::post('/guest/merge', [\App\Http\Controllers\Api\GuestMergeController::cla
 // ============================================
 // AUTH ROUTES (PROMPT 112 - Role-Based Auth)
 // ============================================
-Route::middleware('guest')->group(function () {
+Route::middleware(['web', 'guest'])->group(function () {
     // Login
     Route::get('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'login'])->name('login.submit');

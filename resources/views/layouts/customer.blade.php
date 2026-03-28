@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
     <title>@yield('title', 'Dashboard') - OOHAPP Customer</title>
 
@@ -168,6 +171,15 @@
         }
         function closeLogoutModal() { document.getElementById('logoutModal').classList.add('hidden'); }
     </script>
+    <script>
+    // Logout ke baad back button se aane par force redirect
+    window.addEventListener('pageshow', function(event) {
+        // bfcache se page load hua hai (back button)
+        if (event.persisted) {
+            window.location.replace('/login');
+        }
+    });
+</script>
 
 </body>
 </html>
