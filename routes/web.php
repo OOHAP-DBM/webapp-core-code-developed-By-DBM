@@ -684,6 +684,16 @@ Route::prefix('/vendor/pos/api/')
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
          Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
         Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+          // ── Payment Details — backward-compatible generic endpoints ───────────
+        Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
+        Route::post('/payment-details',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+
+        // ── Payment Details — multi-bank CRUD ─────────────────────────────────
+        Route::get('/payment-details/banks',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'listBanks']);
+        Route::post('/payment-details/banks',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'storeBank']);
+        Route::put('/payment-details/banks/{id}',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'updateBank']);
+        Route::delete('/payment-details/banks/{id}',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'deleteBank']);
+        Route::post('/payment-details/banks/{id}/set-default',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'setDefaultBank']);
     });
 
 Route::prefix('/admin/pos/api/')
@@ -1374,6 +1384,9 @@ Route::get('/coming-soon', function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin.settings.')->group(function () {
     Route::get('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'edit'])->name('hoarding_auto_approval.edit');
     Route::post('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'update'])->name('hoarding_auto_approval.update');
+    Route::get('/pos-cash-limit', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'editPos'])->name('pos-cash-limit.edit');
+    Route::post('/pos-cash-limit', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'updatePos'])->name('pos-cash-limit.update');
+
     //================== razorpay configuration=============
     Route::get('/razorpay',         [RazorpaySettingsController::class, 'index'])->name('razorpay');
     Route::post('/razorpay',        [RazorpaySettingsController::class, 'update'])->name('razorpay.update');

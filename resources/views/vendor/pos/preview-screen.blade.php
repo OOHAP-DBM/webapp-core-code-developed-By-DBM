@@ -77,7 +77,8 @@
                 </div>
 
                 {{-- Bank Details Panel --}}
-                <div id="bank-details-panel" class="hidden space-y-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
+                @include('vendor.pos.components.bank-details')
+                <!-- <div id="bank-details-panel" class="hidden space-y-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
                     <div class="flex items-center justify-between mb-1">
                         <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider">Bank Details</h4>
                         <span id="bank-saved-badge" class="hidden text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ Saved</span>
@@ -119,7 +120,7 @@
                             Save Bank Details
                         </button>
                     </div>
-                </div>
+                </div> -->
 
                 {{-- UPI Details Panel --}}
                 <div id="upi-details-panel" class="hidden space-y-3 bg-purple-50 border border-purple-100 rounded-xl p-4">
@@ -334,9 +335,9 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                <button onclick="closeConfirmedModal()" class="w-full sm:flex-1 min-h-[44px] py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">Close</button>
+                <button onclick="closeConfirmedModal()" class="w-full sm:flex-1 min-h-[44px] py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">View Booking</button>
                 <button onclick="window.location.href=`${window.POS_BASE_PATH || '/vendor/pos'}/bookings`" class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#2D5A43] text-white rounded-xl text-sm font-bold hover:bg-opacity-90">
-                    View Bookings
+                    Close
                 </button>
             </div>
         </div>
@@ -424,6 +425,18 @@ function getPosPricingBreakdown() {
         return { discountVal, tax, grandTotal };
 }
 
+// function calculateFinalTotals() {
+//     const { discountVal, tax, grandTotal } = getPosPricingBreakdown();
+//     const fmt = v => typeof formatINR === 'function' ? formatINR(v) : `₹${Math.round(v)}`;
+//     const discountInput = document.getElementById('pos-discount');
+//     if (discountInput && Number(discountInput.value) !== discountVal) {
+//         discountInput.value = discountVal;
+//     }
+//     document.getElementById('side-discount-display').innerText = `- ${fmt(discountVal)}`;
+//     document.getElementById('side-tax').innerText              = fmt(tax);
+//     document.getElementById('side-grand-total').innerText      = fmt(grandTotal);
+// }
+// window.calculateFinalTotals = calculateFinalTotals;
 function calculateFinalTotals() {
     const { discountVal, tax, grandTotal } = getPosPricingBreakdown();
     const fmt = v => typeof formatINR === 'function' ? formatINR(v) : `₹${Math.round(v)}`;
@@ -434,6 +447,9 @@ function calculateFinalTotals() {
     document.getElementById('side-discount-display').innerText = `- ${fmt(discountVal)}`;
     document.getElementById('side-tax').innerText              = fmt(tax);
     document.getElementById('side-grand-total').innerText      = fmt(grandTotal);
+
+    // Always re-apply cash limit after totals are recalculated
+    if (typeof applyCashLimit === 'function') applyCashLimit();
 }
 window.calculateFinalTotals = calculateFinalTotals;
 
@@ -484,84 +500,84 @@ function selectHoldTime(mins) {
 }
 
 /* ── IFSC Fetch ── */
-async function fetchBankFromIFSC() {
-    const ifsc = document.getElementById('bank-ifsc').value.trim();
-    if (ifsc.length !== 11) return;
-    const el = document.getElementById('ifsc-result');
-    el.classList.remove('hidden');
-    el.innerText = 'Fetching...';
-    try {
-        const res  = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
-        if (!res.ok) throw new Error('Not found');
-        const data = await res.json();
-        el.innerText = `${data.BANK} — ${data.BRANCH}, ${data.CITY}`;
-        el.style.color = '#1d4ed8';
-        document.getElementById('bank-acc-holder').placeholder = `Account holder at ${data.BANK}`;
-    } catch (e) {
-        el.innerText = 'Invalid IFSC or not found';
-        el.style.color = '#dc2626';
-    }
-}
+// async function fetchBankFromIFSC() {
+//     const ifsc = document.getElementById('bank-ifsc').value.trim();
+//     if (ifsc.length !== 11) return;
+//     const el = document.getElementById('ifsc-result');
+//     el.classList.remove('hidden');
+//     el.innerText = 'Fetching...';
+//     try {
+//         const res  = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
+//         if (!res.ok) throw new Error('Not found');
+//         const data = await res.json();
+//         el.innerText = `${data.BANK} — ${data.BRANCH}, ${data.CITY}`;
+//         el.style.color = '#1d4ed8';
+//         document.getElementById('bank-acc-holder').placeholder = `Account holder at ${data.BANK}`;
+//     } catch (e) {
+//         el.innerText = 'Invalid IFSC or not found';
+//         el.style.color = '#dc2626';
+//     }
+// }
 
-/* ── Save bank details ── */
-async function saveBankDetails() {
-    const ifsc   = document.getElementById('bank-ifsc').value.trim();
-    const acc    = document.getElementById('bank-acc-number').value.trim();
-    const holder = document.getElementById('bank-acc-holder').value.trim();
-    const ifscEl = document.getElementById('ifsc-result');
-    const bankName = ifscEl.innerText.split('—')[0].trim() || 'Bank';
+// /* ── Save bank details ── */
+// async function saveBankDetails() {
+//     const ifsc   = document.getElementById('bank-ifsc').value.trim();
+//     const acc    = document.getElementById('bank-acc-number').value.trim();
+//     const holder = document.getElementById('bank-acc-holder').value.trim();
+//     const ifscEl = document.getElementById('ifsc-result');
+//     const bankName = ifscEl.innerText.split('—')[0].trim() || 'Bank';
 
-    if (!ifsc || !acc || !holder) { showToast('Please fill all bank fields', 'warning'); return; }
+//     if (!ifsc || !acc || !holder) { showToast('Please fill all bank fields', 'warning'); return; }
 
-    try {
-        const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
-            body: JSON.stringify({ type: 'bank', ifsc_code: ifsc, account_number: acc, account_holder: holder, bank_name: bankName })
-        });
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.message || 'Save failed');
-        savedBankDetails = result.data;
-        renderSavedBankCard(savedBankDetails);
-        showToast('Bank details saved!', 'success');
-    } catch (e) {
-        showToast(e.message, 'error');
-    }
-}
+//     try {
+//         const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+//             body: JSON.stringify({ type: 'bank', ifsc_code: ifsc, account_number: acc, account_holder: holder, bank_name: bankName })
+//         });
+//         const result = await res.json();
+//         if (!res.ok) throw new Error(result.message || 'Save failed');
+//         savedBankDetails = result.data;
+//         renderSavedBankCard(savedBankDetails);
+//         showToast('Bank details saved!', 'success');
+//     } catch (e) {
+//         showToast(e.message, 'error');
+//     }
+// }
 
-function renderSavedBankCard(d) {
-    if (!d) return;
-    document.getElementById('saved-bank-name').innerText   = d.bank_name || '---';
-    document.getElementById('saved-bank-acc').innerText    = 'A/C: ' + (d.account_number || '---');
-    document.getElementById('saved-bank-holder').innerText = 'Holder: ' + (d.account_holder || '---');
-    document.getElementById('saved-bank-ifsc').innerText   = 'IFSC: ' + (d.ifsc_code || '---');
-    document.getElementById('bank-saved-card').classList.remove('hidden');
-    document.getElementById('bank-input-form').classList.add('hidden');
-    document.getElementById('bank-saved-badge').classList.remove('hidden');
-}
+// function renderSavedBankCard(d) {
+//     if (!d) return;
+//     document.getElementById('saved-bank-name').innerText   = d.bank_name || '---';
+//     document.getElementById('saved-bank-acc').innerText    = 'A/C: ' + (d.account_number || '---');
+//     document.getElementById('saved-bank-holder').innerText = 'Holder: ' + (d.account_holder || '---');
+//     document.getElementById('saved-bank-ifsc').innerText   = 'IFSC: ' + (d.ifsc_code || '---');
+//     document.getElementById('bank-saved-card').classList.remove('hidden');
+//     document.getElementById('bank-input-form').classList.add('hidden');
+//     document.getElementById('bank-saved-badge').classList.remove('hidden');
+// }
 
-function editBankDetails() {
-    document.getElementById('bank-saved-card').classList.add('hidden');
-    document.getElementById('bank-input-form').classList.remove('hidden');
-}
+// function editBankDetails() {
+//     document.getElementById('bank-saved-card').classList.add('hidden');
+//     document.getElementById('bank-input-form').classList.remove('hidden');
+// }
 
-async function loadSavedBankDetails() {
-    try {
-        const res  = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details?type=bank`, { headers: { 'Accept': 'application/json' } });
-        const data = await res.json();
-        if (data.success && data.data) {
-            savedBankDetails = data.data;
-            document.getElementById('bank-ifsc').value       = data.data.ifsc_code || '';
-            document.getElementById('bank-acc-number').value = data.data.account_number || '';
-            document.getElementById('bank-acc-holder').value = data.data.account_holder || '';
-            if (data.data.ifsc_code) {
-                document.getElementById('ifsc-result').innerText = data.data.bank_name || '';
-                document.getElementById('ifsc-result').classList.remove('hidden');
-            }
-            renderSavedBankCard(data.data);
-        }
-    } catch (e) { /* no saved details yet */ }
-}
+// async function loadSavedBankDetails() {
+//     try {
+//         const res  = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details?type=bank`, { headers: { 'Accept': 'application/json' } });
+//         const data = await res.json();
+//         if (data.success && data.data) {
+//             savedBankDetails = data.data;
+//             document.getElementById('bank-ifsc').value       = data.data.ifsc_code || '';
+//             document.getElementById('bank-acc-number').value = data.data.account_number || '';
+//             document.getElementById('bank-acc-holder').value = data.data.account_holder || '';
+//             if (data.data.ifsc_code) {
+//                 document.getElementById('ifsc-result').innerText = data.data.bank_name || '';
+//                 document.getElementById('ifsc-result').classList.remove('hidden');
+//             }
+//             renderSavedBankCard(data.data);
+//         }
+//     } catch (e) { /* no saved details yet */ }
+// }
 
 /* ── UPI ── */
 function previewQR(event) {
@@ -978,8 +994,11 @@ document.addEventListener('DOMContentLoaded', () => {
             );
             if (!res.ok) return;
             const data = await res.json();
-            const val = data?.data?.pos_cash_limit ?? data?.pos_cash_limit ?? null;
+            console.log('[CashLimit] Full API response:', data);
+            // Try all possible locations for the value
+            const val = data?.data?.pos_cash_limit ?? data?.pos_cash_limit ?? data?.data?.value ?? null;
             _cashLimit = val !== null ? parseFloat(val) : null;
+            console.log('[CashLimit] Value from DB:', val, 'Parsed:', _cashLimit);
         } catch (e) {
             console.warn('[CashLimit] Could not fetch cash limit:', e);
         } finally {
@@ -1030,6 +1049,7 @@ document.addEventListener('DOMContentLoaded', () => {
             wrapper = document.createElement('div');
             wrapper.id        = 'cash-btn-wrapper';
             wrapper.className = 'relative';
+            wrapper.style.display = 'contents';
             btn.parentNode.insertBefore(wrapper, btn);
             wrapper.appendChild(btn);
         }
@@ -1040,7 +1060,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip = document.createElement('div');
             tooltip.id        = 'cash-tooltip-bubble';
             tooltip.className = [
-                'absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2',
+                'absolute z-50 mt-20',
                 'w-56 bg-gray-900 text-white text-[11px] font-medium',
                 'rounded-lg px-3 py-2 shadow-xl leading-relaxed',
                 'pointer-events-none opacity-0 transition-opacity duration-200',
@@ -1080,20 +1100,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 grid.parentNode.insertBefore(tip, grid.nextSibling);
             }
         }
-        tip.innerHTML = `
-            <div class="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                </svg>
-                <div>
-                    <p class="text-[11px] font-bold text-red-700">Cash payment unavailable</p>
-                    <p class="text-[10px] text-red-600 mt-0.5">
-                        Admin cash limit is <strong>${formatINRLocal(_cashLimit)}</strong>.
-                        Your booking total <strong>${formatINRLocal(total)}</strong> exceeds this limit.
-                        Please select Bank Transfer, UPI, or Credit Note.
-                    </p>
-                </div>
-            </div>`;
+        // tip.innerHTML = `
+        //     <div class="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        //         <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        //             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        //         </svg>
+        //         <div>
+        //             <p class="text-[11px] font-bold text-red-700">Cash payment unavailable</p>
+        //             <p class="text-[10px] text-red-600 mt-0.5">
+        //                 Admin cash limit is <strong>${formatINRLocal(_cashLimit)}</strong>.
+        //                 Your booking total <strong>${formatINRLocal(total)}</strong> exceeds this limit.
+        //                 Please select Bank Transfer, UPI, or Credit Note.
+        //             </p>
+        //         </div>
+        //     </div>`;
         tip.style.display = 'block';
 
         // ── Auto-switch away from cash if currently selected ──
@@ -1122,15 +1142,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide inline warning
         var tip = document.getElementById('cash-limit-tooltip');
         if (tip) tip.style.display = 'none';
-    }
-    function enableCashBtn(btn) {
-        btn.disabled        = false;
-        btn.style.opacity       = '';
-        btn.style.cursor        = '';
-        btn.style.pointerEvents = '';
-        btn.removeAttribute('title');
-        var tip = document.getElementById('cash-limit-tooltip');
-        if (tip) tip.style.display = 'none';
+
+        // Auto-switch back to cash if total is now within limit and payment mode is not cash
+        if (typeof selectedPaymentMode !== 'undefined' && selectedPaymentMode !== 'cash') {
+            var total = getCurrentTotal();
+            if (_cashLimit !== null && _cashLimit > 0 && total <= _cashLimit) {
+                if (typeof selectPaymentMode === 'function') {
+                    selectPaymentMode('cash');
+                }
+            }
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -1147,11 +1168,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             }
 
-            var discountInput = document.getElementById('pos-discount');
-            if (discountInput) {
-                discountInput.addEventListener('input', function () {
-                    setTimeout(applyCashLimit, 50);
+         var discountInput = document.getElementById('pos-discount');
+    if (discountInput) {
+        discountInput.addEventListener('input', function () {
+            // First recalculate totals, then re-evaluate cash limit
+            if (typeof calculateFinalTotals === 'function') {
+                calculateFinalTotals();
+            }
+            setTimeout(applyCashLimit, 0);
+        });
+    }
+
+            // MutationObserver to re-apply cash limit if payment mode grid changes
+            var paymentGrid = document.querySelector('.grid');
+            if (paymentGrid) {
+                var gridObserver = new MutationObserver(function() {
+                    applyCashLimit();
                 });
+                gridObserver.observe(paymentGrid, { childList: true, subtree: true });
             }
 
             // --- Milestone Hold Duration Logic ---

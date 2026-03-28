@@ -22,13 +22,14 @@
             <div id="hoardingGrid">
                 @include('components.customer.hoarding-grid', ['bestHoardings' => $bestHoardings])
 
-                <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="text-sm text-gray-600 font-medium">
-                        Showing {{ $bestHoardings->firstItem() ?? 0 }} - {{ $bestHoardings->lastItem() ?? 0 }} of {{ $bestHoardings->total() }}
-                    </div>
-                    <div>
-                        {{ $bestHoardings->links('pagination.vendor-compact') }}
-
+                <div class="mt-8 pt-3 border-t border-gray-200">
+                    <div class="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p class="text-sm text-gray-500 font-medium order-2 sm:order-1">
+                            Showing {{ $bestHoardings->firstItem() ?? 0 }}–{{ $bestHoardings->lastItem() ?? 0 }} of {{ $bestHoardings->total() }} results
+                        </p>
+                        <div class="order-1 sm:order-2">
+                            {{ $bestHoardings->links('pagination.vendor-compact') }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -111,8 +112,8 @@
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                @foreach($topCities as $city)
-                    @include('components.customer.category-card', ['city' => $city])
+                @foreach($topStates as $state)
+                    @include('components.customer.category-card', ['state' => $state])
                 @endforeach
             </div>
         </div>
