@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Modules\POS\Models\VendorPaymentDetail;
 use App\Models\User;
+use Illuminate\Validation\Rule;
 
 class VendorPaymentDetailController extends Controller
 {
