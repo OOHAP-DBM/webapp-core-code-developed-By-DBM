@@ -191,30 +191,30 @@ class HoardingAvailabilityController extends Controller
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
-    // public function getMonthCalendar(Request $request, Hoarding $hoarding, int $year, int $month): JsonResponse
-    // {
-    //     if ($year < 2020 || $year > 2100) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Invalid year. Must be between 2020 and 2100.',
-    //         ], 422);
-    //     }
+    public function getMonthCalendar(Request $request, Hoarding $hoarding, int $year, int $month): JsonResponse
+    {
+        if ($year < 2020 || $year > 2100) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid year. Must be between 2020 and 2100.',
+            ], 422);
+        }
 
-    //     if ($month < 1 || $month > 12) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Invalid month. Must be between 1 and 12.',
-    //         ], 422);
-    //     }
+        if ($month < 1 || $month > 12) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid month. Must be between 1 and 12.',
+            ], 422);
+        }
 
-    //     $data = $this->availabilityService->getMonthCalendar($hoarding->id, $year, $month);
+        $data = $this->availabilityService->getMonthCalendar($hoarding->id, $year, $month);
 
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Month calendar retrieved successfully',
-    //         'data' => $data,
-    //     ]);
-    // }
+        return response()->json([
+            'success' => true,
+            'message' => 'Month calendar retrieved successfully',
+            'data' => $data,
+        ]);
+    }
 
     /**
      * Check availability for specific dates (batch check)
@@ -250,23 +250,23 @@ class HoardingAvailabilityController extends Controller
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
-    // public function checkMultipleDates(CheckMultipleDatesRequest $request, Hoarding $hoarding): JsonResponse
-    // {
-    //     $results = $this->availabilityService->checkMultipleDates(
-    //         $hoarding->id,
-    //         $request->input('dates')
-    //     );
+    public function checkMultipleDates(CheckMultipleDatesRequest $request, Hoarding $hoarding): JsonResponse
+    {
+        $results = $this->availabilityService->checkMultipleDates(
+            $hoarding->id,
+            $request->input('dates')
+        );
 
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Date availability checked successfully',
-    //         'data' => [
-    //             'hoarding_id' => $hoarding->id,
-    //             'requested_dates' => $request->input('dates'),
-    //             'results' => $results,
-    //         ],
-    //     ]);
-    // }
+        return response()->json([
+            'success' => true,
+            'message' => 'Date availability checked successfully',
+            'data' => [
+                'hoarding_id' => $hoarding->id,
+                'requested_dates' => $request->input('dates'),
+                'results' => $results,
+            ],
+        ]);
+    }
 
     /**
      * Get next N available dates
