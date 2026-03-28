@@ -329,7 +329,7 @@ class POSBooking extends Model
 
     public function scopeOverdue($query)
     {
-        return $query->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_PARTIAL_PAID])
+        return $query->whereIn('status', [self::STATUS_CONFIRMED, self::PAYMENT_STATUS_PARTIAL ])
             ->where('end_date', '<', now());
     }
 
@@ -341,7 +341,7 @@ class POSBooking extends Model
     public function getBookingsEligibleForWhatsappReminder(): Collection
     {
         return POSBooking::query()
-            ->whereIn('status', [self::STATUS_CONFIRMED, self::STATUS_PARTIAL_PAID])
+            ->whereIn('status', [self::STATUS_CONFIRMED, self::PAYMENT_STATUS_PARTIAL ])
             ->where('payment_status', '!=', self::PAYMENT_STATUS_PAID)
             ->where('reminder_count', '<', 3)
             ->where(function ($q) {
