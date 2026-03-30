@@ -1352,8 +1352,12 @@ class VendorPosController extends Controller
 
                 if (!empty($availability)) {
                     $unavailableReasons = [];
-                    foreach ($availability as $dateCheck) {
-                        if ($dateCheck['status'] !== 'available' && !in_array($dateCheck['status'], $unavailableReasons)) {
+                    $skipStatuses = ['available', 'blocked']; // blocked is allowed to proceed
+                  foreach ($availability as $dateCheck) {
+                        if (
+                            !in_array($dateCheck['status'], $skipStatuses) &&
+                            !in_array($dateCheck['status'], $unavailableReasons)
+                        ) {
                             $unavailableReasons[] = $dateCheck['status'];
                         }
                     }

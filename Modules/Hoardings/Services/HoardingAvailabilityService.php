@@ -35,11 +35,14 @@ class HoardingAvailabilityService
     ): array {
         $start = $startDate instanceof Carbon ? $startDate : Carbon::parse($startDate);
         $end = $endDate instanceof Carbon ? $endDate : Carbon::parse($endDate);
+        
 
         // Get all data sources
         $bookings = $this->getBookingsInRange($hoardingId, $start, $end);
         $holds = $this->getHoldsInRange($hoardingId, $start, $end);
-        $blocks = $this->getMaintenanceBlocksInRange($hoardingId, $start, $end);
+        // $blocks = $this->getMaintenanceBlocksInRange($hoardingId, $start, $end);   //This check from maintenance blocks is now moved to the Hoarding model's block_dates field, so we will fetch it from there instead of the separate maintenance_blocks table. This allows for more flexible blocking without needing to create separate block records for simple date blocks.
+        $blocks = $this->getBlockedDatesInRange($hoardingId, $start, $end);
+
         $posBookings = $this->getPOSBookingsInRange($hoardingId, $start, $end);
 
         // Generate date range
@@ -196,72 +199,133 @@ class HoardingAvailabilityService
      * @param Collection $posBookings
      * @return string
      */
-    protected function determineDateStatus(
-        Carbon $date,
-        Collection $bookings,
-        Collection $holds,
-        Collection $blocks,
-        Collection $posBookings
-    ): string {
-        $statuses = [];
+  protected function determineDateStatus(
+    Carbon $date,
+    Collection $bookings,
+    Collection $holds,
+    array $blockedDates,        // ✅ correct type
+    Collection $posBookings
+): string {
+    $statuses = [];
 
-        // Check maintenance blocks (highest priority)
-        $hasBlock = $blocks->contains(function ($block) use ($date) {
-            return $date->between($block->start_date, $block->end_date);
-        });
-
-        if ($hasBlock) {
-            $statuses[] = 'blocked';
-        }
-
-        // Check confirmed bookings
-        $hasBooking = $bookings->contains(function ($booking) use ($date) {
-            return $date->between(
-                Carbon::parse($booking->start_date),
-                Carbon::parse($booking->end_date)
-            );
-        });
-
-        if ($hasBooking) {
-            $statuses[] = 'booked';
-        }
-
-        // Check active holds
-        $hasHold = $holds->contains(function ($hold) use ($date) {
-            return $date->between(
-                Carbon::parse($hold->start_date),
-                Carbon::parse($hold->end_date)
-            );
-        });
-
-        if ($hasHold) {
-            $statuses[] = 'hold';
-        }
-
-        // Check POS bookings
-        $hasPOS = $posBookings->contains(function ($pos) use ($date) {
-            return $date->between(
-                Carbon::parse($pos->start_date),
-                Carbon::parse($pos->end_date)
-            );
-        });
-
-        if ($hasPOS) {
-            $statuses[] = 'booked'; // Treat POS as booked
-        }
-
-        // Determine final status
-        if (empty($statuses)) {
-            return 'available';
-        }
-
-        if (count($statuses) > 1) {
-            return 'partial'; // Multiple statuses on same date
-        }
-
-        return $statuses[0];
+    // ✅ Check block_dates array
+    if (in_array($date->format('Y-m-d'), $blockedDates)) {
+        $statuses[] = 'blocked';
     }
 
+    // Check confirmed bookings
+    $hasBooking = $bookings->contains(function ($booking) use ($date) {
+        return $date->between(
+            Carbon::parse($booking->start_date),
+            Carbon::parse($booking->end_date)
+        );
+    });
+    if ($hasBooking) {
+        $statuses[] = 'booked';
+    }
+
+    // Check active holds
+    $hasHold = $holds->contains(function ($hold) use ($date) {
+        return $date->between(
+            Carbon::parse($hold->start_date),
+            Carbon::parse($hold->end_date)
+        );
+    });
+    if ($hasHold) {
+        $statuses[] = 'hold';
+    }
+
+    // Check POS bookings
+    $hasPOS = $posBookings->contains(function ($pos) use ($date) {
+        return $date->between(
+            Carbon::parse($pos->start_date),
+            Carbon::parse($pos->end_date)
+        );
+    });
+    if ($hasPOS) {
+        $statuses[] = 'booked';
+    }
+
+    if (empty($statuses))     return 'available';
+    if (count($statuses) > 1) return 'partial';
+
+    return $statuses[0];
+}
+
+protected function getDateDetails(
+    Carbon $date,
+    Collection $bookings,
+    Collection $holds,
+    array $blockedDates,        // ✅ correct type
+    Collection $posBookings
+): array {
+    $details = [
+        'bookings'      => [],
+        'holds'         => [],
+        'blocked_dates' => [],  // ✅ renamed from 'blocks'
+        'pos_bookings'  => [],
+    ];
+
+    // Bookings
+    $dayBookings = $bookings->filter(function ($booking) use ($date) {
+        return $date->between(
+            Carbon::parse($booking->start_date),
+            Carbon::parse($booking->end_date)
+        );
+    });
+    foreach ($dayBookings as $booking) {
+        $details['bookings'][] = [
+            'id'            => $booking->id,
+            'start_date'    => $booking->start_date,
+            'end_date'      => $booking->end_date,
+            'status'        => $booking->status,
+            'customer_name' => $booking->customer->name ?? 'N/A',
+        ];
+    }
+
+    // Holds
+    $dayHolds = $holds->filter(function ($hold) use ($date) {
+        return $date->between(
+            Carbon::parse($hold->start_date),
+            Carbon::parse($hold->end_date)
+        );
+    });
+    foreach ($dayHolds as $hold) {
+        $details['holds'][] = [
+            'id'            => $hold->id,
+            'start_date'    => $hold->start_date,
+            'end_date'      => $hold->end_date,
+            'expires_at'    => $hold->hold_expiry_at?->format('Y-m-d H:i:s'),
+            'customer_name' => $hold->customer->name ?? 'N/A',
+        ];
+    }
+
+    // ✅ Blocked dates — simple array check, no Collection methods
+    if (in_array($date->format('Y-m-d'), $blockedDates)) {
+        $details['blocked_dates'][] = [
+            'date'   => $date->format('Y-m-d'),
+            'reason' => 'Blocked by vendor',
+        ];
+    }
+
+    // POS bookings
+    $dayPOS = $posBookings->filter(function ($pos) use ($date) {
+        return $date->between(
+            Carbon::parse($pos->start_date),
+            Carbon::parse($pos->end_date)
+        );
+    });
+    foreach ($dayPOS as $pos) {
+        $details['pos_bookings'][] = [
+            'id'         => $pos->id,
+            'start_date' => $pos->start_date,
+            'end_date'   => $pos->end_date,
+            'status'     => $pos->status,
+        ];
+    }
+
+    return $details;
+}
     /**
      * Get detailed information for a specific date
      * 
@@ -272,90 +336,90 @@ class HoardingAvailabilityService
      * @param Collection $posBookings
      * @return array
      */
-    protected function getDateDetails(
-        Carbon $date,
-        Collection $bookings,
-        Collection $holds,
-        Collection $blocks,
-        Collection $posBookings
-    ): array {
-        $details = [
-            'bookings' => [],
-            'holds' => [],
-            'blocks' => [],
-            'pos_bookings' => [],
-        ];
+    // protected function getDateDetails(
+    //     Carbon $date,
+    //     Collection $bookings,
+    //     Collection $holds,
+    //     Collection $blocks,
+    //     Collection $posBookings
+    // ): array {
+    //     $details = [
+    //         'bookings' => [],
+    //         'holds' => [],
+    //         'blocks' => [],
+    //         'pos_bookings' => [],
+    //     ];
 
-        // Get bookings for this date
-        $dayBookings = $bookings->filter(function ($booking) use ($date) {
-            return $date->between(
-                Carbon::parse($booking->start_date),
-                Carbon::parse($booking->end_date)
-            );
-        });
+    //     // Get bookings for this date
+    //     $dayBookings = $bookings->filter(function ($booking) use ($date) {
+    //         return $date->between(
+    //             Carbon::parse($booking->start_date),
+    //             Carbon::parse($booking->end_date)
+    //         );
+    //     });
 
-        foreach ($dayBookings as $booking) {
-            $details['bookings'][] = [
-                'id' => $booking->id,
-                'start_date' => $booking->start_date,
-                'end_date' => $booking->end_date,
-                'status' => $booking->status,
-                'customer_name' => $booking->customer->name ?? 'N/A',
-            ];
-        }
+    //     foreach ($dayBookings as $booking) {
+    //         $details['bookings'][] = [
+    //             'id' => $booking->id,
+    //             'start_date' => $booking->start_date,
+    //             'end_date' => $booking->end_date,
+    //             'status' => $booking->status,
+    //             'customer_name' => $booking->customer->name ?? 'N/A',
+    //         ];
+    //     }
 
-        // Get holds for this date
-        $dayHolds = $holds->filter(function ($hold) use ($date) {
-            return $date->between(
-                Carbon::parse($hold->start_date),
-                Carbon::parse($hold->end_date)
-            );
-        });
+    //     // Get holds for this date
+    //     $dayHolds = $holds->filter(function ($hold) use ($date) {
+    //         return $date->between(
+    //             Carbon::parse($hold->start_date),
+    //             Carbon::parse($hold->end_date)
+    //         );
+    //     });
 
-        foreach ($dayHolds as $hold) {
-            $details['holds'][] = [
-                'id' => $hold->id,
-                'start_date' => $hold->start_date,
-                'end_date' => $hold->end_date,
-                'expires_at' => $hold->hold_expiry_at?->format('Y-m-d H:i:s'),
-                'customer_name' => $hold->customer->name ?? 'N/A',
-            ];
-        }
+    //     foreach ($dayHolds as $hold) {
+    //         $details['holds'][] = [
+    //             'id' => $hold->id,
+    //             'start_date' => $hold->start_date,
+    //             'end_date' => $hold->end_date,
+    //             'expires_at' => $hold->hold_expiry_at?->format('Y-m-d H:i:s'),
+    //             'customer_name' => $hold->customer->name ?? 'N/A',
+    //         ];
+    //     }
 
-        // Get maintenance blocks for this date
-        $dayBlocks = $blocks->filter(function ($block) use ($date) {
-            return $date->between($block->start_date, $block->end_date);
-        });
+    //     // Get maintenance blocks for this date
+    //     $dayBlocks = $blocks->filter(function ($block) use ($date) {
+    //         return $date->between($block->start_date, $block->end_date);
+    //     });
 
-        foreach ($dayBlocks as $block) {
-            $details['blocks'][] = [
-                'id' => $block->id,
-                'title' => $block->title,
-                'start_date' => $block->start_date->format('Y-m-d'),
-                'end_date' => $block->end_date->format('Y-m-d'),
-                'block_type' => $block->block_type,
-            ];
-        }
+    //     foreach ($dayBlocks as $block) {
+    //         $details['blocks'][] = [
+    //             'id' => $block->id,
+    //             'title' => $block->title,
+    //             'start_date' => $block->start_date->format('Y-m-d'),
+    //             'end_date' => $block->end_date->format('Y-m-d'),
+    //             'block_type' => $block->block_type,
+    //         ];
+    //     }
 
-        // Get POS bookings for this date
-        $dayPOS = $posBookings->filter(function ($pos) use ($date) {
-            return $date->between(
-                Carbon::parse($pos->start_date),
-                Carbon::parse($pos->end_date)
-            );
-        });
+    //     // Get POS bookings for this date
+    //     $dayPOS = $posBookings->filter(function ($pos) use ($date) {
+    //         return $date->between(
+    //             Carbon::parse($pos->start_date),
+    //             Carbon::parse($pos->end_date)
+    //         );
+    //     });
 
-        foreach ($dayPOS as $pos) {
-            $details['pos_bookings'][] = [
-                'id' => $pos->id,
-                'start_date' => $pos->start_date,
-                'end_date' => $pos->end_date,
-                'status' => $pos->status,
-            ];
-        }
+    //     foreach ($dayPOS as $pos) {
+    //         $details['pos_bookings'][] = [
+    //             'id' => $pos->id,
+    //             'start_date' => $pos->start_date,
+    //             'end_date' => $pos->end_date,
+    //             'status' => $pos->status,
+    //         ];
+    //     }
 
-        return $details;
-    }
+    //     return $details;
+    // }
 
     /**
      * Generate summary statistics from calendar data
@@ -456,6 +520,33 @@ class HoardingAvailabilityService
             ->overlapping($start, $end)
             ->get();
     }
+
+    // ✅ Add this instead:
+    // This is added in the Hoarding model as a method, but we can also have it here if we want to keep all availability logic in one place. It depends on how we want to structure our code. For now, I'll add it here as a protected method that can be used by the service when fetching data.
+    protected function getBlockedDatesInRange(int $hoardingId, Carbon $start, Carbon $end): array
+    {
+        $hoarding = Hoarding::select('id', 'block_dates')->find($hoardingId);
+
+        if (!$hoarding || empty($hoarding->block_dates)) {
+            return [];
+        }
+
+        $blockDates = is_array($hoarding->block_dates)
+            ? $hoarding->block_dates
+            : json_decode($hoarding->block_dates, true) ?? [];
+
+        return collect($blockDates)
+            ->filter(function ($date) use ($start, $end) {
+                try {
+                    return Carbon::parse($date)->between($start, $end, true);
+                } catch (\Exception $e) {
+                    return false;
+                }
+            })
+            ->values()
+            ->toArray();
+    }
+
 
     /**
      * Get POS bookings in date range (if module exists)
