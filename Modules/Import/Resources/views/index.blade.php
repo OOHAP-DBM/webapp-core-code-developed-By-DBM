@@ -1299,8 +1299,7 @@
 
             <!-- Message -->
             <p class="text-sm text-gray-600 text-center mt-2 leading-relaxed">
-                You left while uploading <strong>"${fileName || 'your file'}"</strong>. 
-                <br/>The upload was cancelled.
+                Upload cancelled because you left the page.
             </p>
 
             <!-- Hint -->
