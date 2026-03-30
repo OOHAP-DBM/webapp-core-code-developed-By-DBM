@@ -397,6 +397,7 @@ class CustomerBookingController extends Controller
                 'city'         => $vendorProfile?->city ?? null,
                 'state'        => $vendorProfile?->state ?? null,
                 'pincode'      => $vendorProfile?->pincode ?? null,
+                'gstin'        => $vendorProfile?->gstin ?? $vendor?->gstin ?? null,
                 'logo_url'     => $vendorProfile?->logo_url ?? null,
             ];
 
