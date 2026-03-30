@@ -1049,6 +1049,41 @@ function _statusLabel(s) {
     return { booked:'Already Booked', blocked:'Blocked/Maintenance', hold:'On Hold', partial:'Partially Unavailable' }[s] || s;
 }
 
+// async function checkAllAvailability() {
+//     availabilityIssues = {};
+//     let allClear = true;
+
+//     await Promise.all(Array.from(selectedHoardings.entries()).map(async ([id, h]) => {
+//         if (!h.startDate || !h.endDate) {
+//             allClear = false;
+//             availabilityIssues[id] = { title:h.title, label:'Dates not selected', conflicts:[] };
+//             return;
+//         }
+
+//         try {
+//             const dates = enumerateDates(h.startDate, h.endDate);
+//             const res   = await fetch(`/api/v1/hoardings/${id}/availability/check-dates`, {
+//                 method: 'POST', credentials:'same-origin',
+//                 headers: { 'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}' },
+//                 body: JSON.stringify({ dates }),
+//             });
+//             if (!res.ok) return;
+//             const data      = await res.json();
+//             // const conflicts = (data.data?.results || []).filter(r => r.status !== 'available');
+//             const conflicts = (data.data?.results || []).filter(r => 
+//                 r.status === 'booked' || r.status === 'hold' || r.status === 'partial'
+//             );
+//             if (conflicts.length) {
+//                 allClear = false;
+//                 const statuses = [...new Set(conflicts.map(c => c.status))];
+//                 availabilityIssues[id] = { title:h.title, label:statuses.map(_statusLabel).join(', '), conflicts };
+//             }
+//         } catch(e) { console.error('Avail check', id, e); }
+//     }));
+
+//     return allClear;
+// }
+
 async function checkAllAvailability() {
     availabilityIssues = {};
     let allClear = true;
@@ -1056,24 +1091,34 @@ async function checkAllAvailability() {
     await Promise.all(Array.from(selectedHoardings.entries()).map(async ([id, h]) => {
         if (!h.startDate || !h.endDate) {
             allClear = false;
-            availabilityIssues[id] = { title:h.title, label:'Dates not selected', conflicts:[] };
+            availabilityIssues[id] = { title: h.title, label: 'Dates not selected', conflicts: [] };
             return;
         }
 
         try {
-            const dates = enumerateDates(h.startDate, h.endDate);
-            const res   = await fetch(`/api/v1/hoardings/${id}/availability/check-dates`, {
-                method: 'POST', credentials:'same-origin',
-                headers: { 'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}' },
-                body: JSON.stringify({ dates }),
-            });
-            if (!res.ok) return;
-            const data      = await res.json();
-            const conflicts = (data.data?.results || []).filter(r => r.status !== 'available');
+            const allDates  = enumerateDates(h.startDate, h.endDate);
+            const chunkSize = 60; // ✅ send max 60 dates per request
+            let conflicts   = [];
+
+            for (let i = 0; i < allDates.length; i += chunkSize) {
+                const chunk = allDates.slice(i, i + chunkSize);
+                const res   = await fetch(`/api/v1/hoardings/${id}/availability/check-dates`, {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({ dates: chunk }),
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                const chunkConflicts = (data.data?.results || []).filter(r =>
+                    r.status === 'booked' || r.status === 'hold' || r.status === 'partial'
+                );
+                conflicts = conflicts.concat(chunkConflicts);
+            }
+
             if (conflicts.length) {
                 allClear = false;
                 const statuses = [...new Set(conflicts.map(c => c.status))];
-                availabilityIssues[id] = { title:h.title, label:statuses.map(_statusLabel).join(', '), conflicts };
+                availabilityIssues[id] = { title: h.title, label: statuses.map(_statusLabel).join(', '), conflicts };
             }
         } catch(e) { console.error('Avail check', id, e); }
     }));
@@ -1172,10 +1217,17 @@ async function openDatePickerForHoarding(id) {
         const heatmap = payload.data?.heatmap || [];
 
         currentHeatmapMap = {};
+        // const disabledDates = [];
+        // heatmap.forEach(d => {
+        //     currentHeatmapMap[d.date] = d.status;
+        //     if (d.status && d.status !== 'available') disabledDates.push(d.date);
+        // });
         const disabledDates = [];
         heatmap.forEach(d => {
             currentHeatmapMap[d.date] = d.status;
-            if (d.status && d.status !== 'available') disabledDates.push(d.date);
+            if (d.status && !['available', 'blocked'].includes(d.status)) {
+                disabledDates.push(d.date);
+            }
         });
 
         document.getElementById('date-picker-inline').innerHTML = '';
@@ -1274,6 +1326,54 @@ function closeDatePickerModal() {
     dpCurrentStart           = null;
 }
 
+// async function confirmDateSelection() {
+//     if (!currentFlatpickr || !currentEditingHoardingId) { closeDatePickerModal(); return; }
+
+//     const dates = currentFlatpickr.selectedDates;
+//     if (!dates?.length) { showToast('Please select a start date first.', 'warning'); return; }
+
+//     const startISO = toLocalYMD(dates[0]);
+//     const rawEnd   = dates.length >= 2 ? toLocalYMD(dates[1]) : startISO;
+//     const { endISO } = snapToMonths(startISO, rawEnd === startISO ? endForMonths(startISO, 1) : rawEnd);
+
+//     const allDates = enumerateDates(startISO, endISO);
+//     try {
+//         const res = await fetch(`/api/v1/hoardings/${currentEditingHoardingId}/availability/check-dates`, {
+//             method: 'POST', credentials:'same-origin',
+//             headers: { 'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}' },
+//             body: JSON.stringify({ dates: allDates }),
+//         });
+//         if (!res.ok) { showToast('Could not verify availability.', 'error'); return; }
+//         const data      = await res.json();
+//         // const conflicts = (data.data?.results || []).filter(r => r.status !== 'available');
+//         const conflicts = (data.data?.results || []).filter(r => 
+//             r.status === 'booked' || r.status === 'hold' || r.status === 'partial'
+//         );
+
+//         if (conflicts.length) {
+//             showToast('Selected range includes unavailable dates. Please choose a different period.', 'warning');
+//             return;
+//         }
+
+//         const h = selectedHoardings.get(currentEditingHoardingId);
+//         if (h) {
+//             h.startDate = startISO;
+//             h.endDate   = endISO;
+//             selectedHoardings.set(currentEditingHoardingId, h);
+//             delete availabilityIssues[currentEditingHoardingId];
+//             updateSummary();
+//         }
+
+//         closeDatePickerModal();
+//         const rng = friendlyRange(startISO, endISO);
+//         showToast(`Dates confirmed: ${rng.full} (${rng.badge})`, 'success');
+
+//     } catch(e) {
+//         console.error(e);
+//         showToast('Error checking availability. Please try again.', 'error');
+//     }
+// }
+
 async function confirmDateSelection() {
     if (!currentFlatpickr || !currentEditingHoardingId) { closeDatePickerModal(); return; }
 
@@ -1284,39 +1384,33 @@ async function confirmDateSelection() {
     const rawEnd   = dates.length >= 2 ? toLocalYMD(dates[1]) : startISO;
     const { endISO } = snapToMonths(startISO, rawEnd === startISO ? endForMonths(startISO, 1) : rawEnd);
 
+    // ✅ Use already-loaded heatmap data instead of API call
     const allDates = enumerateDates(startISO, endISO);
-    try {
-        const res = await fetch(`/api/v1/hoardings/${currentEditingHoardingId}/availability/check-dates`, {
-            method: 'POST', credentials:'same-origin',
-            headers: { 'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}' },
-            body: JSON.stringify({ dates: allDates }),
-        });
-        if (!res.ok) { showToast('Could not verify availability.', 'error'); return; }
-        const data      = await res.json();
-        const conflicts = (data.data?.results || []).filter(r => r.status !== 'available');
+    
+    const conflicts = allDates.filter(date => {
+        const status = currentHeatmapMap[date];
+        // Only block booked/hold/partial — allow blocked and available
+        return status === 'booked' || status === 'hold' || status === 'partial';
+    });
 
-        if (conflicts.length) {
-            showToast('Selected range includes unavailable dates. Please choose a different period.', 'warning');
-            return;
-        }
-
-        const h = selectedHoardings.get(currentEditingHoardingId);
-        if (h) {
-            h.startDate = startISO;
-            h.endDate   = endISO;
-            selectedHoardings.set(currentEditingHoardingId, h);
-            delete availabilityIssues[currentEditingHoardingId];
-            updateSummary();
-        }
-
-        closeDatePickerModal();
-        const rng = friendlyRange(startISO, endISO);
-        showToast(`Dates confirmed: ${rng.full} (${rng.badge})`, 'success');
-
-    } catch(e) {
-        console.error(e);
-        showToast('Error checking availability. Please try again.', 'error');
+    if (conflicts.length) {
+        showToast('Selected range includes unavailable dates. Please choose a different period.', 'warning');
+        return;
     }
+
+    // ✅ No API call needed — just save the dates
+    const h = selectedHoardings.get(currentEditingHoardingId);
+    if (h) {
+        h.startDate = startISO;
+        h.endDate   = endISO;
+        selectedHoardings.set(currentEditingHoardingId, h);
+        delete availabilityIssues[currentEditingHoardingId];
+        updateSummary();
+    }
+
+    closeDatePickerModal();
+    const rng = friendlyRange(startISO, endISO);
+    showToast(`Dates confirmed: ${rng.full} (${rng.badge})`, 'success');
 }
 
 /* ================================================================
