@@ -153,7 +153,13 @@
 
                             {{-- ADDRESS --}}
                             <p class="text-sm text-gray-500">
-                                {{ $item->address }}, {{ $item->city }}
+                                @if($item->address && $item->city)
+                                    {{ $item->address }}, {{ $item->city }}
+                                @elseif($item->address)
+                                    {{ $item->address }}
+                                @elseif($item->city)
+                                    {{ $item->city }}
+                                @endif
                             </p>
 
                             {{-- TYPE + SIZE --}}

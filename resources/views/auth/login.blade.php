@@ -238,6 +238,7 @@
                                name="login"
                                id="emailInput"
                                class="form-control"
+                               value="{{ old('login') }}"
                                placeholder="Email"
                                required
                                autocomplete="off"
@@ -334,6 +335,14 @@
         const form        = document.getElementById('signupForm');
 
         let step = 1; // 1 = email, 2 = password
+        @if ($errors->has('credentials') || $errors->has('account_status'))
+            passwordBox.classList.remove('d-none');
+            passwordInp.setAttribute('required', 'required');
+            btn.textContent = 'Login';
+            btn.disabled = false;
+            btn.classList.add('active');
+            step = 2;
+        @endif
 
         function isValidEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
