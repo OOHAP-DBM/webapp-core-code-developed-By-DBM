@@ -62,6 +62,51 @@ class VendorPaymentDetailController extends Controller
         return (int) $fallbackVendorId;
     }
 
+
+    public function removeQrImage(Request $request): JsonResponse
+    {
+        try {
+            $vendorId = $this->resolveEffectiveVendorId($request);
+
+            $detail = \Modules\POS\Models\VendorPaymentDetail::where('vendor_id', $vendorId)
+                ->where('type', 'upi')
+                ->first();
+
+            if (!$detail) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'UPI details not found',
+                ], 404);
+            }
+
+            // ✅ Delete file from storage
+            if (!empty($detail->qr_image_path)) {
+                \Storage::disk('public')->delete($detail->qr_image_path);
+            }
+
+            // ✅ Clear from database
+            $detail->update([
+                'qr_image_path' => null,
+                'qr_image_url'  => null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'QR image removed successfully',
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to remove QR image', [
+                'vendor_id' => Auth::id(),
+                'error'     => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove QR image',
+            ], 500);
+        }
+    }
     // ─── BANK ENDPOINTS ───────────────────────────────────────────────────────
 
     /**

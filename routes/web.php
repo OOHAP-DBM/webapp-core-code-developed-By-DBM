@@ -680,13 +680,10 @@ Route::prefix('/vendor/pos/api/')
         Route::post('/bookings/{bookingId}/cancel', [POSBookingController::class, 'cancel']);
         Route::post('/bookings/{bookingId}/send-reminder', [POSBookingController::class, 'sendReminder']);
         Route::post('/bookings/{id}/cancel-credit-note', [POSBookingController::class, 'cancelCreditNote']);
-        Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
-        Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
-         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
-        Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
           // ── Payment Details — backward-compatible generic endpoints ───────────
         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
         Route::post('/payment-details',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+        Route::post('/payment-details/remove-qr', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'removeQrImage']);
 
         // ── Payment Details — multi-bank CRUD ─────────────────────────────────
         Route::get('/payment-details/banks',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'listBanks']);

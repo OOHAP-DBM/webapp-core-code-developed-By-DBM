@@ -449,15 +449,14 @@
         const excelInput = document.getElementById('excelFile');
         const pptInput   = document.getElementById('pptFile');
 
-        function updateAllFileDisplays() {
-            const excelName = excelInput.files[0]?.name || '';
-            const pptName = pptInput.files[0]?.name || '';
-            updateFileDisplay('excelFileName', 'excelFileNameText', excelName);
-            updateFileDisplay('pptFileName', 'pptFileNameText', pptName);
-        }
-
-        excelInput.addEventListener('change', updateAllFileDisplays);
-        pptInput.addEventListener('change', updateAllFileDisplays);
+        excelInput.addEventListener('change', (e) => {
+            const name = e.target.files[0]?.name || '';
+            updateFileDisplay('excelFileName', 'excelFileNameText', name);
+        });
+        pptInput.addEventListener('change', (e) => {
+            const name = e.target.files[0]?.name || '';
+            updateFileDisplay('pptFileName', 'pptFileNameText', name);
+        });
 
         setupDragDrop(excelInput, 'excelDropZone');
         setupDragDrop(pptInput,   'pptDropZone');
@@ -919,7 +918,7 @@
             return;
         }
 
-        if (pptFile && pptFile.size > 40 * 1024 * 1024) {
+        if (pptFile && pptFile.size > 60 * 1024 * 1024) {
             showError('PowerPoint file size must be 40MB or less.');
             return;
         }

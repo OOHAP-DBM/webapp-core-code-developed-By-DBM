@@ -136,7 +136,7 @@
                                 <p class="text-sm font-mono text-purple-700 mt-0.5" id="saved-upi-id">---</p>
                             </div>
                             <div id="saved-upi-qr" class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h7v7H3V3zm1 1v5h5V4H4zm1 1h3v3H5V5zm8-2h7v7h-7V3zm1 1v5h5V4h-5zm1 1h3v3h-3V5zM3 13h7v7H3v-7zm1 1v5h5v-5H4zm1 1h3v3H5v-3zm8 0h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2z"/></svg>
+                               <img src="{{ asset('assets/images/icons/no-image.png') }}" class="w-6 h-6 opacity-50" alt="No QR Image">
                             </div>
                             <button onclick="editUpiDetails()" class="text-purple-600 hover:text-purple-800 text-[11px] font-bold px-2 py-1 border border-purple-200 rounded-md self-start">Change</button>
                         </div>
@@ -251,9 +251,17 @@
         </div>
     </div>
 </div>
-
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    // Modal ko body ke end mein move karo
+    const modal = document.getElementById('booking-confirmed-modal');
+    if (modal && modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+    }
+});
+</script>
 {{-- Booking Confirmed Modal with Timer --}}
-<div id="booking-confirmed-modal" class="fixed inset-0 z-50 hidden 
+<div id="booking-confirmed-modal" class="fixed inset-0 z-[2147483647] hidden 
             items-end sm:items-center 
             justify-center p-4">
     <div id="modal-content" class=" modal-content absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
@@ -592,13 +600,50 @@ function previewQR(event) {
     reader.readAsDataURL(file);
 }
 
-function clearQR() {
+async function clearQR() {
     document.getElementById('qr-file-input').value = '';
     document.getElementById('qr-preview-img').src = '';
     document.getElementById('qr-preview-container').classList.add('hidden');
     document.getElementById('qr-upload-area').classList.remove('hidden');
-}
 
+    // ✅ Clear from memory
+    if (savedUpiDetails) {
+        savedUpiDetails.qr_image_url  = null;
+        savedUpiDetails.qr_image_path = null;
+    }
+
+    // ✅ Clear the saved QR preview card
+    const savedQr = document.getElementById('saved-upi-qr');
+    if (savedQr) {
+        savedQr.innerHTML = `
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" 
+                 stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159
+                       m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909
+                       M3 3l18 18M3.75 3.75h16.5M3.75 20.25h16.5"/>
+            </svg>`;
+    }
+
+    // ✅ Call backend to delete QR from database + storage
+    try {
+        const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details/remove-qr`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({ type: 'upi' })
+        });
+        const result = await res.json();
+        if (result.success) {
+            showToast('QR image removed', 'success');
+        }
+    } catch (e) {
+        console.warn('QR delete failed:', e);
+    }
+}
 async function saveUpiDetails() {
     const upiId = document.getElementById('upi-id-input').value.trim();
     if (!upiId) { showToast('Please enter UPI ID', 'warning'); return; }
@@ -606,25 +651,53 @@ async function saveUpiDetails() {
     const formData = new FormData();
     formData.append('type', 'upi');
     formData.append('upi_id', upiId);
+
     const qrFile = document.getElementById('qr-file-input').files[0];
-    if (qrFile) formData.append('qr_image', qrFile);
+    if (qrFile) {
+        // ✅ New file selected — upload it
+        formData.append('qr_image', qrFile);
+    } else {
+        // ✅ No new file — check if user cleared the existing QR
+        const previewHidden = document.getElementById('qr-preview-container').classList.contains('hidden');
+        const hadQrBefore   = savedUpiDetails?.qr_image_path != null || savedUpiDetails?.qr_image_url != null;
+
+        if (previewHidden && hadQrBefore) {
+            // User removed the existing QR — tell backend to delete it
+            formData.append('remove_qr', '1');
+        }
+    }
 
     try {
         const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
             method: 'POST',
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+            headers: {
+                'Accept':        'application/json',
+                'X-CSRF-TOKEN':  document.querySelector('meta[name="csrf-token"]')?.content
+            },
             body: formData
         });
         const result = await res.json();
         if (!res.ok) throw new Error(result.message || 'Save failed');
+
+        // ✅ Update local state with fresh data from server
         savedUpiDetails = result.data;
+
+        // ✅ If backend confirms QR was removed, clear it from local state too
+        if (!savedUpiDetails?.qr_image_path && !savedUpiDetails?.qr_image_url) {
+            savedUpiDetails = {
+                ...savedUpiDetails,
+                qr_image_path: null,
+                qr_image_url:  null,
+            };
+        }
+
         renderSavedUpiCard(savedUpiDetails);
         showToast('UPI details saved!', 'success');
+
     } catch (e) {
         showToast(e.message, 'error');
     }
 }
-
 function normalizeQrImageUrl(data) {
     const raw = data?.qr_image_url || data?.qr_image_path || '';
     if (!raw) return '';
@@ -666,21 +739,43 @@ function buildQrImageCandidates(data) {
 function renderQrImage(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container) return;
+
     const candidates = buildQrImageCandidates(data);
-    if (!candidates.length) return;
+
+    // ✅ No image uploaded — restore the fallback "no image" icon
+    if (!candidates.length) {
+        container.innerHTML = `
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 3l18 18
+                    M3.75 3.75h16.5M3.75 20.25h16.5"/>
+            </svg>`;
+        return;
+    }
+
     const img = document.createElement('img');
     img.className = 'w-full h-full object-cover';
     let index = 0;
+
     img.onerror = () => {
         index += 1;
-        if (index < candidates.length) { img.src = candidates[index]; return; }
-        container.innerHTML = '';
+        if (index < candidates.length) {
+            img.src = candidates[index];
+            return;
+        }
+        // ✅ All candidates failed — show no image icon
+        container.innerHTML = `
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 3l18 18
+                    M3.75 3.75h16.5M3.75 20.25h16.5"/>
+            </svg>`;
     };
+
     img.src = candidates[index];
     container.innerHTML = '';
     container.appendChild(img);
 }
-
 function renderSavedUpiCard(d) {
     if (!d) return;
     document.getElementById('saved-upi-id').innerText = d.upi_id || '---';

@@ -216,7 +216,12 @@
                     <h3 class="font-medium mb-2">Digital Categories (DOOH)</h3>
                     @foreach(['LED Screens','Digital Standee','Metro Panels'] as $cat)
                         <label class="flex gap-2">
-                            <input type="checkbox" name="category[]" value="{{ $cat }}">
+                            <input 
+                                type="checkbox" 
+                                name="category[]" 
+                                value="{{ $cat }}"
+                                {{ in_array($cat, request('category', [])) ? 'checked' : '' }}
+                            >
                             {{ $cat }}
                         </label>
                     @endforeach
@@ -285,42 +290,45 @@
                 </section> --}}
 
 
-                {{-- REVIEW SCORE --}}
-               <section>
-                <h3 class="font-medium mb-3">Review Score</h3>
+               {{-- REVIEW SCORE --}}
+                <section>
+                    <h3 class="font-medium mb-3">Review Score</h3>
 
-                <div class="flex flex-wrap gap-4 text-sm">
-                    @foreach([5,4,3,2,1] as $r)
-                        @php
-                            $checked = in_array($r, request('rating', []));
-                        @endphp
+                    <div class="flex flex-wrap gap-4 text-sm">
+                        @foreach([5,4,3,2,1] as $r)
+                            @php
+                                $checked = in_array($r, request('rating', []));
+                            @endphp
 
-                        <div
-                            class="rating-btn {{ $checked ? 'active' : '' }}"
-                            onclick="toggleRating(this)"
-                             >
-                            <span class="rating-value">
-                                {{ $r }}
-                            </span>
+                            <div
+                                class="rating-btn {{ $checked ? 'active' : '' }}"
+                                onclick="toggleRating(this)">
 
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2" />
-                            </svg>
+                                <span class="rating-value">{{ $r }}</span>
 
-                            <span class="rating-text">Rating</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2" />
+                                </svg>
 
-                            <input
-                                type="checkbox"
-                                name="rating[]"
-                                value="{{ $r }}"
-                                class="hidden"
-                                {{ $checked ? 'checked' : '' }}
-                            >
-                        </div>
+                                {{-- Range label --}}
+                                <span class="rating-text">
+                                    - {{ $r - 1 }}
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fbbf24;display:inline;" class="mb-1">
+                                        <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2" />
+                                    </svg>
+                                </span>
 
-                    @endforeach
-                </div>
-               </section>
+                                <input
+                                    type="checkbox"
+                                    name="rating[]"
+                                    value="{{ $r }}"
+                                    class="hidden"
+                                    {{ $checked ? 'checked' : '' }}
+                                >
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
 
 
 
