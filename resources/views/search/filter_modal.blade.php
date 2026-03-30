@@ -202,7 +202,12 @@
                     <h3 class="font-medium mb-2">Categories (OOH)</h3>
                     @foreach(['Unipole','Billboard','Gantry','Bus Shelter','Metro Pillars'] as $cat)
                         <label class="flex gap-2">
-                            <input type="checkbox" name="category[]" value="{{ $cat }}">
+                            <input
+                                type="checkbox"
+                                name="category[]"
+                                value="{{ $cat }}"
+                                {{ in_array($cat, request('category', [])) ? 'checked' : '' }}
+                            >
                             {{ $cat }}
                         </label>
                     @endforeach
@@ -265,7 +270,7 @@
                 </section>
 
                 {{-- VENDORS --}}
-                <section>
+                {{-- <section>
                     <h3 class="font-medium mb-3">Vendors Hoardings</h3>
 
                     <div class="flex gap-3 flex-wrap">
@@ -277,7 +282,7 @@
                         @endforeach
                     </div>
 
-                </section>
+                </section> --}}
 
 
                 {{-- REVIEW SCORE --}}
@@ -370,20 +375,20 @@
 
                     <input
                         type="range"
-                        min="8"
-                        max="40"
+                        min="1"
+                        max="100"
                         step="1"
                         id="minRange"
-                        value="{{ strlen(request('min_height')) ? request('min_height') : 8 }}"
+                        value="{{ strlen(request('min_height')) ? request('min_height') : 1 }}"
                     >
 
                     <input
                         type="range"
                         min="8"
-                        max="40"
+                        max="100"
                         step="1"
                         id="maxRange"
-                        value="{{ strlen(request('max_height')) ? request('max_height') : (strlen(request('min_height')) ? request('min_height')+1 : 9) }}"
+                        value="{{ strlen(request('max_height')) ? request('max_height') : (strlen(request('min_height')) ? request('min_height')+1 : 100) }}"
                     >
 
                     <div class="range-base">
