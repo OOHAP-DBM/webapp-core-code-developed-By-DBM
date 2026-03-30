@@ -30,7 +30,7 @@ class HoardingAvailabilityController extends Controller
     /**
      * Get availability calendar for a hoarding
      * 
-     * GET /api/v1/hoardings/{hoarding}/availability/calendar
+     * GET /api/v1/hoardings/availability/{hoarding}/calendar
      * 
      * Query Parameters:
      * - start_date (required): YYYY-MM-DD
@@ -51,7 +51,7 @@ class HoardingAvailabilityController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/hoardings/{hoarding}/availability/calendar",
+     *     path="/hoardings/availability/{hoarding}/calendar",
      *     summary="Get availability calendar for a hoarding",
      *     tags={"Hoarding Availability"},
      *     security={{"sanctum": {}}},
@@ -104,7 +104,7 @@ class HoardingAvailabilityController extends Controller
     /**
      * Get availability summary (counts only)
      * 
-     * GET /api/v1/hoardings/{hoarding}/availability/summary
+     * GET /api/v1/hoardings/availability/{hoarding}/summary
      * 
      * @param GetAvailabilityCalendarRequest $request
      * @param Hoarding $hoarding
@@ -113,7 +113,7 @@ class HoardingAvailabilityController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/hoardings/{hoarding}/availability/summary",
+     *     path="/hoardings/availability/{hoarding}/summary",
      *     summary="Get availability summary (counts only)",
      *     tags={"Hoarding Availability"},
      *     security={{"sanctum": {}}},
@@ -180,7 +180,7 @@ class HoardingAvailabilityController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/hoardings/{hoarding}/availability/month/{year}/{month}",
+     *     path="/hoardings/availability/{hoarding}/month/{year}/{month}",
      *     summary="Get month calendar (optimized for monthly view)",
      *     tags={"Hoarding Availability"},
      *     security={{"sanctum": {}}},
@@ -233,7 +233,7 @@ class HoardingAvailabilityController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/hoardings/{hoarding}/availability/check-dates",
+     *     path="/hoardings/availability/{hoarding}/check-dates",
      *     summary="Check availability for specific dates (batch check)",
      *     tags={"Hoarding Availability"},
      *     security={{"sanctum": {}}},
@@ -272,7 +272,7 @@ class HoardingAvailabilityController extends Controller
     /**
      * Get next N available dates
      * 
-     * GET /api/v1/hoardings/{hoarding}/availability/next-available
+     * GET /api/v1/hoardings/availability/{hoarding}/next-available
      * 
      * Query Parameters:
      * - count (optional): Number of dates to find, default 10
@@ -286,7 +286,7 @@ class HoardingAvailabilityController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/hoardings/{hoarding}/availability/next-available",
+     *     path="/hoardings/availability/{hoarding}/next-available",
      *     summary="Get next N available dates",
      *     tags={"Hoarding Availability"},
      *     security={{"sanctum": {}}},
@@ -323,7 +323,7 @@ class HoardingAvailabilityController extends Controller
     /**
      * Get availability heatmap data (for visualization)
      * 
-     * GET /api/v1/hoardings/{hoarding}/availability/heatmap
+     * GET /api/v1/hoardings/availability/{hoarding}/heatmap
      * 
      * Returns color-coded data for calendar heatmap:
      * - available: green (#22c55e)
@@ -339,7 +339,7 @@ class HoardingAvailabilityController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/hoardings/{hoarding}/availability/heatmap",
+     *     path="/hoardings/availability/{hoarding}/heatmap",
      *     summary="Get availability heatmap data (for visualization)",
      *     tags={"Hoarding Availability"},
      *     security={{"sanctum": {}}},
@@ -444,7 +444,7 @@ class HoardingAvailabilityController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/hoardings/{hoarding}/availability/quick-check",
+     *     path="/hoardings/availability/{hoarding}/quick-check",
      *     summary="Get quick status check (lightweight, single date)",
      *     tags={"Hoarding Availability"},
      *     security={{"sanctum": {}}},
