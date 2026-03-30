@@ -97,8 +97,14 @@
                                 {{ $item->title }}
                             </h3>
 
-                            <p class="text-xs text-gray-500 line-clamp-1">
-                                {{ $item->address }}, {{ $item->city }}
+                          <p class="text-xs text-gray-500 line-clamp-1">
+                                @if($item->address && $item->city)
+                                    {{ $item->address }}, {{ $item->city }}
+                                @elseif($item->address)
+                                    {{ $item->address }}
+                                @elseif($item->city)
+                                    {{ $item->city }}
+                                @endif
                             </p>
                             <div class="flex items-center justify-between mt-1">
                                 <div class="text-xs text-gray-600">

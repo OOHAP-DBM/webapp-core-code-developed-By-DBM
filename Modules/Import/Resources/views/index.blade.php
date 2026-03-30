@@ -449,14 +449,15 @@
         const excelInput = document.getElementById('excelFile');
         const pptInput   = document.getElementById('pptFile');
 
-        excelInput.addEventListener('change', (e) => {
-            const name = e.target.files[0]?.name || '';
-            updateFileDisplay('excelFileName', 'excelFileNameText', name);
-        });
-        pptInput.addEventListener('change', (e) => {
-            const name = e.target.files[0]?.name || '';
-            updateFileDisplay('pptFileName', 'pptFileNameText', name);
-        });
+        function updateAllFileDisplays() {
+            const excelName = excelInput.files[0]?.name || '';
+            const pptName = pptInput.files[0]?.name || '';
+            updateFileDisplay('excelFileName', 'excelFileNameText', excelName);
+            updateFileDisplay('pptFileName', 'pptFileNameText', pptName);
+        }
+
+        excelInput.addEventListener('change', updateAllFileDisplays);
+        pptInput.addEventListener('change', updateAllFileDisplays);
 
         setupDragDrop(excelInput, 'excelDropZone');
         setupDragDrop(pptInput,   'pptDropZone');
@@ -1299,7 +1300,7 @@
 
             <!-- Message -->
             <p class="text-sm text-gray-600 text-center mt-2 leading-relaxed">
-                You left while uploading <strong>"${fileName || 'your file'}"</strong>.
+                You left while uploading <strong>"${fileName || 'your file'}"</strong>. 
                 <br/>The upload was cancelled.
             </p>
 
