@@ -251,9 +251,17 @@
         </div>
     </div>
 </div>
-
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    // Modal ko body ke end mein move karo
+    const modal = document.getElementById('booking-confirmed-modal');
+    if (modal && modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+    }
+});
+</script>
 {{-- Booking Confirmed Modal with Timer --}}
-<div id="booking-confirmed-modal" class="fixed inset-0 z-50 hidden 
+<div id="booking-confirmed-modal" class="fixed inset-0 z-[2147483647] hidden 
             items-end sm:items-center 
             justify-center p-4">
     <div id="modal-content" class=" modal-content absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
