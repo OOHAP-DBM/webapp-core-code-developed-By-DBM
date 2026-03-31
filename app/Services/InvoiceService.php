@@ -162,7 +162,7 @@ class InvoiceService
                     ?? $customer?->address
                     ?? $posBooking->customer_address,
                 'buyer_city'         => $customer?->billing_city ?? $customer?->city ?? $posBooking->customer_city,
-                'buyer_state'        => $customer?->billing_state ?? $customer?->state ?? $posBooking->customer_state ?? $companySettings['state'],
+                'buyer_state'        => $customer?->billing_state ?? $customer?->state ?? $posBooking->customer_state ?? null,
                 'buyer_state_code'   => $customer?->billing_state_code ?? $customer?->state_code ?? $posBooking->customer_state_code ?? $companySettings['state_code'],
                 'buyer_pincode'      => $customer?->billing_pincode ?? $customer?->pincode ?? $posBooking->customer_pincode,
                 'buyer_pan'          => $customer?->pan,
