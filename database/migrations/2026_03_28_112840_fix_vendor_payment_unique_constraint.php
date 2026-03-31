@@ -11,17 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-          Schema::table('vendor_payment_details', function (Blueprint $table) {
-
-                // ✅ Drop old unique (THIS is the correct name)
-                $table->dropUnique('vendor_payment_details_vendor_id_type_unique');
-
-                // ✅ Optional: prevent duplicate same account number per vendor
-                $table->unique(
-                    ['vendor_id', 'account_number'],
-                    'vendor_payment_details_vendor_account_unique'
-                );
-            });
+        Schema::table('vendor_payment_details', function (Blueprint $table) {
+            // ✅ New constraint
+            $table->unique(
+                ['vendor_id', 'account_number'],
+                'vendor_payment_details_vendor_account_unique'
+            );
+        });
     }
 
     /**
@@ -31,8 +27,9 @@ return new class extends Migration
     {
           Schema::table('vendor_payment_details', function (Blueprint $table) {
 
-            // rollback
-            $table->dropUnique('vendor_payment_details_vendor_account_unique');
+            try {
+                $table->dropUnique('vendor_payment_details_vendor_account_unique');
+            } catch (\Exception $e) {}
 
             $table->unique(
                 ['vendor_id', 'type'],
