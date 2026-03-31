@@ -72,10 +72,10 @@
         <!-- Full Address -->
         <div class="space-y-2 md:col-span-1">
            <label class="text-sm font-bold text-gray-700">Full Address <span class="text-red-500">*</span></label>
-            <input name="address" id="address"
-                value="{{ old('address', $hoarding?->address) }}"
-                placeholder="Enter exact address or landmark"
-                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            <input name="address" id="address" required
+            value="{{ old('address', $hoarding?->address) }}"
+            placeholder="Enter full  address "
+            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
             @error('address') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
 
         </div>
