@@ -904,7 +904,7 @@ function updatePreviewScreen() {
         row.innerHTML = `
             <td class="px-6 py-3 font-bold text-gray-800">${sn++}</td>
             <td class="px-6 py-3 font-bold text-gray-800">${safe(h.title)}</td>
-            <td class="px-6 py-3 text-xs text-gray-500">${safe(h.display_location) || safe(h.city)}</td>
+           <td class="px-6 py-3 text-xs text-gray-500">${safe(h.display_location) || safe(h.location_address) || safe(h.city) || '---'}</td>
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.type)}</td>
             <td class="px-6 py-3 text-xs text-gray-500">${safe(h.startDate)} to ${safe(h.endDate)}</td>
             <td class="px-6 py-3 text-right font-bold text-gray-900">${typeof formatINR === 'function' ? formatINR(h.price_per_month) : '₹' + safe(h.price_per_month)}</td>

@@ -1482,8 +1482,8 @@ function populatePreview() {
     s('preview-cust-status',  selectedCustomer.status);
     s('preview-cust-role',    selectedCustomer.role);
     s('preview-cust-address',
-        [selectedCustomer.billing_address, selectedCustomer.billing_city,
-         selectedCustomer.billing_state,   selectedCustomer.billing_pincode]
+        [selectedCustomer.address, selectedCustomer.city,
+         selectedCustomer.state,   selectedCustomer.pincode]
             .filter(Boolean).join(', ') || '---');
     s('preview-cust-country',  selectedCustomer.country);
     s('preview-total-count',   selectedHoardings.size);
