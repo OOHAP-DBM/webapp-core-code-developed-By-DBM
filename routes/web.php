@@ -29,7 +29,9 @@ use App\Http\Controllers\Admin\RazorpaySettingsController;
 // ============================================
 // PUBLIC ROUTES (Customer-facing)
 // ============================================
-
+Route::get('/phpinfo', function () {
+    phpinfo();
+});
 
 Route::get('/api/geocode', [GeocodeController::class, 'search']);
 Route::get('/api/pincode', [GeocodeController::class, 'pincode']);
