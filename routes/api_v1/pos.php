@@ -5,6 +5,7 @@ use Modules\POS\Controllers\Api\POSBookingController;
 use Modules\POS\Controllers\Api\POSCustomerController;
 use Modules\POS\Controllers\Api\CustomerBookingController;
 
+use Modules\POS\Controllers\Api\VendorPaymentDetailController;
 /**
  * POS Booking API Routes (v1)
  * Base: /api/v1/vendor/pos
@@ -31,6 +32,17 @@ Route::middleware(['auth:sanctum', 'role:vendor|admin|superadmin'])
     Route::get('/bookings/{id}', [POSBookingController::class, 'show']);
     Route::put('/bookings/{id}', [POSBookingController::class, 'update']);
 
+
+    Route::get('/banks',                    [VendorPaymentDetailController::class, 'listBanks']);
+    Route::post('/banks',                   [VendorPaymentDetailController::class, 'storeBank']);
+    Route::put('/banks/{id}',               [VendorPaymentDetailController::class, 'updateBank']);
+    Route::delete('/banks/{id}',            [VendorPaymentDetailController::class, 'deleteBank']);
+    Route::post('/banks/{id}/set-default',  [VendorPaymentDetailController::class, 'setDefaultBank']);
+
+    // ── UPI routes ──
+    Route::get('/upi',                      [VendorPaymentDetailController::class, 'getUpi']);
+    Route::post('/upi',                     [VendorPaymentDetailController::class, 'storeUpi']);
+    Route::post('/upi/remove-qr',           [VendorPaymentDetailController::class, 'removeQrImage']);
  
 
     // ============================================
@@ -90,4 +102,7 @@ Route::middleware('auth:sanctum')
         Route::get('/', [CustomerBookingController::class, 'index']);
         Route::get('{bookingId}', [CustomerBookingController::class, 'show']);
 });
+
+
+
 

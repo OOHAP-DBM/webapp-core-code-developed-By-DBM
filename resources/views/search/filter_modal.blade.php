@@ -295,7 +295,7 @@
                     <h3 class="font-medium mb-3">Review Score</h3>
 
                     <div class="flex flex-wrap gap-4 text-sm">
-                        @foreach([5,4,3,2,1] as $r)
+                        @foreach([5,4,3,2] as $r)
                             @php
                                 $checked = in_array($r, request('rating', []));
                             @endphp
