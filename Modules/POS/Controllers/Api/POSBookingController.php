@@ -311,6 +311,21 @@ class POSBookingController extends Controller
                 $bookingData['invoice_url'] = route('vendor.pos.bookings.invoice', ['id' => $booking->id]);
             }
 
+            // --- PATCH: Prefer customer phone/email/address from User model if available ---
+            $customer = $booking->customer;
+            if ($customer) {
+                if (!empty($customer->email)) {
+                    $bookingData['customer_email'] = $customer->email;
+                }
+                if (!empty($customer->phone)) {
+                    $bookingData['customer_phone'] = $customer->phone;
+                }
+                if (!empty($customer->address)) {
+                    $bookingData['customer_address'] = $customer->address;
+                }
+            }
+            // --- END PATCH ---
+
             // Add all booked hoardings and their campaign durations
             $bookingData['hoardings'] = [];
             foreach ($booking->bookingHoardings as $bh) {
@@ -391,6 +406,21 @@ class POSBookingController extends Controller
             if (!empty($booking->invoice_path) && Route::has('customer.pos.invoice')) {
                 $bookingData['invoice_url'] = route('customer.pos.invoice', ['id' => $booking->id]);
             }
+
+            // --- PATCH: Prefer customer phone/email/address from User model if available ---
+            $customer = $booking->customer;
+            if ($customer) {
+                if (!empty($customer->email)) {
+                    $bookingData['customer_email'] = $customer->email;
+                }
+                if (!empty($customer->phone)) {
+                    $bookingData['customer_phone'] = $customer->phone;
+                }
+                if (!empty($customer->address)) {
+                    $bookingData['customer_address'] = $customer->address;
+                }
+            }
+            // --- END PATCH ---
 
             $bookingData['hoardings'] = [];
             foreach ($booking->bookingHoardings as $bh) {

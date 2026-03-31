@@ -71,11 +71,13 @@ class InvoiceService
                 'customer_id'        => $customer->id,
                 'buyer_name'         => $customer->company_name ?? $customer->name,
                 'buyer_gstin'        => $customer->gstin,
-                'buyer_address'      => $customer->billing_address ?? $customer->address,
-                'buyer_city'         => $customer->billing_city ?? $customer->city,
-                'buyer_state'        => $customer->billing_state ?? $customer->state,
-                'buyer_state_code'   => $customer->billing_state_code ?? $customer->state_code,
-                'buyer_pincode'      => $customer->billing_pincode ?? $customer->pincode,
+                  'buyer_address'      => $customer?->billing_address
+                    ?? $customer?->address
+                    ?? $posBooking->customer_address,
+                'buyer_city'         => $customer->billing_city ?? $customer->city ?? $posBooking->customer_city,
+                'buyer_state'        => $customer->billing_state ?? $customer->state ?? $companySettings['state'],
+                'buyer_state_code'   => $customer->billing_state_code ?? $customer->state_code ?? $companySettings['state_code'],
+                'buyer_pincode'      => $customer->billing_pincode ?? $customer->pincode ?? $posBooking->customer_pincode,
                 'buyer_pan'          => $customer->pan,
                 'buyer_type'         => $customer->customer_type ?? 'individual',
                 'buyer_email'        => $customer->email,
@@ -125,7 +127,7 @@ class InvoiceService
             $customer = $posBooking->customer_id
                 ? \App\Models\User::find($posBooking->customer_id)
                 : null;
-
+          
             $isIntraState = $this->isIntraStateTansaction(
                 $companySettings['state_code'],
                 $customer?->billing_state_code ?? $customer?->state_code ?? $companySettings['state_code']
@@ -159,14 +161,15 @@ class InvoiceService
                 'buyer_address'      => $customer?->billing_address
                     ?? $customer?->address
                     ?? $posBooking->customer_address,
-                'buyer_city'         => $customer?->billing_city ?? $customer?->city,
-                'buyer_state'        => $customer?->billing_state ?? $companySettings['state'],
-                'buyer_state_code'   => $customer?->billing_state_code ?? $companySettings['state_code'],
-                'buyer_pincode'      => $customer?->billing_pincode ?? $customer?->pincode,
+                'buyer_city'         => $customer?->billing_city ?? $customer?->city ?? $posBooking->customer_city,
+                'buyer_state'        => $customer?->billing_state ?? $customer?->state ?? $posBooking->customer_state ?? null,
+                'buyer_state_code'   => $customer?->billing_state_code ?? $customer?->state_code ?? $posBooking->customer_state_code ?? $companySettings['state_code'],
+                'buyer_pincode'      => $customer?->billing_pincode ?? $customer?->pincode ?? $posBooking->customer_pincode,
                 'buyer_pan'          => $customer?->pan,
                 'buyer_type'         => $customer?->customer_type ?? 'individual',
                 'buyer_email'        => $customer?->email,
                 'buyer_phone'        => $customer?->phone ?? $posBooking->customer_phone,
+                'buyer_address'      => $posBooking->customer_address,
 
                 // GST
                 'place_of_supply'    => $customer?->billing_state ?? $companySettings['state'],

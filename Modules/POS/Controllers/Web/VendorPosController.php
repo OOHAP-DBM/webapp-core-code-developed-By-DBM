@@ -735,6 +735,7 @@ class VendorPosController extends Controller
                         'location_address'    => $hoarding->address,
                         'location_city'       => $hoarding->city,
                         'location_state'      => $hoarding->state,
+                        'display_location'    => $hoarding->display_location,
                         'type'                => $hoarding->hoarding_type,
                         'category'            => $hoarding->category,
                         'price_per_month'     => $pricePerMonth,
@@ -2176,7 +2177,11 @@ class VendorPosController extends Controller
                     'password' => Hash::make($request->password),
                     'active_role' => 'customer',
                     'gstin' => $request->gstin,
-                    'address' => $fullAddress,
+                    // 'address' => $fullAddress,
+                    'pincode' => $request->pincode,
+                    'state' => $request->state,
+                    'city' => $request->city,
+                    'country' => $request->country,
                     'status' => 'active',
                 ]);
 
