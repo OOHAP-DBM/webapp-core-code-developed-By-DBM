@@ -557,14 +557,14 @@
             </div>
            
               <div class="space-y-1">
-            <div x-data="{ open: @if(request()->routeIs('admin.settings.*')) true @else false @endif }" class="space-y-1">
+            <div x-data="{ open: {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.mail.*') ? 'true' : 'false' }} }" class="space-y-1">
                 {{-- Parent: Settings --}}
                 <button
                     type="button"
                     @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 {{ request()->routeIs('admin.settings.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
+                    class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.mail.*') ? 'bg-[#00995c] text-white' : 'text-gray-700 hover:bg-gray-50' }}"
                 >
-                    <div class="flex items-center gap-3 {{ request()->routeIs('admin.settings.*') ? 'text-white' : 'text-gray-700' }}">
+                    <div class="flex items-center gap-3 {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.mail.*') ? 'text-white' : 'text-gray-700' }}">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10" />
                             <path d="M4 12h16" />
@@ -584,7 +584,16 @@
                     </a>
                     <a href="{{ route('admin.settings.index', ['group' => 'sms']) }}"
                        class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.settings.index') && request()->query('group') === 'sms' ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
-                        - SMS  Configuration
+                        - SMS Gateway Configue
+                    </a>
+                    <a href="{{ route('admin.mail.layouts.index') }}"
+                       class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.mail.layouts.index') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-7 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-7 border-transparent' }}">
+                        - Mail Layouts
+                    </a>
+                    <a href="{{ route('admin.mail.configuration.index') }}"
+                       class="block px-6 py-1 text-sm rounded-md transition {{ request()->routeIs('admin.mail.configuration.index') ? 'bg-emerald-50 text-gray-900 border-[#00995c] pl-5 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:pl-5 border-transparent' }}">
+                        - Mail Template Configue
+         
                     </a>
 
                     <a href="{{ route('admin.settings.razorpay') }}"
