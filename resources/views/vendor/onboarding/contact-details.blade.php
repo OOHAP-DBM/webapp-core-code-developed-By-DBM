@@ -7,7 +7,7 @@
 
     <header class="flex items-center gap-2 px-8 py-6 bg-white border-b border-gray-100">
         <x-optimized-image
-            src="assets/images/logo/logo_image.jpeg"
+            src="assets/images/logo/logo_image.webp"
             :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
             :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
             sizes="112px"

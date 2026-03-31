@@ -48,7 +48,7 @@ Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
 
 Route::get('/brand/oohapp-logo', function () {
-    $path = public_path('assets/images/logo/logo_image.jpeg');
+    $path = public_path('assets/images/logo/logo_image.webp');
 
     abort_unless(file_exists($path), 404);
 

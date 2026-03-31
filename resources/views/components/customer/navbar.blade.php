@@ -13,16 +13,11 @@
                 <div class="flex items-center flex-shrink-0">
                     <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
                         <x-optimized-image
-                            src="assets/images/logo/logo_image.jpeg"
-                            :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
-                            :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
-                            sizes="(max-width: 768px) 96px, 150px"
+                            :src="asset('assets/images/logo/logo_image.webp')"
                             alt="OOHApp company logo"
-                            width="600"
-                            height="120"
-                            class="w-24 md:w-[150px]"
-                            loading="eager"
-                            fetchpriority="high"
+                            class="w-48 md:w-[180px] ml-[-20px]"
+                            width="150"
+                            height="58"
                         />
                     </a>
                 </div>
@@ -202,7 +197,7 @@
             <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                 <a href="{{ route('home') }}" class="flex items-center">
                     <x-optimized-image
-                        src="assets/images/logo/logo_image.jpeg"
+                        src="assets/images/logo/logo_image.webp"
                         :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
                         :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
                         sizes="140px"
