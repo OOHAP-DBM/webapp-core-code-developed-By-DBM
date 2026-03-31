@@ -63,7 +63,7 @@ class DOOHScreenService
             if (empty($mediaFiles)) {
                 $errors['media'][] = 'At least one media file is required.';
             }
-            throw new ValidationException($validator, response()->json(['errors' => $errors], 422));
+           throw ValidationException::withMessages($errors);
         }
 
         return DB::transaction(function () use ($vendor, $data, $mediaFiles) {
