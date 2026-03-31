@@ -204,10 +204,12 @@ class POSBookingController extends Controller
                 if (!empty($filters['search'])) {
                     $search = trim((string) $filters['search']);
                     $query->where(function ($builder) use ($search) {
-                        $builder->where('invoice_number', 'like', "%{$search}%")
+                                            $builder->where('invoice_number', 'like', "%{$search}%")
                             ->orWhere('customer_name', 'like', "%{$search}%")
-                            ->orWhere('customer_phone', 'like', "%{$search}%")
-                            ->orWhere('customer_email', 'like', "%{$search}%");
+                            ->orWhereHas('customer', function ($q) use ($search) {
+                                $q->where('phone', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                            });
                     });
                 }
 

@@ -238,7 +238,8 @@ function loadPosBookings(page = 1) {
                     <td class="px-2 py-2 sm:px-3 sm:py-2 whitespace-nowrap">${booking.invoice_number || 'N/A'}</td>
                     <td class="px-2 py-2 sm:px-3 sm:py-2 whitespace-nowrap">
                         <strong>${booking.customer_name}</strong><br>
-                        <span class="text-xs text-gray-500">${booking.customer_phone ?? '-'}</span>
+                        <span class="text-xs text-gray-500">${booking.customer_phone ?? '-'}</span><br>
+                        <span class="text-xs text-gray-500">${booking.customer_email ?? '-'}</span>
                     </td>
                     <td class="px-2 py-2 sm:px-3 sm:py-2 text-center font-bold whitespace-nowrap">
                         ${Array.isArray(booking.booking_hoardings) ? booking.booking_hoardings.length : (Array.isArray(booking.bookingHoardings) ? booking.bookingHoardings.length : 0)}
