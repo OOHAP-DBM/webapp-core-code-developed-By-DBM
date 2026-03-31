@@ -240,11 +240,11 @@
                             
                             <div class="relative">
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700 font-bold">₹</span>
-                                <input type="text" id="base_campaign_price" readonly min="1" step="any"
+                                <input type="text" id="base_campaign_price" readonly min="1" step="any" required
                                     class="w-full  bg-[#FFF5E7] 
                                            rounded-xl pl-10 pr-4 py-2.5 text-sm sm:text-base
                                            text-gray-900 font-bold cursor-not-allowed">
-                                <input type="hidden" name="base_monthly_price" value="{{ old('base_monthly_price', $draft?->base_monthly_price) }} " id="base_monthly_price_input">
+                                <input type="hidden" name="base_monthly_price" value="{{ old('base_monthly_price', $draft?->base_monthly_price) }}" id="base_monthly_price_input" required>
                             </div>
                         </div>
 
