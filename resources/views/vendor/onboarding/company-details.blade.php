@@ -10,7 +10,7 @@
     <!-- Header -->
     <div class="vendor-header mt-5">
         <x-optimized-image
-            src="assets/images/logo/logo_image.jpeg"
+            src="assets/images/logo/logo_image.webp"
             :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
             :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
             sizes="(max-width: 768px) 110px, 140px"

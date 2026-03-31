@@ -8,17 +8,14 @@
 </button>
     <div class="p-6 text-center">
         <!-- Logo -->
-        <a href="{{ route('home') }}" class="flex items-center">
+        <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
             <x-optimized-image
-                src="assets/images/logo/logo_image.jpeg"
-                :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
-                :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
-                sizes="112px"
+                :src="route('brand.oohapp-logo')"
                 alt="OOHApp company logo"
-                width="600"
-                height="120"
-                class="h-7 w-auto"
-                loading="eager"
+            
+                width="150"
+                height="48"
+                style="max-height:48px;object-fit:contain;"
             />
         </a>
     </div>
