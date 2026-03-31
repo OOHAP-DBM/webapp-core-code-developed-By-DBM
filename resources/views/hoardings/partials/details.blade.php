@@ -93,7 +93,7 @@
             <div>
                 <p class="text-gray-400">Slots Per Day</p>
                 <p class="font-medium">
-                    {{ $dooh->available_slots_per_day ?? '—' }}
+                    {{ $dooh->total_slots_per_day ?? '—' }}
                 </p>
             </div>
 

@@ -422,4 +422,19 @@ class POSBooking extends Model
         $this->status = $newStatus;
         return $this->save();
     }
+
+    public function getCustomerEmailAttribute($value)
+    {
+        return $this->customer?->email ?? $value;
+    }
+
+    public function getCustomerPhoneAttribute($value)
+    {
+        return $this->customer?->phone ?? $value;
+    }
+
+    public function getCustomerAddressAttribute($value)
+    {
+        return $this->customer?->address ?? $value;
+    }
 }

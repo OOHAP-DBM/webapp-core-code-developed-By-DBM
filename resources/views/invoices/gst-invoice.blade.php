@@ -969,15 +969,27 @@
     <div style="max-width:720px;margin:0 auto;background:#fff;padding:40px;border-radius:6px;box-sizing:border-box;overflow:hidden;">
 
         <!-- HEADER -->
-        <table width="100%" style="margin-bottom:30px;table-layout:fixed;">
+              <table width="100%" style="margin-bottom:30px;table-layout:fixed;">
             <tr>
-                <td width="50%">
-                    <div style="font-size:26px;font-weight:700;">INVOICE</div>
+                <td width="50%" valign="middle">
+                    <img 
+                        src="{{ public_path('assets/images/logo/logo_image.webp') }}"
+                        alt="OOHApp Logo"
+                        width="140"
+                        style="display:block; max-width:140px; height:auto;"
+                    >
+
+                    <div style="font-size:22px;font-weight:700;margin-top:25px;">
+                        INVOICE
+                    </div>
+
                     <div style="color:#777;margin-top:4px;">
                         #{{ $invoice->invoice_number }}
                     </div>
                 </td>
-                <td width="50%" align="right" style="font-size:22px;font-weight:700;word-wrap:break-word;overflow-wrap:break-word;">
+
+                <td width="50%" align="right" valign="top"
+                    style="font-size:22px;font-weight:700;word-wrap:break-word;overflow-wrap:break-word; margin-top:10px;">
                     {{ $invoice->seller_name }}
                 </td>
             </tr>
