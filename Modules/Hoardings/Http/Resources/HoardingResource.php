@@ -5,7 +5,8 @@ namespace Modules\Hoardings\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Helpers\HoardingHelper;
-
+use Carbon\Carbon;
+use Modules\Hoardings\Services\HoardingAvailabilityService;
 
 class HoardingResource extends JsonResource
 {
@@ -38,29 +39,31 @@ class HoardingResource extends JsonResource
             });
         }
 
-        // Get packages based on hoarding type
-        $packages = [];
-        if ($this->hoarding_type === 'ooh' && $this->ooh && $this->ooh->packages) {
-            $packages = $this->ooh->packages->map(function ($pkg) {
-                return [
-                    'id' => $pkg->id,
-                    'name' => $pkg->package_name,
-                    'duration_months' => $pkg->duration_months,
-                    'price' => (float) $pkg->price,
-                    'discount_percent' => (float) ($pkg->discount_percent ?? 0),
-                ];
-            });
-        } elseif ($this->hoarding_type === 'dooh' && $this->doohScreen && $this->doohScreen->packages) {
-            $packages = $this->doohScreen->packages->map(function ($pkg) {
-                return [
-                    'id' => $pkg->id,
-                    'name' => $pkg->package_name,
-                    'duration_months' => $pkg->duration_months,
-                    'price' => (float) $pkg->price,
-                    'discount_percent' => (float) ($pkg->discount_percent ?? 0),
-                ];
-            });
-        }
+        // // Get packages based on hoarding type
+        // $packages = [];
+        // if ($this->hoarding_type === 'ooh' && $this->ooh && $this->ooh->packages) {
+        //     $packages = $this->ooh->packages->map(function ($pkg) {
+        //         return [
+        //             'id' => $pkg->id,
+        //             'name' => $pkg->package_name,
+        //             'duration_months' => $pkg->min_booking_duration,
+        //             'duration_unit' => $pkg->duration_unit,
+        //             'price' => (float) $pkg->price,
+        //             'discount_percent' => (float) ($pkg->discount_percent ?? 0),
+        //         ];
+        //     });
+        // } elseif ($this->hoarding_type === 'dooh' && $this->doohScreen && $this->doohScreen->packages) {
+        //     $packages = $this->doohScreen->packages->map(function ($pkg) {
+        //         return [
+        //             'id' => $pkg->id,
+        //             'name' => $pkg->package_name,
+        //             'duration_months' => $pkg->min_booking_duration,
+        //             'duration_unit' => $pkg->duration_unit,
+        //             'price' => (float) $pkg->price,
+        //             'discount_percent' => (float) ($pkg->discount_percent ?? 0),
+        //         ];
+        //     });
+        // }
         $basePrice = 0;
         $sellPrice = 0;
 
@@ -135,7 +138,13 @@ class HoardingResource extends JsonResource
             ];
         }
 
-
+        // Availability summary for the next 30 days
+        $availabilityService = app(HoardingAvailabilityService::class);
+        $availability = $availabilityService->getAvailabilitySummary(
+            $this->id,
+            Carbon::today(),
+            Carbon::today()->addDays(30)
+        );
         // Get latest 3 reviews with user info
         $latestReviews = $this->ratings()->latest('id')->take(3)->get()->map(function($rating) {
             return [
@@ -192,12 +201,13 @@ class HoardingResource extends JsonResource
             'is_featured' => (bool) $this->is_featured,
             'nagar_nigam_approved' => $this->nagar_nigam_approved,
             'permit_valid_till' => $this->permit_valid_till,
+            'is_recommended' => (bool) $this->is_recommended,
             'is_active' => $this->isActive(),
             'media' => $media,
-            'packages' => $packages,
+            'packages' =>  $this->packages,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
-
+            'availability' => $availability,
             // Reviews summary
             'average_rating' => $this->averageRating(),
             'reviews_count' => $this->reviewsCount(),

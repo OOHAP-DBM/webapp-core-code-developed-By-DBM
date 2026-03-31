@@ -17,6 +17,8 @@ use Illuminate\Http\Request;
  * Returns date availability status for calendar heatmap UI
  */
 class HoardingAvailabilityController extends Controller
+      
+   
 {
     protected HoardingAvailabilityService $availabilityService;
 
@@ -28,7 +30,7 @@ class HoardingAvailabilityController extends Controller
     /**
      * Get availability calendar for a hoarding
      * 
-     * GET /api/v1/hoardings/{hoarding}/availability/calendar
+     * GET /api/v1/hoardings/availability/{hoarding}/calendar
      * 
      * Query Parameters:
      * - start_date (required): YYYY-MM-DD
@@ -45,6 +47,43 @@ class HoardingAvailabilityController extends Controller
      * @param GetAvailabilityCalendarRequest $request
      * @param Hoarding $hoarding
      * @return JsonResponse
+     */
+
+    /**
+     * @OA\Get(
+     *     path="/hoardings/availability/{hoarding}/calendar",
+     *     summary="Get availability calendar for a hoarding",
+     *     tags={"Hoarding Availability"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="hoarding", in="path", required=true, @OA\Schema(type="integer")),
+     *    @OA\Parameter(
+                name="start_date",
+                in="query",
+                required=true,
+                description="Start date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-03-28",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
+     *     @OA\Parameter(
+                name="end_date",
+                in="query",
+                required=true,
+                description="End date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-04-05",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
+     *     @OA\Parameter(name="include_details", in="query", required=false, @OA\Schema(type="boolean")),
+     *     @OA\Response(response=200, description="Availability calendar retrieved successfully"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function getCalendar(GetAvailabilityCalendarRequest $request, Hoarding $hoarding): JsonResponse
     {
@@ -65,11 +104,47 @@ class HoardingAvailabilityController extends Controller
     /**
      * Get availability summary (counts only)
      * 
-     * GET /api/v1/hoardings/{hoarding}/availability/summary
+     * GET /api/v1/hoardings/availability/{hoarding}/summary
      * 
      * @param GetAvailabilityCalendarRequest $request
      * @param Hoarding $hoarding
      * @return JsonResponse
+     */
+
+    /**
+     * @OA\Get(
+     *     path="/hoardings/availability/{hoarding}/summary",
+     *     summary="Get availability summary (counts only)",
+     *     tags={"Hoarding Availability"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="hoarding", in="path", required=true, @OA\Schema(type="integer")),
+     *    @OA\Parameter(
+                name="start_date",
+                in="query",
+                required=true,
+                description="Start date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-03-28",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
+     *    @OA\Parameter(
+                name="end_date",
+                in="query",
+                required=true,
+                description="End date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-04-05",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
+     *     @OA\Response(response=200, description="Availability summary retrieved successfully"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function getSummary(GetAvailabilityCalendarRequest $request, Hoarding $hoarding): JsonResponse
     {
@@ -102,9 +177,22 @@ class HoardingAvailabilityController extends Controller
      * @param int $month
      * @return JsonResponse
      */
+
+    /**
+     * @OA\Get(
+     *     path="/hoardings/availability/{hoarding}/month/{year}/{month}",
+     *     summary="Get month calendar (optimized for monthly view)",
+     *     tags={"Hoarding Availability"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="hoarding", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="year", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="month", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Month calendar retrieved successfully"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function getMonthCalendar(Request $request, Hoarding $hoarding, int $year, int $month): JsonResponse
     {
-        // Validate year and month
         if ($year < 2020 || $year > 2100) {
             return response()->json([
                 'success' => false,
@@ -142,6 +230,26 @@ class HoardingAvailabilityController extends Controller
      * @param Hoarding $hoarding
      * @return JsonResponse
      */
+
+    /**
+     * @OA\Post(
+     *     path="/hoardings/availability/{hoarding}/check-dates",
+     *     summary="Check availability for specific dates (batch check)",
+     *     tags={"Hoarding Availability"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="hoarding", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(mediaType="application/json",
+     *             @OA\Schema(type="object",
+     *                 @OA\Property(property="dates", type="array", @OA\Items(type="string", format="date"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Date availability checked successfully"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function checkMultipleDates(CheckMultipleDatesRequest $request, Hoarding $hoarding): JsonResponse
     {
         $results = $this->availabilityService->checkMultipleDates(
@@ -163,7 +271,7 @@ class HoardingAvailabilityController extends Controller
     /**
      * Get next N available dates
      * 
-     * GET /api/v1/hoardings/{hoarding}/availability/next-available
+     * GET /api/v1/hoardings/availability/{hoarding}/next-available
      * 
      * Query Parameters:
      * - count (optional): Number of dates to find, default 10
@@ -173,6 +281,21 @@ class HoardingAvailabilityController extends Controller
      * @param Request $request
      * @param Hoarding $hoarding
      * @return JsonResponse
+     */
+
+    /**
+     * @OA\Get(
+     *     path="/hoardings/availability/{hoarding}/next-available",
+     *     summary="Get next N available dates",
+     *     tags={"Hoarding Availability"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="hoarding", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="count", in="query", required=false, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="start_from", in="query", required=false, @OA\Schema(type="string", format="date")),
+     *     @OA\Parameter(name="max_search_days", in="query", required=false, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Next available dates retrieved successfully"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function getNextAvailable(Request $request, Hoarding $hoarding): JsonResponse
     {
@@ -199,7 +322,7 @@ class HoardingAvailabilityController extends Controller
     /**
      * Get availability heatmap data (for visualization)
      * 
-     * GET /api/v1/hoardings/{hoarding}/availability/heatmap
+     * GET /api/v1/hoardings/availability/{hoarding}/heatmap
      * 
      * Returns color-coded data for calendar heatmap:
      * - available: green (#22c55e)
@@ -211,6 +334,43 @@ class HoardingAvailabilityController extends Controller
      * @param GetAvailabilityCalendarRequest $request
      * @param Hoarding $hoarding
      * @return JsonResponse
+     */
+
+    /**
+     * @OA\Get(
+     *     path="/hoardings/availability/{hoarding}/heatmap",
+     *     summary="Get availability heatmap data (for visualization)",
+     *     tags={"Hoarding Availability"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="hoarding", in="path", required=true, @OA\Schema(type="integer")),
+     *    @OA\Parameter(
+                name="start_date",
+                in="query",
+                required=true,
+                description="Start date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-03-28",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
+     *     @OA\Parameter(
+                name="end_date",
+                in="query",
+                required=true,
+                description="End date in YYYY-MM-DD format",
+                @OA\Schema(
+                    type="string",
+                    format="date",
+                    example="2026-04-05",
+                    pattern="^\d{4}-\d{2}-\d{2}$"
+                )
+            ),
+     *     @OA\Response(response=200, description="Heatmap data retrieved successfully"),
+     *     @OA\Response(response=422, description="Validation error"),
+     *     @OA\Response(response=500, description="Internal server error")
+     * )
      */
     public function getHeatmap(GetAvailabilityCalendarRequest $request, Hoarding $hoarding): JsonResponse
     {
@@ -271,7 +431,7 @@ class HoardingAvailabilityController extends Controller
     /**
      * Get quick status check (lightweight, single date)
      * 
-     * GET /api/v1/hoardings/{hoarding}/availability/quick-check
+     * GET /hoardings/{hoarding}/availability/quick-check
      * 
      * Query Parameters:
      * - date (required): YYYY-MM-DD
@@ -279,6 +439,19 @@ class HoardingAvailabilityController extends Controller
      * @param Request $request
      * @param Hoarding $hoarding
      * @return JsonResponse
+     */
+
+    /**
+     * @OA\Get(
+     *     path="/hoardings/availability/{hoarding}/quick-check",
+     *     summary="Get quick status check (lightweight, single date)",
+     *     tags={"Hoarding Availability"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="hoarding", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="date", in="query", required=true, @OA\Schema(type="string", format="date")),
+     *     @OA\Response(response=200, description="Quick availability check completed"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function quickCheck(Request $request, Hoarding $hoarding): JsonResponse
     {

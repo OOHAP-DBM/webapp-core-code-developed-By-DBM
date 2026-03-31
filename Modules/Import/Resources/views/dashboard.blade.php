@@ -36,9 +36,8 @@
                         <option value="">All statuses</option>
                         <option value="uploaded">uploaded</option>
                         <option value="processing">processing</option>
-                        <option value="processed">processed</option>
-                        <option value="completed">completed</option>
-                        <option value="approved">approved</option>
+                        <option value="completed">draft</option>
+                        <option value="approved">Completed</option>
                         <option value="failed">failed</option>
                         <option value="cancelled">cancelled</option>
                     </select>
@@ -63,11 +62,12 @@
                             <th class="px-4 py-3 text-left text-sm">Status</th>
                             <th class="px-4 py-3 text-left text-sm">Hoardings</th>
                             <th class="px-4 py-3 text-left text-sm">Created At</th>
+                            <th class="px-4 py-3 text-left text-sm">Uploaded File</th>
                             <th class="px-4 py-3 text-left text-sm">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="batchesBody" class="divide-y divide-gray-200">
-                        <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">Loading...</td></tr>
+                        <tr><td colspan="7" class="px-4 py-6 text-center text-gray-500">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -431,20 +431,42 @@ async function loadBatches(page) {
 
         const body = document.getElementById('batchesBody');
         if (!rows.length) {
-            body.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">No batches found</td></tr>';
+            body.innerHTML = '<tr><td colspan="7" class="px-4 py-6 text-center text-gray-500">No batches found</td></tr>';
             renderBatchPagination();
             return;
         }
 
-        body.innerHTML = rows.map(batch => {
+       body.innerHTML = rows.map((batch, index) => {
             const canApprove = !IS_ADMIN && batch.status === 'processed';
+            const serialNo = ((batchPaginationState.current_page - 1) * batchQueryState.per_page) + index + 1;
+
+            // Excel file download link
+            const fileCell = batch.file_url
+                ? `<a href="${batch.file_url}" class="text-blue-600 hover:underline flex items-center gap-1 text-sm">
+                    Excel
+                </a>`
+                : '<span class="text-gray-400 text-xs">No file</span>';
+
+            // PPT file download link (optional — show if present)
+            const pptCell = batch.ppt_url
+                ? `<a href="${batch.ppt_url}" class="text-purple-600 hover:underline flex items-center gap-1 text-sm mt-1">
+                    PPT
+                </a>`
+                : '';
+
             return `
                 <tr>
-                    <td class="px-4 py-3">#${batch.batch_id}</td>
+                    <td class="px-4 py-3">${serialNo}</td>
                     <td class="px-4 py-3 uppercase">${batch.media_type}</td>
                     <td class="px-4 py-3">${batch.status ?? '-'}</td>
                     <td class="px-4 py-3">${batch.valid_rows}/${batch.total_rows}</td>
                     <td class="px-4 py-3">${new Date(batch.created_at).toLocaleString()}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-col gap-0.5">
+                            ${fileCell}
+                            ${pptCell}
+                        </div>
+                    </td>
                     <td class="px-4 py-3 space-x-2">
                         <button onclick="viewBatch(${batch.batch_id})" class="text-blue-600 hover:underline cursor-pointer">View</button>
                         <button onclick="deleteBatch(${batch.batch_id})" class="text-red-600 hover:underline cursor-pointer">Delete</button>
@@ -459,7 +481,7 @@ async function loadBatches(page) {
         console.error('loadBatches error:', error);
         const body = document.getElementById('batchesBody');
         if (body) {
-            body.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-red-500">Failed to load: ${error.message}</td></tr>`;
+            body.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-red-500">Failed to load: ${error.message}</td></tr>`;
         }
         notify(error.message, 'error');
     }

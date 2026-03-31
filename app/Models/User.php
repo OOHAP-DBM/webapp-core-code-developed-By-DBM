@@ -684,4 +684,23 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(POSBooking::class, 'vendor_id');
     }
+
+        /**
+     * Get vendor address from vendor profile, fallback to user fields if not present
+     */
+    public function getVendorAddress(): ?string
+    {
+        if ($this->vendorProfile ) {
+            return $this->vendorProfile->registered_address??$this->vendorProfile->city??$this->vendorProfile->state??$this->vendorProfile->pincode??$this->vendorProfile->country??null;
+        }
+        // Fallback to user address fields
+        $parts = array_filter([
+            $this->registered_address ?? null,
+            $this->city ?? null,
+            $this->state ?? null,
+            $this->pincode ?? null,
+            $this->country ?? null,
+        ]);
+        return $parts ? implode(', ', $parts) : null;
+    }
 }

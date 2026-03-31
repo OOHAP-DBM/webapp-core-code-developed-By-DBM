@@ -8,6 +8,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0"> -->
 
     <title>@yield('title', 'Dashboard') - OOHAPP Vendor</title>
 
@@ -248,16 +251,17 @@
 <body class="antialiased bg-gray-50">
 
     <script>
-    // Instantly hide sidebar on mobile before DOMContentLoaded
-    (function() {
-        try {
-            if (window.innerWidth <= 1023) {
-                var sb = document.getElementById('vendor-sidebar');
-                if (sb) sb.classList.add('hidden');
-            }
-        } catch(e) {}
-    })();
-    </script>
+        (function() {
+            try {
+                if (window.innerWidth <= 1023) {
+                    var style = document.createElement('style');
+                    style.id = 'sidebar-init-hide';
+                    style.textContent = '#vendor-sidebar { display: none !important; }';
+                    document.head.appendChild(style);
+                }
+            } catch(e) {}
+        })();
+        </script>
     <div id="sidebar-overlay" onclick="closeSidebarMobile()"></div>
 
     <div id="app" class="flex h-screen overflow-hidden">
@@ -349,6 +353,10 @@
            DOMContentLoaded — initial state + open/close buttons
            ------------------------------------------------------- */
         document.addEventListener('DOMContentLoaded', function () {
+            // Remove the CSS hide rule, JS takes over from here
+            var initStyle = document.getElementById('sidebar-init-hide');
+            if (initStyle) initStyle.remove();
+
             const sidebar     = document.getElementById('vendor-sidebar');
             const mainContent = document.getElementById('main-content-area');
             const arrowIcon   = document.getElementById('sidebar-arrow-icon');
@@ -442,6 +450,15 @@
             hideSidebarOnSmallScreen();
         })();
     </script>
+<!-- <script>
+    // Logout ke baad back button se aane par force redirect
+    window.addEventListener('pageshow', function(event) {
+        // bfcache se page load hua hai (back button)
+        if (event.persisted) {
+            window.location.replace('/login');
+        }
+    });
+</script> -->
 
 </body>
 </html>

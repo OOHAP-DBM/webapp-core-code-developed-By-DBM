@@ -12,31 +12,93 @@ class GeocodeController extends Controller
      * Forward Geocoding
      * /api/geocode?q=226010
      */
+    // public function search(Request $request)
+    // {
+    //     $query = $request->query('q');
+
+    //     if (!$query) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Query is required.'
+    //         ], 400);
+    //     }
+
+    //     try {
+
+    //         $response = Http::timeout(10)
+    //             ->withHeaders([
+    //                 // REQUIRED by Nominatim usage policy
+    //                 'User-Agent' => 'OohApp/1.0 (admin@oohapp.io)'
+    //             ])
+    //             ->get('https://nominatim.openstreetmap.org/search', [
+    //                 'format'         => 'json',
+    //                 'limit'          => 1,
+    //                 'addressdetails' => 1,
+    //                 'countrycodes'   => 'in',
+    //                 'q'              => $query
+    //             ]);
+
+    //         if (!$response->successful()) {
+    //             Log::error('Geocode API error', [
+    //                 'status' => $response->status(),
+    //                 'body'   => $response->body()
+    //             ]);
+
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Location service unavailable.'
+    //             ], 500);
+    //         }
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'data'    => $response->json()
+    //         ]);
+    //     } catch (\Exception $e) {
+
+    //         Log::error('Geocode exception', [
+    //             'error' => $e->getMessage()
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Geocoding failed.'
+    //         ], 500);
+    //     }
+    // }
+
     public function search(Request $request)
     {
-        $query = $request->query('q');
+        $query      = $request->query('q');
+        $postalcode = $request->query('postalcode');
 
-        if (!$query) {
+        if (!$query && !$postalcode) {
             return response()->json([
                 'success' => false,
                 'message' => 'Query is required.'
             ], 400);
         }
 
-        try {
+        // ✅ Build params — postalcode is more accurate than text query for Indian pincodes
+        $params = [
+            'format'         => 'json',
+            'limit'          => 5,       // ✅ increased from 1 to find best match
+            'addressdetails' => 1,
+            'countrycodes'   => 'in',
+        ];
 
+        if ($postalcode) {
+            $params['postalcode'] = $postalcode;  // ✅ dedicated postal search
+        } else {
+            $params['q'] = $query;
+        }
+
+        try {
             $response = Http::timeout(10)
                 ->withHeaders([
-                    // REQUIRED by Nominatim usage policy
                     'User-Agent' => 'OohApp/1.0 (admin@oohapp.io)'
                 ])
-                ->get('https://nominatim.openstreetmap.org/search', [
-                    'format'         => 'json',
-                    'limit'          => 1,
-                    'addressdetails' => 1,
-                    'countrycodes'   => 'in',
-                    'q'              => $query
-                ]);
+                ->get('https://nominatim.openstreetmap.org/search', $params);
 
             if (!$response->successful()) {
                 Log::error('Geocode API error', [
@@ -50,12 +112,13 @@ class GeocodeController extends Controller
                 ], 500);
             }
 
+            $data = $response->json();
+
             return response()->json([
                 'success' => true,
-                'data'    => $response->json()
+                'data'    => $data ?: []
             ]);
         } catch (\Exception $e) {
-
             Log::error('Geocode exception', [
                 'error' => $e->getMessage()
             ]);

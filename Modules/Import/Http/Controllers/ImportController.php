@@ -18,6 +18,7 @@ use Modules\Import\Entities\InventoryImportBatch;
 use Modules\Import\Entities\InventoryImportStaging;
 use Modules\Import\Jobs\ProcessInventoryImportJob;
 use Exception;
+use Illuminate\Support\Facades\Schema;
 
 class ImportController extends Controller
 {
@@ -34,15 +35,11 @@ class ImportController extends Controller
     {
         $user = auth()->user();
         
-        // Build query based on user role
+        // Always filter by vendor_id so both admin and vendor see only their own uploads
         $batchesQuery = InventoryImportBatch::query()
+            ->where('vendor_id', $user->id)
             ->latest('created_at');
-        
-        // Filter by vendor_id if user is not admin
-        if (!$user->hasRole('admin')) {
-            $batchesQuery->where('vendor_id', $user->id);
-        }
-        
+
         $batches = $batchesQuery->paginate(15);
 
         $viewName = $user->hasRole('admin') ? 'import::admin' : 'import::index';
@@ -62,11 +59,10 @@ class ImportController extends Controller
     {
         $user = auth()->user();
 
-        $batchesQuery = InventoryImportBatch::query()->latest('created_at');
-
-        if (!$user->hasRole('admin')) {
-            $batchesQuery->where('vendor_id', $user->id);
-        }
+        // Always filter by vendor_id so both admin and vendor see only their own uploads
+        $batchesQuery = InventoryImportBatch::query()
+            ->where('vendor_id', $user->id)
+            ->latest('created_at');
 
         $batches = $batchesQuery->paginate(15);
 
@@ -252,216 +248,216 @@ class ImportController extends Controller
     //     ]);
     // }
 
-  public function downloadSampleTemplate(string $mediaType): \Symfony\Component\HttpFoundation\BinaryFileResponse
-{
-    $normalizedMediaType = strtolower(trim($mediaType));
-    if (!in_array($normalizedMediaType, ['ooh', 'dooh'], true)) {
-        abort(404);
-    }
-
-    $oohColumns = [
-        'Media ID'                => true,
-        'Hoarding Type'           => true,
-        'Media Type'              => true,
-        'Full Address'            => true,
-        'Locality'                => true,
-        'Landmark'                => false,
-        'City'                    => true,
-        'State'                   => true,
-        'Pincode'                 => true,
-        'Width'                   => true,
-        'Height'                  => true,
-        'Unit'                    => true,
-        'Illumination'            => true,
-        'Latitude'                => true,
-        'Longitude'               => true,
-        'Minimum Duration (Days)' => true,
-        'DCPM / Price'            => true,
-        'Availability'            => true,
-        'Discount Type'           => false,
-        'Discount Value'          => false,
-        'Monthly Sale Price'      => false,
-        'Designing Charge'        => false,
-        'Printing Charge'         => false,
-        'Mounting Charge'         => false,
-        'Description'             => false,
-    ];
-
-    $doohColumns = [
-        'Media ID'                => true,
-        'Hoarding Type'           => true,
-        'Media Type'              => true,
-        'Full Address'            => true,
-        'Locality'                => true,
-        'Landmark'                => false,
-        'City'                    => true,
-        'State'                   => true,
-        'Pincode'                 => true,
-        'Width'                   => true,
-        'Height'                  => true,
-        'Unit'                    => true,
-        'Illumination'            => true,
-        'Latitude'                => true,
-        'Longitude'               => true,
-        'Ad Duration (Sec)'       => true,
-        'Price Per Spot (₹)'      => true,
-        'Spots Per Day'           => true,
-        'Daily Play Hours'        => true,
-        'Minimum Duration (Days)' => true,
-        'DCPM / Price'            => true,
-        'Availability'            => true,
-        'Discount Type'           => false,
-        'Discount Value'          => false,
-        'Monthly Sale Price'      => false,
-        'Designing Charge'        => false,
-        'Printing Charge'         => false,
-        'Mounting Charge'         => false,
-        'Description'             => false,
-    ];
-
-    $columns  = $normalizedMediaType === 'dooh' ? $doohColumns : $oohColumns;
-    $filename = 'import_sample_' . $normalizedMediaType . '.xlsx';
-
-    $sampleData = [
-        'Media ID'                => strtoupper($normalizedMediaType) . '001',
-        'Hoarding Type'           => strtoupper($normalizedMediaType),
-        'Media Type'              => 'Billboard',
-        'Full Address'            => 'Connaught Place, New Delhi',
-        'Locality'                => 'Connaught Place',
-        'Landmark'                => 'Near Central Park',
-        'City'                    => 'Delhi',
-        'State'                   => 'Delhi',
-        'Pincode'                 => '110001',
-        'Width'                   => '20',
-        'Height'                  => '10',
-        'Unit'                    => 'ft',
-        'Illumination'            => 'Front Lit',
-        'Latitude'                => '28.6315',
-        'Longitude'               => '77.2167',
-        'Ad Duration (Sec)'       => '10',
-        'Price Per Spot (₹)'      => '250',
-        'Spots Per Day'           => '120',
-        'Daily Play Hours'        => '18 Hrs',
-        'Minimum Duration (Days)' => '30',
-        'DCPM / Price'            => '120000',
-        'Availability'            => 'Available',
-        'Discount Type'           => 'fixed',
-        'Discount Value'          => '5000',
-        'Monthly Sale Price'      => '45000',
-        'Designing Charge'        => '1500',
-        'Printing Charge'         => '3000',
-        'Mounting Charge'         => '2000',
-        'Description'             => 'Prime location inventory sample',
-    ];
-
-    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-
-    // ── Instructions sheet ──────────────────────────────────────────
-    $legend = $spreadsheet->getActiveSheet();
-    $legend->setTitle('Instructions');
-
-    $legend->mergeCells('A1:B1');
-    $legend->setCellValue('A1', 'Import Sample Template — ' . strtoupper($normalizedMediaType));
-    $legend->getStyle('A1')->applyFromArray([
-        'font'      => ['bold' => true, 'size' => 13, 'color' => ['rgb' => 'FFFFFF'], 'name' => 'Arial'],
-        'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => '1F4E79']],
-        'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
-    ]);
-    $legend->getRowDimension(1)->setRowHeight(30);
-
-    $legend->setCellValue('A2', 'Colour');
-    $legend->setCellValue('B2', 'Meaning');
-    $legend->getStyle('A2:B2')->applyFromArray([
-        'font'      => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF'], 'name' => 'Arial'],
-        'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => '2E75B6']],
-        'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
-    ]);
-    $legend->getRowDimension(2)->setRowHeight(20);
-
-    $legendRows = [
-        3 => ['🔴 Red header',  'Required field — must be filled in every row',   'FFE2E2'],
-        4 => ['⚪ Grey header', 'Optional field — leave blank if not applicable',  'F2F2F2'],
-        5 => ['🟢 Green row',   'Sample data row — replace with your actual data', 'E2EFDA'],
-    ];
-    foreach ($legendRows as $row => [$label, $meaning, $bg]) {
-        $legend->setCellValue("A{$row}", $label);
-        $legend->setCellValue("B{$row}", $meaning);
-        foreach (['A', 'B'] as $col) {
-            $legend->getStyle("{$col}{$row}")->applyFromArray([
-                'font'      => ['name' => 'Arial', 'size' => 10],
-                'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => $bg]],
-                'alignment' => ['horizontal' => 'left', 'vertical' => 'center', 'wrapText' => true],
-            ]);
+    public function downloadSampleTemplate(string $mediaType): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    {
+        $normalizedMediaType = strtolower(trim($mediaType));
+        if (!in_array($normalizedMediaType, ['ooh', 'dooh'], true)) {
+            abort(404);
         }
-        $legend->getRowDimension($row)->setRowHeight(22);
-    }
 
-    $legend->mergeCells('A7:B7');
-    $legend->setCellValue('A7', '⚠  Do NOT change column header names. Max file size: 20 MB.');
-    $legend->getStyle('A7')->applyFromArray([
-        'font'      => ['italic' => true, 'size' => 9, 'color' => ['rgb' => '7F6000'], 'name' => 'Arial'],
-        'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => 'FFF2CC']],
-        'alignment' => ['horizontal' => 'left', 'vertical' => 'center', 'wrapText' => true],
-    ]);
-    $legend->getRowDimension(7)->setRowHeight(28);
-    $legend->getColumnDimension('A')->setWidth(30);
-    $legend->getColumnDimension('B')->setWidth(55);
+        $oohColumns = [
+            'Media ID'                => true,
+            'Hoarding Type'           => true,
+            'Media Type'              => true,
+            'Full Address'            => true,
+            'Locality'                => true,
+            'Landmark'                => false,
+            'City'                    => true,
+            'State'                   => true,
+            'Pincode'                 => true,
+            'Width'                   => true,
+            'Height'                  => true,
+            'Unit'                    => true,
+            'Illumination'            => true,
+            'Latitude'                => true,
+            'Longitude'               => true,
+            'Minimum Duration (Days)' => true,
+            'DCPM / Price'            => true,
+            'Availability'            => true,
+            'Discount Type'           => false,
+            'Discount Value'          => false,
+            'Monthly Sale Price'      => false,
+            'Designing Charge'        => false,
+            'Printing Charge'         => false,
+            'Mounting Charge'         => false,
+            'Description'             => false,
+        ];
 
-    // ── Import Data sheet ───────────────────────────────────────────
-    $data     = $spreadsheet->createSheet();
-    $data->setTitle('Import Data');
-    $colIndex = 1;
-    $totalCols = count($columns);
+        $doohColumns = [
+            'Media ID'                => true,
+            'Hoarding Type'           => true,
+            'Media Type'              => true,
+            'Full Address'            => true,
+            'Locality'                => true,
+            'Landmark'                => false,
+            'City'                    => true,
+            'State'                   => true,
+            'Pincode'                 => true,
+            'Width'                   => true,
+            'Height'                  => true,
+            'Unit'                    => true,
+            'Illumination'            => true,
+            'Latitude'                => true,
+            'Longitude'               => true,
+            'Ad Duration (Sec)'       => true,
+            'Price Per Spot (₹)'      => true,
+            'Spots Per Day'           => true,
+            'Daily Play Hours'        => true,
+            'Minimum Duration (Days)' => true,
+            'DCPM / Price'            => true,
+            'Availability'            => true,
+            'Discount Type'           => false,
+            'Discount Value'          => false,
+            'Monthly Sale Price'      => false,
+            'Designing Charge'        => false,
+            'Printing Charge'         => false,
+            'Mounting Charge'         => false,
+            'Description'             => false,
+        ];
 
-    foreach ($columns as $colName => $required) {
-        $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+        $columns  = $normalizedMediaType === 'dooh' ? $doohColumns : $oohColumns;
+        $filename = 'import_sample_' . $normalizedMediaType . '.xlsx';
 
-        $data->setCellValue("{$colLetter}1", $colName . ($required ? ' *' : ''));
-        $data->getStyle("{$colLetter}1")->applyFromArray([
+        $sampleData = [
+            'Media ID'                => strtoupper($normalizedMediaType) . '001',
+            'Hoarding Type'           => strtoupper($normalizedMediaType),
+            'Media Type'              => 'Billboard',
+            'Full Address'            => 'Connaught Place, New Delhi',
+            'Locality'                => 'Connaught Place',
+            'Landmark'                => 'Near Central Park',
+            'City'                    => 'Delhi',
+            'State'                   => 'Delhi',
+            'Pincode'                 => '110001',
+            'Width'                   => '20',
+            'Height'                  => '10',
+            'Unit'                    => 'ft',
+            'Illumination'            => 'Front Lit',
+            'Latitude'                => '28.6315',
+            'Longitude'               => '77.2167',
+            'Ad Duration (Sec)'       => '10',
+            'Price Per Spot (₹)'      => '250',
+            'Spots Per Day'           => '120',
+            'Daily Play Hours'        => '18 Hrs',
+            'Minimum Duration (Days)' => '30',
+            'DCPM / Price'            => '120000',
+            'Availability'            => 'Available',
+            'Discount Type'           => 'fixed',
+            'Discount Value'          => '5000',
+            'Monthly Sale Price'      => '45000',
+            'Designing Charge'        => '1500',
+            'Printing Charge'         => '3000',
+            'Mounting Charge'         => '2000',
+            'Description'             => 'Prime location inventory sample',
+        ];
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+
+        // ── Instructions sheet ──────────────────────────────────────────
+        $legend = $spreadsheet->getActiveSheet();
+        $legend->setTitle('Instructions');
+
+        $legend->mergeCells('A1:B1');
+        $legend->setCellValue('A1', 'Import Sample Template — ' . strtoupper($normalizedMediaType));
+        $legend->getStyle('A1')->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 13, 'color' => ['rgb' => 'FFFFFF'], 'name' => 'Arial'],
+            'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => '1F4E79']],
+            'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
+        ]);
+        $legend->getRowDimension(1)->setRowHeight(30);
+
+        $legend->setCellValue('A2', 'Colour');
+        $legend->setCellValue('B2', 'Meaning');
+        $legend->getStyle('A2:B2')->applyFromArray([
             'font'      => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF'], 'name' => 'Arial'],
-            'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => $required ? 'C00000' : '595959']],
-            'alignment' => ['horizontal' => 'center', 'vertical' => 'center', 'wrapText' => true],
-            'borders'   => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'D9D9D9']]],
+            'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => '2E75B6']],
+            'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
         ]);
+        $legend->getRowDimension(2)->setRowHeight(20);
 
-        $data->setCellValue("{$colLetter}2", $sampleData[$colName] ?? '');
-        $data->getStyle("{$colLetter}2")->applyFromArray([
-            'font'      => ['size' => 10, 'color' => ['rgb' => '375623'], 'name' => 'Arial'],
-            'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => 'E2EFDA']],
-            'alignment' => ['horizontal' => 'left', 'vertical' => 'center'],
-            'borders'   => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'D9D9D9']]],
+        $legendRows = [
+            3 => ['🔴 Red header',  'Required field — must be filled in every row',   'FFE2E2'],
+            4 => ['⚪ Grey header', 'Optional field — leave blank if not applicable',  'F2F2F2'],
+            5 => ['🟢 Green row',   'Sample data row — replace with your actual data', 'E2EFDA'],
+        ];
+        foreach ($legendRows as $row => [$label, $meaning, $bg]) {
+            $legend->setCellValue("A{$row}", $label);
+            $legend->setCellValue("B{$row}", $meaning);
+            foreach (['A', 'B'] as $col) {
+                $legend->getStyle("{$col}{$row}")->applyFromArray([
+                    'font'      => ['name' => 'Arial', 'size' => 10],
+                    'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => $bg]],
+                    'alignment' => ['horizontal' => 'left', 'vertical' => 'center', 'wrapText' => true],
+                ]);
+            }
+            $legend->getRowDimension($row)->setRowHeight(22);
+        }
+
+        $legend->mergeCells('A7:B7');
+        $legend->setCellValue('A7', '⚠  Do NOT change column header names. Max file size: 20 MB.');
+        $legend->getStyle('A7')->applyFromArray([
+            'font'      => ['italic' => true, 'size' => 9, 'color' => ['rgb' => '7F6000'], 'name' => 'Arial'],
+            'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => 'FFF2CC']],
+            'alignment' => ['horizontal' => 'left', 'vertical' => 'center', 'wrapText' => true],
         ]);
+        $legend->getRowDimension(7)->setRowHeight(28);
+        $legend->getColumnDimension('A')->setWidth(30);
+        $legend->getColumnDimension('B')->setWidth(55);
 
-        $data->getColumnDimension($colLetter)->setWidth(max(mb_strlen($colName) + 4, 18));
-        $colIndex++;
+        // ── Import Data sheet ───────────────────────────────────────────
+        $data     = $spreadsheet->createSheet();
+        $data->setTitle('Import Data');
+        $colIndex = 1;
+        $totalCols = count($columns);
+
+        foreach ($columns as $colName => $required) {
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+
+            $data->setCellValue("{$colLetter}1", $colName . ($required ? ' *' : ''));
+            $data->getStyle("{$colLetter}1")->applyFromArray([
+                'font'      => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF'], 'name' => 'Arial'],
+                'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => $required ? 'C00000' : '595959']],
+                'alignment' => ['horizontal' => 'center', 'vertical' => 'center', 'wrapText' => true],
+                'borders'   => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'D9D9D9']]],
+            ]);
+
+            $data->setCellValue("{$colLetter}2", $sampleData[$colName] ?? '');
+            $data->getStyle("{$colLetter}2")->applyFromArray([
+                'font'      => ['size' => 10, 'color' => ['rgb' => '375623'], 'name' => 'Arial'],
+                'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => 'E2EFDA']],
+                'alignment' => ['horizontal' => 'left', 'vertical' => 'center'],
+                'borders'   => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'D9D9D9']]],
+            ]);
+
+            $data->getColumnDimension($colLetter)->setWidth(max(mb_strlen($colName) + 4, 18));
+            $colIndex++;
+        }
+
+        $data->getRowDimension(1)->setRowHeight(36);
+        $data->getRowDimension(2)->setRowHeight(22);
+        $data->freezePane('A2');
+
+        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($totalCols);
+        $data->mergeCells("A4:{$lastCol}4");
+        $data->setCellValue('A4', '🔴 Red columns marked with * are REQUIRED.  ⚪ Grey columns are optional.  🟢 Green row is sample data — replace with your actual data. Do NOT modify the header row.');
+        $data->getStyle('A4')->applyFromArray([
+            'font'      => ['italic' => true, 'size' => 9, 'color' => ['rgb' => '7F6000'], 'name' => 'Arial'],
+            'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => 'FFF2CC']],
+            'alignment' => ['horizontal' => 'left', 'vertical' => 'center', 'wrapText' => true],
+        ]);
+        $data->getRowDimension(4)->setRowHeight(30);
+
+        $spreadsheet->setActiveSheetIndex(1);
+
+        // ── Write to a real temp file, then send as download ───────────
+        $tempPath = tempnam(sys_get_temp_dir(), 'oohapp_sample_') . '.xlsx';
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save($tempPath);
+
+        return response()->download($tempPath, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);  // auto-cleans the temp file
     }
-
-    $data->getRowDimension(1)->setRowHeight(36);
-    $data->getRowDimension(2)->setRowHeight(22);
-    $data->freezePane('A2');
-
-    $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($totalCols);
-    $data->mergeCells("A4:{$lastCol}4");
-    $data->setCellValue('A4', '🔴 Red columns marked with * are REQUIRED.  ⚪ Grey columns are optional.  🟢 Green row is sample data — replace with your actual data. Do NOT modify the header row.');
-    $data->getStyle('A4')->applyFromArray([
-        'font'      => ['italic' => true, 'size' => 9, 'color' => ['rgb' => '7F6000'], 'name' => 'Arial'],
-        'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => 'FFF2CC']],
-        'alignment' => ['horizontal' => 'left', 'vertical' => 'center', 'wrapText' => true],
-    ]);
-    $data->getRowDimension(4)->setRowHeight(30);
-
-    $spreadsheet->setActiveSheetIndex(1);
-
-    // ── Write to a real temp file, then send as download ───────────
-    $tempPath = tempnam(sys_get_temp_dir(), 'oohapp_sample_') . '.xlsx';
-
-    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-    $writer->save($tempPath);
-
-    return response()->download($tempPath, $filename, [
-        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ])->deleteFileAfterSend(true);  // auto-cleans the temp file
-}
     /**
      * Store path for imports
      */
@@ -481,6 +477,9 @@ class ImportController extends Controller
     public function uploadInventoryImport(UploadInventoryImportRequest $request): JsonResponse
     {
         try {
+             set_time_limit(300);
+            ini_set('upload_max_filesize', '65M');
+            ini_set('post_max_size', '70M');
             // Create batch record
             $batch = InventoryImportBatch::create([
                 'vendor_id' => auth()->id(),
@@ -528,6 +527,11 @@ class ImportController extends Controller
 
             \Log::info('Dispatched import processing job', [
                 'batch_id' => $batch->id,
+            ]);
+            // After storing files, update the batch with the excel path
+            $batch->update([
+                'file_path' => $excelPath,
+                'ppt_path'  => $pptPath,
             ]);
 
             return response()->json([
@@ -637,6 +641,40 @@ class ImportController extends Controller
         }
     }
 
+
+    /**
+     * Toggle row status only.
+     */
+    public function updateBatchRowStatus(Request $request, InventoryImportBatch $batch, InventoryImportStaging $row): JsonResponse
+    {
+        try {
+            $this->authorize('update', $batch);
+
+            if ($batch->status === 'approved') {
+                return response()->json(['success' => false, 'message' => 'Cannot modify rows for an approved batch'], 422);
+            }
+
+            if ((int) $row->batch_id !== (int) $batch->id) {
+                return response()->json(['success' => false, 'message' => 'Row does not belong to this batch'], 422);
+            }
+
+            $validated = $request->validate([
+                'status' => ['required', Rule::in(['valid', 'invalid'])],
+            ]);
+
+            $row->update(['status' => $validated['status']]);
+            $this->refreshBatchCounts($batch);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status updated successfully',
+                'data'    => ['id' => $row->id, 'status' => $row->status],
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
     /**
      * Store uploaded file
      *
@@ -682,98 +720,106 @@ class ImportController extends Controller
         try {
             $user = auth()->user();
             $validated = $request->validate([
-                'status' => ['nullable', 'string', 'max:50'],
-                'search' => ['nullable', 'string', 'max:100'],
-                'per_page' => ['nullable', 'integer', 'min:5', 'max:100'],
-                'page' => ['nullable', 'integer', 'min:1'],
-            ]);
-
-            $summaryQuery = InventoryImportBatch::query();
-            if (!$user->hasRole('admin')) {
-                $summaryQuery->byVendor($user->id);
-            }
-
-            $summaryRows = $summaryQuery
-                ->selectRaw('status, COUNT(*) as total')
-                ->groupBy('status')
-                ->get();
-
-            $summary = [
-                'total' => (int) $summaryRows->sum('total'),
-                'processing' => 0,
-                'completed' => 0,
-                'failed' => 0,
-            ];
-
-            foreach ($summaryRows as $summaryRow) {
-                $statusKey = strtolower((string) $summaryRow->status);
-                if (array_key_exists($statusKey, $summary)) {
-                    $summary[$statusKey] = (int) $summaryRow->total;
-                }
-            }
-            
-            // Admins see all batches, vendors see only their own
-            $importsQuery = InventoryImportBatch::query()
-                ->select([
-                    'id',
-                    'vendor_id',
-                    'status',
-                    'media_type',
-                    'total_rows',
-                    'valid_rows',
-                    'invalid_rows',
-                    'created_at',
+                    'status' => ['nullable', 'string', 'max:50'],
+                    'search' => ['nullable', 'string', 'max:100'],
+                    'per_page' => ['nullable', 'integer', 'min:5', 'max:100'],
+                    'page' => ['nullable', 'integer', 'min:1'],
                 ]);
-            
-            if (!$user->hasRole('admin')) {
-                $importsQuery->byVendor($user->id);
-            }
 
-            if (!empty($validated['status'])) {
-                $importsQuery->where('status', strtolower((string) $validated['status']));
-            }
+                // Always filter by vendor_id so both admin and vendor see only their own uploads
+                $summaryQuery = InventoryImportBatch::query()->byVendor($user->id);
+                $summaryRows = $summaryQuery
+                    ->selectRaw('status, COUNT(*) as total')
+                    ->groupBy('status')
+                    ->get();
 
-            if (!empty($validated['search'])) {
-                $search = trim((string) $validated['search']);
-                $importsQuery->where(function ($query) use ($search) {
-                    $query->where('media_type', 'like', "%{$search}%")
-                        ->orWhere('status', 'like', "%{$search}%")
-                        ->orWhere('id', 'like', "%{$search}%");
-                });
-            }
+                $summary = [
+                    'total' => (int) $summaryRows->sum('total'),
+                    'processing' => 0,
+                    'completed' => 0,
+                    'failed' => 0,
+                ];
 
-            $perPage = (int) ($validated['per_page'] ?? 15);
-            
-            $imports = $importsQuery->orderByDesc('created_at')
-                ->paginate($perPage);
+                foreach ($summaryRows as $summaryRow) {
+                    $statusKey = strtolower((string) $summaryRow->status);
+                    if (array_key_exists($statusKey, $summary)) {
+                        $summary[$statusKey] = (int) $summaryRow->total;
+                    }
+                }
 
-            return response()->json([
-                'success' => true,
-                'data' => collect($imports->items())->map(fn ($batch) => [
-                    'batch_id' => $batch->id,
-                    'status' => $batch->status,
-                    'media_type' => $batch->media_type,
-                    'total_rows' => $batch->total_rows,
-                    'valid_rows' => $batch->valid_rows,
-                    'invalid_rows' => $batch->invalid_rows,
-                    'error_rate' => $batch->getErrorRatePercentage(),
-                    'created_at' => $batch->created_at,
-                ]),
-                'pagination' => [
-                    'total' => $imports->total(),
-                    'per_page' => $imports->perPage(),
-                    'current_page' => $imports->currentPage(),
-                    'last_page' => $imports->lastPage(),
-                    'from' => $imports->firstItem(),
-                    'to' => $imports->lastItem(),
-                ],
-                'summary' => $summary,
-            ]);
+                $importsQuery = InventoryImportBatch::query()
+                    ->select([
+                        'id',
+                        'vendor_id',
+                        'status',
+                        'media_type',
+                        'total_rows',
+                        'valid_rows',
+                        'invalid_rows',
+                        'file_path',
+                        'ppt_path',
+                        'created_at',
+                    ])
+                    ->byVendor($user->id);
+
+                if (!empty($validated['status'])) {
+                    $importsQuery->where('status', strtolower((string) $validated['status']));
+                }
+
+                if (!empty($validated['search'])) {
+                    $search = trim((string) $validated['search']);
+                    $importsQuery->where(function ($query) use ($search) {
+                        $query->where('media_type', 'like', "%{$search}%")
+                            ->orWhere('status', 'like', "%{$search}%")
+                            ->orWhere('id', 'like', "%{$search}%");
+                    });
+                }
+
+                $perPage = (int) ($validated['per_page'] ?? 15);
+
+                $imports = $importsQuery->orderByDesc('created_at')
+                    ->paginate($perPage);
+
+                return response()->json([
+                    'success' => true,
+                    'data' => collect($imports->items())->map(function ($batch) {
+                        $fileUrl = $batch->file_path
+                            ? route('import.download.file', ['batch' => $batch->id]) . '?type=excel'
+                            : null;
+                        $pptUrl = $batch->ppt_path
+                            ? route('import.download.file', ['batch' => $batch->id]) . '?type=ppt'
+                            : null;
+                        return [
+                            'batch_id' => $batch->id,
+                            'status' => $batch->status,
+                            'media_type' => $batch->media_type,
+                            'total_rows' => $batch->total_rows,
+                            'valid_rows' => $batch->valid_rows,
+                            'invalid_rows' => $batch->invalid_rows,
+                            'file_path' => $batch->file_path,
+                            'ppt_path' => $batch->ppt_path,
+                            'file_url' => $fileUrl,
+                            'ppt_url' => $pptUrl,
+                            'created_at' => $batch->created_at,
+                        ];
+                    }),
+                    'pagination' => [
+                        'total' => $imports->total(),
+                        'per_page' => $imports->perPage(),
+                        'current_page' => $imports->currentPage(),
+                        'last_page' => $imports->lastPage(),
+                        'from' => $imports->firstItem(),
+                        'to' => $imports->lastItem(),
+                    ],
+                    'summary' => $summary,
+                ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch imports',
-                'error' => $e->getMessage(),
+                'message' => $e->getMessage(),       // ← this will show in browser
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -828,7 +874,21 @@ class ImportController extends Controller
         try {
             $this->authorize('view', $batch);
 
-            $rowsQuery = $batch->stagingRecords()->latest('id');
+            $rowsQuery =  $batch->stagingRecords()->select([
+                            'id', 'batch_id', 'vendor_id', 'media_type',
+                            'code', 'city', 'category', 'address', 'locality', 'landmark', 'state', 'pincode',
+                            'latitude', 'longitude', 'width', 'height', 'measurement_unit', 'lighting_type', 'screen_type',
+                            'image_name',
+                            'base_monthly_price', 'monthly_price', 'weekly_price_1', 'weekly_price_2', 'weekly_price_3',
+                            'price_per_slot', 'slot_duration_seconds', 'screen_run_time', 'total_slots_per_day',
+                            'min_slots_per_day', 'min_booking_duration', 'minimum_booking_amount', 'commission_percent',
+                            'graphics_charge', 'survey_charge', 'printing_charge', 'mounting_charge',
+                            'remounting_charge', 'lighting_charge',
+                            'discount_type', 'discount_value',
+                            'availability', 'currency', 'available_from', 'available_to',
+                            'extra_attributes', 'status', 'error_message',
+                            'created_at', 'updated_at',
+                        ])->latest('id');
 
             if ($request->filled('status')) {
                 $rowsQuery->where('status', $request->input('status'));
@@ -860,7 +920,8 @@ class ImportController extends Controller
                         'created_at' => $batch->created_at,
                         'updated_at' => $batch->updated_at,
                     ],
-                    'rows' => $rows->items(),
+                   'rows' => collect($rows->items())->map(fn($row) => $row->toArray())->values(),
+
                     'pagination' => [
                         'total' => $rows->total(),
                         'per_page' => $rows->perPage(),
@@ -961,6 +1022,43 @@ class ImportController extends Controller
     }
 
     /**
+     * Download the original uploaded file for a batch.
+     *
+     * @param Request $request
+     * @param InventoryImportBatch $batch
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse|JsonResponse
+     */
+    public function downloadBatchFile(Request $request, InventoryImportBatch $batch): \Symfony\Component\HttpFoundation\StreamedResponse|JsonResponse
+    {
+        try {
+            $this->authorize('view', $batch);
+
+            $type = $request->input('type', 'excel');
+            $filePath = match ($type) {
+                'ppt'   => $batch->ppt_path,
+                default => $batch->file_path,
+            };
+
+            if (!$filePath || !Storage::disk(self::IMPORT_DISK)->exists($filePath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            $filename = basename($filePath);
+
+            return Storage::disk(self::IMPORT_DISK)->download($filePath, $filename);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to download file',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+    /**
      * List rows of a batch.
      *
      * @param Request $request
@@ -983,7 +1081,7 @@ class ImportController extends Controller
     {
         return [
             // Core
-            'code'                    => ['required', 'string', 'max:255'],
+            'code'                    => ['nullable', 'string', 'max:255'],
             'city'                    => ['nullable', 'string', 'max:255'],
 
             // Address

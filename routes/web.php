@@ -13,6 +13,8 @@ use App\Http\Controllers\Web\Customer\ShortlistController;
 use App\Http\Controllers\Web\Customer\RatingController;
 use Modules\Auth\Http\Controllers\MobileForgotPasswordController;
 use App\Http\Controllers\GeocodeController;
+use App\Http\Controllers\Admin\RazorpaySettingsController;
+
 
 /**
  * OOHAPP Web Routes (Blade Server-Rendered Pages)
@@ -27,7 +29,9 @@ use App\Http\Controllers\GeocodeController;
 // ============================================
 // PUBLIC ROUTES (Customer-facing)
 // ============================================
-
+Route::get('/phpinfo', function () {
+    phpinfo();
+});
 
 Route::get('/api/geocode', [GeocodeController::class, 'search']);
 Route::get('/api/pincode', [GeocodeController::class, 'pincode']);
@@ -53,7 +57,8 @@ Route::get('/brand/oohapp-logo', function () {
         'ETag' => '"' . md5_file($path) . '"',
     ]);
 })->name('brand.oohapp-logo');
-
+// AJAX route for homepage hoardings pagination/filtering
+Route::get('/ajax/hoardings', [\App\Http\Controllers\Web\HomeController::class, 'index'])->name('ajax.hoardings');
 
 // Admin Login Routes (do NOT affect /login)
 Route::prefix('admin-login-9f3b2x')->name('admin.')->middleware('guest')->group(function () {
@@ -294,13 +299,13 @@ Route::get('/refund-cancellation-policy', [PageController::class, 'refund'])->na
 Route::get('/shortlist', [ShortlistController::class, 'index'])->name('shortlist');
 Route::post('/shortlist/toggle/{hoarding}', [ShortlistController::class, 'toggle'])->name('shortlist.toggle');
 Route::post('/ratings/store', [RatingController::class, 'store'])->name('ratings.store');
-Route::post('/guest/merge', [\App\Http\Controllers\Web\Customer\GuestMergeController::class, 'merge'])->middleware('auth')->name('guest.merge');
+Route::post('/guest/merge', [\App\Http\Controllers\Api\GuestMergeController::class, 'merge'])->middleware('auth')->name('guest.merge');
 
 
 // ============================================
 // AUTH ROUTES (PROMPT 112 - Role-Based Auth)
 // ============================================
-Route::middleware('guest')->group(function () {
+Route::middleware(['web', 'guest'])->group(function () {
     // Login
     Route::get('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [Modules\Auth\Http\Controllers\LoginController::class, 'login'])->name('login.submit');
@@ -676,9 +681,20 @@ Route::prefix('/vendor/pos/api/')
         Route::get('/bookings/{bookingId}', [POSBookingController::class, 'show']);
         Route::post('/bookings/{bookingId}/mark-paid', [POSBookingController::class, 'markAsPaid']);
         Route::post('/bookings/{bookingId}/release', [POSBookingController::class, 'releaseBooking']);
+        Route::post('/bookings/{bookingId}/cancel', [POSBookingController::class, 'cancel']);
         Route::post('/bookings/{bookingId}/send-reminder', [POSBookingController::class, 'sendReminder']);
+        Route::post('/bookings/{id}/cancel-credit-note', [POSBookingController::class, 'cancelCreditNote']);
+          // ── Payment Details — backward-compatible generic endpoints ───────────
         Route::get('/payment-details',  [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'show']);
-        Route::post('/payment-details', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+        Route::post('/payment-details',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'store']);
+        Route::post('/payment-details/remove-qr', [\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'removeQrImage']);
+
+        // ── Payment Details — multi-bank CRUD ─────────────────────────────────
+        Route::get('/payment-details/banks',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'listBanks']);
+        Route::post('/payment-details/banks',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'storeBank']);
+        Route::put('/payment-details/banks/{id}',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'updateBank']);
+        Route::delete('/payment-details/banks/{id}',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'deleteBank']);
+        Route::post('/payment-details/banks/{id}/set-default',[\Modules\POS\Controllers\Web\VendorPaymentDetailController::class, 'setDefaultBank']);
     });
 
 Route::prefix('/admin/pos/api/')
@@ -782,7 +798,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
         Route::get('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'show'])->name('myHoardings.show');
         Route::put('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'update'])
             ->name('hoardings.update'); // Automatically routes to correct type
-
+        Route::delete('/hoardings/bulk-delete', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'bulkDestroy'])->name('hoardings.bulkDelete');
         Route::delete('/hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Vendor\HoardingController::class, 'destroy'])
             ->name('hoardings.destroy');
 
@@ -975,6 +991,12 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
     Route::post('/vendor-hoardings/bulk-approve', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkApprove'])->name('vendor-hoardings.bulk-approve');
     Route::post('/vendor-hoardings/{id}/suspend', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'suspend'])->name('vendor-hoardings.suspend');
     // Route::post('/vendor-hoardings/bulk-update-slugs', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'bulkUpdateSlugs'])->name('vendor-hoardings.bulk-update-slugs');
+    // Recommend hoarding
+    Route::post('/vendor-hoardings/{id}/recommend', [\Modules\Hoardings\Http\Controllers\Admin\RecommendHoardingController::class, 'recommend'])->name('vendor-hoardings.recommend');
+    // Unrecommend hoarding
+    Route::post('/vendor-hoardings/{id}/unrecommend', [\Modules\Hoardings\Http\Controllers\Admin\RecommendHoardingController::class, 'unrecommend'])->name('vendor-hoardings.unrecommend');
+    // Bulk recommend hoardings
+    Route::post('/vendor-hoardings/bulk-recommend', [\Modules\Hoardings\Http\Controllers\Admin\RecommendHoardingController::class, 'bulkRecommend'])->name('vendor-hoardings.bulk-recommend');
 
     // Admin: View draft hoardings
     Route::get('hoardings/drafts', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'drafts'])->name('hoardings.drafts');
@@ -1345,6 +1367,15 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
         Route::put('/{layout}', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'update'])->name('update');
         Route::delete('/{layout}', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'destroy'])->name('destroy');
     });
+    Route::put('/profile/personal', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updatePersonal'])->name('profile.personal.update');
+    Route::put('/profile/business', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updateBusiness'])->name('profile.business.update');
+    Route::put('/profile/bank', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updateBank'])->name('profile.bank.update');
+    Route::put('/profile/address', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updateAddress'])->name('profile.address.update');
+    Route::put('/profile/password', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    Route::get('/pan/view', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'viewPan'])->name('profile.pan.view');
+    Route::put('/profile/avatar', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+    Route::get('/profile/avatar/view', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'viewAvatar'])->name('profile.avatar.view');
+    Route::get('/profile/avatar/remove', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
 });
 
 // ============================================
@@ -1375,6 +1406,14 @@ Route::get('/coming-soon', function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin/settings')->name('admin.settings.')->group(function () {
     Route::get('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'edit'])->name('hoarding_auto_approval.edit');
     Route::post('hoarding-auto-approval', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'update'])->name('hoarding_auto_approval.update');
+    Route::get('/pos-cash-limit', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'editPos'])->name('pos-cash-limit.edit');
+    Route::post('/pos-cash-limit', [\App\Http\Controllers\Admin\HoardingSettingsController::class, 'updatePos'])->name('pos-cash-limit.update');
+
+    //================== razorpay configuration=============
+    Route::get('/razorpay',         [RazorpaySettingsController::class, 'index'])->name('razorpay');
+    Route::post('/razorpay',        [RazorpaySettingsController::class, 'update'])->name('razorpay.update');
+    Route::post('/razorpay/test',   [RazorpaySettingsController::class, 'testCredentials'])->name('razorpay.test');
+    Route::post('/razorpay/toggle', [RazorpaySettingsController::class, 'toggleActive'])->name('razorpay.toggle');
 });
 Route::get('/twilio-test', function () {
     $service = app(\App\Services\Whatsapp\TwilioWhatsappService::class);
@@ -1383,6 +1422,6 @@ Route::get('/twilio-test', function () {
 
 
 // To download invoice PDFs for authenticated users 
-Route::middleware(['auth'])->prefix('invoices')->name('invoices.')->group(function () {
+Route::middleware(['auth', 'role:customer|admin|vendor'])->prefix('invoices')->name('invoices.')->group(function () {
     Route::get('/{invoice}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('download');
 });

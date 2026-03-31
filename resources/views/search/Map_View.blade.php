@@ -1,6 +1,6 @@
 <div id="mapView" class="bg-white">
         <div class="max-w-[1460px] mx-auto px-6 py-6">
-            <h2 class="text-lg text-black font-semibold mb-4">
+            <h2 class="text-lg text-black font-semibold mb-4 mt-5">
                 {{ $results->total() }} Hoardings in {{ request('location') ?? 'India' }}
             </h2>
             <div class="map-view-container flex gap-6">
@@ -225,5 +225,10 @@
                     </div>
                 </div>
             </div>
+            @if($results->total() > $results->perPage())
+                <div class="mt-6 flex justify-end">
+                    {{ $results->links('pagination.vendor-compact') }}
+                </div>
+            @endif
         </div>
     </div>

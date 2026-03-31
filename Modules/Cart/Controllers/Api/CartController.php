@@ -11,48 +11,13 @@ class CartController extends Controller
 {
     public function __construct(
         protected CartService $cartService
-    ) {}
+    ) {
+        $this->middleware('auth:sanctum')->except(['list', 'count']);
+    }
 
     /* =====================================================
      | ADD / UPDATE CART
      ===================================================== */
-      /**
-     * @OA\Post(
-     *   path="/cart/add",
-     *   tags={"Cart"},
-     *   summary="Add or update cart item",
-     *   security={{"bearerAuth":{}}},
-     *
-     *   @OA\RequestBody(
-     *     required=true,
-     *     @OA\JsonContent(
-     *       required={"hoarding_id"},
-     *       @OA\Property(property="hoarding_id", type="integer", example=10),
-     *       @OA\Property(property="package_id", type="integer", nullable=true, example=2),
-     *       @OA\Property(property="package_source", type="string", nullable=true, example="ooh_package")
-     *     )
-     *   ),
-     *
-     *   @OA\Response(
-     *     response=200,
-     *     description="Item added or updated",
-     *     @OA\JsonContent(
-     *       allOf={
-     *         @OA\Schema(ref="#/components/schemas/CartResponse"),
-     *         @OA\Schema(
-     *           @OA\Property(
-     *             property="data",
-     *             type="object",
-     *             @OA\Property(property="in_cart", type="boolean", example=true),
-     *             @OA\Property(property="final_price", type="number", example=3450),
-     *             @OA\Property(property="cart_count", type="integer", example=2)
-     *           )
-     *         )
-     *       }
-     *     )
-     *   )
-     * )
-     */
     public function add(Request $request)
     {
         $request->validate([
@@ -79,27 +44,9 @@ class CartController extends Controller
         );
     }
 
-     /**
-     * @OA\Delete(
-     *   path="/cart/remove/{hoardingId}",
-     *   tags={"Cart"},
-     *   summary="Remove item from cart",
-     *   security={{"bearerAuth":{}}},
-     *
-     *   @OA\Parameter(
-     *     name="hoardingId",
-     *     in="path",
-     *     required=true,
-     *     @OA\Schema(type="integer")
-     *   ),
-     *
-     *   @OA\Response(
-     *     response=200,
-     *     description="Item removed",
-     *     @OA\JsonContent(ref="#/components/schemas/CartResponse")
-     *   )
-     * )
-     */
+    /* =====================================================
+     | REMOVE FROM CART
+     ===================================================== */
     public function remove(int $hoardingId)
     {
         $result = $this->cartService->remove($hoardingId);
@@ -110,74 +57,102 @@ class CartController extends Controller
             message: $result['message'],
             data: [
                 'in_cart'    => false,
-                'cart_count'=> $this->cartCount(),
-            ]
-        );
-    }
-
-    /**
-     * @OA\Get(
-     *   path="/cart/count",
-     *   tags={"Cart"},
-     *   summary="Get cart item count",
-     *   security={{"bearerAuth":{}}},
-     *
-     *   @OA\Response(
-     *     response=200,
-     *     description="Cart count",
-     *     @OA\JsonContent(
-     *       allOf={
-     *         @OA\Schema(ref="#/components/schemas/CartResponse"),
-     *         @OA\Schema(
-     *           @OA\Property(
-     *             property="data",
-     *             @OA\Property(property="cart_count", type="integer", example=3)
-     *           )
-     *         )
-     *       }
-     *     )
-     *   )
-     * )
-     */
-    public function count()
-    {
-        return $this->apiResponse(
-            success: true,
-            status: 'ok',
-            data: [
                 'cart_count' => $this->cartCount(),
             ]
         );
     }
 
-    /**
-     * @OA\Get(
-     *   path="/cart/list",
-     *   tags={"Cart"},
-     *   summary="Get cart items (UI)",
-     *   security={{"bearerAuth":{}}},
-     *
-     *   @OA\Response(
-     *     response=200,
-     *     description="Cart item list",
-     *     @OA\JsonContent(ref="#/components/schemas/CartResponse")
-     *   )
-     * )
-     */
+    /* =====================================================
+     | COUNT — logged in + guest dono
+     ===================================================== */
+    public function count()
+    {
+        $user = $this->resolveUser();
+
+        if ($user) {
+            Auth::setUser($user);
+            $count = count($this->cartService->getCartHoardingIds());
+        } else {
+            $count = count($this->guestIds());
+        }
+
+        return $this->apiResponse(
+            success: true,
+            status: 'ok',
+            data: ['cart_count' => $count]
+        );
+    }
+
+    /* =====================================================
+     | LIST — logged in + guest dono
+     ===================================================== */
     public function list()
     {
-        $items = $this->cartService->getCartForUI();
+        $user = $this->resolveUser();
+
+        if ($user) {
+            Auth::setUser($user);
+            $items = $this->cartService->getCartForUI();
+
+            return $this->apiResponse(
+                success: true,
+                status: 'ok',
+                data: [
+                    'items'      => $items,
+                    'cart_count' => count($items),
+                ]
+            );
+        }
+
+        // ── GUEST: ?ids=20,22,25 se ─────────────────────────────
+        $ids = $this->guestIds();
+
+        if (empty($ids)) {
+            return $this->apiResponse(
+                success: true,
+                status: 'ok',
+                data: ['items' => [], 'cart_count' => 0]
+            );
+        }
+
+        // DB se same data lo jo CartService getCartForUI() mein hota hai
+        $rows = \Illuminate\Support\Facades\DB::table('carts')
+            ->rightJoin('hoardings', function ($join) use ($ids) {
+                $join->on('hoardings.id', '=', 'carts.hoarding_id')
+                    ->whereIn('hoardings.id', $ids);
+            })
+            ->whereNull('hoardings.deleted_at')
+            ->where('hoardings.status', \App\Models\Hoarding::STATUS_ACTIVE)
+            ->whereIn('hoardings.id', $ids)
+            ->select(
+                \Illuminate\Support\Facades\DB::raw('NULL as cart_id'),
+                \Illuminate\Support\Facades\DB::raw('NULL as package_id'),
+                'hoardings.id as hoarding_id',
+                'hoardings.title',
+                'hoardings.slug',
+                'hoardings.city',
+                'hoardings.state',
+                'hoardings.locality',
+                'hoardings.category',
+                'hoardings.hoarding_type',
+                'hoardings.monthly_price',
+                'hoardings.base_monthly_price',
+                'hoardings.grace_period_days',
+            )
+            ->get();
+
+        // Same buildCartItem() use karo jo logged-in ke liye use hoti hai
+        $items = $rows->map(fn($item) => $this->cartService->buildCartItem($item));
 
         return $this->apiResponse(
             success: true,
             status: 'ok',
             data: [
                 'items'      => $items,
-                'cart_count'=> count($items),
+                'cart_count' => $items->count(),
             ]
         );
     }
-
     /* ================= HELPERS ================= */
 
     private function cartCount(): int
@@ -187,11 +162,37 @@ class CartController extends Controller
             : 0;
     }
 
+    private function guestIds(): array
+    {
+        return array_filter(
+            array_map('intval', explode(',', request()->query('ids', '')))
+        );
+    }
+
+    private function resolveUser()
+    {
+        if (Auth::check()) {
+            return Auth::user();
+        }
+
+        try {
+            $token = request()->bearerToken();
+            if (!$token) return null;
+
+            $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+            if (!$accessToken) return null;
+
+            return $accessToken->tokenable;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
     private function apiResponse(
-        bool $success,
+        bool   $success,
         string $status,
         string $message = '',
-        array $data = []
+        array  $data = []
     ) {
         return response()->json([
             'success' => $success,

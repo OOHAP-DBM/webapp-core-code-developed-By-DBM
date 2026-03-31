@@ -13,7 +13,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Modules\Cart\Services\CartService;
 use App\Models\Testimonial;
-
+use Illuminate\Support\Facades\Cache;
 
 
 class HomeController extends Controller
@@ -23,68 +23,78 @@ class HomeController extends Controller
      *
      * @return View
      */
-    public function index(CartService $cartService): View
+    public function index(Request $request, CartService $cartService)
     {
-        // Get platform statistics
-        $stats = [
-            'total_hoardings' => Hoarding::where('status', 'active')->count(),
-            'total_vendors' => User::whereHas('roles', function($q) {
-                $q->where('name', 'vendor');
-            })->count(),
-            'total_bookings' => 0, // Will be calculated from bookings module
-        ];
+        // Filters (add more as needed)
+        $page = $request->get('page', 1);
+        $bestHoardings = Hoarding::select(['id', 'title', 'slug', 'address', 'city', 'monthly_price', 'base_monthly_price', 'hoarding_type', 'vendor_id', 'created_at'])
+            ->where('status', 'active')
+            ->with([
+                'vendor:id,name,company_name',
+                'hoardingMedia:id,hoarding_id,file_path',
+                'doohScreen:id,hoarding_id,price_per_slot',
+                'doohScreen.media:id,dooh_screen_id,file_path'
+            ])
+            ->orderByDesc('created_at')
+            ->paginate(8, ['*'], 'page', $page);
 
-        // Try to get booking count if Booking model exists
-        try {
-            if (class_exists('\Modules\Bookings\Models\Booking')) {
-                $stats['total_bookings'] = \Modules\Bookings\Models\Booking::whereIn('status', ['active', 'completed'])->count();
-            }
-        } catch (\Exception $e) {
-            // Ignore if table doesn't exist yet
+        // ...other homepage data...
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('components.customer.hoarding-grid', compact('bestHoardings'))->render(),
+                'pagination' => view('pagination.vendor-compact', ['paginator' => $bestHoardings])->render(),
+            ]);
         }
 
-        // Get recently added hoardings
-        $bestHoardings = Hoarding::where('status', 'active')
-            ->with([
-                'vendor',
-                'hoardingMedia',     
-                'doohScreen.media'
-            ])
-            ->latest('created_at')
-            ->get();
-
+        // Get platform statistics with caching (unchanged)
+        $stats = cache()->remember('homepage_stats', 600, function () {
+            $result = [
+                'total_hoardings' => Hoarding::where('status', 'active')->count(),
+                'total_vendors' => User::whereHas('roles', function ($q) {
+                    $q->where('name', 'vendor');
+                })->count(),
+                'total_bookings' => 0,
+            ];
+            if (class_exists('\\Modules\\Bookings\\Models\\Booking')) {
+                $result['total_bookings'] = \Modules\Bookings\Models\Booking::whereIn('status', ['active', 'completed'])->count();
+            }
+            return $result;
+        });
 
         // Add availability status and next available date using HoardingAvailabilityService
         $availabilityService = app(\Modules\Hoardings\Services\HoardingAvailabilityService::class);
         $today = now()->toDateString();
 
-        $bestHoardings = $bestHoardings->map(function ($hoarding) use ($availabilityService, $today) {
-            if ($hoarding->hoarding_type === 'dooh') {
-                $hoarding->price_type = 'dooh';
-                $hoarding->base_price_for_enquiry = (float) (optional($hoarding->doohScreen)->price_per_slot ?? 0);
-            } else {
-                $hoarding->price_type = 'ooh';
-                $hoarding->base_price_for_enquiry = (float) ($hoarding->monthly_price ?? 0);
-                $hoarding->monthly_price_display = $hoarding->monthly_price;
-                $hoarding->base_monthly_price_display = $hoarding->base_monthly_price;
-            }
-            $hoarding->grace_period_days = (int) ($hoarding->grace_period_days ?? 0);
+        $bestHoardings->setCollection(
+            $bestHoardings->getCollection()->map(function ($hoarding) use ($availabilityService, $today) {
+                if ($hoarding->hoarding_type === 'dooh') {
+                    $hoarding->price_type = 'dooh';
+                    $hoarding->base_price_for_enquiry = (float) (optional($hoarding->doohScreen)->price_per_slot ?? 0);
+                } else {
+                    $hoarding->price_type = 'ooh';
+                    $hoarding->base_price_for_enquiry = (float) ($hoarding->monthly_price ?? 0);
+                    $hoarding->monthly_price_display = $hoarding->monthly_price;
+                    $hoarding->base_monthly_price_display = $hoarding->base_monthly_price;
+                }
+                $hoarding->grace_period_days = (int) ($hoarding->grace_period_days ?? 0);
 
-            // Get today's availability status
-            $calendar = $availabilityService->getAvailabilityCalendar($hoarding->id, $today, $today);
-            $todayStatus = $calendar['calendar'][0]['status'] ?? 'unknown';
-            $hoarding->today_availability_status = $todayStatus;
+                // Get today's availability status
+                $calendar = $availabilityService->getAvailabilityCalendar($hoarding->id, $today, $today);
+                $todayStatus = $calendar['calendar'][0]['status'] ?? 'unknown';
+                $hoarding->today_availability_status = $todayStatus;
 
-            // If not available today, get next available date
-            if ($todayStatus !== 'available') {
-                $next = $availabilityService->getNextAvailableDates($hoarding->id, 1, $today);
-                $hoarding->next_available_date = $next['dates'][0]['date'] ?? null;
-            } else {
-                $hoarding->next_available_date = null;
-            }
+                // If not available today, get next available date
+                if ($todayStatus !== 'available') {
+                    $next = $availabilityService->getNextAvailableDates($hoarding->id, 1, $today);
+                    $hoarding->next_available_date = $next['dates'][0]['date'] ?? null;
+                } else {
+                    $hoarding->next_available_date = null;
+                }
 
-            return $hoarding;
-        });
+                return $hoarding;
+            })
+        );
 
 
         // If no hoardings, use dummy data
@@ -106,34 +116,18 @@ class HomeController extends Controller
             $topDOOHs = collect($this->getDummyDOOH());
         }
 
-        // Get top cities (extract from addresses)
-        $topCities = $this->getTopCities();
+        // Get top states (extract from addresses)
+        $topStates = $this->getTopStates();
 
         // Check if user has location stored
         $userLocation = session('user_location');
         // ---------------- PAGINATION ADD (WITHOUT REMOVING ANYTHING) ----------------
-        $page = request()->get('page', 1);
-        $perPage = 8;
+        // Remove manual paginator wrapping; use Eloquent paginator directly
 
-        $bestHoardings = $bestHoardings instanceof Collection
-            ? $bestHoardings
-            : collect($bestHoardings);
 
-        $bestHoardings = new LengthAwarePaginator(
-            $bestHoardings->forPage($page, $perPage),
-            $bestHoardings->count(),
-            $perPage,
-            $page,
-            [
-                'path' => request()->url(),
-                'query' => request()->query(),
-            ]
-        );
-        
-        
         $cartIds = app(CartService::class)
-        ->getCartHoardingIds();
-       $testimonialRole = 'customer';
+            ->getCartHoardingIds();
+        $testimonialRole = 'customer';
 
         if (auth()->check() && auth()->user()->active_role === 'vendor') {
             $testimonialRole = 'vendor';
@@ -231,16 +225,16 @@ class HomeController extends Controller
 
         // Filter static testimonials based on role and conditions
         $testimonials = collect($staticTestimonials)->filter(function ($item) use ($testimonialRole) {
-            return $item->role === $testimonialRole && 
-                   $item->status === 'approved' && 
-                   $item->show_on_homepage === true;
+            return $item->role === $testimonialRole &&
+                $item->status === 'approved' &&
+                $item->show_on_homepage === true;
         })->values();
-       
+
         return view('home.index', compact(
             'stats',
             'bestHoardings',
-            'topDOOHs',
-            'topCities',
+            // 'topDOOHs',
+            'topStates',
             'userLocation',
             'cartIds',
             'testimonials',
@@ -249,107 +243,79 @@ class HomeController extends Controller
     }
 
     /**
-     * Get top cities from hoarding addresses
+     * Get top states from hoarding addresses
      */
-    // private function getTopCities(): array
-    // {
-    //     // For now, return static cities with images
-    //     // In production, this would be extracted from actual data
-    //     return [
-    //         [
-    //             'name' => 'JAIPUR',
-    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Jaipur%')->count(),
-    //             'image' => 'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&h=300&fit=crop'
-    //         ],
-    //         [
-    //             'name' => 'BANGALORE',
-    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Bangalore%')->count(),
-    //             'image' => 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=400&h=300&fit=crop'
-    //         ],
-    //         [
-    //             'name' => 'CHENNAI',
-    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Chennai%')->count(),
-    //             'image' => 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=400&h=300&fit=crop'
-    //         ],
-    //         [
-    //             'name' => 'HYDERABAD',
-    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Hyderabad%')->count(),
-    //             'image' => 'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=400&h=300&fit=crop'
-    //         ],
-    //         [
-    //             'name' => 'MUMBAI',
-    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Mumbai%')->count(),
-    //             'image' => 'https://images.unsplash.com/photo-1566552881560-0be862a7c445?w=400&h=300&fit=crop'
-    //         ],
-    //         [
-    //             'name' => 'DELHI',
-    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Delhi%')->count(),
-    //             'image' => 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400&h=300&fit=crop'
-    //         ],
-    //         [
-    //             'name' => 'KOLKATA',
-    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Kolkata%')->count(),
-    //             'image' => 'https://images.unsplash.com/photo-1558431382-27e303142255?w=400&h=300&fit=crop'
-    //         ],
-    //         [
-    //             'name' => 'PUNE',
-    //             'count' => Hoarding::where('status', 'active')->where('address', 'like', '%Pune%')->count(),
-    //             'image' => 'https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=400&h=300&fit=crop'
-    //         ],
-    //     ];
-    // }
-
-    private function getTopCities(int $limit = 8): array
+    private function getTopStates(int $limit = 8): array
     {
-        // Step 1: Get city-wise hoarding count
-        $cities = Hoarding::select(
-            DB::raw('UPPER(city) as name'),
-            DB::raw('COUNT(*) as count')
-        )
-            ->where('status', 'active')
-            ->whereNotNull('city')
-            ->groupBy('city')
-            ->orderByDesc('count')
-            ->get();
-
-        // Step 2: Move Lucknow to top if present
-        $cities = $cities->sortByDesc(function ($city) {
-            return $city->name === 'LUCKNOW'
-                ? PHP_INT_MAX
-                : $city->count;
-        });
-
-        // Step 3: Take only top N cities
-        $cities = $cities->take($limit);
-
-        // Step 4: Attach images
-        return $cities->map(function ($city) {
-            return [
-                'name'  => $city->name,
-                'count' => $city->count,
-                'image' => $this->getCityImage($city->name),
-            ];
-        })->values()->toArray();
-    }
-
-    private function getCityImage(string $city): string
-    {
-        $images = [
-            'LUCKNOW'    => 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=400&h=300&fit=crop',
-            'DELHI'      => 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400&h=300&fit=crop',
-            'MUMBAI'     => 'https://images.unsplash.com/photo-1566552881560-0be862a7c445?w=400&h=300&fit=crop',
-            'BANGALORE'  => 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=400&h=300&fit=crop',
-            'CHENNAI'    => 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=400&h=300&fit=crop',
-            'HYDERABAD'  => 'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=400&h=300&fit=crop',
-            'PUNE'       => 'https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=400&h=300&fit=crop',
-            'KOLKATA'    => 'https://images.unsplash.com/photo-1558431382-27e303142255?w=400&h=300&fit=crop',
-            'JAIPUR'     => 'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&h=300&fit=crop',
+        $priorityStates = [
+            'UTTAR PRADESH',
+            'DELHI',
+            'MAHARASHTRA',
+            'GOA',
+            'HIMACHAL PRADESH',
+            'JAMMU & KASHMIR',
+            'GUJARAT',
+            'RAJASTHAN',
         ];
 
-        // Common image for all other cities
-        $defaultImage = 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=400&h=300&fit=crop';
+        // ✅ LOCAL IMAGE MAPPING
+        $images = [
+            'UTTAR PRADESH'   => asset('images/states/up.jpeg'),
+            'DELHI'           => asset('images/states/delhi.jpg'),
+            'MAHARASHTRA'     => asset('images/states/mumbai.jpg'),
+            'GOA'             => asset('images/states/goa.jpg'),
+            'HIMACHAL PRADESH'=> asset('images/states/himanchal.jpeg'),
+            'JAMMU & KASHMIR' => asset('images/states/jammu.jpeg'),
+            'GUJARAT'         => asset('images/states/gujrat.jpg'),
+            'RAJASTHAN'       => asset('images/states/Rajasthan.jpg'),
+        ];
 
-        return $images[$city] ?? $defaultImage;
+        $defaultImage = asset('images/states/default.jpg');
+
+        // ✅ STATE COUNT
+        $stateCounts = Hoarding::select(
+            DB::raw('UPPER(TRIM(state)) as name'),
+            DB::raw('COUNT(*) as count')
+        )
+        ->where('status', 'active')
+        ->whereNotNull('state')
+        ->groupBy(DB::raw('UPPER(TRIM(state))'))
+        ->pluck('count', 'name');
+
+        // ✅ CITY COUNT (important 🔥)
+        $cityCounts = Hoarding::select(
+            DB::raw('UPPER(TRIM(city)) as name'),
+            DB::raw('COUNT(*) as count')
+        )
+        ->where('status', 'active')
+        ->whereNotNull('city')
+        ->groupBy(DB::raw('UPPER(TRIM(city))'))
+        ->pluck('count', 'name');
+
+        $result = [];
+
+        foreach ($priorityStates as $stateName) {
+
+            $stateCount = (int) ($stateCounts[$stateName] ?? 0);
+
+            // 🔥 city match logic (Delhi, Mumbai etc.)
+            $cityMatch = $cityCounts->keys()->first(function ($city) use ($stateName) {
+                return str_contains($city, $stateName) || str_contains($stateName, $city);
+            });
+
+            // ❌ skip if neither state nor city exists
+            if ($stateCount === 0 && !$cityMatch) {
+                continue;
+            }
+
+            $result[] = [
+                'name'  => $stateName,
+                'count' => $stateCount,
+                'image' => $images[$stateName] ?? $defaultImage,
+            ];
+        }
+
+        return array_slice($result, 0, $limit);
     }
 
 
@@ -370,7 +336,7 @@ class HomeController extends Controller
             'Pune | Koregaon Park',
             'Jaipur | MI Road'
         ];
-        
+
         $images = [
             'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
             'https://images.unsplash.com/photo-1562577309-4932fdd64cd1?w=400&h=300&fit=crop',
@@ -393,8 +359,12 @@ class HomeController extends Controller
                 'weekly_price' => 3500 + ($i * 300),
                 'enable_weekly_booking' => true,
                 'image' => $images[$i],
-                'hasMedia' => function() { return true; },
-                'getFirstMediaUrl' => function() use ($images, $i) { return $images[$i]; }
+                'hasMedia' => function () {
+                    return true;
+                },
+                'getFirstMediaUrl' => function () use ($images, $i) {
+                    return $images[$i];
+                }
             ];
         }
 

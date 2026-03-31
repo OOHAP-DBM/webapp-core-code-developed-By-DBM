@@ -56,7 +56,7 @@
         </tr>
         <tr>
             <td style="font-size:15px; color:#222; padding-bottom:8px;">
-                <strong>Updated By:</strong> {{ $adminName }}
+                <strong>{{ ucfirst($action) }} By:</strong> {{ $adminName }}
             </td>
         </tr>
     </table>
@@ -94,7 +94,7 @@
                     {{ $loop->iteration }}
                 </td>
                 <td style="padding:10px 12px; border:1px solid #e5e7eb;">
-                    <a href="{{ route('vendor.hoardings.myHoardings') }}"
+                    <a href="{{ route('vendor.myHoardings.show', $hoarding->id) }}"
                        style="color:#16a34a; text-decoration:none; font-weight:500;">
                         {{ $hoarding->title ?? $hoarding->name }}
                     </a>

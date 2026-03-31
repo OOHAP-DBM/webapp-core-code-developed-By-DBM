@@ -12,31 +12,81 @@ class ShortlistController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth:sanctum']);
+        $this->middleware(['auth:sanctum'])->except(['index']);
     }
 
-   public function index(): JsonResponse
+    public function index(): JsonResponse
     {
-        $wishlist = auth()->user()->wishlist()
-            ->whereHas('hoarding')
-            ->with([
-                'hoarding:id,title,city,hoarding_type,category,monthly_price,base_monthly_price',
-                'hoarding.ooh:id,hoarding_id,width,height,measurement_unit',
-                'hoarding.doohScreen:id,hoarding_id,width,height,measurement_unit,price_per_slot',
-                'hoarding.hoardingMedia:id,hoarding_id,file_path,is_primary',
-                'hoarding.packages:id,hoarding_id,package_name,discount_percent,min_booking_duration,duration_unit,is_active',
-                'hoarding.doohScreen.media:id,dooh_screen_id,file_path',
-                'hoarding.doohScreen.packages:id,dooh_screen_id,package_name,discount_percent,min_booking_duration,duration_unit,is_active',
-            ])
-            ->latest()
-            ->paginate(12);
+        // Manually Sanctum token parse karo
+        $user = null;
+        try {
+            auth()->shouldUse('sanctum');
+            $user = auth('sanctum')->user();
+        } catch (\Exception $e) {
+            $user = null;
+        }
+
+        if ($user) {
+            // ── LOGGED IN USER ──────────────────────────────────────
+            $wishlist = $user->wishlist()
+                ->whereHas('hoarding', function ($q) {
+                    $q->where('status', \App\Models\Hoarding::STATUS_ACTIVE)
+                    ->whereNull('deleted_at');
+                })
+                ->with([
+                    'hoarding:id,title,city,hoarding_type,category,monthly_price,base_monthly_price',
+                    'hoarding.ooh:id,hoarding_id,width,height,measurement_unit',
+                    'hoarding.doohScreen:id,hoarding_id,width,height,measurement_unit,price_per_slot',
+                    'hoarding.hoardingMedia:id,hoarding_id,file_path,is_primary',
+                    'hoarding.packages:id,hoarding_id,package_name,discount_percent,min_booking_duration,duration_unit,is_active',
+                    'hoarding.doohScreen.media:id,dooh_screen_id,file_path',
+                    'hoarding.doohScreen.packages:id,dooh_screen_id,package_name,discount_percent,min_booking_duration,duration_unit,is_active',
+                ])
+                ->latest()
+                ->paginate(12);
+
+        } else {
+            // ── GUEST USER ──────────────────────────────────────────
+            $ids = array_filter(array_map('intval', explode(',', request()->query('ids', ''))));
+            $wishlist = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
+
+            if (!empty($ids)) {
+                $allItems = \App\Models\Hoarding::whereIn('id', $ids)
+                    ->where('status', \App\Models\Hoarding::STATUS_ACTIVE)
+                    ->whereNull('deleted_at')
+                    ->with([
+                        'ooh:id,hoarding_id,width,height,measurement_unit',
+                        'doohScreen:id,hoarding_id,width,height,measurement_unit,price_per_slot',
+                        'hoardingMedia:id,hoarding_id,file_path,is_primary',
+                        'packages:id,hoarding_id,package_name,discount_percent,min_booking_duration,duration_unit,is_active',
+                        'doohScreen.media:id,dooh_screen_id,file_path',
+                        'doohScreen.packages:id,dooh_screen_id,package_name,discount_percent,min_booking_duration,duration_unit,is_active',
+                    ])
+                    ->get()
+                    ->map(fn($hoarding) => (object)[
+                        'id'         => $hoarding->id,
+                        'hoarding'   => $hoarding,
+                        'created_at' => now(),
+                    ]);
+
+                $page    = request()->query('page', 1);
+                $perPage = 12;
+                $offset  = ($page - 1) * $perPage;
+
+                $wishlist = new \Illuminate\Pagination\LengthAwarePaginator(
+                    $allItems->slice($offset, $perPage)->values(),
+                    $allItems->count(),
+                    $perPage,
+                    $page,
+                    ['path' => request()->url(), 'query' => request()->query()]
+                );
+            }
+        }
 
         return response()->json([
             'success' => true,
             'data'    => WishlistResource::collection($wishlist),
-            'meta'    => [
-                'total_count' => $wishlist->total(),
-            ]
+            'meta'    => ['total_count' => $wishlist->total()],
         ]);
     }
 

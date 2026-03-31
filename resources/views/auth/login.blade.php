@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', 'Signup - OOHAPP')
+@section('title', 'Login - OOHAPP')
 
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -166,9 +166,24 @@
         <!-- RIGHT FORM -->
         <div class="col-md-7 col-12 auth-right">
             <div class="signup-box">
-
-                <h3 class="text-start">Login to your account</h3>
-
+ {{-- Logo — centered at top --}}
+        <div class="block md:hidden text-start mb-16">
+            <a href="{{ route('home') }}">
+    <picture>
+        <source srcset="{{ asset('assets/images/logo/logo_image-300.webp') }} 300w, {{ asset('assets/images/logo/logo_image-600.webp') }} 600w" type="image/webp">
+        <img 
+            src="{{ asset('assets/images/logo/logo_image.jpeg') }}"
+            alt="OOHApp company logo"
+            class="mx-auto w-24"
+            srcset="{{ asset('assets/images/logo/logo_image-300.jpeg') }} 300w, {{ asset('assets/images/logo/logo_image.jpeg') }} 600w"
+            sizes="(max-width: 768px) 96px, 150px"
+            width="600" height="120"
+            loading="eager" fetchpriority="high"
+        >
+    </picture>
+            </a>
+</div>
+<h3 class="text-center md:text-start">Login to your account</h3>
                 @if (session('success'))
                     <div class="alert alert-success border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative">
                         {{ session('success') }}
@@ -223,6 +238,7 @@
                                name="login"
                                id="emailInput"
                                class="form-control"
+                               value="{{ old('login') }}"
                                placeholder="Email"
                                required
                                autocomplete="off"
@@ -231,7 +247,7 @@
                                spellcheck="false"
                         >
                         <small class="text-muted">
-                            Please your valid email
+                            Enter your registered email
                         </small>
                     </div>
                     <div class="mb-2 text-start d-none" id="passwordBox">
@@ -258,6 +274,17 @@
                             disabled>
                         Continue
                     </button>
+
+                    
+                    <!-- Remember Me Checkbox -->
+                    <div class="mt-4 text-start">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="remember" id="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="remember">
+                                Remember Me
+                            </label>
+                        </div>
+                    </div>
                 </form>
 
                 <div class="divider">
@@ -308,6 +335,14 @@
         const form        = document.getElementById('signupForm');
 
         let step = 1; // 1 = email, 2 = password
+        @if ($errors->has('credentials') || $errors->has('account_status'))
+            passwordBox.classList.remove('d-none');
+            passwordInp.setAttribute('required', 'required');
+            btn.textContent = 'Login';
+            btn.disabled = false;
+            btn.classList.add('active');
+            step = 2;
+        @endif
 
         function isValidEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());

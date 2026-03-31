@@ -36,6 +36,7 @@ use Kreait\Firebase\Factory;
 use Kreait\Firebase\Contract\Messaging;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
+use Illuminate\Support\Facades\URL;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -120,6 +121,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+         if (config('app.env') === 'production') {
+                URL::forceScheme('https');
+            }
+
         Event::listen(\Illuminate\Routing\Events\RouteMatched::class, function ($event) {
             $routeName = $event->request->route()?->getName() ?? '';
 

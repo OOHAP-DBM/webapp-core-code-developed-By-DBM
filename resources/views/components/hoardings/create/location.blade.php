@@ -30,6 +30,7 @@
                 value="{{ old('pincode', $hoarding?->pincode) }}"
                 placeholder="226010"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            @error('pincode') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
         <!-- City -->
@@ -39,6 +40,7 @@
                 value="{{ old('city', $hoarding?->city) }}"
                 placeholder="Lucknow"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            @error('city') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
         <!-- State -->
@@ -48,6 +50,8 @@
                 value="{{ old('state', $hoarding?->state) }}"
                 placeholder="Uttar Pradesh"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            @error('state') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+
         </div>
 
     </div>
@@ -62,15 +66,18 @@
                 value="{{ old('locality', $hoarding?->locality) }}"
                 placeholder="Indira Nagar"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            @error('locality') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
         <!-- Full Address -->
         <div class="space-y-2 md:col-span-1">
-            <label class="text-sm font-bold text-gray-700">Full Address</label>
+           <label class="text-sm font-bold text-gray-700">Full Address <span class="text-red-500">*</span></label>
             <input name="address" id="address"
                 value="{{ old('address', $hoarding?->address) }}"
                 placeholder="Enter exact address or landmark"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            @error('address') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+
         </div>
 
     </div>
@@ -94,14 +101,16 @@
        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
     <div>
         <label class="text-sm font-bold">Latitude *</label>
-        <input type="text" name="lat" id="lat"
+        <input type="text" name="lat" id="lat"value="{{ old('lat', $hoarding?->lat) }}"
             class="w-full border border-gray-200 rounded-xl px-4 py-2.5">
+            @error('lat') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
     </div>
 
     <div>
         <label class="text-sm font-bold">Longitude *</label>
-        <input type="text" name="lng" id="lng"
+        <input type="text" name="lng" id="lng" value="{{ old('lng', $hoarding?->lng) }}"
             class="w-full border border-gray-200 rounded-xl px-4 py-2.5">
+            @error('lng') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
     </div>
 </div>
 
@@ -344,11 +353,36 @@ window.addEventListener('load', initMap);
 
 
 
+// async function lookupPincode(pin) {
+
+//     try {
+
+//         const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+//         const data = await res.json();
+
+//         if (data[0].Status !== "Success") {
+//             showError("Invalid Pincode");
+//             return;
+//         }
+
+//         const post = data[0].PostOffice[0];
+
+//         // Fill fields
+//             inputs.locality.value = post.Name || "";
+//             inputs.city.value = post.District || "";
+//             inputs.state.value = post.State || "";
+//         // Now zoom map using full address
+//            syncAddressToMap();
+
+//     } catch (e) {
+//         showError("Pincode lookup failed");
+//     }
+
+// }
+
 async function lookupPincode(pin) {
-
     try {
-
-        const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+        const res  = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
         const data = await res.json();
 
         if (data[0].Status !== "Success") {
@@ -358,16 +392,123 @@ async function lookupPincode(pin) {
 
         const post = data[0].PostOffice[0];
 
-        // Fill fields
-            inputs.locality.value = post.Name || "";
-            inputs.city.value = post.District || "";
-            inputs.state.value = post.State || "";
-        // Now zoom map using full address
-           syncAddressToMap();
+        inputs.locality.value = post.Name     || "";
+        inputs.city.value     = post.District || "";
+        inputs.state.value    = post.State    || "";
+
+        // ✅ Try pincode directly on Nominatim with postalcode param
+        await syncByPincode(pin, post);
 
     } catch (e) {
         showError("Pincode lookup failed");
     }
+}
 
+async function syncByPincode(pin, post) {
+    const city  = post?.District || inputs.city.value.trim();
+    const state = post?.State    || inputs.state.value.trim();
+
+    inputs.error.classList.add('hidden');
+
+    // ✅ These query strategies work best for Indian pincodes on Nominatim
+    const strategies = [
+        // Strategy 1: direct postalcode param — most accurate for India
+        `/api/geocode?postalcode=${encodeURIComponent(pin)}&countrycodes=in`,
+
+        // Strategy 2: pincode + city
+        `/api/geocode?q=${encodeURIComponent(`${pin}, ${city}, India`)}`,
+
+        // Strategy 3: city + state + pincode
+        `/api/geocode?q=${encodeURIComponent(`${city}, ${state}, ${pin}, India`)}`,
+
+        // Strategy 4: city only as fallback
+        `/api/geocode?q=${encodeURIComponent(`${city}, ${state}, India`)}`,
+    ];
+
+    for (let url of strategies) {
+        try {
+            const res    = await fetch(url);
+            const result = await res.json();
+
+            if (!result.success || !result.data?.length) continue;
+
+            // ✅ Find best match — prefer result whose postcode matches
+            const matched = result.data.find(r =>
+                (r.address?.postcode || '').replace(/\s+/g, '') === pin
+            ) || result.data[0];
+
+            const lat = parseFloat(matched.lat);
+            const lng = parseFloat(matched.lon);
+
+            if (isNaN(lat) || isNaN(lng)) continue;
+
+            marker.setLatLng([lat, lng]);
+            map.setView([lat, lng], 15);
+
+            inputs.lat.value = lat.toFixed(6);
+            inputs.lng.value = lng.toFixed(6);
+
+            fillFields(matched.address);
+            return; // ✅ stop on first success
+
+        } catch (e) {
+            continue;
+        }
+    }
+
+    showError("Location not found. Try entering address manually.");
+}
+
+async function syncAddressToMap() {
+    const pincode  = inputs.pincode.value.trim();
+    const locality = inputs.locality.value.trim();
+    const city     = inputs.city.value.trim();
+    const state    = inputs.state.value.trim();
+
+    if (!locality && !city && !pincode) return;
+
+    // ✅ If valid pincode exists use pincode strategy
+    if (/^\d{6}$/.test(pincode)) {
+        await syncByPincode(pincode, { District: city, State: state });
+        return;
+    }
+
+    // ✅ Without pincode — locality+city works better than city first
+    const queries = [
+        `${locality}, ${city}, ${state}, India`,
+        `${locality}, ${city}, India`,
+        `${city}, ${state}, India`,
+    ].filter(q => q.replace(/,\s*/g, '').trim() !== 'India');
+
+    inputs.error.classList.add('hidden');
+
+    for (let query of queries) {
+        try {
+            const res    = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+            const result = await res.json();
+
+            if (!result.success || !result.data?.length) continue;
+
+            const r   = result.data[0];
+            const lat = parseFloat(r.lat);
+            const lng = parseFloat(r.lon);
+
+            if (isNaN(lat) || isNaN(lng)) continue;
+
+            marker.setLatLng([lat, lng]);
+            map.setView([lat, lng], 15);
+
+            inputs.lat.value = lat.toFixed(6);
+            inputs.lng.value = lng.toFixed(6);
+
+            fillFields(r.address);
+            return;
+
+        } catch (e) {
+            continue;
+        }
+    }
+
+    showError("Location not found.");
 }
 </script>

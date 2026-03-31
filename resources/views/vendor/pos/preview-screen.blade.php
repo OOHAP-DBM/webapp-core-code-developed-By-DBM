@@ -25,7 +25,7 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto sm:overflow-visible">
                 <table class="w-full min-w-[760px] text-left">
                     <thead class="bg-gray-50 text-[10px] uppercase text-gray-400 font-bold">
                         <tr>
@@ -48,31 +48,22 @@
             <div class="bg-white rounded-md shadow-xl border border-gray-200 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-6 space-y-5">
                 <h3 class="font-bold text-gray-800 text-lg">POS Checkout</h3>
 
-                {{-- Discount --}}
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Discount (₹)</label>
-                    <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0"
-                        class="w-full p-2 border border-gray-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-green-300 focus:border-green-400 outline-none">
-                </div>
-
-                @include('vendor.pos.components.milestone-payment')
-
                 {{-- Payment Mode --}}
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Payment Mode</label>
+                    <label class="block text-[11px] font-semibold uppercase mb-2">Payment Mode</label>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <button type="button" onclick="selectPaymentMode('cash')"
-                            class="payment-mode-btn active-mode flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="cash">
+                            class="payment-mode-btn active-mode flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-semibold transition" data-mode="cash">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12a2 2 0 100-4 2 2 0 000 4z"/><path d="M6 12h.01M18 12h.01"/></svg>
                             Cash
                         </button>
                         <button type="button" onclick="selectPaymentMode('bank_transfer')"
-                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="bank_transfer">
+                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-semibold transition" data-mode="bank_transfer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             Bank Transfer
                         </button>
                         <button type="button" onclick="selectPaymentMode('online')"
-                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-bold transition" data-mode="online">
+                            class="payment-mode-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl text-xs font-semibold transition" data-mode="online">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                             UPI / Online
                         </button>
@@ -86,7 +77,8 @@
                 </div>
 
                 {{-- Bank Details Panel --}}
-                <div id="bank-details-panel" class="hidden space-y-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
+                @include('vendor.pos.components.bank-details')
+                <!-- <div id="bank-details-panel" class="hidden space-y-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
                     <div class="flex items-center justify-between mb-1">
                         <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider">Bank Details</h4>
                         <span id="bank-saved-badge" class="hidden text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ Saved</span>
@@ -128,7 +120,7 @@
                             Save Bank Details
                         </button>
                     </div>
-                </div>
+                </div> -->
 
                 {{-- UPI Details Panel --}}
                 <div id="upi-details-panel" class="hidden space-y-3 bg-purple-50 border border-purple-100 rounded-xl p-4">
@@ -144,7 +136,7 @@
                                 <p class="text-sm font-mono text-purple-700 mt-0.5" id="saved-upi-id">---</p>
                             </div>
                             <div id="saved-upi-qr" class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h7v7H3V3zm1 1v5h5V4H4zm1 1h3v3H5V5zm8-2h7v7h-7V3zm1 1v5h5V4h-5zm1 1h3v3h-3V5zM3 13h7v7H3v-7zm1 1v5h5v-5H4zm1 1h3v3H5v-3zm8 0h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2z"/></svg>
+                               <img src="{{ asset('assets/images/icons/no-image.png') }}" class="w-6 h-6 opacity-50" alt="No QR Image">
                             </div>
                             <button onclick="editUpiDetails()" class="text-purple-600 hover:text-purple-800 text-[11px] font-bold px-2 py-1 border border-purple-200 rounded-md self-start">Change</button>
                         </div>
@@ -177,7 +169,12 @@
 
                 {{-- ── NEW: Credit Note Details Panel ── --}}
                 <div id="credit-note-details-panel" class="hidden space-y-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
-                    <div class="flex items-center gap-2 mb-2">
+
+                    <div>
+                        <h4 class="text-xs font-bold text-emerald-700 uppercase tracking-wider">Credit Note Booking</h4>
+                        <p class="text-[10px] text-emerald-600 mt-0.5">Booking will be confirmed immediately </p>
+                    </div>
+                    <!-- <div class="flex items-center gap-2 mb-2">
                         <div class="w-7 h-7 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
                             <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
                         </div>
@@ -207,11 +204,11 @@
                     <div class="flex items-start gap-2 bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-2">
                         <svg class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <p class="text-[11px] text-emerald-700 font-medium">Booking status will be set to <span class="font-black">Confirmed</span> automatically. A credit note number will be generated.</p>
-                    </div>
+                    </div> -->
                 </div>
 
                 {{-- Booking Hold Timer — hidden for credit_note --}}
-                <div id="booking-hold-section" class="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                <div id="booking-hold-section" class="bg-amber-50 border border-amber-100 rounded-xl px-4 py-2">
                     <h4 class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Booking Hold Duration</h4>
                     <p class="text-[11px] text-gray-500 mb-3">Booking will be released if payment is not received within this time.</p>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -224,6 +221,15 @@
                     </div>
                     <p id="hold-time-label" class="text-[11px] text-amber-600 font-semibold mt-2 text-center">Hold for 30 minutes</p>
                 </div>
+
+                {{-- Discount --}}
+                <div>
+                    <label class="block text-[11px] font-semibold uppercase mb-1">Discount (₹)</label>
+                    <input type="number" id="pos-discount" oninput="calculateFinalTotals()" value="0"
+                        class="w-full p-2 border border-gray-200 rounded-lg font-bold text-red-600 focus:ring-2 focus:ring-green-300 focus:border-green-400 outline-none">
+                </div>
+                @include('vendor.pos.components.milestone-payment')
+                @include('vendor.pos.components.upload-po')
 
                 {{-- Totals --}}
                 <div class="pt-4 border-t border-dashed space-y-3">
@@ -245,10 +251,20 @@
         </div>
     </div>
 </div>
-
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    // Modal ko body ke end mein move karo
+    const modal = document.getElementById('booking-confirmed-modal');
+    if (modal && modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+    }
+});
+</script>
 {{-- Booking Confirmed Modal with Timer --}}
-<div id="booking-confirmed-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+<div id="booking-confirmed-modal" class="fixed inset-0 z-[2147483647] hidden 
+            items-end sm:items-center 
+            justify-center p-4">
+    <div id="modal-content" class=" modal-content absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl w-[94vw] sm:w-full max-w-md mx-3 sm:mx-4 overflow-hidden max-h-[92vh] overflow-y-auto">
         <div class="bg-[#2D5A43] px-6 py-5 text-white">
             <div class="flex items-center gap-3 mb-1">
@@ -263,9 +279,11 @@
         <div class="p-6 space-y-4">
 
             {{-- Timer (hidden for credit note) --}}
-            <div id="payment-timer-block" class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+            <div id="payment-timer-block" 
+                   class="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4 text-center">
                 <p class="text-[11px] text-amber-600 font-bold uppercase tracking-wider mb-1">Payment Due In</p>
-                <div id="countdown-display" class="text-3xl font-black text-amber-700 tracking-widest font-mono">--:--:--</div>
+                <div id="countdown-display" 
+                      class="text-2xl sm:text-3xl md:text-4xl font-black text-amber-700 tracking-wider sm:tracking-widest font-mono break-all">--:--:--</div>
                 <div class="mt-2 h-2 bg-amber-100 rounded-full overflow-hidden">
                     <div id="countdown-bar" class="h-full bg-amber-500 rounded-full transition-all duration-1000" style="width:100%"></div>
                 </div>
@@ -287,9 +305,9 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-y-1 text-xs mt-2">
-                    <span class="text-gray-500">Credit Note #</span><span id="modal-credit-note-number" class="font-bold text-emerald-700 font-mono"></span>
-                    <span class="text-gray-500">Due Date</span><span id="modal-credit-note-due-date" class="font-bold text-gray-800"></span>
-                    <span class="text-gray-500">Status</span><span class="font-bold text-emerald-700">✓ Confirmed</span>
+                    <!-- <span class="text-gray-500">Credit Note #</span><span id="modal-credit-note-number" class="font-bold text-emerald-700 font-mono"></span>
+                    <span class="text-gray-500">Due Date</span><span id="modal-credit-note-due-date" class="font-bold text-gray-800"></span> -->
+                    <span class="text-gray-500">Booking Status</span><span class="font-bold text-emerald-700">✓ Confirmed</span>
                 </div>
             </div>
 
@@ -325,9 +343,9 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                <button onclick="closeConfirmedModal()" class="w-full sm:flex-1 min-h-[44px] py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">Close</button>
+                <button onclick="closeConfirmedModal()" class="w-full sm:flex-1 min-h-[44px] py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">View Booking</button>
                 <button onclick="window.location.href=`${window.POS_BASE_PATH || '/vendor/pos'}/bookings`" class="w-full sm:flex-1 min-h-[44px] py-3 bg-[#2D5A43] text-white rounded-xl text-sm font-bold hover:bg-opacity-90">
-                    View Bookings
+                    Close
                 </button>
             </div>
         </div>
@@ -412,9 +430,21 @@ function getPosPricingBreakdown() {
     const taxableAmount = Math.max(0, (globalBaseAmount || 0) - discountVal);
     const tax = taxableAmount * (gstRate / 100);
     const grandTotal = taxableAmount + tax;
-    return { discountVal, tax, grandTotal };
+        return { discountVal, tax, grandTotal };
 }
 
+// function calculateFinalTotals() {
+//     const { discountVal, tax, grandTotal } = getPosPricingBreakdown();
+//     const fmt = v => typeof formatINR === 'function' ? formatINR(v) : `₹${Math.round(v)}`;
+//     const discountInput = document.getElementById('pos-discount');
+//     if (discountInput && Number(discountInput.value) !== discountVal) {
+//         discountInput.value = discountVal;
+//     }
+//     document.getElementById('side-discount-display').innerText = `- ${fmt(discountVal)}`;
+//     document.getElementById('side-tax').innerText              = fmt(tax);
+//     document.getElementById('side-grand-total').innerText      = fmt(grandTotal);
+// }
+// window.calculateFinalTotals = calculateFinalTotals;
 function calculateFinalTotals() {
     const { discountVal, tax, grandTotal } = getPosPricingBreakdown();
     const fmt = v => typeof formatINR === 'function' ? formatINR(v) : `₹${Math.round(v)}`;
@@ -425,6 +455,9 @@ function calculateFinalTotals() {
     document.getElementById('side-discount-display').innerText = `- ${fmt(discountVal)}`;
     document.getElementById('side-tax').innerText              = fmt(tax);
     document.getElementById('side-grand-total').innerText      = fmt(grandTotal);
+
+    // Always re-apply cash limit after totals are recalculated
+    if (typeof applyCashLimit === 'function') applyCashLimit();
 }
 window.calculateFinalTotals = calculateFinalTotals;
 
@@ -432,17 +465,14 @@ window.calculateFinalTotals = calculateFinalTotals;
 function selectPaymentMode(mode) {
     selectedPaymentMode = mode;
 
-    // Toggle active state on buttons
     document.querySelectorAll('.payment-mode-btn').forEach(btn => {
         btn.classList.toggle('active-mode', btn.dataset.mode === mode);
     });
 
-    // Show/hide panels
     document.getElementById('bank-details-panel').classList.toggle('hidden', mode !== 'bank_transfer');
     document.getElementById('upi-details-panel').classList.toggle('hidden', mode !== 'online');
     document.getElementById('credit-note-details-panel').classList.toggle('hidden', mode !== 'credit_note');
 
-    // ── Hide hold timer for credit note — it auto-confirms ──
     const holdSection = document.getElementById('booking-hold-section');
     if (mode === 'credit_note') {
         holdSection.classList.add('hidden');
@@ -450,11 +480,23 @@ function selectPaymentMode(mode) {
         holdSection.classList.remove('hidden');
     }
 
-    // Load saved details as needed
+    // ── Hide milestone card for credit_note — milestones don't apply ──
+    const msCard = document.getElementById('ms-card');
+    if (msCard) {
+        if (mode === 'credit_note') {
+            msCard.classList.add('hidden');
+            // Also disable milestone module so it doesn't block submission
+            if (typeof window.MilestoneModule !== 'undefined' && window.MilestoneModule.isEnabled()) {
+                window.MilestoneModule.toggle(); // turns it off
+            }
+        } else {
+            msCard.classList.remove('hidden');
+        }
+    }
+
     if (mode === 'bank_transfer') loadSavedBankDetails();
     if (mode === 'online')        loadSavedUpiDetails();
 }
-
 /* ── Hold time selection ── */
 function selectHoldTime(mins) {
     selectedHoldMinutes = mins;
@@ -466,84 +508,84 @@ function selectHoldTime(mins) {
 }
 
 /* ── IFSC Fetch ── */
-async function fetchBankFromIFSC() {
-    const ifsc = document.getElementById('bank-ifsc').value.trim();
-    if (ifsc.length !== 11) return;
-    const el = document.getElementById('ifsc-result');
-    el.classList.remove('hidden');
-    el.innerText = 'Fetching...';
-    try {
-        const res  = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
-        if (!res.ok) throw new Error('Not found');
-        const data = await res.json();
-        el.innerText = `${data.BANK} — ${data.BRANCH}, ${data.CITY}`;
-        el.style.color = '#1d4ed8';
-        document.getElementById('bank-acc-holder').placeholder = `Account holder at ${data.BANK}`;
-    } catch (e) {
-        el.innerText = 'Invalid IFSC or not found';
-        el.style.color = '#dc2626';
-    }
-}
+// async function fetchBankFromIFSC() {
+//     const ifsc = document.getElementById('bank-ifsc').value.trim();
+//     if (ifsc.length !== 11) return;
+//     const el = document.getElementById('ifsc-result');
+//     el.classList.remove('hidden');
+//     el.innerText = 'Fetching...';
+//     try {
+//         const res  = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
+//         if (!res.ok) throw new Error('Not found');
+//         const data = await res.json();
+//         el.innerText = `${data.BANK} — ${data.BRANCH}, ${data.CITY}`;
+//         el.style.color = '#1d4ed8';
+//         document.getElementById('bank-acc-holder').placeholder = `Account holder at ${data.BANK}`;
+//     } catch (e) {
+//         el.innerText = 'Invalid IFSC or not found';
+//         el.style.color = '#dc2626';
+//     }
+// }
 
-/* ── Save bank details ── */
-async function saveBankDetails() {
-    const ifsc   = document.getElementById('bank-ifsc').value.trim();
-    const acc    = document.getElementById('bank-acc-number').value.trim();
-    const holder = document.getElementById('bank-acc-holder').value.trim();
-    const ifscEl = document.getElementById('ifsc-result');
-    const bankName = ifscEl.innerText.split('—')[0].trim() || 'Bank';
+// /* ── Save bank details ── */
+// async function saveBankDetails() {
+//     const ifsc   = document.getElementById('bank-ifsc').value.trim();
+//     const acc    = document.getElementById('bank-acc-number').value.trim();
+//     const holder = document.getElementById('bank-acc-holder').value.trim();
+//     const ifscEl = document.getElementById('ifsc-result');
+//     const bankName = ifscEl.innerText.split('—')[0].trim() || 'Bank';
 
-    if (!ifsc || !acc || !holder) { showToast('Please fill all bank fields', 'warning'); return; }
+//     if (!ifsc || !acc || !holder) { showToast('Please fill all bank fields', 'warning'); return; }
 
-    try {
-        const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
-            body: JSON.stringify({ type: 'bank', ifsc_code: ifsc, account_number: acc, account_holder: holder, bank_name: bankName })
-        });
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.message || 'Save failed');
-        savedBankDetails = result.data;
-        renderSavedBankCard(savedBankDetails);
-        showToast('Bank details saved!', 'success');
-    } catch (e) {
-        showToast(e.message, 'error');
-    }
-}
+//     try {
+//         const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+//             body: JSON.stringify({ type: 'bank', ifsc_code: ifsc, account_number: acc, account_holder: holder, bank_name: bankName })
+//         });
+//         const result = await res.json();
+//         if (!res.ok) throw new Error(result.message || 'Save failed');
+//         savedBankDetails = result.data;
+//         renderSavedBankCard(savedBankDetails);
+//         showToast('Bank details saved!', 'success');
+//     } catch (e) {
+//         showToast(e.message, 'error');
+//     }
+// }
 
-function renderSavedBankCard(d) {
-    if (!d) return;
-    document.getElementById('saved-bank-name').innerText   = d.bank_name || '---';
-    document.getElementById('saved-bank-acc').innerText    = 'A/C: ' + (d.account_number || '---');
-    document.getElementById('saved-bank-holder').innerText = 'Holder: ' + (d.account_holder || '---');
-    document.getElementById('saved-bank-ifsc').innerText   = 'IFSC: ' + (d.ifsc_code || '---');
-    document.getElementById('bank-saved-card').classList.remove('hidden');
-    document.getElementById('bank-input-form').classList.add('hidden');
-    document.getElementById('bank-saved-badge').classList.remove('hidden');
-}
+// function renderSavedBankCard(d) {
+//     if (!d) return;
+//     document.getElementById('saved-bank-name').innerText   = d.bank_name || '---';
+//     document.getElementById('saved-bank-acc').innerText    = 'A/C: ' + (d.account_number || '---');
+//     document.getElementById('saved-bank-holder').innerText = 'Holder: ' + (d.account_holder || '---');
+//     document.getElementById('saved-bank-ifsc').innerText   = 'IFSC: ' + (d.ifsc_code || '---');
+//     document.getElementById('bank-saved-card').classList.remove('hidden');
+//     document.getElementById('bank-input-form').classList.add('hidden');
+//     document.getElementById('bank-saved-badge').classList.remove('hidden');
+// }
 
-function editBankDetails() {
-    document.getElementById('bank-saved-card').classList.add('hidden');
-    document.getElementById('bank-input-form').classList.remove('hidden');
-}
+// function editBankDetails() {
+//     document.getElementById('bank-saved-card').classList.add('hidden');
+//     document.getElementById('bank-input-form').classList.remove('hidden');
+// }
 
-async function loadSavedBankDetails() {
-    try {
-        const res  = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details?type=bank`, { headers: { 'Accept': 'application/json' } });
-        const data = await res.json();
-        if (data.success && data.data) {
-            savedBankDetails = data.data;
-            document.getElementById('bank-ifsc').value       = data.data.ifsc_code || '';
-            document.getElementById('bank-acc-number').value = data.data.account_number || '';
-            document.getElementById('bank-acc-holder').value = data.data.account_holder || '';
-            if (data.data.ifsc_code) {
-                document.getElementById('ifsc-result').innerText = data.data.bank_name || '';
-                document.getElementById('ifsc-result').classList.remove('hidden');
-            }
-            renderSavedBankCard(data.data);
-        }
-    } catch (e) { /* no saved details yet */ }
-}
+// async function loadSavedBankDetails() {
+//     try {
+//         const res  = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details?type=bank`, { headers: { 'Accept': 'application/json' } });
+//         const data = await res.json();
+//         if (data.success && data.data) {
+//             savedBankDetails = data.data;
+//             document.getElementById('bank-ifsc').value       = data.data.ifsc_code || '';
+//             document.getElementById('bank-acc-number').value = data.data.account_number || '';
+//             document.getElementById('bank-acc-holder').value = data.data.account_holder || '';
+//             if (data.data.ifsc_code) {
+//                 document.getElementById('ifsc-result').innerText = data.data.bank_name || '';
+//                 document.getElementById('ifsc-result').classList.remove('hidden');
+//             }
+//             renderSavedBankCard(data.data);
+//         }
+//     } catch (e) { /* no saved details yet */ }
+// }
 
 /* ── UPI ── */
 function previewQR(event) {
@@ -558,13 +600,50 @@ function previewQR(event) {
     reader.readAsDataURL(file);
 }
 
-function clearQR() {
+async function clearQR() {
     document.getElementById('qr-file-input').value = '';
     document.getElementById('qr-preview-img').src = '';
     document.getElementById('qr-preview-container').classList.add('hidden');
     document.getElementById('qr-upload-area').classList.remove('hidden');
-}
 
+    // ✅ Clear from memory
+    if (savedUpiDetails) {
+        savedUpiDetails.qr_image_url  = null;
+        savedUpiDetails.qr_image_path = null;
+    }
+
+    // ✅ Clear the saved QR preview card
+    const savedQr = document.getElementById('saved-upi-qr');
+    if (savedQr) {
+        savedQr.innerHTML = `
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" 
+                 stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159
+                       m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909
+                       M3 3l18 18M3.75 3.75h16.5M3.75 20.25h16.5"/>
+            </svg>`;
+    }
+
+    // ✅ Call backend to delete QR from database + storage
+    try {
+        const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details/remove-qr`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({ type: 'upi' })
+        });
+        const result = await res.json();
+        if (result.success) {
+            showToast('QR image removed', 'success');
+        }
+    } catch (e) {
+        console.warn('QR delete failed:', e);
+    }
+}
 async function saveUpiDetails() {
     const upiId = document.getElementById('upi-id-input').value.trim();
     if (!upiId) { showToast('Please enter UPI ID', 'warning'); return; }
@@ -572,25 +651,53 @@ async function saveUpiDetails() {
     const formData = new FormData();
     formData.append('type', 'upi');
     formData.append('upi_id', upiId);
+
     const qrFile = document.getElementById('qr-file-input').files[0];
-    if (qrFile) formData.append('qr_image', qrFile);
+    if (qrFile) {
+        // ✅ New file selected — upload it
+        formData.append('qr_image', qrFile);
+    } else {
+        // ✅ No new file — check if user cleared the existing QR
+        const previewHidden = document.getElementById('qr-preview-container').classList.contains('hidden');
+        const hadQrBefore   = savedUpiDetails?.qr_image_path != null || savedUpiDetails?.qr_image_url != null;
+
+        if (previewHidden && hadQrBefore) {
+            // User removed the existing QR — tell backend to delete it
+            formData.append('remove_qr', '1');
+        }
+    }
 
     try {
         const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
             method: 'POST',
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+            headers: {
+                'Accept':        'application/json',
+                'X-CSRF-TOKEN':  document.querySelector('meta[name="csrf-token"]')?.content
+            },
             body: formData
         });
         const result = await res.json();
         if (!res.ok) throw new Error(result.message || 'Save failed');
+
+        // ✅ Update local state with fresh data from server
         savedUpiDetails = result.data;
+
+        // ✅ If backend confirms QR was removed, clear it from local state too
+        if (!savedUpiDetails?.qr_image_path && !savedUpiDetails?.qr_image_url) {
+            savedUpiDetails = {
+                ...savedUpiDetails,
+                qr_image_path: null,
+                qr_image_url:  null,
+            };
+        }
+
         renderSavedUpiCard(savedUpiDetails);
         showToast('UPI details saved!', 'success');
+
     } catch (e) {
         showToast(e.message, 'error');
     }
 }
-
 function normalizeQrImageUrl(data) {
     const raw = data?.qr_image_url || data?.qr_image_path || '';
     if (!raw) return '';
@@ -632,21 +739,43 @@ function buildQrImageCandidates(data) {
 function renderQrImage(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container) return;
+
     const candidates = buildQrImageCandidates(data);
-    if (!candidates.length) return;
+
+    // ✅ No image uploaded — restore the fallback "no image" icon
+    if (!candidates.length) {
+        container.innerHTML = `
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 3l18 18
+                    M3.75 3.75h16.5M3.75 20.25h16.5"/>
+            </svg>`;
+        return;
+    }
+
     const img = document.createElement('img');
     img.className = 'w-full h-full object-cover';
     let index = 0;
+
     img.onerror = () => {
         index += 1;
-        if (index < candidates.length) { img.src = candidates[index]; return; }
-        container.innerHTML = '';
+        if (index < candidates.length) {
+            img.src = candidates[index];
+            return;
+        }
+        // ✅ All candidates failed — show no image icon
+        container.innerHTML = `
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 3l18 18
+                    M3.75 3.75h16.5M3.75 20.25h16.5"/>
+            </svg>`;
     };
+
     img.src = candidates[index];
     container.innerHTML = '';
     container.appendChild(img);
 }
-
 function renderSavedUpiCard(d) {
     if (!d) return;
     document.getElementById('saved-upi-id').innerText = d.upi_id || '---';
@@ -700,7 +829,9 @@ function startCountdown(expiresAt) {
 }
 
 function closeConfirmedModal() {
-    document.getElementById('booking-confirmed-modal').classList.add('hidden');
+    const modal = document.getElementById('booking-confirmed-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex'); // 🔥 VERY IMPORTANT
     if (countdownInterval) clearInterval(countdownInterval);
 }
 
@@ -724,10 +855,10 @@ function showBookingConfirmedModal(booking) {
     if (isCreditNote) {
         // Show credit note confirmed block — no timer needed
         document.getElementById('credit-note-confirmed-block').classList.remove('hidden');
-        document.getElementById('modal-credit-note-number').innerText  = booking.credit_note_number || '---';
-        document.getElementById('modal-credit-note-due-date').innerText = booking.credit_note_due_date
-            ? new Date(booking.credit_note_due_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-            : '---';
+        // document.getElementById('modal-credit-note-number').innerText  = booking.credit_note_number || '---';
+        // document.getElementById('modal-credit-note-due-date').innerText = booking.credit_note_due_date
+        //     ? new Date(booking.credit_note_due_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+        //     : '---';
     } else if (booking.hold_expiry_at && selectedHoldMinutes > 0) {
         document.getElementById('payment-timer-block').classList.remove('hidden');
         startCountdown(booking.hold_expiry_at);
@@ -753,6 +884,7 @@ function showBookingConfirmedModal(booking) {
     }
 
     modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
 
 /* ── Preview screen population ── */
@@ -782,6 +914,9 @@ function updatePreviewScreen() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    var btn = document.getElementById('create-booking-btn');
+    if (!btn) return;
+
     selectPaymentMode('cash');
     selectHoldTime(30);
     updatePreviewScreen();
@@ -936,4 +1071,245 @@ document.addEventListener('DOMContentLoaded', () => {
         origShowBookingConfirmedModal(booking);
     };
 });
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   CASH LIMIT GUARD
+════════════════════════════════════════════════════════════════════════ */
+(function () {
+    var _cashLimit = null;
+    var _limitLoaded = false;
+
+    async function fetchCashLimit() {
+        try {
+            const res = await fetch(
+                `${window.POS_BASE_PATH || '/vendor/pos'}/api/settings?key=pos_cash_limit`,
+                { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' }
+            );
+            if (!res.ok) return;
+            const data = await res.json();
+            console.log('[CashLimit] Full API response:', data);
+            // Try all possible locations for the value
+            const val = data?.data?.pos_cash_limit ?? data?.pos_cash_limit ?? data?.data?.value ?? null;
+            _cashLimit = val !== null ? parseFloat(val) : null;
+            console.log('[CashLimit] Value from DB:', val, 'Parsed:', _cashLimit);
+        } catch (e) {
+            console.warn('[CashLimit] Could not fetch cash limit:', e);
+        } finally {
+            _limitLoaded = true;
+        }
+    }
+
+    function getCurrentTotal() {
+        if (typeof window.getPosPricingBreakdown === 'function') {
+            return window.getPosPricingBreakdown().grandTotal || 0;
+        }
+        return 0;
+    }
+
+    function applyCashLimit() {
+        if (!_limitLoaded) return;
+        var btn = document.querySelector('.payment-mode-btn[data-mode="cash"]');
+        if (!btn) return;
+
+        if (_cashLimit === null || _cashLimit <= 0) {
+            enableCashBtn(btn);
+            return;
+        }
+
+        var total = getCurrentTotal();
+        if (total > _cashLimit) {
+            disableCashBtn(btn, total);
+        } else {
+            enableCashBtn(btn);
+        }
+    }
+
+  function formatINRLocal(val) {
+        return '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function disableCashBtn(btn, total) {
+        btn.disabled            = true;
+        btn.classList.remove('active-mode');
+        btn.style.opacity       = '0.45';
+        btn.style.cursor        = 'not-allowed';
+        btn.style.pointerEvents = 'auto';
+        btn.removeAttribute('title');
+
+        // ── Wrap button in a relative container for tooltip positioning ──
+        var wrapper = document.getElementById('cash-btn-wrapper');
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.id        = 'cash-btn-wrapper';
+            wrapper.className = 'relative';
+            wrapper.style.display = 'contents';
+            btn.parentNode.insertBefore(wrapper, btn);
+            wrapper.appendChild(btn);
+        }
+
+        // ── Tooltip bubble ──
+        var tooltip = document.getElementById('cash-tooltip-bubble');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id        = 'cash-tooltip-bubble';
+            tooltip.className = [
+                'absolute z-50 mt-20',
+                'w-56 bg-gray-900 text-white text-[11px] font-medium',
+                'rounded-lg px-3 py-2 shadow-xl leading-relaxed',
+                'pointer-events-none opacity-0 transition-opacity duration-200',
+            ].join(' ');
+            // Arrow
+            tooltip.innerHTML = `
+                <div id="cash-tooltip-text"></div>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
+                     style="border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #111827;">
+                </div>`;
+            wrapper.appendChild(tooltip);
+        }
+
+        // Update tooltip text
+        document.getElementById('cash-tooltip-text').innerHTML =
+            '<span class="text-red-400 font-bold">Cash limit: ' + formatINRLocal(_cashLimit) + '</span>' +
+            '<br>Your total <span class="text-yellow-300 font-bold">' + formatINRLocal(total) + '</span> exceeds this limit.' +
+            '<br><span class="text-gray-300">Please choose another payment method.</span>';
+
+        // Show tooltip on hover
+        btn.onmouseenter = function () {
+            tooltip.style.opacity = '1';
+        };
+        btn.onmouseleave = function () {
+            tooltip.style.opacity = '0';
+        };
+
+        // ── Inline warning below the payment grid ──
+        var tip = document.getElementById('cash-limit-tooltip');
+        if (!tip) {
+            tip = document.createElement('div');
+            tip.id        = 'cash-limit-tooltip';
+            tip.className = 'col-span-full mt-1';
+            // Insert after the payment mode grid
+            var grid = btn.closest('.grid');
+            if (grid && grid.parentNode) {
+                grid.parentNode.insertBefore(tip, grid.nextSibling);
+            }
+        }
+        // tip.innerHTML = `
+        //     <div class="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        //         <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        //             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        //         </svg>
+        //         <div>
+        //             <p class="text-[11px] font-bold text-red-700">Cash payment unavailable</p>
+        //             <p class="text-[10px] text-red-600 mt-0.5">
+        //                 Admin cash limit is <strong>${formatINRLocal(_cashLimit)}</strong>.
+        //                 Your booking total <strong>${formatINRLocal(total)}</strong> exceeds this limit.
+        //                 Please select Bank Transfer, UPI, or Credit Note.
+        //             </p>
+        //         </div>
+        //     </div>`;
+        tip.style.display = 'block';
+
+        // ── Auto-switch away from cash if currently selected ──
+        if (typeof selectedPaymentMode !== 'undefined' && selectedPaymentMode === 'cash') {
+            if (typeof selectPaymentMode === 'function') {
+                selectPaymentMode('bank_transfer');
+            }
+        }
+    }
+
+    function enableCashBtn(btn) {
+        btn.disabled            = false;
+        btn.style.opacity       = '';
+        btn.style.cursor        = '';
+        btn.style.pointerEvents = '';
+        btn.removeAttribute('title');
+
+        // Remove hover handlers
+        btn.onmouseenter = null;
+        btn.onmouseleave = null;
+
+        // Hide tooltip bubble
+        var tooltip = document.getElementById('cash-tooltip-bubble');
+        if (tooltip) tooltip.style.opacity = '0';
+
+        // Hide inline warning
+        var tip = document.getElementById('cash-limit-tooltip');
+        if (tip) tip.style.display = 'none';
+
+        // Auto-switch back to cash if total is now within limit and payment mode is not cash
+        if (typeof selectedPaymentMode !== 'undefined' && selectedPaymentMode !== 'cash') {
+            var total = getCurrentTotal();
+            if (_cashLimit !== null && _cashLimit > 0 && total <= _cashLimit) {
+                if (typeof selectPaymentMode === 'function') {
+                    selectPaymentMode('cash');
+                }
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Fetch on load then apply
+        fetchCashLimit().then(function () { applyCashLimit(); });
+
+        // Hook after MilestoneModule sets up its hook (100ms delay)
+        setTimeout(function () {
+            var orig = window.calculateFinalTotals;
+            if (typeof orig === 'function') {
+                window.calculateFinalTotals = function () {
+                    orig.apply(this, arguments);
+                    setTimeout(applyCashLimit, 0);
+                };
+            }
+
+         var discountInput = document.getElementById('pos-discount');
+    if (discountInput) {
+        discountInput.addEventListener('input', function () {
+            // First recalculate totals, then re-evaluate cash limit
+            if (typeof calculateFinalTotals === 'function') {
+                calculateFinalTotals();
+            }
+            setTimeout(applyCashLimit, 0);
+        });
+    }
+
+            // MutationObserver to re-apply cash limit if payment mode grid changes
+            var paymentGrid = document.querySelector('.grid');
+            if (paymentGrid) {
+                var gridObserver = new MutationObserver(function() {
+                    applyCashLimit();
+                });
+                gridObserver.observe(paymentGrid, { childList: true, subtree: true });
+            }
+
+            // --- Milestone Hold Duration Logic ---
+            if (window.MilestoneModule && typeof window.MilestoneModule.isEnabled === 'function') {
+                // Watch for milestone enable/row add
+                const msCard = document.getElementById('ms-card');
+                if (msCard) {
+                    const observer = new MutationObserver(function() {
+                        if (window.MilestoneModule.isEnabled() && window.MilestoneModule.rows().length > 0) {
+                            // Auto-select 'No Limit' hold time
+                            selectHoldTime(0);
+                            // Show popup if not already shown
+                            if (!window.__milestoneHoldPopupShown) {
+                                window.__milestoneHoldPopupShown = true;
+                                if (window.MsAlert && typeof window.MsAlert.info === 'function') {
+                                    window.MsAlert.info(
+                                        'Milestone bookings are confirmed immediately. There is no payment hold timer. If payment is not received by the due date of any milestone, the booking can be cancelled by the admin. You can always add or edit milestones before finalizing.',
+                                        'Milestone Booking: No Hold Timer'
+                                    );
+                                } else {
+                                    alert('Milestone bookings are confirmed immediately. There is no payment hold timer. If payment is not received by the due date of any milestone, the booking can be cancelled by the admin. You can always add or edit milestones before finalizing.');
+                                }
+                            }
+                        }
+                    });
+                    observer.observe(msCard, { attributes: true, childList: true, subtree: true });
+                }
+            }
+        }, 100);
+    });
+}());
 </script>

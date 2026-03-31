@@ -145,14 +145,15 @@
 </style>
 <form method="GET" action="{{ route('search.seo', ['city' => request('location', 'india'), 'area' => request('area')]) }}" id="filterForm">
     <input type="hidden" name="sort" value="{{ request('sort', '') }}">
-    <div id="filterModal" class="fixed inset-0 z-[9999] hidden p-4 sm:p-6 md:p-8 lg:p-0">
+    <div id="filterModal" class="fixed inset-0 z-[9999] hidden flex items-end sm:items-center justify-center p-4">
+
 
         <!-- Overlay -->
         <div class="absolute inset-0 bg-black/40" onclick="closeFilterModal()"></div>
 
         <!-- Modal -->
-        <div class="relative bg-white w-full max-w-4xl mx-auto mt-8 rounded-xl shadow-xl overflow-hidden">
-
+        <div class="relative bg-white w-full max-w-4xl mx-auto rounded-xl shadow-xl overflow-hidden flex flex-col"
+            style="max-height: calc(100vh - 2rem);">
             {{-- HEADER --}}
             <div class="relative flex items-center px-6 py-4 shadow">
                 <h2 class="text-lg font-semibold absolute left-1/2 -translate-x-1/2">
@@ -170,7 +171,7 @@
 
 
             {{-- BODY --}}
-            <div class="p-6 max-h-[75vh] overflow-y-auto space-y-8">
+            <div class="p-6 overflow-y-auto space-y-8 flex-1 min-h-0">
 
                 {{-- TYPES OF HOARDING --}}
                 <section>
@@ -201,7 +202,12 @@
                     <h3 class="font-medium mb-2">Categories (OOH)</h3>
                     @foreach(['Unipole','Billboard','Gantry','Bus Shelter','Metro Pillars'] as $cat)
                         <label class="flex gap-2">
-                            <input type="checkbox" name="category[]" value="{{ $cat }}">
+                            <input
+                                type="checkbox"
+                                name="category[]"
+                                value="{{ $cat }}"
+                                {{ in_array($cat, request('category', [])) ? 'checked' : '' }}
+                            >
                             {{ $cat }}
                         </label>
                     @endforeach
@@ -210,7 +216,12 @@
                     <h3 class="font-medium mb-2">Digital Categories (DOOH)</h3>
                     @foreach(['LED Screens','Digital Standee','Metro Panels'] as $cat)
                         <label class="flex gap-2">
-                            <input type="checkbox" name="category[]" value="{{ $cat }}">
+                            <input 
+                                type="checkbox" 
+                                name="category[]" 
+                                value="{{ $cat }}"
+                                {{ in_array($cat, request('category', [])) ? 'checked' : '' }}
+                            >
                             {{ $cat }}
                         </label>
                     @endforeach
@@ -264,7 +275,7 @@
                 </section>
 
                 {{-- VENDORS --}}
-                <section>
+                {{-- <section>
                     <h3 class="font-medium mb-3">Vendors Hoardings</h3>
 
                     <div class="flex gap-3 flex-wrap">
@@ -276,45 +287,48 @@
                         @endforeach
                     </div>
 
+                </section> --}}
+
+
+               {{-- REVIEW SCORE --}}
+                <section>
+                    <h3 class="font-medium mb-3">Review Score</h3>
+
+                    <div class="flex flex-wrap gap-4 text-sm">
+                        @foreach([5,4,3,2] as $r)
+                            @php
+                                $checked = in_array($r, request('rating', []));
+                            @endphp
+
+                            <div
+                                class="rating-btn {{ $checked ? 'active' : '' }}"
+                                onclick="toggleRating(this)">
+
+                                <span class="rating-value">{{ $r }}</span>
+
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2" />
+                                </svg>
+
+                                {{-- Range label --}}
+                                <span class="rating-text">
+                                    - {{ $r - 1 }}
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fbbf24;display:inline;" class="mb-1">
+                                        <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2" />
+                                    </svg>
+                                </span>
+
+                                <input
+                                    type="checkbox"
+                                    name="rating[]"
+                                    value="{{ $r }}"
+                                    class="hidden"
+                                    {{ $checked ? 'checked' : '' }}
+                                >
+                            </div>
+                        @endforeach
+                    </div>
                 </section>
-
-
-                {{-- REVIEW SCORE --}}
-               <section>
-                <h3 class="font-medium mb-3">Review Score</h3>
-
-                <div class="flex flex-wrap gap-4 text-sm">
-                    @foreach([5,4,3,2,1] as $r)
-                        @php
-                            $checked = in_array($r, request('rating', []));
-                        @endphp
-
-                        <div
-                            class="rating-btn {{ $checked ? 'active' : '' }}"
-                            onclick="toggleRating(this)"
-                             >
-                            <span class="rating-value">
-                                {{ $r }}
-                            </span>
-
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2" />
-                            </svg>
-
-                            <span class="rating-text">Rating</span>
-
-                            <input
-                                type="checkbox"
-                                name="rating[]"
-                                value="{{ $r }}"
-                                class="hidden"
-                                {{ $checked ? 'checked' : '' }}
-                            >
-                        </div>
-
-                    @endforeach
-                </div>
-               </section>
 
 
 
@@ -369,20 +383,20 @@
 
                     <input
                         type="range"
-                        min="8"
-                        max="40"
+                        min="1"
+                        max="100"
                         step="1"
                         id="minRange"
-                        value="{{ strlen(request('min_height')) ? request('min_height') : 8 }}"
+                        value="{{ strlen(request('min_height')) ? request('min_height') : 1 }}"
                     >
 
                     <input
                         type="range"
                         min="8"
-                        max="40"
+                        max="100"
                         step="1"
                         id="maxRange"
-                        value="{{ strlen(request('max_height')) ? request('max_height') : (strlen(request('min_height')) ? request('min_height')+1 : 9) }}"
+                        value="{{ strlen(request('max_height')) ? request('max_height') : (strlen(request('min_height')) ? request('min_height')+1 : 100) }}"
                     >
 
                     <div class="range-base">

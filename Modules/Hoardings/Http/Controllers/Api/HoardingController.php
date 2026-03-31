@@ -423,7 +423,7 @@ class HoardingController extends Controller
                 'id' => $vendorId,
                 'name' => data_get($vendor, 'name', 'vendor'),
                 'email' => data_get($vendor, 'email'),
-                'address' => $this->formatVendorAddress($vendor),
+                'address' => $vendor->getVendorAddress(),
                 'total_hoardings' => Hoarding::where('vendor_id', $vendorId)
                     ->where('status', 'active')
                     ->count(),
@@ -514,6 +514,7 @@ class HoardingController extends Controller
             'hoarding_type' => strtoupper((string) ($hoarding->hoarding_type ?? '')),
             'category' => $hoarding->category,
             'city' => $hoarding->city,
+            'packages' => $hoarding->packages,
             'image_url' => $hoarding->heroImage(),
             'rating' => (float) ($hoarding->average_rating ?? $hoarding->rating ?? 0),
             'pricing' => $pricing,
@@ -561,16 +562,9 @@ class HoardingController extends Controller
         if (!$vendor) {
             return '';
         }
-
         $address = data_get($vendor, 'address');
-
-        if (!empty($address)) {
-            return (string) $address;
-        }
-
         return implode(', ', array_filter([
-            data_get($vendor, 'address_line_1'),
-            data_get($vendor, 'address_line_2'),
+            data_get($vendor, 'addres'),
             data_get($vendor, 'city'),
             data_get($vendor, 'state'),
             data_get($vendor, 'pincode'),

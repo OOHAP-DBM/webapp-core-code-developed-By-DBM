@@ -14,6 +14,13 @@
         <span>Total</span>
         <span id="summary-total">₹0</span>
     </div>
+  {{-- <div class="flex justify-center">
+    <button
+        id="enquireNowBtn"
+        class="mt-3 w-full bg-black hover:bg-gray-800 text-white py-2.5 px-4 rounded-lg font-semibold transition-colors cursor-pointer">
+        Book Now
+    </button>
+</div> --}}
 
     <div class="flex justify-center">
         <button
@@ -22,6 +29,7 @@
             Enquire Now
         </button>
     </div>
+    
 </div>
 
 @push('modals')
@@ -200,9 +208,13 @@ function loadEnquiryHoardings() {
 
                 tableHTML += `
                     <tr data-hoarding-id="${hoardingId}" class="border-b border-gray-200 align-middle">
-                        <td class="py-4 px-4 font-medium">${item.title}</td>
-                        <td class="py-4 px-4 text-gray-600">
-                            ${(item.locality ?? '')}${item.state ? ', ' + item.state : ''}
+                        <td class="py-4 px-4 font-medium">
+                            <span class="line-clamp-2 text-sm">${item.title}</span>
+                        </td>                        
+                        <td class="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm max-w-[120px] sm:max-w-none">
+                            <span class="block truncate" title="${(item.locality ?? '')}${item.state ? ', ' + item.state : ''}">
+                                ${(item.locality ?? '')}${item.state ? ', ' + item.state : ''}
+                            </span>
                         </td>
                         <td class="py-4 px-4">
                             <div class="duration-select-wrapper">

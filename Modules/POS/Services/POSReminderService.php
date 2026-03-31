@@ -25,7 +25,7 @@ class POSReminderService
             ? $booking->scheduledReminders->where('status', POSBookingReminder::STATUS_PENDING)->count()
             : $booking->scheduledReminders()->pending()->count();
 
-        return max(0, self::MAX_REMINDERS - (int) $booking->reminder_count - $pendingCount);
+        return max(0, self::MAX_REMINDERS - $pendingCount);
     }
 
     public function serializeScheduledReminders(POSBooking $booking): array
@@ -88,7 +88,7 @@ class POSReminderService
             }
         }
 
-        $maxPendingAllowed = max(0, self::MAX_REMINDERS - (int) $booking->reminder_count);
+        $maxPendingAllowed = self::MAX_REMINDERS;
         if ($normalizedReminders->count() > $maxPendingAllowed) {
             throw ValidationException::withMessages([
                 'scheduled_reminders' => "Only {$maxPendingAllowed} reminder slot(s) are available for this booking.",
@@ -144,6 +144,16 @@ class POSReminderService
 
     public function sendImmediateReminder(POSBooking $booking, ?POSBookingReminder $scheduledReminder = null, ?int $actorId = null): array
     {
+        // Log entry to confirm this function is called and queue worker is running
+        \Log::info('[REMINDER] sendImmediateReminder called', [
+            'booking_id' => $booking->id,
+            'scheduled_reminder_id' => $scheduledReminder ? $scheduledReminder->id : null,
+            'actor_id' => $actorId,
+            'queue_connection' => config('queue.default'),
+            'queue_worker_pid' => getmypid(),
+            'env' => app()->environment(),
+            'timestamp' => now()->toDateTimeString(),
+        ]);
         $bookingError = $this->getBookingReminderError($booking);
         if ($bookingError !== null) {
             return [
@@ -153,19 +163,11 @@ class POSReminderService
             ];
         }
 
-        if ((int) $booking->reminder_count >= self::MAX_REMINDERS) {
-            return [
-                'success' => false,
-                'status' => 422,
-                'message' => 'Maximum reminders already sent (3 limit)',
-            ];
-        }
-
         if ($scheduledReminder === null && $this->getRemainingReminderSlots($booking) <= 0) {
             return [
                 'success' => false,
                 'status' => 422,
-                'message' => 'Maximum reminders already scheduled or sent (3 limit)',
+                'message' => 'Maximum pending reminders already scheduled (3 limit)',
             ];
         }
 
@@ -383,15 +385,6 @@ class POSReminderService
                 return false;
             }
 
-            if ((int) $booking->reminder_count >= self::MAX_REMINDERS) {
-                $reminder->update([
-                    'status' => POSBookingReminder::STATUS_CANCELLED,
-                    'error_message' => 'Maximum reminders already sent (3 limit)',
-                ]);
-
-                return false;
-            }
-
             $result = $this->sendImmediateReminder($booking, $reminder);
 
             return (bool) ($result['success'] ?? false);
@@ -411,10 +404,10 @@ class POSReminderService
     private function getBookingReminderError(POSBooking $booking): ?string
     {
         if (
-            !in_array($booking->payment_status, [POSBooking::PAYMENT_STATUS_UNPAID, POSBooking::PAYMENT_STATUS_PARTIAL], true)
-            || $booking->status === POSBooking::STATUS_CANCELLED
+            !in_array($booking->payment_status, [POSBooking::PAYMENT_STATUS_UNPAID, POSBooking::PAYMENT_STATUS_PARTIAL, POSBooking::PAYMENT_STATUS_CREDIT], true)
+            || $booking->status === POSBooking::STATUS_CANCELLED  || ($booking->payment_mode === POSBooking::PAYMENT_MODE_CREDIT_NOTE && $booking->credit_note_status !== POSBooking::CREDIT_NOTE_STATUS_ACTIVE)
         ) {
-            return 'Can only send reminders for unpaid or partial paid bookings that are not cancelled';
+            return 'Can only send reminders for unpaid, partial paid, or credit bookings that are not cancelled';
         }
 
         return null;

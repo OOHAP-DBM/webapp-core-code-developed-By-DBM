@@ -435,6 +435,14 @@ class SettingsSeeder extends Seeder
                 'description' => 'Default number of items per page in listings',
                 'group' => 'general',
             ],
+
+            [
+                'key' => 'pos_cash_limit',
+                'value' => '5000.00',
+                'type' => 'float',
+                'description' => 'Maximum cash payment allowed per POS booking. Set 0 for no limit.',
+                'group' => 'pos',
+            ],
         ];
 
         foreach ($settings as $setting) {

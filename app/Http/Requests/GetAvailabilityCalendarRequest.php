@@ -47,16 +47,32 @@ class GetAvailabilityCalendarRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
+            if ($this->has('start_date')) {
+                $startDate = $this->input('start_date');
+                // Reject DD/MM/YYYY and similar formats
+                if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $startDate)) {
+                    $validator->errors()->add('start_date', 'Start date must be in YYYY-MM-DD format, not DD/MM/YYYY.');
+                }
+            }
+            if ($this->has('end_date')) {
+                $endDate = $this->input('end_date');
+                if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $endDate)) {
+                    $validator->errors()->add('end_date', 'End date must be in YYYY-MM-DD format, not DD/MM/YYYY.');
+                }
+            }
             if ($this->has('start_date') && $this->has('end_date')) {
-                $start = Carbon::parse($this->input('start_date'));
-                $end = Carbon::parse($this->input('end_date'));
-
-                // Maximum range: 2 years
-                if ($start->diffInDays($end) > 730) {
-                    $validator->errors()->add(
-                        'end_date',
-                        'The date range cannot exceed 2 years (730 days).'
-                    );
+                try {
+                    $start = Carbon::parse($this->input('start_date'));
+                    $end = Carbon::parse($this->input('end_date'));
+                    // Maximum range: 2 years
+                    if ($start->diffInDays($end) > 730) {
+                        $validator->errors()->add(
+                            'end_date',
+                            'The date range cannot exceed 2 years (730 days).'
+                        );
+                    }
+                } catch (\Exception $e) {
+                    // Already handled by date_format rule, but catch parse errors just in case
                 }
             }
         });

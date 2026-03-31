@@ -4,7 +4,7 @@ namespace Modules\Hoardings\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Hoarding;
-
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class HoardingMedia extends Model
 {
     protected $table = 'hoarding_media';

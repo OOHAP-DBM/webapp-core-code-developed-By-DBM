@@ -67,8 +67,13 @@ class InvoiceController extends Controller
      */
     public function download(Invoice $invoice)
     {
-        // Authorization check
-        if ($invoice->customer_id !== Auth::id() && !Auth::user()->hasRole('admin')) {
+
+        // Authorization: allow customer, admin, or vendor
+        $user = Auth::user();
+        $isCustomer = $invoice->customer_id === $user->id;
+        $isAdmin = $user->hasRole('admin');
+        $isVendor = $user->isVendor();
+        if (!($isCustomer || $isAdmin || $isVendor)) {
             abort(403, 'Unauthorized access to invoice');
         }
 

@@ -19,7 +19,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-5">
                     
                     <div class="space-y-2">
-                        <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <label class="block text-sm font-medium text-gray-700">Full Name<span class="text-red-500">*</span></label>
                         <input type="text" name="name" placeholder="Enter full name" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
                         <div class="text-xs text-red-600 mt-1" data-error-for="name"></div>
                     </div>
@@ -31,7 +31,7 @@
                     </div>
 
                     <div class="space-y-2">
-                        <label class="block text-sm font-medium text-gray-700">GSTIN<span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700">GSTIN</label>
                         <input type="text" name="gstin" placeholder="Enter email address" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
                         <div class="text-xs text-red-600 mt-1" data-error-for="gstin"></div>
                     </div>
@@ -59,7 +59,7 @@
                     </div>
 
                     <div class="space-y-2">
-                        <label class="block text-sm font-medium text-gray-700">Pincode<span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700">Pincode</label>
                         <div class="relative">
                             <input type="text" id="pincode" name="pincode" placeholder="Enter pincode" maxlength="6" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
                             <div class="text-xs text-red-600 mt-1" data-error-for="pincode"></div>
@@ -97,7 +97,7 @@
                     <h4 class="text-lg font-semibold text-gray-900 mb-4">Create Password</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div class="space-y-2 relative">
-                            <label class="block text-sm font-medium text-gray-700">Password</label>
+                            <label class="block text-sm font-medium text-gray-700">Password<span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <input type="password" name="password" id="password-input" placeholder="Enter password" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
                                 <button type="button" tabindex="-1" onclick="togglePassword('password-input', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black">
@@ -110,7 +110,7 @@
                             <div class="text-xs text-red-600 mt-1" data-error-for="password"></div>
                         </div>
                         <div class="space-y-2 relative">
-                            <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                            <label class="block text-sm font-medium text-gray-700">Confirm Password<span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <input type="password" name="password_confirmation" id="confirm-password-input" placeholder="Confirm password" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-0 focus:border-gray-400 placeholder-gray-400">
                                 <button type="button" tabindex="-1" onclick="togglePassword('confirm-password-input', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black">

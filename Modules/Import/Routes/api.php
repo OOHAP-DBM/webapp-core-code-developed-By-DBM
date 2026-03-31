@@ -90,5 +90,9 @@ Route::middleware(['web', 'auth:sanctum'])->group(function () {
         Route::delete('/{batch}', [ImportController::class, 'cancelImport'])
             ->middleware('permission:import.manage|import.batch.update')
             ->name('cancel');
+
+        Route::get('/{batch}/download', [ImportController::class, 'downloadBatchFile'])
+         ->name('download.file');
+        Route::patch('/{batch}/rows/{row}/status', [ImportController::class, 'updateBatchRowStatus']);
     });
 });

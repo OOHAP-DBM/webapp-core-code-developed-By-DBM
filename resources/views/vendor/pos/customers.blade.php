@@ -16,7 +16,7 @@
             <div class="px-2 bg-primary rounded-t-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div class="pt-4 text-sm font-medium">
                     Active Customers: <span class="font-bold">
-                        {{ collect($customers)->where('is_active', true)->count() }}
+                        {{ $customers->where('profile_status', 'active')->count() }}
                     </span>
                 </div>
                 <div class="pt-4 w-full sm:w-auto flex items-center gap-2">
@@ -93,9 +93,9 @@
                                 }}
                             </td>
 
-                            {{-- Status --}}
+                          {{-- Status --}}
                             <td class="px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-center">
-                                @if($customer['is_active'])
+                                @if($customer['profile_status'] === 'active')
                                     <span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
                                         Active
                                     </span>

@@ -351,7 +351,7 @@ class Hoarding extends Model implements HasMedia
         return $this->enable_weekly_booking && $this->weekly_price !== null;
     }
 
-    public function getMediaAttribute()
+    public function getMediaAttributes()
     {
         if ($this->hoarding_type === self::TYPE_OOH) {
             return $this->hoardingMedia;
@@ -594,7 +594,7 @@ class Hoarding extends Model implements HasMedia
         // Type label
         $typeLabel = '';
         if ($type === 'ooh' && $child) {
-            $typeLabel = ucfirst($this->category ?? 'Billboard');
+            $typeLabel = ucfirst($this->category ?? 'Hoarding');
         } elseif ($type === 'dooh' && $child) {
             $typeLabel = $child->screen_type ? ucfirst($child->screen_type) : 'LED Screen';
         }

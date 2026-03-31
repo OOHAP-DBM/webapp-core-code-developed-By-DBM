@@ -104,7 +104,36 @@ class VendorController extends Controller
             'other'          => 'Other',
         ];
 
-        return view('admin.vendors.show', compact('user', 'vendorProfile', 'businessTypes', 'totalHoardings', 'commission'));
+        $fields = [
+        // Personal
+        $user->name,
+        $user->email,
+        $user->phone,
+        $user->avatar,
+        // Business
+        $vendorProfile->gstin,
+        $vendorProfile->company_name,
+        $vendorProfile->company_type,
+        $vendorProfile->pan,
+        // Bank
+        $vendorProfile->bank_name,
+        $vendorProfile->account_holder_name,
+        $vendorProfile->account_number,
+        $vendorProfile->ifsc_code,
+        // Address
+        $vendorProfile->registered_address,
+        $vendorProfile->pincode,
+        $vendorProfile->city,
+        $vendorProfile->state,
+        ];
+
+        $filled = count(array_filter($fields, fn($v) => !is_null($v) && $v !== ''));
+        $profileCompletion = round(($filled / count($fields)) * 100);
+
+        return view('admin.vendors.show', compact(
+            'user', 'vendorProfile', 'businessTypes',
+            'totalHoardings', 'commission', 'profileCompletion'
+        ));
     }
 
 

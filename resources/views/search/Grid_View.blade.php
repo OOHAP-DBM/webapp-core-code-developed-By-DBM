@@ -2,7 +2,7 @@
     <div class="max-w-[1460px] mx-auto py-6 px-4">
 
         @if($results->total() > 0)
-            <h2 class="text-lg text-black font-semibold mb-4">
+            <h2 class="text-lg text-black font-semibold mb-4 mt-5">
                 {{ $results->total() }} Hoardings in {{ request('location') ?? 'India' }}
             </h2>
 
@@ -97,8 +97,14 @@
                                 {{ $item->title }}
                             </h3>
 
-                            <p class="text-xs text-gray-500 line-clamp-1">
-                                {{ $item->address }}, {{ $item->city }}
+                          <p class="text-xs text-gray-500 line-clamp-1">
+                                @if($item->address && $item->city)
+                                    {{ $item->address }}, {{ $item->city }}
+                                @elseif($item->address)
+                                    {{ $item->address }}
+                                @elseif($item->city)
+                                    {{ $item->city }}
+                                @endif
                             </p>
                             <div class="flex items-center justify-between mt-1">
                                 <div class="text-xs text-gray-600">

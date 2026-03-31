@@ -44,8 +44,13 @@
 
     {{-- ── Fonts (preconnect first to avoid extra round-trips) ──────── --}}
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap"></noscript>
+    {{-- Alpine Collapse Plugin — x-collapse ke liye --}}
+<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+{{-- Alpine Core — collapse plugin ke BAAD load hona chahiye --}}
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     {{-- ── CSS (non-blocking order: base → icons → datepicker) ──────── --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -53,6 +58,7 @@
 
     {{-- ── Google Analytics (async — does NOT block render) ──────────── --}}
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ST51N3C0N6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}

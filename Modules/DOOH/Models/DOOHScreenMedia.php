@@ -1,7 +1,7 @@
 <?php
 
 namespace Modules\DOOH\Models;
-
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Database\Eloquent\Model;
 
 class DOOHScreenMedia extends Model

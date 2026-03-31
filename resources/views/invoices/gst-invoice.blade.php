@@ -997,10 +997,10 @@
                         {{ $invoice->invoice_date->format('d/m/Y') }}
                     </div>
 
-                    <div style="font-size:12px;color:#777;">Due Date</div>
+                    <!-- <div style="font-size:12px;color:#777;">Due Date</div>
                     <div style="font-weight:600;margin-top:5px;">
                         {{ $invoice->due_date?->format('d/m/Y') }}
-                    </div>
+                    </div> -->
                 </td>
 
                 <!-- COLUMN 2 -->

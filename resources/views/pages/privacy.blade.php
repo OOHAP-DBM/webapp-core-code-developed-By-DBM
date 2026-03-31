@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-@include('components.customer.navbar')
+@include('components.customer.navbar', ['hideSearch' => true])
 
-<div class="max-w-5xl mx-auto py-14 px-4">
+<div class="max-w-5xl mx-auto py-4 px-4">
 
     {{-- WHITE CARD --}}
     <div class="bg-white rounded-xl shadow p-8">

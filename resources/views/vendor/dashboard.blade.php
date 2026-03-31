@@ -1027,16 +1027,19 @@
                             {{ $t['type'] }}
                         </td>
 
-                        <td class="px-6 py-4">{{ $t['date'] }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $t['date'] }}</td>
 
                         <td class="px-6 py-4 text-blue-600 font-semibold">
                             ₹{{ number_format($t['amount']) }}
                         </td>
-
                        <td class="px-6 py-4">
-                            <a href="{{ route('vendor.transactions.invoice', $t['id_numeric']) }}"
-                            class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-xs"
-                            target="_blank" download>
+                            @php
+                                $invoiceId = $t['invoice_id'] ?? $t['id_numeric'];
+                            @endphp
+                            <a  href="{{ url("invoices/{$invoiceId}/download") }}"
+                               class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-xs"
+                               target="_blank" download
+                               onerror="alert('Invoice download failed. Please contact support.')">
                                 Invoice
                             </a>
                         </td>

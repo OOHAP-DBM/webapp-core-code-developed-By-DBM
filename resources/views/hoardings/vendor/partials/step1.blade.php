@@ -24,21 +24,31 @@
 
         <!-- Category -->
         <div class="space-y-2">
-          <!-- <label class="text-sm font-semibold text-gray-700"> <span class="text-red-500">*</span></label> -->
-          <label class="text-sm font-bold text-gray-700">
+            <label class="text-sm font-bold text-gray-700">
                 Category <span class="text-red-500">*</span>
             </label>
-          <select name="category" required
-            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%226b7280%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:20px] bg-[right_1rem_center] bg-no-repeat">
-            <option value="">Select Category</option>
-            @if(isset($attributes['category']))
-              @foreach($attributes['category'] as $cat)
-                <option value="{{ $cat->value }}" {{ old('category', $draft->hoarding->category ?? '') == $cat->value ? 'selected' : '' }}>
-                  {{ $cat->value }}
-                </option>
-              @endforeach
-            @endif
-          </select>
+            
+            {{-- ✅ Wrapper div with relative --}}
+            <div class="relative">
+                <select name="category" required
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-10 focus:ring-2 focus:ring-[#009A5C]/10 focus:border-[#009A5C] outline-none appearance-none bg-white">
+                    <option value="">Select Category</option>
+                    @if(isset($attributes['category']))
+                        @foreach($attributes['category'] as $cat)
+                            <option value="{{ $cat->value }}" {{ old('category', $draft->hoarding->category ?? '') == $cat->value ? 'selected' : '' }}>
+                                {{ $cat->value }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+
+                {{-- ✅ Arrow icon — bilkul right mein, click bhi select pe jayega --}}
+                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+            </div>
         </div>
       </div>
 
@@ -55,6 +65,8 @@
               <option value="sqft" {{ old('measurement_unit', $draft->measurement_unit ?? 'sqft') == 'sqft' ? 'selected' : '' }}>Sqft</option>
               <option value="sqm" {{ old('measurement_unit', $draft->measurement_unit ?? 'sqft') == 'sqm' ? 'selected' : '' }}>Sqm</option>
             </select>
+                @error('measurement_unit') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+
           </div>
 
           <!-- Width -->
@@ -63,7 +75,9 @@
             <input type="number" id="width" name="width" placeholder="eg.500" required 
               value="{{ old('width', $draft->width ?? '') }}"
               class="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#009A5C]">
+              @error('width') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
+          
 
           <!-- Height -->
           <div class="space-y-1">
@@ -71,6 +85,7 @@
             <input type="number" id="height" name="height" placeholder="eg.300" required 
               value="{{ old('height', $draft->height ?? '') }}" 
               class="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#009A5C]">
+              @error('height') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
 
           <!-- Size Preview (READ-ONLY, NO NAME) -->
@@ -78,7 +93,11 @@
             <label class="text-xs font-bold text-gray-500">Size Preview</label>
             <input type="text" id="sizePreview" readonly 
               placeholder="Auto-calculated"
+               value="{{ old('width', $draft->width ?? '') && old('height', $draft->height ?? '') 
+            ? old('width', $draft->width ?? '') . ' x ' . old('height', $draft->height ?? '') . ' ' . old('measurement_unit', $draft->measurement_unit ?? 'sqft')
+            : '' }}"
               class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 cursor-not-allowed text-gray-600">
+              @error('sizePreview') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
         </div>
       </div>
@@ -94,53 +113,54 @@
       </h3>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Monthly Base Price -->
         <div class="space-y-2">
           <label class="text-sm font-bold text-gray-700">
-            Monthly Base Price (₹) <span class="text-red-500">*</span>
+              Monthly Base Price (₹) <span class="text-red-500">*</span>
           </label>
           <input
-            type="number"
-            name="base_monthly_price"
-            value="{{ old('base_monthly_price', $draft->hoarding->base_monthly_price ?? '') }}"
-            min="1"
-            step="0.01"
-            required
-            placeholder="e.g. 50,000"
-            class="w-full border border-gray-200 rounded-xl px-4 py-2.5
-                  focus:border-[#009A5C] outline-none transition-all"
+              type="number"
+              name="base_monthly_price"
+              id="base_monthly_price"
+              value="{{ old('base_monthly_price', $draft->hoarding->base_monthly_price ?? '') }}"
+              min="1"
+              step="0.01"
+              required
+              placeholder="e.g. 50,000"
+              class="w-full border border-gray-200 rounded-xl px-4 py-2.5
+                    focus:border-[#009A5C] outline-none transition-all"
           />
+            @error('base_monthly_price') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           <p class="text-xs text-gray-400">
-            Standard monthly hoarding price (before discount)
+              Standard monthly hoarding price (before discount)
           </p>
-        </div>
-
-        @php
-          // Get the value from old input or the database
+       </div>
+      @php
           $currentMonthlyPrice = old('monthly_price', $draft->hoarding->monthly_price ?? '');
-          
-          // Logic: If the value is 0, treat it as an empty string so the input box stays empty
           $displayValue = ($currentMonthlyPrice == 0) ? '' : $currentMonthlyPrice;
-        @endphp
-        <!-- Monthly Offer Price -->
-        <div class="space-y-2">
+      @endphp
+      <div class="space-y-2">
           <label class="text-sm font-bold text-gray-700">
-            Monthly Discounted Price (₹)
+              Monthly Discounted Price (₹)
           </label>
           <input
-            type="number"
-            name="monthly_price"
-            min="1"
-            step="0.01"
-            value="{{ $displayValue }}"
-            placeholder="Optional discounted price"
-            class="w-full border border-gray-200 rounded-xl px-4 py-2.5
-                  focus:border-[#009A5C] outline-none transition-all"
+              type="number"
+              name="monthly_price"
+              id="monthly_price"
+              min="1"
+              step="0.01"
+              value="{{ $displayValue }}"
+              placeholder="Optional discounted price"
+              class="w-full border border-gray-200 rounded-xl px-4 py-2.5
+                    focus:border-[#009A5C] outline-none transition-all"
           />
-          <p class="text-xs text-gray-400">
-            Discounted price (optional)
+          {{-- ✅ Error message --}}
+          <p id="monthly_price_error" class="text-xs text-red-500 hidden">
+              Discounted price must be less than base price (₹<span id="base_price_display"></span>)
           </p>
-        </div>
+          <p class="text-xs text-gray-400">
+              Discounted price (optional)
+          </p>
+      </div>
       </div>
     </div>
 
@@ -160,9 +180,9 @@
                       @foreach($draft->hoarding->oohMedia as $media)
                           <div class="relative w-28 h-28 rounded-lg overflow-hidden border bg-gray-50">
                               @if(Str::startsWith( $media->mime_type, 'image'))
-                                  <img src="{{ asset('storage/'.$media->file_path) }}" ...>
+                         <img src="{{ asset('storage/'.$media->file_path) }}" class="w-full h-full object-cover" alt="media">
                               @elseif(Str::startsWith($media->mime_type, 'video'))
-                                  <video src="{{ asset('storage/'.$media->file_path) }}" ...></video>
+                                  <video src="{{ asset('storage/'.$media->file_path) }}" class="w-full h-full object-cover" controls></video>
                               @endif
 
                               <button type="button"
@@ -196,6 +216,7 @@
                   class="hidden"
                   @if(!(isset($draft) && $draft->hoarding->oohMedia && $draft->hoarding->oohMedia->count())) required @endif
               >
+              @error('media') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
 
               <p class="text-xs text-gray-400 mt-2">
                   Supported: JPG, PNG, WEBP, MP4, WEBM • Max 10 files • 5MB each
@@ -220,6 +241,7 @@ function updateSizePreview() {
 widthInput.addEventListener('input', updateSizePreview);
 heightInput.addEventListener('input', updateSizePreview);
 unitSelect.addEventListener('change', updateSizePreview);
+updateSizePreview();
 
 /* ── Media Upload ── */
 let deletedMediaIds    = [];
@@ -459,4 +481,28 @@ document.querySelector('form').addEventListener('submit', function (e) {
     document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 });
+</script>
+<script>
+    const baseInput    = document.getElementById('base_monthly_price');
+    const discountInput = document.getElementById('monthly_price');
+    const errorMsg     = document.getElementById('monthly_price_error');
+    const baseDisplay  = document.getElementById('base_price_display');
+
+    function validateDiscount() {
+        const baseVal     = parseFloat(baseInput.value) || 0;
+        const discountVal = parseFloat(discountInput.value) || 0;
+
+        baseDisplay.textContent = baseVal.toLocaleString('en-IN');
+
+        if (discountVal > 0 && discountVal >= baseVal) {
+            discountInput.setCustomValidity('Discounted price must be less than base price');
+            errorMsg.classList.remove('hidden');
+        } else {
+            discountInput.setCustomValidity('');
+            errorMsg.classList.add('hidden');
+        }
+    }
+
+    baseInput.addEventListener('input', validateDiscount);
+    discountInput.addEventListener('input', validateDiscount);
 </script>

@@ -15,20 +15,42 @@ class SearchController extends Controller
     public function index(Request $request, CartService $cartService): View
     {
         $isWeekly = $request->get('duration') === 'weekly';
+
         $query = DB::table('hoardings')
             ->join('vendor_profiles', function ($join) {
                 $join->on('vendor_profiles.user_id', '=', 'hoardings.vendor_id')
                     ->where('vendor_profiles.onboarding_status', 'approved')
                     ->whereNull('vendor_profiles.deleted_at');
             })
-            ->leftJoin('ooh_hoardings', function ($join) {
-                $join->on('ooh_hoardings.hoarding_id', '=', 'hoardings.id')
-                    ->whereNull('ooh_hoardings.deleted_at');
-            })
-            ->leftJoin('dooh_screens', function ($join) {
-                $join->on('dooh_screens.hoarding_id', '=', 'hoardings.id')
-                    ->whereNull('dooh_screens.deleted_at');
-            })
+            // -----------------------------------------------------------------
+            // FIX: leftJoin ki jagah subquery — per hoarding sirf 1 row milegi
+            // pehle leftJoin se agar ek hoarding ke 5 ooh_hoardings records the
+            // toh woh hoarding 5 baar aati thi. Subquery mein LIMIT 1 se sirf
+            // pehla active record lega, duplicates khatam.
+            // -----------------------------------------------------------------
+            ->leftJoinSub(
+                DB::table('ooh_hoardings')
+                    ->select('hoarding_id', 'width', 'height')
+                    ->whereNull('deleted_at')
+                    ->orderBy('id')
+                    ->limit(PHP_INT_MAX), // Laravel subquery workaround
+                'ooh_hoardings',
+                'ooh_hoardings.hoarding_id',
+                '=',
+                'hoardings.id'
+            )
+            ->leftJoinSub(
+                DB::table('dooh_screens')
+                    ->select('hoarding_id', 'resolution_width', 'resolution_height')
+                    ->whereNull('deleted_at')
+                    ->orderBy('id')
+                    ->limit(PHP_INT_MAX),
+                'dooh_screens',
+                'dooh_screens.hoarding_id',
+                '=',
+                'hoardings.id'
+            )
+            // -----------------------------------------------------------------
             ->leftJoin(
                 DB::raw('(
                     SELECT hoarding_id,
@@ -41,7 +63,6 @@ class SearchController extends Controller
                 '=',
                 'hoardings.id'
             )
-
             ->where('hoardings.status', 'active')
             ->whereNull('hoardings.deleted_at')
             ->select([
@@ -112,7 +133,6 @@ class SearchController extends Controller
                         ELSE NULL
                     END AS discount_percent
                 "),
-
                 DB::raw("
                     CASE
                         WHEN hoardings.hoarding_type = 'dooh'
@@ -136,8 +156,8 @@ class SearchController extends Controller
                 "),
                 DB::raw("COALESCE(rating_stats.avg_rating,0) as avg_rating"),
                 DB::raw("COALESCE(rating_stats.reviews_count,0) as reviews_count"),
-
             ]);
+
         if ($request->duration === 'weekly') {
             $query->where('hoardings.enable_weekly_booking', 1)
                 ->whereNotNull('hoardings.weekly_price_1');
@@ -146,7 +166,9 @@ class SearchController extends Controller
             $loc = strtolower($request->location);
             $query->where(function ($q) use ($loc) {
                 $q->whereRaw('LOWER(hoardings.city) LIKE ?', ["%{$loc}%"])
-                    ->orWhereRaw('LOWER(hoardings.address) LIKE ?', ["%{$loc}%"]);
+                    ->orWhereRaw('LOWER(hoardings.state) LIKE ?', ["%{$loc}%"])
+                    ->orWhereRaw('LOWER(hoardings.address) LIKE ?', ["%{$loc}%"])
+                    ->orWhereRaw('LOWER(hoardings.title) LIKE ?', ["%{$loc}%"]);
             });
         }
         if ($request->filled('type')) {
@@ -191,8 +213,9 @@ class SearchController extends Controller
             $query->having('price', '<=', $request->max_price);
         }
         if ($request->filled('rating')) {
-            $minRating = min(array_map('intval', $request->rating));
-            $query->having('avg_rating', '>=', $minRating);
+            $ratings = array_map('intval', (array)$request->rating);
+            // Filter where FLOOR(avg_rating) is in selected ratings
+            $query->havingRaw('FLOOR(avg_rating) IN (' . implode(',', $ratings) . ')');
         }
         if ($request->filled('near_me') && $request->filled('lat') && $request->filled('lng')) {
             $lat = (float) $request->lat;
@@ -211,17 +234,29 @@ class SearchController extends Controller
         if ($request->filled('from_date') && $request->filled('to_date')) {
             $from = $request->from_date;
             $to   = $request->to_date;
-            $query->where(function ($q) use ($from, $to) {
-                $q->where(function ($qq) use ($to) {
-                    $qq->whereNull('hoardings.available_from')
-                        ->orWhere('hoardings.available_from', '<=', $to);
-                });
-                $q->where(function ($qq) use ($from) {
-                    $qq->whereNull('hoardings.available_to')
-                        ->orWhere('hoardings.available_to', '>=', $from);
-                });
-            });
+
+            $candidateIds = DB::table('hoardings')
+                ->where('status', 'active')
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($from, $to) {
+                    $q->where(function ($qq) use ($to) {
+                        $qq->whereNull('available_from')
+                            ->orWhere('available_from', '<=', $to);
+                    });
+                    $q->where(function ($qq) use ($from) {
+                        $qq->whereNull('available_to')
+                            ->orWhere('available_to', '>=', $from);
+                    });
+                })
+                ->pluck('id')
+                ->toArray();
+
+            $availabilityService = app(HoardingAvailabilityService::class);
+            $availableIds = $availabilityService->filterAvailableIds($candidateIds, $from, $to);
+
+            $query->whereIn('hoardings.id', empty($availableIds) ? [0] : $availableIds);
         }
+
         switch ($request->sort) {
             case 'rating':
                 $query->orderByDesc('avg_rating')
@@ -255,6 +290,7 @@ class SearchController extends Controller
                     $query->orderByDesc('hoardings.created_at');
                 }
         }
+
         $results = $query->paginate(8)->withQueryString();
         $hoardingIds = $results->pluck('id')->toArray();
 
@@ -273,29 +309,32 @@ class SearchController extends Controller
             ->get()
             ->groupBy('hoarding_id');
 
-        $results->getCollection()->transform(function ($item) use ($oohImages, $doohImages) {
+        $availabilityService = app(HoardingAvailabilityService::class);
+        $today = now()->toDateString();
+
+        $results->getCollection()->transform(function ($item) use ($oohImages, $doohImages, $availabilityService, $today) {
             $item->images = $item->hoarding_type === 'ooh'
                 ? ($oohImages[$item->id] ?? collect())
                 : ($doohImages[$item->id] ?? collect());
 
-            // Add availability status and next available date
-            $availabilityService = app(\Modules\Hoardings\Services\HoardingAvailabilityService::class);
-            $today = now()->toDateString();
             $calendar = $availabilityService->getAvailabilityCalendar($item->id, $today, $today);
             $todayStatus = $calendar['calendar'][0]['status'] ?? 'unknown';
             $item->today_availability_status = $todayStatus;
+
             if ($todayStatus !== 'available') {
                 $next = $availabilityService->getNextAvailableDates($item->id, 1, $today);
                 $item->next_available_date = $next['dates'][0]['date'] ?? null;
             } else {
                 $item->next_available_date = null;
             }
+
             return $item;
         });
 
         $cartHoardingIds = Auth::check()
             ? $cartService->getCartHoardingIds()
             : [];
+
         return view('search.index', [
             'results' => $results,
             'cartHoardingIds' => $cartHoardingIds,
