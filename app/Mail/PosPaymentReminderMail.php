@@ -176,7 +176,8 @@ class PosPaymentReminderMail extends Mailable implements ShouldQueue
 
     protected function resolveActionUrl(): string
     {
-        return app(\Modules\POS\Services\PosBookingUrlResolver::class)->resolve($this->booking, $notifiable);
+        return app(\Modules\POS\Services\PosBookingUrlResolver::class)
+            ->resolve($this->booking, $this->customer);
     }
 
     public function attachments(): array
