@@ -632,26 +632,27 @@ button { cursor: pointer; }
     }
 </script>
 <script>
-window.lookupIfsc = async function () {
+    window.lookupIfsc = async function () {
+        const ifsc = document.getElementById("ifscField").value.trim();
+        const bankNameEl = document.getElementById("bankName");
 
-    const ifsc = document.getElementById("ifscField").value.trim();
+        if (ifsc.length !== 11) return;
 
-    if (ifsc.length !== 11) return;
+        try {
+            const response = await fetch("https://ifsc.razorpay.com/" + ifsc);
 
-    try {
+            if (!response.ok) {
+                bankNameEl.value = '';
+                toast('error', 'Invalid IFSC code. Please check and try again.');
+                return;
+            }
 
-        const response = await fetch("https://ifsc.razorpay.com/" + ifsc);
-        const data = await response.json();
+            const data = await response.json();
+            bankNameEl.value = data.BANK;
 
-        document.getElementById("bankName").value = data.BANK;
-        // document.getElementById("branchName").value = data.BRANCH;
-
-    } catch (error) {
-
-        console.log(error);
-        alert("Invalid IFSC code");
-
+        } catch (error) {
+            bankNameEl.value = '';
+            toast('error', 'Invalid IFSC code. Please check and try again.');
+        }
     }
-
-}
 </script>
