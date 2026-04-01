@@ -973,7 +973,7 @@
             <tr>
                 <td width="50%" valign="middle">
                     <img 
-                        src="{{ public_path('assets/images/logo/logo_image.webp') }}"
+                        src="{{ public_path('assets/images/logo/logo_image.png') }}"
                         alt="OOHApp Logo"
                         width="140"
                         style="display:block; max-width:140px; height:auto;"
