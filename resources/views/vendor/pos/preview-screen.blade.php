@@ -421,6 +421,7 @@ let selectedHoldMinutes  = 30;
 let savedBankDetails     = null;
 let savedUpiDetails      = null;
 let countdownInterval    = null;
+let qrExplicitlyRemoved  = false;
 
 /* ── calculateFinalTotals ── */
 function getPosPricingBreakdown() {
@@ -733,10 +734,10 @@ function renderQrImage(containerId, data) {
     if (!container) return;
 
     // If QR was explicitly removed this session, show nothing
-    if (qrExplicitlyRemoved && !document.getElementById('qr-file-input')?.files?.[0]) {
-        container.innerHTML = '';
-        return;
-    }
+    // if (qrExplicitlyRemoved && !document.getElementById('qr-file-input')?.files?.[0]) {
+    //     container.innerHTML = '';
+    //     return;
+    // }
 
     const candidates = buildQrImageCandidates(data);
 
