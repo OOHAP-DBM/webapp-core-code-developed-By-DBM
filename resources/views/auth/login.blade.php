@@ -166,23 +166,17 @@
         <!-- RIGHT FORM -->
         <div class="col-md-7 col-12 auth-right">
             <div class="signup-box">
- {{-- Logo — centered at top --}}
-        <div class="block md:hidden text-start mb-16">
-            <a href="{{ route('home') }}">
-    <picture>
-        <source srcset="{{ asset('assets/images/logo/logo_image-300.webp') }} 300w, {{ asset('assets/images/logo/logo_image-600.webp') }} 600w" type="image/webp">
-        <img 
-            src="{{ asset('assets/images/logo/logo_image.jpeg') }}"
-            alt="OOHApp company logo"
-            class="mx-auto w-24"
-            srcset="{{ asset('assets/images/logo/logo_image-300.jpeg') }} 300w, {{ asset('assets/images/logo/logo_image.jpeg') }} 600w"
-            sizes="(max-width: 768px) 96px, 150px"
-            width="600" height="120"
-            loading="eager" fetchpriority="high"
-        >
-    </picture>
-            </a>
-</div>
+            {{-- Logo — centered at top --}}
+           <div class="d-block d-md-none text-center mb-4">
+                <a href="{{ route('home') }}" class="d-inline-block">
+                    <img 
+                        src="/assets/images/logo/logo_image.webp"
+                        alt="OOHApp logo"
+                        class="img-fluid mx-auto d-block"
+                        style="max-width: 100px;"
+                    >
+                </a>
+            </div>
 <h3 class="text-center md:text-start">Login to your account</h3>
                 @if (session('success'))
                     <div class="alert alert-success border-0 shadow-sm rounded-3 py-3 ps-3 mb-3 position-relative">

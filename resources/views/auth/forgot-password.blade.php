@@ -101,8 +101,8 @@
 .verify-btn {
     height: 48px;
     border-radius: 8px;
-    background: #e5e5e5;
-    color: #ffffff;
+    background-color: #14c871 !important;
+    color: #ffffff !important;
     font-weight: 600;
     border: none;
 }

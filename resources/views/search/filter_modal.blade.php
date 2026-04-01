@@ -294,29 +294,19 @@
                 <section>
                     <h3 class="font-medium mb-3">Review Score</h3>
 
-                    <div class="flex flex-wrap gap-4 text-sm">
-                        @foreach([5,4,3,2] as $r)
+                    <div class="flex flex-wrap gap-2 text-sm">
+                        @foreach([5,4,3,2,1] as $r)
                             @php
                                 $checked = in_array($r, request('rating', []));
                             @endphp
 
-                            <div
-                                class="rating-btn {{ $checked ? 'active' : '' }}"
-                                onclick="toggleRating(this)">
+                            <div class="rating-btn px-5 {{ $checked ? 'active' : '' }}" onclick="toggleRating(this)">
 
                                 <span class="rating-value">{{ $r }}</span>
 
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                     <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2" />
                                 </svg>
-
-                                {{-- Range label --}}
-                                <span class="rating-text">
-                                    - {{ $r - 1 }}
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fbbf24;display:inline;" class="mb-1">
-                                        <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2" />
-                                    </svg>
-                                </span>
 
                                 <input
                                     type="checkbox"
