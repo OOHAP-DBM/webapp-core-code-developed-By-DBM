@@ -4,7 +4,7 @@ namespace Modules\POS\Services;
 
 use Illuminate\Support\Facades\Route;
 
-class BookingUrlResolver
+class PosBookingUrlResolver
 {
     public function resolve($booking, $notifiable = null): string
     {
