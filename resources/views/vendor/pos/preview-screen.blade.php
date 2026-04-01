@@ -767,7 +767,18 @@ function renderQrImage(containerId, data) {
 function renderSavedUpiCard(d) {
     if (!d) return;
     document.getElementById('saved-upi-id').innerText = d.upi_id || '---';
-    renderQrImage('saved-upi-qr', d);
+    
+    const savedQr = document.getElementById('saved-upi-qr');
+    const hasImage = d.qr_image_url || d.qr_image_path;
+    
+    if (hasImage && !qrExplicitlyRemoved) {
+        savedQr.classList.remove('hidden');
+        renderQrImage('saved-upi-qr', d);
+    } else {
+        savedQr.classList.add('hidden');
+        savedQr.innerHTML = '';
+    }
+    
     document.getElementById('upi-saved-card').classList.remove('hidden');
     document.getElementById('upi-input-form').classList.add('hidden');
     document.getElementById('upi-saved-badge').classList.remove('hidden');
