@@ -511,6 +511,26 @@ let dpCurrentStart           = null;
 const formatINR = v =>
     new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR', maximumFractionDigits:0 }).format(v);
 
+
+function mediaThumb(url, height = '72px') {
+    const src = url || '';
+    if (!src) {
+        return `<img src="/placeholder.png" class="w-full object-cover" style="height:${height};" onerror="this.src='/placeholder.png'">`;
+    }
+    const cleanUrl = src.split('?')[0].toLowerCase();
+    const isVideo = /\.(mp4|webm|ogg|mov)$/.test(cleanUrl);
+    if (isVideo) {
+        return `<video
+            src="${src}"
+            class="w-full object-cover pointer-events-none"
+            style="height:${height};"
+            muted
+            playsinline
+            preload="metadata">
+        </video>`;
+    }
+    return `<img src="${src}" class="w-full object-cover" style="height:${height};" onerror="this.src='/placeholder.png'">`;
+}
 function toLocalYMD(date) {
     const d = new Date(date);
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -860,7 +880,10 @@ function _buildCard(h) {
         <div class="hoarding-card ${selCls} border rounded-lg overflow-hidden bg-white" onclick="toggleHoarding(${h.id})">
             <div class="flex items-center gap-2 p-2">
                 <div class="relative flex-shrink-0">
-                    <img src="${h.image_url||'/placeholder.png'}" class="hc-img w-[60px] h-[54px] object-cover rounded">
+                  ${mediaThumb(h.image_url || h.media_url || h.video_url).replace(
+                        'class="w-full object-cover"',
+                        'class="hc-img w-[60px] h-[54px] object-cover rounded"'
+                    )}
                     ${checkBadge}
                     ${isDooh ? `<span class="absolute bottom-0 right-0 bg-purple-600 text-white text-[8px] font-bold px-1 rounded">DOOH</span>` : ''}
                 </div>
@@ -884,7 +907,7 @@ function _buildCard(h) {
     return `
     <div class="hoarding-card ${selCls} border rounded-lg border-gray-200 overflow-hidden bg-white rounded" onclick="toggleHoarding(${h.id})">
         <div class="relative">
-            <img src="${h.image_url||'/placeholder.png'}" class="w-full object-cover" style="height:72px;">
+            ${mediaThumb(h.image_url || h.media_url || h.video_url)}
             ${checkBadge}${doohBadge}
         </div>
         <div class="p-2">
@@ -900,6 +923,8 @@ function _buildCard(h) {
 /* ================================================================
    PAGINATION
 ================================================================ */
+
+
 function renderPagination() {
     const el = document.getElementById('hoardings-pagination');
     if (!el) return;
@@ -1510,7 +1535,13 @@ function populatePreview() {
             <td class="px-4 py-2 text-xs text-gray-400 font-semibold w-8">${sn++}</td>
             <td class="px-4 py-2">
                 <div class="flex items-center gap-2">
-                    <img src="${h.image_url||'/placeholder.png'}" class="w-9 h-9 rounded object-cover border border-gray-100 flex-shrink-0">
+                      ${(() => {
+                            const src = h.image_url || h.media_url || h.video_url || '';
+                            const isVideo = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(src.split('?')[0].toLowerCase());
+                            return isVideo
+                                ? `<video src="${src}" class="w-9 h-9 rounded object-cover border border-gray-100 flex-shrink-0 pointer-events-none" muted playsinline preload="metadata"></video>`
+                                : `<img src="${src||'/placeholder.png'}" class="w-9 h-9 rounded object-cover border border-gray-100 flex-shrink-0" onerror="this.src='/placeholder.png'">`;
+                        })()}
                     <div>
                         <p class="font-bold text-gray-800 text-xs leading-tight">${safe(h.title)}</p>
                         ${slotsSnip}
