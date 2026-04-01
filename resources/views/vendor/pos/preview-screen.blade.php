@@ -599,33 +599,23 @@ function previewQR(event) {
     };
     reader.readAsDataURL(file);
 }
-
 async function clearQR() {
     document.getElementById('qr-file-input').value = '';
     document.getElementById('qr-preview-img').src = '';
     document.getElementById('qr-preview-container').classList.add('hidden');
     document.getElementById('qr-upload-area').classList.remove('hidden');
 
-    // ✅ Clear from memory
+    qrExplicitlyRemoved = true; // 🔑 track that user cleared it
+
     if (savedUpiDetails) {
         savedUpiDetails.qr_image_url  = null;
         savedUpiDetails.qr_image_path = null;
     }
 
-    // ✅ Clear the saved QR preview card
+    // Empty div — no SVG, no image, nothing
     const savedQr = document.getElementById('saved-upi-qr');
-    if (savedQr) {
-        savedQr.innerHTML = `
-            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" 
-                 stroke-width="1.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159
-                       m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909
-                       M3 3l18 18M3.75 3.75h16.5M3.75 20.25h16.5"/>
-            </svg>`;
-    }
+    if (savedQr) savedQr.innerHTML = '';
 
-    // ✅ Call backend to delete QR from database + storage
     try {
         const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details/remove-qr`, {
             method: 'POST',
@@ -637,9 +627,7 @@ async function clearQR() {
             body: JSON.stringify({ type: 'upi' })
         });
         const result = await res.json();
-        if (result.success) {
-            showToast('QR image removed', 'success');
-        }
+        if (result.success) showToast('QR image removed', 'success');
     } catch (e) {
         console.warn('QR delete failed:', e);
     }
@@ -648,21 +636,25 @@ async function saveUpiDetails() {
     const upiId = document.getElementById('upi-id-input').value.trim();
     if (!upiId) { showToast('Please enter UPI ID', 'warning'); return; }
 
+    const saveBtn = document.querySelector('button[onclick="saveUpiDetails()"]');
+    const originalText = saveBtn ? saveBtn.innerText : '';
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Saving...';
+    }
+
     const formData = new FormData();
     formData.append('type', 'upi');
     formData.append('upi_id', upiId);
 
     const qrFile = document.getElementById('qr-file-input').files[0];
     if (qrFile) {
-        // ✅ New file selected — upload it
+        qrExplicitlyRemoved = false; // new file uploaded, reset the flag
         formData.append('qr_image', qrFile);
     } else {
-        // ✅ No new file — check if user cleared the existing QR
         const previewHidden = document.getElementById('qr-preview-container').classList.contains('hidden');
         const hadQrBefore   = savedUpiDetails?.qr_image_path != null || savedUpiDetails?.qr_image_url != null;
-
         if (previewHidden && hadQrBefore) {
-            // User removed the existing QR — tell backend to delete it
             formData.append('remove_qr', '1');
         }
     }
@@ -671,24 +663,20 @@ async function saveUpiDetails() {
         const res = await fetch(`${window.POS_BASE_PATH || '/vendor/pos'}/api/payment-details`, {
             method: 'POST',
             headers: {
-                'Accept':        'application/json',
-                'X-CSRF-TOKEN':  document.querySelector('meta[name="csrf-token"]')?.content
+                'Accept':       'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
             },
             body: formData
         });
         const result = await res.json();
         if (!res.ok) throw new Error(result.message || 'Save failed');
 
-        // ✅ Update local state with fresh data from server
         savedUpiDetails = result.data;
 
-        // ✅ If backend confirms QR was removed, clear it from local state too
-        if (!savedUpiDetails?.qr_image_path && !savedUpiDetails?.qr_image_url) {
-            savedUpiDetails = {
-                ...savedUpiDetails,
-                qr_image_path: null,
-                qr_image_url:  null,
-            };
+        // 🔑 If user explicitly removed QR, force-clear it even if server echoes stale data
+        if (qrExplicitlyRemoved) {
+            savedUpiDetails.qr_image_path = null;
+            savedUpiDetails.qr_image_url  = null;
         }
 
         renderSavedUpiCard(savedUpiDetails);
@@ -696,6 +684,11 @@ async function saveUpiDetails() {
 
     } catch (e) {
         showToast(e.message, 'error');
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = originalText;
+        }
     }
 }
 function normalizeQrImageUrl(data) {
@@ -735,21 +728,21 @@ function buildQrImageCandidates(data) {
     ].filter(Boolean);
     return [...new Set(candidates)];
 }
-
 function renderQrImage(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
+    // If QR was explicitly removed this session, show nothing
+    if (qrExplicitlyRemoved && !document.getElementById('qr-file-input')?.files?.[0]) {
+        container.innerHTML = '';
+        return;
+    }
+
     const candidates = buildQrImageCandidates(data);
 
-    // ✅ No image uploaded — restore the fallback "no image" icon
+    // No image stored — show nothing at all
     if (!candidates.length) {
-        container.innerHTML = `
-            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 3l18 18
-                    M3.75 3.75h16.5M3.75 20.25h16.5"/>
-            </svg>`;
+        container.innerHTML = '';
         return;
     }
 
@@ -763,13 +756,7 @@ function renderQrImage(containerId, data) {
             img.src = candidates[index];
             return;
         }
-        // ✅ All candidates failed — show no image icon
-        container.innerHTML = `
-            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 3l18 18
-                    M3.75 3.75h16.5M3.75 20.25h16.5"/>
-            </svg>`;
+        container.innerHTML = ''; // all failed — show nothing
     };
 
     img.src = candidates[index];
