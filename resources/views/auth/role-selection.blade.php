@@ -154,8 +154,7 @@ body {
                         </a>
                     </div>
                     </div>
-                <h3 class="fw-semibold mb-1">What you are?</h3>
-                <p class="text-muted mb-4">Select your role</p>
+                <h3 class="text-muted mb-4">Select your role</h3>
                 <form action="{{ route('register.store-role') }}" method="POST" id="roleForm">
                     @csrf
                     <input type="hidden" name="role" id="selectedRole">
