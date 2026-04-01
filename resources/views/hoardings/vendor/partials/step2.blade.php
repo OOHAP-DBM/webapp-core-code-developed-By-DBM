@@ -661,6 +661,69 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Nagar Nigam toggle - simple yes/no without modal
     // Values save directly when selected
+    // ─── NAGAR NIGAM ───────────────────────────────────────────────
+        const nagarYes             = document.getElementById('nagar-yes');
+        const nagarNo              = document.getElementById('nagar-no');
+        const nagarModal           = document.getElementById('nagarModal');
+        const permitNumberInput    = document.getElementById('permitNumberInput');
+        const permitValidTillInput = document.getElementById('permitValidTillInput');
+        const nagarSaveBtn         = document.getElementById('nagarSaveBtn');
+        const nagarCancelBtn       = document.getElementById('nagarCancelBtn');
+        const permitNumberHidden   = document.getElementById('permitNumberHidden');
+        const permitValidTillHidden= document.getElementById('permitValidTillHidden');
+
+        let nagarSaved = !!(permitNumberHidden.value && permitValidTillHidden.value);
+
+        nagarYes.addEventListener('change', function () {
+            if (this.checked) {
+                permitNumberInput.value    = permitNumberHidden.value || '';
+                permitValidTillInput.value = permitValidTillHidden.value || '';
+                nagarModal.classList.remove('hidden');
+            }
+        });
+
+        nagarNo.addEventListener('change', function () {
+            if (this.checked) {
+                permitNumberHidden.value    = '';
+                permitValidTillHidden.value = '';
+                permitNumberInput.value     = '';
+                permitValidTillInput.value  = '';
+                nagarSaved = false;
+            }
+        });
+
+        nagarSaveBtn.addEventListener('click', function () {
+            const num  = permitNumberInput.value.trim();
+            const date = permitValidTillInput.value;
+
+            if (num && date) {
+                permitNumberHidden.value    = num;
+                permitValidTillHidden.value = date;
+                nagarSaved = true;
+                nagarModal.classList.add('hidden');
+                permitNumberInput.classList.remove('border-red-500');
+                permitValidTillInput.classList.remove('border-red-500');
+            } else {
+                if (!num)  permitNumberInput.classList.add('border-red-500');
+                if (!date) permitValidTillInput.classList.add('border-red-500');
+                if (!num)  permitNumberInput.focus();
+                else       permitValidTillInput.focus();
+            }
+        });
+
+        nagarCancelBtn.addEventListener('click', function () {
+            nagarModal.classList.add('hidden');
+            permitNumberInput.classList.remove('border-red-500');
+            permitValidTillInput.classList.remove('border-red-500');
+
+            if (!nagarSaved) {
+                nagarYes.checked = false;
+                nagarNo.checked  = true;
+            }
+
+            permitNumberInput.value    = permitNumberHidden.value || '';
+            permitValidTillInput.value = permitValidTillHidden.value || '';
+        });
 });
 </script>
 <script>
