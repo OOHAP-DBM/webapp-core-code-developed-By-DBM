@@ -967,19 +967,22 @@
 <div style="max-width:900px;margin:0 auto;background:#f8f8f8;padding:30px 15px;font-family:Arial,Helvetica,sans-serif;color:#333;" id="invoiceWrapper">
 
     <div style="max-width:720px;margin:0 auto;background:#fff;padding:40px;border-radius:6px;box-sizing:border-box;overflow:hidden;">
-
         <!-- HEADER -->
-              <table width="100%" style="margin-bottom:30px;table-layout:fixed;">
+        <table width="100%" style="margin-bottom:30px;table-layout:fixed;">
             <tr>
                 <td width="50%" valign="middle">
-                    <img 
-                        src="{{ public_path('assets/images/logo/logo_image.png') }}"
-                        alt="OOHApp Logo"
-                        width="140"
-                        style="display:block; max-width:140px; height:auto;"
-                    >
-
-                    <div style="font-size:22px;font-weight:700;margin-top:25px;">
+                   <div style="
+                        display: inline-block;
+                        background-color: #ffe819;
+                        color: #111111;
+                        font-size: 22px;
+                        font-weight: 800;
+                        padding: 8px 18px;
+                        border-radius: 6px;
+                        font-family: Arial, sans-serif;
+                        letter-spacing: 0.5px;
+                        line-height: 1;
+                         ">
                         INVOICE
                     </div>
 
@@ -988,9 +991,18 @@
                     </div>
                 </td>
 
-                <td width="50%" align="right" valign="top"
-                    style="font-size:22px;font-weight:700;word-wrap:break-word;overflow-wrap:break-word; margin-top:10px;">
+                {{-- <td width="50%" align="right" valign="top"
+                    style="font-size:22px;font-weight:700;word-wrap:break-word;overflow-wrap:break-word;">
                     {{ $invoice->seller_name }}
+                </td> --}}
+                <td width="50%" align="right" valign="top"
+                    style="font-size:22px;font-weight:700;word-wrap:break-word;overflow-wrap:break-word;">
+                    <img 
+                        src="{{ public_path('assets/images/logo/logo_image.jpeg') }}"
+                        alt="OOHApp Logo"
+                        width="140"
+                        style="display:block; max-width:140px; height:auto;"
+                    >
                 </td>
             </tr>
         </table>
@@ -1004,33 +1016,36 @@
 
                 <!-- COLUMN 1 -->
                 <td width="33%" valign="top" style="border-right:1px solid #e5e5e5;word-wrap:break-word;overflow-wrap:break-word;">
-                    <div style="font-size:12px;color:#777;">Issued Date</div>
-                    <div style="font-weight:600;margin:5px 0 15px;">
+                    <div style="font-weight:600;color:#000000;">Issued Date</div>
+                    <div style="font-size:13px; margin:5px 0 15px;">
                         {{ $invoice->invoice_date->format('d/m/Y') }}
                     </div>
 
-                    <!-- <div style="font-size:12px;color:#777;">Due Date</div>
-                    <div style="font-weight:600;margin-top:5px;">
+                    <div style="font-weight:600;color:#000000;">Due Date</div>
+                    <div style="font-size:13px; margin-top:5px;">
                         {{ $invoice->due_date?->format('d/m/Y') }}
-                    </div> -->
+                    </div>
                 </td>
 
                 <!-- COLUMN 2 -->
                 <td width="34%" valign="top" style="border-right:1px solid #e5e5e5;word-wrap:break-word;overflow-wrap:break-word;padding-left:15px;">
-                    <div style="font-size:12px;color:#777;">Billed to</div>
-                    <div style="font-weight:600;margin:5px 0;">
+                    <div style="font-weight:600;color:#000000;">Billed to</div>
+                    <div style="font-size:13px; margin:5px 0;">
                         {{ $invoice->buyer_name }}
                     </div>
                     <div style="font-size:13px;color:#555;line-height:1.6;">
-                        {{ $invoice->buyer_city }}, {{ $invoice->buyer_state }} - {{ $invoice->buyer_pincode }}<br>
-                        Email: {{ $invoice->buyer_email }}
+                        {{ $invoice->buyer_city && $invoice->buyer_state && $invoice->buyer_pincode 
+                            ? $invoice->buyer_city . ', ' . $invoice->buyer_state . ' - ' . $invoice->buyer_pincode 
+                            : '-' }}
+                        <br>
+                        Email: {{ $invoice->buyer_email ?: '-' }}
                     </div>
                 </td>
 
                 <!-- COLUMN 3 -->
                 <td width="33%" valign="top" style="word-wrap:break-word;overflow-wrap:break-word;padding-left:15px;">
-                    <div style="font-size:12px;color:#777;">From</div>
-                    <div style="font-weight:600;margin:5px 0;">
+                    <div style="font-weight:600;color:#000000;">From</div>
+                    <div style=" font-size:13px; margin:5px 0;">
                         {{ $invoice->seller_name }}
                     </div>
                     <div style="font-size:13px;color:#555;line-height:1.6;">
@@ -1070,8 +1085,8 @@
                     </td>
 
                     <td align="center" style="vertical-align:top;padding-top:15px;">
-                            {{ (int) $item->quantity }}
-
+                            {{-- {{ (int) $item->quantity }} --}}
+                            1
                     </td>
 
                     <td align="right" style="vertical-align:top;padding-top:15px;white-space:nowrap;">
