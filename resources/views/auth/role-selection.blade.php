@@ -143,21 +143,17 @@ body {
         <div class="col-md-7 col-12 auth-right">
             <div class="login-box text-center">
                   <div class="block md:hidden text-start mb-5">
-            <a href="{{ route('home') }}" >
-            <picture>
-                <source srcset="{{ asset('assets/images/logo/logo_image-300.webp') }} 300w, {{ asset('assets/images/logo/logo_image-600.webp') }} 600w" type="image/webp">
-                <img 
-                    src="{{ asset('assets/images/logo/logo_image.jpeg') }}"
-                    alt="OOHApp company logo"
-                    class="mx-auto w-24"
-                    srcset="{{ asset('assets/images/logo/logo_image-300.jpeg') }} 300w, {{ asset('assets/images/logo/logo_image.jpeg') }} 600w"
-                    sizes="(max-width: 768px) 96px, 150px"
-                    width="600" height="120"
-                    loading="eager" fetchpriority="high"
-                >
-            </picture>
-            </a>
-        </div>
+                    <div class="d-block d-md-none text-center mb-4">
+                        <a href="{{ route('home') }}" class="d-inline-block">
+                            <img 
+                                src="/assets/images/logo/logo_image.webp"
+                                alt="OOHApp logo"
+                                class="img-fluid mx-auto d-block"
+                                style="max-width: 100px;"
+                            >
+                        </a>
+                    </div>
+                    </div>
                 <h3 class="fw-semibold mb-1">What you are?</h3>
                 <p class="text-muted mb-4">Select your role</p>
                 <form action="{{ route('register.store-role') }}" method="POST" id="roleForm">
