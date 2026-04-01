@@ -212,10 +212,24 @@ class SearchController extends Controller
         if ($request->filled('max_price')) {
             $query->having('price', '<=', $request->max_price);
         }
-        if ($request->filled('rating')) {
-            $ratings = array_map('intval', (array)$request->rating);
-            // Filter where FLOOR(avg_rating) is in selected ratings
-            $query->havingRaw('FLOOR(avg_rating) IN (' . implode(',', $ratings) . ')');
+       if ($request->filled('rating')) {
+                $ratings = array_map('intval', (array)$request->rating);
+
+                $conditions = [];
+                $bindings = [];
+
+                foreach ($ratings as $r) {
+                    if ($r == 5) {
+                        $conditions[] = 'avg_rating >= ?';
+                        $bindings[] = 5;
+                    } else {
+                        $conditions[] = '(avg_rating >= ? AND avg_rating < ?)';
+                        $bindings[] = $r;
+                        $bindings[] = $r + 1;
+                    }
+                }
+
+                $query->havingRaw(implode(' OR ', $conditions), $bindings);
         }
         if ($request->filled('near_me') && $request->filled('lat') && $request->filled('lng')) {
             $lat = (float) $request->lat;
