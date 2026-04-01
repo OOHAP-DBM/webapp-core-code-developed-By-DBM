@@ -697,33 +697,37 @@ function normalizeQrImageUrl(data) {
     if (/^https?:\/\//i.test(normalizedRaw)) {
         try {
             const parsed = new URL(normalizedRaw);
-            if (parsed.host === window.location.host) return normalizedRaw;
-            if (parsed.pathname.startsWith('/storage/')) return `${window.location.origin}${parsed.pathname}`;
-            return normalizedRaw;
+            if (parsed.host === window.location.host) return normalizedRaw.replace(/([^:])\/\//g, '$1/');
+            if (parsed.pathname.startsWith('/storage/')) return `${window.location.origin}${parsed.pathname}`.replace(/([^:])\/\//g, '$1/');
+            return normalizedRaw.replace(/([^:])\/\//g, '$1/');
         } catch (e) {}
     }
     if (normalizedRaw.startsWith('data:')) return normalizedRaw;
     const storagePrefixStripped = normalizedRaw
         .replace(/^\/?storage\/app\/public\/?/i, '')
         .replace(/^\/?public\/?/i, '');
-    const normalizedPath = storagePrefixStripped.startsWith('/') ? storagePrefixStripped : `/${storagePrefixStripped}`;
-    if (normalizedPath.startsWith('/storage/')) return `${window.location.origin}${normalizedPath}`;
-    if (normalizedPath.startsWith('/vendor_qr/')) return `${window.location.origin}/storage${normalizedPath}`;
-    return `${window.location.origin}${normalizedPath}`;
+    let normalizedPath = storagePrefixStripped.startsWith('/') ? storagePrefixStripped : `/${storagePrefixStripped}`;
+    // Remove duplicate slashes
+    normalizedPath = normalizedPath.replace(/\/\//g, '/');
+    if (normalizedPath.startsWith('/storage/')) return `${window.location.origin}${normalizedPath}`.replace(/([^:])\/\//g, '$1/');
+    if (normalizedPath.startsWith('/vendor_qr/')) return `${window.location.origin}/storage${normalizedPath}`.replace(/([^:])\/\//g, '$1/');
+    return `${window.location.origin}${normalizedPath}`.replace(/([^:])\/\//g, '$1/');
 }
 
 function buildQrImageCandidates(data) {
     const rawUrl = String(data?.qr_image_url || '').replace(/\\/g, '/').trim();
     const rawPath = String(data?.qr_image_path || '').replace(/\\/g, '/').trim();
     const normalizedPrimary = normalizeQrImageUrl(data);
-    const normalizedPath = rawPath
+    let normalizedPath = rawPath
         .replace(/^\/?storage\/app\/public\/?/i, '')
         .replace(/^\/?public\/?/i, '')
         .replace(/^\/+/, '');
+    // Remove duplicate slashes
+    normalizedPath = normalizedPath.replace(/\/\//g, '/');
     const candidates = [
         normalizedPrimary, rawUrl,
-        normalizedPath ? `${window.location.origin}/storage/${normalizedPath}` : '',
-        normalizedPath ? `/storage/${normalizedPath}` : '',
+        normalizedPath ? `${window.location.origin}/storage/${normalizedPath}`.replace(/([^:])\/\//g, '$1/') : '',
+        normalizedPath ? `/storage/${normalizedPath}`.replace(/\/\//g, '/') : '',
     ].filter(Boolean);
     return [...new Set(candidates)];
 }
@@ -784,6 +788,27 @@ function renderSavedUpiCard(d) {
 function editUpiDetails() {
     document.getElementById('upi-saved-card').classList.add('hidden');
     document.getElementById('upi-input-form').classList.remove('hidden');
+
+    // Show QR preview if QR image exists
+    const previewContainer = document.getElementById('qr-preview-container');
+    const previewImg = document.getElementById('qr-preview-img');
+    if (savedUpiDetails && (savedUpiDetails.qr_image_url || savedUpiDetails.qr_image_path) && !qrExplicitlyRemoved) {
+        // Use the same normalization as renderQrImage
+        const candidates = buildQrImageCandidates(savedUpiDetails);
+        if (candidates.length) {
+            previewImg.src = candidates[0];
+            previewContainer.classList.remove('hidden');
+            document.getElementById('qr-upload-area').classList.add('hidden');
+        } else {
+            previewImg.src = '';
+            previewContainer.classList.add('hidden');
+            document.getElementById('qr-upload-area').classList.remove('hidden');
+        }
+    } else {
+        previewImg.src = '';
+        previewContainer.classList.add('hidden');
+        document.getElementById('qr-upload-area').classList.remove('hidden');
+    }
 }
 
 async function loadSavedUpiDetails() {
