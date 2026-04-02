@@ -141,8 +141,8 @@ body {
 
         <!-- RIGHT FORM -->
         <div class="col-md-7 col-12 auth-right">
-            <div class="login-box text-center">
-                    <div class="text-center mb-4 w-100">
+            <div class=" login-box text-center">
+                     <div class=" block md:hidden text-center mb-4 w-100">
                         <a href="{{ route('home') }}" class="d-inline-block">
                             <x-optimized-image
                                 :src="route('brand.oohapp-logo')"
@@ -153,7 +153,7 @@ body {
                             />
                         </a>
                     </div>
-                <h3 class="fw-semibold mb-1">Select your role</h3>
+                <h3 class="fw-semibold mb-4">Select your role</h3>
                 <form action="{{ route('register.store-role') }}" method="POST" id="roleForm">
                     @csrf
                     <input type="hidden" name="role" id="selectedRole">

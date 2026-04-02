@@ -3,24 +3,22 @@
 @section('title', 'Vendor Onboarding – Account Info')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 pb-16 font-sans">
+<div class="vendor-page-white min-h-screen bg-white pb-12 md:mt-[-5%] mt-[-30%]">
+    <div class="vendor-header px-4 md:px-8 pt-6 flex flex-col items-center justify-center gap-2 mt-5 w-full">
+        <div class="text-center mb-4">
+            <a href="{{ route('home') }}" class="inline-block">
+                <x-optimized-image
+                    :src="route('brand.oohapp-logo')"
+                    alt="OOHApp company logo"
+                    width="150"
+                    height="48"
+                    style="display:block; margin:0 auto; max-height:48px; object-fit:contain;"
+                />
+            </a>
+        </div>
+    </div>
 
-    <header class="flex items-center gap-2 px-8 py-6 bg-white border-b border-gray-100">
-        <x-optimized-image
-            src="assets/images/logo/logo_image.webp"
-            :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
-            :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
-            sizes="112px"
-            alt="OOHApp company logo"
-            width="600"
-            height="120"
-            class="h-7 w-auto"
-            loading="eager"
-        />
-        <span class="text-sm font-medium text-gray-500 uppercase tracking-wider">Vendor Portal</span>
-    </header>
-
-    <div class="max-w-4xl mx-auto mt-10 px-4">
+    <div class="max-w-4xl mx-auto  px-4">
 
         <div class="flex items-center mb-10">
             <div class="flex items-center text-gray-900 font-semibold">
