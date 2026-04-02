@@ -60,7 +60,8 @@
                     <input type="hidden" name="unsold" value="{{ request('unsold') }}">
                 @endif
 
-                <div class="p-4 sm:p-6 space-y-6 text-sm text-gray-700 overflow-y-auto max-h-[calc(92vh-132px)]">
+                <!-- <div class="p-4 sm:p-6 space-y-6 text-sm text-gray-700 overflow-y-auto max-h-[calc(92vh-132px)]"> -->
+                <div class="p-4 sm:p-6 space-y-6 text-sm text-gray-700 overflow-y-auto h-[70vh] sm:h-[75vh] pr-2 scroll-smooth">
                     <div>
                         <p class="font-semibold mb-2 text-gray-800">Types of Hoarding</p>
                         <div class="flex flex-wrap gap-4 sm:gap-5">
@@ -137,7 +138,9 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col-reverse sm:flex-row px-4 sm:px-6 py-4 gap-2 sm:gap-3 justify-end border-t border-gray-100 bg-white">
+                <!-- <div class="flex flex-col-reverse sm:flex-row px-4 sm:px-6 py-4 gap-2 sm:gap-3 justify-end border-t border-gray-100 bg-white">
+                     -->
+                <div class="sticky bottom-0 flex flex-col-reverse sm:flex-row px-4 sm:px-6 py-4 gap-2 sm:gap-3 justify-end border-t border-gray-100 bg-white">
                     <a id="hoardingFilterResetLink" href="{{ route('vendor.hoardings.myHoardings', $resetFilterParams) }}" class="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center text-gray-600 font-semibold hover:text-gray-800">Reset</a>
                     <button type="submit" class="w-full sm:w-auto min-h-[44px] bg-[#2D5A43] hover:bg-[#234635] text-white px-5 py-2 text-sm font-medium rounded-md">
                         Apply Filter
@@ -241,3 +244,8 @@ function applyHoardingFilters(event) {
     return false;
 }
 </script>
+<style>
+    #hoarding-filter-modal .overflow-y-auto {
+        -webkit-overflow-scrolling: touch;
+    }
+</style>

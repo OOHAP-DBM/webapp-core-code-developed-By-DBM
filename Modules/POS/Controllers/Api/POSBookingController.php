@@ -36,7 +36,7 @@ class POSBookingController extends Controller
     protected POSReminderService $posReminderService;
     protected HoardingAvailabilityService $availabilityService;
 
-    public function __construct(POSBookingService $posBookingService, GracePeriodService $gracePeriodService, POSReminderService $posReminderService,)
+    public function __construct(POSBookingService $posBookingService, GracePeriodService $gracePeriodService, POSReminderService $posReminderService,HoardingAvailabilityService $availabilityService)
     {
         $this->posBookingService = $posBookingService;
         $this->gracePeriodService = $gracePeriodService;

@@ -550,16 +550,19 @@ async function loadBookingDetails() {
                     return `
                         <tr>
                             <td class="px-2 py-1 sm:px-3 sm:py-2 text-center">${idx + 1}</td>
-                            <td class="px-2 py-1 sm:px-3 sm:py-2">
-                                <div class="flex items-center gap-2">
+                            <td class="px-2 py-1 sm:px-3 sm:py-2 align-top max-w-[180px] sm:max-w-xs break-words">
+                                <div class="flex flex-col xs:flex-row items-start xs:items-center gap-2">
                                     ${mediaHtml}
-                                    <div>
-                                        <div class="font-semibold ">
+                                    <div class="min-w-0">
+                                        <div class="font-semibold break-words whitespace-normal text-sm sm:text-base">
                                             <a href="${(h.slug || h.id) ? HOARDING_SHOW_URL.replace('__SLUG__', h.slug || h.id) : '#'}"
-                                                    target="_blank"
-                                                    class="hover:underline">
-                                                        ${h.title}
+                                               target="_blank"
+                                               class="hover:underline break-words whitespace-normal block">
+                                                ${h.title}
                                             </a>
+                                        </div>
+                                        <div class="text-xs text-gray-500 whitespace-normal break-words">
+                                            ${(h.location_address || '') + (h.size ? ' | ' + h.size : '') + (h.type ? ' | ' + h.type : '')}
                                         </div>
                                     </div>
                                 </div>
