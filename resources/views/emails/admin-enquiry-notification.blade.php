@@ -14,7 +14,7 @@
 <tr>
 <td align="center" style="padding:20px 40px 0 40px;">
     <h2 style="margin:0; color:#2563eb; font-weight:600;">
-        🚨 New Enquiry Received (Admin)
+         New Enquiry Received (Admin)
     </h2>
     <p style="margin:0; color:#444; font-size:15px;">
         Hello Admin, a new enquiry has been submitted on OOHAPP.
@@ -25,10 +25,8 @@
 <tr>
 <td style="padding:15px 40px; font-size:14px; color:#444; line-height:22px;">
     <p>
-        <strong>Client:</strong> {{ $customerName }}<br>
+        <strong>Customer Name :</strong> {{ $customerName }}<br>
         <strong>Total Hoardings:</strong> {{ $totalItems }}<br>
-        <strong>Vendors Involved:</strong> {{ $vendorCount }}<br>
-        <strong>Total Potential Value:</strong> ₹{{ number_format($totalValue, 2) }}<br>
         <strong>Multi-Vendor:</strong> {{ $isMultiVendor ? 'Yes' : 'No' }}
     </p>
 </td>

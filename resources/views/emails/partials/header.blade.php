@@ -1,5 +1,5 @@
 <tr>
-    <td align="center" style="padding:30px 20px 10px 20px;">
+    <td align="center" style="padding:30px 20px 0px 20px;">
      
         <div class="logo" style="text-align:center; margin-bottom:30px;">
             <a href="https://oohapp.io">

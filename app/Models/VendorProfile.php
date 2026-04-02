@@ -436,7 +436,7 @@ class VendorProfile extends Model
 
     public function setPanNumberAttribute($value)
     {
-        $this->attributes['pan_number'] = strtoupper($value);
+        $this->attributes['pan'] = strtoupper($value);
     }
 
     public function setIfscCodeAttribute($value)
