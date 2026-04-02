@@ -88,7 +88,7 @@
 @endpush
 
 @section('content')
-<div class="container">
+<div class="container z-1000 relative">
     <div class="notifications-wrapper">
 
        <!-- HEADER -->

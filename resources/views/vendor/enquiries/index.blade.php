@@ -19,8 +19,16 @@
         {{-- Header + Search --}}
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-4 sm:px-6 py-4 bg-primary rounded-t-xl">
             <div>
-                <h4 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Enquiry & Offers</h4>
-                <p class="text-sm text-gray-700 mt-1">Check all your sent offers to customers, track and manage them here.</p>
+                <div class="flex items-center gap-2">
+                    <!-- Mobile Back Button -->
+                    <button onclick="window.history.back()" type="button" class="md:hidden inline-flex items-center justify-center rounded-full text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 ml-[-5px]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <h4 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-0">Enquiry & Offers</h4>
+                </div>
+                <p class="text-sm text-gray-700 mt-2">Check all your sent offers to customers, track and manage them here.</p>
             </div>
             <div class="flex items-center gap-2 w-full lg:w-auto">
                 <form method="GET" action="{{ route('vendor.enquiries.index') }}" class="relative flex-1 sm:w-80 lg:w-96">

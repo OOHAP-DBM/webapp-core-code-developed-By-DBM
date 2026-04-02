@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="p-6">
-        <div class="mx-5  my-3 md:mx-0 flex items-center justify-between ">
+        <div class="mx-5  my-3 md:mx-0 flex md:items-center md:justify-between ">
             <h2 class="text-md md:text-xl font-bold text-gray-900">
             @if($notifications->where('read_at', null)->count() > 0)
                 <form action="{{ route('admin.notifications.read-all') }}" method="POST">
