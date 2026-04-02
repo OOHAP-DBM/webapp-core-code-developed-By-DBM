@@ -14,14 +14,6 @@
         padding:24px 16px;
     }
 
-    /* ADD THIS CSS TO THE STYLE BLOCK */
-    @media (max-width: 768px) {
-        .mobile-spacer {
-            height: 180px; /* Adjust height based on your button block size */
-            width: 100%;
-            display: block;
-        }
-    }
     /* ===== GALLERY ===== */
     .main-image{
         height:420px;
@@ -142,11 +134,10 @@
         <div class="lg:col-span-4">
             @include('hoardings.partials.price-box')
         </div>
-       
 
     </div>
 </div>
-<div class="mobile-spacer md:hidden"></div>
+
 @endsection
 
 @push('scripts')
