@@ -20,7 +20,7 @@ class AdminUserSeeder extends Seeder
         // Create or update the default admin user
         $admin = User::updateOrCreate(
             [
-                'email' => 'admin@oohapp.com',
+                'email' => 'shivanshisinghrajput76060@gmail.com',
             ],
             [
                 'name' => 'Admin',

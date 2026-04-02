@@ -104,7 +104,15 @@ class EnquiryNotificationService
 
         // 3. NOTIFY ADMIN
         $admin = User::where('active_role', 'admin')->first();
+        \Log::info('Preparing admin enquiry notification', [
+            'admin_id' => $admin?->id,
+            'enquiry_id' => $enquiry->id,
+        ]);
         if ($admin) {
+            \Log::info('Sending admin enquiry notification', [
+                'admin_id' => $admin->id,
+                'enquiry_id' => $enquiry->id,
+            ]);
             $admin->notify(
                 new \Modules\Enquiries\Notifications\AdminEnquiryNotification($enquiry)
             );

@@ -8,15 +8,14 @@
     <div class="max-w-4xl mx-auto">
         
          <!-- HEADER -->
-       <div class="mx-5  my-3 md:mx-0 flex items-center justify-between ">
-            <h2 class="text-md md:text-xl font-bold text-gray-900">
+        <div class="mx-3 my-3 md:mx-0 flex flex-row items-center justify-between gap-2">
+            <h2 class="text-md md:text-xl font-bold text-gray-900 flex-1 text-left">
                 Notifications
             </h2>
-
             @if($notifications->where('read_at', null)->count() > 0)
-                <form action="{{ route('vendor.notifications.read-all') }}" method="POST" class="w-full sm:w-auto">
+                <form action="{{ route('vendor.notifications.read-all') }}" method="POST" class="flex-shrink-0 w-auto">
                     @csrf
-                    <button type="submit" class=" sm:w-auto text-center px-1 md:px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                    <button type="submit" class="text-center px-2 md:px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap">
                         Mark all as read
                     </button>
                 </form>
