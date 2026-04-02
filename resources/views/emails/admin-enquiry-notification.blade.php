@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>New Enquiry Received - OOHAPP (Admin)</title>
+    <title>New Enquiry Received - OOHAPP</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, Helvetica, sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8; padding:40px 0;">
@@ -14,7 +14,7 @@
 <tr>
 <td align="center" style="padding:20px 40px 0 40px;">
     <h2 style="margin:0; color:#2563eb; font-weight:600;">
-         New Enquiry Received (Admin)
+         New Enquiry Received
     </h2>
     <p style="margin:0; color:#444; font-size:15px;">
         Hello Admin, a new enquiry has been submitted on OOHAPP.

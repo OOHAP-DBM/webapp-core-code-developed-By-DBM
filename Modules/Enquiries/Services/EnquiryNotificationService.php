@@ -92,7 +92,7 @@ class EnquiryNotificationService
 
                 send(
                     $vendor,
-                    'New Enquiry Received',
+                    'New Enquiry Received - OOHAPP',
                     'You have received a new enquiry. Please check the app for details.',
                     [
                         'type'       => 'vendor_enquiry',
