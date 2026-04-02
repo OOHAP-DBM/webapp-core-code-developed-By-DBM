@@ -35,9 +35,8 @@ class AdminEnquiryNotification extends Notification implements ShouldQueue
         $this->isMultiVendor = $this->vendorCount > 1;
         $this->totalValue = $items->sum(fn ($item) => $item->meta['amount'] ?? 0);
 
-        $this->customerName = is_array($enquiry->meta ?? null) && isset($enquiry->meta['customer_name'])
-            ? $enquiry->meta['customer_name']
-            : 'New Client';
+       $this->customerName = optional($enquiry->customer)->name 
+                 ?? ($enquiry->meta['customer_name'] ?? 'New Client');
     }
 
     public function via($notifiable)
