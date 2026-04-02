@@ -428,4 +428,19 @@ class VendorProfile extends Model
         $prefs = $this->email_preferences ?? [];
         return !empty($prefs[$email]['verified']) && !empty($prefs[$email]['notifications']);
     }
+
+    public function setGstinAttribute($value)
+    {
+        $this->attributes['gstin'] = $value ? strtoupper($value) : null;
+    }
+
+    public function setPanNumberAttribute($value)
+    {
+        $this->attributes['pan_number'] = strtoupper($value);
+    }
+
+    public function setIfscCodeAttribute($value)
+    {
+        $this->attributes['ifsc_code'] = strtoupper($value);
+    }
 }
