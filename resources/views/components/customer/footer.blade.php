@@ -237,7 +237,7 @@
     </div>
 </footer>
 <div class="text-center text-gray-500 py-1" style="background-color:#e8e8e8;" id="copyright">© {{ date('Y') }} www.oohapp.io All rights reserved.</div>
-   
+<div class="h-40 w-full block md:hidden" ></div>
 <!-- Bottom Bar
 <div class="pt-8 border-t border-gray-800">
     <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
@@ -245,8 +245,7 @@
         <p class="mt-2 md:mt-0">Made with ❤️ in India</p>
     </div>
 </div> -->
-    </div>
-</footer>
+    
 <script>
     document.getElementById('newsletterForm').addEventListener('submit', function (e) {
         e.preventDefault();
