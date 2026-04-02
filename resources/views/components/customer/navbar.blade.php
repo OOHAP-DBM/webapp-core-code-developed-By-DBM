@@ -11,13 +11,15 @@
                 </button>
                 <!-- Logo -->
                 <div class="flex items-center flex-shrink-0">
+                    <!-- Logo -->
                     <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
                         <x-optimized-image
-                            :src="asset('assets/images/logo/logo_image.webp')"
-                            alt="OOHApp company logo"
-                            class="w-48 md:w-[180px] ml-[-20px]"
+                            :src="route('brand.oohapp-logo')"
+                            alt="OOHApp  logo"
+                        
                             width="150"
-                            height="58"
+                            height="48"
+                            style="max-height:48px;object-fit:contain;"
                         />
                     </a>
                 </div>
@@ -194,20 +196,17 @@
                     z-50 md:hidden">
 
             <!-- HEADER -->
-            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-                <a href="{{ route('home') }}" class="flex items-center">
-                    <x-optimized-image
-                        src="assets/images/logo/logo_image.webp"
-                        :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
-                        :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
-                        sizes="140px"
-                        alt="OOHApp company logo"
-                        width="600"
-                        height="120"
-                        class="w-[140px]"
-                        loading="eager"
-                    />
-                </a>
+            <div class="flex items-center justify-between px-5  border-b border-gray-200">
+                 <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
+                        <x-optimized-image
+                            :src="route('brand.oohapp-logo')"
+                            alt="OOHApp  logo"
+                        
+                            width="150"
+                            height="48"
+                            style="max-height:48px;object-fit:contain;"
+                        />
+                    </a>
                 <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-gray-700 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
