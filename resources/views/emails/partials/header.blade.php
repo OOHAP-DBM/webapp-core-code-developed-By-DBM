@@ -4,7 +4,7 @@
         <div class="logo" style="text-align:center; margin-bottom:30px;">
             <a href="https://oohapp.io">
                 <img src="https://oohapp.io/assets/images/logo/logo_image.png" 
-                alt="OOHApp company logo"
+                alt="OOHApp"
                 width="180"
                 style="display:block; margin:0 auto;">
             </a>

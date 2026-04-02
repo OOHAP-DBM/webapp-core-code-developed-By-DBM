@@ -54,7 +54,7 @@ class AdminEnquiryNotification extends Notification implements ShouldQueue
         ]);
         // Use a custom HTML Blade template for admin notification, matching vendor notification UI
         return (new MailMessage)
-            ->subject(' New Enquiry Received (Admin) | #' . ($this->enquiry->formatted_id ?? $this->enquiry->id))
+            ->subject(' New Enquiry Received - OOHAPP')
             ->view(
                 'emails.admin-enquiry-notification',
                 [
@@ -79,8 +79,8 @@ class AdminEnquiryNotification extends Notification implements ShouldQueue
             'total_value'   => $this->totalValue,
 
             'message' => $this->isMultiVendor
-                ? "🚨 Multi-vendor enquiry ({$this->vendorCount} vendors, {$this->totalItems} hoardings)."
-                    : "📩 Single-vendor enquiry ({$this->totalItems} " 
+                ? " Multi-vendor enquiry ({$this->vendorCount} vendors, {$this->totalItems} hoardings)."
+                    : " Single-vendor enquiry ({$this->totalItems} " 
                       . Str::plural('hoarding', $this->totalItems) . ").",
 
             'action_url' => route('admin.enquiries.show', $this->enquiry->id),
