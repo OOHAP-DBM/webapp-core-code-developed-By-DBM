@@ -8,7 +8,7 @@
     
     <!-- LEFT : Heading with Mobile Back Button -->
     <div class="flex items-center gap-2">
-        <button onclick="window.history.back()" type="button" class="sm:hidden inline-flex items-center justify-center  rounded-full text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 ml-[-5px]">
+        <button onclick="handleBackWithSidebarClose()" type="button" class="sm:hidden inline-flex items-center justify-center  rounded-full text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 ml-[-5px]">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
@@ -159,4 +159,5 @@ function toggleAll(source) {
     const checkboxes = document.querySelectorAll('.row-checkbox');
     checkboxes.forEach(cb => cb.checked = source.checked);
 }
+
 </script>
