@@ -52,11 +52,10 @@ class AdminEnquiryNotification extends Notification implements ShouldQueue
             'total_items' => $this->totalItems,
             'vendor_count' => $this->vendorCount,
             'is_multi_vendor' => $this->isMultiVendor,
-            'total_value' => $this->totalValue,
         ]);
         // Use a custom HTML Blade template for admin notification, matching vendor notification UI
         return (new MailMessage)
-            ->subject('🚨 New Enquiry Received (Admin) | #' . ($this->enquiry->formatted_id ?? $this->enquiry->id))
+            ->subject(' New Enquiry Received (Admin) | #' . ($this->enquiry->formatted_id ?? $this->enquiry->id))
             ->view(
                 'emails.admin-enquiry-notification',
                 [

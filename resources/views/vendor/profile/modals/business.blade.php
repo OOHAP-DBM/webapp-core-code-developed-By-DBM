@@ -20,10 +20,10 @@
         <div>
             <label class="block text-gray-600 mb-1">GSTIN Number<span class="text-red-500">*</span></label>
             <input
-                type="text"
-                name="gstin"
-                value="{{ $vendor->gstin }}"
-                class="w-full px-3 py-2 border border-gray-200 rounded-md"
+            type="text"
+            name="gstin"
+            value="{{ strtoupper($vendor->gstin) }}"
+            class="w-full px-3 py-2 border border-gray-200 rounded-md uppercase"
             >
         </div>
 
@@ -58,10 +58,10 @@
         <div>
             <label class="block text-gray-600 mb-1">PAN Number<span class="text-red-500">*</span></label>
             <input
-                type="text"
-                name="pan"
-                value="{{ $vendor->pan ?: ($vendor->user->pan ?? '') }}" required
-                class="w-full px-3 py-2 border border-gray-200 rounded-md"
+            type="text"
+            name="pan"
+            value="{{ strtoupper($vendor->pan ?: ($vendor->user->pan ?? '')) }}" required
+            class="w-full px-3 py-2 border border-gray-200 rounded-md uppercase"
             >
         </div>
 

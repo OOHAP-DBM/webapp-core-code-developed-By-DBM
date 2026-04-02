@@ -703,4 +703,14 @@ class User extends Authenticatable implements MustVerifyEmail
         ]);
         return $parts ? implode(', ', $parts) : null;
     }
+
+      public function setPanNumberAttribute($value)
+    {
+        $this->attributes['pan'] = strtoupper($value);
+    }
+
+     public function setGstinAttribute($value)
+    {
+        $this->attributes['gstin'] = strtoupper($value);
+    }
 }
