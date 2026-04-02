@@ -167,7 +167,7 @@
         <div class="col-md-7 col-12 auth-right">
             <div class="signup-box">
             {{-- Logo — centered at top --}}
-            <div class="text-center mb-4 w-100">
+            <div class="block md:hidden text-center mb-4 w-100">
                 <a href="{{ route('home') }}" class="d-inline-block">
                     <x-optimized-image
                         :src="route('brand.oohapp-logo')"

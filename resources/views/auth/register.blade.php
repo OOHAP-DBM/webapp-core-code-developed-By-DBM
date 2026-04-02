@@ -217,7 +217,7 @@ html, body {
         <!-- ================= OTP SECTION ================= -->
         <div id="otp-section">
             {{-- Logo — centered at top --}}
-            <div class="text-center mb-4 w-100">
+            <div id="logoBox" class=" block md:hidden text-center mb-4 w-100">
                 <a href="{{ route('home') }}" class="d-inline-block">
                     <x-optimized-image
                         :src="route('brand.oohapp-logo')"
@@ -523,7 +523,7 @@ html, body {
                 divider.style.display = 'none';
                 socialBtns.forEach(b => b.style.display = 'none');
                 footerText.style.display = 'none';
-
+                document.getElementById('logoBox').style.display = 'none';
                 otpEmailText.innerText = enteredEmail;
                 otpUI.classList.remove('d-none');
                 otpBoxes[0].focus();
