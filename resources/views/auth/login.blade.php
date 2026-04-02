@@ -167,14 +167,15 @@
         <div class="col-md-7 col-12 auth-right">
             <div class="signup-box">
             {{-- Logo — centered at top --}}
-           <div class="d-block d-md-none text-center mb-4">
+            <div class="text-center mb-4 w-100">
                 <a href="{{ route('home') }}" class="d-inline-block">
-                    <img 
-                        src="/assets/images/logo/logo_image.webp"
-                        alt="OOHApp logo"
-                        class="img-fluid mx-auto d-block"
-                        style="max-width: 100px;"
-                    >
+                    <x-optimized-image
+                        :src="route('brand.oohapp-logo')"
+                        alt="OOHApp company logo"
+                        width="150"
+                        height="48"
+                        style="display:block; margin:0 auto; max-height:48px; object-fit:contain;"
+                    />
                 </a>
             </div>
 <h3 class="text-center md:text-start">Login to your account</h3>

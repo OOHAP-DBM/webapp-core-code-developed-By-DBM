@@ -533,12 +533,26 @@ async function loadBookingDetails() {
                     totalDiscount += discount;
                     totalTax += tax;
                     totalFinal += final;
+                    // --- Use mediaThumb logic from create.blade.php ---
+                    let mediaHtml = '';
+                    const src = h.image_url || h.media_url || h.video_url || '';
+                    if (!src) {
+                        mediaHtml = `<img src="/placeholder.png" class="w-10 h-10 sm:w-12 sm:h-12 object-cover border my-1 rounded" onerror="this.src='/placeholder.png'">`;
+                    } else {
+                        const cleanUrl = src.split('?')[0].toLowerCase();
+                        const isVideo = /\.(mp4|webm|ogg|mov)$/.test(cleanUrl);
+                        if (isVideo) {
+                            mediaHtml = `<video src="${src}" class="w-10 h-10 sm:w-12 sm:h-12 object-cover border my-1 rounded pointer-events-none" style="height:48px;" muted playsinline preload="metadata"></video>`;
+                        } else {
+                            mediaHtml = `<img src="${src}" class="w-10 h-10 sm:w-12 sm:h-12 object-cover border my-1 rounded" onerror="this.src='/placeholder.png'">`;
+                        }
+                    }
                     return `
                         <tr>
                             <td class="px-2 py-1 sm:px-3 sm:py-2 text-center">${idx + 1}</td>
                             <td class="px-2 py-1 sm:px-3 sm:py-2">
                                 <div class="flex items-center gap-2">
-                                    <img src="${h.image_url}" alt="Hoarding" class="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover border my-1" />
+                                    ${mediaHtml}
                                     <div>
                                         <div class="font-semibold ">
                                             <a href="${(h.slug || h.id) ? HOARDING_SHOW_URL.replace('__SLUG__', h.slug || h.id) : '#'}"
