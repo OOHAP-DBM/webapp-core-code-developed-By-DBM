@@ -52,10 +52,12 @@ class NewHoardingPendingApprovalNotification extends Notification implements Sho
 
         return (new \Illuminate\Notifications\Messages\MailMessage)
             ->subject($subject)
-            ->greeting('Hello!')
-            ->line($line1)
-            ->action('View Hoarding', $actionUrl)
-            ->line('Thank you for using our platform!');
+            ->view(
+                'vendor.mail.html.layout',
+                [
+                    'slot' => "<h2 style='margin-top:0;'>$subject</h2><p>$line1</p><p><a href='$actionUrl' style='display:inline-block;padding:10px 18px;background:#009A5C;color:#fff;text-decoration:none;border-radius:6px;margin:18px 0;'>View Hoarding</a></p><p>Thank you for using our platform!</p>",
+                ]
+            );
     }
 
     public function toDatabase($notifiable)
