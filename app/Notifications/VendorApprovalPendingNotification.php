@@ -44,21 +44,20 @@ class VendorApprovalPendingNotification extends Notification
      */
     public function toMail($notifiable)
     {
-
         $message = 'New vendor registered – approval pending';
-        $actionUrl = optional($this->user->vendorProfile)
-            ? route('admin.vendors.show', $this->user->vendorProfile->id)
+
+        $actionUrl = optional($this->vendorUser->vendorProfile)
+            ? route('admin.vendors.show', $this->vendorUser->vendorProfile->id)
             : null;
 
-        // Use queue for mail delivery
         return (new \Illuminate\Notifications\Messages\MailMessage)
             ->subject($message)
             ->mailer('smtp')
             ->view('vendor.mail.html.layout', [
                 'greeting' => 'Hello Admin,',
                 'message' => $message,
-                'name' => $this->user->name,
-                'email' => $this->user->email,
+                'name' => $this->vendorUser->name,
+                'email' => $this->vendorUser->email,
                 'actionUrl' => $actionUrl,
                 'actionText' => 'View Profile',
                 'footer' => 'Please review and approve the registration.'
