@@ -32,10 +32,10 @@ class SEOService
         $type = $data['type'] ?? null;
         $city = $data['city'] ?? null;
         $locality = $data['locality'] ?? null;
-        $width = $data['width'] ?? null;
-        $height = $data['height'] ?? null;
+        $landmark = $data['landmark'] ?? null;
+        $road = $data['road'] ?? null;
         $price = $data['price'] ?? null;
-        $title = $data['title'] ?? null;
+        // $title = $data['title'] ?? null;
         $count = $data['count'] ?? null;
         $vendor = $data['vendor'] ?? null;
         $inventory = $data['inventory'] ?? null;
@@ -47,11 +47,18 @@ class SEOService
 
         switch ($type) {
             case 'hoarding':                
-                if ($width && $height && $locality && $city) {
-                    $description = "Advertise on a {$width}x{$height} hoarding in {$locality}, {$city}. Affordable outdoor advertising options available on {$brand}.";
-                } elseif ($title && $city) {
+                if (  $locality && $city && $landmark && $road) {
+                    $description = "Book premium hoardings in {$locality},{$city} near {$landmark[0]} and {$road} .Explore top outdoor advertising locations.";
 
-                    $description = "Book {$title} in {$city}. Find the best OOH & DOOH advertising options on {$brand}.";
+                } elseif ($locality && $city && $landmark) {
+
+                    $description = "Book premium hoardings in {$locality}, {$city} near {$landmark[0]}.Explore top outdoor advertising locations.";
+                } elseif ($locality && $city) {
+                    $description = "Book premium hoardings in {$locality}, {$city}.Explore top outdoor advertising locations.";
+                } elseif ($city) {
+                    $description = "Book premium hoardings in {$city}. Explore top outdoor advertising locations.";
+                } else {
+                    $description = "Book premium hoardings across India. Explore top outdoor advertising locations.";
                 }
                 break;
             case 'city':
@@ -129,13 +136,90 @@ class SEOService
     /**
      * Generate meta title
      */
-    protected function generateMetaTitle(Hoarding $hoarding): string
+    public function generateMetaTitle(array $data): string
     {
-        $size = $hoarding->width . 'x' . $hoarding->height;
-        $type = ucfirst(str_replace('_', ' ', $hoarding->board_type));
-        
-        return "{$type} Hoarding at {$hoarding->location_name}, {$hoarding->city} - {$size}m";
+        // $size = $hoarding->width . 'x' . $hoarding->height;
+        // $type = ucfirst(str_replace('_', ' ', $hoarding->board_type));
+
+          $brand = 'OOHAPP';
+        $type = $data['type'] ?? null;
+        $city = $data['city'] ?? null;
+        $locality = $data['locality'] ?? null;
+        $landmark = $data['landmark'] ?? null;
+        $category = $data['category'] ?? null;
+         $hoarding_type = $data['hoarding_type'] ?? null;
+        //  $title = $data['title'] ?? null;
+        //  $road = $data['road'] ?? null;
+        //  $price = $data['price'] ?? null;
+        // $road = $data['road'] ?? null;
+        // $price = $data['price'] ?? null;
+        // // $title = $data['title'] ?? null;
+        // $count = $data['count'] ?? null;
+        // $vendor = $data['vendor'] ?? null;
+        // $inventory = $data['inventory'] ?? null;
+        // $campaign = $data['campaign'] ?? null;
+        // $locations = $data['locations'] ?? null;
+        // $duration = $data['duration'] ?? null;
+        $brand = 'OOHAPP';
+
+        $title = '';
+
+        switch ($type) {
+            case 'hoarding':                
+                if (  $locality && $city && $category) {
+                    $title = "Hoarding in {$locality}, {$city} | {$category}  Advertising";
+
+                } elseif ($category && $city) {
+
+                    $title = "Hoarding in {$city} | {$category}  Advertising";
+                }elseif ($category) {
+                     $title = "{$category}  Advertising";
+                }
+                elseif ($city) {
+                    $title = "Hoarding in {$city} | Outdoor Advertising";
+                } else {
+                    $title = "Book premium hoardings across India. Explore top outdoor advertising locations.";
+                }
+                break;
+            case 'city':
+                if ($city && $count) {
+                    $title = "Explore {$count}+ hoardings in {$city} for outdoor advertising. Compare OOH & DOOH options on {$brand}.";
+                } elseif ($city) {
+                    $title = "Find hoardings and outdoor advertising in {$city} with {$brand}.";
+                }
+                break;
+            case 'vendor':
+                if ($vendor && $city && $inventory) {
+                    $title = "View hoardings by {$vendor} in {$city}. Discover premium outdoor advertising locations on {$brand}.";
+                } elseif ($vendor && $city) {
+                    $title = "View outdoor advertising by {$vendor} in {$city} on {$brand}.";
+                }
+                break;
+            case 'campaign':
+                if ($campaign && $locations && $duration) {
+                    $title = "Manage your advertising campaign across {$locations} for {$duration} with real-time tracking and flexible booking on {$brand}.";
+                } elseif ($campaign && $locations) {
+                    $title = "Manage your {$campaign} campaign in {$locations} with {$brand}.";
+                }
+                break;
+            default:
+                // fallback
+                break;
+        }
+
+        // Fallback if not enough data
+        if (!$title) {
+            $title = "Discover outdoor advertising opportunities across India with {$brand}.";
+        }
+
+        // Ensure length 150–160 chars, trim intelligently
+        $title = $this->trimToLength($title, 160);
+        return $title;
     }
+
+        
+    //     return " Hoarding in {$hoarding->locality}, {$hoarding->city} | {$hoarding->hoarding_type}  Advertising";
+    // }
 
     /**
      * Generate meta description

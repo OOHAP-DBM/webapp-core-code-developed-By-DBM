@@ -121,18 +121,30 @@ class HoardingController extends Controller
             $isInCart = $this->cartService->exists($hoarding->id);
         }
 
-        // Inject dynamic meta description
-        $metaDescription = app(\App\Services\SEOService::class)->generateMetaDescription([
+        $seoService = app(\App\Services\SEOService::class);
+        $metaDescription = $seoService->generateMetaDescription([
             'type' => 'hoarding',
             'city' => $hoarding->city,
+            'hoarding_type' => strtoupper($hoarding->hoarding_type),
+            'category' => $hoarding->category,
             'title' => $hoarding->title,
-            'locality' => $hoarding->location_name,
-            'width' => $hoarding->width,
-            'height' => $hoarding->height,
+            'locality' => $hoarding->locality,
+            'landmark' => $hoarding->landmark,
+            'road' => $hoarding->road,
             'price' => $hoarding->monthly_price ?? $hoarding->price_per_slot,
         ]);
-
-        return view('hoardings.show', compact('hoarding', 'isInCart', 'metaDescription'));
+        $metaTitle = $seoService->generateMetaTitle([
+            'type' => 'hoarding',
+            'city' => $hoarding->city,
+            'hoarding_type' => strtoupper($hoarding->hoarding_type),
+            'category' => $hoarding->category,
+            'title' => $hoarding->title,
+            'locality' => $hoarding->locality,
+            'landmark' => $hoarding->landmark,
+            'road' => $hoarding->road,
+            'price' => $hoarding->monthly_price ?? $hoarding->price_per_slot,
+        ]);
+        return view('hoardings.show', compact('hoarding', 'isInCart', 'metaDescription', 'metaTitle'));
     }
 
     /**
