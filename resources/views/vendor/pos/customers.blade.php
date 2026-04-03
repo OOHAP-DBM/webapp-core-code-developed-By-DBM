@@ -8,6 +8,12 @@
     @include('vendor.pos.components.admin-vendor-switcher')
     <div class="pb-2 px-2 bg-primary rounded-t-xl">
         <h4 class="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
+            <!-- Mobile-only back arrow button -->
+            <button onclick="handleBackWithSidebarClose()" class="inline-flex sm:hidden items-center justify-center ml-[-0.5rem] rounded-full hover:bg-gray-200 focus:outline-none" aria-label="Back">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
             All Customers
         </h4>
     </div>
