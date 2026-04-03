@@ -87,7 +87,7 @@
         {{-- ===== HOARDINGS SECTION: Accordion ===== --}}
         <div class="rounded mb-6">
             <div class="flex items-center justify-between px-6 py-3">
-                <span class="font-semibold text-sm">Hoardings / Screens ({{ $enquiry->items->count() }})</span>
+                <span class="font-semibold text-sm">Hoardings ({{ $enquiry->items->count() }})</span>
                 <button @click="openHoardings = !openHoardings"
                     class="flex items-center cursor-pointer gap-1 text-xs bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
                     <span x-text="openHoardings ? 'Collapse' : 'Expand'"></span>
