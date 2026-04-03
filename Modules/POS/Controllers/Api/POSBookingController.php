@@ -236,6 +236,10 @@ class POSBookingController extends Controller
         }
     }
 
+      /* =========================================================
+     *  DASHBOARD STATISTICS
+     * ========================================================= */
+ 
     /**
      * @OA\Get(
      *     path="/pos/vendor/dashboard",
@@ -252,28 +256,58 @@ class POSBookingController extends Controller
     public function dashboard(Request $request): JsonResponse
     {
         try {
-            $context = $this->resolveAdminBookingScopeContext($request);
-
-            if ($context['scope'] === 'overall') {
-                $statistics = [
-                    'total_bookings' => POSBooking::count(),
-                    'total_revenue' => (float) POSBooking::where('payment_status', 'paid')->sum('total_amount'),
-                    'pending_payments' => (float) POSBooking::whereIn('payment_status', ['unpaid', 'partial'])->sum('total_amount'),
-                    'active_credit_notes' => POSBooking::where('credit_note_status', 'active')->count(),
-                ];
-            } else {
-                $statistics = $this->posBookingService->getVendorStatistics((int) $context['vendor_id']);
+            $context   = $this->resolveAdminBookingScopeContext($request);
+            $baseQuery = POSBooking::query();
+ 
+            if ($context['scope'] !== 'overall') {
+                $baseQuery->where('vendor_id', $context['vendor_id']);
             }
-
+ 
+            $totalBookings   = (clone $baseQuery)->count();
+            $totalRevenue    = (clone $baseQuery)->where('payment_status', 'paid')->sum('total_amount') ?? 0;
+            $pendingPayments = (clone $baseQuery)
+                ->whereIn('payment_status', ['unpaid', 'partial'])
+                ->where('status', '!=', 'cancelled')
+                ->sum('total_amount') ?? 0;
+            $activeCreditNotes = (clone $baseQuery)->where('credit_note_status', 'active')->count();
+ 
+            // Registered customers (unique by ID)
+            $regCount = (clone $baseQuery)
+                ->whereNotNull('customer_id')
+                ->distinct('customer_id')
+                ->count('customer_id');
+ 
+            // Guest walk-ins (unique by phone, excluding 'N/A')
+            $guestCount = (clone $baseQuery)
+                ->whereNull('customer_id')
+                ->whereNotNull('customer_phone')
+                ->where('customer_phone', '!=', 'N/A')
+                ->distinct('customer_phone')
+                ->count('customer_phone');
+ 
+            // Anonymous (N/A / null phone — each row is a unique person)
+            $naCount = (clone $baseQuery)
+                ->whereNull('customer_id')
+                ->where(function ($q) {
+                    $q->where('customer_phone', 'N/A')->orWhereNull('customer_phone');
+                })
+                ->count();
+ 
             return response()->json([
                 'success' => true,
-                'data' => $statistics,
+                'data'    => [
+                    'total_bookings'       => $totalBookings,
+                    'total_revenue'        => (float) $totalRevenue,
+                    'pending_payments'     => (float) $pendingPayments,
+                    'active_credit_notes'  => $activeCreditNotes,
+                    'total_customers'      => $regCount + $guestCount + $naCount,
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch dashboard statistics',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -692,6 +726,7 @@ class POSBookingController extends Controller
                 'milestone_data.*.amount'              => 'required_if:is_milestone,true|numeric|min:0.01',
                 'milestone_data.*.due_date'            => 'nullable|date',
                 'milestone_data.*.vendor_notes'        => 'nullable|string|max:500',
+                 'po_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240'
             ]);
 
             // ── Resolve hoarding IDs ─────────────────────────────────────
