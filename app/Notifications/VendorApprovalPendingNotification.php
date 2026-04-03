@@ -12,7 +12,7 @@ class VendorApprovalPendingNotification extends Notification
 
     public function via($notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     public function toDatabase($notifiable): array
@@ -37,5 +37,32 @@ class VendorApprovalPendingNotification extends Notification
             'action_url'  => route('vendor.dashboard'),
             'type'        => 'vendor_pending_vendor',
         ];
+    }
+
+     /**
+     * Build the mail representation of the notification.
+     */
+    public function toMail($notifiable)
+    {
+
+        $message = 'New vendor registered – approval pending';
+        $actionUrl = optional($this->user->vendorProfile)
+            ? route('admin.vendors.show', $this->user->vendorProfile->id)
+            : null;
+
+        // Use queue for mail delivery
+        return (new \Illuminate\Notifications\Messages\MailMessage)
+            ->subject($message)
+            ->mailer('smtp')
+            ->view('vendor.mail.html.layout', [
+                'greeting' => 'Hello Admin,',
+                'message' => $message,
+                'name' => $this->user->name,
+                'email' => $this->user->email,
+                'actionUrl' => $actionUrl,
+                'actionText' => 'View Profile',
+                'footer' => 'Please review and approve the registration.'
+            ])
+            ->onQueue('emails');
     }
 }
