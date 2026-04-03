@@ -16,7 +16,7 @@ body {
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8; padding:40px 0;">
 <tr>
 <td align="center">
-<table">
+<table>
     @include('emails.partials.header')
 <tr>
 <td style="padding:20px 40px; font-size:14px; color:#444; line-height:22px;">

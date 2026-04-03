@@ -3,9 +3,12 @@
 namespace App\Notifications;
 
 use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Bus\Queueable;
 
-class VendorApprovalPendingNotification extends Notification
+class VendorApprovalPendingNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
     public function __construct(
         public $vendorUser
     ) {}
@@ -25,7 +28,9 @@ class VendorApprovalPendingNotification extends Notification
             return [
                 'title'       => 'Vendor Approval Pending',
                 'message'     => 'A new vendor has registered and is awaiting approval.',
-                'action_url'  => route('admin.vendors.show', $this->vendorUser->id),
+               'action_url'  => optional($this->vendorUser->vendorProfile)
+                    ? route('admin.vendors.show', $this->vendorUser->vendorProfile->id)
+                    : null,
                 'type'        => 'vendor_pending_admin',
             ];
         }
@@ -53,15 +58,12 @@ class VendorApprovalPendingNotification extends Notification
         return (new \Illuminate\Notifications\Messages\MailMessage)
             ->subject($message)
             ->mailer('smtp')
-            ->view('vendor.mail.html.layout', [
-                'greeting' => 'Hello Admin,',
-                'message' => $message,
+            ->view('admin.emails.vendor-approval', [   // ✅ CHANGE HERE
                 'name' => $this->vendorUser->name,
                 'email' => $this->vendorUser->email,
                 'actionUrl' => $actionUrl,
                 'actionText' => 'View Profile',
                 'footer' => 'Please review and approve the registration.'
-            ])
-            ->onQueue('emails');
+            ]);
     }
 }
