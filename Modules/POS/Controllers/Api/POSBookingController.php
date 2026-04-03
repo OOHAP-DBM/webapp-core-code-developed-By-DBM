@@ -837,6 +837,7 @@ class POSBookingController extends Controller
                 'payment_notes'     => $validated['payment_notes']     ?? null,
                 'notes'             => $validated['notes']             ?? null,
                 'status'            => 'draft',
+                'po_file_path'      => $request->hasFile('po_file') ? $request->file('po_file')->store('po_files') : null,
                 'payment_status'    => 'unpaid',
                 'hold_minutes'      => $holdMinutes,
                 'hold_expiry_at'    => $holdExpiryAt,
@@ -1588,6 +1589,82 @@ class POSBookingController extends Controller
         }
     }
 
+
+      /**
+     * Send WhatsApp notification on booking creation.
+     */
+    protected function sendWhatsAppNotification(POSBooking $booking, string $phone): void
+    {
+        if (!$booking->relationLoaded('bookingHoardings')) {
+            $booking->load('bookingHoardings.hoarding');
+        }
+ 
+        $vendor      = User::find($booking->vendor_id);
+        $vendorName  = $vendor?->name ?? 'Vendor';
+        $totalAmount = number_format((float) $booking->total_amount, 2);
+        $holdMins    = $booking->hold_minutes ?? 0;
+        $holdText    = $holdMins > 0
+            ? "⏳ *Payment Due Within:* " . ($holdMins >= 1440
+                ? round($holdMins / 1440) . ' day(s)'
+                : ($holdMins >= 60 ? round($holdMins / 60) . ' hour(s)' : "{$holdMins} minutes"))
+            : "ℹ️ No payment time limit.";
+ 
+        $milestones     = \App\Models\QuotationMilestone::where('pos_booking_id', $booking->id)->orderBy('sequence_no')->get();
+        $milestoneBlock = '';
+        if ($milestones->isNotEmpty()) {
+            $lines = $milestones->values()->map(function ($ms, $idx) {
+                $seq     = $ms->sequence_no ?? ($idx + 1);
+                $title   = $ms->title ?? ('Milestone ' . $seq);
+                $amount  = number_format((float) ($ms->calculated_amount ?? $ms->amount ?? 0), 2);
+                $dueDate = $ms->due_date ? Carbon::parse($ms->due_date)->format('d M Y') : 'N/A';
+                return "{$seq}. {$title} - ₹{$amount} (Due: {$dueDate})";
+            })->implode("\n");
+            $milestoneBlock = "\n🧩 *Milestones:*\n{$lines}\n";
+        }
+ 
+        $hoardingLines = $booking->bookingHoardings->map(function ($bh) {
+            $h    = $bh->hoarding;
+            $url  = $h?->id ? config('app.url') . '/h/' . $h->id : null;
+            $link = $url ? "🔗 {$h->title}\n   {$url}" : "• " . ($h->title ?? 'Hoarding');
+            return $link . " ({$bh->start_date} → {$bh->end_date})";
+        })->implode("\n\n");
+ 
+        $paymentBlock  = '';
+        $paymentDetail = null;
+        if (in_array($booking->payment_mode, ['bank_transfer', 'cheque', 'online', 'upi'], true)) {
+            $detailType    = in_array($booking->payment_mode, ['bank_transfer', 'cheque'], true) ? 'bank' : 'upi';
+            $paymentDetail = \Modules\POS\Models\VendorPaymentDetail::where('vendor_id', $booking->vendor_id)->where('type', $detailType)->first();
+        }
+ 
+        if (in_array($booking->payment_mode, ['bank_transfer', 'cheque'], true) && $paymentDetail) {
+            $paymentBlock = "\n🏦 *Bank Transfer Details:*\nBank: {$paymentDetail->bank_name}\nA/C No: {$paymentDetail->account_number}\nHolder: {$paymentDetail->account_holder}\nIFSC: {$paymentDetail->ifsc_code}\nReference: {$booking->invoice_number}";
+        } elseif (in_array($booking->payment_mode, ['online', 'upi'], true) && $paymentDetail) {
+            $paymentBlock = "\n📱 *UPI Payment:*\nUPI ID: {$paymentDetail->upi_id}";
+        } elseif ($booking->payment_mode === 'cash') {
+            $paymentBlock = "\n💵 *Payment Mode:* Cash (collect at office)";
+        }
+ 
+        $message = "🎯 *POS Booking created!*\n\nHello *{$booking->customer_name}*,\n\nYour booking has been created by *{$vendorName}*.\n\n📋 *Booking Details:*\nInvoice: #{$booking->invoice_number}\nTotal Amount: ₹{$totalAmount}\n\n🏛️ *Hoardings Booked:*\n{$hoardingLines}\n\n{$milestoneBlock}{$holdText}\n{$paymentBlock}\n\nThank you for your business!";
+ 
+        $normalizedPhone = preg_replace('/\D+/', '', $phone);
+ 
+        if (empty($normalizedPhone) || strlen($normalizedPhone) < 10) {
+            Log::warning('POS API WhatsApp skipped - invalid phone', ['booking_id' => $booking->id, 'phone' => $phone]);
+            return;
+        }
+ 
+        if (!str_starts_with($normalizedPhone, '91')) {
+            $normalizedPhone = '91' . ltrim($normalizedPhone, '0');
+        }
+        $normalizedPhone = '+' . $normalizedPhone;
+ 
+        try {
+            $sent = app(TwilioWhatsappService::class)->send($normalizedPhone, $message);
+            Log::info('POS API WhatsApp dispatched', ['booking_id' => $booking->id, 'phone' => $normalizedPhone, 'sent' => $sent]);
+        } catch (\Throwable $e) {
+            Log::error('POS API WhatsApp failed', ['booking_id' => $booking->id, 'error' => $e->getMessage()]);
+        }
+    }
     /**
      * Send WhatsApp notification when payment is received (full or partial)
      */
