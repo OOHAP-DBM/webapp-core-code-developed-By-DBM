@@ -237,7 +237,9 @@
     </div>
 </footer>
 <div class="text-center text-gray-500 py-1" style="background-color:#e8e8e8;" id="copyright">© {{ date('Y') }} www.oohapp.io All rights reserved.</div>
-
+@if(Route::is('hoardings.show'))
+    <div class="h-[112px] w-full block md:hidden"></div>
+@endif
 <!-- Bottom Bar
 <div class="pt-8 border-t border-gray-800">
     <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
