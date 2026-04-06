@@ -425,19 +425,27 @@ class AuthController extends Controller
         }
 
         // Create API token with role context
-        $activeRole = $user->fresh()->getActiveRole();
+        $freshUser = $user->fresh('vendorProfile');
+        $activeRole = $freshUser->getActiveRole();
         $token = $user->createToken('auth_token', ['role:' . $activeRole])->plainTextToken;
+
+        $responseData = [
+            'user' => new UserResource($freshUser),
+            'token' => $token,
+            'token_type' => 'Bearer',
+            'active_role' => $activeRole,
+            'should_merge' => true,
+        ];
+
+        if ($activeRole === 'vendor') {
+            $responseData['onboarding_status'] = $freshUser->vendorProfile?->onboarding_status;
+            $responseData['onboarding_step'] = $freshUser->vendorProfile?->onboarding_step;
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
-            'data' => [
-                'user' => new UserResource($user->fresh()),
-                'token' => $token,
-                'token_type' => 'Bearer',
-                'active_role' => $activeRole,
-                'should_merge' => true,
-            ],
+            'data' => $responseData,
         ]);
     }
 
