@@ -12,6 +12,7 @@
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
         "darkaonline/l5-swagger": "^9.0",
+        "intervention/image": "^3.11",
         "intervention/image-laravel": "^1.5",
         "kreait/firebase-php": "5.26",
         "laravel/framework": "^12.0",

@@ -128,7 +128,7 @@
             </h2>
         </div>
         <form method="GET" action="{{ route('admin.vendor-hoardings.index') }}">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {{-- Search --}}
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-2">Search</label>
@@ -168,6 +168,18 @@
                         <option value="">All Types</option>
                         <option value="ooh" {{ request('type') === 'ooh' ? 'selected' : '' }}>OOH</option>
                         <option value="dooh" {{ request('type') === 'dooh' ? 'selected' : '' }}>DOOH</option>
+                    </select>
+                </div>
+
+                {{-- Per Page Filter --}}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-2">Per Page</label>
+                    <select name="per_page" class="px-4 py-2.5 w-full border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all shadow-sm hover:border-gray-400">
+                        <option value="10" {{ request('per_page', '10') == '10' ? 'selected' : '' }}>10</option>
+                        <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100</option>
+                        <option value="200" {{ request('per_page') == '200' ? 'selected' : '' }}>200</option>
+                        <option value="500" {{ request('per_page') == '500' ? 'selected' : '' }}>500</option>
                     </select>
                 </div>
             </div>
@@ -486,6 +498,8 @@
                     Showing <span class="font-semibold text-gray-900">{{ $hoardings->firstItem() }}</span> 
                     to <span class="font-semibold text-gray-900">{{ $hoardings->lastItem() }}</span> 
                     of <span class="font-semibold text-gray-900">{{ $hoardings->total() }}</span> results
+                    <span class="mx-1">|</span>
+                    Per page: <span class="font-semibold text-gray-900">{{ $hoardings->perPage() }}</span>
                 </div>
                 <div class="flex gap-2 order-1 sm:order-2">
                     {{ $hoardings->withQueryString()->links() }}

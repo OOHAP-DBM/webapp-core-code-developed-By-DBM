@@ -27,7 +27,21 @@ class HomeController extends Controller
     {
         // Filters (add more as needed)
         $page = $request->get('page', 1);
-        $bestHoardings = Hoarding::select(['id', 'title', 'slug', 'address', 'city', 'monthly_price', 'base_monthly_price', 'hoarding_type', 'vendor_id', 'created_at'])
+        $bestHoardings = Hoarding::select([
+            'id',
+            'title',
+            'slug',
+            'address',
+            'city',
+            'monthly_price',
+            'base_monthly_price',
+            'hoarding_type',
+            'vendor_id',
+            'created_at',
+            'is_recommended',
+            'view_count',
+            'expected_eyeball'
+        ])
             ->where('status', 'active')
             ->with([
                 'vendor:id,name,company_name',
@@ -37,8 +51,6 @@ class HomeController extends Controller
             ])
             ->orderByDesc('created_at')
             ->paginate(8, ['*'], 'page', $page);
-
-        // ...other homepage data...
 
         if ($request->ajax()) {
             return response()->json([
