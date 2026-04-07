@@ -10,7 +10,7 @@ use Modules\Import\Http\Controllers\ImportController;
  * Middleware: web, auth, permission
  */
 
-Route::middleware(['permission:import.manage', 'vendor.approved'])->group(function () {
+Route::middleware(['permission:import.manage'])->group(function () {
     // Import dashboard - requires import.manage permission
     // Routes are prefixed with vendor/import or admin/import in RouteServiceProvider
     // Route names are prefixed as: vendor.import.dashboard or admin.import.dashboard

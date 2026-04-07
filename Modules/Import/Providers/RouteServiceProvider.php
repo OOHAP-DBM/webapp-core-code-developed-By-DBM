@@ -34,7 +34,7 @@ class RouteServiceProvider extends ServiceProvider
     protected function mapVendorWebRoutes()
     {
         Route::prefix('vendor/import')
-            ->middleware(['web', 'auth'])
+            ->middleware(['web', 'auth', 'vendor.approved'])
             ->name('vendor.import.')
             ->namespace($this->moduleNamespace)
             ->group(base_path('Modules/Import/Routes/web.php'));

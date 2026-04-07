@@ -1,4 +1,4 @@
-@extends('layouts.vendor')
+@extends($layout ?? 'layouts.vendor')
 @section('title', 'Import Inventory')
 
 @section('content')
@@ -222,12 +222,12 @@
                 <li>✓ For DOOH, include additional pricing fields</li>
             </ul>
             <div class="flex flex-wrap gap-2">
-            <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'ooh', 'format' => 'xlsx']) }}"
+            <a href="{{ ($isAdmin ?? false) ? route('admin.import.sample-template', ['mediaType' => 'ooh', 'format' => 'xlsx']) : route('vendor.import.sample-template', ['mediaType' => 'ooh', 'format' => 'xlsx']) }}"
                 class="text-xs px-3 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg font-medium hover:bg-blue-100 transition-colors flex items-center gap-1.5">
                     
                     Download OOH Sample (Excel)
                 </a>
-                <a href="{{ route('vendor.import.sample-template', ['mediaType' => 'dooh', 'format' => 'xlsx']) }}"
+                <a href="{{ ($isAdmin ?? false) ? route('admin.import.sample-template', ['mediaType' => 'dooh', 'format' => 'xlsx']) : route('vendor.import.sample-template', ['mediaType' => 'dooh', 'format' => 'xlsx']) }}"
                 class="text-xs px-3 py-2 bg-white border border-blue-200 text-blue-800 rounded-lg font-medium hover:bg-blue-100 transition-colors flex items-center gap-1.5">
                     Download DOOH Sample (Excel)
                 </a>
@@ -354,8 +354,8 @@
     // ── Everything below is IDENTICAL to original — no logic changes ──
 
     const API_BASE = '/api/import';
-    const DETAILS_BASE = @json(route('vendor.import.enhanced'));
-    const IMPORT_MANAGEMENT_URL = @json(route('vendor.import.enhanced'));
+    const DETAILS_BASE = @json(($isAdmin ?? false) ? route('admin.import.enhanced') : route('vendor.import.enhanced'));
+    const IMPORT_MANAGEMENT_URL = @json(($isAdmin ?? false) ? route('admin.import.enhanced') : route('vendor.import.enhanced'));
     const UPLOAD_LOCK_KEY = 'import_upload_lock_state_v1';
     const UPLOAD_LOCK_DURATION_SECONDS = 300;
     const historyState = { page: 1, per_page: 10, search: '' };

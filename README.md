@@ -69,3 +69,6 @@ Packages, need to install
 1.composer require intervention/image
 
 composer require phpoffice/phpspreadsheet
+
+composer require intervention/image --ignore-platform-reqs
+sodium, zip, gd
