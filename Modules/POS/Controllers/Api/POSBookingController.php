@@ -1520,8 +1520,76 @@ class POSBookingController extends Controller
         }
     }
 
+   /* =========================================================
+     *  SEND REMINDER
+     * ========================================================= */
+ 
     /**
-     * Send reminder for pending payment or save scheduled reminders.
+     * @OA\Post(
+     * path="/pos/vendor/bookings/{id}/send-reminder",
+     * operationId="posSendReminder",
+     * tags={"POS Bookings"},
+     * summary="Send or schedule payment reminders",
+     * description="Handles immediate delivery, single scheduling, or bulk replacement of reminders.",
+     * security={{"sanctum":{}}},
+     * @OA\Parameter(
+     * name="id",
+     * in="path",
+     * required=true,
+     * description="The ID of the POS Booking",
+     * @OA\Schema(type="integer")
+     * ),
+     * @OA\RequestBody(
+     * required=false,
+     * @OA\JsonContent(
+     * @OA\Property(
+     * property="scheduled_at",
+     * type="string",
+     * format="date-time",
+     * example="2026-04-10 14:00:00",
+     * description="Schedule a single reminder. If null or past, reminder is sent immediately."
+     * ),
+     * @OA\Property(
+     * property="scheduled_reminders",
+     * type="array",
+     * description="Bulk schedule/replace reminders (min: 1, max: 3)",
+     * @OA\Items(
+     * @OA\Property(
+     * property="scheduled_at",
+     * type="string",
+     * format="date-time",
+     * example="2026-04-12 09:00:00"
+     * )
+     * )
+     * )
+     * )
+     * ),
+     * @OA\Response(
+     * response=200,
+     * description="Successful operation",
+     * @OA\JsonContent(
+     * @OA\Property(property="success", type="boolean", example=true),
+     * @OA\Property(property="message", type="string", example="Reminder scheduled successfully"),
+     * @OA\Property(property="data", type="object", nullable=true)
+     * )
+     * ),
+     * @OA\Response(
+     * response=422,
+     * description="Validation error (e.g., more than 3 reminders or invalid dates)",
+     * @OA\JsonContent(
+     * @OA\Property(property="success", type="boolean", example=false),
+     * @OA\Property(property="message", type="string", example="The scheduled reminders field is required.")
+     * )
+     * ),
+     * @OA\Response(
+     * response=404,
+     * description="Booking not found"
+     * ),
+     * @OA\Response(
+     * response=500,
+     * description="Server error"
+     * )
+     * )
      */
     public function sendReminder(Request $request, int $id): JsonResponse
     {
