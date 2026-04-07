@@ -1141,6 +1141,10 @@ class POSBookingController extends Controller
         }
     }
 
+    /* =========================================================
+     *  SEARCH HOARDINGS
+     * ========================================================= */
+ 
     /**
      * @OA\Get(
      *     path="/pos/vendor/search-hoardings",
@@ -1152,64 +1156,50 @@ class POSBookingController extends Controller
      *     @OA\Parameter(name="start_date", in="query", @OA\Schema(type="string", format="date")),
      *     @OA\Parameter(name="end_date", in="query", @OA\Schema(type="string", format="date")),
      *     @OA\Response(response=200, description="Hoardings fetched"),
-     *     @OA\Response(response=500, description="Failed to search hoardings")
+     *     @OA\Response(response=500, description="Failed")
      * )
      */
     public function searchHoardings(Request $request): JsonResponse
     {
         try {
-            $search = $request->get('search');
+            $vendorId  = $this->resolveEffectiveVendorId($request);
+            $search    = $request->get('search');
             $startDate = $request->get('start_date');
-            $endDate = $request->get('end_date');
-
+            $endDate   = $request->get('end_date');
+ 
             $query = Hoarding::query()
-                ->where('vendor_id', Auth::id())
-                ->where('status', 'approved');
-
+                ->where('vendor_id', $vendorId)
+                ->where('status', 'active');
+ 
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
-                        ->orWhere('location_address', 'like', "%{$search}%")
-                        ->orWhere('location_city', 'like', "%{$search}%");
+                        ->orWhere('address', 'like', "%{$search}%")
+                        ->orWhere('city', 'like', "%{$search}%");
                 });
             }
-
-            // Check availability if dates provided
+ 
             if ($startDate && $endDate) {
                 $query->whereDoesntHave('bookings', function ($q) use ($startDate, $endDate) {
-                    $q->where(function ($query) use ($startDate, $endDate) {
-                        $query->whereBetween('start_date', [$startDate, $endDate])
+                    $q->where(function ($inner) use ($startDate, $endDate) {
+                        $inner->whereBetween('start_date', [$startDate, $endDate])
                             ->orWhereBetween('end_date', [$startDate, $endDate])
-                            ->orWhere(function ($q) use ($startDate, $endDate) {
-                                $q->where('start_date', '<=', $startDate)
+                            ->orWhere(function ($overlap) use ($startDate, $endDate) {
+                                $overlap->where('start_date', '<=', $startDate)
                                     ->where('end_date', '>=', $endDate);
                             });
-                    })
-                        ->whereIn('status', ['confirmed', 'payment_hold']);
+                    })->whereIn('status', ['confirmed', 'payment_hold']);
                 });
             }
-
+ 
             $hoardings = $query->select([
-                'id',
-                'title',
-                'location_address',
-                'location_city',
-                'location_state',
-                'size',
-                'type',
-                'price_per_month',
-                'price_per_sqft'
+                'id', 'title', 'address', 'city', 'state',
+                'hoarding_type', 'category', 'base_monthly_price', 'monthly_price',
             ])->paginate(20);
-            return response()->json([
-                'success' => true,
-                'data' => $hoardings,
-            ]);
+ 
+            return response()->json(['success' => true, 'data' => $hoardings]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to search hoardings',
-                'error' => $e->getMessage(),
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to search hoardings', 'error' => $e->getMessage()], 500);
         }
     }
 
