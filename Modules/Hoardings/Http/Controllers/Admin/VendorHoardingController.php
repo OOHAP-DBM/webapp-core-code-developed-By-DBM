@@ -91,25 +91,36 @@ class VendorHoardingController extends Controller
     // }
     public function index(Request $request): View
     {
-        $perPage = 10;
+        $validated = $request->validate([
+            'status' => 'nullable|in:active,pending_approval,inactive,draft,suspended',
+            'type' => 'nullable|in:ooh,dooh',
+            'search' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'per_page' => 'nullable|in:10,50,100,200,500',
+        ]);
+
+        $perPage = (int) ($validated['per_page'] ?? 10);
 
         // Build query with filters
         $query = Hoarding::whereNotNull('vendor_id')
+            ->whereHas('vendor.roles', function ($roleQuery) {
+                $roleQuery->where('name', 'vendor');
+            })
             ->with([
                 'vendor:id,name'
             ])
             ->withCount('bookings');
         // Apply filters
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        if (!empty($validated['status'])) {
+            $query->where('status', $validated['status']);
         }
 
-        if ($request->filled('type')) {
-            $query->where('hoarding_type', $request->type);
+        if (!empty($validated['type'])) {
+            $query->where('hoarding_type', $validated['type']);
         }
 
-        if ($request->filled('search')) {
-            $search = $request->search;
+        if (!empty($validated['search'])) {
+            $search = $validated['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'LIKE', "%{$search}%")
                     ->orWhere('address', 'LIKE', "%{$search}%")
@@ -117,11 +128,11 @@ class VendorHoardingController extends Controller
             });
         }
 
-        if ($request->filled('city')) {
-            $query->where('city', 'LIKE', "%{$request->city}%");
+        if (!empty($validated['city'])) {
+            $query->where('city', 'LIKE', "%{$validated['city']}%");
         }
 
-        $hoardings = $query->orderBy('id', 'desc')->paginate($perPage);
+        $hoardings = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
 
         $completionService = app(\App\Services\HoardingCompletionService::class);
         $hoardings->getCollection()->transform(function ($h) use ($completionService) {
