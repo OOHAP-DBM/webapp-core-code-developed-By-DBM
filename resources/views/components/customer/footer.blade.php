@@ -57,7 +57,7 @@
                     </div>
                     <div>
                         <p class="font-semibold mb-1">Email Us</p>
-                        <a href="mailto:enquiry@oohapp.io" class="text-gray-600 hover:text-gray-900">info&#64;oohapp&#46;io</a>
+                        <a href="mailto:enquiry@oohapp.io" class="text-gray-600 hover:text-gray-900">enquiry&#64;oohapp&#46;io</a>
                     </div>
                 </div>
                 <div class="">
