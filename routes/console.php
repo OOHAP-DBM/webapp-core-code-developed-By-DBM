@@ -13,7 +13,9 @@ use Modules\POS\Models\POSBooking;
 // ============================================
 // Scheduled Tasks
 // ============================================
-
+Schedule::command('queue:work --stop-when-empty')
+    ->everyMinute()
+    ->withoutOverlapping();
 // Capture expired payment holds every 5 minutes
 Schedule::job(new CaptureExpiredHoldsJob())
     ->everyFiveMinutes()
