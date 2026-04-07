@@ -85,7 +85,7 @@
             "height": 512
           },
           "telephone": "+91 8118805835",
-          "email": "info@oohapp.io",
+          "email": "enquiry@oohapp.io",
           "foundingDate": "2022",
           "areaServed": { "@type": "Country", "name": "India" }
         },
@@ -97,7 +97,7 @@
           "url": "https://oohapp.io/",
           "image": { "@type": "ImageObject", "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png" },
           "telephone": "+91 8118805835",
-          "email": "info@oohapp.io",
+          "email": "enquiry@oohapp.io",
           "priceRange": "INR"
         },
         {
