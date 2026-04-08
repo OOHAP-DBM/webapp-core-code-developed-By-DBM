@@ -6,12 +6,11 @@
     @include('components.customer.navbar')
 
     <!-- Hero Banner -->
-    @include('components.customer.hero-banner')
     <!-- Search Section -->
     {{-- @include('components.customer.search-bar') --}}
 
     <!-- Best Hoardings Section -->
-    <section class="py-6 bg-gray-50">
+    <section id="best-hoardings-section" class="py-6 bg-gray-50 mt-[170px]">
         <div class="container mx-auto px-4">
             <!-- Section Header -->
             <div class="mb-3">
@@ -103,7 +102,7 @@
     @endguest
     @include('home.home_contact_enquiry')
     <!-- Featured Categories -->
-    <section class="py-6 bg-white">
+    <section id="top-spots-section" class="py-6 bg-white">
         <div class="container mx-auto px-4">
             <div class=" mb-6">
                 <!-- <h2 class="text-lg md:text-4xl font-bold text-gray-900 mb-3">Top Spots</h2> -->

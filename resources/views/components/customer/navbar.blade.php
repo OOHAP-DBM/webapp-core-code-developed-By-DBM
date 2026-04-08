@@ -1,14 +1,9 @@
-<header class="bg-white border-b border-gray-100 fixed top-0 left-0 w-full z-50">
+<header class="bg-[#FBFBFB] border-b border-gray-100 fixed top-0 left-0 w-full z-50 h-43">
     <div class="container mx-auto px-4 lg:px-6">
-        <div class="flex items-center justify-between h-16 gap-4 ">
+        <div class="flex items-center justify-between  gap-4 ">
 
             <!-- Mobile Menu Button (LEFT) + Logo -->
             <div class="flex items-center gap-3">
-                <button type="button" class="md:hidden text-gray-700" onclick="toggleMobileMenu()">
-                    <svg class="w-6 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
                 <!-- Logo -->
                 <div class="flex items-center flex-shrink-0">
                     <!-- Logo -->
@@ -27,16 +22,16 @@
 
             <!-- Search Bar (Desktop & Tablet only) -->
            @if(!isset($hideSearch) || !$hideSearch)
-<div class="hidden md:flex flex-1 justify-center px-6">
-    @include('components.customer.home-search')
-</div>
-@endif
+            <div class="hidden md:flex flex-1 justify-center px-6">
+                @include('components.customer.home-search')
+            </div>
+            @endif
 
             <!-- Right Side Icons: User, Bookmark, Cart -->
             <div class="flex items-center space-x-4 lg:space-x-5">
 
                 <!-- USER ICON with Dropdown -->
-                <div class="relative inline-block" id="userDropdownWrapper">
+                <!-- <div class="relative inline-block" id="userDropdownWrapper">
                     <a href="javascript:void(0)"
                         id="userDropdownBtn"
                         class="text-gray-400 hover:text-gray-600 transition-colors"
@@ -46,7 +41,7 @@
                         </svg>
                     </a>
 
-                    <!-- DROPDOWN -->
+                    
                     <div id="userDropdown"
                         class="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-50">
 
@@ -111,17 +106,50 @@
                             @endauth
                         </div>
                     </div>
-                </div>
+                </div> -->
 
-                <!-- Bookmark / Wishlist Icon -->
+                
+
+             
+
+                <!-- Cart Icon -->
+                <a href="javascript:void(0)"
+                    onclick="openCart(event)"
+                    data-auth="{{ auth()->check() ? '1' : '0' }}"
+                    class="relative inline-block text-gray-400 hover:text-gray-600" title="Cart">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M9.00001 2.0625C8.55245 2.0625 8.12323 2.24029 7.80676 2.55676C7.4903 2.87322 7.31251 3.30245 7.31251 3.75V3.945C7.73026 3.9375 8.18851 3.9375 8.69251 3.9375H9.30826C9.81076 3.9375 10.2698 3.9375 10.6883 3.945V3.75C10.6883 3.52833 10.6446 3.30883 10.5597 3.10405C10.4749 2.89926 10.3505 2.7132 10.1937 2.55649C10.037 2.39978 9.85084 2.2755 9.64602 2.19074C9.44119 2.10598 9.22168 2.0624 9.00001 2.0625ZM11.8125 3.996V3.75C11.8125 3.00408 11.5162 2.28871 10.9887 1.76126C10.4613 1.23382 9.74593 0.9375 9.00001 0.9375C8.25409 0.9375 7.53872 1.23382 7.01127 1.76126C6.48382 2.28871 6.18751 3.00408 6.18751 3.75V3.996C6.08051 4.005 5.97701 4.01575 5.87701 4.02825C5.11951 4.122 4.49551 4.3185 3.96451 4.75875C3.43351 5.199 3.12601 5.7765 2.89501 6.504C2.67001 7.209 2.50051 8.11425 2.28751 9.2535L2.27176 9.336C1.97026 10.9432 1.73326 12.21 1.68901 13.2083C1.64401 14.232 1.79701 15.0795 2.37451 15.7748C2.95201 16.4708 3.75676 16.7768 4.77076 16.9215C5.76076 17.0625 7.04851 17.0625 8.68426 17.0625H9.31801C10.953 17.0625 12.2415 17.0625 13.2308 16.9215C14.2448 16.7768 15.0503 16.4708 15.6278 15.7748C16.2053 15.0788 16.3568 14.232 16.3125 13.2083C16.269 12.21 16.0313 10.9432 15.7298 9.336L15.7148 9.2535C15.501 8.11425 15.3308 7.20825 15.1073 6.504C14.8748 5.7765 14.5673 5.199 14.0363 4.75875C13.506 4.3185 12.8813 4.12125 12.1238 4.02825C12.0205 4.01554 11.917 4.00479 11.8133 3.996M6.01501 5.145C5.37376 5.22375 4.98601 5.373 4.68301 5.625C4.38076 5.8755 4.16251 6.22875 3.96601 6.84525C3.76576 7.47525 3.60751 8.31375 3.38551 9.498C3.07351 11.1607 2.85226 12.348 2.81251 13.2577C2.77351 14.1503 2.91751 14.6678 3.23926 15.057C3.56176 15.4447 4.04401 15.681 4.92901 15.807C5.82901 15.936 7.03801 15.9375 8.73001 15.9375H9.27001C10.9628 15.9375 12.1703 15.936 13.071 15.8077C13.956 15.681 14.4383 15.4447 14.7608 15.057C15.0833 14.6685 15.2265 14.151 15.1883 13.257C15.1478 12.3488 14.9265 11.1607 14.6145 9.498C14.3925 8.313 14.235 7.476 14.034 6.84525C13.8375 6.22875 13.62 5.8755 13.317 5.62425C13.014 5.373 12.627 5.22375 11.985 5.14425C11.328 5.06325 10.4753 5.0625 9.27001 5.0625H8.73001C7.52476 5.0625 6.67201 5.06325 6.01501 5.145Z" fill="black"/>
+                    </svg>
+
+
+                    @php
+                        // Logged in → DB se count
+                        // Guest → 0 rakho, JS LocalStorage se update karega
+                        $cartCount = auth()->check()
+                            ? \Illuminate\Support\Facades\DB::table('carts')
+                                ->join('hoardings', 'hoardings.id', '=', 'carts.hoarding_id')
+                                ->where('carts.user_id', auth()->id())
+                                ->whereNull('hoardings.deleted_at')
+                                ->count()
+                            : 0;
+                    @endphp
+
+                    {{-- Logged in ke liye DB count, guest ke liye JS update karega --}}
+                    <span class="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 items-center justify-center cart-count {{ $cartCount > 0 ? 'flex' : 'hidden' }}">
+                        {{ $cartCount }}
+                    </span>
+                </a>
+
+                   <!-- Bookmark / Wishlist Icon -->
                 <a href="javascript:void(0)"
                     onclick="openWishlist(event)"
                     class="relative inline-block text-gray-400 hover:text-gray-600"
                     data-auth="{{ auth()->check() ? '1' : '0' }}"
                     title="Wishlist">
-                    <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5.5 0.75C2.877 0.75 0.75 3.01 0.75 5.797C0.75 11.375 9.75 17.75 9.75 17.75C9.75 17.75 18.75 11.375 18.75 5.797C18.75 2.344 16.623 0.75 14 0.75C12.14 0.75 10.53 1.886 9.75 3.54C8.97 1.886 7.36 0.75 5.5 0.75Z" stroke="#6E6E6E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                     <path fill-rule="evenodd" clip-rule="evenodd" d="M9.00001 2.0625C8.55245 2.0625 8.12323 2.24029 7.80676 2.55676C7.4903 2.87322 7.31251 3.30245 7.31251 3.75V3.945C7.73026 3.9375 8.18851 3.9375 8.69251 3.9375H9.30826C9.81076 3.9375 10.2698 3.9375 10.6883 3.945V3.75C10.6883 3.52833 10.6446 3.30883 10.5597 3.10405C10.4749 2.89926 10.3505 2.7132 10.1937 2.55649C10.037 2.39978 9.85084 2.2755 9.64602 2.19074C9.44119 2.10598 9.22168 2.0624 9.00001 2.0625ZM11.8125 3.996V3.75C11.8125 3.00408 11.5162 2.28871 10.9887 1.76126C10.4613 1.23382 9.74593 0.9375 9.00001 0.9375C8.25409 0.9375 7.53872 1.23382 7.01127 1.76126C6.48382 2.28871 6.18751 3.00408 6.18751 3.75V3.996C6.08051 4.005 5.97701 4.01575 5.87701 4.02825C5.11951 4.122 4.49551 4.3185 3.96451 4.75875C3.43351 5.199 3.12601 5.7765 2.89501 6.504C2.67001 7.209 2.50051 8.11425 2.28751 9.2535L2.27176 9.336C1.97026 10.9432 1.73326 12.21 1.68901 13.2083C1.64401 14.232 1.79701 15.0795 2.37451 15.7748C2.95201 16.4708 3.75676 16.7768 4.77076 16.9215C5.76076 17.0625 7.04851 17.0625 8.68426 17.0625H9.31801C10.953 17.0625 12.2415 17.0625 13.2308 16.9215C14.2448 16.7768 15.0503 16.4708 15.6278 15.7748C16.2053 15.0788 16.3568 14.232 16.3125 13.2083C16.269 12.21 16.0313 10.9432 15.7298 9.336L15.7148 9.2535C15.501 8.11425 15.3308 7.20825 15.1073 6.504C14.8748 5.7765 14.5673 5.199 14.0363 4.75875C13.506 4.3185 12.8813 4.12125 12.1238 4.02825C12.0205 4.01554 11.917 4.00479 11.8133 3.996M6.01501 5.145C5.37376 5.22375 4.98601 5.373 4.68301 5.625C4.38076 5.8755 4.16251 6.22875 3.96601 6.84525C3.76576 7.47525 3.60751 8.31375 3.38551 9.498C3.07351 11.1607 2.85226 12.348 2.81251 13.2577C2.77351 14.1503 2.91751 14.6678 3.23926 15.057C3.56176 15.4447 4.04401 15.681 4.92901 15.807C5.82901 15.936 7.03801 15.9375 8.73001 15.9375H9.27001C10.9628 15.9375 12.1703 15.936 13.071 15.8077C13.956 15.681 14.4383 15.4447 14.7608 15.057C15.0833 14.6685 15.2265 14.151 15.1883 13.257C15.1478 12.3488 14.9265 11.1607 14.6145 9.498C14.3925 8.313 14.235 7.476 14.034 6.84525C13.8375 6.22875 13.62 5.8755 13.317 5.62425C13.014 5.373 12.627 5.22375 11.985 5.14425C11.328 5.06325 10.4753 5.0625 9.27001 5.0625H8.73001C7.52476 5.0625 6.67201 5.06325 6.01501 5.145Z" fill="black"/>
                     </svg>
+
 
                     @php
                         // Logged in → DB se count
@@ -137,32 +165,11 @@
                     </span>
                 </a>
 
-                <!-- Cart Icon -->
-                <a href="javascript:void(0)"
-                    onclick="openCart(event)"
-                    data-auth="{{ auth()->check() ? '1' : '0' }}"
-                    class="relative inline-block text-gray-400 hover:text-gray-600" title="Cart">
-                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.75C11.4033 2.75 10.831 2.98705 10.409 3.40901C9.98706 3.83097 9.75001 4.40326 9.75001 5V5.26C10.307 5.25 10.918 5.25 11.59 5.25H12.411C13.081 5.25 13.693 5.25 14.251 5.26V5C14.251 4.70444 14.1928 4.41178 14.0796 4.13873C13.9665 3.86568 13.8007 3.6176 13.5916 3.40866C13.3826 3.19971 13.1345 3.034 12.8614 2.92098C12.5883 2.80797 12.2956 2.74987 12 2.75ZM15.75 5.328V5C15.75 4.00544 15.3549 3.05161 14.6517 2.34835C13.9484 1.64509 12.9946 1.25 12 1.25C11.0054 1.25 10.0516 1.64509 9.34836 2.34835C8.6451 3.05161 8.25001 4.00544 8.25001 5V5.328C8.10734 5.34 7.96934 5.35433 7.83601 5.371C6.82601 5.496 5.99401 5.758 5.28601 6.345C4.57801 6.932 4.16801 7.702 3.86001 8.672C3.56001 9.612 3.33401 10.819 3.05001 12.338L3.02901 12.448C2.62701 14.591 2.31101 16.28 2.25201 17.611C2.19201 18.976 2.39601 20.106 3.16601 21.033C3.93601 21.961 5.00901 22.369 6.36101 22.562C7.68101 22.75 9.39801 22.75 11.579 22.75H12.424C14.604 22.75 16.322 22.75 17.641 22.562C18.993 22.369 20.067 21.961 20.837 21.033C21.607 20.105 21.809 18.976 21.75 17.611C21.692 16.28 21.375 14.591 20.973 12.448L20.953 12.338C20.668 10.819 20.441 9.611 20.143 8.672C19.833 7.702 19.423 6.932 18.715 6.345C18.008 5.758 17.175 5.495 16.165 5.371C16.0273 5.35406 15.8893 5.33972 15.751 5.328M8.02001 6.86C7.16501 6.965 6.64801 7.164 6.24401 7.5C5.84101 7.834 5.55001 8.305 5.28801 9.127C5.02101 9.967 4.81001 11.085 4.51401 12.664C4.09801 14.881 3.80301 16.464 3.75001 17.677C3.69801 18.867 3.89001 19.557 4.31901 20.076C4.74901 20.593 5.39201 20.908 6.57201 21.076C7.77201 21.248 9.38401 21.25 11.64 21.25H12.36C14.617 21.25 16.227 21.248 17.428 21.077C18.608 20.908 19.251 20.593 19.681 20.076C20.111 19.558 20.302 18.868 20.251 17.676C20.197 16.465 19.902 14.881 19.486 12.664C19.19 11.084 18.98 9.968 18.712 9.127C18.45 8.305 18.16 7.834 17.756 7.499C17.352 7.164 16.836 6.965 15.98 6.859C15.104 6.751 13.967 6.75 12.36 6.75H11.64C10.033 6.75 8.89601 6.751 8.02001 6.86Z" fill="#6E6E6E"/>
+                <button type="button" class="text-gray-700" onclick="toggleMobileMenu()">
+                    <svg class="w-6 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
-
-                    @php
-                        // Logged in → DB se count
-                        // Guest → 0 rakho, JS LocalStorage se update karega
-                        $cartCount = auth()->check()
-                            ? \Illuminate\Support\Facades\DB::table('carts')
-                                ->join('hoardings', 'hoardings.id', '=', 'carts.hoarding_id')
-                                ->where('carts.user_id', auth()->id())
-                                ->whereNull('hoardings.deleted_at')
-                                ->count()
-                            : 0;
-                    @endphp
-
-                    {{-- Logged in ke liye DB count, guest ke liye JS update karega --}}
-                    <span class="absolute -top-1.5 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 items-center justify-center cart-count {{ $cartCount > 0 ? 'flex' : 'hidden' }}">
-                        {{ $cartCount }}
-                    </span>
-                </a>
+                </button>
 
             </div>
         </div>
@@ -196,7 +203,7 @@
                     z-50 md:hidden">
 
             <!-- HEADER -->
-            <div class="flex items-center justify-between px-5  border-b border-gray-200">
+            <div class="flex items-center justify-between px-5   border-gray-200">
                  <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
                         <x-optimized-image
                             :src="route('brand.oohapp-logo')"
@@ -207,11 +214,11 @@
                             style="max-height:48px;object-fit:contain;"
                         />
                     </a>
-                <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-gray-700 transition">
+                <!-- <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-gray-700 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                </button>
+                </button> -->
             </div>
 
             <!-- MENU LINKS -->

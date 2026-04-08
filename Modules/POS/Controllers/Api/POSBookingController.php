@@ -1167,7 +1167,11 @@ class POSBookingController extends Controller
             $startDate = $request->get('start_date');
             $endDate   = $request->get('end_date');
  
-            $query = Hoarding::query()
+           $query = Hoarding::query()
+                ->with([
+                    'hoardingMedia',
+                    'doohScreen.media'
+                ])
                 ->where('vendor_id', $vendorId)
                 ->where('status', 'active');
  
@@ -1196,6 +1200,24 @@ class POSBookingController extends Controller
                 'id', 'title', 'address', 'city', 'state',
                 'hoarding_type', 'category', 'base_monthly_price', 'monthly_price',
             ])->paginate(20);
+
+            $hoardings->getCollection()->transform(function ($hoarding) {
+            return [
+                'id' => $hoarding->id,
+                'title' => $hoarding->title,
+                'address' => $hoarding->address,
+                'city' => $hoarding->city,
+                'state' => $hoarding->state,
+                'hoarding_type' => $hoarding->hoarding_type,
+                'category' => $hoarding->category,
+                'base_monthly_price' => $hoarding->base_monthly_price,
+                'monthly_price' => $hoarding->monthly_price,
+              
+                // ✅ IMAGE (BEST)
+                'image_url' => $hoarding->heroImage(),
+               
+            ];
+        });
  
             return response()->json(['success' => true, 'data' => $hoardings]);
         } catch (\Exception $e) {
