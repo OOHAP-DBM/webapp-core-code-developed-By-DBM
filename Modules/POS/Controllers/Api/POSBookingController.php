@@ -513,176 +513,128 @@ class POSBookingController extends Controller
      * ========================================================= */
  
     /**
-     * @OA\Post(
-     *     path="/pos/vendor/bookings",
-     *     operationId="posCreateBooking",
-     *     tags={"POS Bookings"},
-     *     summary="Create a new POS booking",
-     *     description="Creates a POS booking for one or more hoardings. Supports per-hoarding date ranges, milestone-based payment schedules, and multiple payment modes including credit note. Automatically checks hoarding availability, calculates GST, sets a payment hold timer, and dispatches WhatsApp notifications.",
-     *     security={{"sanctum":{}}},
-     *
-     *     @OA\RequestBody(
-     *         required=true,
-     *         description="Booking creation payload. Either `hoarding_ids` (comma-separated string or array) or `hoarding_items` (array with per-hoarding detail) must be provided.",
-     *         @OA\JsonContent(
-     *             required={"customer_name", "customer_phone", "start_date", "end_date", "base_amount", "payment_mode"},
-     *
-     *             @OA\Property(
-     *                 property="hoarding_ids",
-     *                 description="IDs of hoardings to book. Can be a comma-separated string ('1,2,3') or a JSON array ([1,2,3]). Required unless hoarding_items is supplied.",
-     *                 oneOf={
-     *                     @OA\Schema(type="string", example="12,15,22"),
-     *                     @OA\Schema(type="array", @OA\Items(type="integer"), example={12,15,22})
-     *                 }
-     *             ),
-     *
-     *             @OA\Property(
-     *                 property="hoarding_items",
-     *                 type="array",
-     *                 description="Per-hoarding detail array. When supplied, each hoarding can have its own date range and monthly price. Values here override the global start_date / end_date for that hoarding.",
-     *                 @OA\Items(
-     *                     type="object",
-     *                     required={"hoarding_id", "start_date", "end_date"},
-     *                     @OA\Property(property="hoarding_id",         type="integer", example=12,          description="ID of the hoarding (must be in hoarding_ids)."),
-     *                     @OA\Property(property="start_date",          type="string",  format="date", example="2025-06-01", description="Campaign start date for this hoarding."),
-     *                     @OA\Property(property="end_date",            type="string",  format="date", example="2025-08-31", description="Campaign end date for this hoarding (must be >= start_date)."),
-     *                     @OA\Property(property="price_per_month",     type="number",  format="float", example=15000.00, description="Override monthly price for this hoarding. Falls back to the hoarding's stored monthly_price if omitted."),
-     *                     @OA\Property(property="type",                type="string",  example="ooh",   description="Hoarding type hint (ooh / dooh). Informational only."),
-     *                     @OA\Property(property="total_slots_per_day", type="integer", example=300,     description="For DOOH only: number of ad slots per day on this screen.")
-     *                 )
-     *             ),
-     *
-     *             @OA\Property(property="customer_id",      type="integer", nullable=true, example=42,                    description="ID of an existing registered user (customer role). When provided, customer_name / phone / email are pulled from the user record if not supplied."),
-     *             @OA\Property(property="customer_name",    type="string",  maxLength=255, example="Rajesh Kumar",        description="Customer display name. Defaults to 'Walk-in Customer' if omitted."),
-     *             @OA\Property(property="customer_phone",   type="string",  maxLength=20,  example="9876543210",          description="Customer mobile number (10-digit Indian number without country code). Defaults to 'N/A' if omitted. Used for WhatsApp notifications."),
-     *             @OA\Property(property="customer_email",   type="string",  format="email", nullable=true, example="rajesh@example.com", description="Customer email address. Used for email notifications."),
-     *             @OA\Property(property="customer_address", type="string",  nullable=true, maxLength=500, example="123, MG Road, Bangalore", description="Customer billing / correspondence address."),
-     *             @OA\Property(property="customer_gstin",   type="string",  nullable=true, maxLength=15,  example="29ABCDE1234F1Z5",         description="Customer GST Identification Number (GSTIN). Printed on the invoice."),
-     *
-     *             @OA\Property(property="booking_type", type="string", enum={"ooh","dooh"}, example="ooh", description="Booking category. 'ooh' = Out-of-Home (static billboards, hoardings). 'dooh' = Digital Out-of-Home (LED / digital screens). Defaults to 'ooh'."),
-     *
-     *             @OA\Property(property="start_date", type="string", format="date", example="2025-06-01", description="Global campaign start date (YYYY-MM-DD). Used as the fallback start date for hoardings not listed in hoarding_items."),
-     *             @OA\Property(property="end_date",   type="string", format="date", example="2025-08-31", description="Global campaign end date (YYYY-MM-DD). Must be >= start_date. Used as the fallback end date for hoardings not listed in hoarding_items."),
-     *
-     *             @OA\Property(property="base_amount",     type="number", format="float", example=90000.00, description="Total base amount (sum of all hoarding charges, before discount and GST). Must be >= 0."),
-     *             @OA\Property(property="discount_amount", type="number", format="float", nullable=true, example=5000.00, description="Flat discount to apply on the base amount. Must be >= 0 and <= base_amount. Distributed proportionally across hoardings. Defaults to 0."),
-     *
-     *             @OA\Property(
-     *                 property="payment_mode",
-     *                 type="string",
-     *                 enum={"cash", "credit_note", "bank_transfer", "cheque", "online"},
-     *                 example="bank_transfer",
-     *                 description="Payment method selected for this booking. 'credit_note' auto-confirms the booking and generates a credit note with a due date. All other modes place the booking in 'pending_payment' state until payment is received."
-     *             ),
-     *             @OA\Property(property="payment_reference", type="string", nullable=true, maxLength=255, example="UTR123456789",       description="Payment transaction reference (UTR, cheque number, etc.). Stored for audit."),
-     *             @OA\Property(property="payment_notes",     type="string", nullable=true, maxLength=500, example="Advance payment",    description="Free-text notes about the payment."),
-     *             @OA\Property(property="notes",             type="string", nullable=true, maxLength=1000, example="Preferred morning slot", description="General booking notes visible to vendor and admin."),
-     *
-     *             @OA\Property(property="payment_details_type", type="string", nullable=true, enum={"bank_transfer","online","credit_note"}, description="Hint for which vendor payment detail record to attach to the WhatsApp message (bank / UPI / credit note). Purely informational; does not affect booking logic."),
-     *
-     *             @OA\Property(
-     *                 property="hold_minutes",
-     *                 type="integer",
-     *                 nullable=true,
-     *                 minimum=0,
-     *                 example=60,
-     *                 description="Number of minutes to hold the hoarding(s) while awaiting payment. After this period the booking is auto-cancelled and the hoarding is released. Set to 0 for no time limit. Defaults to 30. Ignored for credit_note bookings (no hold timer)."
-     *             ),
-     *
-     *             @OA\Property(property="is_milestone", type="boolean", example=true, description="Set to true to enable milestone-based payment schedule. When true, milestone_data is required."),
-     *
-     *             @OA\Property(
-     *                 property="milestone_data",
-     *                 type="array",
-     *                 description="Required when is_milestone=true. Defines the instalment schedule. All milestone amounts must sum to 100% (for percentage type) or exactly equal total_amount (for fixed type). The first milestone is automatically set to 'due'; subsequent ones start as 'pending'.",
-     *                 @OA\Items(
-     *                     type="object",
-     *                     required={"title", "amount_type", "amount"},
-     *                     @OA\Property(property="title",        type="string",  maxLength=100, example="Advance",             description="Label for this milestone, e.g. 'Advance', 'Mid-campaign', 'Final'."),
-     *                     @OA\Property(property="amount_type",  type="string",  enum={"percentage","fixed"}, example="percentage", description="Whether amount is a percentage of total_amount or a fixed rupee value."),
-     *                     @OA\Property(property="amount",       type="number",  format="float", minimum=0.01, example=30,   description="Amount value. If amount_type='percentage', this is the % (e.g. 30 = 30%). If 'fixed', this is the rupee amount."),
-     *                     @OA\Property(property="due_date",     type="string",  format="date", nullable=true, example="2025-06-01", description="Expected payment date for this milestone."),
-     *                     @OA\Property(property="vendor_notes", type="string",  nullable=true, maxLength=500, example="Include GST receipt", description="Internal notes from the vendor about this milestone.")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=201,
-     *         description="Booking created successfully.",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string",  example="POS booking created successfully"),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="id",             type="integer", example=101,                        description="Newly created POS booking ID."),
-     *                 @OA\Property(property="invoice_number", type="string",  example="INV-2025-1042",             description="Auto-generated invoice number (null if auto-invoice is disabled in settings)."),
-     *                 @OA\Property(property="total_amount",   type="number",  format="float", example=99940.00,   description="Final payable amount after discount and GST."),
-     *                 @OA\Property(property="hoarding_count", type="integer", example=2,                          description="Number of hoardings attached to this booking."),
-     *                 @OA\Property(property="hold_expiry_at", type="string",  format="date-time", nullable=true, example="2025-05-10T11:30:00.000000Z", description="UTC timestamp when the payment hold expires and the booking is auto-cancelled. Null if hold_minutes=0 or payment_mode=credit_note."),
-     *                 @OA\Property(property="hold_minutes",   type="integer", example=60,                         description="Hold duration that was applied.")
-     *             )
-     *         )
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation failed or one/more hoardings are unavailable for the requested dates.",
-     *         @OA\JsonContent(
-     *             oneOf={
-     *                 @OA\Schema(
-     *                     description="Laravel validation error",
-     *                     @OA\Property(property="success", type="boolean", example=false),
-     *                     @OA\Property(property="message", type="string",  example="Validation failed"),
-     *                     @OA\Property(
-     *                         property="errors",
-     *                         type="object",
-     *                         description="Field-level validation errors.",
-     *                         example={"start_date":{"The start date field is required."},"payment_mode":{"The selected payment mode is invalid."}}
-     *                     )
-     *                 ),
-     *                 @OA\Schema(
-     *                     description="Hoarding availability conflict",
-     *                     @OA\Property(property="success", type="boolean", example=false),
-     *                     @OA\Property(property="message", type="string",  example="One or more selected hoardings are not available for the specified dates"),
-     *                     @OA\Property(
-     *                         property="unavailable_hoardings",
-     *                         type="array",
-     *                         @OA\Items(
-     *                             type="object",
-     *                             @OA\Property(property="hoarding_id",   type="integer", example=12),
-     *                             @OA\Property(property="hoarding_name", type="string",  example="MG Road Billboard"),
-     *                             @OA\Property(property="reasons",       type="array",   @OA\Items(type="string"), example={"booked","hold"})
-     *                         )
-     *                     ),
-     *                     @OA\Property(property="details", type="string", example="MG Road Billboard: already booked for some dates, on payment hold for some dates.")
-     *                 )
-     *             }
-     *         )
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=403,
-     *         description="One or more hoarding IDs do not belong to the authenticated vendor.",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string",  example="One or more hoardings not found or do not belong to you")
-     *         )
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=500,
-     *         description="Unexpected server error while creating the booking.",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string",  example="Failed to create booking"),
-     *             @OA\Property(property="error",   type="string",  example="SQLSTATE[23000]: Integrity constraint violation ...")
-     *         )
-     *     )
-     * )
-     */
+ * @OA\Post(
+ *     path="/pos/vendor/bookings",
+ *     operationId="posCreateBooking",
+ *     tags={"POS Bookings"},
+ *     summary="Create a new POS booking",
+ *     description="Creates a POS booking for one or more hoardings. Supports per-hoarding date ranges via hoarding_items (recommended). Global start_date/end_date act as fallback only. Handles milestone payments, GST calculation, payment modes (bank/UPI/credit note), and vendor payment selection.",
+ *     security={{"sanctum":{}}},
+ *
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\MediaType(
+ *             mediaType="multipart/form-data",
+ *             @OA\Schema(
+ *                 required={"hoarding_ids", "base_amount", "payment_mode"},
+ *
+ *                 @OA\Property(
+ *                     property="hoarding_ids",
+ *                     type="string",
+ *                     example="12,15,22",
+ *                     description="Comma-separated IDs. Either hoarding_ids or hoarding_items is required."
+ *                 ),
+
+ *
+ *                 @OA\Property(
+ *                     property="hoarding_items",
+ *                     type="array",
+ *                     description="Recommended: per-hoarding configuration with individual date ranges.",
+ *                     @OA\Items(
+ *                         type="object",
+ *                         required={"hoarding_id", "start_date", "end_date"},
+ *                         @OA\Property(property="hoarding_id", type="integer", example=12),
+ *                         @OA\Property(property="start_date", type="string", format="date", example="2025-06-01"),
+ *                         @OA\Property(property="end_date", type="string", format="date", example="2025-08-31"),
+ *                         @OA\Property(property="price_per_month", type="number", format="float", example=15000),
+ *                         @OA\Property(property="type", type="string", example="ooh"),
+ *                         @OA\Property(property="total_slots_per_day", type="integer", example=300)
+ *                     )
+ *                 ),
+ *
+ *                 @OA\Property(property="start_date", type="string", format="date", nullable=true, example="2025-06-01", description="Fallback start date (used only if hoarding_items not provided)."),
+ *                 @OA\Property(property="end_date", type="string", format="date", nullable=true, example="2025-08-31", description="Fallback end date."),
+ *
+ *                 @OA\Property(property="customer_id", type="integer", nullable=true, example=42),
+ *
+ *                 @OA\Property(property="booking_type", type="string", enum={"ooh","dooh"}, example="ooh"),
+ *
+ *                 @OA\Property(property="base_amount", type="number", format="float", example=90000),
+ *                 @OA\Property(property="discount_amount", type="number", format="float", example=5000),
+ *
+ *                 @OA\Property(
+ *                     property="payment_mode",
+ *                     type="string",
+ *                     enum={"cash","credit_note","bank_transfer","cheque","online"},
+ *                     example="bank_transfer"
+ *                 ),
+ *
+ *                 @OA\Property(
+ *                     property="payment_detail_id",
+ *                     type="integer",
+ *                     nullable=true,
+ *                     example=5,
+ *                     description="Required if payment_mode is bank_transfer or online. Refers to vendor_payment_details table."
+ *                 ),
+ *
+ *                 @OA\Property(property="payment_reference", type="string", example="UTR123456"),
+ *                 @OA\Property(property="payment_notes", type="string"),
+ *                 @OA\Property(property="notes", type="string"),
+ *
+ *                 @OA\Property(property="hold_minutes", type="integer", example=30),
+ *
+ *                  @OA\Property(
+ *                     property="is_milestone",
+ *                     type="integer",
+ *                     enum={0,1},
+ *                     example=1,
+ *                     description="Send 1 or 0 (multipart does not support true/false properly)"
+ *                 ),
+ *
+ *                 @OA\Property(
+ *                     property="milestone_data",
+ *                     type="array",
+ *                     description="Required if is_milestone=true",
+ *                     @OA\Items(
+ *                         type="object",
+ *                         @OA\Property(property="title", type="string", example="Advance"),
+ *                         @OA\Property(property="amount_type", type="string", enum={"percentage","fixed"}, example="percentage"),
+ *                         @OA\Property(property="amount", type="number", example=30),
+ *                         @OA\Property(property="due_date", type="string", format="date"),
+ *                         @OA\Property(property="vendor_notes", type="string")
+ *                     )
+ *                 ),
+ *
+ *                 @OA\Property(
+ *                     property="po_file",
+ *                     type="string",
+ *                     format="binary",
+ *                     description="Upload PO file (pdf, jpg, png, doc, docx). Max 10MB."
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *
+ *     @OA\Response(
+ *         response=201,
+ *         description="Booking created successfully",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=true),
+ *             @OA\Property(property="message", type="string", example="POS booking created successfully"),
+ *             @OA\Property(
+ *                 property="data",
+ *                 type="object",
+ *                 @OA\Property(property="id", type="integer", example=101),
+ *                 @OA\Property(property="invoice_number", type="string", example="INV-2025-1042"),
+ *                 @OA\Property(property="total_amount", type="number", example=99940),
+ *                 @OA\Property(property="hoarding_count", type="integer", example=2),
+ *                 @OA\Property(property="hold_expiry_at", type="string", format="date-time"),
+ *                 @OA\Property(property="hold_minutes", type="integer", example=30)
+ *             )
+ *         )
+ *     )
+ * )
+ */
     public function store(Request $request): JsonResponse
     {
         try {
@@ -693,6 +645,15 @@ class POSBookingController extends Controller
                 'payload_keys' => array_keys($request->all()),
             ]);
 
+               if (is_string($request->hoarding_items)) {
+                    $decoded = json_decode($request->hoarding_items, true);
+
+                    if (json_last_error() === JSON_ERROR_NONE) {
+                        $request->merge([
+                            'hoarding_items' => isset($decoded[0]) ? $decoded : [$decoded]
+                        ]);
+                    }
+                }
             $validated = $request->validate([
                 'hoarding_ids'                         => 'nullable',
                 'hoarding_items'                       => 'nullable|array',
@@ -703,14 +664,8 @@ class POSBookingController extends Controller
                 'hoarding_items.*.type'                => 'nullable|string',
                 'hoarding_items.*.total_slots_per_day' => 'nullable|integer',
                 'customer_id'                          => 'nullable|exists:users,id',
-                'customer_name'                        => 'nullable|string|max:255',
-                'customer_phone'                       => 'nullable|string|max:20',
-                'customer_email'                       => 'nullable|email|max:255',
-                'customer_address'                     => 'nullable|string|max:500',
-                'customer_gstin'                       => 'nullable|string|max:15',
-                'booking_type'                         => 'nullable|in:ooh,dooh',
-                'start_date'                           => 'required|date',
-                'end_date'                             => 'required|date|after_or_equal:start_date',
+                // 'start_date'                           => 'required|date',
+                // 'end_date'                             => 'required|date|after_or_equal:start_date',
                 'base_amount'                          => 'required|numeric|min:0',
                 'discount_amount'                      => 'nullable|numeric|min:0',
                 'payment_mode'                         => 'required|in:cash,credit_note,bank_transfer,cheque,online',
@@ -719,13 +674,14 @@ class POSBookingController extends Controller
                 'notes'                                => 'nullable|string|max:1000',
                 'hold_minutes'                         => 'nullable|integer|min:0',
                 'payment_details_type'                 => 'nullable|string|in:bank_transfer,online,credit_note',
+                'payment_detail_id' => 'required_if:payment_mode,bank_transfer,online|nullable|exists:vendor_payment_details,id',
                 'is_milestone'                         => 'nullable|boolean',
-                'milestone_data'                       => 'required_if:is_milestone,true|array|min:1',
-                'milestone_data.*.title'               => 'required_if:is_milestone,true|string|max:100',
-                'milestone_data.*.amount_type'         => 'required_if:is_milestone,true|in:percentage,fixed',
-                'milestone_data.*.amount'              => 'required_if:is_milestone,true|numeric|min:0.01',
-                'milestone_data.*.due_date'            => 'nullable|date',
-                'milestone_data.*.vendor_notes'        => 'nullable|string|max:500',
+                // 'milestone_data'                       => 'required_if:is_milestone,true|array|min:1',
+                // 'milestone_data.*.title'               => 'required_if:is_milestone,true|string|max:100',
+                // 'milestone_data.*.amount_type'         => 'required_if:is_milestone,true|in:percentage,fixed',
+                // 'milestone_data.*.amount'              => 'required_if:is_milestone,true|numeric|min:0.01',
+                // 'milestone_data.*.due_date'            => 'nullable|date',
+                // 'milestone_data.*.vendor_notes'        => 'nullable|string|max:500',
                  'po_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240'
             ]);
 
@@ -813,6 +769,8 @@ class POSBookingController extends Controller
             $taxAmount           = ($amountAfterDiscount * $gstRate) / 100;
             $totalAmount         = $amountAfterDiscount + $taxAmount;
 
+            
+
             $bookingData = [
                 'vendor_id'         => $vendorId,
                 'hoarding_ids'      => $hoardingIds,
@@ -824,8 +782,6 @@ class POSBookingController extends Controller
                 'customer_address'  => $validated['customer_address'] ?? null,
                 'customer_gstin'    => $validated['customer_gstin']   ?? null,
                 'booking_type'      => $validated['booking_type']     ?? 'ooh',
-                'start_date'        => $validated['start_date'],
-                'end_date'          => $validated['end_date'],
                 'duration_days'     => Carbon::parse($validated['end_date'])
                     ->diffInDays(Carbon::parse($validated['start_date'])) + 1,
                 'base_amount'       => $baseAmount,
@@ -833,6 +789,7 @@ class POSBookingController extends Controller
                 'tax_amount'        => round($taxAmount, 2),
                 'total_amount'      => round($totalAmount, 2),
                 'payment_mode'      => $validated['payment_mode'],
+                'payment_detail_id' => $validated['payment_detail_id'] ?? null,
                 'payment_reference' => $validated['payment_reference'] ?? null,
                 'payment_notes'     => $validated['payment_notes']     ?? null,
                 'notes'             => $validated['notes']             ?? null,
@@ -986,17 +943,27 @@ class POSBookingController extends Controller
         try {
             $booking = POSBooking::forVendor(Auth::id())->findOrFail($id);
 
-            $updatedBooking = $this->posBookingService->markAsCashCollected(
-                $booking,
-                $validated['amount'],
-                $validated['reference'] ?? null
-            );
+            if($booking) {
+                 $updatedBooking = $this->posBookingService->markAsCashCollected(
+                    $booking,
+                    $validated['amount'],
+                    $validated['reference'] ?? null
+                );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment marked as cash collected',
-                'data' => $updatedBooking,
-            ]);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment marked as cash collected',
+                    'data' => $updatedBooking,
+                ]);
+            }
+            else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking not found',
+                ], 404);
+            }
+
+          
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -1184,6 +1151,10 @@ class POSBookingController extends Controller
         }
     }
 
+    /* =========================================================
+     *  SEARCH HOARDINGS
+     * ========================================================= */
+ 
     /**
      * @OA\Get(
      *     path="/pos/vendor/search-hoardings",
@@ -1195,64 +1166,72 @@ class POSBookingController extends Controller
      *     @OA\Parameter(name="start_date", in="query", @OA\Schema(type="string", format="date")),
      *     @OA\Parameter(name="end_date", in="query", @OA\Schema(type="string", format="date")),
      *     @OA\Response(response=200, description="Hoardings fetched"),
-     *     @OA\Response(response=500, description="Failed to search hoardings")
+     *     @OA\Response(response=500, description="Failed")
      * )
      */
     public function searchHoardings(Request $request): JsonResponse
     {
         try {
-            $search = $request->get('search');
+            $vendorId  = $this->resolveEffectiveVendorId($request);
+            $search    = $request->get('search');
             $startDate = $request->get('start_date');
-            $endDate = $request->get('end_date');
-
-            $query = Hoarding::query()
-                ->where('vendor_id', Auth::id())
-                ->where('status', 'approved');
-
+            $endDate   = $request->get('end_date');
+ 
+           $query = Hoarding::query()
+                ->with([
+                    'hoardingMedia',
+                    'doohScreen.media'
+                ])
+                ->where('vendor_id', $vendorId)
+                ->where('status', 'active');
+ 
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
-                        ->orWhere('location_address', 'like', "%{$search}%")
-                        ->orWhere('location_city', 'like', "%{$search}%");
+                        ->orWhere('address', 'like', "%{$search}%")
+                        ->orWhere('city', 'like', "%{$search}%");
                 });
             }
-
-            // Check availability if dates provided
+ 
             if ($startDate && $endDate) {
                 $query->whereDoesntHave('bookings', function ($q) use ($startDate, $endDate) {
-                    $q->where(function ($query) use ($startDate, $endDate) {
-                        $query->whereBetween('start_date', [$startDate, $endDate])
+                    $q->where(function ($inner) use ($startDate, $endDate) {
+                        $inner->whereBetween('start_date', [$startDate, $endDate])
                             ->orWhereBetween('end_date', [$startDate, $endDate])
-                            ->orWhere(function ($q) use ($startDate, $endDate) {
-                                $q->where('start_date', '<=', $startDate)
+                            ->orWhere(function ($overlap) use ($startDate, $endDate) {
+                                $overlap->where('start_date', '<=', $startDate)
                                     ->where('end_date', '>=', $endDate);
                             });
-                    })
-                        ->whereIn('status', ['confirmed', 'payment_hold']);
+                    })->whereIn('status', ['confirmed', 'payment_hold']);
                 });
             }
-
+ 
             $hoardings = $query->select([
-                'id',
-                'title',
-                'location_address',
-                'location_city',
-                'location_state',
-                'size',
-                'type',
-                'price_per_month',
-                'price_per_sqft'
+                'id', 'title', 'address', 'city', 'state',
+                'hoarding_type', 'category', 'base_monthly_price', 'monthly_price',
             ])->paginate(20);
-            return response()->json([
-                'success' => true,
-                'data' => $hoardings,
-            ]);
+
+            $hoardings->getCollection()->transform(function ($hoarding) {
+            return [
+                'id' => $hoarding->id,
+                'title' => $hoarding->title,
+                'address' => $hoarding->address,
+                'city' => $hoarding->city,
+                'state' => $hoarding->state,
+                'hoarding_type' => $hoarding->hoarding_type,
+                'category' => $hoarding->category,
+                'base_monthly_price' => $hoarding->base_monthly_price,
+                'monthly_price' => $hoarding->monthly_price,
+              
+                // ✅ IMAGE (BEST)
+                'image_url' => $hoarding->heroImage(),
+               
+            ];
+        });
+ 
+            return response()->json(['success' => true, 'data' => $hoardings]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to search hoardings',
-                'error' => $e->getMessage(),
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to search hoardings', 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -1520,77 +1499,67 @@ class POSBookingController extends Controller
         }
     }
 
-   /* =========================================================
-     *  SEND REMINDER
-     * ========================================================= */
- 
-    /**
-     * @OA\Post(
-     * path="/pos/vendor/bookings/{id}/send-reminder",
-     * operationId="posSendReminder",
-     * tags={"POS Bookings"},
-     * summary="Send or schedule payment reminders",
-     * description="Handles immediate delivery, single scheduling, or bulk replacement of reminders.",
-     * security={{"sanctum":{}}},
-     * @OA\Parameter(
-     * name="id",
-     * in="path",
-     * required=true,
-     * description="The ID of the POS Booking",
-     * @OA\Schema(type="integer")
-     * ),
-     * @OA\RequestBody(
-     * required=false,
-     * @OA\JsonContent(
-     * @OA\Property(
-     * property="scheduled_at",
-     * type="string",
-     * format="date-time",
-     * example="2026-04-10 14:00:00",
-     * description="Schedule a single reminder. If null or past, reminder is sent immediately."
-     * ),
-     * @OA\Property(
-     * property="scheduled_reminders",
-     * type="array",
-     * description="Bulk schedule/replace reminders (min: 1, max: 3)",
-     * @OA\Items(
-     * @OA\Property(
-     * property="scheduled_at",
-     * type="string",
-     * format="date-time",
-     * example="2026-04-12 09:00:00"
-     * )
-     * )
-     * )
-     * )
-     * ),
-     * @OA\Response(
-     * response=200,
-     * description="Successful operation",
-     * @OA\JsonContent(
-     * @OA\Property(property="success", type="boolean", example=true),
-     * @OA\Property(property="message", type="string", example="Reminder scheduled successfully"),
-     * @OA\Property(property="data", type="object", nullable=true)
-     * )
-     * ),
-     * @OA\Response(
-     * response=422,
-     * description="Validation error (e.g., more than 3 reminders or invalid dates)",
-     * @OA\JsonContent(
-     * @OA\Property(property="success", type="boolean", example=false),
-     * @OA\Property(property="message", type="string", example="The scheduled reminders field is required.")
-     * )
-     * ),
-     * @OA\Response(
-     * response=404,
-     * description="Booking not found"
-     * ),
-     * @OA\Response(
-     * response=500,
-     * description="Server error"
-     * )
-     * )
-     */
+ /**
+ * @OA\Post(
+ *     path="/pos/vendor/bookings/{id}/send-reminder",
+ *     operationId="posSendReminder",
+ *     tags={"POS Bookings"},
+ *     summary="Send or schedule a payment reminder",
+ *     description="If 'scheduled_at' is provided, the reminder will be scheduled. Otherwise, it will be sent immediately.",
+ *     security={{"sanctum":{}}},
+ *
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         description="The ID of the POS Booking",
+ *         @OA\Schema(type="integer", example=101)
+ *     ),
+ *
+ *     @OA\RequestBody(
+ *         required=false,
+ *         @OA\JsonContent(
+ *             @OA\Property(
+ *                 property="scheduled_at",
+ *                 type="string",
+ *                 format="date-time",
+ *                 example="2026-04-10 14:00:00",
+ *                 description="Schedule reminder at a future datetime"
+ *             )
+ *         )
+ *     ),
+ *
+ *     @OA\Response(
+ *         response=200,
+ *         description="Successful operation",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=true),
+ *             @OA\Property(property="message", type="string", example="Reminder scheduled successfully"),
+ *             @OA\Property(property="data", type="object", nullable=true)
+ *         )
+ *     ),
+ *
+ *     @OA\Response(
+ *         response=422,
+ *         description="Validation error",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(property="message", type="string", example="Scheduled time must be in the future"),
+ *             @OA\Property(property="errors", type="object", nullable=true)
+ *         )
+ *     ),
+ *
+ *     @OA\Response(
+ *         response=404,
+ *         description="Booking not found"
+ *     ),
+ *
+ *     @OA\Response(
+ *         response=500,
+ *         description="Server error"
+ *     )
+ * )
+ */
     public function sendReminder(Request $request, int $id): JsonResponse
     {
         try {

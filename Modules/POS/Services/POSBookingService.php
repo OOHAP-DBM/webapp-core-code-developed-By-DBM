@@ -20,7 +20,8 @@ use App\Notifications\PosBookingConfirmedNotification;
 use App\Notifications\PosBookingCancelledNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Services\Whatsapp\TwilioWhatsappService;
-
+use App\Models\VendorPaymentDetail;
+use App\Models\User;
 class POSBookingService
 {
     protected SettingsService $settingsService;
@@ -56,17 +57,36 @@ class POSBookingService
                 'customer_id',
             ])),
         ]);
+        
 
         return DB::transaction(function () use ($data) {
+
+
             $effectiveVendorId = (int) ($data['vendor_id'] ?? Auth::id());
 
-            // ── Date normalisation ───────────────────────────────────────
-            $start = $data['start_date'] ?? $data['booking_date'] ?? null;
-            $end   = $data['end_date']   ?? $data['booking_date'] ?? null;
+              $customer = null;
 
-            if (!$start || !$end) {
-                throw new \Exception('The booking dates are required.');
+        if (!empty($data['customer_id'])) {
+           $customer = User::select('id', 'name', 'email', 'phone','gstin', 'billing_address')
+              ->find($data['customer_id']);
+
+            if (!$customer) {
+                throw new \Exception('Customer not found');
             }
+        }
+
+        // ✅ STEP 2: Normalize Customer Data
+        $customerName = $customer->name 
+            ?? $data['customer_name'] 
+            ?? 'Walk-in Customer';
+
+        $customerEmail = $customer->email 
+            ?? $data['customer_email'] 
+            ?? null;
+
+        $customerPhone = $customer->phone 
+            ?? $data['customer_phone'] 
+            ?? 'N/A';
 
             $hoardingIds    = $data['hoarding_ids'] ?? [];
             $hoardingItemsMap = [];
@@ -87,8 +107,8 @@ class POSBookingService
             // ── Pricing ─────────────────────────────────────────────────
             $pricing = $this->calculateMultiHoardingPricing(
                 $hoardings,
-                $start,
-                $end,
+                null,
+                null,
                 (float) ($data['discount_amount'] ?? 0),
                 $hoardingItemsMap
             );
@@ -130,19 +150,63 @@ class POSBookingService
                 }
             }
 
+
+            $paymentSnapshot = null;
+
+            if (!empty($data['payment_detail_id'])) {
+
+                $paymentDetail = VendorPaymentDetail::where('vendor_id', $effectiveVendorId)
+                    ->where('id', $data['payment_detail_id'])
+                    ->first();
+
+                if (!$paymentDetail) {
+                    throw new \Exception('Invalid payment detail selected');
+                }
+
+                // Validate type
+                if (
+                    ($data['payment_mode'] === 'bank_transfer' && $paymentDetail->type !== 'bank') ||
+                    ($data['payment_mode'] === 'online' && $paymentDetail->type !== 'upi')
+                ) {
+                    throw new \Exception('Payment mode and payment detail mismatch');
+                }
+
+                $paymentSnapshot = [
+                    'mode' => $data['payment_mode'],
+                    'payment_detail_id' => $paymentDetail->id,
+                    'type' => $paymentDetail->type,
+                ];
+
+                if ($paymentDetail->type === 'bank') {
+                    $paymentSnapshot['bank'] = [
+                        'bank_name'      => $paymentDetail->bank_name,
+                        'account_number' => encrypt($paymentDetail->account_number), // secure
+                        'masked_account' => 'XXXX' . substr($paymentDetail->account_number, -4), // display
+                        'ifsc'           => $paymentDetail->ifsc_code,
+                        'account_holder' => $paymentDetail->account_holder,
+                    ];
+                    $paymentSnapshot['upi'] = null;
+                }
+
+                if ($paymentDetail->type === 'upi') {
+                    $paymentSnapshot['upi'] = [
+                        'upi_id'        => $paymentDetail->upi_id,
+                        'qr_image_path' => $paymentDetail->qr_image_path,
+                    ];
+                    $paymentSnapshot['bank'] = null;
+                }
+            }
             // ── Build booking payload ────────────────────────────────────
             $bookingPayload = array_merge([
                 'vendor_id'        => $effectiveVendorId,
-                'customer_id'      => $data['customer_id'] ?? null,
-                'customer_name'    => $data['customer_name'],
-                'customer_phone'   => $data['customer_phone'],
-                'customer_email'   => $data['customer_email'] ?? null,
-                'customer_address' => $data['customer_address'] ?? null,
-                'customer_gstin'   => $data['customer_gstin'] ?? null,
+                'customer_id'      => $customer?->id ?? null,
+                'customer_name'    => $customerName,
+                'customer_phone'   => $customerPhone,
+                'customer_email'   => $customerEmail,
+                'customer_address' => $customer?->billing_address ?? null,
+                'customer_gstin'   => $customer?->gistin ?? null,
                 'booking_type'     => $data['booking_type'] ?? 'ooh',
-                'start_date'       => $start,
-                'end_date'         => $end,
-                'duration_days'    => $this->calculateDurationDays($start, $end),
+                // 'duration_days'    => $this->calculateDurationDays($start, $end),
                 'base_amount'      => $pricing['base_amount'],
                 'discount_amount'  => $pricing['discount_amount'],
                 'tax_amount'       => $pricing['tax_amount'],
@@ -161,6 +225,16 @@ class POSBookingService
                 'milestone_paid'             => 0,
                 'milestone_amount_paid'      => 0,
                 'milestone_amount_remaining' => 0,
+                'booking_snapshot' => [
+                    'payment_details' => $paymentSnapshot,
+                    'customer_details' => [
+                        'id'    => $customer?->id,
+                        'name'  => $customerName,
+                        'email' => $customerEmail,
+                        'phone' => $customerPhone,
+                    ],
+                    'hoardings' => array_values($pricing['line_items']),
+                ],
             ], $creditNoteData);
 
             $booking = POSBooking::create($bookingPayload);
