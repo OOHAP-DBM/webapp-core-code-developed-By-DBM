@@ -236,10 +236,49 @@
         </div> -->
     </div>
 </footer>
+
+<footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-3 z-50 md:hidden">
+    <div class="flex justify-between items-center max-w-md mx-auto">
+        
+        <a href="{{ route('home') }}" class="flex flex-col items-center space-y-1 {{ request()->routeIs('home') ? 'text-green-600' : 'text-gray-400' }}">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <span class="text-[10px] font-medium">Explore</span>
+        </a>
+
+        <a href="{{ route('cart.index') }}" class="flex flex-col items-center space-y-1 {{ request()->is('cart*') ? 'text-green-600' : 'text-gray-400' }}">
+            <svg width="24" height="21" viewBox="0 0 24 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 1.82269C10.6038 0.581429 8.77392 -0.0703905 6.90015 0.00603565C5.02637 0.0824618 3.25672 0.881095 1.96804 2.23186C0.67937 3.58263 -0.026497 5.3788 0.000761073 7.23786C0.0280191 9.09693 0.786248 10.872 2.11398 12.1851L10.3042 20.3037C10.754 20.7496 11.364 21 12 21C12.636 21 13.246 20.7496 13.6958 20.3037L21.886 12.1851C23.2138 10.872 23.972 9.09693 23.9992 7.23786C24.0265 5.3788 23.3206 3.58263 22.032 2.23186C20.7433 0.881095 18.9736 0.0824618 17.0999 0.00603565C15.2261 -0.0703905 13.3962 0.581429 12 1.82269ZM10.5944 3.77745L11.1521 4.32916C11.377 4.55206 11.682 4.67729 12 4.67729C12.318 4.67729 12.623 4.55206 12.8479 4.32916L13.4056 3.77745C13.8481 3.32319 14.3775 2.96086 14.9628 2.7116C15.5481 2.46233 16.1776 2.33113 16.8146 2.32564C17.4515 2.32016 18.0832 2.44049 18.6728 2.67963C19.2624 2.91878 19.798 3.27193 20.2484 3.7185C20.6989 4.16506 21.0551 4.69609 21.2963 5.2806C21.5375 5.86511 21.6589 6.49139 21.6534 7.1229C21.6478 7.75441 21.5155 8.37851 21.2641 8.95877C21.0126 9.53904 20.6472 10.0639 20.189 10.5026L12 18.6225L3.81102 10.5026C2.93716 9.60557 2.45362 8.40417 2.46455 7.15713C2.47548 5.9101 2.98 4.7172 3.86946 3.83538C4.75892 2.95356 5.96214 2.45337 7.21997 2.44253C8.47781 2.43169 9.68961 2.91108 10.5944 3.77745Z" fill="#A4A4A4"/>
+            </svg>
+
+
+            <span class="text-[10px] font-medium">Wishlists</span>
+        </a>
+
+        <a href="{{ route('shortlist') }}" class="flex flex-col items-center space-y-1 {{ request()->is('shortlist*') ? 'text-green-600' : 'text-gray-400' }}">
+           <svg width="24" height="21" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M9.00001 2.0625C8.55245 2.0625 8.12323 2.24029 7.80676 2.55676C7.4903 2.87322 7.31251 3.30245 7.31251 3.75V3.945C7.73026 3.9375 8.18851 3.9375 8.69251 3.9375H9.30826C9.81076 3.9375 10.2698 3.9375 10.6883 3.945V3.75C10.6883 3.52833 10.6446 3.30883 10.5597 3.10405C10.4749 2.89926 10.3505 2.7132 10.1937 2.55649C10.037 2.39978 9.85084 2.2755 9.64602 2.19074C9.44119 2.10598 9.22168 2.0624 9.00001 2.0625ZM11.8125 3.996V3.75C11.8125 3.00408 11.5162 2.28871 10.9887 1.76126C10.4613 1.23382 9.74593 0.9375 9.00001 0.9375C8.25409 0.9375 7.53872 1.23382 7.01127 1.76126C6.48382 2.28871 6.18751 3.00408 6.18751 3.75V3.996C6.08051 4.005 5.97701 4.01575 5.87701 4.02825C5.11951 4.122 4.49551 4.3185 3.96451 4.75875C3.43351 5.199 3.12601 5.7765 2.89501 6.504C2.67001 7.209 2.50051 8.11425 2.28751 9.2535L2.27176 9.336C1.97026 10.9432 1.73326 12.21 1.68901 13.2083C1.64401 14.232 1.79701 15.0795 2.37451 15.7748C2.95201 16.4708 3.75676 16.7768 4.77076 16.9215C5.76076 17.0625 7.04851 17.0625 8.68426 17.0625H9.31801C10.953 17.0625 12.2415 17.0625 13.2308 16.9215C14.2448 16.7768 15.0503 16.4708 15.6278 15.7748C16.2053 15.0788 16.3568 14.232 16.3125 13.2083C16.269 12.21 16.0313 10.9432 15.7298 9.336L15.7148 9.2535C15.501 8.11425 15.3308 7.20825 15.1073 6.504C14.8748 5.7765 14.5673 5.199 14.0363 4.75875C13.506 4.3185 12.8813 4.12125 12.1238 4.02825C12.0205 4.01554 11.917 4.00479 11.8133 3.996M6.01501 5.145C5.37376 5.22375 4.98601 5.373 4.68301 5.625C4.38076 5.8755 4.16251 6.22875 3.96601 6.84525C3.76576 7.47525 3.60751 8.31375 3.38551 9.498C3.07351 11.1607 2.85226 12.348 2.81251 13.2577C2.77351 14.1503 2.91751 14.6678 3.23926 15.057C3.56176 15.4447 4.04401 15.681 4.92901 15.807C5.82901 15.936 7.03801 15.9375 8.73001 15.9375H9.27001C10.9628 15.9375 12.1703 15.936 13.071 15.8077C13.956 15.681 14.4383 15.4447 14.7608 15.057C15.0833 14.6685 15.2265 14.151 15.1883 13.257C15.1478 12.3488 14.9265 11.1607 14.6145 9.498C14.3925 8.313 14.235 7.476 14.034 6.84525C13.8375 6.22875 13.62 5.8755 13.317 5.62425C13.014 5.373 12.627 5.22375 11.985 5.14425C11.328 5.06325 10.4753 5.0625 9.27001 5.0625H8.73001C7.52476 5.0625 6.67201 5.06325 6.01501 5.145Z" fill="black"/>
+           </svg>
+
+            <span class="text-[10px] font-medium">Shortlist</span>
+        </a>
+        <a href="/login" class="flex flex-col items-center space-y-1 {{ request()->is('login') ? 'text-green-600' : 'text-gray-400' }}">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="text-[10px] font-medium">Log in</span>
+        </a>
+
+    </div>
+</footer>
+
 <div class="text-center text-gray-500 py-1" style="background-color:#e8e8e8;" id="copyright">© {{ date('Y') }} www.oohapp.io All rights reserved.</div>
-@if(Route::is('hoardings.show'))
-    <div class="h-[112px] w-full block md:hidden"></div>
-@endif
+
+<div class="h-[112px] w-full block md:hidden"></div>
+
+
+
 <!-- Bottom Bar
 <div class="pt-8 border-t border-gray-800">
     <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
@@ -248,7 +287,7 @@
     </div>
 </div> -->
     
-<script>
+<!-- <script>
     document.getElementById('newsletterForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -296,5 +335,83 @@
             messageBox.innerHTML = '<span class="text-lg">⚠️</span><span>Server error. Please try again.</span>';
         });
     });
+</script> -->
+<script>
+// Newsletter AJAX
+document.getElementById('newsletterForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const form = this;
+    const messageBox = document.getElementById('newsletterMessage');
+    messageBox.className = 'hidden mt-4 flex items-start gap-2 rounded-md px-4 py-3 text-sm transition-all duration-300';
+    messageBox.innerHTML = '';
+    fetch(form.action, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value,
+            'Accept': 'application/json'
+        },
+        body: new FormData(form)
+    })
+    .then(res => res.json())
+    .then(data => {
+        let baseClass = '';
+        let icon = '';
+        if (data.status === 'success') {
+            baseClass = 'bg-green-900/40 text-green-300 border border-green-700';
+            icon = '✔️';
+            form.reset();
+        } 
+        else if (data.status === 'info') {
+            baseClass = 'bg-blue-900/40 text-blue-300 border border-blue-700';
+            icon = 'ℹ️';
+        } 
+        else {
+            baseClass = 'bg-red-900/40 text-red-300 border border-red-700';
+            icon = '⚠️';
+        }
+        messageBox.className = `mt-4 flex items-start gap-2 rounded-md px-4 py-3 text-sm ${baseClass}`;
+        messageBox.innerHTML = `<span class="text-lg leading-none">${icon}</span><span>${data.message}</span>`;
+    })
+    .catch(() => {
+        messageBox.className =
+            'mt-4 flex items-start gap-2 rounded-md px-4 py-3 text-sm bg-red-900/40 text-red-300 border border-red-700';
+        messageBox.innerHTML = '<span class="text-lg">⚠️</span><span>Server error. Please try again.</span>';
+    });
+});
+
+// Mobile Footer Cart/Wishlist logic for guests (localStorage)
+function openWishlistFooter(event) {
+    event.preventDefault();
+    // Assume user is guest (footer is mobile, no auth check)
+    const saved = JSON.parse(localStorage.getItem('guest_wishlist') || '[]');
+    if (saved.length === 0) {
+        if (window.Swal) {
+            Swal.fire({
+                toast: true, position: 'top-end', icon: 'info',
+                title: 'Wishlist is empty', showConfirmButton: false, timer: 1800
+            });
+        } else {
+            alert('Wishlist is empty');
+        }
+        return;
+    }
+    window.location.href = "{{ route('shortlist') }}?ids=" + saved.join(',');
+}
+function openCartFooter(event) {
+    event.preventDefault();
+    const saved = JSON.parse(localStorage.getItem('guest_cart') || '[]');
+    if (saved.length === 0) {
+        if (window.Swal) {
+            Swal.fire({
+                toast: true, position: 'top-end', icon: 'info',
+                title: 'Cart is empty', showConfirmButton: false, timer: 1800
+            });
+        } else {
+            alert('Cart is empty');
+        }
+        return;
+    }
+    window.location.href = "{{ route('cart.index') }}?ids=" + saved.join(',');
+}
 </script>
 

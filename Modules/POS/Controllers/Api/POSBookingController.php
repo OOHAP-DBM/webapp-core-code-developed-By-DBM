@@ -943,17 +943,27 @@ class POSBookingController extends Controller
         try {
             $booking = POSBooking::forVendor(Auth::id())->findOrFail($id);
 
-            $updatedBooking = $this->posBookingService->markAsCashCollected(
-                $booking,
-                $validated['amount'],
-                $validated['reference'] ?? null
-            );
+            if($booking) {
+                 $updatedBooking = $this->posBookingService->markAsCashCollected(
+                    $booking,
+                    $validated['amount'],
+                    $validated['reference'] ?? null
+                );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment marked as cash collected',
-                'data' => $updatedBooking,
-            ]);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment marked as cash collected',
+                    'data' => $updatedBooking,
+                ]);
+            }
+            else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking not found',
+                ], 404);
+            }
+
+          
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
