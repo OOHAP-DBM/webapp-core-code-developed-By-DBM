@@ -9,7 +9,7 @@
             <input type="text" 
                 name="location"
                 placeholder="Search Hoardings..." 
-                class="w-full py-3 pl-10 pr-4 bg-white border border-gray-300 rounded-full text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-400 shadow-sm text-lg"
+                class="w-full py-2  pl-10 pr-4 bg-white border border-gray-300 rounded-full text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-400 shadow-sm text-sm"
                 id="mobile-search-input"
                 autocomplete="off"
             >
@@ -109,7 +109,7 @@
                     </svg>
 
                 </div>
-                <span class="text-gray-900 font-semibold text-lg">Best Hoardings</span>
+                <span class="text-gray-900 font-semibold text-md">Best Hoardings</span>
             </button>
 
             <button onclick="switchTab('spots', this)" 
@@ -132,7 +132,7 @@
                     </svg>
 
                 </div>
-                <span class="text-gray-500 font-medium text-lg">Top Spots</span>
+                <span class="text-gray-500 font-medium text-md">Top Spots</span>
             </button>
         </div>
     </div>
