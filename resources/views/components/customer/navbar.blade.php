@@ -2,13 +2,10 @@
     <!-- Desktop/Tablet Navbar -->
     <div >
         <div class="container mx-auto pr-4 hidden md:block">
-            <!-- Mobile Only Search Bar -->
-            <div class="block md:hidden w-full px-2 pt-2 pb-2 bg-[#FBFBFB] border-b border-gray-100">
-                @include('components.customer.home-search')
-            </div>
+           
             <div class="flex items-center justify-between  gap-4 ">
 
-                <!-- Mobile Menu Button (LEFT) + Logo -->
+           
                 <div class="flex items-center gap-3 ">
                     <!-- Logo -->
                     <div class="flex items-center flex-shrink-0">
@@ -27,11 +24,11 @@
                 </div>
 
                 <!-- Search Bar (Desktop & Tablet only) -->
-            @if(!isset($hideSearch) || !$hideSearch)
+         
                 <div class="hidden md:flex flex-1 justify-center px-6">
                     @include('components.customer.home-search')
                 </div>
-                @endif
+                
 
                 <!-- Right Side Icons: User, Bookmark, Cart -->
                 <div class="flex items-center space-x-4 lg:space-x-5">
@@ -463,7 +460,7 @@ function openCart(event) {
         if (saved.length === 0) {
             Swal.fire({
                 toast: true, position: 'top-end', icon: 'info',
-                title: 'Cart is empty', showConfirmButton: false, timer: 1800
+                title: 'Shortlist is empty', showConfirmButton: false, timer: 1800
             });
             return;
         }
