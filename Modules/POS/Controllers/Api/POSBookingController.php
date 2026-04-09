@@ -767,7 +767,7 @@ class POSBookingController extends Controller
             $discountAmount      = (float) ($validated['discount_amount'] ?? 0);
             $amountAfterDiscount = max(0, $baseAmount - $discountAmount);
             $taxAmount           = ($amountAfterDiscount * $gstRate) / 100;
-            $totalAmount         = $amountAfterDiscount + $taxAmount;
+            $totalAmount         = (int) round($amountAfterDiscount + $taxAmount);
 
             
 
@@ -782,8 +782,6 @@ class POSBookingController extends Controller
                 'customer_address'  => $validated['customer_address'] ?? null,
                 'customer_gstin'    => $validated['customer_gstin']   ?? null,
                 'booking_type'      => $validated['booking_type']     ?? 'ooh',
-                'duration_days'     => Carbon::parse($validated['end_date'])
-                    ->diffInDays(Carbon::parse($validated['start_date'])) + 1,
                 'base_amount'       => $baseAmount,
                 'discount_amount'   => $discountAmount,
                 'tax_amount'        => round($taxAmount, 2),
