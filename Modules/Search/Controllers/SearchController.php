@@ -245,9 +245,11 @@ class SearchController extends Controller
                 )) <= ?
             ", [$lat, $lng, $lat, $radius]);
         }
-        if ($request->filled('from_date') && $request->filled('to_date')) {
-            $from = $request->from_date;
-            $to   = $request->to_date;
+            // Change 'from_date' and 'to_date' to 'date_from' and 'date_to'
+        if ($request->filled('date_from')) {
+            $from = $request->date_from;
+            // Fallback: If date_to is empty, use date_from (single day search)
+            $to = $request->filled('date_to') ? $request->date_to : $from;
 
             $candidateIds = DB::table('hoardings')
                 ->where('status', 'active')

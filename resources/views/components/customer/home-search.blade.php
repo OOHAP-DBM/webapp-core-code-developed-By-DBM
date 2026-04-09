@@ -1,30 +1,44 @@
-{{-- ============================================================
-     DROP-IN REPLACEMENT — paste where your existing block was
-     ============================================================ --}}
-
 {{-- ── STYLES ── --}}
 <style>
-    .hc-day {
-        height: 34px;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        cursor: pointer;
-        border-radius: 50%;
-        user-select: none;
-        color: #111;
-        transition: background 0.1s;
-    }
-    .hc-day:hover:not(.hc-disabled):not(.hc-empty) { background: #f0f0f0; }
-    .hc-day.hc-disabled { color: #d1d5db; cursor: default; pointer-events: none; }
-    .hc-day.hc-empty    { pointer-events: none; }
-    .hc-day.hc-start    { background: #00A86B !important; color: #fff !important; border-radius: 50% 0 0 50%; }
-    .hc-day.hc-end      { background: #00A86B !important; color: #fff !important; border-radius: 0 50% 50% 0; }
-    .hc-day.hc-start.hc-end { border-radius: 50%; }
-    .hc-day.hc-in-range { background: rgba(0,168,107,0.13); border-radius: 0; color: #111; }
-    .hc-day.hc-hover-range { background: rgba(0,168,107,0.07); border-radius: 0; }
+  .hc-day {
+    height: 36px; width: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; cursor: pointer;
+    user-select: none; color: #111;
+    position: relative;
+  }
+  .hc-day.hc-disabled { color: #d1d5db; cursor: default; pointer-events: none; }
+  .hc-day.hc-empty    { pointer-events: none; }
+
+  .hc-day::before {
+    content: ''; position: absolute;
+    top: 0; bottom: 0; left: 0; right: 0; z-index: 0;
+  }
+  .hc-day.hc-in-range::before    { background: rgba(0,168,107,0.13); }
+  .hc-day.hc-hover-range::before { background: rgba(0,168,107,0.08); }
+  .hc-day.hc-start::before { background: linear-gradient(to right, transparent 50%, rgba(0,168,107,0.13) 50%); }
+  .hc-day.hc-end::before   { background: linear-gradient(to left,  transparent 50%, rgba(0,168,107,0.13) 50%); }
+  .hc-day.hc-start.hc-end::before  { background: transparent; }
+  .hc-day.hc-hover-end::before { background: linear-gradient(to left, transparent 50%, rgba(0,168,107,0.08) 50%); }
+
+  .hc-dot {
+    position: absolute; z-index: 1;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #00A86B; top: 1px; left: 50%; transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .hc-day.hc-hover-end .hc-dot { background: rgba(0,168,107,0.3); }
+
+  .hc-num { position: relative; z-index: 2; pointer-events: none; }
+  .hc-day.hc-start .hc-num,
+  .hc-day.hc-end .hc-num { color: #fff; font-weight: 500; }
+  .hc-day.hc-hover-end .hc-num { color: #00A86B; }
+
+  .hc-day:hover:not(.hc-disabled):not(.hc-empty):not(.hc-start):not(.hc-end) .hc-num {
+    background: #f0f0f0; border-radius: 50%;
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+  }
 </style>
 
 {{-- ── WRAPPER ── --}}
@@ -80,24 +94,27 @@
     {{-- SEARCH FORM --}}
     <div class="flex justify-center mt-[-10px] xl:py-1">
         <form action="{{ route('search') }}" method="GET"
-            id="hoardingSearchForm" 
-            onsubmit="if(hCal.startDate && !document.getElementById('hoardingDateFrom').value) hCal.apply();"
+            id="hoardingSearchForm"
+            onsubmit="hCal.apply(); return true;"
             class="inline-flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition-shadow pl-2 pr-1 w-full max-w-2xl">
+
             {{-- WHERE --}}
             <div class="flex flex-col flex-grow px-6 border-r border-gray-200 xl:pr-40 xl:ml-5">
                 <label class="text-sm font-bold uppercase tracking-wider text-gray-900">Where</label>
-                <input type="text" name="location" placeholder="Search Hoardings..."
-                       class="text-sm text-gray-500 outline-none placeholder-gray-400 border-none p-0 focus:ring-0 w-full"/>
+                <input type="text" name="location"
+                    placeholder="Search Hoardings..."
+                    value="{{ request('location') }}"  {{-- ← add this --}}
+                    class="text-sm text-gray-500 outline-none placeholder-gray-400 border-none p-0 focus:ring-0 w-full"/>
             </div>
-
-            {{-- WHEN trigger (not a button — just a div) --}}
-            <div class="flex flex-col flex-grow px-6 hidden md:flex xl:mr-20 xl:ml-5 cursor-pointer select-none"
+   
+            {{-- WHEN trigger --}}
+            <div class="flex flex-col flex-grow px-6 hidden md:flex xl:w-[250px] xl:mr-5 xl:ml-5 cursor-pointer select-none"
                  id="hoardingWhenTrigger"
                  onclick="hCal.toggle(event)">
                 <span class="text-sm font-bold uppercase tracking-wider text-gray-900">When</span>
                 <span class="text-sm text-gray-400" id="hoardingDateDisplay">Select dates</span>
-                <input type="hidden" name="start_date" id="hoardingDateFrom"/>
-                <input type="hidden" name="end_date"   id="hoardingDateTo"/>
+                <input type="hidden" name="date_from" id="hoardingDateFrom" value="{{ request('date_from') }}"/>
+                <input type="hidden" name="date_to"   id="hoardingDateTo"   value="{{ request('date_to') }}"/>
             </div>
 
             {{-- SUBMIT --}}
@@ -127,16 +144,12 @@
         <button type="button" onclick="hCal.changeMonth(-1)"
                 style="width:32px;height:32px;border-radius:50%;border:1px solid #e5e7eb;
                        background:none;cursor:pointer;font-size:18px;display:flex;
-                       align-items:center;justify-content:center;">
-            &#8249;
-        </button>
+                       align-items:center;justify-content:center;">&#8249;</button>
         <span style="font-size:12px;color:#6b7280;">Select check-in &amp; check-out</span>
         <button type="button" onclick="hCal.changeMonth(1)"
                 style="width:32px;height:32px;border-radius:50%;border:1px solid #e5e7eb;
                        background:none;cursor:pointer;font-size:18px;display:flex;
-                       align-items:center;justify-content:center;">
-            &#8250;
-        </button>
+                       align-items:center;justify-content:center;">&#8250;</button>
     </div>
 
     {{-- Two-month grid --}}
@@ -145,13 +158,11 @@
     {{-- Footer --}}
     <div style="display:flex;align-items:center;justify-content:space-between;
                 margin-top:16px;padding-top:14px;border-top:1px solid #f3f4f6;">
-        <span style="font-size:12px;color:#6b7280;" id="hoardingCalHint">Click a start date</span>
+        <span style="font-size:12px;color:#6b7280;" id="hoardingCalHint">Select a start date</span>
         <div style="display:flex;gap:8px;">
             <button type="button" onclick="hCal.clear()"
                     style="padding:6px 16px;font-size:12px;border:1px solid #e5e7eb;
-                           border-radius:8px;background:#fff;cursor:pointer;">
-                Clear
-            </button>
+                           border-radius:8px;background:#fff;cursor:pointer;">Clear</button>
             <button type="button" id="hoardingCalApply" onclick="hCal.apply()"
                     style="padding:6px 16px;font-size:12px;border:none;border-radius:8px;
                            background:#00A86B;color:#fff;cursor:pointer;opacity:0.4;pointer-events:none;">
@@ -162,7 +173,6 @@
 </div>
 
 
-{{-- ── SCRIPT ── --}}
 <script>
 (function () {
     'use strict';
@@ -184,17 +194,25 @@
 
     /* ── Calendar ── */
     window.hCal = {
-        baseYear : new Date().getFullYear(),
-        baseMonth: new Date().getMonth(),
-        startDate: null,
-        endDate  : null,
-        hoverDate: null,
-        phase    : 0,
-        MONTHS   : ['January','February','March','April','May','June','July','August','September','October','November','December'],
-        DAYS     : ['Su','Mo','Tu','We','Th','Fr','Sa'],
+        baseYear  : new Date().getFullYear(),
+        baseMonth : new Date().getMonth(),
+        startDate : null,
+        endDate   : null,
+        hoverDate : null,
+        phase     : 0,
+        _hoverTimer: null,
+        MONTHS    : ['January','February','March','April','May','June','July','August','September','October','November','December'],
+        DAYS      : ['Su','Mo','Tu','We','Th','Fr','Sa'],
 
         fmt: function (d) {
-            return d.getDate() + ' ' + hCal.MONTHS[d.getMonth()].slice(0,3) + ' ' + d.getFullYear();
+            return d.getDate() + ' ' + hCal.MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getFullYear();
+        },
+
+        toISO: function (d) {
+            if (!d) return '';
+            return d.getFullYear() + '-' +
+                   String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                   String(d.getDate()).padStart(2, '0');
         },
 
         reposition: function () {
@@ -225,58 +243,101 @@
 
         changeMonth: function (dir) {
             hCal.baseMonth += dir;
-            if (hCal.baseMonth > 11) { hCal.baseMonth = 0; hCal.baseYear++; }
+            if (hCal.baseMonth > 11) { hCal.baseMonth = 0;  hCal.baseYear++; }
             if (hCal.baseMonth < 0)  { hCal.baseMonth = 11; hCal.baseYear--; }
             hCal.render();
         },
 
         setApply: function (on) {
             var btn = document.getElementById('hoardingCalApply');
-            if (on) {
-                btn.style.opacity = '1';
-                btn.style.pointerEvents = 'auto';
-            } else {
-                btn.style.opacity = '0.4';
-                btn.style.pointerEvents = 'none';
-            }
+            btn.style.opacity      = on ? '1'    : '0.4';
+            btn.style.pointerEvents = on ? 'auto' : 'none';
         },
 
-      handleClick: function (date) {
-            // Create a clean date object at midnight local time
-            const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        /* Hover: debounced via rAF so it never interrupts a click */
+        setHover: function (cd) {
+            if (hCal.phase !== 1) return;
+            if (hCal._hoverTimer) cancelAnimationFrame(hCal._hoverTimer);
+            hCal._hoverTimer = requestAnimationFrame(function () {
+                if (hCal.phase !== 1) return;
+                hCal.hoverDate = cd;
+                hCal.renderHover();
+            });
+        },
+
+        handleClick: function (date) {
+            /* Cancel any pending hover rAF so it can't race with this click */
+            if (hCal._hoverTimer) { cancelAnimationFrame(hCal._hoverTimer); hCal._hoverTimer = null; }
+
+            var sel = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
             if (hCal.phase === 0) {
-                // Starting a new selection
-                hCal.startDate = selectedDate;
+                hCal.startDate = sel;
                 hCal.endDate   = null;
                 hCal.hoverDate = null;
                 hCal.phase     = 1;
-                hCal.setApply(true); 
             } else {
-                // Selecting the end date
-                if (selectedDate <= hCal.startDate) {
-                    // If user selects a date before the start, make that the new start
-                    hCal.startDate = selectedDate;
+                if (sel.getTime() < hCal.startDate.getTime()) {
+                    hCal.startDate = sel;
                     hCal.endDate   = null;
+                    hCal.hoverDate = null;
+                } else if (sel.getTime() === hCal.startDate.getTime()) {
+                    hCal.endDate   = null;
+                    hCal.hoverDate = null;
                 } else {
-                    // Valid range selected
-                    hCal.endDate   = selectedDate;
-                    hCal.phase     = 0; // Selection complete
+                    hCal.endDate   = sel;
+                    hCal.hoverDate = null;
+                    hCal.phase     = 0;
                 }
-                hCal.setApply(true);
             }
+
+            hCal.setApply(!!hCal.startDate);
             hCal.render();
+        },
+
+        /* Lightweight hover update — toggles classes on existing nodes, no DOM rebuild */
+        renderHover: function () {
+            var startTs = hCal.startDate ? hCal.startDate.getTime() : null;
+            var hoverTs = (hCal.phase === 1 && hCal.hoverDate) ? hCal.hoverDate.getTime() : null;
+
+            document.querySelectorAll('#hoardingCalMonths .hc-day:not(.hc-disabled):not(.hc-empty)').forEach(function (cell) {
+                var ts         = parseInt(cell.dataset.ts, 10);
+                var inHover    = startTs && hoverTs && ts > startTs && ts < hoverTs;
+                var isHoverEnd = startTs && hoverTs && ts === hoverTs;
+
+                cell.classList.toggle('hc-hover-range', !!inHover);
+                cell.classList.toggle('hc-hover-end',   !!isHoverEnd);
+
+                /* manage the dot span for hover-end */
+                var existingDot = cell.querySelector('.hc-dot');
+                var isStart     = cell.classList.contains('hc-start');
+                var isEnd       = cell.classList.contains('hc-end');
+
+                if (isHoverEnd && !existingDot && !isStart && !isEnd) {
+                    var dot = document.createElement('span');
+                    dot.className = 'hc-dot';
+                    cell.insertBefore(dot, cell.firstChild);
+                } else if (!isHoverEnd && !isStart && !isEnd && existingDot) {
+                    existingDot.remove();
+                }
+            });
+
+            var hint = document.getElementById('hoardingCalHint');
+            if (hCal.hoverDate && hCal.phase === 1 && hCal.startDate) {
+                var days = Math.round((hCal.hoverDate - hCal.startDate) / 86400000);
+                if (days > 0) hint.textContent = days + ' day' + (days === 1 ? '' : 's');
+            }
         },
 
         buildMonth: function (year, month) {
             var wrap  = document.createElement('div');
             var title = document.createElement('div');
-            title.style.cssText    = 'text-align:center;font-size:13px;font-weight:500;color:#1f2937;margin-bottom:8px;';
-            title.textContent      = hCal.MONTHS[month] + ' ' + year;
+            title.style.cssText = 'text-align:center;font-size:13px;font-weight:500;color:#1f2937;margin-bottom:8px;';
+            title.textContent   = hCal.MONTHS[month] + ' ' + year;
             wrap.appendChild(title);
 
             var grid = document.createElement('div');
-            grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,1fr);gap:2px;';
+            grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,1fr);gap:1px;';
 
             hCal.DAYS.forEach(function (d) {
                 var lbl = document.createElement('div');
@@ -285,9 +346,11 @@
                 grid.appendChild(lbl);
             });
 
-            var today    = new Date(); today.setHours(0,0,0,0);
+            var today    = new Date(); today.setHours(0, 0, 0, 0);
             var firstDay = new Date(year, month, 1).getDay();
             var daysInM  = new Date(year, month + 1, 0).getDate();
+            var startTs  = hCal.startDate ? hCal.startDate.getTime() : null;
+            var endTs    = hCal.endDate   ? hCal.endDate.getTime()   : null;
 
             for (var i = 0; i < firstDay; i++) {
                 var emp = document.createElement('div');
@@ -295,34 +358,49 @@
                 grid.appendChild(emp);
             }
 
-            for (var d = 1; d <= daysInM; d++) {
+            for (var day = 1; day <= daysInM; day++) {
                 var cell     = document.createElement('div');
-                cell.className   = 'hc-day';
-                cell.textContent = d;
-
-                var cellDate = new Date(year, month, d);
+                var cellDate = new Date(year, month, day);
                 var ts       = cellDate.getTime();
-                var startTs  = hCal.startDate ? hCal.startDate.getTime() : null;
-                var endTs    = hCal.endDate   ? hCal.endDate.getTime()   : null;
-                var hoverTs  = hCal.hoverDate ? hCal.hoverDate.getTime() : null;
+                var classes  = ['hc-day'];
+
+                cell.dataset.ts = ts; /* stored for renderHover */
 
                 if (cellDate < today) {
-                    cell.classList.add('hc-disabled');
+                    classes.push('hc-disabled');
+                    cell.className = classes.join(' ');
+                    var nd = document.createElement('span');
+                    nd.className   = 'hc-num';
+                    nd.textContent = day;
+                    cell.appendChild(nd);
                     grid.appendChild(cell);
                     continue;
                 }
 
-                if (startTs && ts === startTs)                              cell.classList.add('hc-start');
-                if (endTs   && ts === endTs)                                cell.classList.add('hc-end');
-                if (startTs && endTs && ts > startTs && ts < endTs)        cell.classList.add('hc-in-range');
-                if (startTs && !endTs && hoverTs && ts > startTs && ts < hoverTs) cell.classList.add('hc-hover-range');
-                if (startTs && !endTs && hoverTs && ts === hoverTs)        cell.classList.add('hc-end');
+                var isStart = !!(startTs && ts === startTs);
+                var isEnd   = !!(endTs   && ts === endTs);
+                var inRange = !!(startTs && endTs && ts > startTs && ts < endTs);
+
+                if (isStart) classes.push('hc-start');
+                if (isEnd)   classes.push('hc-end');
+                if (inRange) classes.push('hc-in-range');
+
+                cell.className = classes.join(' ');
+
+                if (isStart || isEnd) {
+                    var dot = document.createElement('span');
+                    dot.className = 'hc-dot';
+                    cell.appendChild(dot);
+                }
+
+                var num = document.createElement('span');
+                num.className   = 'hc-num';
+                num.textContent = day;
+                cell.appendChild(num);
 
                 (function (cd) {
-                    cell.addEventListener('mouseenter', function () {
-                        if (hCal.phase === 1) { hCal.hoverDate = cd; hCal.render(); }
-                    });
-                    cell.addEventListener('click', function () { hCal.handleClick(cd); });
+                    cell.addEventListener('mouseenter', function () { hCal.setHover(cd); });
+                    cell.addEventListener('click',      function () { hCal.handleClick(cd); });
                 })(cellDate);
 
                 grid.appendChild(cell);
@@ -332,8 +410,6 @@
             return wrap;
         },
 
-       /* ... inside the hCal object ... */
-
         render: function () {
             var container = document.getElementById('hoardingCalMonths');
             container.innerHTML = '';
@@ -342,62 +418,47 @@
                 if (m > 11) { m -= 12; y++; }
                 container.appendChild(hCal.buildMonth(y, m));
             }
-            
+
             var hint = document.getElementById('hoardingCalHint');
             if (!hCal.startDate) {
-                hint.textContent = 'Click a start date';
+                hint.textContent = 'Select a start date';
             } else if (!hCal.endDate) {
-                // Corrected: Use hCal.startDate here
-                hint.textContent = 'Select end date'; 
+                hint.textContent = 'Now select an end date (optional)';
             } else {
                 var days = Math.round((hCal.endDate - hCal.startDate) / 86400000);
-                hint.textContent = days + ' day' + (days !== 1 ? 's' : '') + ' selected';
+                hint.textContent = days + ' day' + (days === 1 ? '' : 's') + ' selected';
             }
         },
 
         apply: function () {
+            var fromInput = document.getElementById('hoardingDateFrom');
+            var toInput   = document.getElementById('hoardingDateTo');
+            var disp      = document.getElementById('hoardingDateDisplay');
+
             if (!hCal.startDate) {
+                fromInput.value = '';
+                toInput.value   = '';
                 hCal.close();
                 return;
             }
 
-            const fromInput = document.getElementById('hoardingDateFrom');
-            const toInput   = document.getElementById('hoardingDateTo');
-            const disp      = document.getElementById('hoardingDateDisplay');
+            fromInput.value = hCal.toISO(hCal.startDate);
+            toInput.value   = hCal.endDate ? hCal.toISO(hCal.endDate) : '';
 
-            const toLocalISO = (date) => {
-                const y = date.getFullYear();
-                const m = String(date.getMonth() + 1).padStart(2, '0');
-                const d = String(date.getDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            };
-
-            const finalStart = hCal.startDate;
-            let finalEnd = hCal.endDate;
-
-            // If user didn't pick an end date, treat as single day selection
-            if (!finalEnd) {
-                finalEnd = finalStart;
-            }
-
-            fromInput.value = toLocalISO(finalStart);
-            toInput.value   = toLocalISO(finalEnd);
-
-            // Update Display
-            if (finalEnd.getTime() !== finalStart.getTime()) {
-                disp.textContent = hCal.fmt(finalStart) + ' → ' + hCal.fmt(finalEnd);
-            } else {
-                disp.textContent = hCal.fmt(finalStart);
-            }
+            disp.textContent = hCal.startDate && hCal.endDate
+                ? hCal.fmt(hCal.startDate) + ' → ' + hCal.fmt(hCal.endDate)
+                : hCal.fmt(hCal.startDate);
 
             disp.style.color = '#374151';
             hCal.close();
         },
+
         clear: function () {
             hCal.startDate = null;
             hCal.endDate   = null;
             hCal.hoverDate = null;
             hCal.phase     = 0;
+            if (hCal._hoverTimer) { cancelAnimationFrame(hCal._hoverTimer); hCal._hoverTimer = null; }
             hCal.setApply(false);
             var disp = document.getElementById('hoardingDateDisplay');
             disp.textContent = 'Select dates';
@@ -421,4 +482,58 @@
     });
 
 })();
+</script>
+
+{{-- Pre-fill location from URL --}}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    hoardingTab.switchTab('hoardings', document.getElementById('tab-hoardings'));
+
+    // ── Restore location ──────────────────────────────────────
+    var locationParam = "{{ request('location') }}";
+    if (locationParam) {
+        var locationInput = document.querySelector('input[name="location"]');
+        if (locationInput) locationInput.value = locationParam;
+    }
+
+    // ── Restore calendar dates ────────────────────────────────
+    var dateFrom = "{{ request('date_from') }}";
+    var dateTo   = "{{ request('date_to') }}";
+
+    if (dateFrom) {
+        // Parse YYYY-MM-DD safely without timezone shifting
+        var parseDateLocal = function (str) {
+            var parts = str.split('-');
+            return new Date(
+                parseInt(parts[0], 10),
+                parseInt(parts[1], 10) - 1,
+                parseInt(parts[2], 10)
+            );
+        };
+
+        hCal.startDate = parseDateLocal(dateFrom);
+        hCal.endDate   = dateTo ? parseDateLocal(dateTo) : null;
+        hCal.phase     = 0; // range is complete, ready for fresh pick
+
+        // Update the hidden inputs
+        document.getElementById('hoardingDateFrom').value = dateFrom;
+        document.getElementById('hoardingDateTo').value   = dateTo || '';
+
+        // Update the display text
+        var disp = document.getElementById('hoardingDateDisplay');
+        if (hCal.startDate && hCal.endDate) {
+            disp.textContent = hCal.fmt(hCal.startDate) + ' → ' + hCal.fmt(hCal.endDate);
+        } else {
+            disp.textContent = hCal.fmt(hCal.startDate);
+        }
+        disp.style.color = '#374151';
+
+        // Enable the Apply button
+        hCal.setApply(true);
+
+        // Jump calendar to the month containing start date
+        hCal.baseYear  = hCal.startDate.getFullYear();
+        hCal.baseMonth = hCal.startDate.getMonth();
+    }
+});
 </script>

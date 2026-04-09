@@ -460,7 +460,7 @@ function openCart(event) {
         if (saved.length === 0) {
             Swal.fire({
                 toast: true, position: 'top-end', icon: 'info',
-                title: 'Cart is empty', showConfirmButton: false, timer: 1800
+                title: 'Shortlist is empty', showConfirmButton: false, timer: 1800
             });
             return;
         }

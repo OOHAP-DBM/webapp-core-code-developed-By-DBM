@@ -20,7 +20,7 @@ use App\Notifications\PosBookingConfirmedNotification;
 use App\Notifications\PosBookingCancelledNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Services\Whatsapp\TwilioWhatsappService;
-use App\Models\VendorPaymentDetail;
+use Modules\POS\Models\VendorPaymentDetail;
 use App\Models\User;
 class POSBookingService
 {
