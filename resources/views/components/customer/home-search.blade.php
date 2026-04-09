@@ -90,14 +90,14 @@
         </a>
 
     </div>
-    <div class="flex justify-center mt-[-10px] xl:py-1">
+    <div class="flex justify-center mt-[-10px] ">
         <form action="{{ route('search') }}" method="GET"
             id="hoardingSearchForm"
             onsubmit="hCal.apply(); return true;"
             class="inline-flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition-shadow pl-2 pr-1 w-full max-w-2xl">
 
             {{-- WHERE --}}
-            <div class="flex flex-col flex-grow px-6 border-r border-gray-200 xl:pr-40 xl:ml-5">
+            <div class="flex flex-col flex-grow px-6 border-r border-gray-200 w-[200px] xl:w-[400px]">
                 <label class="text-sm font-bold uppercase tracking-wider text-gray-900">Where</label>
                 <input type="text" name="location"
                     placeholder="Search Hoardings..."
@@ -106,7 +106,7 @@
             </div>
    
             {{-- WHEN trigger --}}
-            <div class="flex flex-col flex-grow px-6 hidden md:flex xl:w-[250px] xl:mr-5 xl:ml-5 cursor-pointer select-none"
+            <div class="flex flex-col flex-grow px-6 hidden md:flex xl:w-[400px] w-[200px] cursor-pointer select-none"
                  id="hoardingWhenTrigger"
                  onclick="hCal.toggle(event)">
                 <span class="text-sm font-bold uppercase tracking-wider text-gray-900">When</span>
@@ -117,7 +117,7 @@
 
             {{-- SUBMIT --}}
             <button type="submit"
-                    class="bg-[#00A86B] p-4 rounded-full text-white hover:bg-green-600 transition-colors">
+                    class="bg-[#00A86B] my-1 p-4 rounded-full text-white hover:bg-green-600 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
