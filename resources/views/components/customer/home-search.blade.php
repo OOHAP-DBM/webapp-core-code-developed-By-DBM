@@ -39,15 +39,42 @@
     width: 34px; height: 34px;
     display: flex; align-items: center; justify-content: center;
   }
+
+  /* Default state (top of page) */
+#tabsBlock {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+#hoardingRoot {
+    position: relative;
+    z-index: 30;
+}
+
+#searchBlock {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+/* Scrolled state */
+.scrolled #tabsBlock {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
+}
+.scrolled #searchBlock {
+    transform: translateY(-60px); /* move UP into tabs position */
+}
 </style>
 
 {{-- ── WRAPPER ── --}}
-<div class="relative" id="hoardingRoot">
+<div class="relative transition-all duration-300" id="hoardingRoot">
 
     {{-- TABS --}}
-    <div class="flex space-x-8 items-center justify-center h-full">
+    <div id="tabsBlock" class="flex space-x-8 items-center justify-center h-full transition-all duration-300">
 
-        <button type="button"
+        <a href="{{ url('/#best-hoardings-section') }}" type="button"
                 onclick="hoardingTab.switchTab('hoardings', this)"
                 id="tab-hoardings"
                 class="tab-link flex items-center space-x-2 px-1 py-1 border-b-2 border-gray-400 text-sm font-medium text-gray-900"
@@ -72,11 +99,11 @@
                 </defs>
             </svg>
             <span>Best Hoardings</span>
-        </button>
+        </a>
 
         <div class="h-8 w-px bg-gray-600"></div>
 
-        <button type="button"
+        <a href="{{ url('/#top-spots-section') }}" type="button"
                 onclick="hoardingTab.switchTab('spots', this)"
                 id="tab-spots"
                 class="tab-link flex items-center space-x-2 px-1 py-1 text-sm font-medium text-gray-900"
@@ -87,30 +114,28 @@
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M24.2638 20.0947C25.0277 20.0947 25.6477 20.7147 25.6477 21.4787V21.813C25.6477 22.1801 25.5019 22.5321 25.2424 22.7916C24.9829 23.0511 24.6309 23.1969 24.2638 23.1969C23.8968 23.1969 23.5448 23.0511 23.2852 22.7916C23.0257 22.5321 22.8799 22.1801 22.8799 21.813V21.4787C22.8799 20.7147 23.4999 20.0947 24.2638 20.0947Z" fill="#D9F2E6"/>
             </svg>
             <span>Top Spots</span>
-        </button>
+        </a>
 
     </div>
-
-    {{-- SEARCH FORM --}}
-    <div class="flex justify-center mt-[-10px] xl:py-1">
+    <div id="searchBlock" class="flex justify-center mt-[-10px] ">
         <form action="{{ route('search') }}" method="GET"
             id="hoardingSearchForm"
             onsubmit="hCal.apply(); return true;"
             class="inline-flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition-shadow pl-2 pr-1 w-full max-w-2xl">
 
             {{-- WHERE --}}
-            <div class="flex flex-col flex-grow px-6 border-r border-gray-200 xl:pr-40 xl:ml-5">
+            <div class="flex flex-col flex-grow px-6 border-r border-gray-200 w-[200px] xl:w-[400px]">
                 <label class="text-sm font-bold uppercase tracking-wider text-gray-900">Where</label>
-                <input type="text" name="location"
+                <input type="text" name="location" onfocus="resetHeader()"
                     placeholder="Search Hoardings..."
                     value="{{ request('location') }}"  {{-- ← add this --}}
                     class="text-sm text-gray-500 outline-none placeholder-gray-400 border-none p-0 focus:ring-0 w-full"/>
             </div>
    
             {{-- WHEN trigger --}}
-            <div class="flex flex-col flex-grow px-6 hidden md:flex xl:w-[250px] xl:mr-5 xl:ml-5 cursor-pointer select-none"
+            <div class="flex flex-col flex-grow px-6 hidden md:flex xl:w-[400px] w-[200px] cursor-pointer select-none"
                  id="hoardingWhenTrigger"
-                 onclick="hCal.toggle(event)">
+                 onclick="resetHeader(); hCal.toggle(event)">
                 <span class="text-sm font-bold uppercase tracking-wider text-gray-900">When</span>
                 <span class="text-sm text-gray-400" id="hoardingDateDisplay">Select dates</span>
                 <input type="hidden" name="date_from" id="hoardingDateFrom" value="{{ request('date_from') }}"/>
@@ -119,7 +144,7 @@
 
             {{-- SUBMIT --}}
             <button type="submit"
-                    class="bg-[#00A86B] p-4 rounded-full text-white hover:bg-green-600 transition-colors">
+                    class="bg-[#00A86B] my-1 p-4 rounded-full text-white hover:bg-green-600 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -536,4 +561,50 @@ document.addEventListener('DOMContentLoaded', function () {
         hCal.baseMonth = hCal.startDate.getMonth();
     }
 });
+</script>
+<script>
+    function resetHeader() {
+        var root = document.getElementById('hoardingRoot');
+        root.classList.remove('scrolled');
+    }
+(function () {
+    var root = document.getElementById('hoardingRoot');
+    var lastScroll = 0;
+
+    window.addEventListener('scroll', function () {
+        var currentScroll = window.scrollY;
+
+        if (currentScroll > 50) {
+            root.classList.add('scrolled');
+        } else {
+            root.classList.remove('scrolled');
+        }
+
+        lastScroll = currentScroll;
+    });
+})();
+(function () {
+    var root = document.getElementById('hoardingRoot');
+    var isInteracting = false;
+
+    window.resetHeader = function () {
+        root.classList.remove('scrolled');
+        isInteracting = true;
+
+        // unlock after user finishes interaction
+        setTimeout(function () {
+            isInteracting = false;
+        }, 1000);
+    };
+
+    window.addEventListener('scroll', function () {
+        if (isInteracting) return;
+
+        if (window.scrollY > 50) {
+            root.classList.add('scrolled');
+        } else {
+            root.classList.remove('scrolled');
+        }
+    });
+})();
 </script>

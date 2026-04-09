@@ -10,7 +10,7 @@
     {{-- @include('components.customer.search-bar') --}}
 
     <!-- Best Hoardings Section -->
-    <section id="best-hoardings-section" class="py-6 mt-[170px]">
+    <section id="best-hoardings-section" class="py-6 mt-8 scroll-mt-32 md:scroll-mt-48">
         <div class="container mx-auto px-4">
             <!-- Section Header -->
             <div class="mb-3">
@@ -102,7 +102,7 @@
     @endguest
     @include('home.home_contact_enquiry')
     <!-- Featured Categories -->
-    <section id="top-spots-section" class="py-6 bg-white">
+    <section id="top-spots-section" class="py-6 bg-white scroll-mt-32 md:scroll-mt-48">
         <div class="container mx-auto px-4">
             <div class=" mb-6">
                 <!-- <h2 class="text-lg md:text-4xl font-bold text-gray-900 mb-3">Top Spots</h2> -->
