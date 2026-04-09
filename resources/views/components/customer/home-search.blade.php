@@ -47,7 +47,7 @@
     {{-- TABS --}}
     <div class="flex space-x-8 items-center justify-center h-full">
 
-        <button type="button"
+        <a href="{{ url('/#best-hoardings-section') }}" type="button"
                 onclick="hoardingTab.switchTab('hoardings', this)"
                 id="tab-hoardings"
                 class="tab-link flex items-center space-x-2 px-1 py-1 border-b-2 border-gray-400 text-sm font-medium text-gray-900"
@@ -72,11 +72,11 @@
                 </defs>
             </svg>
             <span>Best Hoardings</span>
-        </button>
+        </a>
 
         <div class="h-8 w-px bg-gray-600"></div>
 
-        <button type="button"
+        <a href="{{ url('/#top-spots-section') }}" type="button"
                 onclick="hoardingTab.switchTab('spots', this)"
                 id="tab-spots"
                 class="tab-link flex items-center space-x-2 px-1 py-1 text-sm font-medium text-gray-900"
@@ -87,11 +87,9 @@
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M24.2638 20.0947C25.0277 20.0947 25.6477 20.7147 25.6477 21.4787V21.813C25.6477 22.1801 25.5019 22.5321 25.2424 22.7916C24.9829 23.0511 24.6309 23.1969 24.2638 23.1969C23.8968 23.1969 23.5448 23.0511 23.2852 22.7916C23.0257 22.5321 22.8799 22.1801 22.8799 21.813V21.4787C22.8799 20.7147 23.4999 20.0947 24.2638 20.0947Z" fill="#D9F2E6"/>
             </svg>
             <span>Top Spots</span>
-        </button>
+        </a>
 
     </div>
-
-    {{-- SEARCH FORM --}}
     <div class="flex justify-center mt-[-10px] xl:py-1">
         <form action="{{ route('search') }}" method="GET"
             id="hoardingSearchForm"

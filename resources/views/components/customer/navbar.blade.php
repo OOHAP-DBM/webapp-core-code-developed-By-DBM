@@ -9,12 +9,10 @@
                 <div class="flex items-center gap-3 ">
                     <!-- Logo -->
                     <div class="flex items-center flex-shrink-0">
-                        <!-- Logo -->
                         <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
                             <x-optimized-image
                                 :src="route('brand.oohapp-logo')"
                                 alt="OOHApp  logo"
-                            
                                 width="200"
                                 height="100"
                                 style="max-height:80px;object-fit:contain;"
@@ -228,6 +226,15 @@
 
                     <!-- MENU LINKS -->
                     <div class="flex flex-col px-5 py-4 space-y-2 text-sm">
+
+                        <a href="{{ url('/#best-hoardings-section') }}" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-green-600 transition">
+                            <svg width="22" height="22" fill="none" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" stroke="#2CB67D" stroke-width="2"/><text x="50%" y="55%" text-anchor="middle" fill="#2CB67D" font-size="8" font-family="Arial" dy=".3em">★</text></svg>
+                            Best Hoardings
+                        </a>
+                        <a href="{{ url('/#top-spots-section') }}" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-green-600 transition">
+                            <svg width="22" height="22" fill="none" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" stroke="#2CB67D" stroke-width="2"/><text x="50%" y="55%" text-anchor="middle" fill="#2CB67D" font-size="8" font-family="Arial" dy=".3em">★</text></svg>
+                            Top Spots
+                        </a>
 
                         <a href="{{ route('search') }}"
                                 class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition">
@@ -470,5 +477,21 @@ function openCart(event) {
 
     window.location.href = "{{ route('cart.index') }}";
 }
+</script>
+@endpush
+
+@push('scripts')
+<script>
+// Smooth scroll to section if hash is present on page load
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.hash) {
+        const el = document.querySelector(window.location.hash);
+        if (el) {
+            setTimeout(() => {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 200);
+        }
+    }
+});
 </script>
 @endpush

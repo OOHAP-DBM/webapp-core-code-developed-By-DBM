@@ -741,29 +741,33 @@ class HoardingController extends Controller
      */
     public function getCitiesWithActiveHoardings(): JsonResponse
     {
-        $cities = Hoarding::where('status', 'active')
-            ->whereNotNull('city')
-            ->select('city')
-            ->selectRaw('count(*) as count')
-            ->groupBy('city')
-            ->orderByDesc('count')
-            ->get();
+        // 🔥 Get top cities (like states)
+            $topCities = $this->getTopCities();
 
-        if ($cities->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No cities found',
-            ], 404);
-        }
+            if (empty($topCities)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No cities found',
+                ], 404);
+            }
 
-        $result = $cities->map(function ($cityItem) {
-            $hoardings = Hoarding::where('status', 'active')
-                ->where('city', $cityItem->city)
-                ->get();
+            // 🔥 Fetch all hoardings in ONE query
+            $allHoardings = Hoarding::where('status', 'active')
+                ->whereNotNull('city')
+                ->get()
+                ->groupBy(fn($item) => strtoupper(trim($item->city)));
+
+        // 🔥 Map response
+        $result = collect($topCities)->map(function ($cityItem) use ($allHoardings) {
+            $cityName = $cityItem['name'];
+
             return [
-                'city' => $cityItem->city,
-                'count' => $cityItem->count,
-                'hoardings' => HoardingResource::collection($hoardings),
+                'city' => $cityName,
+                'count' => $cityItem['count'],
+                'image' => $cityItem['image'],
+                'hoardings' => HoardingResource::collection(
+                    $allHoardings[$cityName] ?? collect()
+                ),
             ];
         });
 
@@ -773,6 +777,101 @@ class HoardingController extends Controller
         ]);
     }
 
+   
+private function getTopCities(int $limit = 8): array
+{
+    $priorityStates = [
+        'UTTAR PRADESH',
+        'DELHI',
+        'MAHARASHTRA',
+        'GOA',
+        'HIMACHAL PRADESH',
+        'JAMMU & KASHMIR',
+        'GUJARAT',
+        'RAJASTHAN',
+    ];
+
+    $images = [
+        'UTTAR PRADESH'    => asset('images/states/up.jpeg'),
+        'DELHI'            => asset('images/states/delhi.jpg'),
+        'MAHARASHTRA'      => asset('images/states/mumbai.jpg'),
+        'GOA'              => asset('images/states/goa.jpg'),
+        'HIMACHAL PRADESH' => asset('images/states/himanchal.jpeg'),
+        'JAMMU & KASHMIR'  => asset('images/states/jammu.jpeg'),
+        'GUJARAT'          => asset('images/states/gujrat.jpg'),
+        'RAJASTHAN'        => asset('images/states/Rajasthan.jpg'),
+    ];
+
+    $defaultImage = asset('images/states/default.jpg');
+
+    // 🔥 SINGLE QUERY WITH NORMALIZATION + MAPPING
+   $states = DB::table('hoardings')
+    ->selectRaw("
+        CASE
+            -- 🔥 FIRST: Try city → state mapping (more reliable)
+            WHEN UPPER(TRIM(city)) IN ('NEW DELHI', 'DELHI', 'NOIDA', 'GURGAON', 'FARIDABAD', 'GHAZIABAD',  'SONIPAT', 'YAMUNANAGAR', 'PALWAL','WEST DELHI', 'EAST DELHI', 'SOUTH DELHI', 'NORTH DELHI') 
+                THEN 'DELHI'
+
+            WHEN UPPER(TRIM(city)) IN ('MUMBAI', 'PUNE', 'NAGPUR') 
+                THEN 'MAHARASHTRA'
+
+            WHEN UPPER(TRIM(city)) IN ('LUCKNOW', 'KANPUR', 'VARANASI') 
+                THEN 'UTTAR PRADESH'
+
+            WHEN UPPER(TRIM(city)) IN ('JAIPUR', 'UDAIPUR') 
+                THEN 'RAJASTHAN'
+
+            WHEN UPPER(TRIM(city)) IN ('AHMEDABAD', 'SURAT') 
+                THEN 'GUJARAT'
+
+            WHEN UPPER(TRIM(city)) IN ('SHIMLA', 'MANALI') 
+                THEN 'HIMACHAL PRADESH'
+
+            WHEN UPPER(TRIM(city)) IN ('SRINAGAR') 
+                THEN 'JAMMU & KASHMIR'
+
+            WHEN UPPER(TRIM(city)) IN ('PANAJI') 
+                THEN 'GOA'
+
+            -- 🔥 SECOND: fallback to state if exists
+            WHEN state IS NOT NULL AND TRIM(state) != '' 
+                THEN UPPER(TRIM(state))
+
+            -- ❌ ELSE ignore
+            ELSE NULL
+        END as normalized_state,
+
+        COUNT(*) as total
+    ")
+    ->where('status', 'active')
+    ->where(function ($q) {
+        $q->whereNotNull('state')
+          ->orWhereNotNull('city');
+    })
+    ->groupBy('normalized_state')
+    ->havingNotNull('normalized_state')
+    ->get()
+    ->keyBy('normalized_state');
+
+    $result = [];
+
+    foreach ($priorityStates as $state) {
+        if (!isset($states[$state])) {
+            continue;
+        }
+
+        $result[] = [
+            'name'  => $state,
+            'count' => (int) $states[$state]->total,
+            'image' => $images[$state] ?? $defaultImage,
+        ];
+    }
+
+    // 🔥 Sort by count (important)
+    usort($result, fn($a, $b) => $b['count'] <=> $a['count']);
+
+    return array_slice($result, 0, $limit);
+}
 
     /**
      * @OA\Get(
