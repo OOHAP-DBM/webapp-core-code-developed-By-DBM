@@ -1,4 +1,4 @@
-<header class="bg-[#FBFBFB] border-b border-gray-100 fixed top-0 left-0 w-full z-50 md:h-43">
+<header id="mainHeader" class="bg-[#FBFBFB] border-b border-gray-100 fixed top-0 left-0 w-full z-50 md:h-43 transition-all duration-300">
     <!-- Desktop/Tablet Navbar -->
     <div >
         <div class="container mx-auto pr-4 hidden md:block">

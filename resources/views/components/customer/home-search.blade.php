@@ -39,13 +39,40 @@
     width: 34px; height: 34px;
     display: flex; align-items: center; justify-content: center;
   }
+
+  /* Default state (top of page) */
+#tabsBlock {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+#hoardingRoot {
+    position: relative;
+    z-index: 30;
+}
+
+#searchBlock {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+/* Scrolled state */
+.scrolled #tabsBlock {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
+}
+.scrolled #searchBlock {
+    transform: translateY(-60px); /* move UP into tabs position */
+}
 </style>
 
 {{-- ── WRAPPER ── --}}
-<div class="relative" id="hoardingRoot">
+<div class="relative transition-all duration-300" id="hoardingRoot">
 
     {{-- TABS --}}
-    <div class="flex space-x-8 items-center justify-center h-full">
+    <div id="tabsBlock" class="flex space-x-8 items-center justify-center h-full transition-all duration-300">
 
         <a href="{{ url('/#best-hoardings-section') }}" type="button"
                 onclick="hoardingTab.switchTab('hoardings', this)"
@@ -90,7 +117,7 @@
         </a>
 
     </div>
-    <div class="flex justify-center mt-[-10px] ">
+    <div id="searchBlock" class="flex justify-center mt-[-10px] ">
         <form action="{{ route('search') }}" method="GET"
             id="hoardingSearchForm"
             onsubmit="hCal.apply(); return true;"
@@ -99,7 +126,7 @@
             {{-- WHERE --}}
             <div class="flex flex-col flex-grow px-6 border-r border-gray-200 w-[200px] xl:w-[400px]">
                 <label class="text-sm font-bold uppercase tracking-wider text-gray-900">Where</label>
-                <input type="text" name="location"
+                <input type="text" name="location" onfocus="resetHeader()"
                     placeholder="Search Hoardings..."
                     value="{{ request('location') }}"  {{-- ← add this --}}
                     class="text-sm text-gray-500 outline-none placeholder-gray-400 border-none p-0 focus:ring-0 w-full"/>
@@ -108,7 +135,7 @@
             {{-- WHEN trigger --}}
             <div class="flex flex-col flex-grow px-6 hidden md:flex xl:w-[400px] w-[200px] cursor-pointer select-none"
                  id="hoardingWhenTrigger"
-                 onclick="hCal.toggle(event)">
+                 onclick="resetHeader(); hCal.toggle(event)">
                 <span class="text-sm font-bold uppercase tracking-wider text-gray-900">When</span>
                 <span class="text-sm text-gray-400" id="hoardingDateDisplay">Select dates</span>
                 <input type="hidden" name="date_from" id="hoardingDateFrom" value="{{ request('date_from') }}"/>
@@ -534,4 +561,50 @@ document.addEventListener('DOMContentLoaded', function () {
         hCal.baseMonth = hCal.startDate.getMonth();
     }
 });
+</script>
+<script>
+    function resetHeader() {
+        var root = document.getElementById('hoardingRoot');
+        root.classList.remove('scrolled');
+    }
+(function () {
+    var root = document.getElementById('hoardingRoot');
+    var lastScroll = 0;
+
+    window.addEventListener('scroll', function () {
+        var currentScroll = window.scrollY;
+
+        if (currentScroll > 50) {
+            root.classList.add('scrolled');
+        } else {
+            root.classList.remove('scrolled');
+        }
+
+        lastScroll = currentScroll;
+    });
+})();
+(function () {
+    var root = document.getElementById('hoardingRoot');
+    var isInteracting = false;
+
+    window.resetHeader = function () {
+        root.classList.remove('scrolled');
+        isInteracting = true;
+
+        // unlock after user finishes interaction
+        setTimeout(function () {
+            isInteracting = false;
+        }, 1000);
+    };
+
+    window.addEventListener('scroll', function () {
+        if (isInteracting) return;
+
+        if (window.scrollY > 50) {
+            root.classList.add('scrolled');
+        } else {
+            root.classList.remove('scrolled');
+        }
+    });
+})();
 </script>
