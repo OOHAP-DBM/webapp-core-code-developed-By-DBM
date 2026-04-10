@@ -15,14 +15,14 @@
         </div>
 
         {{-- Carousel Wrapper --}}
-        <div class="relative max-w-6xl mx-auto group">
+        <div class="relative w-full overflow-hidden group">
 
             {{-- Track --}}
             <div id="testimonialTrack"
-                 class="flex gap-6 transition-transform duration-700 ease-[cubic-bezier(.4,0,.2,1)]">
+                 class="flex gap-6 transition-transform duration-700 ease-[cubic-bezier(.4,0,.2,1)] w-full">
 
                 @foreach($testimonials as $item)
-                    <div class="testimonial-slide min-w-full md:min-w-[50%] lg:min-w-[33.333%] px-2">
+                    <div class="testimonial-slide w-full md:w-1/2 lg:w-1/3 px-2">
 
                         <div
                             class="relative bg-gradient-to-br from-white to-gray-50

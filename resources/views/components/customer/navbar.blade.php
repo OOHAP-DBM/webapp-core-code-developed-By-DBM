@@ -1,4 +1,4 @@
-<header id="mainHeader" class="bg-[#FBFBFB] border-b border-gray-100 fixed top-0 left-0 w-full z-50 md:h-43 transition-all duration-300">
+<header id="header" class="bg-[#FBFBFB] border-b border-gray-100 fixed top-0 left-0 w-full z-50 md:h-43 transition-all duration-300">
     <!-- Desktop/Tablet Navbar -->
     <div >
         <div class="container mx-auto pr-4 hidden md:block">
@@ -495,3 +495,18 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+<script>
+const header = document.getElementById('header');
+
+window.addEventListener('scroll', () => {
+    let scrollY = window.pageYOffset;
+
+    if (scrollY <= 50) {
+        // ✅ Only when at TOP → add full height
+        header.classList.add('md:h-43');
+    } else {
+        // ✅ Anywhere else → remove it
+        header.classList.remove('md:h-43');
+    }
+});
+</script>

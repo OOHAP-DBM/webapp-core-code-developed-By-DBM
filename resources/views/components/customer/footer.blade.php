@@ -1,6 +1,6 @@
 <!-- Newsletter Subscription
 <section class="py-12 bg-gray-900" id="newsletter">
-    <div class="container mx-auto px-4">
+    <div class="container mx-auto max-w-6xl px-4">
         <div class="mx-auto max-w-7xl px-6">
             <div class="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div class="text-white md:w-1/2">
@@ -46,7 +46,7 @@
 <footer class="bg-gray-50 text-gray-700 pt-12 pb-6 border-t border-gray-200">
     <div class="container mx-auto px-4">
         <!-- Main Footer Content -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10 ">
             <!-- Contact Section -->
             <div>
                 <h3 class="text-gray-900 text-lg font-semibold mb-4">Contact</h3>
@@ -120,8 +120,8 @@
             </div> -->
 
             <!-- Let us help you -->
-            <div>
-                <h3 class="text-gray-900 text-lg font-semibold mb-4">Let us help you</h3>
+            <div >
+                <h3 class="text-gray-900 text-lg font-semibold mb-4 ">Let us help you</h3>
                <ul class="space-y-2 text-sm">
                     <li>
                         <a href="{{ route('about') }}" class="text-gray-600 hover:text-gray-900" target="_blank" rel="noopener noreferrer">
@@ -186,7 +186,7 @@
                     $cities = $dynamicCities;
                 @endphp
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-y-1 text-sm text-gray-600">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4  md:grid-cols-4 gap-y-1 text-sm text-gray-600">
                 @foreach($cities as $city)
 
                     {{-- NEAR ME --}}
@@ -279,7 +279,7 @@
 
 <div class="text-center text-gray-500 py-1" style="background-color:#e8e8e8;" id="copyright">© {{ date('Y') }} www.oohapp.io All rights reserved.</div>
 
-<div class="h-[112px] w-full block md:hidden"></div>
+<div class="h-[80px] w-full block md:hidden"></div>
 
 
 
