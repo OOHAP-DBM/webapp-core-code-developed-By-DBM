@@ -367,35 +367,37 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Login with email/phone and password
-     * 
-     * @group Authentication
-     * @bodyParam identifier string required Email or phone number
-     * @bodyParam password string required Password
-     */
-    /**
+   /**
      * @OA\Post(
      *     path="/auth/login",
      *     tags={"Authentication"},
-     *     summary="Login with email/phone and password",
+     *     summary="Login with email/phone, password and role",
+     *     description="Users must login using their correct role (customer/vendor). Role mismatch will return an error.",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"identifier","password"},
+     *             required={"identifier","password","role"},
      *             @OA\Property(property="identifier", type="string", example="test@email.com"),
-     *             @OA\Property(property="password", type="string", example="password123")
+     *             @OA\Property(property="password", type="string", example="password123"),
+     *             @OA\Property(property="role", type="string", enum={"customer","vendor"}, example="customer")
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Login successful"
      *     ),
-     *     @OA\Response(response=401, description="Invalid credentials")
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid credentials"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Account inactive or role mismatch"
+     *     )
      * )
-     */
+    */
 
-    public function login(LoginRequest $request): JsonResponse
+   public function login(LoginRequest $request): JsonResponse
     {
         $user = $this->userService->verifyCredentials(
             $request->input('identifier'),
@@ -415,18 +417,40 @@ class AuthController extends Controller
                 'message' => 'Your account is ' . $user->status,
             ], 403);
         }
+        
+
+        $requestedRole = $request->input('role');
+        try {
+            if (!$user->hasRole($requestedRole)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "You are not registered as a {$requestedRole}. Please login with the correct role.",
+                ], 403);
+            }
+        } catch (\TypeError $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid role format provided.',
+            ], 422);
+        }
+        // ✅ Check if user has this role
+        if (!$user->hasRole($requestedRole)) {
+            return response()->json([
+                'success' => false,
+                'message' => "You are not registered as a {$requestedRole}. Please login with the correct role.",
+            ], 403);
+        }
+
+        // ✅ Set active role based on request (not default anymore)
+        $user->update(['active_role' => $requestedRole]);
 
         // Update last login
         $user->updateLastLogin();
 
-        // Set active role to primary role if not set (PROMPT 96)
-        if (!$user->active_role) {
-            $user->update(['active_role' => $user->getPrimaryRole()]);
-        }
-
-        // Create API token with role context
         $freshUser = $user->fresh('vendorProfile');
-        $activeRole = $freshUser->getActiveRole();
+        $activeRole = $requestedRole;
+
+        // Create token with role scope
         $token = $user->createToken('auth_token', ['role:' . $activeRole])->plainTextToken;
 
         $responseData = [
