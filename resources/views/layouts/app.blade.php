@@ -113,7 +113,7 @@
 
 </head>
 <body class="antialiased">
-    <div id="app" class="min-h-screen bg-white">
+    <div id="app" class="min-h-screen bg-white w-full ">
         <!-- Main Content -->
         <main class="mt-[90px] ">
             @yield('content')

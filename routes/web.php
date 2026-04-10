@@ -29,9 +29,9 @@ use App\Http\Controllers\Admin\RazorpaySettingsController;
 // ============================================
 // PUBLIC ROUTES (Customer-facing)
 // ============================================
-Route::get('/phpinfo', function () {
-    phpinfo();
-});
+// Route::get('/phpinfo', function () {
+//     phpinfo();
+// });
 
 Route::get('/api/geocode', [GeocodeController::class, 'search']);
 Route::get('/api/pincode', [GeocodeController::class, 'pincode']);
@@ -48,7 +48,7 @@ Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
 
 Route::get('/brand/oohapp-logo', function () {
-    $path = public_path('assets/images/logo/logo_image.webp');
+    $path = public_path('assets/images/logo/oohapp-logo.jpeg');
 
     abort_unless(file_exists($path), 404);
 

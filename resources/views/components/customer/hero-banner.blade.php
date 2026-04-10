@@ -24,7 +24,7 @@
         <div class="absolute inset-0 bg-black/60"></div>
     </div>
 
-    <div class="container mx-auto px-4 py-16 md:py-24 relative z-10">
+    <div class="w-full px-6 md:px-10 lg:px-20 px-4 py-16 md:py-24 relative z-10">
         <div class="max-w-3xl">
             <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
                 "Seamless Hoarding Booking For Maximum Visibility"

@@ -1,6 +1,6 @@
 @if(isset($testimonials) && $testimonials->count())
 <section class="py-8 bg-white overflow-hidden">
-    <div class="container mx-auto px-4">
+    <div class="w-full px-6 md:px-10 lg:px-20 px-4">
 
         {{-- Heading --}}
         <div class="text-center mb-14">

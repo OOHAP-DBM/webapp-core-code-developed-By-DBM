@@ -1,6 +1,6 @@
 <section class="py-8 bg-gradient-to-br from-blue-50 to-purple-50">
-    <div class="container mx-auto px-4">
-        <div class="max-w-6xl mx-auto">
+    <div class="w-full px-6 md:px-10 lg:px-20 px-4">
+        <div class="">
             <!-- Section Header -->
             <div class="text-center mb-8">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">

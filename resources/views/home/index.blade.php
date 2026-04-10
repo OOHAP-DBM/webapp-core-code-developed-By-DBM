@@ -11,17 +11,19 @@
 
     <!-- Best Hoardings Section -->
     <section id="best-hoardings-section" class=" pb-6 pt-10 md:pt-25 scroll-mt-32 md:scroll-mt-48">
-        <div class="container mx-auto px-4">
+        <div class="w-full px-6 md:px-10 lg:px-20 px-4">
             <!-- Section Header -->
             <div class="mb-3">
                 <h2 class="text-2xl font-bold text-gray-900">Best Hoardings</h2>
             </div>
 
             <!-- Hoardings Grid -->
-            <div id="hoardingGrid">
-                @include('components.customer.hoarding-grid', ['bestHoardings' => $bestHoardings])
+            <div id="hoardingGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+                @foreach($bestHoardings as $hoarding)
+                    @include('components.customer.hoarding-card', ['hoarding' => $hoarding])
+                @endforeach
 
-                <div class="mt-8 pt-3 border-t border-gray-200">
+                <div class="col-span-full mt-8 pt-3 border-t border-gray-200">
                     <div class="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <p class="text-sm text-gray-500 font-medium order-2 sm:order-1">
                             Showing {{ $bestHoardings->firstItem() ?? 0 }}–{{ $bestHoardings->lastItem() ?? 0 }} of {{ $bestHoardings->total() }} results
@@ -71,11 +73,11 @@
     </section>
     @guest
      <!-- Personalized Recommendations CTA -->
-      <div class="container mx-auto px-4">
+      <div class="w-full px-6 md:px-10 lg:px-20 px-4">
           <hr class="border-gray-200">
       </div>
        <section class="py-6 bg-white">
-            <div class="container mx-auto px-4 text-center">
+            <div class="w-full px-6 md:px-10 lg:px-20 px-4 text-center">
                 <h3 class="text-xl font-bold text-gray-900 mb-4">
                     See Personalized Recommendations
                 </h3>
@@ -96,21 +98,21 @@
                     </div>
             </div>
        </section>
-       <div class="container mx-auto px-4">
+       <div class="w-full px-6 md:px-10 lg:px-20 px-4">
             <hr class="border-gray-200">
        </div>
     @endguest
     @include('home.home_contact_enquiry')
     <!-- Featured Categories -->
     <section id="top-spots-section" class="py-6 bg-white scroll-mt-32 md:scroll-mt-48">
-        <div class="container mx-auto px-4">
+        <div class="w-full px-6 md:px-10 lg:px-20 px-4">
             <div class=" mb-6">
                 <!-- <h2 class="text-lg md:text-4xl font-bold text-gray-900 mb-3">Top Spots</h2> -->
                 <h2 class="text-2xl font-bold text-gray-900">Top Spots</h2>
                 <!-- <p class="text-gray-600">Explore advertising opportunities in major cities</p> -->
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
                 @foreach($topStates as $state)
                     @include('components.customer.category-card', ['state' => $state])
                 @endforeach

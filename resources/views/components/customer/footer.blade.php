@@ -44,7 +44,7 @@
     </div>
 </section> -->
 <footer class="bg-gray-50 text-gray-700 pt-12 pb-6 border-t border-gray-200">
-    <div class="container mx-auto px-4">
+    <div class="w-full px-6 md:px-10 lg:px-20 px-4">
         <!-- Main Footer Content -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10 ">
             <!-- Contact Section -->
