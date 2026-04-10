@@ -10,7 +10,7 @@
     {{-- @include('components.customer.search-bar') --}}
 
     <!-- Best Hoardings Section -->
-    <section id="best-hoardings-section" class="py-6 mt-8 scroll-mt-32 md:scroll-mt-48">
+    <section id="best-hoardings-section" class=" pb-6 pt-10 md:pt-25 scroll-mt-32 md:scroll-mt-48">
         <div class="container mx-auto px-4">
             <!-- Section Header -->
             <div class="mb-3">

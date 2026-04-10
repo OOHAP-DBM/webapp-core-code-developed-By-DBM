@@ -66,6 +66,33 @@
 .scrolled #searchBlock {
     transform: translateY(-60px); /* move UP into tabs position */
 }
+/* smooth animation */
+#mainHeader,
+#headerInner,
+#searchWrapper{
+transition:all .3s ease;
+}
+
+/* normal header */
+#headerInner{
+max-width:1200px;
+}
+
+/* when scrolled */
+.scrolled #headerInner{
+max-width:850px;
+}
+
+/* shrink search */
+.scrolled #searchWrapper{
+transform:translateY(-55px) scale(.95);
+}
+
+/* reduce header spacing */
+.scrolled{
+padding-top:6px;
+padding-bottom:6px;
+}
 </style>
 
 {{-- ── WRAPPER ── --}}

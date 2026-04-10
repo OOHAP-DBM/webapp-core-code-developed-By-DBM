@@ -93,13 +93,13 @@
 @section('content')
     <div class="bg-gray-50 " id="dashboardApp" x-data="{ openFilter: false, dateFilter: '{{ request('date_filter', 'all') }}' }">
             <!-- TITLE -->
-            <h2 class="text-xl font-bold text-gray-700 mb-6">
+            <h2 class="pl-5 md:pl-0 text-xl font-bold text-gray-700 mb-6">
                 Dashboard
             </h2>
             <!-- STATS -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <!-- TOTAL HOARDINGS -->
-                <a href="{{ route('customer.enquiries.index') }}" target="_blank" class="bg-[#F3F4F6] rounded p-4 flex items-start gap-3 w-full max-w-xs hover:shadow-lg transition cursor-pointer" title="View all enquiries">
+                <a href="{{ route('customer.enquiries.index') }}" target="_blank" class="bg-[#F3F4F6] rounded ml-4 md:ml-0 p-4 flex items-start gap-3 w-full max-w-xs hover:shadow-lg transition cursor-pointer" title="View all enquiries">
                     <div class="w-10 h-10 rounded-full bg-[#E5E7EB] flex items-center justify-center flex-shrink-0">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 13V11H22V13H18ZM19.2 20L16 17.6L17.2 16L20.4 18.4L19.2 20ZM17.2 8L16 6.4L19.2 4L20.4 5.6L17.2 8ZM5 19V15H4C3.45 15 2.97933 14.8043 2.588 14.413C2.19667 14.0217 2.00067 13.5507 2 13V11C2 10.45 2.196 9.97933 2.588 9.588C2.98 9.19667 3.45067 9.00067 4 9H8L13 6V18L8 15H7V19H5ZM14 15.35V8.65C14.45 9.05 14.8127 9.53767 15.088 10.113C15.3633 10.6883 15.5007 11.3173 15.5 12C15.4993 12.6827 15.3617 13.312 15.087 13.888C14.8123 14.464 14.45 14.9513 14 15.35Z" fill="#374151"/></svg>
                     </div>

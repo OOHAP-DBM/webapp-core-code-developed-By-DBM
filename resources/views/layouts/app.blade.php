@@ -115,7 +115,7 @@
 <body class="antialiased">
     <div id="app" class="min-h-screen bg-white">
         <!-- Main Content -->
-        <main class="md:mt-43 mt-27 md:mt-5">
+        <main class="mt-[90px] ">
             @yield('content')
         </main>
 
