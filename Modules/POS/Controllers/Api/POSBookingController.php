@@ -1625,6 +1625,150 @@ class POSBookingController extends Controller
     }
 
 
+    /**
+     * @OA\Get(
+     *     path="/pos/vendor/bookings/{id}/reminder-history",
+     *     operationId="getReminderHistory",
+     *     tags={"POS Bookings"},
+     *     summary="Get reminder history for a booking",
+     *     description="Fetch all reminders (scheduled, sent, failed) for a specific POS booking",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Booking ID",
+     *         @OA\Schema(type="integer", example=101)
+     *     ),
+     *
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         required=false,
+     *         description="Filter by reminder status (pending, sent, failed)",
+     *         @OA\Schema(type="string", example="sent")
+     *     ),
+     *
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="query",
+     *         required=false,
+     *         description="Filter by reminder type (whatsapp, sms, manual)",
+     *         @OA\Schema(type="string", example="whatsapp")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reminder history fetched successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="booking_id", type="integer", example=101),
+     *                 @OA\Property(property="invoice_number", type="string", example="INV-2026-001"),
+     *                 @OA\Property(property="reminder_count", type="integer", example=3),
+     *                 @OA\Property(
+     *                     property="reminders",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="type", type="string", example="whatsapp"),
+     *                         @OA\Property(property="status", type="string", example="sent"),
+     *                         @OA\Property(property="scheduled_at", type="string", format="date-time", example="2026-04-10 10:00:00"),
+     *                         @OA\Property(property="sent_at", type="string", format="date-time", example="2026-04-10 10:01:05"),
+     *                         @OA\Property(property="created_at", type="string", format="date-time", example="2026-04-10 09:55:00"),
+     *                         @OA\Property(property="created_by", type="integer", example=5),
+     *                         @OA\Property(property="message", type="string", example="Payment reminder sent"),
+     *                         @OA\Property(property="attempts", type="integer", example=1),
+     *                         @OA\Property(property="error", type="string", nullable=true, example=null)
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="Booking not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Booking not found")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to fetch reminder history",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Failed to fetch reminder history"),
+     *             @OA\Property(property="error", type="string", example="Internal server error")
+     *         )
+     *     )
+     * )
+    */
+    public function getReminderHistory(Request $request, int $id): JsonResponse
+    {
+        try {
+            $context = $this->resolveAdminBookingScopeContext($request);
+
+            $query = POSBooking::query()->with([
+                'scheduledReminders' => function ($q) {
+                    $q->orderBy('created_at', 'desc');
+                }
+            ]);
+
+            if ($context['scope'] !== 'overall') {
+                $query->where('vendor_id', $context['vendor_id']);
+            }
+
+            $booking = $query->findOrFail($id);
+
+            $reminders = $booking->scheduledReminders->map(function ($reminder) {
+                return [
+                    'id'            => $reminder->id,
+                    'type'          => $reminder->type ?? 'manual',
+                    'status'        => $reminder->status, // pending / sent / failed
+                    'scheduled_at'  => optional($reminder->scheduled_at)->toDateTimeString(),
+                    'sent_at'       => optional($reminder->sent_at)->toDateTimeString(),
+                    'created_at'    => optional($reminder->created_at)->toDateTimeString(),
+                    'created_by'    => $reminder->created_by,
+                    'message'       => $reminder->message ?? null,
+                    'attempts'      => $reminder->attempts ?? 0,
+                    'error'         => $reminder->error ?? null,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'booking_id' => $booking->id,
+                    'invoice_number' => $booking->invoice_number,
+                    'reminder_count' => $reminders->count(),
+                    'reminders' => $reminders,
+                ]
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not found',
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch reminder history',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
       /**
      * Send WhatsApp notification on booking creation.
      */
