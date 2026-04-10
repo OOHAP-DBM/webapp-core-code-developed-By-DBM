@@ -160,7 +160,7 @@ padding-bottom:6px;
             class="inline-flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition-shadow pl-2 pr-1 w-full max-w-2xl">
 
             {{-- WHERE --}}
-            <div class="flex flex-col flex-grow px-6 border-r border-gray-200 w-[200px] xl:w-[400px]">
+            <div class="flex flex-col flex-grow px-6 border-r border-gray-200 w-[100px] md:w-[200px] xl:w-[400px]">
                 <label class="text-sm font-bold uppercase tracking-wider text-gray-900">Where</label>
                 <input type="text" name="location" onfocus="resetHeader()"
                     placeholder="Search Hoardings..."
@@ -169,7 +169,7 @@ padding-bottom:6px;
             </div>
    
             {{-- WHEN trigger --}}
-            <div class="flex flex-col flex-grow px-6 hidden md:flex xl:w-[400px] w-[200px] cursor-pointer select-none"
+            <div class="flex flex-col flex-grow px-6 hidden md:flex xl:w-[400px] w-[100px] md:w-[200px] cursor-pointer select-none"
                  id="hoardingWhenTrigger"
                  onclick="resetHeader(); hCal.toggle(event)">
                 <span class="text-sm font-bold uppercase tracking-wider text-gray-900">When</span>
