@@ -3,292 +3,339 @@
 namespace Modules\Offers\Services;
 
 use App\Models\Offer;
-use App\Models\Enquiry;
-use App\Services\OfferExpiryService;  // PROMPT 105
+use App\Models\OfferItem;
+use App\Models\Hoarding;
+use Modules\Enquiries\Models\Enquiry;
+use Modules\Enquiries\Models\EnquiryItem;
 use Modules\Offers\Repositories\Contracts\OfferRepositoryInterface;
-use Modules\Offers\Events\OfferSent;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OfferService
 {
-    protected OfferRepositoryInterface $repository;
-    protected OfferExpiryService $expiryService;  // PROMPT 105
-
     public function __construct(
-        OfferRepositoryInterface $repository,
-        OfferExpiryService $expiryService  // PROMPT 105
-    ) {
-        $this->repository = $repository;
-        $this->expiryService = $expiryService;  // PROMPT 105
-    }
+        protected OfferRepositoryInterface $repository
+    ) {}
+
+    /* ════════════════════════════════════════════════════════════
+       CREATE OFFER
+       No price snapshot — snapshot is taken at quotation stage.
+    ════════════════════════════════════════════════════════════ */
 
     /**
-     * Create a new offer with automatic versioning and snapshot
+     * Create a new offer with its line items.
+     *
+     * $data shape:
+     * [
+     *   'enquiry_id'  => int,
+     *   'vendor_id'   => int,          // defaults to Auth::id()
+     *   'description' => string|null,
+     *   'valid_days'  => int|null,     // sets valid_until
+     *   'status'      => string,       // default: draft
+     *   'items' => [
+     *     [
+     *       'enquiry_item_id'      => int|null,
+     *       'hoarding_id'          => int,
+     *       'hoarding_type'        => 'ooh'|'dooh',
+     *       'package_id'           => int|null,
+     *       'package_type'         => string|null,
+     *       'package_label'        => string|null,
+     *       'preferred_start_date' => 'Y-m-d',
+     *       'preferred_end_date'   => 'Y-m-d',
+     *       'duration_months'      => int|null,
+     *       'price_per_month'      => float|null,
+     *       'offered_price'        => float|null,
+     *       'discount_percent'     => float|null,
+     *       'services'             => array|null,
+     *     ],
+     *     ...
+     *   ]
+     * ]
      */
     public function createOffer(array $data): Offer
     {
-        // Get the enquiry
-        $enquiry = Enquiry::with(['hoarding', 'customer'])->findOrFail($data['enquiry_id']);
+        return DB::transaction(function () use ($data) {
 
-        // Get next version number
-        $nextVersion = $this->repository->getLatestVersion($data['enquiry_id']) + 1;
+            $vendorId  = $data['vendor_id'] ?? Auth::id();
+            $enquiryId = $data['enquiry_id'];
 
-        // Create immutable price snapshot
-        $priceSnapshot = [
-            // Enquiry details
-            'enquiry_id' => $enquiry->id,
-            'customer_name' => $enquiry->customer->name,
-            'customer_email' => $enquiry->customer->email,
-            'preferred_start_date' => $enquiry->preferred_start_date->format('Y-m-d'),
-            'preferred_end_date' => $enquiry->preferred_end_date->format('Y-m-d'),
-            'duration_days' => $enquiry->getDurationInDays(),
-            'duration_type' => $enquiry->duration_type,
-            
-            // Hoarding snapshot from enquiry
-            'hoarding_title' => $enquiry->getSnapshotValue('hoarding_title'),
-            'hoarding_type' => $enquiry->getSnapshotValue('hoarding_type'),
-            'hoarding_location' => $enquiry->getSnapshotValue('location'),
-            'hoarding_dimensions' => [
-                'width' => $enquiry->getSnapshotValue('width'),
-                'height' => $enquiry->getSnapshotValue('height'),
-            ],
-            
-            // Original hoarding prices (for reference)
-            'original_price' => $enquiry->getSnapshotValue('price'),
-            'original_weekly_price' => $enquiry->getSnapshotValue('weekly_price'),
-            
-            // This offer's pricing
-            'offered_price' => $data['price'],
-            'offered_price_type' => $data['price_type'],
-            
-            // Timestamp
-            'snapshot_created_at' => now()->toDateTimeString(),
-        ];
+            // Next version for this vendor on this enquiry
+            $version = $this->repository->getLatestVersion($enquiryId, $vendorId) + 1;
 
-        $data['price_snapshot'] = $priceSnapshot;
-        $data['vendor_id'] = $data['vendor_id'] ?? Auth::id();
-        $data['version'] = $nextVersion;
-        $data['status'] = $data['status'] ?? Offer::STATUS_DRAFT;
+            // Build offer header — no price_snapshot at this stage
+            $offer = $this->repository->create([
+                'enquiry_id'  => $enquiryId,
+                'vendor_id'   => $vendorId,
+                'description' => $data['description'] ?? null,
+                'valid_until' => isset($data['valid_days'])
+                    ? now()->addDays((int) $data['valid_days'])
+                    : ($data['valid_until'] ?? null),
+                'status'      => $data['status'] ?? Offer::STATUS_DRAFT,
+                'version'     => $version,
+                // price / price_type / price_snapshot intentionally omitted here
+                // They get set during quotation stage
+            ]);
 
-        return $this->repository->create($data);
+            // Create line items
+            $this->syncItems($offer, $data['items'] ?? []);
+
+            Log::info('Offer created', [
+                'offer_id'   => $offer->id,
+                'enquiry_id' => $enquiryId,
+                'vendor_id'  => $vendorId,
+                'version'    => $version,
+                'items'      => count($data['items'] ?? []),
+            ]);
+
+            return $offer->load(['items.hoarding', 'vendor', 'enquiry.customer']);
+        });
     }
 
-    /**
-     * Send an offer (draft -> sent) and dispatch event
-     * PROMPT 105: Updated to set expiry timestamp
-     */
-    public function sendOffer(int $offerId, ?int $expiryDays = null): Offer
+    /* ════════════════════════════════════════════════════════════
+       UPDATE DRAFT OFFER
+    ════════════════════════════════════════════════════════════ */
+
+    public function updateOffer(int $offerId, array $data): Offer
     {
-        $offer = $this->repository->find($offerId);
+        return DB::transaction(function () use ($offerId, $data) {
 
-        if (!$offer) {
-            throw new \Exception('Offer not found');
-        }
+            $offer = $this->repository->find($offerId);
 
-        if (!$offer->canSend()) {
-            throw new \Exception('Only draft offers can be sent');
-        }
+            if (!$offer) {
+                throw new \RuntimeException('Offer not found.');
+            }
 
-        DB::beginTransaction();
-        try {
+            if (!$offer->isDraft()) {
+                throw new \RuntimeException('Only draft offers can be updated.');
+            }
+
+            $updateFields = array_filter([
+                'description' => $data['description'] ?? $offer->description,
+                'valid_until' => isset($data['valid_days'])
+                    ? now()->addDays((int) $data['valid_days'])
+                    : ($data['valid_until'] ?? $offer->valid_until),
+            ], fn($v) => $v !== null);
+
+            $offer->update($updateFields);
+
+            // Re-sync items if provided
+            if (!empty($data['items'])) {
+                $this->syncItems($offer, $data['items']);
+            }
+
+            Log::info('Offer updated', ['offer_id' => $offerId]);
+
+            return $offer->load(['items.hoarding', 'vendor', 'enquiry.customer']);
+        });
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       SEND OFFER
+    ════════════════════════════════════════════════════════════ */
+
+    public function sendOffer(int $offerId): Offer
+    {
+        return DB::transaction(function () use ($offerId) {
+
+            $offer = $this->repository->findWithItems($offerId);
+
+            if (!$offer) {
+                throw new \RuntimeException('Offer not found.');
+            }
+
+            if (!$offer->isDraft()) {
+                throw new \RuntimeException('Only draft offers can be sent.');
+            }
+
+            if ($offer->items->isEmpty()) {
+                throw new \RuntimeException('Cannot send an offer with no items.');
+            }
+
+            // Validate all items have dates
+            foreach ($offer->items as $item) {
+                if (!$item->preferred_start_date || !$item->preferred_end_date) {
+                    throw new \RuntimeException(
+                        "Item for hoarding #{$item->hoarding_id} is missing campaign dates."
+                    );
+                }
+            }
+
             $this->repository->updateStatus($offerId, Offer::STATUS_SENT);
             $offer->refresh();
 
-            // PROMPT 105: Set expiry timestamp
-            $this->expiryService->setOfferExpiry($offer, $expiryDays);
+            Log::info('Offer sent', ['offer_id' => $offerId]);
 
-            // Dispatch event
-            event(new OfferSent($offer));
-
-            DB::commit();
             return $offer;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    } 
-    /**
-     * Accept an offer
-     * PROMPT 105: Validate expiry before acceptance
-     */
-    public function acceptOffer(int $offerId): Offer
+        });
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       ACCEPT OFFER
+    ════════════════════════════════════════════════════════════ */
+
+    public function acceptOffer(int $offerId, int $customerId): Offer
     {
-        $offer = $this->repository->find($offerId);
+        return DB::transaction(function () use ($offerId, $customerId) {
 
-        if (!$offer) {
-            throw new \Exception('Offer not found');
-        }
+            $offer = $this->repository->findWithItems($offerId);
 
-        // PROMPT 105: Validate expiry before acceptance
-        [$canAccept, $reason] = $this->expiryService->validateOfferAcceptance($offer);
-        
-        if (!$canAccept) {
-            throw new \Exception($reason);
-        }
+            if (!$offer) {
+                throw new \RuntimeException('Offer not found.');
+            }
 
-        if (!$offer->canAccept()) {
-            throw new \Exception('This offer cannot be accepted (expired or not sent)');
-        }
+            if ($offer->enquiry->customer_id !== $customerId) {
+                throw new \RuntimeException('Unauthorized: you do not own this enquiry.');
+            }
 
-        DB::beginTransaction();
-        try {
+            if (!$offer->isSent()) {
+                throw new \RuntimeException('Only sent offers can be accepted.');
+            }
+
+            if ($offer->isExpired()) {
+                throw new \RuntimeException('This offer has expired and can no longer be accepted.');
+            }
+
             $this->repository->updateStatus($offerId, Offer::STATUS_ACCEPTED);
-            
-            // Reject all other offers for this enquiry
-            Offer::where('enquiry_id', $offer->enquiry_id)
-                ->where('id', '!=', $offerId)
-                ->where('status', Offer::STATUS_SENT)
-                ->update(['status' => Offer::STATUS_REJECTED]);
 
-            $offer->refresh();
+            // Update enquiry status
+            $offer->enquiry->update(['status' => Enquiry::STATUS_ACCEPTED]);
 
-            DB::commit();
-            return $offer;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+            Log::info('Offer accepted', ['offer_id' => $offerId, 'customer_id' => $customerId]);
+
+            return $offer->fresh();
+        });
     }
 
-    /**
-     * Reject an offer
-     */
-    public function rejectOffer(int $offerId): bool
+    /* ════════════════════════════════════════════════════════════
+       REJECT OFFER
+    ════════════════════════════════════════════════════════════ */
+
+    public function rejectOffer(int $offerId, int $customerId): Offer
+    {
+        return DB::transaction(function () use ($offerId, $customerId) {
+
+            $offer = $this->repository->find($offerId);
+
+            if (!$offer) {
+                throw new \RuntimeException('Offer not found.');
+            }
+
+            if ($offer->enquiry->customer_id !== $customerId) {
+                throw new \RuntimeException('Unauthorized: you do not own this enquiry.');
+            }
+
+            if (!$offer->isSent()) {
+                throw new \RuntimeException('Only sent offers can be rejected.');
+            }
+
+            $this->repository->updateStatus($offerId, Offer::STATUS_REJECTED);
+
+            Log::info('Offer rejected', ['offer_id' => $offerId, 'customer_id' => $customerId]);
+
+            return $offer->fresh();
+        });
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       DELETE DRAFT
+    ════════════════════════════════════════════════════════════ */
+
+    public function deleteDraft(int $offerId, int $vendorId): void
     {
         $offer = $this->repository->find($offerId);
 
-        if (!$offer || !$offer->isSent()) {
-            throw new \Exception('Offer cannot be rejected');
+        if (!$offer || $offer->vendor_id !== $vendorId) {
+            throw new \RuntimeException('Offer not found.');
         }
 
-        return $this->repository->updateStatus($offerId, Offer::STATUS_REJECTED);
+        if (!$offer->isDraft()) {
+            throw new \RuntimeException('Only draft offers can be deleted.');
+        }
+
+        DB::transaction(function () use ($offerId) {
+            $this->repository->deleteItems($offerId);
+            Offer::destroy($offerId);
+        });
+
+        Log::info('Draft offer deleted', ['offer_id' => $offerId, 'vendor_id' => $vendorId]);
     }
 
-    /**
-     * Get offer by ID
-     */
+    /* ════════════════════════════════════════════════════════════
+       QUERY HELPERS
+    ════════════════════════════════════════════════════════════ */
+
     public function find(int $id): ?Offer
     {
-        return $this->repository->find($id);
+        return $this->repository->findWithItems($id);
     }
 
-    /**
-     * Get offers by enquiry
-     */
     public function getByEnquiry(int $enquiryId): Collection
     {
         return $this->repository->getByEnquiry($enquiryId);
     }
 
-    /**
-     * Get offers by vendor
-     */
-    public function getVendorOffers(): Collection
+    public function getVendorOffers(int $vendorId = null): Collection
     {
-        return $this->repository->getByVendor(Auth::id());
+        return $this->repository->getByVendor($vendorId ?? Auth::id());
     }
 
-    /**
-     * Get offers received by customer
-     */
-    public function getCustomerOffers(): Collection
-    {
-        return $this->repository->getAll([
-            'status' => Offer::STATUS_SENT,
-        ])->filter(function($offer) {
-            return $offer->enquiry->customer_id === Auth::id();
-        });
-    } 
-    /**
-     * Check and expire all due offers
-     * PROMPT 105: Delegate to OfferExpiryService
-     */
-    public function checkExpiredOffers(): int
-    {
-        return $this->expiryService->expireAllDueOffers();
-    }
-
-    /**
-     * Extend offer expiry by X days
-     * PROMPT 105: New method
-     */
-    public function extendOfferExpiry(int $offerId, int $additionalDays): Offer
-    {
-        $offer = $this->repository->find($offerId);
-
-        if (!$offer) {
-            throw new \Exception('Offer not found');
-        }
-
-        return $this->expiryService->extendOfferExpiry($offer, $additionalDays);
-    }
-
-    /**
-     * Reset offer expiry to X days from now
-     * PROMPT 105: New method
-     */
-    public function resetOfferExpiry(int $offerId, int $expiryDays): Offer
-    {
-        $offer = $this->repository->find($offerId);
-
-        if (!$offer) {
-            throw new \Exception('Offer not found');
-        }
-
-        return $this->expiryService->resetOfferExpiry($offer, $expiryDays);
-    }
-
-    /**
-     * Get all offers with filters
-     */
     public function getAll(array $filters = []): Collection
     {
         return $this->repository->getAll($filters);
     }
 
-    /**
-     * Check if user can view offer
-     */
-    public function canView(Offer $offer, $user = null): bool
-    {
-        $user = $user ?? Auth::user();
-
-        if (!$user) {
-            return false;
-        }
-
-        // Admin can view all
-        if ($user->hasRole('admin')) {
-            return true;
-        }
-
-        // Vendor can view their own offers
-        if ($offer->vendor_id === $user->id) {
-            return true;
-        }
-
-        // Customer can view offers for their enquiries (if sent)
-        if ($offer->enquiry->customer_id === $user->id && $offer->isSent()) {
-            return true;
-        }
-
-        return false;
-    }
+    /* ════════════════════════════════════════════════════════════
+       PRIVATE HELPERS
+    ════════════════════════════════════════════════════════════ */
 
     /**
-     * Check if user can edit offer
+     * Delete existing items and insert fresh ones.
      */
-    public function canEdit(Offer $offer, $user = null): bool
+    private function syncItems(Offer $offer, array $items): void
     {
-        $user = $user ?? Auth::user();
+        $this->repository->deleteItems($offer->id);
 
-        if (!$user) {
-            return false;
+        foreach ($items as $itemData) {
+            $hoarding = Hoarding::find($itemData['hoarding_id']);
+
+            // Derive duration_months if not provided
+            $durationMonths = $itemData['duration_months'] ?? null;
+            if (!$durationMonths && !empty($itemData['preferred_start_date']) && !empty($itemData['preferred_end_date'])) {
+                $days           = \Carbon\Carbon::parse($itemData['preferred_start_date'])
+                    ->diffInDays(\Carbon\Carbon::parse($itemData['preferred_end_date'])) + 1;
+                $durationMonths = (int) max(1, ceil($days / 30));
+            }
+
+            // price_per_month: use provided value, else fall back to hoarding's current price
+            $pricePerMonth = $itemData['price_per_month']
+                ?? $hoarding?->price_per_month
+                ?? $hoarding?->monthly_rental
+                ?? null;
+
+            $this->repository->createItem([
+                'offer_id'             => $offer->id,
+                'enquiry_item_id'      => $itemData['enquiry_item_id'] ?? null,
+                'hoarding_id'          => $itemData['hoarding_id'],
+                'hoarding_type'        => $itemData['hoarding_type'] ?? 'ooh',
+                'package_id'           => $itemData['package_id'] ?? null,
+                'package_type'         => $itemData['package_type'] ?? null,
+                'package_label'        => $itemData['package_label'] ?? null,
+                'preferred_start_date' => $itemData['preferred_start_date'],
+                'preferred_end_date'   => $itemData['preferred_end_date'],
+                'duration_months'      => $durationMonths,
+                'price_per_month'      => $pricePerMonth,
+                'offered_price'        => $itemData['offered_price'] ?? null,
+                'discount_percent'     => $itemData['discount_percent'] ?? null,
+                'services'             => $itemData['services'] ?? null,
+                'meta'                 => [
+                    // Lightweight reference data — NOT a full snapshot
+                    'hoarding_title'    => $hoarding?->title ?? $hoarding?->name,
+                    'hoarding_type'     => $itemData['hoarding_type'] ?? 'ooh',
+                    'display_location'  => $hoarding?->display_location ?? $hoarding?->city,
+                ],
+            ]);
         }
-
-        // Only vendor who created it can edit, and only if draft
-        return $offer->vendor_id === $user->id && $offer->isDraft();
     }
 }

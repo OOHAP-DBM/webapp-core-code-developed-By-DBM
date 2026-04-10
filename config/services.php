@@ -43,8 +43,8 @@ return [
     ],
 
     'dooh_api' => [
-        'base_url' => env('DOOH_API_URL'),
-        'key' => env('DOOH_API_KEY'),
+         'base_url' => env('DOOH_API_URL', 'https://your-dooh-api-url'),
+         'key' => env('DOOH_API_KEY', 'your-dooh-api-key'),
     ],
     'twilio' => [
         'sid'                => env('TWILIO_SID'),
@@ -53,6 +53,7 @@ return [
         'whatsapp'           => env('TWILIO_WHATSAPP_FROM'),
         'disable_ssl_verify' => env('TWILIO_DISABLE_SSL_VERIFY', false), // Only for local dev
     ],
+    
 
 
 ];

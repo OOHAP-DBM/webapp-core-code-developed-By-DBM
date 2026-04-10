@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Offers\Controllers\Api;
+namespace Modules\Offers\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Modules\Offers\Services\OfferService;

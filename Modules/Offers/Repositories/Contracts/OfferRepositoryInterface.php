@@ -4,6 +4,7 @@ namespace Modules\Offers\Repositories\Contracts;
 
 use App\Models\Offer;
 use Illuminate\Support\Collection;
+use Modules\Offers\Models\OfferItem;
 
 interface OfferRepositoryInterface
 {
@@ -17,6 +18,7 @@ interface OfferRepositoryInterface
      */
     public function find(int $id): ?Offer;
 
+     public function findWithItems(int $id): ?Offer;
     /**
      * Get offers by enquiry
      */
@@ -30,7 +32,7 @@ interface OfferRepositoryInterface
     /**
      * Get latest version for an enquiry
      */
-    public function getLatestVersion(int $enquiryId): int;
+    public function getLatestVersion(int $enquiryId, int $vendorId): int;
 
     /**
      * Get specific version of offer for enquiry
@@ -51,4 +53,10 @@ interface OfferRepositoryInterface
      * Mark expired offers
      */
     public function markExpired(): int;
+
+       /* ── Items ── */
+ 
+    public function createItem(array $data): \Modules\Offers\Models\OfferItem;
+ 
+    public function deleteItems(int $offerId): void;
 }

@@ -34,7 +34,7 @@
             </button>
         </div>
 
-        @include('vendor.offers.components.filter_modal')
+        @include('offers::components.vendor.filter_modal')
         <div class="flex items-center justify-between gap-2 mb-3">
             <button id="offer-unselect-btn" onclick="offerUnselectAll()"
                 class="hidden cursor-pointer text-[10px] font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded transition">

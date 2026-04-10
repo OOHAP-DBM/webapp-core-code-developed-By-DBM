@@ -628,7 +628,13 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
         Route::get('/enquiries', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myEnquiries'])->name('enquiries');
 
         // My Offers
-        Route::get('/offers', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myOffers'])->name('offers');
+        // Route::get('/offers', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myOffers'])->name('offers');
+        // PROMPT 50: New routes for toggle, check, and count
+        // Route::post('/shortlist/toggle/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'toggle'])->name('shortlist.toggle');
+        // Route::get('/shortlist/check/{hoarding}', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'check'])->name('shortlist.check');
+        // Route::get('/shortlist/count', [\App\Http\Controllers\Web\Customer\ShortlistController::class, 'count'])->name('shortlist.count');
+
+
 
         // My Quotations
         Route::get('/quotations', [\App\Http\Controllers\Customer\CustomerDashboardController::class, 'myQuotations'])->name('quotations');
@@ -762,12 +768,12 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             // Route::get('/stats', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'stats'])->name('stats');
         });
         // Offers
-        Route::get('/offers', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'index'])->name('offers.index');
-        Route::get('/offers/create', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'create'])->name('offers.create');
-        Route::get('/offers/customer-suggestions', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'customerSuggestions'])->name('offers.customer-suggestions');
-        Route::post('/offers/create-customer', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'createCustomer'])->name('offers.create-customer');
-        Route::post('/offers', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'store'])->name('offers.store');
-        Route::get('/offers/{id}', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'show'])->name('offers.show');
+        // Route::get('/offers', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'index'])->name('offers.index');
+        // Route::get('/offers/create', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'create'])->name('offers.create');
+        // Route::get('/offers/customer-suggestions', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'customerSuggestions'])->name('offers.customer-suggestions');
+        // Route::post('/offers/create-customer', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'createCustomer'])->name('offers.create-customer');
+        // Route::post('/offers', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'store'])->name('offers.store');
+        // Route::get('/offers/{id}', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'show'])->name('offers.show');
 
         // Quotations
         Route::get('/quotations', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'index'])->name('quotations.index');
@@ -1170,7 +1176,7 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
     });
 
     // Payout Approval System (PROMPT 58)
-    Route::prefix('payouts')->name('payouts.')->group(function () {
+    Route::prefix('payouts')->name('poutts.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'index'])->name('index');
         Route::get('/all', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'allRequests'])->name('all');
         Route::get('/{payoutRequest}', [\App\Http\Controllers\Admin\PayoutApprovalController::class, 'show'])->name('show');

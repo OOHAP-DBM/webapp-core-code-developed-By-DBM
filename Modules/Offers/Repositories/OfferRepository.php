@@ -3,6 +3,7 @@
 namespace Modules\Offers\Repositories;
 
 use App\Models\Offer;
+use App\Models\OfferItem;
 use Modules\Offers\Repositories\Contracts\OfferRepositoryInterface;
 use Illuminate\Support\Collection;
 
@@ -25,12 +26,22 @@ class OfferRepository implements OfferRepositoryInterface
             ->find($id);
     }
 
+    public function findWithItems(int $id): ?Offer
+    {
+        return Offer::with([
+            'enquiry.customer',
+            'vendor',
+            'items.hoarding',
+            'items.enquiryItem',
+        ])->find($id);
+    }
+
     /**
      * Get offers by enquiry
      */
     public function getByEnquiry(int $enquiryId): Collection
     {
-        return Offer::with(['vendor', 'enquiry'])
+        return Offer::with(['vendor', 'items.hoarding'])
             ->where('enquiry_id', $enquiryId)
             ->orderBy('version', 'desc')
             ->orderBy('created_at', 'desc')
@@ -51,11 +62,13 @@ class OfferRepository implements OfferRepositoryInterface
     /**
      * Get latest version for an enquiry
      */
-    public function getLatestVersion(int $enquiryId): int
+   public function getLatestVersion(int $enquiryId, int $vendorId): int
     {
-        return Offer::where('enquiry_id', $enquiryId)
-            ->max('version') ?? 0;
+        return (int) Offer::where('enquiry_id', $enquiryId)
+            ->where('vendor_id', $vendorId)
+            ->max('version');
     }
+ 
 
     /**
      * Get specific version of offer for enquiry
@@ -86,50 +99,53 @@ class OfferRepository implements OfferRepositoryInterface
     /**
      * Get all offers with filters
      */
-    public function getAll(array $filters = []): Collection
+   public function getAll(array $filters = []): Collection
     {
-        $query = Offer::with(['enquiry.customer', 'enquiry.hoarding', 'vendor']);
-
-        // Filter by status
+        $query = Offer::with(['enquiry.customer', 'vendor', 'items.hoarding']);
+ 
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
         }
-
-        // Filter by enquiry ID
         if (isset($filters['enquiry_id'])) {
             $query->where('enquiry_id', $filters['enquiry_id']);
         }
-
-        // Filter by vendor ID
         if (isset($filters['vendor_id'])) {
             $query->where('vendor_id', $filters['vendor_id']);
         }
-
-        // Filter by date range
         if (isset($filters['from_date'])) {
             $query->whereDate('created_at', '>=', $filters['from_date']);
         }
-
         if (isset($filters['to_date'])) {
             $query->whereDate('created_at', '<=', $filters['to_date']);
         }
-
-        // Filter active (sent and not expired)
-        if (isset($filters['active']) && $filters['active']) {
+        if (!empty($filters['active'])) {
             $query->active();
         }
-
-        return $query->orderBy('created_at', 'desc')->get();
+ 
+        return $query->orderByDesc('created_at')->get();
     }
-
-    /**
-     * Mark expired offers
-     */
+ 
     public function markExpired(): int
     {
         return Offer::where('status', Offer::STATUS_SENT)
-            ->whereNotNull('valid_until')
-            ->where('valid_until', '<', now())
+            ->where(function ($q) {
+                $q->whereNotNull('expires_at')->where('expires_at', '<', now())
+                  ->orWhereNotNull('valid_until')->where('valid_until', '<', now());
+            })
             ->update(['status' => Offer::STATUS_EXPIRED]);
+    }
+
+     /* ════════════════════════════════════════
+       OFFER ITEMS
+    ════════════════════════════════════════ */
+ 
+    public function createItem(array $data): \Modules\Offers\Models\OfferItem
+    {
+        return OfferItem::create($data);
+    }
+ 
+    public function deleteItems(int $offerId): void
+    {
+        OfferItem::where('offer_id', $offerId)->delete();
     }
 }
