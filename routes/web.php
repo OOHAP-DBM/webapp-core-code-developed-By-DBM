@@ -666,6 +666,8 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
         Route::post('/check-availability', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'checkAvailability'])->name('check-availability');
         Route::post('/playback-preview', [\Modules\DOOH\Controllers\Customer\DOOHScheduleController::class, 'playbackPreview'])->name('playback-preview');
     });
+    // Send Reminder to Vendor
+        Route::post('/enquiries/{enquiry}/send-reminder', [\App\Http\Controllers\Web\Customer\ReminderController::class, 'send'])->name('enquiries.send-reminder');
 });
 
 // ============================================
@@ -760,10 +762,12 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
             // Route::get('/stats', [\App\Http\Controllers\Vendor\HoardingMediaController::class, 'stats'])->name('stats');
         });
         // Offers
-        Route::get('/offers', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'index'])->name('offers.index');
-        Route::get('/offers/create', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'create'])->name('offers.create');
-        Route::post('/offers', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'store'])->name('offers.store');
-        Route::get('/offers/{id}', [\App\Http\Controllers\Web\Vendor\OfferController::class, 'show'])->name('offers.show');
+        Route::get('/offers', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'index'])->name('offers.index');
+        Route::get('/offers/create', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'create'])->name('offers.create');
+        Route::get('/offers/customer-suggestions', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'customerSuggestions'])->name('offers.customer-suggestions');
+        Route::post('/offers/create-customer', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'createCustomer'])->name('offers.create-customer');
+        Route::post('/offers', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'store'])->name('offers.store');
+        Route::get('/offers/{id}', [\Modules\Offers\Http\Controllers\Web\OfferController::class, 'show'])->name('offers.show');
 
         // Quotations
         Route::get('/quotations', [\Modules\Quotations\Controllers\Web\QuotationController::class, 'index'])->name('quotations.index');
@@ -1363,6 +1367,25 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
     Route::get('/direct-enquiries', [DirectEnquiryController::class, 'index'])->name('direct-enquiries.index');
     Route::get('/enquiries', [\Modules\Enquiries\Controllers\Web\AdminEnquiryController::class, 'index'])->name('enquiries.index');
     Route::get('/enquiries/{id}', [\Modules\Enquiries\Controllers\Web\AdminEnquiryController::class, 'show'])->name('enquiries.show');
+    Route::prefix('mail-configurations')->name('mail.configuration.')->group(function () {
+        Route::get('/',                          [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'index'])->name('index');
+        Route::get('/create',                    [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'create'])->name('create');
+        Route::post('/',                         [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'store'])->name('store');
+        Route::get('/{emailTemplate}',           [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'show'])->name('show');
+        Route::get('/{emailTemplate}/edit',      [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'edit'])->name('edit');
+        Route::put('/{emailTemplate}',           [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'update'])->name('update');
+        Route::delete('/{emailTemplate}',        [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'destroy'])->name('destroy');
+        Route::patch('/{emailTemplate}/toggle',  [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'toggleStatus'])->name('toggle');
+        Route::get('/{emailTemplate}/preview',   [Modules\Admin\Controllers\Web\Settings\EmailTemplateController::class, 'preview'])->name('preview');
+    });
+    Route::prefix('admin/mail-layouts')->name('mail.layouts.')->middleware(['auth', 'role:admin|superadmin'])->group(function () {
+        Route::get('/', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'index'])->name('index');
+        Route::get('/create', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'create'])->name('create');
+        Route::post('/', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'store'])->name('store');
+        Route::get('/{layout}/edit', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'edit'])->name('edit');
+        Route::put('/{layout}', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'update'])->name('update');
+        Route::delete('/{layout}', [\Modules\Admin\Controllers\Web\Settings\EmailLayoutController::class, 'destroy'])->name('destroy');
+    });
     Route::put('/profile/personal', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updatePersonal'])->name('profile.personal.update');
     Route::put('/profile/business', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updateBusiness'])->name('profile.business.update');
     Route::put('/profile/bank', [\App\Http\Controllers\Web\Admin\ProfileController::class, 'updateBank'])->name('profile.bank.update');

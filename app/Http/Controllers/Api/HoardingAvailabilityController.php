@@ -252,7 +252,6 @@ class HoardingAvailabilityController extends Controller
      */
     public function checkMultipleDates(CheckMultipleDatesRequest $request, Hoarding $hoarding): JsonResponse
     {
-        \Log::info('Checking multiple dates for hoarding ' . $hoarding->id, ['dates' => $request->input('dates')]);
         $results = $this->availabilityService->checkMultipleDates(
             $hoarding->id,
             $request->input('dates')
