@@ -18,10 +18,15 @@
             </div>
 
             <!-- Hoardings Grid -->
-              <div id="hoardingGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-6">
+              <div id="hoardingGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-5 gap-6">
 
-                @foreach($bestHoardings as $hoarding)
-                    <div class="h-[260px] sm:h-[300px] md:h-[340px] lg:h-[360px] xl:h-[400px] flex">
+                @php
+                    // Determine per page based on screen size (JS will handle client-side, but for SSR, show 6 by default)
+                    $perPage = 6;
+                    // Optionally, you can use a query param or session to set $perPage dynamically
+                @endphp
+                @foreach($bestHoardings->forPage($bestHoardings->currentPage(), $perPage) as $hoarding)
+                    <div class="sm:h-[300px] md:h-[340px] lg:h-[360px] xl:h-[400px] flex">
                         @include('components.customer.hoarding-card', ['hoarding' => $hoarding])
                     </div>
                 @endforeach
@@ -31,7 +36,8 @@
                             Showing {{ $bestHoardings->firstItem() ?? 0 }}–{{ $bestHoardings->lastItem() ?? 0 }} of {{ $bestHoardings->total() }} results
                         </p>
                         <div class="order-1 sm:order-2">
-                            {{ $bestHoardings->links('pagination.vendor-compact') }}
+                            {{-- Custom pagination: 6 per page by default, 10 for xl via JS --}}
+                            {{ $bestHoardings->appends(['perPage' => $perPage])->links('pagination.vendor-compact') }}
                         </div>
                     </div>
                 </div>
