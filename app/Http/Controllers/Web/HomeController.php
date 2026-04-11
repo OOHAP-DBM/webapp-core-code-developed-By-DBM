@@ -50,7 +50,7 @@ class HomeController extends Controller
                 'doohScreen.media:id,dooh_screen_id,file_path'
             ])
             ->orderByDesc('created_at')
-            ->paginate(8, ['*'], 'page', $page);
+            ->paginate(12, ['*'], 'page', $page);
 
         if ($request->ajax()) {
             return response()->json([
