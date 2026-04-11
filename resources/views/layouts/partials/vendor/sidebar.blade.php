@@ -25,12 +25,12 @@
         ✕
     </button>
 
-    <div class=" text-center sidebar-hide-when-collapsed">
+    <div class=" text-center sidebar-hide-when-collapsed px-4 pt-5">
         <!-- Logo -->
-        @php
+        <!-- @php
             $logoPath = public_path('assets/images/logo/logo_image.jpeg');
             $logoVersion = file_exists($logoPath) ? filemtime($logoPath) : null;
-        @endphp
+        @endphp -->
         <!-- <a href="{{ route('home') }}" class="flex items-center">
             <img
                 src="{{ route('brand.oohapp-logo') }}{{ $logoVersion ? ('?v=' . $logoVersion) : '' }}"

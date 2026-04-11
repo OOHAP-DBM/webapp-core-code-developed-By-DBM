@@ -1,10 +1,10 @@
 @if(isset($testimonials) && $testimonials->count())
-<section class="py-8 bg-white overflow-hidden">
-    <div class="container mx-auto px-4">
+<section class="py-4 bg-white overflow-hidden">
+    <div class="w-full px-6 md:px-10 lg:px-20 px-4">
 
         {{-- Heading --}}
-        <div class="text-center mb-14">
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-900">
+        <div class="text-center mb-1">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
                 {{ $testimonialRole === 'vendor'
                     ? 'What Our Vendors Say'
                     : 'What Our Customers Say' }}
@@ -15,7 +15,7 @@
         </div>
 
         {{-- Carousel Wrapper --}}
-        <div class="relative w-full overflow-hidden group">
+        <div class="relative pt-10 pb-5 h-full w-full overflow-hidden group">
 
             {{-- Track --}}
             <div id="testimonialTrack"

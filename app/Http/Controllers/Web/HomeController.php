@@ -196,6 +196,7 @@ class HomeController extends Controller
                 'status' => 'approved',
                 'show_on_homepage' => true,
             ],
+            
             // Vendor testimonials
             (object) [
                 'id' => 5,
@@ -230,6 +231,30 @@ class HomeController extends Controller
                 'role' => 'vendor',
                 'message' => 'Professional platform with excellent support team. Booking management has never been easier.',
                 'rating' => 5,
+                'status' => 'approved',
+                'show_on_homepage' => true,
+            ],
+              (object) [
+                'id' => 8,
+                'user' => (object) [
+                    'name' => 'Sunita Mehra',
+                    'avatar' => 'https://i.pravatar.cc/150?img=8'
+                ],
+                'role' => 'customer',
+                'message' => 'The platform made it easy to compare options and book instantly. Highly efficient!',
+                'rating' => 5,
+                'status' => 'approved',
+                'show_on_homepage' => true,
+            ],
+            (object) [
+                'id' => 9,
+                'user' => (object) [
+                    'name' => 'Manoj Joshi',
+                    'avatar' => 'https://i.pravatar.cc/150?img=9'
+                ],
+                'role' => 'customer',
+                'message' => 'Very satisfied with the results. The team is responsive and helpful.',
+                'rating' => 4,
                 'status' => 'approved',
                 'show_on_homepage' => true,
             ],

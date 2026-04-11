@@ -1,7 +1,7 @@
-<header id="header" class="bg-[#FBFBFB] border-b border-gray-100 fixed top-0 left-0 w-full z-50 md:h-43 transition-all duration-300">
+<header id="header" class="bg-[#FBFBFB] mt-[-20px] border-b border-gray-100 fixed top-0 left-0 w-full z-50 md:h-43 transition-all duration-300">
     <!-- Desktop/Tablet Navbar -->
     <div >
-        <div class="container mx-auto pr-4 hidden md:block">
+        <div class="w-full px-6 md:px-10 lg:px-20 pr-4 hidden md:block">
            
             <div class="flex items-center justify-between  gap-4 ">
 
@@ -9,13 +9,13 @@
                 <div class="flex items-center gap-3 ">
                     <!-- Logo -->
                     <div class="flex items-center flex-shrink-0">
-                        <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
+                       <a href="{{ route('home') }}" class="d-inline-block">
                             <x-optimized-image
                                 :src="route('brand.oohapp-logo')"
-                                alt="OOHApp  logo"
-                                width="200"
-                                height="100"
-                                style="max-height:80px;object-fit:contain;"
+                                alt="OOHApp company logo"
+                                width="150"
+                                height="48"
+                                style="display:block; margin:0 auto; max-height:48px; object-fit:contain;"
                             />
                         </a>
                     </div>

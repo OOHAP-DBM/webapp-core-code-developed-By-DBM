@@ -113,9 +113,9 @@
 
 </head>
 <body class="antialiased">
-    <div id="app" class="min-h-screen bg-white">
+    <div id="app" class="min-h-screen bg-white w-full ">
         <!-- Main Content -->
-        <main class="mt-[90px] ">
+        <main class="mt-[90px]">
             @yield('content')
         </main>
 
@@ -189,7 +189,7 @@
                 btn.textContent = 'Remove';
                 btn.classList.add('remove');
             } else {
-                btn.textContent = 'Add to Shortlist';
+                btn.textContent = 'Shortlist';
                 btn.classList.add('add');
             }
         }

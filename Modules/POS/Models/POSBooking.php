@@ -79,6 +79,7 @@ class POSBooking extends Model
         'milestone_amount_remaining',
         'current_milestone_id',
         'all_milestones_paid_at',
+        'po_file_path',
     ];
 
     protected $casts = [
