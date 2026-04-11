@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Vendor;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Modules\Enquiries\Models\Enquiry;
-use App\Models\Offer;
+use Modules\Offers\Models\Offer;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Services\EnquiryPriceCalculator;

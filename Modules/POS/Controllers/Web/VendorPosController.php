@@ -1426,6 +1426,7 @@ class VendorPosController extends Controller
                 'hold_expiry_at'   => $holdExpiryAt,
                 'is_milestone'     => $isMilestone,
                 'milestone_data'   => $milestoneData,
+                'po_file_path'     => $request->hasFile('po_file') ? $request->file('po_file')->store('pos_po_files') : null,
             ];
 
             $booking = $this->posBookingService->createBooking($bookingData);

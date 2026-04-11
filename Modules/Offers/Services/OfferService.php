@@ -2,8 +2,8 @@
 
 namespace Modules\Offers\Services;
 
-use App\Models\Offer;
-use App\Models\OfferItem;
+use Modules\Offers\Models\Offer;
+use Modules\Offers\Models\OfferItem;
 use App\Models\Hoarding;
 use Modules\Enquiries\Models\Enquiry;
 use Modules\Enquiries\Models\EnquiryItem;

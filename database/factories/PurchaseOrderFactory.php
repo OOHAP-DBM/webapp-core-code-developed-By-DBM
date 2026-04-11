@@ -6,7 +6,7 @@ use App\Models\PurchaseOrder;
 use App\Models\Quotation;
 use App\Models\User;
 use App\Models\Enquiry;
-use App\Models\Offer;
+use Modules\Offers\Models\Offer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

@@ -2,7 +2,7 @@
 
 namespace Modules\Offers\Services;
 
-use App\Models\Offer;
+use Modules\Offers\Models\Offer;
 use Modules\Enquiries\Models\Enquiry;
 use Modules\Threads\Models\ThreadMessage;
 use Illuminate\Support\Facades\DB;

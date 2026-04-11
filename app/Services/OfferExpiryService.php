@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Offer;
+use Modules\Offers\Models\Offer;
 use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;

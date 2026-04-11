@@ -3,7 +3,7 @@
 namespace Modules\Offers\Policies;
 
 use App\Models\User;
-use App\Models\Offer;
+use Modules\Offers\Models\Offer;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class OfferPolicy

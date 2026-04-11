@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\{AdminOverride, User, Booking, BookingPayment, CommissionLog};
-use App\Models\Offer;
+use Modules\Offers\Models\Offer;
 use App\Models\QuoteRequest;
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Database\Eloquent\Model;

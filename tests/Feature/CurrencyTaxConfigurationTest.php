@@ -12,7 +12,7 @@ use App\Models\Enquiry;
 use App\Services\CurrencyService;
 use App\Services\TaxConfigurationService;
 use App\Services\PurchaseOrderService;
-use App\Models\Offer;
+use Modules\Offers\Models\Offer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 

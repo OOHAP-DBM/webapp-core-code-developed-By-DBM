@@ -2,8 +2,8 @@
 
 namespace Modules\Offers\Repositories;
 
-use App\Models\Offer;
-use App\Models\OfferItem;
+use Modules\Offers\Models\Offer;
+use Modules\Offers\Models\OfferItem;
 use Modules\Offers\Repositories\Contracts\OfferRepositoryInterface;
 use Illuminate\Support\Collection;
 
