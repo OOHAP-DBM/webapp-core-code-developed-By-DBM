@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', $hoarding->title)
+@section('title', $metaTitle)
 @section('meta_description', $metaDescription)
 
 @section('content')

@@ -6,29 +6,38 @@
     @include('components.customer.navbar')
 
     <!-- Hero Banner -->
-    @include('components.customer.hero-banner')
     <!-- Search Section -->
     {{-- @include('components.customer.search-bar') --}}
 
     <!-- Best Hoardings Section -->
-    <section class="py-6 bg-gray-50">
-        <div class="container mx-auto px-4">
+    <section id="best-hoardings-section" class=" pb-6 pt-10 md:pt-25 scroll-mt-32 md:scroll-mt-48">
+        <div class="w-full px-6 md:px-10 lg:px-20 px-4">
             <!-- Section Header -->
             <div class="mb-3">
                 <h2 class="text-2xl font-bold text-gray-900">Best Hoardings</h2>
             </div>
 
             <!-- Hoardings Grid -->
-            <div id="hoardingGrid">
-                @include('components.customer.hoarding-grid', ['bestHoardings' => $bestHoardings])
+              <div id="hoardingGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-5 gap-6">
 
-                <div class="mt-8 pt-3 border-t border-gray-200">
+                @php
+                    // Determine per page based on screen size (JS will handle client-side, but for SSR, show 6 by default)
+                    $perPage = 6;
+                    // Optionally, you can use a query param or session to set $perPage dynamically
+                @endphp
+                @foreach($bestHoardings->forPage($bestHoardings->currentPage(), $perPage) as $hoarding)
+                    <div class="sm:h-[300px] md:h-[340px] lg:h-[360px] xl:h-[400px] flex">
+                        @include('components.customer.hoarding-card', ['hoarding' => $hoarding])
+                    </div>
+                @endforeach
+                <div class="col-span-full mt-8 pt-3 border-t border-gray-200">
                     <div class="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <p class="text-sm text-gray-500 font-medium order-2 sm:order-1">
                             Showing {{ $bestHoardings->firstItem() ?? 0 }}–{{ $bestHoardings->lastItem() ?? 0 }} of {{ $bestHoardings->total() }} results
                         </p>
                         <div class="order-1 sm:order-2">
-                            {{ $bestHoardings->links('pagination.vendor-compact') }}
+                            {{-- Custom pagination: 6 per page by default, 10 for xl via JS --}}
+                            {{ $bestHoardings->appends(['perPage' => $perPage])->links('pagination.vendor-compact') }}
                         </div>
                     </div>
                 </div>
@@ -72,11 +81,11 @@
     </section>
     @guest
      <!-- Personalized Recommendations CTA -->
-      <div class="container mx-auto px-4">
+      <div class="w-full px-6 md:px-10 lg:px-20 px-4">
           <hr class="border-gray-200">
       </div>
        <section class="py-6 bg-white">
-            <div class="container mx-auto px-4 text-center">
+            <div class="w-full px-6 md:px-10 lg:px-20 px-4 text-center">
                 <h3 class="text-xl font-bold text-gray-900 mb-4">
                     See Personalized Recommendations
                 </h3>
@@ -97,21 +106,21 @@
                     </div>
             </div>
        </section>
-       <div class="container mx-auto px-4">
+       <div class="w-full px-6 md:px-10 lg:px-20 px-4">
             <hr class="border-gray-200">
        </div>
     @endguest
     @include('home.home_contact_enquiry')
     <!-- Featured Categories -->
-    <section class="py-6 bg-white">
-        <div class="container mx-auto px-4">
+    <section id="top-spots-section" class="py-6 bg-white scroll-mt-32 md:scroll-mt-48">
+        <div class="w-full px-6 md:px-10 lg:px-20 px-4">
             <div class=" mb-6">
                 <!-- <h2 class="text-lg md:text-4xl font-bold text-gray-900 mb-3">Top Spots</h2> -->
                 <h2 class="text-2xl font-bold text-gray-900">Top Spots</h2>
                 <!-- <p class="text-gray-600">Explore advertising opportunities in major cities</p> -->
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
                 @foreach($topStates as $state)
                     @include('components.customer.category-card', ['state' => $state])
                 @endforeach

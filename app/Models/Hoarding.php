@@ -76,7 +76,7 @@ class Hoarding extends Model implements HasMedia
         'geolocation_verified',
         'geolocation_source',
         'landmark',
-
+        'road_name',  
         /* Visibility & Traffic */
         'visibility_start',
         'visibility_end',
@@ -140,7 +140,7 @@ class Hoarding extends Model implements HasMedia
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
         'geolocation_verified' => 'boolean',
-
+        'landmarks' => 'array',
         // 'visibility_start' => 'datetime:H:i',
         // 'visibility_end' => 'datetime:H:i',
         'visibility_details' => 'array',
@@ -692,23 +692,6 @@ class Hoarding extends Model implements HasMedia
             Str::slug($this->category ?? 'hoarding'),
         ];
 
-        // Get size from child
-        $size = '';
-        if ($this->hoarding_type === self::TYPE_OOH && $this->oohHoarding) {
-            $width = (int) $this->oohHoarding->width;
-            $height = (int) $this->oohHoarding->height;
-            $unit = $this->oohHoarding->measurement_unit ?? 'ft';
-            $size = "{$width}x{$height}{$unit}";
-        }
-        if ($this->hoarding_type === self::TYPE_DOOH && $this->doohScreen) {
-            $width = (int) $this->doohScreen->width;
-            $height = (int) $this->doohScreen->height;
-            $unit = $this->doohScreen->measurement_unit ?? 'px';
-            $size = "{$width}x{$height}{$unit}";
-        }
-        if ($size) {
-            $parts[] = $size;
-        }
 
         // Add landmark **only if available**
         if (!empty($this->landmark)) {

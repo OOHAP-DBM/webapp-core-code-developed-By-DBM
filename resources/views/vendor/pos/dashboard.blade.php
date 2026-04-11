@@ -18,7 +18,15 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#1D1D1D]">Welcome back, {{ Auth::user()->name }}</h2>
+            <div class="flex items-center gap-2">
+                <!-- Mobile-only back arrow button -->
+                <button onclick="handleBackWithSidebarClose()" class="inline-flex sm:hidden items-center justify-center ml-[-5px] rounded-full hover:bg-gray-200 focus:outline-none" aria-label="Back">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#1D1D1D]">Welcome back, {{ Auth::user()->name }}</h2>
+            </div>
             <p class="text-lg text-gray-500 font-medium">POS Overview</p>
         </div>
         <button class="hidden lg:inline-block bg-[#1D1D1D] text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded shadow-sm text-sm font-medium">

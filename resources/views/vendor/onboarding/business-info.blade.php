@@ -5,20 +5,19 @@
 @section('content')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-<div class="vendor-page-white min-h-screen bg-white pb-12">
-    <div class="vendor-header px-4 md:px-8 py-6 flex items-center gap-2 mt-5">
-        <x-optimized-image
-            src="assets/images/logo/logo_image.jpeg"
-            :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
-            :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
-            sizes="120px"
-            alt="OOHApp company logo"
-            width="600"
-            height="120"
-            class="h-8 w-auto"
-            loading="eager"
-        />
-        <span class="text-gray-500 text-sm font-medium">| Vendor</span>
+<div class="vendor-page-white min-h-screen bg-white pb-12 md:mt-[-5%] mt-[-30%]">
+    <div class="vendor-header px-4 md:px-8 pt-6 flex flex-col items-center justify-center gap-2 mt-5 w-full">
+        <div class="text-center mb-4">
+            <a href="{{ route('home') }}" class="inline-block">
+                <x-optimized-image
+                    :src="route('brand.oohapp-logo')"
+                    alt="OOHApp company logo"
+                    width="150"
+                    height="48"
+                    style="display:block; margin:0 auto; max-height:48px; object-fit:contain;"
+                />
+            </a>
+        </div>
     </div>
 
     <div class="vendor-signup-wrapper max-w-4xl mx-auto px-4">

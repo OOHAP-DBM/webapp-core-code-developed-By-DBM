@@ -661,6 +661,69 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Nagar Nigam toggle - simple yes/no without modal
     // Values save directly when selected
+    // ─── NAGAR NIGAM ───────────────────────────────────────────────
+        const nagarYes             = document.getElementById('nagar-yes');
+        const nagarNo              = document.getElementById('nagar-no');
+        const nagarModal           = document.getElementById('nagarModal');
+        const permitNumberInput    = document.getElementById('permitNumberInput');
+        const permitValidTillInput = document.getElementById('permitValidTillInput');
+        const nagarSaveBtn         = document.getElementById('nagarSaveBtn');
+        const nagarCancelBtn       = document.getElementById('nagarCancelBtn');
+        const permitNumberHidden   = document.getElementById('permitNumberHidden');
+        const permitValidTillHidden= document.getElementById('permitValidTillHidden');
+
+        let nagarSaved = !!(permitNumberHidden.value && permitValidTillHidden.value);
+
+        nagarYes.addEventListener('change', function () {
+            if (this.checked) {
+                permitNumberInput.value    = permitNumberHidden.value || '';
+                permitValidTillInput.value = permitValidTillHidden.value || '';
+                nagarModal.classList.remove('hidden');
+            }
+        });
+
+        nagarNo.addEventListener('change', function () {
+            if (this.checked) {
+                permitNumberHidden.value    = '';
+                permitValidTillHidden.value = '';
+                permitNumberInput.value     = '';
+                permitValidTillInput.value  = '';
+                nagarSaved = false;
+            }
+        });
+
+        nagarSaveBtn.addEventListener('click', function () {
+            const num  = permitNumberInput.value.trim();
+            const date = permitValidTillInput.value;
+
+            if (num && date) {
+                permitNumberHidden.value    = num;
+                permitValidTillHidden.value = date;
+                nagarSaved = true;
+                nagarModal.classList.add('hidden');
+                permitNumberInput.classList.remove('border-red-500');
+                permitValidTillInput.classList.remove('border-red-500');
+            } else {
+                if (!num)  permitNumberInput.classList.add('border-red-500');
+                if (!date) permitValidTillInput.classList.add('border-red-500');
+                if (!num)  permitNumberInput.focus();
+                else       permitValidTillInput.focus();
+            }
+        });
+
+        nagarCancelBtn.addEventListener('click', function () {
+            nagarModal.classList.add('hidden');
+            permitNumberInput.classList.remove('border-red-500');
+            permitValidTillInput.classList.remove('border-red-500');
+
+            if (!nagarSaved) {
+                nagarYes.checked = false;
+                nagarNo.checked  = true;
+            }
+
+            permitNumberInput.value    = permitNumberHidden.value || '';
+            permitValidTillInput.value = permitValidTillHidden.value || '';
+        });
 });
 </script>
 <script>
@@ -677,63 +740,70 @@ function countExistingLogos() {
     const container = document.getElementById('existingBrandLogos');
     return container ? container.querySelectorAll('[id^="brand-logo-existing-"]').length : 0;
 }
-
 brandLogoInput.addEventListener('change', function () {
-    const files = Array.from(this.files);
-    this.value = ''; // reset immediately
+  const files = Array.from(this.files);
+  this.value = '';
 
-    const existingCount = countExistingLogos();
-    const currentNewCount = newBrandFiles.length;
-    const totalAllowed = 10;
-    const slotsRemaining = totalAllowed - existingCount - currentNewCount;
+  const existingCount = countExistingLogos();
+  const currentNewCount = newBrandFiles.length;
+  const totalAllowed = 10;
+  const slotsRemaining = totalAllowed - existingCount - currentNewCount;
 
-    if (slotsRemaining <= 0) {
-        showBrandLogoError(`Maximum 10 logos allowed. You already have ${existingCount + currentNewCount} logo(s).`);
-        return;
-    }
+  let errorMessages = [];
+  let rejected = 0;
 
-    let rejected = 0;
+  if (slotsRemaining <= 0) {
+    errorMessages.push(`Maximum 10 logos allowed. You already have ${existingCount + currentNewCount} logo(s).`);
+  } else {
     files.forEach(file => {
-        const currentTotal = countExistingLogos() + newBrandFiles.length;
+      const currentTotal = countExistingLogos() + newBrandFiles.length;
 
-        if (currentTotal >= totalAllowed) {
-            rejected++;
-            return;
-        }
-        if (!file.type.startsWith('image/')) {
-            showBrandLogoError(`"${file.name}" is not a valid image.`);
-            return;
-        }
-        if (file.size > 2 * 1024 * 1024) {
-            showBrandLogoError(`"${file.name}" exceeds 2MB limit.`);
-            return;
-        }
-        newBrandFiles.push(file);
+      if (currentTotal >= totalAllowed) {
+        rejected++;
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        errorMessages.push(`❌ "${file.name}" is not a valid image.`);
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        errorMessages.push(`❌ "${file.name}" exceeds 2MB limit. Please select a smaller image.`);
+        return;
+      }
+      newBrandFiles.push(file);
     });
+  }
 
-    if (rejected > 0) {
-        showBrandLogoError(`Only ${slotsRemaining} more logo(s) allowed. ${rejected} file(s) were skipped.`);
-    }
+  if (rejected > 0) {
+    errorMessages.push(`Only ${slotsRemaining} more logo(s) allowed. ${rejected} file(s) were skipped.`);
+  }
 
-    brandLogoName.textContent = newBrandFiles.length
-        ? newBrandFiles.length + ' file(s) selected'
-        : 'Choose file';
-    syncBrandInput();
-    renderBrandPreviews();
+  if (errorMessages.length > 0) {
+    showBrandLogoError(errorMessages.join('\n'));
+  }
+
+  brandLogoName.textContent = newBrandFiles.length
+    ? newBrandFiles.length + ' file(s) selected'
+    : 'Choose file';
+  syncBrandInput();
+  renderBrandPreviews();
 });
 
+
 function showBrandLogoError(msg) {
-    let box = document.getElementById('brandLogoErrorBox');
-    if (!box) {
-        box = document.createElement('div');
-        box.id = 'brandLogoErrorBox';
-        box.className = 'mt-2 px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl';
-        brandLogoInput.closest('div.flex')?.after(box);
-    }
-    box.textContent = msg;
-    box.style.display = 'block';
-    clearTimeout(box._timer);
-    box._timer = setTimeout(() => { box.style.display = 'none'; }, 5000);
+  let box = document.getElementById('brandLogoErrorBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'brandLogoErrorBox';
+    box.className = 'mt-2 px-4 py-3 bg-red-100 border border-red-400 text-red-800 text-sm rounded-xl font-semibold whitespace-pre-line shadow-sm animate-shake';
+    brandLogoInput.closest('div.flex')?.after(box);
+  }
+  box.textContent = msg;
+  box.style.display = 'block';
+  box.focus && box.focus();
+  box.scrollIntoView({behavior: 'smooth', block: 'center'});
+  clearTimeout(box._timer);
+  box._timer = setTimeout(() => { box.style.display = 'none'; }, 9000);
 }
 
 function syncBrandInput() {
@@ -794,5 +864,16 @@ function removeExistingBrandLogo(id, btnEl) {
     border-radius: 9999px;
 }
 
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+.animate-shake {
+  animation: shake 0.4s;
+}
 </style>
 

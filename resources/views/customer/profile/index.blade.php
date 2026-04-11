@@ -262,6 +262,7 @@
                     value="{{ old('gstin', auth()->user()->gstin) }}"
                     placeholder="Enter GSTIN"
                     class="w-full border-b border-gray-300 focus:border-green-500 focus:outline-none py-2"
+                    style="text-transform: uppercase;"
                 >
             </div>
 

@@ -103,6 +103,20 @@
             </div>
         </div>
     </form>
+
+
+    @if($errors->any())
+    <div class="mx-auto max-w-5xl px-2 sm:px-0 mb-4">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+            <h4 class="text-sm font-bold text-red-700 mb-2">Please fix the following errors:</h4>
+            <ul class="list-disc list-inside space-y-1">
+                @foreach($errors->all() as $error)
+                    <li class="text-xs text-red-600">{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+    @endif
 </div>
 
 {{-- ── Full-page Loading Overlay ── --}}

@@ -29,9 +29,9 @@ use App\Http\Controllers\Admin\RazorpaySettingsController;
 // ============================================
 // PUBLIC ROUTES (Customer-facing)
 // ============================================
-Route::get('/phpinfo', function () {
-    phpinfo();
-});
+// Route::get('/phpinfo', function () {
+//     phpinfo();
+// });
 
 Route::get('/api/geocode', [GeocodeController::class, 'search']);
 Route::get('/api/pincode', [GeocodeController::class, 'pincode']);
@@ -48,7 +48,7 @@ Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/vendors/{vendor}', [Modules\Search\Controllers\VendorPublicController::class, 'show'])->name('vendors.show');
 
 Route::get('/brand/oohapp-logo', function () {
-    $path = public_path('assets/images/logo/logo_image.jpeg');
+    $path = public_path('assets/images/logo/oohapp-logo.jpeg');
 
     abort_unless(file_exists($path), 404);
 
@@ -1000,13 +1000,26 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
 
     // Admin: View draft hoardings
     Route::get('hoardings/drafts', [\Modules\Hoardings\Http\Controllers\Admin\VendorHoardingController::class, 'drafts'])->name('hoardings.drafts');
+    
+    // Admin: Add Hoardings (Multi-step wizard - OOH/DOOH) - MUST come before {id} route
+    Route::get('hoardings/add', [\Modules\Admin\Controllers\Web\Hoardings\HoardingCreateController::class, 'showTypeSelection'])->name('hoardings.add');
+    Route::post('hoardings/select-type', [\Modules\Admin\Controllers\Web\Hoardings\HoardingCreateController::class, 'handleTypeSelection'])->name('hoardings.select-type');
+    Route::get('hoardings/create', [\Modules\Admin\Controllers\Web\Hoardings\HoardingCreateController::class, 'create'])->name('hoardings.create');
+    Route::post('hoardings/store', [\Modules\Admin\Controllers\Web\Hoardings\HoardingCreateController::class, 'store'])->name('hoardings.store');
+    
+    // Admin: View admin-owned hoardings (My Hoardings)
+    Route::get('my-hoardings', [\Modules\Hoardings\Http\Controllers\Admin\AdminHoardingController::class, 'adminHoardings'])->name('my-hoardings');
+    Route::get('my-hoardings/{id}/edit', [\Modules\Admin\Controllers\Web\Hoardings\HoardingCreateController::class, 'edit'])->name('my-hoardings.edit');
+    Route::post('my-hoardings/{id}/status', [\Modules\Hoardings\Http\Controllers\Admin\AdminHoardingController::class, 'updateStatus'])->name('my-hoardings.status');
+    Route::post('my-hoardings/{id}/recommendation', [\Modules\Hoardings\Http\Controllers\Admin\AdminHoardingController::class, 'updateRecommendation'])->name('my-hoardings.recommendation');
+    Route::post('my-hoardings/bulk-action', [\Modules\Hoardings\Http\Controllers\Admin\AdminHoardingController::class, 'bulkAction'])->name('my-hoardings.bulk-action');
+    Route::delete('my-hoardings/{id}', [\Modules\Hoardings\Http\Controllers\Admin\AdminHoardingController::class, 'destroy'])->name('my-hoardings.destroy');
+    
+    // Admin: Hoarding Management (Vendor-owned hoardings approval/rejection)
     Route::get('/hoardings', [\Modules\Admin\Controllers\Web\HoardingController::class, 'index'])->name('hoardings.index');
     Route::get('/hoardings/{id}', [\Modules\Admin\Controllers\Web\HoardingController::class, 'show'])->name('hoardings.show');
     Route::post('/hoardings/{id}/approve', [\Modules\Admin\Controllers\Web\HoardingController::class, 'approve'])->name('hoardings.approve');
     Route::post('/hoardings/{id}/reject', [\Modules\Admin\Controllers\Web\HoardingController::class, 'reject'])->name('hoardings.reject');
-    // Admin: View admin-owned hoardings (My Hoardings)
-
-    Route::get('my-hoardings', [\Modules\Hoardings\Http\Controllers\Admin\AdminHoardingController::class, 'adminHoardings'])->name('my-hoardings');
 
 
     // ===================== ADMIN CATEGORY CRUD =====================
@@ -1259,6 +1272,12 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
         Route::get('/{slot}/schedule', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'getDailySchedule'])->name('schedule');
         Route::get('/{slot}/metrics', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'getMetrics'])->name('metrics');
     });
+
+    // Admin DOOH Creation Wizard (step 1-3)
+    Route::get('/dooh/create', [\Modules\DOOH\Controllers\Admin\DOOHController::class, 'create'])->name('dooh.create');
+    Route::post('/dooh/store', [\Modules\DOOH\Controllers\Admin\DOOHController::class, 'store'])->name('dooh.store');
+    Route::get('/dooh/{id}/edit', [\Modules\DOOH\Controllers\Admin\DOOHController::class, 'edit'])->name('dooh.edit');
+    Route::put('/dooh/{id}', [\Modules\DOOH\Controllers\Admin\DOOHController::class, 'update'])->name('dooh.update');
 
     // DOOH Booking & Calculation APIs
     Route::post('/dooh/calculate-cost', [\App\Http\Controllers\Admin\DOOHSlotController::class, 'calculateCost'])->name('dooh.calculate-cost');

@@ -25,6 +25,9 @@ class DashboardController extends Controller
         $userId = $vendor->id;
         $profile = $vendor->vendorProfile;
 
+        $onboardingStatus = $profile->onboarding_status ?? 'not_started';
+        $onboardingStep   = $profile->onboarding_step ?? 1;
+
         /* ─── ONBOARDING GUARD ───────────────────────────────────── */
         if (!$profile || !in_array($profile->onboarding_status, ['pending_approval', 'approved'])) {
             $step = $profile ? $profile->onboarding_step : 1;
@@ -49,6 +52,10 @@ class DashboardController extends Controller
                 'top_hoardings' => $topHoardings,
                 'top_customers' => $topCustomers,
                 'transactions'  => $transactions,
+            ],
+             'onboarding' => [
+                'status' => $onboardingStatus,
+                'step'   => $onboardingStep,
             ],
         ], 200);
     }

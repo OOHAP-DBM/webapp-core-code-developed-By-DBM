@@ -9,7 +9,7 @@
         <div class="mb-6 flex items-start gap-4 rounded-xl border border-red-200 bg-red-50 px-5 py-4">
 
             <!-- ICON -->
-            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+            <div class="hidden sm:flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
                 <svg class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -21,13 +21,13 @@
                 <h4 class="text-sm font-semibold text-red-700">
                     Vendor Approval Pending
                 </h4>
-                <p class="mt-1 text-sm text-red-600">
+                <p class="mt-1 text-xs md:text-sm text-red-600">
                     Your vendor request is under review. Once approved by the admin, you’ll be able to access all OOHAPP vendor features.
                 </p>
             </div>
 
             <!-- BADGE -->
-            <span class="ml-auto mt-1 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+            <span class="hidden sm:inline-block ml-auto mt-1 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
                 Pending
             </span>
         </div>

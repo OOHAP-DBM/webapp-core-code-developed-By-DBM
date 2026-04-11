@@ -79,6 +79,7 @@ class POSBooking extends Model
         'milestone_amount_remaining',
         'current_milestone_id',
         'all_milestones_paid_at',
+        'po_file_path',
     ];
 
     protected $casts = [
@@ -105,6 +106,7 @@ class POSBooking extends Model
         'milestone_amount_remaining' => 'decimal:2',
         'all_milestones_paid_at'     => 'datetime',
         'po_file_path',
+        
     ];
 
     // Status constants
@@ -421,5 +423,20 @@ class POSBooking extends Model
         }
         $this->status = $newStatus;
         return $this->save();
+    }
+
+    public function getCustomerEmailAttribute($value)
+    {
+        return $this->customer?->email ?? $value;
+    }
+
+    public function getCustomerPhoneAttribute($value)
+    {
+        return $this->customer?->phone ?? $value;
+    }
+
+    public function getCustomerAddressAttribute($value)
+    {
+        return $this->customer?->address ?? $value;
     }
 }

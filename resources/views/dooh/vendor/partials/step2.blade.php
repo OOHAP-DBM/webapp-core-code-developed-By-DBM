@@ -270,16 +270,19 @@
 
             {{-- File input --}}
             <div class="flex items-center w-full">
-                <label class="flex flex-row items-center w-full h-14 border border-gray-200 rounded-xl
-                            overflow-hidden cursor-pointer hover:border-[#009A5C] transition-all">
-                    <div class="bg-gray-100 px-6 h-full flex items-center justify-center text-sm
-                                font-bold text-gray-500 border-r border-gray-200">
-                        Browse
-                    </div>
-                    <div class="px-4 text-sm text-gray-400" id="brand-logo-name">Choose file</div>
-                    <input type="file" name="brand_logos[]" multiple accept="image/*"
-                        class="hidden" id="brand-logos-input">
-                </label>
+                <div class="w-full">
+                    <label class="flex flex-row items-center w-full h-14 border border-gray-200 rounded-xl
+                                overflow-hidden cursor-pointer hover:border-[#009A5C] transition-all">
+                        <div class="bg-gray-100 px-6 h-full flex items-center justify-center text-sm
+                                    font-bold text-gray-500 border-r border-gray-200">
+                            Browse
+                        </div>
+                        <div class="px-4 text-sm text-gray-400" id="brand-logo-name">Choose file</div>
+                        <input type="file" name="brand_logos[]" multiple accept="image/*"
+                            class="hidden" id="brand-logos-input">
+                    </label>
+                    <!-- Error message will be injected here below the input -->
+                </div>
             </div>
             <p class="text-xs text-gray-400 mt-2">Supported: JPG, PNG, WEBP • Max 10 logos • 2MB each</p>
         </div>
@@ -719,13 +722,16 @@ const deleteBrandHidden = document.getElementById('deleteBrandLogosHidden');
 let newBrandFiles    = [];
 let deletedLogoIds   = [];
 
+
 brandLogoInput.addEventListener('change', function () {
     const files = Array.from(this.files);
+    let hasError = false;
     files.forEach(file => {
         if (newBrandFiles.length >= 10) return;
         if (!file.type.startsWith('image/')) return;
         if (file.size > 2 * 1024 * 1024) {
-            alert(`"${file.name}" exceeds 2MB limit.`);
+            showBrandLogoError('Image is too large. Please upload a file under 2MB.');
+            hasError = true;
             return;
         }
         newBrandFiles.push(file);
@@ -735,6 +741,25 @@ brandLogoInput.addEventListener('change', function () {
     syncBrandInput();
     renderBrandPreviews();
 });
+
+function showBrandLogoError(message) {
+    let errorBox = document.getElementById('brand-logo-error');
+    // Find the label that wraps the input
+    const label = brandLogoInput.closest('label');
+    if (!errorBox) {
+        errorBox = document.createElement('div');
+        errorBox.id = 'brand-logo-error';
+        errorBox.className = 'mt-2 text-sm text-red-600';
+        // Insert directly after the label (file input box)
+        if (label && label.parentNode) {
+            label.parentNode.insertBefore(errorBox, label.nextSibling);
+        }
+    }
+    errorBox.textContent = message;
+    setTimeout(() => {
+        if (errorBox) errorBox.remove();
+    }, 9000);
+}
 
 function syncBrandInput() {
     const dt = new DataTransfer();

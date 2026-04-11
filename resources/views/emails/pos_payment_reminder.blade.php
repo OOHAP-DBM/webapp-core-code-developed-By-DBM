@@ -238,7 +238,7 @@
         </tr>
         {{-- <tr>
             <td style="padding:10px; font-size:13px;"><strong>Reminder Count</strong></td>
-            <td style="padding:10px; font-size:13px;">{{ $reminderCount }}/3</td>
+            <td style="padding:10px; font-size:13px;">{{ $reminderCount }}</td>
         </tr> --}}
     </table>
 </td>

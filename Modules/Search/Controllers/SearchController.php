@@ -212,10 +212,24 @@ class SearchController extends Controller
         if ($request->filled('max_price')) {
             $query->having('price', '<=', $request->max_price);
         }
-        if ($request->filled('rating')) {
-            $ratings = array_map('intval', (array)$request->rating);
-            // Filter where FLOOR(avg_rating) is in selected ratings
-            $query->havingRaw('FLOOR(avg_rating) IN (' . implode(',', $ratings) . ')');
+       if ($request->filled('rating')) {
+                $ratings = array_map('intval', (array)$request->rating);
+
+                $conditions = [];
+                $bindings = [];
+
+                foreach ($ratings as $r) {
+                    if ($r == 5) {
+                        $conditions[] = 'avg_rating >= ?';
+                        $bindings[] = 5;
+                    } else {
+                        $conditions[] = '(avg_rating >= ? AND avg_rating < ?)';
+                        $bindings[] = $r;
+                        $bindings[] = $r + 1;
+                    }
+                }
+
+                $query->havingRaw(implode(' OR ', $conditions), $bindings);
         }
         if ($request->filled('near_me') && $request->filled('lat') && $request->filled('lng')) {
             $lat = (float) $request->lat;
@@ -231,9 +245,11 @@ class SearchController extends Controller
                 )) <= ?
             ", [$lat, $lng, $lat, $radius]);
         }
-        if ($request->filled('from_date') && $request->filled('to_date')) {
-            $from = $request->from_date;
-            $to   = $request->to_date;
+            // Change 'from_date' and 'to_date' to 'date_from' and 'date_to'
+        if ($request->filled('date_from')) {
+            $from = $request->date_from;
+            // Fallback: If date_to is empty, use date_from (single day search)
+            $to = $request->filled('date_to') ? $request->date_to : $from;
 
             $candidateIds = DB::table('hoardings')
                 ->where('status', 'active')

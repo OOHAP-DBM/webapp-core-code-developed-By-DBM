@@ -7,7 +7,8 @@ use Modules\Hoardings\Models\HoardingMedia;
 use Modules\Hoardings\Models\HoardingPackage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class HoardingListRepository
 {
@@ -40,6 +41,9 @@ class HoardingListRepository
      */
     private function processImage($file, int $hoardingId): array
     {
+        // Initialize ImageManager with GD driver
+        $manager = new ImageManager(new Driver());
+        
         $uuid  = Str::uuid()->toString();
         $year  = now()->format('Y');
         $month = now()->format('m');
@@ -48,7 +52,7 @@ class HoardingListRepository
         $paths = [];
 
         foreach ($this->imageSizes as $size) {
-            $image = Image::read($file)
+            $image = $manager->read($file)
                 ->scaleDown(width: $size)   // aspect ratio maintain hoga, kabhi stretch nahi
                 ->toWebp(quality: 82);      // WebP — best compression + quality
 

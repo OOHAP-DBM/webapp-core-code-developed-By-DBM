@@ -2,7 +2,7 @@
     <div class="max-w-[1460px] mx-auto px-6 py-6">
 
         @if($results->total() > 0)
-            <h2 class="text-lg text-black font-semibold mb-4 mt-5">
+            <h2 class="text-lg text-black font-semibold mb-4 mt-5 ">
                 {{ $results->total() }} Hoardings in {{ request('location') ?? 'India' }}
             </h2>
 

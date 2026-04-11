@@ -20,7 +20,8 @@ use App\Notifications\PosBookingConfirmedNotification;
 use App\Notifications\PosBookingCancelledNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Services\Whatsapp\TwilioWhatsappService;
-
+use Modules\POS\Models\VendorPaymentDetail;
+use App\Models\User;
 class POSBookingService
 {
     protected SettingsService $settingsService;
@@ -56,17 +57,36 @@ class POSBookingService
                 'customer_id',
             ])),
         ]);
+        
 
         return DB::transaction(function () use ($data) {
+
+
             $effectiveVendorId = (int) ($data['vendor_id'] ?? Auth::id());
 
-            // ── Date normalisation ───────────────────────────────────────
-            $start = $data['start_date'] ?? $data['booking_date'] ?? null;
-            $end   = $data['end_date']   ?? $data['booking_date'] ?? null;
+              $customer = null;
 
-            if (!$start || !$end) {
-                throw new \Exception('The booking dates are required.');
+        if (!empty($data['customer_id'])) {
+           $customer = User::select('id', 'name', 'email', 'phone','gstin', 'billing_address')
+              ->find($data['customer_id']);
+
+            if (!$customer) {
+                throw new \Exception('Customer not found');
             }
+        }
+
+        // ✅ STEP 2: Normalize Customer Data
+        $customerName = $customer->name 
+            ?? $data['customer_name'] 
+            ?? 'Walk-in Customer';
+
+        $customerEmail = $customer->email 
+            ?? $data['customer_email'] 
+            ?? null;
+
+        $customerPhone = $customer->phone 
+            ?? $data['customer_phone'] 
+            ?? 'N/A';
 
             $hoardingIds    = $data['hoarding_ids'] ?? [];
             $hoardingItemsMap = [];
@@ -87,8 +107,8 @@ class POSBookingService
             // ── Pricing ─────────────────────────────────────────────────
             $pricing = $this->calculateMultiHoardingPricing(
                 $hoardings,
-                $start,
-                $end,
+                null,
+                null,
                 (float) ($data['discount_amount'] ?? 0),
                 $hoardingItemsMap
             );
@@ -130,19 +150,63 @@ class POSBookingService
                 }
             }
 
+
+            $paymentSnapshot = null;
+
+            if (!empty($data['payment_detail_id'])) {
+
+                $paymentDetail = VendorPaymentDetail::where('vendor_id', $effectiveVendorId)
+                    ->where('id', $data['payment_detail_id'])
+                    ->first();
+
+                if (!$paymentDetail) {
+                    throw new \Exception('Invalid payment detail selected');
+                }
+
+                // Validate type
+                if (
+                    ($data['payment_mode'] === 'bank_transfer' && $paymentDetail->type !== 'bank') ||
+                    ($data['payment_mode'] === 'online' && $paymentDetail->type !== 'upi')
+                ) {
+                    throw new \Exception('Payment mode and payment detail mismatch');
+                }
+
+                $paymentSnapshot = [
+                    'mode' => $data['payment_mode'],
+                    'payment_detail_id' => $paymentDetail->id,
+                    'type' => $paymentDetail->type,
+                ];
+
+                if ($paymentDetail->type === 'bank') {
+                    $paymentSnapshot['bank'] = [
+                        'bank_name'      => $paymentDetail->bank_name,
+                        'account_number' => encrypt($paymentDetail->account_number), // secure
+                        'masked_account' => 'XXXX' . substr($paymentDetail->account_number, -4), // display
+                        'ifsc'           => $paymentDetail->ifsc_code,
+                        'account_holder' => $paymentDetail->account_holder,
+                    ];
+                    $paymentSnapshot['upi'] = null;
+                }
+
+                if ($paymentDetail->type === 'upi') {
+                    $paymentSnapshot['upi'] = [
+                        'upi_id'        => $paymentDetail->upi_id,
+                        'qr_image_path' => $paymentDetail->qr_image_path,
+                    ];
+                    $paymentSnapshot['bank'] = null;
+                }
+            }
             // ── Build booking payload ────────────────────────────────────
             $bookingPayload = array_merge([
                 'vendor_id'        => $effectiveVendorId,
-                'customer_id'      => $data['customer_id'] ?? null,
-                'customer_name'    => $data['customer_name'],
-                'customer_phone'   => $data['customer_phone'],
-                'customer_email'   => $data['customer_email'] ?? null,
-                'customer_address' => $data['customer_address'] ?? null,
-                'customer_gstin'   => $data['customer_gstin'] ?? null,
+                'customer_id'      => $customer?->id ?? null,
+                'customer_name'    => $customerName,
+                'customer_phone'   => $customerPhone,
+                'customer_email'   => $customerEmail,
+                'customer_address' => $customer?->billing_address ?? null,
+                'customer_gstin'   => $customer?->gistin ?? null,
                 'booking_type'     => $data['booking_type'] ?? 'ooh',
-                'start_date'       => $start,
-                'end_date'         => $end,
-                'duration_days'    => $this->calculateDurationDays($start, $end),
+                // 'duration_days'    => $this->calculateDurationDays($start, $end),
                 'base_amount'      => $pricing['base_amount'],
                 'discount_amount'  => $pricing['discount_amount'],
                 'tax_amount'       => $pricing['tax_amount'],
@@ -154,13 +218,23 @@ class POSBookingService
                 'payment_status'   => $paymentStatus,
                 'status'           => $bookingStatus,
                 'hold_expiry_at'   => $holdExpiryAt,
-
+                'po_file_path'     => $data['po_file_path'] ?? null,
                 // Milestone fields
                 'is_milestone'               => (bool) ($data['is_milestone'] ?? false),
                 'milestone_total'            => 0,
                 'milestone_paid'             => 0,
                 'milestone_amount_paid'      => 0,
                 'milestone_amount_remaining' => 0,
+                'booking_snapshot' => [
+                    'payment_details' => $paymentSnapshot,
+                    'customer_details' => [
+                        'id'    => $customer?->id,
+                        'name'  => $customerName,
+                        'email' => $customerEmail,
+                        'phone' => $customerPhone,
+                    ],
+                    'hoardings' => array_values($pricing['line_items']),
+                ],
             ], $creditNoteData);
 
             $booking = POSBooking::create($bookingPayload);
@@ -829,6 +903,143 @@ class POSBookingService
 
             return $booking->fresh();
         });
+    }
+
+
+     protected function sendWhatsAppNotification(\Modules\POS\Models\POSBooking $booking, string $phone): void
+    {
+        // Ensure bookingHoardings relationship is loaded
+        if (!$booking->relationLoaded('bookingHoardings')) {
+            $booking->load('bookingHoardings.hoarding');
+        }
+
+        $vendor       = \App\Models\User::find($booking->vendor_id);
+        $totalAmount  = number_format((float) $booking->total_amount, 2);
+        $holdMins     = $booking->hold_minutes ?? 0;
+        $holdText     = $holdMins > 0
+            ? "⏳ *Payment Due Within:* " . ($holdMins >= 1440 ? round($holdMins / 1440) . ' day(s)' : ($holdMins >= 60 ? round($holdMins / 60) . ' hour(s)' : "{$holdMins} minutes"))
+            : "ℹ️ No payment time limit.";
+
+        $milestones = \App\Models\QuotationMilestone::where('pos_booking_id', $booking->id)
+            ->orderBy('sequence_no')
+            ->get();
+
+        $milestoneBlock = '';
+        if ($milestones->isNotEmpty()) {
+            $milestoneLines = $milestones->values()->map(function ($ms, $idx) {
+                $seq = $ms->sequence_no ?? ($idx + 1);
+                $title = $ms->title ?? ('Milestone ' . $seq);
+                $amount = number_format((float) ($ms->calculated_amount ?? $ms->amount ?? 0), 2);
+                $dueDate = $ms->due_date ? \Carbon\Carbon::parse($ms->due_date)->format('d M Y') : 'N/A';
+
+                return "{$seq}. {$title} - ₹{$amount} (Due: {$dueDate})";
+            })->implode("\n");
+
+            $milestoneBlock = "\n🧩 *Milestones:*\n{$milestoneLines}\n";
+        }
+
+        $paymentBlock = '';
+        $paymentDetail = null;
+        if (in_array($booking->payment_mode, ['bank_transfer', 'cheque', 'online', 'upi'], true)) {
+            $detailType = in_array($booking->payment_mode, ['bank_transfer', 'cheque'], true) ? 'bank' : 'upi';
+            $paymentDetail = \Modules\POS\Models\VendorPaymentDetail::where('vendor_id', $booking->vendor_id)
+                ->where('type', $detailType)
+                ->first();
+        }
+
+        // Build hoarding list with clickable links
+        $hoardingLines = $booking->bookingHoardings->map(function ($bh) {
+            $h = $bh->hoarding;
+            $hoardingTitle = $h->title ?? 'Hoarding';
+            $hoardingId = $h->id ?? null;
+
+            // Create a short clickable link to the hoarding details page
+            $hoardingUrl = $hoardingId
+                ? config('app.url') . '/h/' . $hoardingId
+                : null;
+
+            $hoardingLink = $hoardingUrl
+                ? "🔗 {$hoardingTitle}\n   {$hoardingUrl}"
+                : "• {$hoardingTitle}";
+
+            return $hoardingLink . " ({$bh->start_date} → {$bh->end_date})";
+        })->implode("\n\n");
+
+        if (in_array($booking->payment_mode, ['bank_transfer', 'cheque'], true) && $paymentDetail) {
+            $paymentBlock = "\n🏦 *Bank Transfer Details:*\n"
+                . "Bank: {$paymentDetail->bank_name}\n"
+                . "A/C No: {$paymentDetail->account_number}\n"
+                . "Holder: {$paymentDetail->account_holder}\n"
+                . "IFSC: {$paymentDetail->ifsc_code}\n"
+                . "Reference: {$booking->invoice_number}";
+        } elseif (in_array($booking->payment_mode, ['online', 'upi']) && $paymentDetail) {
+            $paymentBlock = "\n📱 *UPI Payment:*\n"
+                . "UPI ID: {$paymentDetail->upi_id}\n"
+                . ($paymentDetail->qr_image_path ? "QR: " . \Illuminate\Support\Facades\Storage::disk('public')->url($paymentDetail->qr_image_path) : "");
+        } elseif ($booking->payment_mode === 'cash') {
+            $paymentBlock = "\n💵 *Payment Mode:* Cash (collect at office)";
+        }
+
+        $vendorName = $vendor?->name ?? 'Vendor';
+        $message = "🎯 *POS Booking created!*\n\n"
+            . "Hello *{$booking->customer_name}*,\n\n"
+            . "Your booking has been created by *{$vendorName}*.\n\n"
+            . "📋 *Booking Details:*\n"
+            . "Invoice: #{$booking->invoice_number}\n"
+            . "Total Amount: ₹{$totalAmount}\n\n"
+            . "🏛️ *Hoardings Booked:*\n{$hoardingLines}\n\n"
+            . $milestoneBlock
+            . "{$holdText}\n"
+            . $paymentBlock
+            . "\n\nThank you for your business!";
+
+        // Normalize phone number - remove all non-digits
+        $normalizedPhone = preg_replace('/\D+/', '', $phone);
+
+        // Validate phone has minimum length BEFORE adding prefix
+        if (empty($normalizedPhone) || strlen($normalizedPhone) < 10) {
+            Log::warning('POS WhatsApp skipped - invalid phone number', [
+                'booking_id' => $booking->id,
+                'original_phone' => $phone,
+                'normalized_phone' => $normalizedPhone,
+                'reason' => 'Phone number too short or empty',
+            ]);
+            return;
+        }
+
+        // Add country code if not present
+        if (!str_starts_with($normalizedPhone, '91')) {
+            $normalizedPhone = '91' . ltrim($normalizedPhone, '0');
+        }
+
+        // Add + prefix for WhatsApp format
+        $normalizedPhone = '+' . $normalizedPhone;
+
+        Log::info('POS WhatsApp attempting to send', [
+            'booking_id' => $booking->id,
+            'original_phone' => $phone,
+            'normalized_phone' => $normalizedPhone,
+            'customer_name' => $booking->customer_name,
+        ]);
+
+        try {
+            $whatsapp = app(TwilioWhatsappService::class);
+            $sent = $whatsapp->send($normalizedPhone, $message);
+
+            Log::info('POS WhatsApp notification dispatched', [
+                'booking_id' => $booking->id,
+                'phone'      => $normalizedPhone,
+                'sent'       => $sent,
+                'message_preview' => substr($message, 0, 100),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('POS WhatsApp notification failed', [
+                'booking_id' => $booking->id,
+                'phone' => $normalizedPhone,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
     }
 
     /* =========================================================

@@ -217,22 +217,17 @@ html, body {
         <!-- ================= OTP SECTION ================= -->
         <div id="otp-section">
             {{-- Logo — centered at top --}}
-        <div class="block md:hidden text-start mb-16">
-            <a href="{{ route('home') }}">
-    <picture>
-        <source srcset="{{ asset('assets/images/logo/logo_image-300.webp') }} 300w, {{ asset('assets/images/logo/logo_image-600.webp') }} 600w" type="image/webp">
-        <img 
-            src="{{ asset('assets/images/logo/logo_image.jpeg') }}"
-            alt="OOHApp company logo"
-            class="mx-auto w-24"
-            srcset="{{ asset('assets/images/logo/logo_image-300.jpeg') }} 300w, {{ asset('assets/images/logo/logo_image.jpeg') }} 600w"
-            sizes="(max-width: 768px) 96px, 150px"
-            width="600" height="120"
-            loading="eager" fetchpriority="high"
-        >
-    </picture>
-            </a>
-</div>
+            <div id="logoBox" class=" block md:hidden text-center mb-4 w-100">
+                <a href="{{ route('home') }}" class="d-inline-block">
+                    <x-optimized-image
+                        :src="route('brand.oohapp-logo')"
+                        alt="OOHApp company logo"
+                        width="150"
+                        height="48"
+                        style="display:block; margin:0 auto; max-height:48px; object-fit:contain;"
+                    />
+                </a>
+            </div>
 
             <!-- EMAIL FORM -->
             <form id="signupForm">
@@ -528,7 +523,7 @@ html, body {
                 divider.style.display = 'none';
                 socialBtns.forEach(b => b.style.display = 'none');
                 footerText.style.display = 'none';
-
+                document.getElementById('logoBox').style.display = 'none';
                 otpEmailText.innerText = enteredEmail;
                 otpUI.classList.remove('d-none');
                 otpBoxes[0].focus();

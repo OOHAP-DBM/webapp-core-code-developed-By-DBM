@@ -26,17 +26,17 @@
         <!-- Pincode -->
         <div class="space-y-2">
             <label class="text-sm font-bold text-gray-700">Pincode <span class="text-red-500">*</span></label>
-            <input type="text" name="pincode" id="pincode"
-                value="{{ old('pincode', $hoarding?->pincode) }}"
-                placeholder="226010"
-                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            <input type="text" name="pincode" id="pincode" required
+            value="{{ old('pincode', $hoarding?->pincode) }}"
+            placeholder="226010"
+            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
             @error('pincode') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
         <!-- City -->
         <div class="space-y-2">
             <label class="text-sm font-bold text-gray-700">City <span class="text-red-500">*</span></label>
-            <input type="text" name="city" id="city"
+            <input type="text" name="city" id="city" required
                 value="{{ old('city', $hoarding?->city) }}"
                 placeholder="Lucknow"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
@@ -46,7 +46,7 @@
         <!-- State -->
         <div class="space-y-2">
             <label class="text-sm font-bold text-gray-700">State <span class="text-red-500">*</span></label>
-            <input type="text" name="state" id="state"
+            <input type="text" name="state" id="state" required
                 value="{{ old('state', $hoarding?->state) }}"
                 placeholder="Uttar Pradesh"
                 class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
@@ -62,20 +62,20 @@
         <!-- Locality -->
         <div class="space-y-2">
             <label class="text-sm font-bold text-gray-700">Locality <span class="text-red-500">*</span></label>
-            <input type="text" name="locality" id="locality"
-                value="{{ old('locality', $hoarding?->locality) }}"
-                placeholder="Indira Nagar"
-                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            <input type="text" name="locality" id="locality" required
+            value="{{ old('locality', $hoarding?->locality) }}"
+            placeholder="Indira Nagar"
+            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
             @error('locality') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
         <!-- Full Address -->
         <div class="space-y-2 md:col-span-1">
            <label class="text-sm font-bold text-gray-700">Full Address <span class="text-red-500">*</span></label>
-            <input name="address" id="address"
-                value="{{ old('address', $hoarding?->address) }}"
-                placeholder="Enter exact address or landmark"
-                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
+            <input name="address" id="address" required
+            value="{{ old('address', $hoarding?->address) }}"
+            placeholder="Enter full  address "
+            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#009A5C] outline-none">
             @error('address') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
 
         </div>

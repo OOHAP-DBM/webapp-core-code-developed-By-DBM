@@ -42,11 +42,10 @@ class ImportController extends Controller
 
         $batches = $batchesQuery->paginate(15);
 
-        $viewName = $user->hasRole('admin') ? 'import::admin' : 'import::index';
-
-        return view($viewName, [
+        return view('import::index', [
             'batches' => $batches,
             'isAdmin' => $user->hasRole('admin'),
+            'layout' => $user->hasRole('admin') ? 'layouts.admin' : 'layouts.vendor',
         ]);
     }
 

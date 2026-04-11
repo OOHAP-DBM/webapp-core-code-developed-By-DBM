@@ -145,7 +145,9 @@
             <div>
                 <label class="text-black">PAN</label>
                 <p class="font-medium border border-gray-200 rounded-md px-3 min-h-[44px] flex items-center justify-between">
-                    {{ $vendor->pan ?: ($vendor->user->pan ?? '') }}
+                    <span>
+                        {{ $vendor->pan ?: ($vendor->user->pan ?? 'NA') }}
+                    </span> 
                     <button @click="showModal = true; modalType = 'pan'" class="text-blue-600 text-xs">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M21.544 11.045C21.848 11.471 22 11.685 22 12C22 12.316 21.848 12.529 21.544 12.955C20.178 14.871 16.689 19 12 19C7.31 19 3.822 14.87 2.456 12.955C2.152 12.529 2 12.315 2 12C2 11.684 2.152 11.471 2.456 11.045C3.822 9.129 7.311 5 12 5C16.69 5 20.178 9.13 21.544 11.045Z" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -630,26 +632,27 @@ button { cursor: pointer; }
     }
 </script>
 <script>
-window.lookupIfsc = async function () {
+    window.lookupIfsc = async function () {
+        const ifsc = document.getElementById("ifscField").value.trim();
+        const bankNameEl = document.getElementById("bankName");
 
-    const ifsc = document.getElementById("ifscField").value.trim();
+        if (ifsc.length !== 11) return;
 
-    if (ifsc.length !== 11) return;
+        try {
+            const response = await fetch("https://ifsc.razorpay.com/" + ifsc);
 
-    try {
+            if (!response.ok) {
+                bankNameEl.value = '';
+                toast('error', 'Invalid IFSC code. Please check and try again.');
+                return;
+            }
 
-        const response = await fetch("https://ifsc.razorpay.com/" + ifsc);
-        const data = await response.json();
+            const data = await response.json();
+            bankNameEl.value = data.BANK;
 
-        document.getElementById("bankName").value = data.BANK;
-        // document.getElementById("branchName").value = data.BRANCH;
-
-    } catch (error) {
-
-        console.log(error);
-        alert("Invalid IFSC code");
-
+        } catch (error) {
+            bankNameEl.value = '';
+            toast('error', 'Invalid IFSC code. Please check and try again.');
+        }
     }
-
-}
 </script>

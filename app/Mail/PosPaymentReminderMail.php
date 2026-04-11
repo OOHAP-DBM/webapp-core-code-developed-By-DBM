@@ -176,19 +176,8 @@ class PosPaymentReminderMail extends Mailable implements ShouldQueue
 
     protected function resolveActionUrl(): string
     {
-        if (Route::has('vendor.pos.bookings.invoice')) {
-            return route('vendor.pos.bookings.invoice', ['id' => $this->booking->id]);
-        }
-
-        if (Route::has('vendor.pos.bookings.show')) {
-            return route('vendor.pos.bookings.show', ['id' => $this->booking->id]);
-        }
-
-        if (Route::has('admin.pos.show')) {
-            return route('admin.pos.show', ['id' => $this->booking->id]);
-        }
-
-        return url('/vendor/pos/bookings/' . $this->booking->id);
+        return app(\Modules\POS\Services\PosBookingUrlResolver::class)
+            ->resolve($this->booking, $this->customer);
     }
 
     public function attachments(): array

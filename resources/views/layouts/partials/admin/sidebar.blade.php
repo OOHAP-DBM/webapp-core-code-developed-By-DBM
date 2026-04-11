@@ -5,23 +5,19 @@
 >
     ✕
 </button>
-    <div class="p-6 text-center">
-        <!-- Logo -->
-        <a href="{{ route('home') }}" class="flex items-center">
+     <div class=" text-center sidebar-hide-when-collapsed ">
+         <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
             <x-optimized-image
-                src="assets/images/logo/logo_image.jpeg"
-                :webp-srcset="asset('assets/images/logo/logo_image-300.webp') . ' 300w, ' . asset('assets/images/logo/logo_image-600.webp') . ' 600w'"
-                :srcset="asset('assets/images/logo/logo_image-300.jpeg') . ' 300w, ' . asset('assets/images/logo/logo_image.jpeg') . ' 600w'"
-                sizes="112px"
+                :src="route('brand.oohapp-logo')"
                 alt="OOHApp company logo"
-                width="600"
-                height="120"
-                class="h-7 w-auto"
-                loading="eager"
+            
+                width="150"
+                height="48"
+                style="max-height:48px;object-fit:contain;"
             />
         </a>
     </div>
-    <div class="bg-white px-3 pt-5 pb-2">
+    <div class="bg-white px-3  pb-2">
         <a href="{{ route('admin.profile.edit') }}" class="flex items-center space-x-2 group {{ request()->routeIs('admin.profile.edit') ? 'bg-[#00995c] text-white' : '' }} rounded-lg p-2 transition-colors duration-200">
             <div style="width: 56px; height: 56px; min-width: 56px; border-radius: 9999px; border: 2px solid {{ request()->routeIs('admin.profile.edit') ? '#ffffff' : '#d1d5db' }}; overflow: hidden; background: #ffffff; display: flex; align-items: center; justify-content: center;">
                 @if(auth()->user()->avatar)

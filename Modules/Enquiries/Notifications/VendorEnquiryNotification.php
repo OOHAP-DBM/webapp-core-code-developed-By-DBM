@@ -31,7 +31,8 @@ class VendorEnquiryNotification extends Notification
         return [
             'enquiry_id'   => $this->enquiry->id,
             'item_count'   => count($this->items),
-            'customer_name'=> $this->enquiry->meta['customer_name'] ?? 'New Client',
+           'customer_name' => optional($this->enquiry->customer)->name 
+                 ?? ($this->enquiry->meta['customer_name'] ?? 'New Client'),
             'message'      => 'New enquiry raised for ' . count($this->items) . ' hoarding.',
             'action_url'   => route('vendor.enquiries.show', $this->enquiry->id),
             'role'         => 'vendor',

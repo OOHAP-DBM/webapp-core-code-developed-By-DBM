@@ -141,25 +141,19 @@ body {
 
         <!-- RIGHT FORM -->
         <div class="col-md-7 col-12 auth-right">
-            <div class="login-box text-center">
-                  <div class="block md:hidden text-start mb-5">
-            <a href="{{ route('home') }}" >
-            <picture>
-                <source srcset="{{ asset('assets/images/logo/logo_image-300.webp') }} 300w, {{ asset('assets/images/logo/logo_image-600.webp') }} 600w" type="image/webp">
-                <img 
-                    src="{{ asset('assets/images/logo/logo_image.jpeg') }}"
-                    alt="OOHApp company logo"
-                    class="mx-auto w-24"
-                    srcset="{{ asset('assets/images/logo/logo_image-300.jpeg') }} 300w, {{ asset('assets/images/logo/logo_image.jpeg') }} 600w"
-                    sizes="(max-width: 768px) 96px, 150px"
-                    width="600" height="120"
-                    loading="eager" fetchpriority="high"
-                >
-            </picture>
-            </a>
-        </div>
-                <h3 class="fw-semibold mb-1">What you are?</h3>
-                <p class="text-muted mb-4">Select your role</p>
+            <div class=" login-box text-center">
+                     <div class=" block md:hidden text-center mb-4 w-100">
+                        <a href="{{ route('home') }}" class="d-inline-block">
+                            <x-optimized-image
+                                :src="route('brand.oohapp-logo')"
+                                alt="OOHApp company logo"
+                                width="150"
+                                height="48"
+                                style="display:block; margin:0 auto; max-height:48px; object-fit:contain;"
+                            />
+                        </a>
+                    </div>
+                <h3 class="fw-semibold mb-4">Select your role</h3>
                 <form action="{{ route('register.store-role') }}" method="POST" id="roleForm">
                     @csrf
                     <input type="hidden" name="role" id="selectedRole">

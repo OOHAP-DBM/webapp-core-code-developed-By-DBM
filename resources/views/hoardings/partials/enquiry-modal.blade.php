@@ -263,7 +263,7 @@
                 </div>
                 {{-- ADD THIS HERE --}}
                {{-- @dump($hoarding->hoarding_type) --}}
-                <div id="doohFields" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 p-4 mb-5 bg-green-50 rounded-lg border border-green-100" style="display:none;">
+                <!-- <div id="doohFields" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 p-4 mb-5 bg-green-50 rounded-lg border border-green-100" style="display:none;">
                     <div class="sm:col-span-2">
                         <p class="text-[#2F5D46] font-bold mb-1">Digital Ad Settings</p>
                         <hr class="border-green-200 mb-3">
@@ -279,7 +279,7 @@
                 </div>
                 <div id="doohNote" class="p-3 bg-blue-50 border border-blue-100 rounded-lg" style="display:none;">
                     <p class="text-blue-700 text-xs italic font-medium">Digital Note: This hoarding uses ad-loop slots. Final pricing depends on loop frequency.</p>
-                </div>
+                </div> -->
 
                 <div>
                     <label class="font-medium">Describe your requirement</label>

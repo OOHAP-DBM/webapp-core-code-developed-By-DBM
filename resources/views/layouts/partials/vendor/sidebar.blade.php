@@ -25,18 +25,29 @@
         ✕
     </button>
 
-    <div class="p-6 text-center sidebar-hide-when-collapsed">
+    <div class=" text-center sidebar-hide-when-collapsed px-4 pt-5">
         <!-- Logo -->
-        @php
+        <!-- @php
             $logoPath = public_path('assets/images/logo/logo_image.jpeg');
             $logoVersion = file_exists($logoPath) ? filemtime($logoPath) : null;
-        @endphp
-        <a href="{{ route('home') }}" class="flex items-center">
+        @endphp -->
+        <!-- <a href="{{ route('home') }}" class="flex items-center">
             <img
                 src="{{ route('brand.oohapp-logo') }}{{ $logoVersion ? ('?v=' . $logoVersion) : '' }}"
                 alt="OOHAPP"
                 class="h-7 w-auto"
             >
+        </a> -->
+
+         <a href="{{ route('home') }}" class="flex items-center space-x-1.5">
+            <x-optimized-image
+                :src="route('brand.oohapp-logo')"
+                alt="OOHApp company logo"
+            
+                width="150"
+                height="48"
+                style="max-height:48px;object-fit:contain;"
+            />
         </a>
     </div>
 

@@ -31,26 +31,23 @@
             @endif
         </span>
     </div>
-    <div class="grid grid-cols-3 gap-4">
+    <!-- <div class="grid grid-cols-3 gap-4">
         <span class="text-gray-500">Available From</span>
         <span class="col-span-2 font-medium text-gray-900">{{ optional($hoarding->available_from)->format('M d, Y') ?? '-' }}</span>
     </div>
     <div class="grid grid-cols-3 gap-4">
         <span class="text-gray-500">Available To</span>
         <span class="col-span-2 font-medium text-gray-900">{{ optional($hoarding->available_to)->format('M d, Y') ?? '-' }}</span>
-    </div>
-    <div class="grid grid-cols-3 gap-4">
-        <span class="text-gray-500">Lighting / Screen Type</span>
-        <span class="col-span-2 font-medium text-gray-900">
-            @if($hoarding->hoarding_type === 'ooh' && $hoarding->ooh)
-                {{ ucfirst($hoarding->ooh->lighting_type ?? '-') }}
-            @elseif($hoarding->hoarding_type === 'dooh' && $hoarding->doohScreen)
+    </div> -->
+   @if($hoarding->hoarding_type === 'dooh')
+        <div class="grid grid-cols-3 gap-4">
+            <span class="text-gray-500">Lighting / Screen Type</span>
+            <span class="col-span-2 font-medium text-gray-900">
                 {{ strtoupper($hoarding->doohScreen->screen_type ?? '-') }}
-            @else
-                -
-            @endif
-        </span>
-    </div>
+            </span>
+        </div>
+    @endif
+
     @if($hoarding->hoarding_type === 'dooh' && $hoarding->doohScreen)
     <!-- <div class="grid grid-cols-3 gap-4">
         <span class="text-gray-500">Resolution</span>

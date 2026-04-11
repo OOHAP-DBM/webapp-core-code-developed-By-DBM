@@ -43,7 +43,7 @@ Route::middleware(['auth:sanctum', 'role:vendor|admin|superadmin'])
     Route::get('/upi',                      [VendorPaymentDetailController::class, 'getUpi']);
     Route::post('/upi',                     [VendorPaymentDetailController::class, 'storeUpi']);
     Route::post('/upi/remove-qr',           [VendorPaymentDetailController::class, 'removeQrImage']);
- 
+    Route::get('/bookings/{id}/reminder-history', [POSBookingController::class, 'getReminderHistory']);
 
     // ============================================
     // CRITICAL: Payment Status Management
@@ -73,7 +73,7 @@ Route::middleware(['auth:sanctum', 'role:vendor|admin|superadmin'])
      * Send payment reminder for pending booking
      * POST /api/v1/vendor/pos/bookings/{id}/send-reminder
      */
-    // Route::post('/bookings/{id}/send-reminder', [POSBookingController::class, 'sendReminder']);
+    Route::post('/bookings/{id}/send-reminder', [POSBookingController::class, 'sendReminder']);
     
     // ============================================
     // Legacy Payment Actions (kept for compatibility)

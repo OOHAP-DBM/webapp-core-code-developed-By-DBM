@@ -50,8 +50,8 @@
                             <div>Name : <span class="font-medium">{{ $enquiry->customer->name ?? '' }}</span></div>
                             <div>Business Name : <span>{{ $enquiry->customer->company_name ?? 'N/A' }}</span></div>
                             <div>GSTIN : <span>{{ $enquiry->customer->gstin ?? 'N/A' }}</span></div>
-                            <div>Mobile : <span>{{ $enquiry->customer->phone ?? '' }}</span></div>
-                            <div>Address : <span>{{ $enquiry->customer->address ?? $enquiry->customer->billing_address ?? '' }}</span></div>
+                            <div>Mobile : <span>{{ $enquiry->contact_number ?? $enquiry->customer->phone ?? '' }}</span></div>
+                            <div>Address : <span>{{ $enquiry->customer->address ?? $enquiry->customer->billing_address ?? $enquiry->customer->billing_city ?? $enquiry->customer->billing_state ?? '' }}</span></div>
                         </div>
                     </div>
                     {{-- Column 2: Enquiry Details --}}
@@ -87,7 +87,7 @@
         {{-- ===== HOARDINGS SECTION: Accordion ===== --}}
         <div class="rounded mb-6">
             <div class="flex items-center justify-between px-6 py-3">
-                <span class="font-semibold text-sm">Hoardings / Screens ({{ $enquiry->items->count() }})</span>
+                <span class="font-semibold text-sm">Hoardings ({{ $enquiry->items->count() }})</span>
                 <button @click="openHoardings = !openHoardings"
                     class="flex items-center cursor-pointer gap-1 text-xs bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
                     <span x-text="openHoardings ? 'Collapse' : 'Expand'"></span>
@@ -114,7 +114,7 @@
                                 <span class="text-gray-900">{{ $type }}</span>
                                 <span class="text-gray-500 font-normal text-xs">({{ $items->count() }} items)</span>
                             </div>
-                            <span class="text-xs text-gray-500 font-normal">{{ $typeDescriptions[$type] ?? 'Selected hoardings for the offer' }}</span>
+                            <span class="text-xs text-gray-500 font-normal hidden sm:inline">{{ $typeDescriptions[$type] ?? 'Selected hoardings for the offer' }}</span>
                         </div>
                         <div class="overflow-x-auto border border-gray-200 rounded">
                             <table class="w-full text-xs">

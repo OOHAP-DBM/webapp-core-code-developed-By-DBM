@@ -6,8 +6,14 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-1">My Offers</h1>
-            <p class="text-muted">View and manage your special offers</p>
+            <div class="d-flex align-items-center gap-2">
+                <!-- Mobile Back Button -->
+                <button onclick="window.history.back()" type="button" class="d-inline-flex d-md-none align-items-center justify-content-center rounded-circle text-secondary border-0 bg-transparent me-2" style="font-size:1.25rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <h1 class="h3 mb-0">My Offers</h1>
+            </div>
+            <p class="text-muted mt-2">View and manage your special offers</p>
         </div>
     </div>
 

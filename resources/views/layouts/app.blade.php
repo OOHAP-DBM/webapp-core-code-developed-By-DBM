@@ -85,7 +85,7 @@
             "height": 512
           },
           "telephone": "+91 8118805835",
-          "email": "info@oohapp.io",
+          "email": "enquiry@oohapp.io",
           "foundingDate": "2022",
           "areaServed": { "@type": "Country", "name": "India" }
         },
@@ -97,7 +97,7 @@
           "url": "https://oohapp.io/",
           "image": { "@type": "ImageObject", "url": "https://oohapp.io/assets/images/favicon/Vector%20(1).png" },
           "telephone": "+91 8118805835",
-          "email": "info@oohapp.io",
+          "email": "enquiry@oohapp.io",
           "priceRange": "INR"
         },
         {
@@ -113,9 +113,9 @@
 
 </head>
 <body class="antialiased">
-    <div id="app" class="min-h-screen bg-white">
+    <div id="app" class="min-h-screen bg-white w-full ">
         <!-- Main Content -->
-        <main class="md:mt-16 mt-28 md:mt-5">
+        <main class="mt-[90px]">
             @yield('content')
         </main>
 
@@ -189,7 +189,7 @@
                 btn.textContent = 'Remove';
                 btn.classList.add('remove');
             } else {
-                btn.textContent = 'Add to Shortlist';
+                btn.textContent = 'Shortlist';
                 btn.classList.add('add');
             }
         }

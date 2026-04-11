@@ -18,12 +18,12 @@
                 {{ $hoarding->locality ?? '-' }}
             </span>
         </div>
-        <div class="grid grid-cols-3 gap-4">
+        <!-- <div class="grid grid-cols-3 gap-4">
             <span class="text-gray-500">Landmark</span>
             <span class="col-span-2 font-medium text-gray-900">
                 {{ $hoarding->landmark ?? '-' }}
             </span>
-        </div>
+        </div> -->
         <div class="grid grid-cols-3 gap-4">
             <span class="text-gray-500">Pincode</span>
             <span class="col-span-2 font-medium text-gray-900">
@@ -48,7 +48,7 @@
                 {{ $hoarding->country ?? '-' }}
             </span>
         </div>
-        <div class="grid grid-cols-3 gap-4">
+        <!-- <div class="grid grid-cols-3 gap-4">
             <span class="text-gray-500">Geotag Link</span>
             <span class="col-span-2 font-medium">
                 @if($hoarding->geotag_link)
@@ -63,7 +63,7 @@
             <span class="col-span-2 font-medium text-gray-900">
                 {{ $hoarding->google_map_address ?? '-' }}
             </span>
-        </div>
+        </div> -->
         <div class="grid grid-cols-3 gap-4">
             <span class="text-gray-500">Coordinates</span>
             <span class="col-span-2 text-xs text-emerald-500 font-medium">

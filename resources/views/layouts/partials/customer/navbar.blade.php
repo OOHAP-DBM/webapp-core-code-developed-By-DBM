@@ -3,12 +3,12 @@
 
     {{-- SEARCH BAR (Desktop & Tablet only) --}}
     <p></p>
-    @include('components.customer.home-search')
+    <!-- @include('components.customer.home-search') -->
 
     {{-- RIGHT SIDE ACTIONS --}}
     {{-- Changed space-x to gap for better compatibility with 'order' utilities --}}
     {{-- Removed heavy right margins that were pushing icons off-screen on mobile --}}
-    <div class="flex items-center gap-2 sm:gap-3 md:gap-5 pr-2 md:mr-4 lg:mr-10 xl:mr-12">
+    <div class="flex items-center gap-2 sm:gap-3 md:gap-5 pr-2 md:mr-4 ">
 
         {{-- Mobile Hamburger Button --}}
         <button id="mobile-menu-btn"

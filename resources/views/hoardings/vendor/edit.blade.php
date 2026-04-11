@@ -18,9 +18,9 @@
 
 <div class="py-4 px-2 sm:px-4 md:px-6 lg:px-8 w-full max-w-8xl mx-auto">
     <!-- Stepper -->
-    <div class="w-full max-w-5xl mx-auto py-6">
-        <div class="flex items-stretch w-full bg-white border border-gray-300 rounded-full overflow-hidden h-16 shadow-sm">
-            <div class="relative flex-1 flex items-center justify-center gap-3 pr-6 
+    <div class="w-full max-w-5xl mx-auto py-3 md:py-6">
+        <div class="flex items-stretch w-full bg-white border border-gray-300 rounded-full overflow-hidden h-12 md:h-16 shadow-sm">
+            <div class="relative flex-1 flex items-center justify-center gap-3 md:pr-6 
                 {{ $step >= 1 ? 'bg-white' : 'bg-gray-50' }}"
                 style="clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%);">
                 <div class="flex items-center justify-center w-8 h-8 rounded-full 
@@ -30,13 +30,13 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                     @else
-                        <span>1</span>
+                        <span class="text-xs md:text-base">1</span>
                     @endif
                 </div>
-                <span class="font-semibold {{ $step >= 1 ? 'text-[#009A5C]' : 'text-gray-400' }}">Basic Info</span>
+                <span class="text-xs md:text-base font-semibold {{ $step >= 1 ? 'text-[#009A5C]' : 'text-gray-400' }}">Basic Info</span>
             </div>
 
-            <div class="relative flex-1 flex items-center justify-center gap-3 px-6 border-l border-gray-300
+            <div class="relative flex-1 flex items-center justify-center gap-3 md:px-6 border-l border-gray-300
                 {{ $step >= 2 ? 'bg-white' : 'bg-gray-50' }}"
                 style="clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%, 5% 50%);">
                 <div class="flex items-center justify-center w-8 h-8 rounded-full 
@@ -46,20 +46,20 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                     @else
-                        <span>2</span>
+                        <span class="text-xs md:text-base">2</span>
                     @endif
                 </div>
-                <span class="font-semibold {{ $step >= 2 ? 'text-[#009A5C]' : 'text-gray-400' }}">Settings</span>
+                <span class="text-xs md:text-base font-semibold {{ $step >= 2 ? 'text-[#009A5C]' : 'text-gray-400' }}">Settings</span>
             </div>
 
-            <div class="relative flex-1 flex items-center justify-center gap-3 pl-6 border-l border-gray-300
+            <div class="relative flex-1 flex items-center justify-center gap-3 md:pl-6 border-l border-gray-300
                 {{ $step >= 3 ? 'bg-white' : 'bg-gray-50' }}"
                 style="clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 5% 50%);">
                 <div class="flex items-center justify-center w-8 h-8 rounded-full 
                     {{ $step >= 3 ? 'bg-[#009A5C]' : 'bg-gray-400' }} text-white">
-                    <span>3</span>
+                    <span class="text-xs md:text-base">3</span>
                 </div>
-                <span class="font-semibold {{ $step >= 3 ? 'text-[#009A5C]' : 'text-gray-400' }}">Pricing</span>
+                <span class="text-xs md:text-base font-semibold {{ $step >= 3 ? 'text-[#009A5C]' : 'text-gray-400' }}">Pricing</span>
             </div>
         </div>
     </div>

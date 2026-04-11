@@ -171,14 +171,18 @@ class POSCustomerController extends Controller
 
                 /** @var User $user */
                 $user = User::create([
-                    'name'        => $request->name,
-                    'email'       => $request->email,
-                    'phone'       => $request->phone,
-                    'password'    => Hash::make($request->password),
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'password' => Hash::make($request->password),
                     'active_role' => 'customer',
-                    'gstin'       => $request->gstin,
-                    'address'     => $fullAddress ?: null,
-                    'status'      => 'active',
+                    'gstin' => $request->gstin,
+                    'billing_address' => $fullAddress,
+                    'billing_pincode' => $request->pincode,
+                    'billing_state' => $request->state,
+                    'billing_city' => $request->city,
+                    'country' => $request->country,
+                    'status' => 'active',
                 ]);
 
                 $user->assignRole('customer');
