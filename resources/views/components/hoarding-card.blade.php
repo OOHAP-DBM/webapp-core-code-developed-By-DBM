@@ -11,7 +11,7 @@
         <button 
             class="btn-wishlist position-absolute {{ $isWishlisted ? 'active' : '' }}" 
             data-hoarding-id="{{ $hoarding->id }}"
-            title="{{ $isWishlisted ? 'Remove from shortlist' : 'Add to shortlist' }}"
+            title="{{ $isWishlisted ? 'Remove ' : 'shortlist' }}"
             style="top: 12px; right: 12px; z-index: 10;"
         >
             <i class="bi {{ $isWishlisted ? 'bi-heart-fill' : 'bi-heart' }}"></i>

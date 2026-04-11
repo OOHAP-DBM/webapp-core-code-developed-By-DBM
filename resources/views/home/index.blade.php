@@ -18,11 +18,13 @@
             </div>
 
             <!-- Hoardings Grid -->
-            <div id="hoardingGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-                @foreach($bestHoardings as $hoarding)
-                    @include('components.customer.hoarding-card', ['hoarding' => $hoarding])
-                @endforeach
+              <div id="hoardingGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-6">
 
+                @foreach($bestHoardings as $hoarding)
+                    <div class="h-[260px] sm:h-[300px] md:h-[340px] lg:h-[360px] xl:h-[400px] flex">
+                        @include('components.customer.hoarding-card', ['hoarding' => $hoarding])
+                    </div>
+                @endforeach
                 <div class="col-span-full mt-8 pt-3 border-t border-gray-200">
                     <div class="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <p class="text-sm text-gray-500 font-medium order-2 sm:order-1">

@@ -194,13 +194,13 @@
                     data-in-cart="{{ $isInCart ? '1' : '0' }}"
                     data-auth="{{ auth()->check() ? '1' : '0' }}"
                     onclick="event.preventDefault(); event.stopPropagation(); toggleCart(this, {{ $hoarding->id }})"
-                    class="cart-btn flex-1 py-2 px-3 text-sm font-semibold rounded cursor-pointer"
+                    class="cart-btn flex-1 py-2 text-sm font-semibold rounded cursor-pointer"
                 ></button>
 
                 @auth
                     <button
                         type="button"
-                        class="flex-1 py-2 px-3 btn-color text-white text-sm font-semibold rounded enquiry-btn cursor-pointer"
+                        class="flex-1 py-2  btn-color text-white text-sm font-semibold rounded enquiry-btn cursor-pointer"
                         data-hoarding-id="{{ $hoarding->id }}"
                         data-grace-days="{{ (int) $hoarding->grace_period_days }}"
                         data-base-price="{{ (!empty($hoarding->monthly_price) && $hoarding->monthly_price > 0) ? $hoarding->monthly_price : ($hoarding->base_monthly_price ?? 0) }}"

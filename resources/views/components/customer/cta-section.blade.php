@@ -3,7 +3,7 @@
         <div class="">
             <!-- Section Header -->
             <div class="text-center mb-8">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                     Why Choose OOHAPP?
                 </h2>
                 <p class="text-lg text-gray-600 max-w-2xl mx-auto">

@@ -9,8 +9,14 @@
                 <div class="flex items-center gap-3 ">
                     <!-- Logo -->
                     <div class="flex items-center flex-shrink-0">
-                        <a href="{{ route('home') }}" class="flex items-center">
-                            <img src="{{ asset('assets/images/oohapp-logo.jpeg') }}" alt="OOHApp logo" style="max-height:80px;object-fit:contain;" height="80" />
+                       <a href="{{ route('home') }}" class="d-inline-block">
+                            <x-optimized-image
+                                :src="route('brand.oohapp-logo')"
+                                alt="OOHApp company logo"
+                                width="150"
+                                height="48"
+                                style="display:block; margin:0 auto; max-height:48px; object-fit:contain;"
+                            />
                         </a>
                     </div>
                 </div>

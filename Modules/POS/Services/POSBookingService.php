@@ -218,7 +218,7 @@ class POSBookingService
                 'payment_status'   => $paymentStatus,
                 'status'           => $bookingStatus,
                 'hold_expiry_at'   => $holdExpiryAt,
-
+                'po_file_path'     => $data['po_file_path'] ?? null,
                 // Milestone fields
                 'is_milestone'               => (bool) ($data['is_milestone'] ?? false),
                 'milestone_total'            => 0,
